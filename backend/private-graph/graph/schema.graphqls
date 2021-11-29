@@ -74,6 +74,11 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type SubscriptionDetails {
+    discountPercent: Float!
+    discountAmount: Int64!
+}
+
 type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
@@ -612,6 +617,7 @@ type Query {
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
+    subscription_details(workspace_id: ID!): SubscriptionDetails!
 }
 
 type Mutation {

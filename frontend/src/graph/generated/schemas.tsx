@@ -94,6 +94,12 @@ export type BillingDetails = {
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
+export type SubscriptionDetails = {
+    __typename?: 'SubscriptionDetails';
+    discountPercent: Scalars['Float'];
+    discountAmount: Scalars['Int64'];
+};
+
 export type Plan = {
     __typename?: 'Plan';
     type: PlanType;
@@ -632,6 +638,7 @@ export type Query = {
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
+    subscription_details: SubscriptionDetails;
 };
 
 export type QuerySessionArgs = {
@@ -885,6 +892,10 @@ export type QueryApi_Key_To_Org_IdArgs = {
 };
 
 export type QueryCustomer_Portal_UrlArgs = {
+    workspace_id: Scalars['ID'];
+};
+
+export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 

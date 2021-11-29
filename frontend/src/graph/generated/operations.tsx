@@ -1766,6 +1766,17 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
+    subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
+        Types.SubscriptionDetails,
+        'discountAmount' | 'discountPercent'
+    >;
+};
+
 export type GetErrorGroupQueryVariables = Types.Exact<{
     secure_id: Types.Scalars['String'];
 }>;
@@ -2686,6 +2697,7 @@ export const namedOperations = {
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
+        GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,
         GetMessages: 'GetMessages' as const,

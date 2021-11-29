@@ -1,8 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Progress from '@components/Progress/Progress';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import { useGetSubscriptionDetailsQuery } from '@graph/hooks';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
 import { BILLING_PLANS } from '@pages/Billing/BillingPlanCard/BillingConfig';
+import { useParams } from '@util/react-router/useParams';
 import { Divider } from 'antd';
 import moment from 'moment';
 import React from 'react';
@@ -21,7 +23,7 @@ export const BillingStatusCard = ({
     memberLimit,
     subscriptionInterval,
     allowOverage,
-    loading,
+    billingLoading,
     billingPeriodEnd,
     nextInvoiceDate,
 }: {
@@ -32,11 +34,29 @@ export const BillingStatusCard = ({
     memberLimit: number;
     subscriptionInterval: SubscriptionInterval;
     allowOverage: boolean;
-    loading: boolean;
+    billingLoading: boolean;
     billingPeriodEnd: Date;
     nextInvoiceDate: Date;
 }) => {
     const { isHighlightAdmin } = useAuthContext();
+    const { workspace_id } = useParams<{ workspace_id: string }>();
+
+    const {
+        loading: subscriptionLoading,
+        data: subscriptionData,
+    } = useGetSubscriptionDetailsQuery({
+        variables: {
+            workspace_id,
+        },
+    });
+
+    const discountAmount =
+        subscriptionData?.subscription_details.discountAmount / 100;
+    const discountPercent =
+        subscriptionData?.subscription_details.discountPercent;
+    const hasDiscount = !!discountAmount || !!discountPercent;
+
+    const loading = billingLoading || subscriptionLoading;
 
     let sessionsOverage = sessionCount - sessionLimit;
     if (!allowOverage || sessionsOverage < 0) {
@@ -58,10 +78,18 @@ export const BillingStatusCard = ({
     const overageSubtotal =
         Math.ceil(sessionsOverage / 1000) * SESSIONS_PRICE_PER_THOUSAND;
 
-    const total =
+    let total =
         (nextInvoiceDate < billingPeriodEnd ? 0 : baseSubtotal) +
         membersSubtotal +
         overageSubtotal;
+
+    if (!!discountAmount) {
+        total = Math.max(0, total - discountAmount);
+    }
+
+    if (!!discountPercent) {
+        total = Math.round(Math.max(0, total * (100 - discountPercent))) / 100;
+    }
 
     const nextBillingDate =
         nextInvoiceDate < billingPeriodEnd ? nextInvoiceDate : billingPeriodEnd;
@@ -176,28 +204,43 @@ export const BillingStatusCard = ({
                         )}
                     </div>
                     <Divider />
-                    <div className={styles.cardTotalContainer}>
+                    <div className={styles.cardTotalRow}>
                         {loading ? (
-                            <>
-                                <Skeleton width="120px" />
-                                <Skeleton width="45px" />
-                            </>
-                        ) : (
-                            <>
-                                {nextBillingDate && (
-                                    <span>
-                                        Due{' '}
-                                        {moment(nextBillingDate).format(
-                                            'M/D/YY'
-                                        )}
-                                        :
-                                    </span>
-                                )}
-                                <span className={styles.subtotal}>
-                                    ${formatNumberWithDelimiters(total)}{' '}
+                            <Skeleton width="120px" />
+                        ) : hasDiscount ? (
+                            discountPercent !== 0 ? (
+                                <span>Discount: {discountPercent}% off</span>
+                            ) : (
+                                <span>
+                                    Discount: $
+                                    {formatNumberWithDelimiters(discountAmount)}{' '}
+                                    off
                                 </span>
-                            </>
-                        )}
+                            )
+                        ) : null}
+                        <span className={styles.cardTotalContainer}>
+                            {loading ? (
+                                <>
+                                    <Skeleton width="120px" />
+                                    <Skeleton width="45px" />
+                                </>
+                            ) : (
+                                <>
+                                    {nextBillingDate && (
+                                        <span>
+                                            Due{' '}
+                                            {moment(nextBillingDate).format(
+                                                'M/D/YY'
+                                            )}
+                                            :
+                                        </span>
+                                    )}
+                                    <span className={styles.subtotal}>
+                                        ${formatNumberWithDelimiters(total)}{' '}
+                                    </span>
+                                </>
+                            )}
+                        </span>
                     </div>
                 </>
             )}

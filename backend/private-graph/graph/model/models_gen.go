@@ -149,6 +149,11 @@ type SocialLink struct {
 	Link *string    `json:"link"`
 }
 
+type SubscriptionDetails struct {
+	DiscountPercent float64 `json:"discountPercent"`
+	DiscountAmount  int64   `json:"discountAmount"`
+}
+
 type TopUsersPayload struct {
 	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`

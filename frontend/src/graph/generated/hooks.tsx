@@ -4625,6 +4625,63 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQuery,
     Types.GetBillingDetailsQueryVariables
 >;
+export const GetSubscriptionDetailsDocument = gql`
+    query GetSubscriptionDetails($workspace_id: ID!) {
+        subscription_details(workspace_id: $workspace_id) {
+            discountAmount
+            discountPercent
+        }
+    }
+`;
+
+/**
+ * __useGetSubscriptionDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetSubscriptionDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSubscriptionDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSubscriptionDetailsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetSubscriptionDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export function useGetSubscriptionDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export type GetSubscriptionDetailsQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsQuery
+>;
+export type GetSubscriptionDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsLazyQuery
+>;
+export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
+    Types.GetSubscriptionDetailsQuery,
+    Types.GetSubscriptionDetailsQueryVariables
+>;
 export const GetErrorGroupDocument = gql`
     query GetErrorGroup($secure_id: String!) {
         error_group(secure_id: $secure_id) {

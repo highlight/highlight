@@ -99,6 +99,8 @@ const BillingPage = () => {
         },
     });
 
+    const [isCancel, setIsCancel] = useState(false);
+
     useEffect(() => {
         const response = pathname.split('/')[4] ?? '';
         if (response === 'success') {
@@ -203,19 +205,37 @@ const BillingPage = () => {
                         </p>
                     </div>
                     <Authorization allowedRoles={[AdminRole.Admin]}>
-                        <Button
-                            trackingId="RedirectToCustomerPortal"
-                            type="primary"
-                            onClick={() => {
-                                getCustomerPortalUrl({
-                                    variables: { workspace_id },
-                                });
-                            }}
-                            loading={loadingCustomerPortal}
-                            className={styles.portalButton}
-                        >
-                            <SvgLogInIcon /> Payment Settings
-                        </Button>
+                        <div className={styles.portalButtonContainer}>
+                            <Button
+                                trackingId="RedirectToCustomerPortal"
+                                type="primary"
+                                onClick={() => {
+                                    setIsCancel(false);
+                                    getCustomerPortalUrl({
+                                        variables: { workspace_id },
+                                    });
+                                }}
+                                loading={loadingCustomerPortal && !isCancel}
+                                className={styles.portalButton}
+                            >
+                                <SvgLogInIcon /> Payment Settings
+                            </Button>
+                            <Button
+                                trackingId="RedirectToCustomerPortal"
+                                type="primary"
+                                danger
+                                onClick={() => {
+                                    setIsCancel(true);
+                                    getCustomerPortalUrl({
+                                        variables: { workspace_id },
+                                    });
+                                }}
+                                loading={loadingCustomerPortal && isCancel}
+                                className={styles.portalButton}
+                            >
+                                <SvgLogInIcon /> Cancel Subscription
+                            </Button>
+                        </div>
                     </Authorization>
                 </div>
                 <BillingStatusCard
@@ -237,7 +257,7 @@ const BillingPage = () => {
                     }
                     nextInvoiceDate={billingData?.workspace?.next_invoice_date}
                     allowOverage={allowOverage}
-                    loading={billingLoading}
+                    billingLoading={billingLoading}
                 />
                 <Authorization allowedRoles={[AdminRole.Admin]}>
                     <div className={styles.annualToggleBox}>
