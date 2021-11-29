@@ -69,7 +69,7 @@ export const BillingPlanCard = ({
                     </>
                 ) : (
                     <span className={styles.extraMembersBreakdown}>
-                        includes current members
+                        {billingPlan.membersIncluded} members included for free
                     </span>
                 )}
             </div>
@@ -83,9 +83,7 @@ export const BillingPlanCard = ({
                             billingPlan.annualPrice * 12
                         )}
                         {billingPlan.type === PlanType.Enterprise ? '+' : ''}{' '}
-                        billed annually
-                        <br />
-                        overage billed monthly
+                        yearly, overage monthly
                     </>
                 ) : (
                     'billed monthly'
