@@ -4,11 +4,9 @@ import Card from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetAdminQuery } from '@graph/hooks';
-import EmailAnimation from '@lottie/email.json';
 import { Landing } from '@pages/Landing/Landing';
 import { auth } from '@util/auth';
 import { message } from 'antd';
-import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
 
 import styles from './VerifyEmailCard.module.scss';
@@ -32,22 +30,31 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     }, [setIsLoading]);
 
     const isEmailVerified = data?.admin?.email_verified || false;
-    //     const isEmailVerified = false;
 
     useEffect(() => {
         if (isEmailVerified) {
             stopPolling();
+        } else {
+            // Show the Intercom message after 5 seconds in case the user needs help.
+            setTimeout(() => {
+                window.Intercom('update', {
+                    hide_default_launcher: false,
+                });
+            }, 1000 * 5);
         }
     }, [isEmailVerified, stopPolling]);
 
     return (
         <Landing>
             <Card className={styles.card}>
-                <Lottie
-                    animationData={EmailAnimation}
-                    className={styles.animation}
-                />
-                <h2>{!isEmailVerified ? 'Verify Email' : 'Email Verified!'}</h2>
+                <h2>
+                    <span>
+                        {!isEmailVerified
+                            ? 'Verifying Email'
+                            : 'Email Verified!'}
+                    </span>
+                    {!isEmailVerified && <Dot pulse className={styles.dot} />}
+                </h2>
 
                 {isEmailVerified && (
                     <>
@@ -71,13 +78,9 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
                             link to verify your email.
                         </p>
 
-                        <div className={styles.dotContainer}>
-                            <Dot pulse className={styles.dot} />
-                            Waiting for email to be verified...
-                        </div>
-
                         <div className={styles.actionsContainer}>
                             <Button
+                                block
                                 trackingId="ResendVerificationEmail"
                                 type="primary"
                                 onClick={() => {
@@ -116,16 +119,7 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
                                 }}
                                 loading={sendingVerificationEmailLoading}
                             >
-                                Resend Verification Email
-                            </Button>
-                            <Button
-                                trackingId="ResendVerificationEmail"
-                                type="default"
-                                onClick={() => {
-                                    window.Intercom('showNewMessage');
-                                }}
-                            >
-                                Chat with the Highlight Team
+                                Resend Email
                             </Button>
                         </div>
                     </>
