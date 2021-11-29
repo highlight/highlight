@@ -3756,6 +3756,8 @@ GROUP BY
 	for i := range tags {
 		temp, _ := tags[i].Value()
 		tagValue, _ := temp.(string)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
 		tagValue = strings.Replace(tagValue, "{", "[\"", 1)
 		tagValue = strings.Replace(tagValue, "}", "\"]", 1)
 		tagValue = strings.Replace(tagValue, ",", "\",\"", -1)
