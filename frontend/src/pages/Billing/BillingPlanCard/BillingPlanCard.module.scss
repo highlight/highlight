@@ -4,13 +4,29 @@
     @include rounded-border;
     display: flex;
     flex-direction: column;
-    height: 360px;
+    height: 400px;
     padding: 24px;
     width: 275px;
 }
 
 .billingPlanTitle {
     color: var(--color-purple) !important;
+}
+
+.extraMembers {
+    align-items: center;
+    color: var(--color-green-600);
+    display: inline-flex;
+    gap: var(--size-xxSmall);
+    height: 30px;
+}
+
+.extraMembersCost {
+    font-size: 18px;
+}
+
+.extraMembersBreakdown {
+    font-size: 14px;
 }
 
 .billingFrequency {

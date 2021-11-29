@@ -26,7 +26,7 @@ import { formatNumberWithDelimiters } from '../../../util/numbers';
 import styles from './BillingStatusCard.module.scss';
 
 const SESSIONS_PRICE_PER_THOUSAND = 5;
-const MEMBERS_PRICE = 20;
+export const MEMBERS_PRICE = 20;
 
 export const BillingStatusCard = ({
     planType,

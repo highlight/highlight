@@ -1,4 +1,5 @@
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
+import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { formatNumberWithDelimiters } from '@util/numbers';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -16,6 +17,7 @@ export const BillingPlanCard = ({
     loading,
     subscriptionInterval,
     disabled,
+    memberCount,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
@@ -23,7 +25,14 @@ export const BillingPlanCard = ({
     loading: boolean;
     subscriptionInterval: SubscriptionInterval;
     disabled?: boolean;
+    memberCount: number;
 }) => {
+    let membersOverage = 0;
+    if (!!billingPlan.membersIncluded) {
+        membersOverage = memberCount - billingPlan.membersIncluded;
+    }
+    const membersPrice = membersOverage * MEMBERS_PRICE;
+
     return (
         <div
             className={classNames(styles.billingPlanCard, {
@@ -46,16 +55,41 @@ export const BillingPlanCard = ({
                 </span>
                 {billingPlan.type !== PlanType.Free && <span>/mo</span>}
             </div>
+            <div className={styles.extraMembers}>
+                {billingPlan.type === PlanType.Free ? null : membersOverage >
+                  0 ? (
+                    <>
+                        <span className={styles.extraMembersCost}>
+                            + ${membersPrice}
+                        </span>
+                        <span className={styles.extraMembersBreakdown}>
+                            (${MEMBERS_PRICE} x {membersOverage} member
+                            {membersOverage > 1 ? 's' : ''})
+                        </span>
+                    </>
+                ) : (
+                    <span className={styles.extraMembersBreakdown}>
+                        includes current members
+                    </span>
+                )}
+            </div>
             <p className={styles.billingFrequency}>
-                {billingPlan.type === PlanType.Free
-                    ? 'no billing'
-                    : subscriptionInterval === SubscriptionInterval.Annual
-                    ? `$${formatNumberWithDelimiters(
-                          billingPlan.annualPrice * 12
-                      )}${
-                          billingPlan.type === PlanType.Enterprise ? '+' : ''
-                      } billed annually`
-                    : 'billed monthly'}
+                {billingPlan.type === PlanType.Free ? (
+                    'no billing'
+                ) : subscriptionInterval === SubscriptionInterval.Annual ? (
+                    <>
+                        $
+                        {formatNumberWithDelimiters(
+                            billingPlan.annualPrice * 12
+                        )}
+                        {billingPlan.type === PlanType.Enterprise ? '+' : ''}{' '}
+                        billed annually
+                        <br />
+                        overage billed monthly
+                    </>
+                ) : (
+                    'billed monthly'
+                )}
             </p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (

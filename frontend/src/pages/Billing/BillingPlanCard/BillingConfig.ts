@@ -6,6 +6,7 @@ export type BillingPlan = {
     annualPrice: number;
     type: PlanType;
     advertisedFeatures: string[];
+    membersIncluded?: number;
 };
 
 const freePlan: BillingPlan = {
@@ -27,6 +28,7 @@ const basicPlan: BillingPlan = {
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
+    membersIncluded: 2,
 };
 
 const startupPlan: BillingPlan = {
@@ -40,6 +42,7 @@ const startupPlan: BillingPlan = {
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
+    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
@@ -54,6 +57,7 @@ const enterprisePlan: BillingPlan = {
         'On-premise deployments',
         'SSO/SAML',
     ],
+    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [
