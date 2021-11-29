@@ -96,6 +96,7 @@ export type BillingDetails = {
 
 export type SubscriptionDetails = {
     __typename?: 'SubscriptionDetails';
+    baseAmount: Scalars['Int64'];
     discountPercent: Scalars['Float'];
     discountAmount: Scalars['Int64'];
 };

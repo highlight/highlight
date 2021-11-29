@@ -3603,12 +3603,17 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return &modelInputs.SubscriptionDetails{}, nil
 	}
 
+	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+
 	discount := c.Subscriptions.Data[0].Discount
 	if discount == nil || discount.Coupon == nil {
-		return &modelInputs.SubscriptionDetails{}, nil
+		return &modelInputs.SubscriptionDetails{
+			BaseAmount: amount,
+		}, nil
 	}
 
 	return &modelInputs.SubscriptionDetails{
+		BaseAmount:      amount,
 		DiscountAmount:  discount.Coupon.AmountOff,
 		DiscountPercent: discount.Coupon.PercentOff,
 	}, nil

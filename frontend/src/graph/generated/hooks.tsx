@@ -4628,6 +4628,7 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
 export const GetSubscriptionDetailsDocument = gql`
     query GetSubscriptionDetails($workspace_id: ID!) {
         subscription_details(workspace_id: $workspace_id) {
+            baseAmount
             discountAmount
             discountPercent
         }

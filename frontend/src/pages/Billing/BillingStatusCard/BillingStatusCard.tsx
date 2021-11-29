@@ -50,6 +50,8 @@ export const BillingStatusCard = ({
         },
     });
 
+    const baseAmount = subscriptionData?.subscription_details.baseAmount / 100;
+
     const discountAmount =
         subscriptionData?.subscription_details.discountAmount / 100;
     const discountPercent =
@@ -71,9 +73,10 @@ export const BillingStatusCard = ({
     const matchedPlan = BILLING_PLANS.find((p) => p.name === planType);
 
     const baseSubtotal =
-        subscriptionInterval === SubscriptionInterval.Annual
+        baseAmount ??
+        (subscriptionInterval === SubscriptionInterval.Annual
             ? (matchedPlan?.annualPrice ?? 0) * 12
-            : matchedPlan?.monthlyPrice ?? 0;
+            : matchedPlan?.monthlyPrice ?? 0);
     const membersSubtotal = membersOverage * MEMBERS_PRICE;
     const overageSubtotal =
         Math.ceil(sessionsOverage / 1000) * SESSIONS_PRICE_PER_THOUSAND;

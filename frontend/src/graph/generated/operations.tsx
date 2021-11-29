@@ -1773,7 +1773,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
     subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
         Types.SubscriptionDetails,
-        'discountAmount' | 'discountPercent'
+        'baseAmount' | 'discountAmount' | 'discountPercent'
     >;
 };
 

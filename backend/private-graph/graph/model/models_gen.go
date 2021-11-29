@@ -150,6 +150,7 @@ type SocialLink struct {
 }
 
 type SubscriptionDetails struct {
+	BaseAmount      int64   `json:"baseAmount"`
 	DiscountPercent float64 `json:"discountPercent"`
 	DiscountAmount  int64   `json:"discountAmount"`
 }

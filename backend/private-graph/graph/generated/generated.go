@@ -525,6 +525,7 @@ type ComplexityRoot struct {
 	}
 
 	SubscriptionDetails struct {
+		BaseAmount      func(childComplexity int) int
 		DiscountAmount  func(childComplexity int) int
 		DiscountPercent func(childComplexity int) int
 	}
@@ -3770,6 +3771,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.SessionPayloadAppended(childComplexity, args["session_secure_id"].(string), args["initial_events_count"].(int)), true
 
+	case "SubscriptionDetails.baseAmount":
+		if e.complexity.SubscriptionDetails.BaseAmount == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.BaseAmount(childComplexity), true
+
 	case "SubscriptionDetails.discountAmount":
 		if e.complexity.SubscriptionDetails.DiscountAmount == nil {
 			break
@@ -4145,6 +4153,7 @@ type BillingDetails {
 }
 
 type SubscriptionDetails {
+    baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
 }
@@ -20653,6 +20662,41 @@ func (ec *executionContext) _Subscription_session_payload_appended(ctx context.C
 	}
 }
 
+func (ec *executionContext) _SubscriptionDetails_baseAmount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BaseAmount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SubscriptionDetails_discountPercent(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26153,6 +26197,11 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SubscriptionDetails")
+		case "baseAmount":
+			out.Values[i] = ec._SubscriptionDetails_baseAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "discountPercent":
 			out.Values[i] = ec._SubscriptionDetails_discountPercent(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

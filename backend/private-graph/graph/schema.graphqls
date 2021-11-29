@@ -75,6 +75,7 @@ type BillingDetails {
 }
 
 type SubscriptionDetails {
+    baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
 }
