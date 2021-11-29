@@ -30,11 +30,17 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     }, [setIsLoading]);
 
     const isEmailVerified = data?.admin?.email_verified || false;
-    //     const isEmailVerified = false;
 
     useEffect(() => {
         if (isEmailVerified) {
             stopPolling();
+        } else {
+            // Show the Intercom message after 5 seconds in case the user needs help.
+            setTimeout(() => {
+                window.Intercom('update', {
+                    hide_default_launcher: false,
+                });
+            }, 1000 * 5);
         }
     }, [isEmailVerified, stopPolling]);
 
