@@ -41,7 +41,14 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     return (
         <Landing>
             <Card className={styles.card}>
-                <h2>{!isEmailVerified ? 'Verify Email' : 'Email Verified!'}</h2>
+                <h2>
+                    <span>
+                        {!isEmailVerified
+                            ? 'Verifying Email'
+                            : 'Email Verified!'}
+                    </span>
+                    {!isEmailVerified && <Dot pulse className={styles.dot} />}
+                </h2>
 
                 {isEmailVerified && (
                     <>
@@ -65,13 +72,9 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
                             link to verify your email.
                         </p>
 
-                        <div className={styles.dotContainer}>
-                            <Dot pulse className={styles.dot} />
-                            Waiting for email to be verified...
-                        </div>
-
                         <div className={styles.actionsContainer}>
                             <Button
+                                block
                                 trackingId="ResendVerificationEmail"
                                 type="primary"
                                 onClick={() => {
@@ -110,16 +113,7 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
                                 }}
                                 loading={sendingVerificationEmailLoading}
                             >
-                                Resend Verification Email
-                            </Button>
-                            <Button
-                                trackingId="ResendVerificationEmail"
-                                type="default"
-                                onClick={() => {
-                                    window.Intercom('showNewMessage');
-                                }}
-                            >
-                                Chat with the Highlight Team
+                                Resend Email
                             </Button>
                         </div>
                     </>

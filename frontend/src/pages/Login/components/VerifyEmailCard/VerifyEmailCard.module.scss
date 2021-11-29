@@ -1,28 +1,23 @@
 .card {
-    align-items: center;
     display: flex;
     flex-direction: column;
     max-width: 500px;
 
     p {
-        margin-bottom: var(--size-large) !important;
+        margin-bottom: 0 !important;
         margin-top: 0 !important;
     }
 
     h2 {
+        align-items: center;
+        column-gap: var(--size-small);
+        display: flex;
         margin-bottom: var(--size-small) !important;
     }
 
     .dot {
         height: var(--size-small);
         width: var(--size-small);
-    }
-
-    .dotContainer {
-        align-items: center;
-        color: var(--color-gray-500);
-        column-gap: var(--size-small);
-        display: flex;
     }
 
     .actionsContainer {
