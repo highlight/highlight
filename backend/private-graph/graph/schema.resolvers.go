@@ -223,9 +223,13 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
+	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+
 	workspace := &model.Workspace{
-		Admins: []model.Admin{*admin},
-		Name:   &name,
+		Admins:                    []model.Admin{*admin},
+		Name:                      &name,
+		TrialEndDate:              &trialEnd,
+		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {

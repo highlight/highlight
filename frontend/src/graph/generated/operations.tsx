@@ -1736,6 +1736,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
             | 'billing_period_end'
             | 'next_invoice_date'
             | 'allow_meter_overage'
+            | 'eligible_for_trial_extension'
         >
     >;
 };
@@ -1762,6 +1763,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
             | 'billing_period_end'
             | 'next_invoice_date'
             | 'allow_meter_overage'
+            | 'eligible_for_trial_extension'
         >
     >;
 };
