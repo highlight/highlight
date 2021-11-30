@@ -1407,7 +1407,25 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 			slackChannelName := *channel.WebhookChannel
 
 			go func() {
-				if isWebhookChannel {
+				if slackClient != nil {
+					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
+					if strings.Contains(slackChannelName, "#") {
+						_, _, _, err := slackClient.JoinConversation(slackChannelId)
+						if err != nil {
+							log.Error(e.Wrap(err, "failed to join slack channel"))
+							return
+						}
+					}
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
+						slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via bot api"))
+						return
+					}
+				} else if isWebhookChannel {
 					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
 					err := slack.PostWebhook(
 						slackWebhookURL,
@@ -1416,30 +1434,11 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 					if err != nil {
 						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via webhook"))
+						return
 					}
 				} else {
-					// The Highlight Slack bot needs to join the channel before it can send a message.
-					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-					log.Printf("Sending Slack Bot Message")
-					if slackClient != nil {
-						if strings.Contains(slackChannelName, "#") {
-							_, _, _, err := slackClient.JoinConversation(slackChannelId)
-							if err != nil {
-								log.Error(e.Wrap(err, "failed to join slack channel"))
-							}
-						}
-						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
-							slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
-							slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-						)
-						if err != nil {
-							log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
-								Error(e.Wrap(err, "error sending slack msg via bot api"))
-						}
-
-					} else {
-						log.Printf("Slack Bot Client was not defined")
-					}
+					log.Error("couldn't send slack alert, slack client isn't setup AND not webhook channel")
+					return
 				}
 				if err := db.Create(alertEvent).Error; err != nil {
 					log.Error(e.Wrap(err, "error creating alert event"))
