@@ -810,7 +810,7 @@ type AlertEvent struct {
 	Model
 	Type         string
 	ProjectID    int
-	ErrorGroupID *int `gorm:"index:,WHERE error_group_id IS NOT NULL;"`
+	ErrorGroupID *int
 }
 
 var ErrorType = struct {
