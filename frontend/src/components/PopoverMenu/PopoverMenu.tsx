@@ -119,5 +119,5 @@ export const PopoverMenuItem = ({
         );
     }
 
-    return null;
+    throw new Error('`action` or `link` needs to be defined.');
 };
