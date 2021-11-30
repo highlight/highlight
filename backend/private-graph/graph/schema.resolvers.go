@@ -230,6 +230,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		Name:                      &name,
 		TrialEndDate:              &trialEnd,
 		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
+		TrialExtensionEnabled:     false,
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {
