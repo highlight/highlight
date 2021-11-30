@@ -132,7 +132,7 @@ const FreePlanBanner = () => {
         ).format('MM/DD/YY')}. `;
 
         if (canExtend) {
-            bannerMessage = `Integrate Highlight by 
+            bannerMessage = `by 
             ${moment(data?.workspace_for_project?.trial_end_date).format(
                 'MM/DD'
             )} to get 4 months of free Highlight!`;
@@ -143,6 +143,16 @@ const FreePlanBanner = () => {
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
+                {canExtend && (
+                    <>
+                        <Link
+                            className={styles.trialLink}
+                            to={`/${project_id}/setup`}
+                        >
+                            Integrate Highlight
+                        </Link>{' '}
+                    </>
+                )}
                 {bannerMessage}
                 {!canExtend && (
                     <>
