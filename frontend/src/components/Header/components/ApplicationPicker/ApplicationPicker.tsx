@@ -141,33 +141,37 @@ const ApplicationPicker = () => {
                         }
                     />
                 </div>
-                <div>
-                    <PopoverMenu
-                        placement="bottomLeft"
-                        menuItems={projectOptions.map((project) => ({
-                            displayName: project.displayValue,
-                            action: () => {
-                                const path = isWorkspaceLevel
-                                    ? ''
-                                    : pathname
-                                          .split('/')
-                                          .filter((token) => token.length)[1];
-                                history.push(`/${project.id}/${path}`);
-                            },
-                            icon: null,
-                        }))}
-                        buttonTrackingId="ApplicationPickerSettings"
-                        buttonContentsOverride={
-                            <Button
-                                trackingId="ApplicationPickerSettings"
-                                type="text"
-                                iconButton
-                            >
-                                <SvgSwitch2Icon />
-                            </Button>
-                        }
-                    />
-                </div>
+                {projectOptions.length > 0 && (
+                    <div>
+                        <PopoverMenu
+                            placement="bottomLeft"
+                            menuItems={projectOptions.map((project) => ({
+                                displayName: project.displayValue,
+                                action: () => {
+                                    const path = isWorkspaceLevel
+                                        ? ''
+                                        : pathname
+                                              .split('/')
+                                              .filter(
+                                                  (token) => token.length
+                                              )[1];
+                                    history.push(`/${project.id}/${path}`);
+                                },
+                                icon: null,
+                            }))}
+                            buttonTrackingId="ApplicationPickerSettings"
+                            buttonContentsOverride={
+                                <Button
+                                    trackingId="ApplicationPickerSettings"
+                                    type="text"
+                                    iconButton
+                                >
+                                    <SvgSwitch2Icon />
+                                </Button>
+                            }
+                        />
+                    </div>
+                )}
             </Group>
         </div>
     );
