@@ -98,6 +98,7 @@ export { default as SparklesIcon } from './SparklesIcon';
 export { default as SpeechBubbleIcon } from './SpeechBubbleIcon';
 export { default as Star } from './Star';
 export { default as StarFilled } from './StarFilled';
+export { default as Switch2Icon } from './Switch2Icon';
 export { default as Tab } from './Tab';
 export { default as TargetIcon } from './TargetIcon';
 export { default as Trash } from './Trash';

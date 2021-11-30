@@ -71,7 +71,6 @@ const Player = ({ integrated }: Props) => {
         AsyncSelect<SessionSearchOption, true> | undefined
     >(undefined);
     const player = usePlayer();
-    const resources = useResources();
     const {
         state: replayerState,
         scale: replayerScale,
@@ -82,6 +81,7 @@ const Player = ({ integrated }: Props) => {
         isPlayerReady,
         session,
     } = player;
+    const resources = useResources(session);
     const {
         setShowLeftPanel,
         showLeftPanel: showLeftPanelPreference,

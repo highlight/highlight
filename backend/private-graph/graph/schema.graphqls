@@ -47,6 +47,8 @@ type Session {
     is_public: Boolean
     event_counts: String
     direct_download_url: String
+    resources_url: String
+    messages_url: String
 }
 
 type RageClickEvent {
@@ -70,6 +72,12 @@ type BillingDetails {
     meter: Int64!
     membersMeter: Int64!
     sessionsOutOfQuota: Int64!
+}
+
+type SubscriptionDetails {
+    baseAmount: Int64!
+    discountPercent: Float!
+    discountAmount: Int64!
 }
 
 type Plan {
@@ -149,6 +157,8 @@ type Workspace {
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
+    allowed_auto_join_email_origins: String
+    eligible_for_trial_extension: Boolean!
 }
 
 type Segment {
@@ -609,6 +619,7 @@ type Query {
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
+    subscription_details(workspace_id: ID!): SubscriptionDetails!
 }
 
 type Mutation {

@@ -64,6 +64,8 @@ export type Session = {
     is_public?: Maybe<Scalars['Boolean']>;
     event_counts?: Maybe<Scalars['String']>;
     direct_download_url?: Maybe<Scalars['String']>;
+    resources_url?: Maybe<Scalars['String']>;
+    messages_url?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {
@@ -90,6 +92,13 @@ export type BillingDetails = {
     meter: Scalars['Int64'];
     membersMeter: Scalars['Int64'];
     sessionsOutOfQuota: Scalars['Int64'];
+};
+
+export type SubscriptionDetails = {
+    __typename?: 'SubscriptionDetails';
+    baseAmount: Scalars['Int64'];
+    discountPercent: Scalars['Float'];
+    discountAmount: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -174,6 +183,8 @@ export type Workspace = {
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
     allow_meter_overage: Scalars['Boolean'];
+    allowed_auto_join_email_origins?: Maybe<Scalars['String']>;
+    eligible_for_trial_extension: Scalars['Boolean'];
 };
 
 export type Segment = {
@@ -629,6 +640,7 @@ export type Query = {
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
+    subscription_details: SubscriptionDetails;
 };
 
 export type QuerySessionArgs = {
@@ -882,6 +894,10 @@ export type QueryApi_Key_To_Org_IdArgs = {
 };
 
 export type QueryCustomer_Portal_UrlArgs = {
+    workspace_id: Scalars['ID'];
+};
+
+export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 

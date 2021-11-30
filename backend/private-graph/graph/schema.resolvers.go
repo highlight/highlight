@@ -22,6 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -222,9 +223,13 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
+	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+
 	workspace := &model.Workspace{
-		Admins: []model.Admin{*admin},
-		Name:   &name,
+		Admins:                    []model.Admin{*admin},
+		Name:                      &name,
+		TrialEndDate:              &trialEnd,
+		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {
@@ -3012,6 +3017,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType)
+	if workspace.MonthlyMembersLimit != nil {
+		membersLimit = *workspace.MonthlyMembersLimit
+	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
@@ -3560,7 +3568,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {
-		return "", e.Wrap(err, "must have ADMIN role to access the Sripe customer portal")
+		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
 	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
@@ -3576,6 +3584,43 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	return portalSession.URL, nil
+}
+
+func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin does not have workspace access")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to access the subscription details")
+	}
+
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe customer")
+	}
+
+	if len(c.Subscriptions.Data) == 0 {
+		return &modelInputs.SubscriptionDetails{}, nil
+	}
+
+	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+
+	discount := c.Subscriptions.Data[0].Discount
+	if discount == nil || discount.Coupon == nil {
+		return &modelInputs.SubscriptionDetails{
+			BaseAmount: amount,
+		}, nil
+	}
+
+	return &modelInputs.SubscriptionDetails{
+		BaseAmount:      amount,
+		DiscountAmount:  discount.Coupon.AmountOff,
+		DiscountPercent: discount.Coupon.PercentOff,
+	}, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
@@ -3594,16 +3639,42 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
-	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
-
 	// Direct download only supported for clients that accept Brotli content encoding
-	if !obj.DirectDownloadEnabled || !strings.Contains(acceptEncodingString, "br") {
+	if !obj.DirectDownloadEnabled || !r.isBrotliAccepted(ctx) {
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting messages URL")
 	}
 
 	return str, err
@@ -3726,6 +3797,8 @@ GROUP BY
 	for i := range tags {
 		temp, _ := tags[i].Value()
 		tagValue, _ := temp.(string)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
 		tagValue = strings.Replace(tagValue, "{", "[\"", 1)
 		tagValue = strings.Replace(tagValue, "}", "\"]", 1)
 		tagValue = strings.Replace(tagValue, ",", "\",\"", -1)

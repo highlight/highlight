@@ -1,6 +1,5 @@
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
@@ -25,6 +24,7 @@ import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
+    useGetSubscriptionDetailsQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import {
@@ -82,6 +82,16 @@ const BillingPage = () => {
         },
     });
 
+    const {
+        loading: subscriptionLoading,
+        data: subscriptionData,
+        refetch: refetchSubscription,
+    } = useGetSubscriptionDetailsQuery({
+        variables: {
+            workspace_id,
+        },
+    });
+
     const [
         createOrUpdateStripeSubscription,
         { data },
@@ -100,6 +110,8 @@ const BillingPage = () => {
         },
     });
 
+    const [isCancel, setIsCancel] = useState(false);
+
     useEffect(() => {
         const response = pathname.split('/')[4] ?? '';
         if (response === 'success') {
@@ -108,6 +120,7 @@ const BillingPage = () => {
             }).then(() => {
                 message.success('Billing change applied!', 5);
                 refetch();
+                refetchSubscription();
             });
         }
         if (checkoutRedirectFailedMessage) {
@@ -123,6 +136,7 @@ const BillingPage = () => {
         updateBillingDetails,
         workspace_id,
         refetch,
+        refetchSubscription,
     ]);
 
     const createOnSelect = (newPlan: PlanType) => {
@@ -159,6 +173,7 @@ const BillingPage = () => {
                         refetch().then(() => {
                             setLoadingPlanType(null);
                         });
+                        refetchSubscription();
                     });
                 }
             });
@@ -203,23 +218,45 @@ const BillingPage = () => {
                             Manage your billing information.
                         </p>
                     </div>
-                    <HighlightGate>
-                        <Authorization allowedRoles={[AdminRole.Admin]}>
+                    <Authorization allowedRoles={[AdminRole.Admin]}>
+                        <div className={styles.portalButtonContainer}>
                             <Button
                                 trackingId="RedirectToCustomerPortal"
                                 type="primary"
                                 onClick={() => {
+                                    setIsCancel(false);
                                     getCustomerPortalUrl({
                                         variables: { workspace_id },
                                     });
                                 }}
-                                loading={loadingCustomerPortal}
+                                loading={loadingCustomerPortal && !isCancel}
                                 className={styles.portalButton}
                             >
-                                <SvgLogInIcon /> Payment Settings
+                                <SvgLogInIcon
+                                    className={styles.portalButtonIcon}
+                                />{' '}
+                                Payment Settings
                             </Button>
-                        </Authorization>
-                    </HighlightGate>
+                            <Button
+                                trackingId="CancelRedirectToCustomerPortal"
+                                type="primary"
+                                danger
+                                onClick={() => {
+                                    setIsCancel(true);
+                                    getCustomerPortalUrl({
+                                        variables: { workspace_id },
+                                    });
+                                }}
+                                loading={loadingCustomerPortal && isCancel}
+                                className={styles.portalButton}
+                            >
+                                <SvgLogInIcon
+                                    className={styles.portalButtonIcon}
+                                />{' '}
+                                Cancel Subscription
+                            </Button>
+                        </div>
+                    </Authorization>
                 </div>
                 <BillingStatusCard
                     planType={
@@ -240,45 +277,42 @@ const BillingPage = () => {
                     }
                     nextInvoiceDate={billingData?.workspace?.next_invoice_date}
                     allowOverage={allowOverage}
-                    loading={billingLoading}
+                    loading={billingLoading || subscriptionLoading}
+                    subscriptionDetails={subscriptionData?.subscription_details}
                 />
-                <HighlightGate>
-                    <Authorization allowedRoles={[AdminRole.Admin]}>
-                        <div className={styles.annualToggleBox}>
-                            <Switch
-                                loading={billingLoading}
-                                label={
-                                    <span className={styles.annualToggleText}>
-                                        Annual Plan{' '}
-                                        <span
-                                            className={
-                                                styles.annualToggleAltText
-                                            }
-                                        >
-                                            (20% off)
-                                        </span>
+                <Authorization allowedRoles={[AdminRole.Admin]}>
+                    <div className={styles.annualToggleBox}>
+                        <Switch
+                            loading={billingLoading}
+                            label={
+                                <span className={styles.annualToggleText}>
+                                    Annual Plan{' '}
+                                    <span
+                                        className={styles.annualToggleAltText}
+                                    >
+                                        (20% off)
                                     </span>
-                                }
-                                size="default"
-                                labelFirst
-                                justifySpaceBetween
-                                noMarginAroundSwitch
-                                checked={
-                                    subscriptionInterval ===
-                                    SubscriptionInterval.Annual
-                                }
-                                onChange={(isAnnual) => {
-                                    setSubscriptionInterval(
-                                        isAnnual
-                                            ? SubscriptionInterval.Annual
-                                            : SubscriptionInterval.Monthly
-                                    );
-                                }}
-                                trackingId="BillingInterval"
-                            />
-                        </div>
-                    </Authorization>
-                </HighlightGate>
+                                </span>
+                            }
+                            size="default"
+                            labelFirst
+                            justifySpaceBetween
+                            noMarginAroundSwitch
+                            checked={
+                                subscriptionInterval ===
+                                SubscriptionInterval.Annual
+                            }
+                            onChange={(isAnnual) => {
+                                setSubscriptionInterval(
+                                    isAnnual
+                                        ? SubscriptionInterval.Annual
+                                        : SubscriptionInterval.Monthly
+                                );
+                            }}
+                            trackingId="BillingInterval"
+                        />
+                    </div>
+                </Authorization>
                 <div className={styles.billingPlanCardWrapper}>
                     <Authorization
                         allowedRoles={[AdminRole.Admin]}
@@ -301,9 +335,12 @@ const BillingPage = () => {
                                 />
                             ) : (
                                 <BillingPlanCard
-                                    disabled={checkPolicyAccess({
-                                        policyName: POLICY_NAMES.BillingUpdate,
-                                    })}
+                                    disabled={
+                                        !checkPolicyAccess({
+                                            policyName:
+                                                POLICY_NAMES.BillingUpdate,
+                                        })
+                                    }
                                     key={billingPlan.type}
                                     current={
                                         billingData?.billingDetails.plan
@@ -319,6 +356,9 @@ const BillingPage = () => {
                                         loadingPlanType === billingPlan.type
                                     }
                                     subscriptionInterval={subscriptionInterval}
+                                    memberCount={
+                                        billingData?.billingDetails.membersMeter
+                                    }
                                 />
                             )
                         )}

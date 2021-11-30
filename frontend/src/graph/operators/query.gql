@@ -136,6 +136,8 @@ query GetSession($secure_id: String!) {
         is_public
         event_counts
         direct_download_url
+        resources_url
+        messages_url
     }
 }
 
@@ -161,6 +163,7 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
         id
         name
         secret
+        allowed_auto_join_email_origins
     }
     workspace_invite_links(workspace_id: $workspace_id) {
         id
@@ -493,6 +496,7 @@ query GetBillingDetailsForProject($project_id: ID!) {
         billing_period_end
         next_invoice_date
         allow_meter_overage
+        eligible_for_trial_extension
     }
 }
 
@@ -514,6 +518,15 @@ query GetBillingDetails($workspace_id: ID!) {
         billing_period_end
         next_invoice_date
         allow_meter_overage
+        eligible_for_trial_extension
+    }
+}
+
+query GetSubscriptionDetails($workspace_id: ID!) {
+    subscription_details(workspace_id: $workspace_id) {
+        baseAmount
+        discountAmount
+        discountPercent
     }
 }
 

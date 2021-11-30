@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -132,6 +133,7 @@ var Models = []interface{}{
 	&Workspace{},
 	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
+	&AlertEvent{},
 }
 
 func init() {
@@ -173,26 +175,28 @@ type Organization struct {
 
 type Workspace struct {
 	Model
-	Name                  *string
-	Secret                *string // Needed for workspace-level team
-	Admins                []Admin `gorm:"many2many:workspace_admins;"`
-	SlackAccessToken      *string
-	SlackWebhookURL       *string
-	SlackWebhookChannel   *string
-	SlackWebhookChannelID *string
-	SlackChannels         *string
-	Projects              []Project
-	MigratedFromProjectID *int // Column can be removed after migration is done
-	StripeCustomerID      *string
-	StripePriceID         *string
-	PlanTier              string `gorm:"default:Free"`
-	BillingPeriodStart    *time.Time
-	BillingPeriodEnd      *time.Time
-	NextInvoiceDate       *time.Time
-	MonthlySessionLimit   *int
-	MonthlyMembersLimit   *int
-	TrialEndDate          *time.Time `json:"trial_end_date"`
-	AllowMeterOverage     bool       `gorm:"default:false"`
+	Name                        *string
+	Secret                      *string // Needed for workspace-level team
+	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken            *string
+	SlackWebhookURL             *string
+	SlackWebhookChannel         *string
+	SlackWebhookChannelID       *string
+	SlackChannels               *string
+	Projects                    []Project
+	MigratedFromProjectID       *int // Column can be removed after migration is done
+	StripeCustomerID            *string
+	StripePriceID               *string
+	PlanTier                    string `gorm:"default:Free"`
+	BillingPeriodStart          *time.Time
+	BillingPeriodEnd            *time.Time
+	NextInvoiceDate             *time.Time
+	MonthlySessionLimit         *int
+	MonthlyMembersLimit         *int
+	TrialEndDate                *time.Time `json:"trial_end_date"`
+	AllowMeterOverage           bool       `gorm:"default:false"`
+	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
+	EligibleForTrialExtension   bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -802,6 +806,12 @@ type SessionPayload struct {
 	SessionComments []SessionComment `json:"session_comments"`
 }
 
+type AlertEvent struct {
+	Model
+	Type      string
+	ProjectID int
+}
+
 var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
@@ -1166,7 +1176,7 @@ type SendSlackAlertInput struct {
 	Timestamp *time.Time
 }
 
-func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
@@ -1230,6 +1240,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			obj.Type = &AlertType.NEW_USER
 		}
 	}
+	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID}
 	switch *obj.Type {
 	case AlertType.ERROR:
 		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
@@ -1396,6 +1407,13 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			slackChannelName := *channel.WebhookChannel
 
 			go func() {
+				defer func() {
+					if rec := recover(); rec != nil {
+						buf := make([]byte, 64<<10)
+						buf = buf[:runtime.Stack(buf, false)]
+						log.Errorf("panic: %+v\n%s", rec, buf)
+					}
+				}()
 				if isWebhookChannel {
 					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
 					err := slack.PostWebhook(
@@ -1405,30 +1423,32 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 					if err != nil {
 						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via webhook"))
+						return
+					}
+				} else if slackClient != nil {
+					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
+					if strings.Contains(slackChannelName, "#") {
+						_, _, _, err := slackClient.JoinConversation(slackChannelId)
+						if err != nil {
+							log.Error(e.Wrap(err, "failed to join slack channel"))
+							return
+						}
+					}
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
+						slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via bot api"))
+						return
 					}
 				} else {
-					// The Highlight Slack bot needs to join the channel before it can send a message.
-					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-					log.Printf("Sending Slack Bot Message")
-					if slackClient != nil {
-						if strings.Contains(slackChannelName, "#") {
-							_, _, _, err := slackClient.JoinConversation(slackChannelId)
-							if err != nil {
-								log.Error(e.Wrap(err, "failed to join slack channel"))
-							}
-						}
-						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
-							slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
-							slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-						)
-						if err != nil {
-							log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
-								Error(e.Wrap(err, "error sending slack msg via bot api"))
-						}
-
-					} else {
-						log.Printf("Slack Bot Client was not defined")
-					}
+					log.Error("couldn't send slack alert, slack client isn't setup AND not webhook channel")
+					return
+				}
+				if err := db.Create(alertEvent).Error; err != nil {
+					log.Error(e.Wrap(err, "error creating alert event"))
 				}
 			}()
 		}

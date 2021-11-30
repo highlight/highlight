@@ -370,7 +370,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrap(err, "error sending track properties alert slack message")
 			}
@@ -431,7 +431,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrapf(err, "error sending user properties alert slack message")
 			}
@@ -486,7 +486,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
 			}
@@ -550,7 +550,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 			// send Slack message
 			count64 := int64(count)
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace,
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace,
 				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
 				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
 			if err != nil {
@@ -589,12 +589,13 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
+	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -617,7 +618,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
+					Find(&sessions).Debug().Error; err != nil {
 					errs <- err
 					return
 				}
@@ -634,7 +635,7 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			log.Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
 		}

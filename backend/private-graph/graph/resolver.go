@@ -979,6 +979,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
+			"AllowMeterOverage":  tier != modelInputs.PlanTypeFree,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
@@ -1068,6 +1069,11 @@ func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bo
 		return true
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
+}
+
+func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
+	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
+	return strings.Contains(acceptEncodingString, "br")
 }
 
 func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {

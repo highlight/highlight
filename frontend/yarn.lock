@@ -2198,6 +2198,25 @@
   dependencies:
     "@date-io/core" "^1.3.13"
 
+"@dinero.js/calculator-number@2.0.0-alpha.8":
+  version "2.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@dinero.js/calculator-number/-/calculator-number-2.0.0-alpha.8.tgz#dbe9505d8d262415f995105a0cab7661924cc701"
+  integrity sha512-/L+N7g5DjcS6wlMb2hcOXWBKW2TGiG+vZDZr9ow0nsHUTdwtMarL1bmBH9fGldHhH2XsxcrjN9H+036yeNzh3Q==
+  dependencies:
+    "@dinero.js/core" "2.0.0-alpha.8"
+
+"@dinero.js/core@2.0.0-alpha.8":
+  version "2.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@dinero.js/core/-/core-2.0.0-alpha.8.tgz#9a3dc23c72a300a46d2881537dcf911e983029c0"
+  integrity sha512-3jaw2j6J/SshlCZz5KhHkh8zP47HRmt9RpnjR0BJs2awpweVuZIyyX9qzGVUEVpml9IwzQ1U+YdXevhOxtcDgg==
+  dependencies:
+    "@dinero.js/currencies" "2.0.0-alpha.8"
+
+"@dinero.js/currencies@2.0.0-alpha.8":
+  version "2.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@dinero.js/currencies/-/currencies-2.0.0-alpha.8.tgz#aa02a04ce3685a9b06a7ce12f8c924726386c3fd"
+  integrity sha512-zApiqtuuPwjiM9LJA5/kNcT48VSHRiz2/mktkXjIpfxrJKzthXybUAgEenExIH6dYhLDgVmsLQZtZFOsdYl0Ag==
+
 "@emotion/cache@^10.0.27", "@emotion/cache@^10.0.9":
   version "10.0.29"
   resolved "https://registry.yarnpkg.com/@emotion/cache/-/cache-10.0.29.tgz#87e7e64f412c060102d589fe7c6dc042e6f9d1e0"
@@ -7141,6 +7160,15 @@ diffie-hellman@^5.0.0:
     bn.js "^4.1.0"
     miller-rabin "^4.0.0"
     randombytes "^2.0.0"
+
+dinero.js@^2.0.0-alpha.8:
+  version "2.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/dinero.js/-/dinero.js-2.0.0-alpha.8.tgz#5b74042ac807cb3ac372b16fe7a0565916d12f5a"
+  integrity sha512-6bl+g6oh6iQ6vPR5Pd4qr7D+P5e51GYRUT3jl8HYqYeejYC5sd9OVTTbXC3WU7L25mAIbOm+diiTVz1rL4QLwg==
+  dependencies:
+    "@dinero.js/calculator-number" "2.0.0-alpha.8"
+    "@dinero.js/core" "2.0.0-alpha.8"
+    "@dinero.js/currencies" "2.0.0-alpha.8"
 
 dir-glob@^3.0.1:
   version "3.0.1"
