@@ -218,10 +218,13 @@ const BillingPage = () => {
                                 loading={loadingCustomerPortal && !isCancel}
                                 className={styles.portalButton}
                             >
-                                <SvgLogInIcon /> Payment Settings
+                                <SvgLogInIcon
+                                    className={styles.portalButtonIcon}
+                                />{' '}
+                                Payment Settings
                             </Button>
                             <Button
-                                trackingId="RedirectToCustomerPortal"
+                                trackingId="CancelRedirectToCustomerPortal"
                                 type="primary"
                                 danger
                                 onClick={() => {
@@ -233,7 +236,10 @@ const BillingPage = () => {
                                 loading={loadingCustomerPortal && isCancel}
                                 className={styles.portalButton}
                             >
-                                <SvgLogInIcon /> Cancel Subscription
+                                <SvgLogInIcon
+                                    className={styles.portalButtonIcon}
+                                />{' '}
+                                Cancel Subscription
                             </Button>
                         </div>
                     </Authorization>

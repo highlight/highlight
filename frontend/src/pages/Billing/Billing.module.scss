@@ -42,6 +42,10 @@
     row-gap: var(--size-xSmall);
 }
 
+.portalButtonIcon {
+    flex-shrink: 0;
+}
+
 .titleContainer {
     align-items: flex-start;
     display: flex;

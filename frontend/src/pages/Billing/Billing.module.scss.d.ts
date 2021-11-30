@@ -8,5 +8,6 @@ export const infoTooltip: string;
 export const overageToggle: string;
 export const portalButton: string;
 export const portalButtonContainer: string;
+export const portalButtonIcon: string;
 export const subTitle: string;
 export const titleContainer: string;
