@@ -74,6 +74,12 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type SubscriptionDetails {
+    baseAmount: Int64!
+    discountPercent: Float!
+    discountAmount: Int64!
+}
+
 type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
@@ -152,6 +158,7 @@ type Workspace {
     next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
     allowed_auto_join_email_origins: String
+    eligible_for_trial_extension: Boolean!
 }
 
 type Segment {
@@ -612,6 +619,7 @@ type Query {
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
+    subscription_details(workspace_id: ID!): SubscriptionDetails!
 }
 
 type Mutation {

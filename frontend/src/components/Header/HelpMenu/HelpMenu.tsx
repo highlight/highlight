@@ -64,22 +64,16 @@ const HelpMenu = () => {
                     <PopoverListContent
                         small
                         className={popoverMenuStyles.popoverMenuList}
-                        listItems={leadMenuItems.map((menuItem) => (
-                            <PopoverMenuItem
-                                {...menuItem}
-                                key={menuItem.displayName}
-                            />
+                        listItems={leadMenuItems.map((menuItem, index) => (
+                            <PopoverMenuItem {...menuItem} key={index} />
                         ))}
                     />
                     <hr className={styles.divider} />
                     <PopoverListContent
                         small
                         className={popoverMenuStyles.popoverMenuList}
-                        listItems={endMenuItems.map((menuItem) => (
-                            <PopoverMenuItem
-                                {...menuItem}
-                                key={menuItem.displayName}
-                            />
+                        listItems={endMenuItems.map((menuItem, index) => (
+                            <PopoverMenuItem {...menuItem} key={index} />
                         ))}
                     />
                 </>

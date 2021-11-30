@@ -24,6 +24,7 @@
         "classnames": "^2.2.6",
         "color-hash": "^2.0.1",
         "craco-antd": "^1.19.0",
+        "dinero.js": "^2.0.0-alpha.8",
         "eslint-plugin-simple-import-sort": "^7.0.0",
         "firebase": "^7.19.1",
         "framer-motion": "^4.1.17",

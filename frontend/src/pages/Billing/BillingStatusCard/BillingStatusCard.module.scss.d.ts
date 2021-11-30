@@ -1,6 +1,7 @@
 export const cardSubtitleContainer: string;
 export const cardTitle: string;
 export const cardTotalContainer: string;
+export const cardTotalRow: string;
 export const fieldsBox: string;
 export const planText: string;
 export const progressContainer: string;
