@@ -1293,7 +1293,6 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 				Blocks: slack.Blocks{BlockSet: blockSet},
 			},
 		}
-		alertEvent.MetaData = JSONB{"event": input.Group.Event}
 	case AlertType.NEW_USER:
 		// construct Slack message
 		previewText = "Highlight: New User Alert"
