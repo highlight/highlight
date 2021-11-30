@@ -390,7 +390,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     }
                 });
                 const onlyUrlEvents = getAllUrlEvents(newEvents);
-                setCurrentUrl(onlyUrlEvents[0].data.payload);
+                if (onlyUrlEvents.length >= 1) {
+                    setCurrentUrl(onlyUrlEvents[0].data.payload);
+                }
                 r.on('resize', (_e) => {
                     const e = _e as viewportResizeDimension;
                     setViewport(e);
