@@ -296,18 +296,8 @@ const ConsoleRender = ({
     searchTerm: string;
 }) => {
     const input: Array<any> = typeof m === 'string' ? [m] : m;
-    const result: Array<string | object> = [];
-    // bundle strings together.
-    for (let i = 0; i < input.length; i++) {
-        if (
-            typeof input[i] === 'string' &&
-            typeof result[result.length - 1] === 'string'
-        ) {
-            result[result.length - 1] += ' ' + input[i];
-        } else {
-            result.push(input[i]);
-        }
-    }
+    const result: Array<string | object> = processMessageStrings(input);
+
     return (
         <div>
             {result.map((r) =>
@@ -333,4 +323,31 @@ const ConsoleRender = ({
             )}
         </div>
     );
+};
+
+const processMessageStrings = (
+    message: Array<string | object>
+): Array<string | object> => {
+    const res: Array<string | object> = [];
+
+    message.forEach((_m) => {
+        let m = _m;
+        if (typeof m === 'string') {
+            // Remove escaped quotes at the start and the end of the message.
+            if (m.length > 0 && m[0] === '"' && m[m.length - 1] === '"') {
+                m = `${m.slice(1, m.length - 1)} `;
+            }
+
+            // Replace escaped new lines with an actual new line.
+            m = m.replaceAll('\\n', '\n');
+
+            // Replace the escaped quotes in object keys.
+            m = m.replaceAll('\\"', '"');
+            res.push(m);
+        } else {
+            res.push(m);
+        }
+    });
+
+    return res;
 };
