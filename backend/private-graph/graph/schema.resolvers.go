@@ -333,6 +333,12 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"IsPublic": isPublic,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group in OpenSearch")
+	}
+
 	return errorGroup, nil
 }
 
@@ -1979,6 +1985,11 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	}
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
+	}
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"IsPublic": isPublic,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group in OpenSearch")
 	}
 
 	return errorGroup, nil
