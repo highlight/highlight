@@ -790,12 +790,12 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					return
 				}
 			}
-			numErrors := int64(-1)
 			if errorAlert.ThresholdWindow == nil {
 				t := 30
 				errorAlert.ThresholdWindow = &t
 			}
 
+			numErrors := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
 				FROM error_objects
@@ -810,6 +810,25 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			if numErrors+1 < int64(errorAlert.CountThreshold) {
 				return
 			}
+
+			numAlerts := int64(-1)
+			if err := r.DB.Raw(`
+				SELECT COUNT(*)
+				FROM alert_events
+				WHERE
+					project_id=?
+					AND type = ?
+					AND metadata->>'error_group_id' = ?
+					AND created_at > NOW - ? * (INTERVAL '1 SECOND')
+			`, projectID, model.AlertType.ERROR, group.ID, 5).Scan(&numAlerts).Error; err != nil {
+				log.Error(e.Wrap(err, "error counting alert events from past 5 seconds"))
+				return
+			}
+			if numAlerts > 0 {
+				log.Warnf("num alerts > 0 for project_id=%d, error_group_id=%d", projectID, group.ID)
+				return
+			}
+
 			var project model.Project
 			if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 				log.Error(e.Wrap(err, "error querying project"))
