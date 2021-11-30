@@ -1240,7 +1240,7 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 			obj.Type = &AlertType.NEW_USER
 		}
 	}
-	alertEvent := &AlertEvent{Type: *obj.Type}
+	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID}
 	switch *obj.Type {
 	case AlertType.ERROR:
 		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
