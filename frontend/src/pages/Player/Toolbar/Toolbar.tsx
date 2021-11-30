@@ -432,17 +432,6 @@ export const Toolbar = React.memo(() => {
                             </Button>
                         )}
 
-                    {isLiveMode && (
-                        <div className={styles.liveUserStatus}>
-                            <SessionToken
-                                icon={<SvgDimensionsIcon />}
-                                tooltipTitle="This session is live, but the user is idle."
-                            >
-                                User is inactive
-                            </SessionToken>
-                        </div>
-                    )}
-
                     {!isLiveMode && (
                         <div className={styles.timeSection}>
                             {disableControls ? (
