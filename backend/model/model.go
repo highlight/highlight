@@ -808,8 +808,9 @@ type SessionPayload struct {
 
 type AlertEvent struct {
 	Model
-	Type      string
-	ProjectID int
+	Type         string
+	ProjectID    int
+	ErrorGroupID *int `gorm:"index:,WHERE error_group_id IS NOT NULL;"`
 }
 
 var ErrorType = struct {
@@ -1293,7 +1294,7 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 				Blocks: slack.Blocks{BlockSet: blockSet},
 			},
 		}
-		alertEvent.MetaData = JSONB{"error_group_id": input.Group.ID}
+		alertEvent.ErrorGroupID = &input.Group.ID
 	case AlertType.NEW_USER:
 		// construct Slack message
 		previewText = "Highlight: New User Alert"
