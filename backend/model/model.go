@@ -1441,7 +1441,9 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 						log.Printf("Slack Bot Client was not defined")
 					}
 				}
-				db.Create(alertEvent)
+				if err := db.Create(alertEvent).Error; err != nil {
+					log.Error(e.Wrap(err, "error creating alert event"))
+				}
 			}()
 		}
 	}
