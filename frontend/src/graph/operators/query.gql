@@ -520,6 +520,14 @@ query GetBillingDetails($workspace_id: ID!) {
     }
 }
 
+query GetSubscriptionDetails($workspace_id: ID!) {
+    subscription_details(workspace_id: $workspace_id) {
+        baseAmount
+        discountAmount
+        discountPercent
+    }
+}
+
 query GetErrorGroup($secure_id: String!) {
     error_group(secure_id: $secure_id) {
         created_at

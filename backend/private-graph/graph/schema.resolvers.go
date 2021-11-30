@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3564,7 +3564,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {
-		return "", e.Wrap(err, "must have ADMIN role to access the Sripe customer portal")
+		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
 	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
@@ -3580,6 +3580,43 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	return portalSession.URL, nil
+}
+
+func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin does not have workspace access")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to access the subscription details")
+	}
+
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe customer")
+	}
+
+	if len(c.Subscriptions.Data) == 0 {
+		return &modelInputs.SubscriptionDetails{}, nil
+	}
+
+	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+
+	discount := c.Subscriptions.Data[0].Discount
+	if discount == nil || discount.Coupon == nil {
+		return &modelInputs.SubscriptionDetails{
+			BaseAmount: amount,
+		}, nil
+	}
+
+	return &modelInputs.SubscriptionDetails{
+		BaseAmount:      amount,
+		DiscountAmount:  discount.Coupon.AmountOff,
+		DiscountPercent: discount.Coupon.PercentOff,
+	}, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
