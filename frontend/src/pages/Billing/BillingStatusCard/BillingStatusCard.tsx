@@ -1,11 +1,24 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Progress from '@components/Progress/Progress';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import { useGetSubscriptionDetailsQuery } from '@graph/hooks';
-import { PlanType, SubscriptionInterval } from '@graph/schemas';
+import { USD } from '@dinero.js/currencies';
+import {
+    PlanType,
+    SubscriptionDetails,
+    SubscriptionInterval,
+} from '@graph/schemas';
 import { BILLING_PLANS } from '@pages/Billing/BillingPlanCard/BillingConfig';
-import { useParams } from '@util/react-router/useParams';
 import { Divider } from 'antd';
+import {
+    add,
+    dinero,
+    down,
+    isZero,
+    lessThan,
+    multiply,
+    subtract,
+    toUnit,
+} from 'dinero.js';
 import moment from 'moment';
 import React from 'react';
 
@@ -23,9 +36,10 @@ export const BillingStatusCard = ({
     memberLimit,
     subscriptionInterval,
     allowOverage,
-    billingLoading,
+    loading,
     billingPeriodEnd,
     nextInvoiceDate,
+    subscriptionDetails: subscription_details,
 }: {
     planType: PlanType;
     sessionCount: number;
@@ -34,31 +48,24 @@ export const BillingStatusCard = ({
     memberLimit: number;
     subscriptionInterval: SubscriptionInterval;
     allowOverage: boolean;
-    billingLoading: boolean;
+    loading: boolean;
     billingPeriodEnd: Date;
     nextInvoiceDate: Date;
+    subscriptionDetails: SubscriptionDetails | undefined;
 }) => {
     const { isHighlightAdmin } = useAuthContext();
-    const { workspace_id } = useParams<{ workspace_id: string }>();
 
-    const {
-        loading: subscriptionLoading,
-        data: subscriptionData,
-    } = useGetSubscriptionDetailsQuery({
-        variables: {
-            workspace_id,
-        },
+    const baseAmount = dinero({
+        amount: subscription_details?.baseAmount ?? 0,
+        currency: USD,
     });
 
-    const baseAmount = subscriptionData?.subscription_details.baseAmount / 100;
-
-    const discountAmount =
-        subscriptionData?.subscription_details.discountAmount / 100;
-    const discountPercent =
-        subscriptionData?.subscription_details.discountPercent;
-    const hasDiscount = !!discountAmount || !!discountPercent;
-
-    const loading = billingLoading || subscriptionLoading;
+    const discountAmount = dinero({
+        amount: subscription_details?.discountAmount ?? 0,
+        currency: USD,
+    });
+    const discountPercent = subscription_details?.discountPercent;
+    const hasDiscount = !isZero(discountAmount) || !!discountPercent;
 
     let sessionsOverage = sessionCount - sessionLimit;
     if (!allowOverage || sessionsOverage < 0) {
@@ -74,24 +81,40 @@ export const BillingStatusCard = ({
 
     const baseSubtotal =
         baseAmount ??
-        (subscriptionInterval === SubscriptionInterval.Annual
-            ? (matchedPlan?.annualPrice ?? 0) * 12
-            : matchedPlan?.monthlyPrice ?? 0);
-    const membersSubtotal = membersOverage * MEMBERS_PRICE;
-    const overageSubtotal =
-        Math.ceil(sessionsOverage / 1000) * SESSIONS_PRICE_PER_THOUSAND;
+        dinero({
+            amount:
+                subscriptionInterval === SubscriptionInterval.Annual
+                    ? (matchedPlan?.annualPrice ?? 0) * 12 * 100
+                    : (matchedPlan?.monthlyPrice ?? 0) * 100,
+            currency: USD,
+        });
+    const membersSubtotal = dinero({
+        amount: membersOverage * MEMBERS_PRICE * 100,
+        currency: USD,
+    });
+    const overageSubtotal = dinero({
+        amount:
+            Math.ceil(sessionsOverage / 1000) *
+            SESSIONS_PRICE_PER_THOUSAND *
+            100,
+        currency: USD,
+    });
 
-    let total =
-        (nextInvoiceDate < billingPeriodEnd ? 0 : baseSubtotal) +
-        membersSubtotal +
-        overageSubtotal;
+    let total = add(membersSubtotal, overageSubtotal);
+    if (!(nextInvoiceDate < billingPeriodEnd)) {
+        total = add(total, baseSubtotal);
+    }
 
-    if (!!discountAmount) {
-        total = Math.max(0, total - discountAmount);
+    if (!isZero(discountAmount)) {
+        total = subtract(total, discountAmount);
+        const zero = dinero({ amount: 0, currency: USD });
+        if (lessThan(total, zero)) {
+            total = zero;
+        }
     }
 
     if (!!discountPercent) {
-        total = Math.round(Math.max(0, total * (100 - discountPercent))) / 100;
+        total = multiply(total, { amount: 100 - discountPercent, scale: 2 });
     }
 
     const nextBillingDate =
@@ -106,7 +129,7 @@ export const BillingStatusCard = ({
                     <Skeleton width="45px" />
                 ) : (
                     <span className={styles.subtotal}>
-                        ${formatNumberWithDelimiters(baseSubtotal)}
+                        ${toUnit(baseSubtotal, { digits: 2, round: down })}
                     </span>
                 )}
             </div>
@@ -154,7 +177,11 @@ export const BillingStatusCard = ({
                             <Skeleton width="45px" />
                         ) : (
                             <span className={styles.subtotal}>
-                                ${formatNumberWithDelimiters(membersSubtotal)}
+                                $
+                                {toUnit(membersSubtotal, {
+                                    digits: 2,
+                                    round: down,
+                                })}
                             </span>
                         )}
                     </div>
@@ -182,7 +209,11 @@ export const BillingStatusCard = ({
                             <Skeleton width="45px" />
                         ) : (
                             <span className={styles.subtotal}>
-                                ${formatNumberWithDelimiters(overageSubtotal)}
+                                $
+                                {toUnit(overageSubtotal, {
+                                    digits: 2,
+                                    round: down,
+                                })}
                             </span>
                         )}
                     </div>
@@ -216,7 +247,10 @@ export const BillingStatusCard = ({
                             ) : (
                                 <span>
                                     Discount: $
-                                    {formatNumberWithDelimiters(discountAmount)}{' '}
+                                    {toUnit(discountAmount, {
+                                        digits: 2,
+                                        round: down,
+                                    })}{' '}
                                     off
                                 </span>
                             )
@@ -239,7 +273,11 @@ export const BillingStatusCard = ({
                                         </span>
                                     )}
                                     <span className={styles.subtotal}>
-                                        ${formatNumberWithDelimiters(total)}{' '}
+                                        $
+                                        {toUnit(total, {
+                                            digits: 2,
+                                            round: down,
+                                        })}{' '}
                                     </span>
                                 </>
                             )}

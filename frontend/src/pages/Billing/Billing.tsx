@@ -24,6 +24,7 @@ import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
+    useGetSubscriptionDetailsQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import {
@@ -81,6 +82,16 @@ const BillingPage = () => {
         },
     });
 
+    const {
+        loading: subscriptionLoading,
+        data: subscriptionData,
+        refetch: refetchSubscription,
+    } = useGetSubscriptionDetailsQuery({
+        variables: {
+            workspace_id,
+        },
+    });
+
     const [
         createOrUpdateStripeSubscription,
         { data },
@@ -109,6 +120,7 @@ const BillingPage = () => {
             }).then(() => {
                 message.success('Billing change applied!', 5);
                 refetch();
+                refetchSubscription();
             });
         }
         if (checkoutRedirectFailedMessage) {
@@ -124,6 +136,7 @@ const BillingPage = () => {
         updateBillingDetails,
         workspace_id,
         refetch,
+        refetchSubscription,
     ]);
 
     const createOnSelect = (newPlan: PlanType) => {
@@ -160,6 +173,7 @@ const BillingPage = () => {
                         refetch().then(() => {
                             setLoadingPlanType(null);
                         });
+                        refetchSubscription();
                     });
                 }
             });
@@ -263,7 +277,8 @@ const BillingPage = () => {
                     }
                     nextInvoiceDate={billingData?.workspace?.next_invoice_date}
                     allowOverage={allowOverage}
-                    billingLoading={billingLoading}
+                    loading={billingLoading || subscriptionLoading}
+                    subscriptionDetails={subscriptionData?.subscription_details}
                 />
                 <Authorization allowedRoles={[AdminRole.Admin]}>
                     <div className={styles.annualToggleBox}>
