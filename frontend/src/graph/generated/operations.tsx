@@ -1737,6 +1737,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
             | 'next_invoice_date'
             | 'allow_meter_overage'
             | 'eligible_for_trial_extension'
+            | 'trial_extension_enabled'
         >
     >;
 };

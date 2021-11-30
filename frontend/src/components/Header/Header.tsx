@@ -5,13 +5,14 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
 import moment from 'moment';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
@@ -106,6 +107,29 @@ const FreePlanBanner = () => {
     const { data, loading } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
+    const [
+        hasReportedTrialExtension,
+        setHasReportedTrialExtension,
+    ] = useLocalStorage('highlightReportedTrialExtension', false);
+
+    useEffect(() => {
+        if (
+            !hasReportedTrialExtension &&
+            data?.workspace_for_project?.trial_extension_enabled
+        ) {
+            H.track('TrialExtensionEnabled', {
+                project_id,
+                workspace_id: data?.workspace_for_project.id,
+            });
+            setHasReportedTrialExtension(true);
+        }
+    }, [
+        data?.workspace_for_project?.id,
+        data?.workspace_for_project?.trial_extension_enabled,
+        hasReportedTrialExtension,
+        project_id,
+        setHasReportedTrialExtension,
+    ]);
 
     if (loading) {
         return null;
@@ -132,7 +156,7 @@ const FreePlanBanner = () => {
         ).format('MM/DD/YY')}. `;
 
         if (canExtend) {
-            bannerMessage = `by 
+            bannerMessage = `by
             ${moment(data?.workspace_for_project?.trial_end_date).format(
                 'MM/DD'
             )} to get 4 months of free Highlight!`;
