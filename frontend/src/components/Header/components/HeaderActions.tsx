@@ -1,3 +1,4 @@
+import Group from '@components/Group/Group';
 import ThemeToggle from '@components/Header/ThemeToggle/ThemeToggle';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import SvgKeyboardIcon from '@icons/KeyboardIcon';
@@ -9,14 +10,13 @@ import SvgBookIcon from '../../../static/BookIcon';
 import Button from '../../Button/Button/Button';
 import HelpMenu from '../HelpMenu/HelpMenu';
 import Notifications from '../Notifications/Notifications';
-import styles from './HeaderActions.module.scss';
 
 const HeaderActions = () => {
     const { isLoggedIn } = useAuthContext();
     const { toggleShowKeyboardShortcutsGuide } = useGlobalContext();
 
     return (
-        <div className={styles.headerActions}>
+        <Group>
             {isLoggedIn && (
                 <div>
                     <Notifications />
@@ -52,7 +52,7 @@ const HeaderActions = () => {
                     <ThemeToggle />
                 </div>
             </HighlightGate>
-        </div>
+        </Group>
     );
 };
 

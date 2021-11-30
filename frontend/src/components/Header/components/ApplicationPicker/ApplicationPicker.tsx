@@ -1,19 +1,22 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import Button from '@components/Button/Button/Button';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import Group from '@components/Group/Group';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
+import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
 import SvgArrowRightIcon from '@icons/ArrowRightIcon';
+import SvgBriefcase2Icon from '@icons/Briefcase2Icon';
+import SvgSwitch2Icon from '@icons/Switch2Icon';
 import { useParams } from '@util/react-router/useParams';
-import classNames from 'classnames';
 import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import SvgSettingsIcon from '../../../../static/SettingsIcon';
-import TextSelect from '../../../Select/TextSelect/TextSelect';
 import styles from './ApplicationPicker.module.scss';
 
 const ApplicationPicker = () => {
@@ -36,118 +39,140 @@ const ApplicationPicker = () => {
     const history = useHistory();
     const { pathname } = useLocation();
 
-    const newProjectOption = {
-        value: '-1',
-        displayValue: (
-            <span className={styles.createNewProjectOption}>
-                <SvgPlusIcon />
-                <span>Create New Project</span>
-            </span>
-        ),
-        id: '-1',
-    };
-
-    const switchWorkspaceOption = {
-        value: '-2',
-        displayValue: (
-            <span className={styles.createNewProjectOption}>
-                <SvgArrowRightIcon />
-                <span>Switch Workspace</span>
-            </span>
-        ),
-        id: '-2',
-    };
-
-    const workspaceSettingsOption = {
-        value: '-3',
-        displayValue: (
-            <span
-                className={classNames(styles.createNewProjectOption, {
-                    [styles.selected]: isWorkspaceLevel,
-                })}
-            >
-                <SvgSettingsIcon />
-                <span>Workspace Settings</span>
-            </span>
-        ),
-        id: '-3',
-    };
-
-    const applicationOptions = [
+    const projectOptions = [
         ...(allProjects
-            ? allProjects.map((project) => ({
-                  value: project?.id || '',
-                  displayValue: (
-                      <span className={styles.existingProjectOption}>
-                          <MiniWorkspaceIcon
-                              projectName={
-                                  !isLoggedIn &&
-                                  projectIdRemapped ===
-                                      DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                                      ? 'demo'
-                                      : project?.name || ''
-                              }
-                          />
-                          <span>
-                              {!isLoggedIn &&
-                              projectIdRemapped ===
-                                  DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                                  ? 'demo'
-                                  : project?.name || ''}
-                          </span>
-                      </span>
-                  ),
-                  id: project?.id || '',
-              }))
+            ? allProjects
+                  .filter((project) => project?.id !== project_id)
+                  .map((project) => ({
+                      value: project?.id || '',
+                      displayValue: (
+                          <div>
+                              <span className={styles.existingProjectOption}>
+                                  <MiniWorkspaceIcon
+                                      className={styles.workspaceIcon}
+                                      projectName={
+                                          !isLoggedIn &&
+                                          projectIdRemapped ===
+                                              DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                                              ? 'demo'
+                                              : project?.name || ''
+                                      }
+                                  />
+                                  <span>
+                                      {!isLoggedIn &&
+                                      projectIdRemapped ===
+                                          DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                                          ? 'demo'
+                                          : project?.name || ''}
+                                  </span>
+                              </span>
+                          </div>
+                      ),
+                      id: project?.id || '',
+                  }))
             : []),
-        newProjectOption,
-        ...(workspaces.length > 1 ? [switchWorkspaceOption] : []), // Show "Switch Workspace" if user is in multiple workspaces
-        workspaceSettingsOption,
     ];
 
+    const headerDisplayValue = isWorkspaceLevel
+        ? 'Workspace Settings'
+        : !isLoggedIn &&
+          projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+        ? 'demo'
+        : currentProject?.name;
+    const subHeaderDisplayValue =
+        !isLoggedIn && projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            ? 'demo'
+            : currentWorkspace?.name;
+
     return (
-        <div>
-            <TextSelect
-                defaultValue={
-                    isWorkspaceLevel
-                        ? workspaceSettingsOption.value
-                        : currentProject?.id
-                }
-                displayValue={
-                    isWorkspaceLevel
-                        ? 'Workspace Settings'
-                        : !isLoggedIn &&
-                          projectIdRemapped ===
-                              DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                        ? 'demo'
-                        : currentProject?.name
-                }
-                options={applicationOptions}
-                onChange={(projectId) => {
-                    if (!currentWorkspace) {
-                        history.push('/');
-                    } else if (projectId === newProjectOption.value) {
-                        history.push(`/w/${currentWorkspace!.id}/new`);
-                    } else if (projectId === workspaceSettingsOption.value) {
-                        history.push(`/w/${currentWorkspace!.id}/team`);
-                    } else if (projectId === switchWorkspaceOption.value) {
-                        history.push(`/switch`);
-                    } else {
-                        const path = isWorkspaceLevel
-                            ? ''
-                            : pathname
-                                  .split('/')
-                                  .filter((token) => token.length)[1];
-                        history.push(`/${projectId}/${path}`);
-                    }
-                }}
-            />
-            <span className={styles.subTitle}>
-                {!isLoggedIn &&
-                projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                    ? 'demo'
-                    : currentWorkspace?.name}
-            </span>
+        <div className={styles.applicationPicker}>
+            <div className={styles.headerContainer}>
+                <h2>{headerDisplayValue}</h2>
+                <span className={styles.subTitle}>{subHeaderDisplayValue}</span>
+            </div>
+            <Group>
+                <div>
+                    <PopoverMenu
+                        placement="bottomLeft"
+                        menuItems={[
+                            {
+                                displayName: 'Create a New Project',
+                                icon: <SvgPlusIcon />,
+                                action: () => {
+                                    history.push(
+                                        `/w/${currentWorkspace!.id}/new`
+                                    );
+                                },
+                            },
+                            {
+                                displayName: 'Project Settings',
+                                icon: <SvgBriefcase2Icon />,
+                                action: () => {
+                                    history.push(`/${project_id}/settings`);
+                                },
+                            },
+                            {
+                                displayName: 'Switch Workspace',
+                                icon: <SvgArrowRightIcon />,
+                                action: () => {
+                                    history.push(`/switch`);
+                                },
+                                hidden: workspaces.length <= 1,
+                            },
+                            {
+                                displayName: 'Workspace Settings',
+                                icon: <SvgSettingsIcon />,
+                                action: () => {
+                                    history.push(
+                                        `/w/${currentWorkspace!.id}/team`
+                                    );
+                                },
+                            },
+                        ]}
+                        buttonTrackingId="ApplicationPickerSettings"
+                        buttonContentsOverride={
+                            <Button
+                                trackingId="ApplicationPickerSettings"
+                                type="text"
+                                iconButton
+                            >
+                                <SvgSettingsIcon />
+                            </Button>
+                        }
+                    />
+                </div>
+                {projectOptions.length > 0 && (
+                    <div>
+                        <PopoverMenu
+                            placement="bottomLeft"
+                            menuItems={projectOptions.map((project) => ({
+                                displayName: project.displayValue,
+                                action: () => {
+                                    const path = isWorkspaceLevel
+                                        ? ''
+                                        : pathname
+                                              .split('/')
+                                              .filter(
+                                                  (token) => token.length
+                                              )[1];
+                                    history.push(`/${project.id}/${path}`);
+                                },
+                                icon: null,
+                            }))}
+                            buttonTrackingId="ApplicationPickerSettings"
+                            buttonContentsOverride={
+                                <Button
+                                    trackingId="ApplicationPickerSettings"
+                                    type="text"
+                                    iconButton
+                                >
+                                    <SvgSwitch2Icon />
+                                </Button>
+                            }
+                        />
+                    </div>
+                )}
+            </Group>
         </div>
     );
 };
