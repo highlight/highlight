@@ -81,6 +81,7 @@ const LoginForm = () => {
     const { isAuthLoading, isLoggedIn, admin } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
     const { setIsLoading } = useAppLoadingContext();
+    const [isLoadingFirebase, setIsLoadingFirebase] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -89,17 +90,25 @@ const LoginForm = () => {
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
+        setIsLoadingFirebase(true);
         if (formState === LoginFormState.SignIn) {
-            auth.signInWithEmailAndPassword(email, password).catch((error) => {
-                setError(error.toString());
-            });
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    setIsLoadingFirebase(false);
+                })
+                .catch((error) => {
+                    setError(error.toString());
+                    setIsLoadingFirebase(false);
+                });
         } else {
             auth.createUserWithEmailAndPassword(email, password)
                 .then(() => {
                     auth.currentUser?.sendEmailVerification();
+                    setIsLoadingFirebase(false);
                 })
                 .catch((error) => {
                     setError(error.toString());
+                    setIsLoadingFirebase(false);
                 });
 
             // Redirect the user to their initial path instead to creating a new workspace.
@@ -108,9 +117,6 @@ const LoginForm = () => {
                 history.push(history.location.state.previousPathName);
             }
         }
-        setEmail('');
-        setPassword('');
-        setPasswordConfirmation('');
     };
 
     const changeState = (nextState: LoginFormState) => {
@@ -249,6 +255,7 @@ const LoginForm = () => {
                             className={commonStyles.submitButton}
                             type="primary"
                             htmlType="submit"
+                            loading={isLoadingFirebase}
                         >
                             {formState === LoginFormState.SignIn
                                 ? 'Sign In'
@@ -270,6 +277,7 @@ const LoginForm = () => {
                                 setFirebaseError(JSON.stringify(e))
                             );
                         }}
+                        loading={isLoadingFirebase}
                     >
                         <GoogleLogo className={styles.googleLogoStyle} />
                         <span className={styles.googleText}>
