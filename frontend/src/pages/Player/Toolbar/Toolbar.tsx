@@ -1,6 +1,4 @@
 import Switch from '@components/Switch/Switch';
-import SvgDimensionsIcon from '@icons/DimensionsIcon';
-import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
