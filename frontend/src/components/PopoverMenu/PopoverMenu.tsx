@@ -45,12 +45,14 @@ const PopoverMenu = ({
                         <PopoverListContent
                             small
                             className={styles.popoverMenuList}
-                            listItems={(menuItems || []).map((menuItem) => (
-                                <PopoverMenuItem
-                                    {...menuItem}
-                                    key={menuItem.displayName}
-                                />
-                            ))}
+                            listItems={(menuItems || []).map(
+                                (menuItem, index) => (
+                                    <PopoverMenuItem
+                                        {...menuItem}
+                                        key={index}
+                                    />
+                                )
+                            )}
                         />
                     </>
                 )
@@ -71,7 +73,7 @@ export default PopoverMenu;
 export interface PopoverMenuItem {
     icon?: React.ReactNode;
     iconPosition?: 'leading' | 'ending';
-    displayName: string;
+    displayName: string | React.ReactNode;
     link?: string;
     action?: () => void;
     active?: boolean;
