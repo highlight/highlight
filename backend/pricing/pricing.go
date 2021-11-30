@@ -49,7 +49,7 @@ func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 				FROM workspaces
 				WHERE id=?)
 			AND date < (
-				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
 		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
@@ -68,7 +68,7 @@ func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
 				FROM workspaces
 				WHERE id=?)
 			AND date < (
-				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)`, project.ID, project.WorkspaceID, project.WorkspaceID).
 		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
@@ -91,7 +91,7 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 				FROM workspaces
 				WHERE id=?)
 			AND created_at < (
-				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)
 			AND excluded <> ?`, workspaceID, workspaceID, workspaceID, true).
