@@ -13,6 +13,22 @@
     color: var(--color-purple) !important;
 }
 
+.extraMembers {
+    align-items: baseline;
+    color: var(--color-green-600);
+    display: inline-flex;
+    gap: var(--size-xxSmall);
+    height: 30px;
+}
+
+.extraMembersCost {
+    font-size: 16px;
+}
+
+.extraMembersBreakdown {
+    font-size: 12px;
+}
+
 .billingFrequency {
     color: var(--color-gray-500);
     margin-bottom: 5px;

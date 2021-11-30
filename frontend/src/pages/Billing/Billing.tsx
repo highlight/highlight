@@ -356,6 +356,9 @@ const BillingPage = () => {
                                         loadingPlanType === billingPlan.type
                                     }
                                     subscriptionInterval={subscriptionInterval}
+                                    memberCount={
+                                        billingData?.billingDetails.membersMeter
+                                    }
                                 />
                             )
                         )}
