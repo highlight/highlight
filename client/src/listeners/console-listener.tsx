@@ -133,7 +133,6 @@ export function ConsoleListener(
                     const payload = args.map((s) =>
                         stringify(s, logOptions.stringifyOptions)
                     );
-                    console.info('boba', payload);
                     logCount++;
                     if (logCount < logOptions.lengthThreshold) {
                         callback({
