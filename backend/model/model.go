@@ -1175,7 +1175,7 @@ type SendSlackAlertInput struct {
 	Timestamp *time.Time
 }
 
-func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
