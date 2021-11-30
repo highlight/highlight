@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -1407,6 +1408,13 @@ func (obj *Alert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 			slackChannelName := *channel.WebhookChannel
 
 			go func() {
+				defer func() {
+					if rec := recover(); rec != nil {
+						buf := make([]byte, 64<<10)
+						buf = buf[:runtime.Stack(buf, false)]
+						log.Errorf("panic: %+v\n%s", rec, buf)
+					}
+				}()
 				if slackClient != nil {
 					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
 					if strings.Contains(slackChannelName, "#") {
