@@ -132,6 +132,7 @@ var Models = []interface{}{
 	&Workspace{},
 	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
+	&AlertEvent{},
 }
 
 func init() {
@@ -801,6 +802,13 @@ type SessionPayload struct {
 	Errors          []ErrorObject    `json:"errors"`
 	RageClicks      []RageClickEvent `json:"rage_clicks"`
 	SessionComments []SessionComment `json:"session_comments"`
+}
+
+type AlertEvent struct {
+	Model
+	Type      string
+	ProjectID int
+	MetaData  JSONB
 }
 
 var ErrorType = struct {
