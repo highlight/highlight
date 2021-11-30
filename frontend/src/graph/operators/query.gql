@@ -496,6 +496,7 @@ query GetBillingDetailsForProject($project_id: ID!) {
         billing_period_end
         next_invoice_date
         allow_meter_overage
+        eligible_for_trial_extension
     }
 }
 
@@ -517,6 +518,7 @@ query GetBillingDetails($workspace_id: ID!) {
         billing_period_end
         next_invoice_date
         allow_meter_overage
+        eligible_for_trial_extension
     }
 }
 

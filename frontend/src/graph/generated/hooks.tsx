@@ -4502,6 +4502,7 @@ export const GetBillingDetailsForProjectDocument = gql`
             billing_period_end
             next_invoice_date
             allow_meter_overage
+            eligible_for_trial_extension
         }
     }
 `;
@@ -4573,6 +4574,7 @@ export const GetBillingDetailsDocument = gql`
             billing_period_end
             next_invoice_date
             allow_meter_overage
+            eligible_for_trial_extension
         }
     }
 `;

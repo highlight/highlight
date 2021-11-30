@@ -184,6 +184,7 @@ export type Workspace = {
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
     allow_meter_overage: Scalars['Boolean'];
     allowed_auto_join_email_origins?: Maybe<Scalars['String']>;
+    eligible_for_trial_extension: Scalars['Boolean'];
 };
 
 export type Segment = {

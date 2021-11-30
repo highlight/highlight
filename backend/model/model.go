@@ -194,6 +194,7 @@ type Workspace struct {
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:false"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
+	EligibleForTrialExtension   bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {

@@ -125,23 +125,37 @@ const FreePlanBanner = () => {
 
     let bannerMessage = `You've used ${data?.billingDetailsForProject.meter}/${data?.billingDetailsForProject.plan.quota} of your free sessions.`;
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
+    const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
     if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
         ).format('MM/DD/YY')}. `;
+
+        if (canExtend) {
+            bannerMessage = `Integrate Highlight by 
+            ${moment(data?.workspace_for_project?.trial_end_date).format(
+                'MM/DD'
+            )} to get 4 months of free Highlight!`;
+        }
     }
 
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                {bannerMessage + ' '} Upgrade{' '}
-                <Link
-                    className={styles.trialLink}
-                    to={`/w/${data?.workspace_for_project?.id}/billing`}
-                >
-                    here!
-                </Link>
+                {bannerMessage}
+                {!canExtend && (
+                    <>
+                        {' '}
+                        Upgrade{' '}
+                        <Link
+                            className={styles.trialLink}
+                            to={`/w/${data?.workspace_for_project?.id}/billing`}
+                        >
+                            here!
+                        </Link>
+                    </>
+                )}
             </div>
             {hasTrial && (
                 <button
