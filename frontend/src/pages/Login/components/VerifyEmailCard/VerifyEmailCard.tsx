@@ -63,6 +63,7 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
                             started now 😉
                         </p>
                         <ButtonLink
+                            className={styles.startButton}
                             trackingId="VerifyEmailStart"
                             to="/"
                             onClick={onStartHandler}
