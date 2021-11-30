@@ -4,7 +4,7 @@
     @include rounded-border;
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: 360px;
     padding: 24px;
     width: 275px;
 }
@@ -14,7 +14,7 @@
 }
 
 .extraMembers {
-    align-items: center;
+    align-items: baseline;
     color: var(--color-green-600);
     display: inline-flex;
     gap: var(--size-xxSmall);
@@ -22,11 +22,11 @@
 }
 
 .extraMembersCost {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .extraMembersBreakdown {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .billingFrequency {

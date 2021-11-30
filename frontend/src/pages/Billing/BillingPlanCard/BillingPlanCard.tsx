@@ -51,9 +51,16 @@ export const BillingPlanCard = ({
                         subscriptionInterval === SubscriptionInterval.Annual
                             ? billingPlan.annualPrice
                             : billingPlan.monthlyPrice
-                    )}${billingPlan.type === PlanType.Enterprise ? '+' : ''}`}
+                    )}`}
                 </span>
-                {billingPlan.type !== PlanType.Free && <span>/mo</span>}
+                {billingPlan.type !== PlanType.Free && (
+                    <span>
+                        /mo, billed{' '}
+                        {subscriptionInterval === SubscriptionInterval.Annual
+                            ? 'annually'
+                            : 'monthly'}
+                    </span>
+                )}
             </div>
             <div className={styles.extraMembers}>
                 {billingPlan.type === PlanType.Free ? null : membersOverage >
@@ -63,32 +70,22 @@ export const BillingPlanCard = ({
                             + ${membersPrice}
                         </span>
                         <span className={styles.extraMembersBreakdown}>
-                            (${MEMBERS_PRICE} x {membersOverage} member
-                            {membersOverage > 1 ? 's' : ''})
+                            (${MEMBERS_PRICE} x {membersOverage} seat
+                            {membersOverage > 1 ? 's' : ''}) billed monthly
                         </span>
                     </>
                 ) : (
-                    <span className={styles.extraMembersBreakdown}>
-                        {billingPlan.membersIncluded} members included for free
-                    </span>
+                    <>
+                        <span className={styles.extraMembersCost}>
+                            {billingPlan.membersIncluded}
+                        </span>
+                        <span className={styles.extraMembersBreakdown}>
+                            {' '}
+                            members included for free
+                        </span>
+                    </>
                 )}
             </div>
-            <p className={styles.billingFrequency}>
-                {billingPlan.type === PlanType.Free ? (
-                    'no billing'
-                ) : subscriptionInterval === SubscriptionInterval.Annual ? (
-                    <>
-                        $
-                        {formatNumberWithDelimiters(
-                            billingPlan.annualPrice * 12
-                        )}
-                        {billingPlan.type === PlanType.Enterprise ? '+' : ''}{' '}
-                        yearly, overage monthly
-                    </>
-                ) : (
-                    'billed monthly'
-                )}
-            </p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li
