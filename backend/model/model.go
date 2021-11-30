@@ -809,7 +809,6 @@ type AlertEvent struct {
 	Model
 	Type      string
 	ProjectID int
-	MetaData  JSONB
 }
 
 var ErrorType = struct {
