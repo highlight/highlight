@@ -1,3 +1,4 @@
+import Switch from '@components/Switch/Switch';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -250,7 +251,7 @@ export const Toolbar = React.memo(() => {
                     </div>
                 </DevToolsContextProvider>
             )}
-            {!isLiveMode && (
+            {!isLiveMode ? (
                 <div className={styles.playerRail}>
                     <div
                         className={styles.sliderRail}
@@ -316,6 +317,10 @@ export const Toolbar = React.memo(() => {
                             </div>
                         </Draggable>
                     </button>
+                </div>
+            ) : (
+                <div className={styles.playerRail}>
+                    <div className={styles.livePlayerRail} />
                 </div>
             )}
             <div className={styles.toolbarSection}>
@@ -409,14 +414,20 @@ export const Toolbar = React.memo(() => {
                     {isHighlightAdmin &&
                         session?.processed === false &&
                         !disableControls && (
-                            <button
-                                className={classNames(styles.liveButton)}
-                                onClick={() => {
-                                    setIsLiveMode(!isLiveMode);
-                                }}
+                            <Button
+                                trackingId="LiveModeButton"
+                                className={styles.liveButton}
                             >
-                                {isLiveMode ? 'Stop Live' : 'Go Live'}
-                            </button>
+                                <Switch
+                                    checked={isLiveMode}
+                                    onChange={(checked: boolean) => {
+                                        setIsLiveMode(checked);
+                                    }}
+                                    label="Live Mode"
+                                    trackingId="LiveModeSwitch"
+                                    red={true}
+                                />
+                            </Button>
                         )}
 
                     {!isLiveMode && (

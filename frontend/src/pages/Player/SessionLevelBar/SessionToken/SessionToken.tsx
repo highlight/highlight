@@ -7,15 +7,17 @@ import styles from './SessionToken.module.scss';
 interface Props {
     icon: React.ReactNode;
     tooltipTitle: React.ReactNode;
+    className?: string;
 }
 
 function SessionToken({
     icon,
     children,
     tooltipTitle,
+    className,
 }: React.PropsWithChildren<Props>): ReactElement {
     return (
-        <span className={classNames(styles.sessionToken, 'icon')}>
+        <span className={classNames(styles.sessionToken, 'icon', className)}>
             <Tooltip
                 title={tooltipTitle}
                 arrowPointAtCenter

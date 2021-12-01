@@ -18,6 +18,7 @@ type Props = Pick<
     noMarginAroundSwitch?: boolean;
     setMarginForAnimation?: boolean;
     trackingId: string;
+    red?: boolean;
 };
 
 const Switch = ({
@@ -39,13 +40,16 @@ const Switch = ({
                 [styles.spaceBetween]: justifySpaceBetween,
                 [styles.noMarginAroundSwitch]: noMarginAroundSwitch,
                 [styles.setMarginForAnimation]: setMarginForAnimation,
+                [styles.red]: props.red,
             })}
         >
             {labelFirst && labelToRender}
             <AntDesignSwitch
                 {...props}
                 size={size}
-                className={styles.switchStyles}
+                className={classNames(styles.switchStyles, {
+                    [styles.red]: props.red,
+                })}
                 onChange={(checked, event) => {
                     if (props.onChange) {
                         H.track(`Switch-${trackingId}`, {

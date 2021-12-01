@@ -1,8 +1,14 @@
 .dot {
+    --pulse-color: 86, 41, 198;
     background-color: var(--color-purple);
     border-radius: 10px;
     height: var(--size-xSmall);
     width: var(--size-xSmall);
+}
+
+.dotRed {
+    --pulse-color: 255, 0, 0;
+    background-color: var(--color-red);
 }
 
 .pulse {
@@ -11,17 +17,14 @@
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
-        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0.7);
     }
 
     70% {
-        box-shadow: 0 0 0 10px rgba(86, 41, 198, 0);
-        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(var(--pulse-color), 0);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0);
-        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0);
     }
 }

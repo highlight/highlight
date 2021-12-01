@@ -42,6 +42,35 @@
     width: 100%;
 }
 
+.livePlayerRail {
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: liveShimmer;
+    animation-timing-function: linear;
+    background: linear-gradient(
+        to right,
+        var(--color-red-300) 8%,
+        var(--color-red) 38%,
+        var(--color-red-300) 68%
+    );
+    background-size: 800px 5px;
+    display: flex;
+    height: 5px;
+    position: absolute;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
+}
+
+@keyframes liveShimmer {
+    0% {
+        background-position: -800px 0;
+    }
+    100% {
+        background-position: 800px 0;
+    }
+}
+
 .sliderPopover {
     // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
     background: var(--text-primary);
@@ -195,6 +224,30 @@
     width: 30px;
 }
 
+.liveButton {
+    --pulse-color: 255, 0, 0;
+    border-color: var(--color-gray-300);
+    cursor: pointer;
+    height: 32px;
+    margin-top: 10px;
+    padding: 8px;
+}
+
+.liveUserStatus {
+    align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    cursor: default;
+    display: flex;
+    height: 32px;
+    margin-top: 10px;
+    padding: 8px;
+}
+
+.liveUserStatus * {
+    font-size: 14px;
+}
+
 .verticalDivider {
     background-color: var(--color-gray-300);
     height: 80%;
@@ -245,14 +298,6 @@
 .timeSection {
     align-items: center;
     color: var(--color-gray-500);
-    display: flex;
-    font-size: 12px;
-    height: 100%;
-    justify-content: center;
-}
-
-.liveSection {
-    align-items: center;
     display: flex;
     font-size: 12px;
     height: 100%;
@@ -352,19 +397,6 @@
     &.devToolsActive {
         color: var(--color-purple);
     }
-}
-
-.liveButton {
-    background: var(--color-red-600);
-    border: 0;
-    border-radius: var(--border-radius);
-    color: var(--color-white);
-    cursor: pointer;
-    fill: var(--text-primary);
-    font-weight: 300;
-    height: 40px;
-    outline: none;
-    width: 80px;
 }
 
 .settingsButton {
