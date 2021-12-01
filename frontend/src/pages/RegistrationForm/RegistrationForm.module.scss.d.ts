@@ -4,5 +4,4 @@ export const formInput: string;
 export const inputLabel: string;
 export const inputWrapper: string;
 export const subTitle: string;
-export const switchWorkspace: string;
 export const title: string;
