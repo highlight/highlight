@@ -630,7 +630,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getCurrentTime() >=
                         replayer.getMetaData().totalTime
                     ) {
-                        setState(ReplayerState.SessionEnded);
+                        setState(
+                            isLiveMode
+                                ? ReplayerState.Paused // Waiting for more data
+                                : ReplayerState.SessionEnded
+                        );
                     }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
@@ -638,6 +642,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             setTimerId(requestAnimationFrame(frameAction));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, replayer]);
 
     useEffect(() => {
