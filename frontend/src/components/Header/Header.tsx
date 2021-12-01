@@ -8,6 +8,7 @@ import SvgXIcon from '@icons/XIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -113,6 +114,7 @@ const FreePlanBanner = () => {
         hasReportedTrialExtension,
         setHasReportedTrialExtension,
     ] = useLocalStorage('highlightReportedTrialExtension', false);
+    const { integrated } = useIntegrated();
 
     useEffect(() => {
         if (
@@ -153,28 +155,37 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    let bannerMessage = `You've used ${data?.billingDetailsForProject.meter}/${data?.billingDetailsForProject.plan.quota} of your free sessions.`;
+    let bannerMessage:
+        | string
+        | React.ReactNode = `You've used ${data?.billingDetailsForProject.meter}/${data?.billingDetailsForProject.plan.quota} of your free sessions.`;
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
+
     if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
         ).format('MM/DD/YY')}. `;
 
         if (canExtend) {
-            bannerMessage = `by
-            ${moment(data?.workspace_for_project?.trial_end_date).format(
-                'MM/DD'
-            )} to get 4 months of free Highlight!`;
-        }
-    }
-
-    toggleShowBanner(true);
-
-    return (
-        <div className={styles.trialWrapper}>
-            <div className={classNames(styles.trialTimeText)}>
-                {canExtend && (
+            if (integrated) {
+                bannerMessage = (
+                    <>
+                        You're currently on a 2 week unlimited trial.{' '}
+                        <Link
+                            className={styles.trialLink}
+                            to={`/w/${data?.workspace_for_project?.id}/about-you`}
+                        >
+                            Tell us about yourself
+                        </Link>{' '}
+                        by{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}{' '}
+                        to get 4 months of free Highlight!
+                    </>
+                );
+            } else {
+                bannerMessage = (
                     <>
                         You're currently on a 2 week unlimited trial.{' '}
                         <Link
@@ -183,8 +194,22 @@ const FreePlanBanner = () => {
                         >
                             Integrate Highlight
                         </Link>{' '}
+                        by{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}{' '}
+                        to get 4 months of free Highlight!
                     </>
-                )}
+                );
+            }
+        }
+    }
+
+    toggleShowBanner(true);
+
+    return (
+        <div className={styles.trialWrapper}>
+            <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
                 {!canExtend && (
                     <>

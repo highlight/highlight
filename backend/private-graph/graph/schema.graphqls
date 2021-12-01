@@ -856,6 +856,14 @@ type Mutation {
         workspace_id: ID!
         allow_meter_overage: Boolean!
     ): Workspace
+    submitRegistrationForm(
+        workspace_id: ID!
+        team_size: String!
+        role: String!
+        use_case: String!
+        heard_about: String!
+        pun: String
+    ): Boolean
 }
 
 type Subscription {

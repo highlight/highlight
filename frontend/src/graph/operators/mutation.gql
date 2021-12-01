@@ -94,6 +94,24 @@ mutation CreateProject($name: String!, $workspace_id: ID!) {
     }
 }
 
+mutation SubmitRegistrationForm(
+    $workspace_id: ID!
+    $team_size: String!
+    $role: String!
+    $use_case: String!
+    $heard_about: String!
+    $pun: String
+) {
+    submitRegistrationForm(
+        workspace_id: $workspace_id
+        team_size: $team_size
+        role: $role
+        use_case: $use_case
+        heard_about: $heard_about
+        pun: $pun
+    )
+}
+
 mutation CreateWorkspace($name: String!) {
     createWorkspace(name: $name) {
         id

@@ -1996,6 +1996,28 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 	return workspace, nil
 }
 
+func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	registrationData := &model.RegistrationData{
+		WorkspaceID: workspaceID,
+		TeamSize:    &teamSize,
+		Role:        &role,
+		UseCase:     &useCase,
+		HeardAbout:  &heardAbout,
+		Pun:         pun,
+	}
+
+	if err := r.DB.Create(registrationData).Error; err != nil {
+		return nil, e.Wrap(err, "error creating registration")
+	}
+
+	return &model.T, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}

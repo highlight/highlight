@@ -134,6 +134,7 @@ var Models = []interface{}{
 	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
 	&AlertEvent{},
+	&RegistrationData{},
 }
 
 func init() {
@@ -261,6 +262,16 @@ type SessionAlert struct {
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
+}
+
+type RegistrationData struct {
+	Model
+	WorkspaceID int
+	TeamSize    *string
+	Role        *string
+	UseCase     *string
+	HeardAbout  *string
+	Pun         *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {

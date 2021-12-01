@@ -139,6 +139,20 @@ export type CreateProjectMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type SubmitRegistrationFormMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    team_size: Types.Scalars['String'];
+    role: Types.Scalars['String'];
+    use_case: Types.Scalars['String'];
+    heard_about: Types.Scalars['String'];
+    pun?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'submitRegistrationForm'
+>;
+
 export type CreateWorkspaceMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
 }>;
@@ -2747,6 +2761,7 @@ export const namedOperations = {
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         CreateProject: 'CreateProject' as const,
+        SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
         CreateWorkspace: 'CreateWorkspace' as const,
         EditProject: 'EditProject' as const,
         DeleteProject: 'DeleteProject' as const,
