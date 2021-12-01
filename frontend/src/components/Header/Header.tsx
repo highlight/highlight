@@ -174,14 +174,14 @@ const FreePlanBanner = () => {
                         {moment(
                             data?.workspace_for_project?.trial_end_date
                         ).format('MM/DD')}
-                        . Fill{' '}
+                        .{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/w/${data?.workspace_for_project?.id}/about-you`}
                         >
-                            this
+                            Fill this out
                         </Link>{' '}
-                        out before your trial ends to extend this to 4 months.
+                        before your trial ends to extend this to 4 months.
                     </>
                 );
             } else {
