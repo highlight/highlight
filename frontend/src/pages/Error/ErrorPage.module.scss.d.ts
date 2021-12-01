@@ -1,5 +1,6 @@
 export const actionButtons: string;
 export const actionButtonsContainer: string;
+export const bannerShown: string;
 export const collapsible: string;
 export const commentDiv: string;
 export const commentInputContainer: string;
