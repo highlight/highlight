@@ -13,6 +13,17 @@ import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import styles from './RegistrationForm.module.scss';
 
+const HEARD_ABOUT_OPTIONS = [
+    'Twitter',
+    'Product Hunt',
+    'YCombinator',
+    'Afore Capital',
+    'Abstract Ventures',
+    'LJ Ventures',
+    'Essence VC',
+    'Angel Investor',
+];
+
 const RegistrationForm = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
 
@@ -151,7 +162,14 @@ const RegistrationForm = () => {
                             autoComplete="off"
                             required
                             disabled={waitingForRedirect}
+                            type="text"
+                            list="heardAboutInputs"
                         />
+                        <datalist id="heardAboutInputs">
+                            {HEARD_ABOUT_OPTIONS.map((opt) => (
+                                <option value={opt} key={opt}></option>
+                            ))}
+                        </datalist>
                     </label>
                     <label className={styles.inputLabel}>
                         What’s your best Highlight pun?
