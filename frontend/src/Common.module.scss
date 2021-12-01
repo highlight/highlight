@@ -5,8 +5,9 @@
     width: 100%;
 
     &.bannerShown {
-        animation: accomodate-banner 1s forwards;
+        animation: accomodate-banner 0.5s forwards;
         height: calc(100% - var(--banner-height));
+        overflow-x: hidden;
     }
 }
 

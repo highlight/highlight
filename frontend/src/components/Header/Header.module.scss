@@ -14,7 +14,7 @@
     }
 
     &.bannerShown {
-        animation: accomodate-banner 1s forwards;
+        animation: accomodate-banner 0.5s forwards;
     }
 }
 
@@ -70,8 +70,10 @@
         display: flex;
         height: var(--button-size);
         justify-content: center;
-        margin-left: var(--size-small);
-        transform: scale(1);
+        margin-right: var(--size-small);
+        position: absolute;
+        right: 0;
+        transform: scale(1.5);
         transform-origin: center;
         transition: all 0.2s ease-in-out;
         width: var(--button-size);
@@ -85,7 +87,7 @@
         }
 
         &:hover {
-            transform: scale(1.5);
+            transform: scale(2);
         }
     }
 }
