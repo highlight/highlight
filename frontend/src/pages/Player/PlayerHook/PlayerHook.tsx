@@ -14,10 +14,7 @@ import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import {
-    isLiveModeExposed,
-    useAuthContext,
-} from '../../../authentication/AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     OnSessionPayloadAppendedDocument,
     useGetSessionPayloadLazyQuery,
@@ -67,7 +64,7 @@ export enum SessionViewability {
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { isLoggedIn, isHighlightAdmin, admin } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -331,7 +328,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             );
             if (loadedEventsIndex <= 0) {
                 setIsLiveMode(
-                    isLiveModeExposed(isHighlightAdmin, admin) &&
+                    isHighlightAdmin &&
                         sessionData?.session?.processed === false
                 );
                 setState(ReplayerState.Loading);

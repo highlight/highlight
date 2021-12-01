@@ -18,10 +18,7 @@ import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import {
-    isLiveModeExposed,
-    useAuthContext,
-} from '../../../authentication/AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import SvgFullscreenIcon from '../../../static/FullscreenIcon';
 import SvgMinimize2Icon from '../../../static/Minimize2Icon';
@@ -87,7 +84,7 @@ export const Toolbar = React.memo(() => {
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
-    const { isLoggedIn, isHighlightAdmin, admin } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -414,7 +411,7 @@ export const Toolbar = React.memo(() => {
                         />
                     </button>
 
-                    {isLiveModeExposed(isHighlightAdmin, admin) &&
+                    {isHighlightAdmin &&
                         session?.processed === false &&
                         !disableControls && (
                             <Button
