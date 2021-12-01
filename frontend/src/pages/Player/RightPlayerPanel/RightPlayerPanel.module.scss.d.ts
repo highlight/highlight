@@ -1,3 +1,4 @@
+export const bannerShown: string;
 export const hidden: string;
 export const playerRightPanelCollapsible: string;
 export const playerRightPanelContainer: string;
