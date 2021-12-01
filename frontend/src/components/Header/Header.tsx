@@ -170,12 +170,12 @@ const FreePlanBanner = () => {
             if (integrated) {
                 bannerMessage = (
                     <>
-                        You're currently on a 2 week unlimited trial. Register{' '}
+                        You're currently on a 2 week unlimited trial.{' '}
                         <Link
                             className={styles.trialLink}
-                            to={`/w/${data?.workspace_for_project?.id}/registration-form`}
+                            to={`/w/${data?.workspace_for_project?.id}/about-you`}
                         >
-                            here
+                            Tell us about yourself
                         </Link>{' '}
                         by{' '}
                         {moment(

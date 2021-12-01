@@ -39,7 +39,7 @@ export const AppRouter = () => {
                             <NewProjectPage />
                         </Landing>
                     </Route>
-                    <Route path="/w/:workspace_id(\d+)/registration-form">
+                    <Route path="/w/:workspace_id(\d+)/about-you">
                         <Landing>
                             <RegistrationForm />
                         </Landing>

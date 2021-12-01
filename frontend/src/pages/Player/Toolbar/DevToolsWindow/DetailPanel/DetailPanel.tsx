@@ -1,5 +1,6 @@
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import { Resizable } from 're-resizable';
@@ -9,6 +10,7 @@ import styles from './DetailPanel.module.scss';
 
 const DetailPanel = () => {
     const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
+    const { showBanner } = useGlobalContext();
 
     return (
         <AnimatePresence presenceAffectsLayout>
@@ -31,6 +33,7 @@ const DetailPanel = () => {
                         key="detailPanel"
                         className={classNames(styles.detailPanel, {
                             [styles.padding]: !detailedPanel.options?.noPadding,
+                            [styles.bannerShown]: showBanner,
                         })}
                         initial={{ transform: 'translateX(110%)' }}
                         animate={{ transform: 'translateX(0%)' }}

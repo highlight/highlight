@@ -11,7 +11,6 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { CircularSpinner } from '../../components/Loading/Loading';
 import styles from './RegistrationForm.module.scss';
 
 const RegistrationForm = () => {
@@ -35,12 +34,13 @@ const RegistrationForm = () => {
     }, [setIsLoading]);
 
     const [redirect, setRedirect] = useState(false);
+    const waitingForRedirect = !!data && !error;
     useEffect(() => {
-        if (!!data && !error) {
+        if (waitingForRedirect) {
             message.success(`Form submitted, we'll be in touch within 2 days!`);
             setTimeout(() => setRedirect(true), 3000); // Redirect after 3 seconds
         }
-    }, [data, error]);
+    }, [waitingForRedirect]);
 
     // Redirect to the default page for the workspace
     if (redirect) {
@@ -67,7 +67,8 @@ const RegistrationForm = () => {
         teamSize.length > 0 &&
         role.length > 0 &&
         useCase.length > 0 &&
-        heardAbout.length > 0;
+        heardAbout.length > 0 &&
+        !waitingForRedirect; // disable button when waiting to redirect
 
     return (
         <>
@@ -90,11 +91,11 @@ const RegistrationForm = () => {
                             Error submitting form
                         </div>
                     )}
-                    <div className={styles.inputWrapper}>
-                        <h4 className={styles.inputLabel}>Team Size</h4>
+                    <label className={styles.inputLabel}>
+                        Team Size
                         <Input
                             className={styles.formInput}
-                            placeholder="Pied Piper Inc., McDonalds, etc."
+                            placeholder="6"
                             name="teamSize"
                             value={teamSize}
                             onChange={(e) => {
@@ -103,10 +104,12 @@ const RegistrationForm = () => {
                             autoComplete="off"
                             autoFocus
                             required
+                            type="number"
+                            disabled={waitingForRedirect}
                         />
-                    </div>
-                    <div className={styles.inputWrapper}>
-                        <h4 className={styles.inputLabel}>Your Role</h4>
+                    </label>
+                    <label className={styles.inputLabel}>
+                        Your Role
                         <Input
                             className={styles.formInput}
                             placeholder="CTO, Hype-man, Company Clown, etc.."
@@ -117,10 +120,11 @@ const RegistrationForm = () => {
                             }}
                             autoComplete="off"
                             required
+                            disabled={waitingForRedirect}
                         />
-                    </div>
-                    <div className={styles.inputWrapper}>
-                        <h4 className={styles.inputLabel}>Your Use Case</h4>
+                    </label>
+                    <label className={styles.inputLabel}>
+                        Your Use Case
                         <Input
                             className={styles.formInput}
                             placeholder="Observing user behavior, debugging sessions, etc."
@@ -131,12 +135,11 @@ const RegistrationForm = () => {
                             }}
                             autoComplete="off"
                             required
+                            disabled={waitingForRedirect}
                         />
-                    </div>
-                    <div className={styles.inputWrapper}>
-                        <h4 className={styles.inputLabel}>
-                            How did you hear about us?
-                        </h4>
+                    </label>
+                    <label className={styles.inputLabel}>
+                        How did you hear about us?
                         <Input
                             className={styles.formInput}
                             placeholder="Product Hunt, Postcard, Carrier Pigeon, etc."
@@ -147,23 +150,23 @@ const RegistrationForm = () => {
                             }}
                             autoComplete="off"
                             required
+                            disabled={waitingForRedirect}
                         />
-                    </div>
-                    <div className={styles.inputWrapper}>
-                        <h4 className={styles.inputLabel}>
-                            What’s your best Highlight pun?
-                        </h4>
+                    </label>
+                    <label className={styles.inputLabel}>
+                        What’s your best Highlight pun?
                         <Input
                             className={styles.formInput}
-                            placeholder="..."
+                            placeholder="Why did the chicken cross the road? To Highlight some grub."
                             name="pun"
                             value={pun}
                             onChange={(e) => {
                                 setPun(e.target.value);
                             }}
                             autoComplete="off"
+                            disabled={waitingForRedirect}
                         />
-                    </div>
+                    </label>
                     <Button
                         trackingId={`SubmitRegistrationForm`}
                         type="primary"
@@ -171,17 +174,9 @@ const RegistrationForm = () => {
                         block
                         htmlType="submit"
                         disabled={!isValid}
+                        loading={loading}
                     >
-                        {loading ? (
-                            <CircularSpinner
-                                style={{
-                                    fontSize: 18,
-                                    color: 'var(--text-primary-inverted)',
-                                }}
-                            />
-                        ) : (
-                            'Get Free Software! 🍭'
-                        )}
+                        Get Free Software! 🍭
                     </Button>
                 </form>
             </div>

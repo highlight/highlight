@@ -1,3 +1,4 @@
+export const bannerShown: string;
 export const contentContainer: string;
 export const detailPanel: string;
 export const dragHandle: string;
