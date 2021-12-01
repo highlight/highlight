@@ -710,6 +710,71 @@ export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateProjectMutation,
     Types.CreateProjectMutationVariables
 >;
+export const SubmitRegistrationFormDocument = gql`
+    mutation SubmitRegistrationForm(
+        $workspace_id: ID!
+        $team_size: String!
+        $role: String!
+        $use_case: String!
+        $heard_about: String!
+        $pun: String
+    ) {
+        submitRegistrationForm(
+            workspace_id: $workspace_id
+            team_size: $team_size
+            role: $role
+            use_case: $use_case
+            heard_about: $heard_about
+            pun: $pun
+        )
+    }
+`;
+export type SubmitRegistrationFormMutationFn = Apollo.MutationFunction<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
+>;
+
+/**
+ * __useSubmitRegistrationFormMutation__
+ *
+ * To run a mutation, you first call `useSubmitRegistrationFormMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitRegistrationFormMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitRegistrationFormMutation, { data, loading, error }] = useSubmitRegistrationFormMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      team_size: // value for 'team_size'
+ *      role: // value for 'role'
+ *      use_case: // value for 'use_case'
+ *      heard_about: // value for 'heard_about'
+ *      pun: // value for 'pun'
+ *   },
+ * });
+ */
+export function useSubmitRegistrationFormMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >(SubmitRegistrationFormDocument, baseOptions);
+}
+export type SubmitRegistrationFormMutationHookResult = ReturnType<
+    typeof useSubmitRegistrationFormMutation
+>;
+export type SubmitRegistrationFormMutationResult = Apollo.MutationResult<Types.SubmitRegistrationFormMutation>;
+export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
+>;
 export const CreateWorkspaceDocument = gql`
     mutation CreateWorkspace($name: String!) {
         createWorkspace(name: $name) {
