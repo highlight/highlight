@@ -170,35 +170,35 @@ const FreePlanBanner = () => {
             if (integrated) {
                 bannerMessage = (
                     <>
-                        You're currently on a 2 week unlimited trial.{' '}
+                        You have unlimited Highlight until{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}
+                        . Fill{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/w/${data?.workspace_for_project?.id}/about-you`}
                         >
-                            Tell us about yourself
+                            this
                         </Link>{' '}
-                        by{' '}
-                        {moment(
-                            data?.workspace_for_project?.trial_end_date
-                        ).format('MM/DD')}{' '}
-                        to get 4 months of free Highlight!
+                        out before your trial ends to extend this to 4 months.
                     </>
                 );
             } else {
                 bannerMessage = (
                     <>
-                        You're currently on a 2 week unlimited trial.{' '}
+                        You have unlimited Highlight until{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}
+                        .{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/${project_id}/setup`}
                         >
-                            Integrate Highlight
+                            Integrate
                         </Link>{' '}
-                        by{' '}
-                        {moment(
-                            data?.workspace_for_project?.trial_end_date
-                        ).format('MM/DD')}{' '}
-                        to get 4 months of free Highlight!
+                        before your trial ends to extend this to 4 months.
                     </>
                 );
             }
