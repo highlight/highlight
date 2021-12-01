@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -57,6 +58,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         project_id: string;
     }>();
     const history = useHistory();
+
+    const { showBanner } = useGlobalContext();
 
     const { isLoggedIn } = useAuthContext();
     const {
@@ -164,6 +167,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     styles.errorPageCenterColumn,
                                     {
                                         [styles.hidden]: !showLeftPanel,
+                                        [styles.bannerShown]: showBanner,
                                     }
                                 )}
                             >
@@ -286,7 +290,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 )}
                             </div>
                             <div
-                                className={styles.errorPageRightColumn}
+                                className={classNames(
+                                    styles.errorPageRightColumn,
+                                    { [styles.bannerShown]: showBanner }
+                                )}
                                 ref={newCommentModalRef}
                             >
                                 <ErrorAffectedUsers

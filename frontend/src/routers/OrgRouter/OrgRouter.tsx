@@ -7,6 +7,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import { useToggle } from 'react-use';
 
@@ -27,6 +28,7 @@ export const ProjectRouter = () => {
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
+    const [showBanner, toggleShowBanner] = useToggle(false);
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -94,6 +96,8 @@ export const ProjectRouter = () => {
             value={{
                 showKeyboardShortcutsGuide,
                 toggleShowKeyboardShortcutsGuide,
+                showBanner,
+                toggleShowBanner,
             }}
         >
             <ApplicationContextProvider
@@ -108,7 +112,11 @@ export const ProjectRouter = () => {
                 {(isLoggedIn ||
                     projectIdRemapped ===
                         DEMO_WORKSPACE_PROXY_APPLICATION_ID) && <Sidebar />}
-                <div className={commonStyles.bodyWrapper}>
+                <div
+                    className={classNames(commonStyles.bodyWrapper, {
+                        [commonStyles.bannerShown]: showBanner,
+                    })}
+                >
                     {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
                     {isLoggedIn && (error || !data?.project) ? (
                         <ErrorState

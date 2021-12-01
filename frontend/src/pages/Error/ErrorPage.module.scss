@@ -9,6 +9,10 @@
     &.hidden {
         padding-left: var(--size-xxLarge);
     }
+
+    &.bannerShown {
+        height: calc(100vh - var(--top-padding) - var(--banner-height));
+    }
 }
 
 .errorPageLeftColumn {
@@ -23,13 +27,17 @@
 .errorPageRightColumn {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 120px);
+    height: calc(100vh - var(--top-padding));
     padding-bottom: var(--size-large);
     padding-right: var(--size-medium);
     position: sticky;
     row-gap: var(--size-large);
     top: 120px;
     width: 100%;
+
+    &.bannerShown {
+        height: calc(100vh - var(--top-padding) - var(--banner-height));
+    }
 }
 
 .title {

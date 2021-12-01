@@ -7,6 +7,7 @@ import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -18,7 +19,6 @@ import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
-import { ReactComponent as Banner } from '../../static/banner.svg';
 import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
@@ -35,6 +35,7 @@ export const Header = () => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
     const { isLoggedIn } = useAuthContext();
+    const { showBanner } = useGlobalContext();
 
     return (
         <>
@@ -45,10 +46,10 @@ export const Header = () => {
                         !isLoggedIn &&
                         projectIdRemapped !==
                             DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+                    [styles.bannerShown]: showBanner,
                 })}
             >
                 {!!project_id && getBanner(project_id)}
-
                 <div className={styles.headerContent}>
                     {isLoggedIn ||
                     projectIdRemapped ===
@@ -99,6 +100,7 @@ const getBanner = (project_id: string) => {
 };
 
 const FreePlanBanner = () => {
+    const { toggleShowBanner } = useGlobalContext();
     const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
         'highlightHideFreePlanBanner',
         false
@@ -132,18 +134,22 @@ const FreePlanBanner = () => {
     ]);
 
     if (loading) {
+        toggleShowBanner(false);
         return null;
     }
 
     if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
+        toggleShowBanner(false);
         return null;
     }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
+        toggleShowBanner(false);
         return null;
     }
 
     if (temporarilyHideBanner) {
+        toggleShowBanner(false);
         return null;
     }
 
@@ -163,12 +169,14 @@ const FreePlanBanner = () => {
         }
     }
 
+    toggleShowBanner(true);
+
     return (
         <div className={styles.trialWrapper}>
-            <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
                 {canExtend && (
                     <>
+                        You're currently on a 2 week unlimited trial.{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/${project_id}/setup`}
@@ -208,6 +216,9 @@ const FreePlanBanner = () => {
 };
 
 const OnPremiseBanner = () => {
+    const { toggleShowBanner } = useGlobalContext();
+    toggleShowBanner(true);
+
     return (
         <div
             className={styles.trialWrapper}
@@ -215,10 +226,6 @@ const OnPremiseBanner = () => {
                 backgroundColor: 'var(--color-primary-inverted-background)',
             }}
         >
-            <Banner
-                className={styles.bannerSvg}
-                style={{ fill: 'var(--text-primary)' }}
-            />
             <div className={classNames(styles.trialTimeText)}>
                 Running Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
@@ -230,8 +237,11 @@ const OnPremiseBanner = () => {
 const DemoWorkspaceBanner = () => {
     const { currentProject, allProjects } = useApplicationContext();
     const { pathname } = useLocation();
+    const { toggleShowBanner } = useGlobalContext();
 
     const redirectLink = getRedirectLink(allProjects, currentProject, pathname);
+
+    toggleShowBanner(true);
 
     return (
         <div
@@ -240,10 +250,6 @@ const DemoWorkspaceBanner = () => {
                 background: 'var(--color-primary-inverted-background)',
             }}
         >
-            <Banner
-                className={styles.bannerSvg}
-                style={{ fill: 'var(--color-primary-inverted-background)' }}
-            />
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Project.{' '}
                 <Link className={styles.demoLink} to={redirectLink}>

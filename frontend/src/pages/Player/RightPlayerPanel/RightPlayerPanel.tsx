@@ -1,6 +1,7 @@
 import EventStream from '@pages/Player/components/EventStream/EventStream';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
 
@@ -20,6 +21,7 @@ const RightPlayerPanel = React.memo(() => {
         showRightPanel: showRightPanelPreference,
         setShowRightPanel,
     } = usePlayerConfiguration();
+    const { showBanner } = useGlobalContext();
     const { canViewSession } = useReplayerContext();
     const { setSelectedRightPanelTab, detailedPanel } = usePlayerUIContext();
 
@@ -59,7 +61,14 @@ const RightPlayerPanel = React.memo(() => {
                     }}
                 />
                 {showRightPanel && (
-                    <div className={styles.playerRightPanelCollapsible}>
+                    <div
+                        className={classNames(
+                            styles.playerRightPanelCollapsible,
+                            {
+                                [styles.bannerShown]: showBanner,
+                            }
+                        )}
+                    >
                         <MetadataBox />
                         <RightPlayerPanelTabs />
                     </div>

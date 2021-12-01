@@ -12,6 +12,10 @@
     &.guest {
         width: 100%;
     }
+
+    &.bannerShown {
+        animation: accomodate-banner 1s forwards;
+    }
 }
 
 .hamburger {
@@ -44,16 +48,14 @@
 }
 
 .trialWrapper {
-    --banner-height: 8px;
-
     align-items: center;
-    animation: enter-viewport 1s forwards;
     background-color: var(--color-purple);
     color: var(--text-primary-inverted);
     display: flex;
     height: var(--banner-height);
     justify-content: center;
-    position: absolute;
+    position: fixed;
+    top: calc(-1 * var(--banner-height));
     width: 100%;
     z-index: 1000;
 
@@ -68,8 +70,7 @@
         display: flex;
         height: var(--button-size);
         justify-content: center;
-        position: absolute;
-        top: calc(var(--banner-height) + var(--size-xSmall));
+        margin-left: var(--size-small);
         transform: scale(1);
         transform-origin: center;
         transition: all 0.2s ease-in-out;
@@ -89,21 +90,14 @@
     }
 }
 
-@keyframes enter-viewport {
+@keyframes accomodate-banner {
     0% {
-        transform: translateY(-100px);
+        transform: translateY(0);
     }
 
     100% {
-        transform: translateY(0);
+        transform: translateY(var(--banner-height));
     }
-}
-
-.bannerSvg {
-    fill: var(--color-purple);
-    position: absolute;
-    top: 10px;
-    transform: scale(2.5, 3);
 }
 
 .trialCloseStyle {
@@ -118,7 +112,6 @@
 
 .trialTimeText {
     font-size: 12px;
-    margin-top: 18px;
     padding-bottom: 4px;
     padding-top: 4px;
     z-index: 100;
