@@ -6,6 +6,7 @@ import {
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Redirect } from 'react-router-dom';
@@ -57,6 +58,7 @@ const NewProjectPage = () => {
                 },
             }).then(() => {
                 client.cache.reset();
+                H.track('CreateWorkspace', { name });
                 setName('');
             });
         } else {
@@ -66,6 +68,7 @@ const NewProjectPage = () => {
                     workspace_id,
                 },
             }).then(() => {
+                H.track('CreateProject', { name });
                 client.cache.reset();
                 setName('');
             });

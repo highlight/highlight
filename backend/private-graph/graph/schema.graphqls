@@ -159,6 +159,7 @@ type Workspace {
     allow_meter_overage: Boolean!
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
+    trial_extension_enabled: Boolean!
 }
 
 type Segment {

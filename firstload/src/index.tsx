@@ -160,6 +160,7 @@ interface HighlightWindow extends Window {
     H: HighlightPublicInterface;
     mixpanel?: MixpanelAPI;
     amplitude?: AmplitudeAPI;
+    Intercom?: any;
 }
 
 declare var window: HighlightWindow;
@@ -295,6 +296,9 @@ export const H: HighlightPublicInterface = {
                     ...metadata,
                     highlightSessionURL: highlightUrl,
                 });
+            }
+            if (window.Intercom) {
+                window.Intercom('trackEvent', event, metadata);
             }
         } catch (e) {
             HighlightWarning('track', e);

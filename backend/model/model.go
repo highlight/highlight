@@ -197,6 +197,7 @@ type Workspace struct {
 	AllowMeterOverage           bool       `gorm:"default:false"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
+	TrialExtensionEnabled       bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {

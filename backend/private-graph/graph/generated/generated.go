@@ -571,6 +571,7 @@ type ComplexityRoot struct {
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
+		TrialExtensionEnabled       func(childComplexity int) int
 	}
 
 	WorkspaceInviteLink struct {
@@ -3968,6 +3969,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.TrialEndDate(childComplexity), true
 
+	case "Workspace.trial_extension_enabled":
+		if e.complexity.Workspace.TrialExtensionEnabled == nil {
+			break
+		}
+
+		return e.complexity.Workspace.TrialExtensionEnabled(childComplexity), true
+
 	case "WorkspaceInviteLink.expiration_date":
 		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
 			break
@@ -4245,6 +4253,7 @@ type Workspace {
     allow_meter_overage: Boolean!
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
+    trial_extension_enabled: Boolean!
 }
 
 type Segment {
@@ -21630,6 +21639,41 @@ func (ec *executionContext) _Workspace_eligible_for_trial_extension(ctx context.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_trial_extension_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TrialExtensionEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26489,6 +26533,11 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Workspace_allowed_auto_join_email_origins(ctx, field, obj)
 		case "eligible_for_trial_extension":
 			out.Values[i] = ec._Workspace_eligible_for_trial_extension(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "trial_extension_enabled":
+			out.Values[i] = ec._Workspace_trial_extension_enabled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

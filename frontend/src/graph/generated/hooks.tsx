@@ -4503,6 +4503,7 @@ export const GetBillingDetailsForProjectDocument = gql`
             next_invoice_date
             allow_meter_overage
             eligible_for_trial_extension
+            trial_extension_enabled
         }
     }
 `;
