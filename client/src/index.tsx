@@ -639,13 +639,13 @@ export class Highlight {
                                     event: stringify(c.value),
                                     type: 'console.error',
                                     url: window.location.href,
-                                    source: c.trace[0].fileName
+                                    source: c.trace[0]?.fileName
                                         ? c.trace[0].fileName
                                         : '',
-                                    lineNumber: c.trace[0].lineNumber
+                                    lineNumber: c.trace[0]?.lineNumber
                                         ? c.trace[0].lineNumber
                                         : 0,
-                                    columnNumber: c.trace[0].columnNumber
+                                    columnNumber: c.trace[0]?.columnNumber
                                         ? c.trace[0].columnNumber
                                         : 0,
                                     stackTrace: c.trace,
