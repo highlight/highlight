@@ -77,7 +77,7 @@ export const Header = () => {
                                 trackingId="DemoProjectSignUp"
                                 to="/?sign_up=1"
                             >
-                                Get 4 months of Highlight free!
+                                Try Highlight for Free!
                             </ButtonLink>
                         ) : (
                             <FeedbackButton />
