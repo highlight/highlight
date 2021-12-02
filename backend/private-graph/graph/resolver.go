@@ -1076,6 +1076,13 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
+func (r *Resolver) GetUTCDateRange(dateRange modelInputs.DateRangeInput) (startTimeUTC time.Time, endTimeUTC time.Time) {
+	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+
+	return startDateUTC, endDateUTC
+}
+
 func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {

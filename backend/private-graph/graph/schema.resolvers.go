@@ -2595,8 +2595,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 
 	dailySessions := []*model.DailySessionCount{}
 
-	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 
 	if err := r.DB.Where("project_id = ?", projectID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
@@ -2611,9 +2610,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 	}
 
 	dailyErrors := []*model.DailyErrorCount{}
-
-	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 
 	if err := r.DB.Where("project_id = ?", projectID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily errors")
