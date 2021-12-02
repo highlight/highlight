@@ -796,50 +796,44 @@ query UnprocessedSessionsCount($project_id: ID!) {
     unprocessedSessionsCount(project_id: $project_id)
 }
 
-query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+query GetKeyPerformanceIndicators(
+    $project_id: ID!
+    $dateRange: DateRangeInput
+) {
     unprocessedSessionsCount(project_id: $project_id)
-    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+    newUsersCount(project_id: $project_id, dateRange: $dateRange) {
         count
     }
-    averageSessionLength(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+    averageSessionLength(project_id: $project_id, dateRange: $dateRange) {
         length
     }
-    userFingerprintCount(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+    userFingerprintCount(project_id: $project_id, dateRange: $dateRange) {
         count
     }
 }
 
-query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-    referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetReferrersCount($project_id: ID!, $dateRange: DateRangeInput!) {
+    referrers(project_id: $project_id, dateRange: $dateRange) {
         host
         count
         percent
     }
 }
 
-query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetNewUsersCount($project_id: ID!, $dateRange: DateRangeInput!) {
+    newUsersCount(project_id: $project_id, dateRange: $dateRange) {
         count
     }
 }
 
-query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
-    averageSessionLength(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetAverageSessionLength($project_id: ID!, $dateRange: DateRangeInput!) {
+    averageSessionLength(project_id: $project_id, dateRange: $dateRange) {
         length
     }
 }
 
-query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-    topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetTopUsers($project_id: ID!, $dateRange: DateRangeInput!) {
+    topUsers(project_id: $project_id, dateRange: $dateRange) {
         identifier
         total_active_time
         active_time_percentage
@@ -862,11 +856,8 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
-query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
-    rageClicksForProject(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetRageClicksForProject($project_id: ID!, $dateRange: DateRangeInput!) {
+    rageClicksForProject(project_id: $project_id, dateRange: $dateRange) {
         identifier
         session_secure_id
         total_clicks

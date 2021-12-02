@@ -145,7 +145,7 @@ const getButtonLabel = (_startDate?: Date, _endDate?: Date): string => {
     return `${endDate.format(DATE_FORMAT)} - ${startDate.format(DATE_FORMAT)}`;
 };
 
-const getStartAndEndTimeRange = (
+export const getStartAndEndTimeRange = (
     daysBefore: number
 ): { startDate: Date; endDate: Date } => {
     const startDate = moment().toDate();

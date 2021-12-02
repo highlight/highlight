@@ -49,12 +49,18 @@ const RageClicksForProjectTable = () => {
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { dateRange } = useHomePageFiltersContext();
     const history = useHistory();
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetRageClicksForProjectQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            dateRange: {
+                end_date: dateRange.endDate,
+                start_date: dateRange.startDate,
+            },
+        },
         onCompleted: (data) => {
             if (data.rageClicksForProject) {
                 const transformedData = data.rageClicksForProject.map(
@@ -127,8 +133,8 @@ const RageClicksForProjectTable = () => {
                         <></>
                     ) : (
                         <>
-                            Woohoo! There are no rage clicks for the past{' '}
-                            {dateRangeLength} days!
+                            Woohoo! There are no rage clicks for the between{' '}
+                            {dateRange.startDate} and {dateRange.endDate} days!
                         </>
                     )
                 }

@@ -2247,7 +2247,7 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
@@ -2276,7 +2276,7 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetReferrersCountQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetReferrersCountQuery = { __typename?: 'Query' } & {
@@ -2292,7 +2292,7 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
 
 export type GetNewUsersCountQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
@@ -2303,7 +2303,7 @@ export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
 
 export type GetAverageSessionLengthQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
@@ -2317,7 +2317,7 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
 
 export type GetTopUsersQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetTopUsersQuery = { __typename?: 'Query' } & {
@@ -2369,7 +2369,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 
 export type GetRageClicksForProjectQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    lookBackPeriod: Types.Scalars['Int'];
+    dateRange: Types.DateRangeInput;
 }>;
 
 export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {

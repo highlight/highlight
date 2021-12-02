@@ -304,7 +304,7 @@ type ComplexityRoot struct {
 		Admin                        func(childComplexity int) int
 		AdminHasCreatedComment       func(childComplexity int, adminID int) int
 		AppVersionSuggestion         func(childComplexity int, projectID int) int
-		AverageSessionLength         func(childComplexity int, projectID int, lookBackPeriod int) int
+		AverageSessionLength         func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		BillingDetails               func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject     func(childComplexity int, projectID int) int
 		CustomerPortalURL            func(childComplexity int, workspaceID int) int
@@ -330,7 +330,7 @@ type ComplexityRoot struct {
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
-		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
+		NewUsersCount                func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		Project                      func(childComplexity int, id int) int
 		ProjectAdmins                func(childComplexity int, projectID int) int
 		ProjectHasViewedASession     func(childComplexity int, projectID int) int
@@ -339,8 +339,8 @@ type ComplexityRoot struct {
 		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
 		RageClickAlerts              func(childComplexity int, projectID int) int
 		RageClicks                   func(childComplexity int, sessionSecureID string) int
-		RageClicksForProject         func(childComplexity int, projectID int, lookBackPeriod int) int
-		Referrers                    func(childComplexity int, projectID int, lookBackPeriod int) int
+		RageClicksForProject         func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		Referrers                    func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		Resources                    func(childComplexity int, sessionSecureID string) int
 		Segments                     func(childComplexity int, projectID int) int
 		Session                      func(childComplexity int, secureID string) int
@@ -353,10 +353,10 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
-		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
+		TopUsers                     func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
-		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
+		UserFingerprintCount         func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		UserPropertiesAlerts         func(childComplexity int, projectID int) int
 		Workspace                    func(childComplexity int, id int) int
 		WorkspaceAdmins              func(childComplexity int, workspaceID int) int
@@ -666,7 +666,7 @@ type QueryResolver interface {
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
 	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
-	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
+	RageClicksForProject(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model.RageClickEventForProject, error)
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
@@ -689,11 +689,11 @@ type QueryResolver interface {
 	DailySessionsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error)
-	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
-	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
-	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
-	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
-	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
+	Referrers(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model.ReferrerTablePayload, error)
+	NewUsersCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) (*model.NewUsersCount, error)
+	TopUsers(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model.TopUsersPayload, error)
+	AverageSessionLength(ctx context.Context, projectID int, dateRange model.DateRangeInput) (*model.AverageSessionLength, error)
+	UserFingerprintCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) (*model.UserFingerprintCount, error)
 	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
@@ -2294,7 +2294,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AverageSessionLength(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.AverageSessionLength(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.billingDetails":
 		if e.complexity.Query.BillingDetails == nil {
@@ -2601,7 +2601,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.NewUsersCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.NewUsersCount(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.project":
 		if e.complexity.Query.Project == nil {
@@ -2704,7 +2704,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RageClicksForProject(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.RageClicksForProject(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.referrers":
 		if e.complexity.Query.Referrers == nil {
@@ -2716,7 +2716,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Referrers(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.Referrers(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.resources":
 		if e.complexity.Query.Resources == nil {
@@ -2867,7 +2867,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TopUsers(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.TopUsers(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -2903,7 +2903,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UserFingerprintCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.UserFingerprintCount(childComplexity, args["project_id"].(int), args["dateRange"].(model.DateRangeInput)), true
 
 	case "Query.user_properties_alerts":
 		if e.complexity.Query.UserPropertiesAlerts == nil {
@@ -4636,7 +4636,7 @@ type Query {
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     rageClicksForProject(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): [RageClickEventForProject!]!
     error_groups(
         project_id: ID!
@@ -4674,16 +4674,19 @@ type Query {
         error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
-    referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-    newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-    topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+    referrers(
+        project_id: ID!
+        dateRange: DateRangeInput!
+    ): [ReferrerTablePayload]!
+    newUsersCount(project_id: ID!, dateRange: DateRangeInput!): NewUsersCount
+    topUsers(project_id: ID!, dateRange: DateRangeInput!): [TopUsersPayload]!
     averageSessionLength(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): AverageSessionLength
     userFingerprintCount(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): UserFingerprintCount
     sessions(
         project_id: ID!
@@ -7088,15 +7091,15 @@ func (ec *executionContext) field_Query_averageSessionLength_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -7532,15 +7535,15 @@ func (ec *executionContext) field_Query_newUsersCount_args(ctx context.Context, 
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -7679,15 +7682,15 @@ func (ec *executionContext) field_Query_rageClicksForProject_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -7733,15 +7736,15 @@ func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawA
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -7958,15 +7961,15 @@ func (ec *executionContext) field_Query_topUsers_args(ctx context.Context, rawAr
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -8012,15 +8015,15 @@ func (ec *executionContext) field_Query_userFingerprintCount_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["dateRange"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["dateRange"] = arg1
 	return args, nil
 }
 
@@ -14473,7 +14476,7 @@ func (ec *executionContext) _Query_rageClicksForProject(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RageClicksForProject(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().RageClicksForProject(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15395,7 +15398,7 @@ func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Referrers(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().Referrers(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15437,7 +15440,7 @@ func (ec *executionContext) _Query_newUsersCount(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().NewUsersCount(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().NewUsersCount(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15476,7 +15479,7 @@ func (ec *executionContext) _Query_topUsers(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TopUsers(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().TopUsers(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15518,7 +15521,7 @@ func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AverageSessionLength(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().AverageSessionLength(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15557,7 +15560,7 @@ func (ec *executionContext) _Query_userFingerprintCount(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserFingerprintCount(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().UserFingerprintCount(rctx, args["project_id"].(int), args["dateRange"].(model.DateRangeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

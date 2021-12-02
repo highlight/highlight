@@ -658,7 +658,7 @@ export type QueryRage_ClicksArgs = {
 
 export type QueryRageClicksForProjectArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QueryError_GroupsArgs = {
@@ -749,27 +749,27 @@ export type QueryDailyErrorFrequencyArgs = {
 
 export type QueryReferrersArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QueryNewUsersCountArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QueryTopUsersArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QueryAverageSessionLengthArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QueryUserFingerprintCountArgs = {
     project_id: Scalars['ID'];
-    lookBackPeriod: Scalars['Int'];
+    dateRange: DateRangeInput;
 };
 
 export type QuerySessionsArgs = {

@@ -528,7 +528,7 @@ type Query {
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     rageClicksForProject(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): [RageClickEventForProject!]!
     error_groups(
         project_id: ID!
@@ -566,16 +566,19 @@ type Query {
         error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
-    referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-    newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-    topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+    referrers(
+        project_id: ID!
+        dateRange: DateRangeInput!
+    ): [ReferrerTablePayload]!
+    newUsersCount(project_id: ID!, dateRange: DateRangeInput!): NewUsersCount
+    topUsers(project_id: ID!, dateRange: DateRangeInput!): [TopUsersPayload]!
     averageSessionLength(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): AverageSessionLength
     userFingerprintCount(
         project_id: ID!
-        lookBackPeriod: Int!
+        dateRange: DateRangeInput!
     ): UserFingerprintCount
     sessions(
         project_id: ID!

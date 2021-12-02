@@ -33,7 +33,7 @@ const ReferrersTable = () => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { dateRange } = useHomePageFiltersContext();
     const history = useHistory();
     const {
         setSearchParams,
@@ -42,7 +42,13 @@ const ReferrersTable = () => {
     } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            dateRange: {
+                start_date: dateRange.startDate,
+                end_date: dateRange.endDate,
+            },
+        },
         onCompleted: (data) => {
             if (data.referrers) {
                 const transformedData = data.referrers.map(

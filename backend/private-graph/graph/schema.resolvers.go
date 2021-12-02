@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -2071,12 +2071,13 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 	return rageClicks, nil
 }
 
-func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
+func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*modelInputs.RageClickEventForProject, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	rageClicks := []*modelInputs.RageClickEventForProject{}
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 
 	rageClicksSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.RageClicksForProject"), tracer.Tag("project_id", projectID))
@@ -2094,7 +2095,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 				rage_click_events
 			WHERE
 				project_id = ?
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND created_at BETWEEN ? AND ?
 			GROUP BY
 				session_secure_id
 		) AS rageClicks
@@ -2103,7 +2104,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
-		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
+		projectID, startDateUTC, endDateUTC).Scan(&rageClicks).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving rage clicks for project")
 	}
 	rageClicksSpan.Finish()
@@ -2594,10 +2595,9 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 	}
 
 	dailySessions := []*model.DailySessionCount{}
-
 	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 
-	if err := r.DB.Where("project_id = ?", projectID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
+	if err := r.DB.Debug().Where("project_id = ?", projectID).Where(fmt.Sprintf("date BETWEEN '%v' AND '%v'", startDateUTC, endDateUTC)).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
 	}
 
@@ -2657,39 +2657,82 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
+func (r *queryResolver) Referrers(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	referrers := []*modelInputs.ReferrerTablePayload{}
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 
-	if err := r.DB.Raw(fmt.Sprintf("SELECT DISTINCT(value) as host, COUNT(value), count(value) * 100.0 / (select count(*) from fields where name='referrer' and project_id=%d and created_at >= NOW() - INTERVAL '%d DAY') as percent FROM (SELECT SUBSTRING(value from '(?:.*://)?(?:www\\.)?([^/]*)') AS value FROM fields WHERE name='referrer' AND project_id=%d AND created_at >= NOW() - INTERVAL '%d DAY') t1 GROUP BY value ORDER BY count desc LIMIT 200", projectID, lookBackPeriod, projectID, lookBackPeriod)).Scan(&referrers).Error; err != nil {
+	if err := r.DB.Raw(`SELECT
+	DISTINCT(value) as host,
+	COUNT(value),
+	count(value) * 100.0 / (
+	    select
+		count(*)
+	    from
+		fields
+	    where
+		name = 'referrer'
+		and project_id = ?
+		and created_at BETWEEN ? AND ?
+	) as percent
+    FROM
+	(
+	    SELECT
+		SUBSTRING(
+		    value
+		    from
+			'(?:.*://)?(?:www\\.)?([^/]*)'
+		) AS value
+	    FROM
+		fields
+	    WHERE
+		name = 'referrer'
+		AND project_id = ?
+		AND created_at BETWEEN ? AND ?
+	) t1
+    GROUP BY
+	value
+    ORDER BY
+	count desc
+    LIMIT 200`, projectID, startDateUTC, endDateUTC, projectID, startDateUTC, endDateUTC).Scan(&referrers).Error; err != nil {
 		return nil, e.Wrap(err, "error getting referrers")
 	}
 
 	return referrers, nil
 }
 
-func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
+func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) (*modelInputs.NewUsersCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var count int64
-	if err := r.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE project_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", projectID, lookBackPeriod)).Scan(&count).Error; err != nil {
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
+	if err := r.DB.Raw(`SELECT
+	COUNT(*)
+    FROM
+	sessions
+    WHERE
+	project_id = ?
+	AND first_time = true
+	AND created_at BETWEEN ? AND ?`, projectID, startDateUTC, endDateUTC).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of first time users")
 	}
 
 	return &modelInputs.NewUsersCount{Count: count}, nil
 }
 
-func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
+func (r *queryResolver) TopUsers(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*modelInputs.TopUsersPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
+
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
@@ -2725,7 +2768,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 					active_length IS NOT NULL
 					AND project_id = ?
 					AND identifier <> ''
-					AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+					AND created_at BETWEEN ? AND ?
 					AND processed = true
 					AND excluded <> true
 			) AS active_time_percentage
@@ -2740,7 +2783,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 				active_length IS NOT NULL
 				AND project_id = ?
 				AND identifier <> ''
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND created_at BETWEEN ? AND ?
 				AND processed = true
 				AND excluded <> true
 		) q1
@@ -2750,7 +2793,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	INNER JOIN sessions s on topUsers.identifier = s.identifier
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, startDateUTC, endDateUTC, projectID, startDateUTC, endDateUTC).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -2758,11 +2801,13 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	return topUsersPayload, nil
 }
 
-func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
+func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
 	var length float64
+
 	if err := r.DB.Raw(`
 		SELECT
 			COALESCE(avg(active_length), 0)
@@ -2771,20 +2816,22 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 			AND processed=true
 			AND excluded <> true
 			AND active_length IS NOT NULL
-			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
+			AND created_at BETWEEN ? AND ?
+		`, projectID, startDateUTC, endDateUTC).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
 	return &modelInputs.AverageSessionLength{Length: length}, nil
 }
 
-func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) (*modelInputs.UserFingerprintCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var count int64
+	startDateUTC, endDateUTC := r.GetUTCDateRange((dateRange))
+
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
@@ -2794,10 +2841,10 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 		WHERE identifier=''
 			AND excluded <> true
 			AND fingerprint IS NOT NULL
-			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+			AND created_at BETWEEN ? AND ?
 			AND project_id=?
 			AND length >= 1000
-		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
+		`, startDateUTC, endDateUTC, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
 	span.Finish()

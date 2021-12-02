@@ -20,10 +20,10 @@ const EmptyCardPlaceholder = ({ message, title }: Props) => {
             </div>
 
             <h3>{title || 'No data yet'}</h3>
-            <p>
+            {/* <p>
                 {message ||
                     'Your data will show up here as Highlight records sessions.'}
-            </p>
+            </p> */}
         </div>
     );
 };

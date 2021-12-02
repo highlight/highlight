@@ -1,5 +1,7 @@
 import Card from '@components/Card/Card';
-import DateRangePicker from '@components/DateRangePicker/DateRangePicker';
+import DateRangePicker, {
+    getStartAndEndTimeRange,
+} from '@components/DateRangePicker/DateRangePicker';
 import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -40,6 +42,7 @@ import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
+    DateRange,
     HomePageFiltersContext,
     useHomePageFiltersContext,
 } from './components/HomePageFilters/HomePageFiltersContext';
@@ -62,8 +65,8 @@ const HomePage = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[1].value
+    const [dateRange, setDateRange] = useState<DateRange>(
+        getStartAndEndTimeRange(7)
     );
     const [hasData, setHasData] = useState<boolean>(true);
     const { integrated, loading: integratedLoading } = useIntegrated();
@@ -74,7 +77,12 @@ const HomePage = () => {
 
     return (
         <HomePageFiltersContext
-            value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
+            value={{
+                dateRange: dateRange,
+                setDateRange: setDateRange,
+                hasData,
+                setHasData,
+            }}
         >
             <Helmet>
                 <title>Home</title>
@@ -110,14 +118,19 @@ const HomePage = () => {
                                         return;
                                     }
 
+                                    console.log(_startDate, _endDate);
                                     const startDate = moment(_startDate);
                                     const endDate = moment(_endDate);
                                     const daysDifference = startDate.diff(
                                         endDate,
                                         'days'
                                     );
+                                    console.log({ daysDifference });
 
-                                    setDateRangeLength(daysDifference);
+                                    setDateRange({
+                                        startDate: startDate.toDate(),
+                                        endDate: endDate.toDate(),
+                                    });
                                 }}
                             />
                         </div>
@@ -199,7 +212,7 @@ const SessionCountGraph = () => {
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength, setHasData } = useHomePageFiltersContext();
+    const { dateRange, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
@@ -209,25 +222,25 @@ const SessionCountGraph = () => {
         variables: {
             project_id,
             date_range: {
-                start_date: moment
-                    .utc()
-                    .subtract(dateRangeLength, 'd')
-                    .startOf('day'),
-                end_date: moment.utc().startOf('day'),
+                start_date: dateRange.startDate,
+                end_date: dateRange.endDate,
             },
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
+                const numberOfDays = moment(dateRange.endDate).diff(
+                    dateRange.startDate
+                );
                 setHasData(response.dailySessionsCount.length > 0);
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
-                    dateRangeLength
+                    numberOfDays
                 );
                 const sessionCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
                         .utc()
                         .startOf('day')
-                        .subtract(dateRangeLength - 1 - idx, 'days')
+                        .subtract(numberOfDays - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
                     label: 'sessions',
@@ -281,7 +294,7 @@ const ErrorCountGraph = () => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { dateRange } = useHomePageFiltersContext();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
     const history = useHistory();
 
@@ -289,24 +302,24 @@ const ErrorCountGraph = () => {
         variables: {
             project_id,
             date_range: {
-                start_date: moment
-                    .utc()
-                    .subtract(dateRangeLength, 'd')
-                    .startOf('day'),
-                end_date: moment.utc().startOf('day'),
+                start_date: dateRange.startDate,
+                end_date: dateRange.endDate,
             },
         },
         onCompleted: (response) => {
             if (response.dailyErrorsCount) {
+                const numberOfDays = moment(dateRange.endDate).diff(
+                    dateRange.startDate
+                );
                 const dateRangeData = dailyCountData(
                     response.dailyErrorsCount,
-                    dateRangeLength
+                    numberOfDays
                 );
                 const errorCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
                         .utc()
                         .startOf('day')
-                        .subtract(dateRangeLength - 1 - idx, 'days')
+                        .subtract(numberOfDays - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
                     label: 'errors',

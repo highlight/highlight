@@ -43,12 +43,18 @@ const ActiveUsersTable = () => {
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { dateRange } = useHomePageFiltersContext();
     const history = useHistory();
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetTopUsersQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            dateRange: {
+                start_date: dateRange.startDate,
+                end_date: dateRange.endDate,
+            },
+        },
         onCompleted: (data) => {
             if (data.topUsers) {
                 const transformedData = data.topUsers
