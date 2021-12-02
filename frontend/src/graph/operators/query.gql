@@ -390,7 +390,6 @@ query GetWorkspaces {
         name
     }
 }
-}
 
 query GetProjectsAndWorkspaces {
     projects {
