@@ -2,6 +2,7 @@
     display: flex;
     height: 100%;
     padding-left: var(--sidebar-width);
+    position: absolute;
     width: 100%;
 
     &.bannerShown {
@@ -13,11 +14,11 @@
 
 @keyframes accomodate-banner {
     0% {
-        transform: translateY(0);
+        top: 0;
     }
 
     100% {
-        transform: translateY(var(--banner-height));
+        top: var(--banner-height);
     }
 }
 
