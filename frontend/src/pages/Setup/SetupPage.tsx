@@ -153,7 +153,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 )}
                             </div>
                         </Section>
-                        <hr />
                         <Section title="Identifying Users">
                             <p>
                                 To tag sessions with user specific identifiers
