@@ -232,18 +232,19 @@ const FreePlanBanner = () => {
         >
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
-                {!canExtend && (
-                    <>
-                        {' '}
-                        Upgrade{' '}
-                        <Link
-                            className={styles.trialLink}
-                            to={`/w/${data?.workspace_for_project?.id}/billing`}
-                        >
-                            here!
-                        </Link>
-                    </>
-                )}
+                {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+                    !canExtend && (
+                        <>
+                            {' '}
+                            Upgrade{' '}
+                            <Link
+                                className={styles.trialLink}
+                                to={`/w/${data?.workspace_for_project?.id}/billing`}
+                            >
+                                here!
+                            </Link>
+                        </>
+                    )}
             </div>
             {data?.billingDetailsForProject.plan.type === PlanType.Free &&
                 hasTrial && (
