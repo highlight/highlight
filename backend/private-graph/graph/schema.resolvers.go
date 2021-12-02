@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3181,7 +3181,8 @@ func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
 
 	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
 	if err != nil {
-		return 0, e.Wrap(err, "error getting custom verified admin email domain")
+		log.Error(err)
+		return workspacesCount, nil
 	}
 	var joinableWorkspacesCount int64
 	if err := r.DB.Raw(`
@@ -3192,7 +3193,7 @@ func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
 					FROM workspace_admins 
 					WHERE admin_id = ? )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
-		`, admin.ID, domain).Scan(&workspacesCount).Error; err != nil {
+		`, admin.ID, domain).Scan(&joinableWorkspacesCount).Error; err != nil {
 		return 0, e.Wrap(err, "error getting count of joinable workspaces for admin")
 	}
 
