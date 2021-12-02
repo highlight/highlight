@@ -140,17 +140,17 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
+    if (temporarilyHideBanner) {
         toggleShowBanner(false);
         return null;
     }
+
+    // if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
+    //     toggleShowBanner(false);
+    //     return null;
+    // }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        toggleShowBanner(false);
-        return null;
-    }
-
-    if (temporarilyHideBanner) {
         toggleShowBanner(false);
         return null;
     }
@@ -161,7 +161,24 @@ const FreePlanBanner = () => {
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
-    if (hasTrial) {
+    const showProductHuntBanner =
+        data?.billingDetailsForProject.plan.type !== PlanType.Free;
+    if (showProductHuntBanner) {
+        bannerMessage = (
+            <div>
+                Highlight is live on Product Hunt 🎉‍{' '}
+                <a
+                    target="_blank"
+                    href="https://www.producthunt.com/posts/highlight-5"
+                    className={styles.trialLink}
+                    rel="noreferrer"
+                >
+                    Support us
+                </a>{' '}
+                and we'll be forever grateful ❤️
+            </div>
+        );
+    } else if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
         ).format('MM/DD/YY')}. `;
@@ -208,7 +225,11 @@ const FreePlanBanner = () => {
     toggleShowBanner(true);
 
     return (
-        <div className={styles.trialWrapper}>
+        <div
+            className={classNames(styles.trialWrapper, {
+                [styles.productHunt]: showProductHuntBanner,
+            })}
+        >
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
                 {!canExtend && (
@@ -224,18 +245,19 @@ const FreePlanBanner = () => {
                     </>
                 )}
             </div>
-            {hasTrial && (
-                <button
-                    onClick={() => {
-                        H.track('TemporarilyHideFreePlanBanner', {
-                            hasTrial,
-                        });
-                        setTemporarilyHideBanner(true);
-                    }}
-                >
-                    <SvgXIcon />
-                </button>
-            )}
+            {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+                hasTrial && (
+                    <button
+                        onClick={() => {
+                            H.track('TemporarilyHideFreePlanBanner', {
+                                hasTrial,
+                            });
+                            setTemporarilyHideBanner(true);
+                        }}
+                    >
+                        <SvgXIcon />
+                    </button>
+                )}
         </div>
     );
 };

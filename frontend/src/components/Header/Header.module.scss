@@ -59,6 +59,10 @@
     width: 100%;
     z-index: 1000;
 
+    &.productHunt {
+        background-color: var(--color-green-600);
+    }
+
     button {
         --button-size: var(--size-medium);
         --icon-size: var(--size-xSmall);
