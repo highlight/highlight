@@ -77,7 +77,7 @@ export const Header = () => {
                                 trackingId="DemoProjectSignUp"
                                 to="/?sign_up=1"
                             >
-                                Get 4 months of Highlight free!
+                                Try Highlight for Free!
                             </ButtonLink>
                         ) : (
                             <FeedbackButton />
@@ -140,17 +140,17 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
+    if (temporarilyHideBanner) {
         toggleShowBanner(false);
         return null;
     }
+
+    // if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
+    //     toggleShowBanner(false);
+    //     return null;
+    // }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        toggleShowBanner(false);
-        return null;
-    }
-
-    if (temporarilyHideBanner) {
         toggleShowBanner(false);
         return null;
     }
@@ -161,7 +161,24 @@ const FreePlanBanner = () => {
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
-    if (hasTrial) {
+    const showProductHuntBanner =
+        data?.billingDetailsForProject.plan.type !== PlanType.Free;
+    if (showProductHuntBanner) {
+        bannerMessage = (
+            <span>
+                Highlight is live on Product Hunt 🎉‍{' '}
+                <a
+                    target="_blank"
+                    href="https://www.producthunt.com/posts/highlight-5"
+                    className={styles.trialLink}
+                    rel="noreferrer"
+                >
+                    Support us
+                </a>{' '}
+                and we'll be forever grateful ❤️
+            </span>
+        );
+    } else if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
         ).format('MM/DD/YY')}. `;
@@ -170,35 +187,35 @@ const FreePlanBanner = () => {
             if (integrated) {
                 bannerMessage = (
                     <>
-                        You're currently on a 2 week unlimited trial.{' '}
+                        You have unlimited Highlight until{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}
+                        .{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/w/${data?.workspace_for_project?.id}/about-you`}
                         >
-                            Tell us about yourself
+                            Fill this out
                         </Link>{' '}
-                        by{' '}
-                        {moment(
-                            data?.workspace_for_project?.trial_end_date
-                        ).format('MM/DD')}{' '}
-                        to get 4 months of free Highlight!
+                        before your trial ends to extend this by 4 months!
                     </>
                 );
             } else {
                 bannerMessage = (
                     <>
-                        You're currently on a 2 week unlimited trial.{' '}
+                        You have unlimited Highlight until{' '}
+                        {moment(
+                            data?.workspace_for_project?.trial_end_date
+                        ).format('MM/DD')}
+                        .{' '}
                         <Link
                             className={styles.trialLink}
                             to={`/${project_id}/setup`}
                         >
-                            Integrate Highlight
+                            Integrate
                         </Link>{' '}
-                        by{' '}
-                        {moment(
-                            data?.workspace_for_project?.trial_end_date
-                        ).format('MM/DD')}{' '}
-                        to get 4 months of free Highlight!
+                        before your trial ends to extend this by 4 months!
                     </>
                 );
             }
@@ -208,34 +225,40 @@ const FreePlanBanner = () => {
     toggleShowBanner(true);
 
     return (
-        <div className={styles.trialWrapper}>
+        <div
+            className={classNames(styles.trialWrapper, {
+                [styles.productHunt]: showProductHuntBanner,
+            })}
+        >
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
-                {!canExtend && (
-                    <>
-                        {' '}
-                        Upgrade{' '}
-                        <Link
-                            className={styles.trialLink}
-                            to={`/w/${data?.workspace_for_project?.id}/billing`}
-                        >
-                            here!
-                        </Link>
-                    </>
-                )}
+                {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+                    !canExtend && (
+                        <>
+                            {' '}
+                            Upgrade{' '}
+                            <Link
+                                className={styles.trialLink}
+                                to={`/w/${data?.workspace_for_project?.id}/billing`}
+                            >
+                                here!
+                            </Link>
+                        </>
+                    )}
             </div>
-            {hasTrial && (
-                <button
-                    onClick={() => {
-                        H.track('TemporarilyHideFreePlanBanner', {
-                            hasTrial,
-                        });
-                        setTemporarilyHideBanner(true);
-                    }}
-                >
-                    <SvgXIcon />
-                </button>
-            )}
+            {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+                hasTrial && (
+                    <button
+                        onClick={() => {
+                            H.track('TemporarilyHideFreePlanBanner', {
+                                hasTrial,
+                            });
+                            setTemporarilyHideBanner(true);
+                        }}
+                    >
+                        <SvgXIcon />
+                    </button>
+                )}
         </div>
     );
 };

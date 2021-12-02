@@ -71,7 +71,7 @@ export const BillingPlanCard = ({
                         </span>
                         <span className={styles.extraMembersBreakdown}>
                             (${MEMBERS_PRICE} x {membersOverage} seat
-                            {membersOverage > 1 ? 's' : ''}) billed monthly
+                            {membersOverage > 1 ? 's' : ''}) monthly
                         </span>
                     </>
                 ) : (

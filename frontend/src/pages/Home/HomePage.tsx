@@ -1,9 +1,9 @@
 import Card from '@components/Card/Card';
-import DateRangePicker from '@components/DateRangePicker/DateRangePicker';
 import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -104,7 +104,13 @@ const HomePage = () => {
                             )}
                         </div>
                         <div className={styles.filtersContainer}>
-                            <DateRangePicker
+                            <StandardDropdown
+                                data={timeFilter}
+                                defaultValue={timeFilter[1]}
+                                onSelect={setDateRangeLength}
+                            />
+                            {/* DateRangePicker will be enabled when we do this: https://linear.app/highlight/issue/HIG-1601/date-picker-for-home-page-is-not-picking-the-right-date-with-custom */}
+                            {/* <DateRangePicker
                                 onChange={(_startDate, _endDate) => {
                                     if (!_startDate || !_endDate) {
                                         return;
@@ -119,7 +125,7 @@ const HomePage = () => {
 
                                     setDateRangeLength(daysDifference);
                                 }}
-                            />
+                            /> */}
                         </div>
                     </div>
                     <KeyPerformanceIndicators />
