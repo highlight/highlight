@@ -28,13 +28,17 @@ export const parseAdminSuggestions = (
     /** A list of admins that have already been mentioned. */
     mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
+    if (!currentAdmin) {
+        return [];
+    }
+
     return (
         suggestions
             // Filter out these admins
             .filter(
                 (suggestion) =>
                     // 1. The admin that is creating the comment
-                    suggestion?.email !== currentAdmin!.email &&
+                    suggestion?.email !== currentAdmin.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
                         (mentionedAdmin) => mentionedAdmin.id === suggestion?.id
