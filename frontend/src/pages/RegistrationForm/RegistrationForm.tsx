@@ -49,7 +49,7 @@ const RegistrationForm = () => {
     useEffect(() => {
         if (waitingForRedirect) {
             message.success(`Form submitted, we'll be in touch within 2 days!`);
-            setTimeout(() => setRedirect(true), 3000); // Redirect after 3 seconds
+            setRedirect(true);
         }
     }, [waitingForRedirect]);
 
@@ -106,7 +106,7 @@ const RegistrationForm = () => {
                         Team Size
                         <Input
                             className={styles.formInput}
-                            placeholder="6"
+                            placeholder="3, 8, 100, etc."
                             name="teamSize"
                             value={teamSize}
                             onChange={(e) => {
