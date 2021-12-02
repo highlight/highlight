@@ -706,6 +706,59 @@ export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutation
     Types.AddSlackBotIntegrationToProjectMutation,
     Types.AddSlackBotIntegrationToProjectMutationVariables
 >;
+export const UpdateAllowedEmailOriginsDocument = gql`
+    mutation UpdateAllowedEmailOrigins(
+        $workspace_id: ID!
+        $allowed_auto_join_email_origins: String!
+    ) {
+        updateAllowedEmailOrigins(
+            workspace_id: $workspace_id
+            allowed_auto_join_email_origins: $allowed_auto_join_email_origins
+        )
+    }
+`;
+export type UpdateAllowedEmailOriginsMutationFn = Apollo.MutationFunction<
+    Types.UpdateAllowedEmailOriginsMutation,
+    Types.UpdateAllowedEmailOriginsMutationVariables
+>;
+
+/**
+ * __useUpdateAllowedEmailOriginsMutation__
+ *
+ * To run a mutation, you first call `useUpdateAllowedEmailOriginsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAllowedEmailOriginsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAllowedEmailOriginsMutation, { data, loading, error }] = useUpdateAllowedEmailOriginsMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      allowed_auto_join_email_origins: // value for 'allowed_auto_join_email_origins'
+ *   },
+ * });
+ */
+export function useUpdateAllowedEmailOriginsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAllowedEmailOriginsMutation,
+        Types.UpdateAllowedEmailOriginsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAllowedEmailOriginsMutation,
+        Types.UpdateAllowedEmailOriginsMutationVariables
+    >(UpdateAllowedEmailOriginsDocument, baseOptions);
+}
+export type UpdateAllowedEmailOriginsMutationHookResult = ReturnType<
+    typeof useUpdateAllowedEmailOriginsMutation
+>;
+export type UpdateAllowedEmailOriginsMutationResult = Apollo.MutationResult<Types.UpdateAllowedEmailOriginsMutation>;
+export type UpdateAllowedEmailOriginsMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAllowedEmailOriginsMutation,
+    Types.UpdateAllowedEmailOriginsMutationVariables
+>;
 export const CreateProjectDocument = gql`
     mutation CreateProject($name: String!, $workspace_id: ID!) {
         createProject(name: $name, workspace_id: $workspace_id) {

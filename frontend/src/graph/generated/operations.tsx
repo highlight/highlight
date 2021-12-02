@@ -137,6 +137,15 @@ export type AddSlackBotIntegrationToProjectMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
 
+export type UpdateAllowedEmailOriginsMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    allowed_auto_join_email_origins: Types.Scalars['String'];
+}>;
+
+export type UpdateAllowedEmailOriginsMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'updateAllowedEmailOrigins'>;
+
 export type CreateProjectMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
     workspace_id: Types.Scalars['ID'];
@@ -2780,6 +2789,7 @@ export const namedOperations = {
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
+        UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
         CreateProject: 'CreateProject' as const,
         SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
         CreateWorkspace: 'CreateWorkspace' as const,
