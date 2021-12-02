@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Redirect } from 'react-router-dom';
@@ -96,7 +97,10 @@ const SwitchWorkspace = () => {
                 variables: { workspace_id: selectedWorkspace },
             }).then((result) => {
                 if (!!result.data?.joinWorkspace) {
-                    setShouldRedirect(true);
+                    message.success('successfuly joined workspace!', 1);
+                    setTimeout(() => {
+                        setShouldRedirect(true);
+                    }, 1000 * 1.5);
                 }
             });
         }
