@@ -40,7 +40,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File, compressedEventsFile *os.File) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -53,46 +53,17 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
+	totalPayloadSize, err := w.S3Client.PushFilesToS3(ctx, s.ID, s.ProjectID, storage.S3SessionsPayloadBucketName, payloadManager)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
-		return errors.Wrap(err, "error pushing session payload to s3")
-	}
-
-	resourcePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, resourcesFile, storage.S3SessionsPayloadBucketName, storage.NetworkResources)
-	if err != nil {
-		return errors.Wrap(err, "error pushing network payload to s3")
-	}
-
-	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
-	if err != nil {
-		return errors.Wrap(err, "error pushing message payload to s3")
-	}
-
-	sessionCompressedPayloadSize, err := w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, compressedEventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContentsCompressed)
-	if err != nil {
-		return errors.Wrap(err, "error pushing compressed session payload to s3")
-	}
-
-	var totalPayloadSize int64
-	if sessionPayloadSize != nil {
-		totalPayloadSize += *sessionPayloadSize
-	}
-	if resourcePayloadSize != nil {
-		totalPayloadSize += *resourcePayloadSize
-	}
-	if messagePayloadSize != nil {
-		totalPayloadSize += *messagePayloadSize
-	}
-	if sessionCompressedPayloadSize != nil {
-		totalPayloadSize += *sessionCompressedPayloadSize
+		return errors.Wrap(err, "error pushing files to s3")
 	}
 
 	// Mark this session as stored in S3.
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true},
+		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
@@ -136,14 +107,14 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		if err := eventsWriter.Write(&eventObject); err != nil {
 			return errors.Wrap(err, "error writing event row")
 		}
-		if err := manager.EventsCompressed.WriteEvents(&eventObject); err != nil {
+		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
 		numberOfRows += 1
 	}
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
-		return errors.Wrap(err, "error closing compressed events file")
+		return errors.Wrap(err, "error closing compressed events writer")
 	}
 
 	// Fetch/write resources.
@@ -162,9 +133,15 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		if err := resourceWriter.Write(&resourcesObject); err != nil {
 			return errors.Wrap(err, "error writing resource row")
 		}
+		if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
 		numberOfRows += 1
 	}
 	manager.Resources.Length = numberOfRows
+	if err := manager.ResourcesCompressed.Close(); err != nil {
+		return errors.Wrap(err, "error closing compressed resources writer")
+	}
 
 	// Fetch/write messages.
 	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
@@ -182,88 +159,36 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		if err := messagesWriter.Write(&messageObject); err != nil {
 			return errors.Wrap(err, "error writing messages object")
 		}
+		if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
 		numberOfRows += 1
 	}
 	manager.Messages.Length = numberOfRows
-	return nil
-}
-
-func CreateFile(name string) (func(), *os.File, error) {
-	file, err := os.Create(name)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "error creating file")
+	if err := manager.MessagesCompressed.Close(); err != nil {
+		return errors.Wrap(err, "error closing compressed messages writer")
 	}
-	return func() {
-		err := file.Close()
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to close file"))
-			return
-		}
-		err = os.Remove(file.Name())
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to remove file"))
-			return
-		}
-	}, file, nil
+	return nil
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
-	// Create files.
-	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
+	payloadManager, err := payload.NewPayloadManager(sessionIdString)
 	if err != nil {
-		return errors.Wrap(err, "error creating events file")
+		return errors.Wrap(err, "error creating payload manager")
 	}
-	defer eventsClose()
-	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
-	if err != nil {
-		return errors.Wrap(err, "error creating events file")
-	}
-	defer resourcesClose()
-	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
-	if err != nil {
-		return errors.Wrap(err, "error creating events file")
-	}
-	defer messagesClose()
-
-	eventsCompressedClose, eventsCompressedFile, err := CreateFile(sessionIdString + ".events.json.br")
-	if err != nil {
-		return errors.Wrap(err, "error creating events file")
-	}
-	defer eventsCompressedClose()
-
-	payloadManager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile, eventsCompressedFile)
+	defer payloadManager.Close()
 
 	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
 		return errors.Wrap(err, "error scanning session payload")
 	}
 
 	// Measure payload sizes.
-	eventInfo, err := eventsFile.Stat()
-	if err != nil {
-		return errors.Wrap(err, "error getting event file info")
+	if err := payloadManager.ReportPayloadSizes(); err != nil {
+		return errors.Wrap(err, "error reporting payload sizes")
 	}
-	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
-
-	resourceInfo, err := resourcesFile.Stat()
-	if err != nil {
-		return errors.Wrap(err, "error getting resource file info")
-	}
-	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
-
-	messagesInfo, err := messagesFile.Stat()
-	if err != nil {
-		return errors.Wrap(err, "error getting message file info")
-	}
-	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
-
-	eventsCompressedInfo, err := eventsCompressedFile.Stat()
-	if err != nil {
-		return errors.Wrap(err, "error getting compressed event file info")
-	}
-	hlog.Histogram("worker.processSession.eventsCompressedPayloadSize", float64(eventsCompressedInfo.Size()), nil, 1) //nolint
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
@@ -286,19 +211,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
-	// need to reset file pointer to beginning of file for reading
-	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		_, err = file.Seek(0, io.SeekStart)
-		if err != nil {
-			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
-		}
-	}
+	payloadManager.SeekStart()
+
 	activeDuration := time.Duration(0)
 	var (
 		firstEventTimestamp time.Time
 		lastEventTimestamp  time.Time
 	)
-	p := payload.NewPayloadReadWriter(eventsFile)
+	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
 	clickEventQueue := list.New()
@@ -488,7 +408,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrap(err, "error sending track properties alert slack message")
 			}
@@ -549,7 +469,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrapf(err, "error sending user properties alert slack message")
 			}
@@ -604,7 +524,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject})
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject})
 			if err != nil {
 				return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
 			}
@@ -668,7 +588,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 			// send Slack message
 			count64 := int64(count)
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace,
+			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace,
 				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
 				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
 			if err != nil {
@@ -686,7 +606,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile, eventsCompressedFile); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, payloadManager); err != nil {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
@@ -707,12 +627,13 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
+	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -735,7 +656,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
+					Find(&sessions).Debug().Error; err != nil {
 					errs <- err
 					return
 				}
@@ -752,7 +673,7 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			log.Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
 		}

@@ -5,7 +5,9 @@
     box-shadow: var(--box-shadow-2);
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 80px - var(--size-medium) - var(--size-medium));
+    height: calc(
+        100vh - var(--header-height) - var(--size-medium) - var(--size-medium)
+    );
     position: absolute;
     right: 0;
     width: 100%;
@@ -13,6 +15,13 @@
 
     &.padding {
         padding: var(--size-medium) var(--size-large);
+    }
+
+    &.bannerShown {
+        height: calc(
+            100vh - var(--header-height) - var(--size-medium) -
+                var(--size-medium) - var(--banner-height)
+        );
     }
 }
 

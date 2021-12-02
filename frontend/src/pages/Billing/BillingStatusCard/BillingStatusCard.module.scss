@@ -31,10 +31,16 @@
 
 .cardTotalContainer {
     display: inline-flex;
-    font-size: 16px;
-    font-weight: 500;
     gap: 40px;
     justify-content: flex-end;
+    margin-left: auto;
+}
+
+.cardTotalRow {
+    display: inline-flex;
+    font-size: 16px;
+    font-weight: 500;
+    justify-content: space-between;
     width: 100%;
 }
 

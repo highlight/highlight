@@ -12,6 +12,10 @@
     &.guest {
         width: 100%;
     }
+
+    &.bannerShown {
+        animation: accomodate-banner 0.5s forwards;
+    }
 }
 
 .hamburger {
@@ -44,18 +48,20 @@
 }
 
 .trialWrapper {
-    --banner-height: 8px;
-
     align-items: center;
-    animation: enter-viewport 1s forwards;
     background-color: var(--color-purple);
     color: var(--text-primary-inverted);
     display: flex;
     height: var(--banner-height);
     justify-content: center;
-    position: absolute;
+    position: fixed;
+    top: calc(-1 * var(--banner-height));
     width: 100%;
     z-index: 1000;
+
+    &.productHunt {
+        background-color: var(--color-green-600);
+    }
 
     button {
         --button-size: var(--size-medium);
@@ -68,9 +74,10 @@
         display: flex;
         height: var(--button-size);
         justify-content: center;
+        margin-right: var(--size-small);
         position: absolute;
-        top: calc(var(--banner-height) + var(--size-xSmall));
-        transform: scale(1);
+        right: 0;
+        transform: scale(1.5);
         transform-origin: center;
         transition: all 0.2s ease-in-out;
         width: var(--button-size);
@@ -84,26 +91,19 @@
         }
 
         &:hover {
-            transform: scale(1.5);
+            transform: scale(2);
         }
     }
 }
 
-@keyframes enter-viewport {
+@keyframes accomodate-banner {
     0% {
-        transform: translateY(-100px);
+        transform: translateY(0);
     }
 
     100% {
-        transform: translateY(0);
+        transform: translateY(var(--banner-height));
     }
-}
-
-.bannerSvg {
-    fill: var(--color-purple);
-    position: absolute;
-    top: 10px;
-    transform: scale(2.5, 3);
 }
 
 .trialCloseStyle {
@@ -118,7 +118,6 @@
 
 .trialTimeText {
     font-size: 12px;
-    margin-top: 18px;
     padding-bottom: 4px;
     padding-top: 4px;
     z-index: 100;
@@ -187,4 +186,9 @@
 
 .demoLink:hover {
     color: var(--color-gray-400) !important;
+}
+
+.upsellButton {
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
 }

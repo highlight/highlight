@@ -6,6 +6,7 @@ import {
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Redirect } from 'react-router-dom';
@@ -57,6 +58,7 @@ const NewProjectPage = () => {
                 },
             }).then(() => {
                 client.cache.reset();
+                H.track('CreateWorkspace', { name });
                 setName('');
             });
         } else {
@@ -66,6 +68,7 @@ const NewProjectPage = () => {
                     workspace_id,
                 },
             }).then(() => {
+                H.track('CreateProject', { name });
                 client.cache.reset();
                 setName('');
             });
@@ -97,9 +100,9 @@ const NewProjectPage = () => {
                     >{`Create a ${pageTypeCaps}`}</h2>
                     <p className={styles.subTitle}>
                         {isWorkspace &&
-                            `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web front end, landing page, etc).`}
+                            `This is usually your company name (e.g. Pied Piper, Hooli, Google, etc.) and can contain multiple projects.`}
                         {!isWorkspace &&
-                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
+                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
                     </p>
                     {error && (
                         <div className={commonStyles.errorMessage}>
@@ -121,11 +124,10 @@ const NewProjectPage = () => {
                     <Button
                         trackingId={`Create${pageTypeCaps}`}
                         type="primary"
-                        className={classNames(
-                            commonStyles.submitButton,
-                            styles.button
-                        )}
+                        className={classNames(styles.button)}
+                        block
                         htmlType="submit"
+                        disabled={name.length === 0}
                     >
                         {projectLoading || workspaceLoading ? (
                             <CircularSpinner

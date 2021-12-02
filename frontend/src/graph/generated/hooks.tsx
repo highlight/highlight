@@ -2,7 +2,54 @@ import * as Types from './operations';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
-
+export const SessionPayloadFragmentFragmentDoc = gql`
+    fragment SessionPayloadFragment on SessionPayload {
+        events
+        errors {
+            id
+            error_group_secure_id
+            event
+            type
+            url
+            source
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            timestamp
+            payload
+            request_id
+        }
+        rage_clicks {
+            start_timestamp
+            end_timestamp
+            total_clicks
+        }
+        session_comments {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+        }
+    }
+`;
 export const MarkSessionAsViewedDocument = gql`
     mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
         markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -662,6 +709,71 @@ export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProj
 export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateProjectMutation,
     Types.CreateProjectMutationVariables
+>;
+export const SubmitRegistrationFormDocument = gql`
+    mutation SubmitRegistrationForm(
+        $workspace_id: ID!
+        $team_size: String!
+        $role: String!
+        $use_case: String!
+        $heard_about: String!
+        $pun: String
+    ) {
+        submitRegistrationForm(
+            workspace_id: $workspace_id
+            team_size: $team_size
+            role: $role
+            use_case: $use_case
+            heard_about: $heard_about
+            pun: $pun
+        )
+    }
+`;
+export type SubmitRegistrationFormMutationFn = Apollo.MutationFunction<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
+>;
+
+/**
+ * __useSubmitRegistrationFormMutation__
+ *
+ * To run a mutation, you first call `useSubmitRegistrationFormMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitRegistrationFormMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitRegistrationFormMutation, { data, loading, error }] = useSubmitRegistrationFormMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      team_size: // value for 'team_size'
+ *      role: // value for 'role'
+ *      use_case: // value for 'use_case'
+ *      heard_about: // value for 'heard_about'
+ *      pun: // value for 'pun'
+ *   },
+ * });
+ */
+export function useSubmitRegistrationFormMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >(SubmitRegistrationFormDocument, baseOptions);
+}
+export type SubmitRegistrationFormMutationHookResult = ReturnType<
+    typeof useSubmitRegistrationFormMutation
+>;
+export type SubmitRegistrationFormMutationResult = Apollo.MutationResult<Types.SubmitRegistrationFormMutation>;
+export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
 >;
 export const CreateWorkspaceDocument = gql`
     mutation CreateWorkspace($name: String!) {
@@ -3108,6 +3220,8 @@ export const GetSessionDocument = gql`
             is_public
             event_counts
             direct_download_url
+            resources_url
+            messages_url
         }
     }
 `;
@@ -3231,6 +3345,7 @@ export const GetWorkspaceAdminsDocument = gql`
             id
             name
             secret
+            allowed_auto_join_email_origins
         }
         workspace_invite_links(workspace_id: $workspace_id) {
             id
@@ -4322,6 +4437,7 @@ export const GetAdminDocument = gql`
             photo_url
             slack_im_channel_id
             role
+            email_verified
         }
     }
 `;
@@ -4451,6 +4567,8 @@ export const GetBillingDetailsForProjectDocument = gql`
             billing_period_end
             next_invoice_date
             allow_meter_overage
+            eligible_for_trial_extension
+            trial_extension_enabled
         }
     }
 `;
@@ -4522,6 +4640,7 @@ export const GetBillingDetailsDocument = gql`
             billing_period_end
             next_invoice_date
             allow_meter_overage
+            eligible_for_trial_extension
         }
     }
 `;
@@ -4573,6 +4692,64 @@ export type GetBillingDetailsLazyQueryHookResult = ReturnType<
 export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQuery,
     Types.GetBillingDetailsQueryVariables
+>;
+export const GetSubscriptionDetailsDocument = gql`
+    query GetSubscriptionDetails($workspace_id: ID!) {
+        subscription_details(workspace_id: $workspace_id) {
+            baseAmount
+            discountAmount
+            discountPercent
+        }
+    }
+`;
+
+/**
+ * __useGetSubscriptionDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetSubscriptionDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSubscriptionDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSubscriptionDetailsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetSubscriptionDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export function useGetSubscriptionDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export type GetSubscriptionDetailsQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsQuery
+>;
+export type GetSubscriptionDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsLazyQuery
+>;
+export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
+    Types.GetSubscriptionDetailsQuery,
+    Types.GetSubscriptionDetailsQueryVariables
 >;
 export const GetErrorGroupDocument = gql`
     query GetErrorGroup($secure_id: String!) {
@@ -6667,3 +6844,50 @@ export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<
     Types.GetCustomerPortalUrlQuery,
     Types.GetCustomerPortalUrlQueryVariables
 >;
+export const OnSessionPayloadAppendedDocument = gql`
+    subscription OnSessionPayloadAppended(
+        $session_secure_id: String!
+        $initial_events_count: Int!
+    ) {
+        session_payload_appended(
+            session_secure_id: $session_secure_id
+            initial_events_count: $initial_events_count
+        ) {
+            ...SessionPayloadFragment
+        }
+    }
+    ${SessionPayloadFragmentFragmentDoc}
+`;
+
+/**
+ * __useOnSessionPayloadAppendedSubscription__
+ *
+ * To run a query within a React component, call `useOnSessionPayloadAppendedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnSessionPayloadAppendedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnSessionPayloadAppendedSubscription({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *      initial_events_count: // value for 'initial_events_count'
+ *   },
+ * });
+ */
+export function useOnSessionPayloadAppendedSubscription(
+    baseOptions: Apollo.SubscriptionHookOptions<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >
+) {
+    return Apollo.useSubscription<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >(OnSessionPayloadAppendedDocument, baseOptions);
+}
+export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
+    typeof useOnSessionPayloadAppendedSubscription
+>;
+export type OnSessionPayloadAppendedSubscriptionResult = Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;

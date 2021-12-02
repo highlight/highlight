@@ -16,7 +16,10 @@ interface Step {
     disableNextButton?: boolean;
 }
 
-type StepsProps = Pick<AntDesignStepsProps, 'current' | 'type'> & {
+type StepsProps = Pick<
+    AntDesignStepsProps,
+    'current' | 'type' | 'className'
+> & {
     steps: Step[];
     /** Called when navigating to the previous step. */
     onPrevious?: () => void;
@@ -42,6 +45,7 @@ const Steps: StepsType = ({
     onFinish,
     onNext,
     onPrevious,
+    className,
     disableFinishButton,
     finishButtonLabel = 'Finish',
     ...props
@@ -56,7 +60,7 @@ const Steps: StepsType = ({
     }, [current]);
 
     return (
-        <>
+        <div className={className}>
             <AntDesignSteps
                 className={styles.steps}
                 type={type}
@@ -128,7 +132,7 @@ const Steps: StepsType = ({
                     </Button>
                 )}
             </footer>
-        </>
+        </div>
     );
 };
 

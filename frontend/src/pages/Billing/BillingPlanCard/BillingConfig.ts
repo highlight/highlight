@@ -6,6 +6,7 @@ export type BillingPlan = {
     annualPrice: number;
     type: PlanType;
     advertisedFeatures: string[];
+    membersIncluded?: number;
 };
 
 const freePlan: BillingPlan = {
@@ -23,9 +24,11 @@ const basicPlan: BillingPlan = {
     annualPrice: 80,
     advertisedFeatures: [
         '10,000 sessions /month',
+        '2 members included',
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
+    membersIncluded: 2,
 };
 
 const startupPlan: BillingPlan = {
@@ -35,9 +38,11 @@ const startupPlan: BillingPlan = {
     annualPrice: 200,
     advertisedFeatures: [
         '80,000 sessions /month',
+        '8 members included',
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
+    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
@@ -47,10 +52,12 @@ const enterprisePlan: BillingPlan = {
     annualPrice: 800,
     advertisedFeatures: [
         'Everything in Basic/Startup',
+        '15 members included',
         'User RBAC/Permissioning',
         'On-premise deployments',
         'SSO/SAML',
     ],
+    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [

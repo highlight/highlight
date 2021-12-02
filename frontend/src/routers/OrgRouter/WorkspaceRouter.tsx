@@ -25,6 +25,8 @@ export const WorkspaceRouter = () => {
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
+    const [showBanner, toggleShowBanner] = useToggle(false);
+
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
@@ -76,6 +78,8 @@ export const WorkspaceRouter = () => {
             value={{
                 showKeyboardShortcutsGuide,
                 toggleShowKeyboardShortcutsGuide,
+                showBanner,
+                toggleShowBanner,
             }}
         >
             <ApplicationContextProvider

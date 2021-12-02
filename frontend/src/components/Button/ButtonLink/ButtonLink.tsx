@@ -18,7 +18,7 @@ type Props = {
     fullWidth?: boolean;
     disabled?: boolean;
     type?: ButtonType;
-} & Partial<Pick<LinkProps, 'to'>>;
+} & Partial<Pick<LinkProps, 'to' | 'onClick'>>;
 
 const ButtonLink: React.FC<Props> = ({
     to,
@@ -31,6 +31,7 @@ const ButtonLink: React.FC<Props> = ({
     fullWidth,
     disabled,
     type,
+    onClick,
 }) => {
     if (disabled) {
         return (
@@ -61,8 +62,9 @@ const ButtonLink: React.FC<Props> = ({
                     [styles.fullWidth]: fullWidth,
                     [styles.defaultButtonStyles]: type === 'default',
                 })}
-                onClick={() => {
+                onClick={(e) => {
                     H.track(`Link-${trackingId}`);
+                    onClick && onClick(e);
                 }}
                 target="_blank"
                 rel="noreferrer"
@@ -82,10 +84,12 @@ const ButtonLink: React.FC<Props> = ({
             className={classNames(styles.link, className, {
                 [styles.withIcon]: icon,
                 [styles.fullWidth]: fullWidth,
+                [styles.to]: type !== 'default',
                 [styles.defaultButtonStyles]: type === 'default',
             })}
-            onClick={() => {
+            onClick={(e) => {
                 H.track(`Link-${trackingId}`);
+                onClick && onClick(e);
             }}
         >
             {icon}

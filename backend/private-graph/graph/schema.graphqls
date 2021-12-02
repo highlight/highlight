@@ -47,6 +47,8 @@ type Session {
     is_public: Boolean
     event_counts: String
     direct_download_url: String
+    resources_url: String
+    messages_url: String
 }
 
 type RageClickEvent {
@@ -70,6 +72,12 @@ type BillingDetails {
     meter: Int64!
     membersMeter: Int64!
     sessionsOutOfQuota: Int64!
+}
+
+type SubscriptionDetails {
+    baseAmount: Int64!
+    discountPercent: Float!
+    discountAmount: Int64!
 }
 
 type Plan {
@@ -149,6 +157,9 @@ type Workspace {
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
+    allowed_auto_join_email_origins: String
+    eligible_for_trial_extension: Boolean!
+    trial_extension_enabled: Boolean!
 }
 
 type Segment {
@@ -362,6 +373,7 @@ type Admin {
     photo_url: String
     role: String!
     slack_im_channel_id: String
+    email_verified: Boolean
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -501,6 +513,13 @@ type WorkspaceInviteLink {
     secret: String!
 }
 
+type SessionPayload {
+    events: [Any]!
+    errors: [ErrorObject]!
+    rage_clicks: [RageClickEvent!]!
+    session_comments: [SessionComment]!
+}
+
 scalar Upload
 
 type Query {
@@ -601,6 +620,7 @@ type Query {
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
+    subscription_details(workspace_id: ID!): SubscriptionDetails!
 }
 
 type Mutation {
@@ -836,4 +856,19 @@ type Mutation {
         workspace_id: ID!
         allow_meter_overage: Boolean!
     ): Workspace
+    submitRegistrationForm(
+        workspace_id: ID!
+        team_size: String!
+        role: String!
+        use_case: String!
+        heard_about: String!
+        pun: String
+    ): Boolean
+}
+
+type Subscription {
+    session_payload_appended(
+        session_secure_id: String!
+        initial_events_count: Int!
+    ): SessionPayload
 }

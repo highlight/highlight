@@ -1,5 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
+import { H } from 'highlight.run';
 import { useEffect, useState } from 'react';
 
 import { useAuthContext } from '../authentication/AuthContext';
@@ -46,8 +47,19 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
         if (integratedRaw !== undefined) {
             setIntegrated(integratedRaw?.valueOf());
             setLocalStorageIntegrated(integratedRaw?.valueOf() || false);
+            if (
+                localStorageIntegrated === false &&
+                integratedRaw?.valueOf() === true
+            ) {
+                H.track('IntegratedProject', { id: project_id });
+            }
         }
-    }, [integratedRaw, setLocalStorageIntegrated]);
+    }, [
+        integratedRaw,
+        localStorageIntegrated,
+        project_id,
+        setLocalStorageIntegrated,
+    ]);
 
     useEffect(() => {
         if (loading === false) {

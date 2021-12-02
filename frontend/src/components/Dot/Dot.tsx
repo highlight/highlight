@@ -3,13 +3,24 @@ import React from 'react';
 
 import styles from './Dot.module.scss';
 
-interface Props {
-    pulse?: boolean;
+export enum CustomDotColor {
+    RED,
 }
 
-const Dot = ({ pulse }: Props) => {
+interface Props {
+    pulse?: boolean;
+    className?: string;
+    color?: CustomDotColor;
+}
+
+const Dot = ({ pulse, className, color }: Props) => {
     return (
-        <div className={classNames(styles.dot, { [styles.pulse]: pulse })} />
+        <div
+            className={classNames(styles.dot, className, {
+                [styles.pulse]: pulse,
+                [styles.dotRed]: color === CustomDotColor.RED,
+            })}
+        />
     );
 };
 

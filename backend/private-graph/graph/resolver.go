@@ -15,6 +15,7 @@ import (
 
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/workerpool"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -46,13 +47,23 @@ var (
 )
 
 type Resolver struct {
-	DB                *gorm.DB
-	MailClient        *sendgrid.Client
-	StripeClient      *client.API
-	StorageClient     *storage.StorageClient
-	ClearbitClient    *clearbit.Client
-	PrivateWorkerPool *workerpool.WorkerPool
-	OpenSearch        *opensearch.Client
+	DB                     *gorm.DB
+	MailClient             *sendgrid.Client
+	StripeClient           *client.API
+	StorageClient          *storage.StorageClient
+	ClearbitClient         *clearbit.Client
+	PrivateWorkerPool      *workerpool.WorkerPool
+	OpenSearch             *opensearch.Client
+	SubscriptionWorkerPool *workerpool.WorkerPool
+}
+
+// For a given session, an EventCursor is the address of an event in the list of events,
+// that can be used for incremental fetching.
+// The EventIndex must always be specified, with the EventObjectIndex optionally
+// specified for optimization purposes.
+type EventsCursor struct {
+	EventIndex       int
+	EventObjectIndex *int
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -972,6 +983,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
+			"AllowMeterOverage":  tier != modelInputs.PlanTypeFree,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
@@ -1061,4 +1073,54 @@ func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bo
 		return true
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
+}
+
+func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
+	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
+	return strings.Contains(acceptEncodingString, "br")
+}
+
+func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner"), nil
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
+		if err != nil {
+			return nil, err, nil
+		}
+		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
+	eventObjs := []*model.EventsObject{}
+	offset := 0
+	if cursor.EventObjectIndex != nil {
+		offset = *cursor.EventObjectIndex
+	}
+	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID}).Offset(offset).Find(&eventObjs).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from events"), nil
+	}
+	eventsQuerySpan.Finish()
+	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
+	allEvents := make(map[string][]interface{})
+	for _, eventObj := range eventObjs {
+		subEvents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
+			return nil, e.Wrap(err, "error decoding event data"), nil
+		}
+		allEvents["events"] = append(allEvents["events"], subEvents["events"]...)
+	}
+	events := allEvents["events"]
+	if cursor.EventObjectIndex == nil {
+		events = allEvents["events"][cursor.EventIndex:]
+	}
+	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	eventsParseSpan.Finish()
+	return events, nil, &nextCursor
 }

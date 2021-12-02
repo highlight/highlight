@@ -43,6 +43,7 @@
     --color-orange-400: #ffb038;
     --color-orange-500: #c67e29;
     --color-brown: #835e00;
+    --color-red: #ff0000;
     --color-red-100: #fee2e2;
     --color-red-200: #fecaca;
     --color-red-300: #fca5a5;
@@ -116,6 +117,7 @@
     // UI Elements
     --sidebar-width: 64px;
     --header-height: 80px;
+    --banner-height: 32px;
 
     // Errors
     --color-error-resolved: var(--color-green-400);
@@ -389,4 +391,25 @@ code:not([class]) {
 
 strong {
     font-weight: 500 !important;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0.7);
+        transform: scale(0.95);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(var(--pulse-color), 0);
+        transform: scale(1);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0);
+        transform: scale(0.95);
+    }
 }

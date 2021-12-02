@@ -50,7 +50,6 @@ export const DangerForm = () => {
                     <div className={styles.dangerRow}>
                         <Input
                             placeholder={`Please type '${data?.project?.name}'`}
-                            className={commonStyles.input}
                             name="text"
                             value={confirmationText}
                             onChange={(e) => {

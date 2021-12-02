@@ -19,10 +19,19 @@
     box-sizing: border-box;
     display: grid;
     grid-template-rows: auto 1fr;
-    height: calc(100vh - 80px - var(--size-medium) - var(--size-medium));
+    height: calc(
+        100vh - var(--header-height) - var(--size-medium) - var(--size-medium)
+    );
     overflow-x: hidden;
     overflow-y: auto;
     row-gap: var(--size-medium);
+
+    &.bannerShown {
+        height: calc(
+            100vh - var(--header-height) - var(--size-medium) -
+                var(--size-medium) - var(--banner-height)
+        );
+    }
 }
 
 .tabContentContainer {

@@ -22,6 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -223,9 +224,14 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
+	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+
 	workspace := &model.Workspace{
-		Admins: []model.Admin{*admin},
-		Name:   &name,
+		Admins:                    []model.Admin{*admin},
+		Name:                      &name,
+		TrialEndDate:              &trialEnd,
+		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
+		TrialExtensionEnabled:     false,
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {
@@ -2015,6 +2021,28 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 	return workspace, nil
 }
 
+func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	registrationData := &model.RegistrationData{
+		WorkspaceID: workspaceID,
+		TeamSize:    &teamSize,
+		Role:        &role,
+		UseCase:     &useCase,
+		HeardAbout:  &heardAbout,
+		Pun:         pun,
+	}
+
+	if err := r.DB.Create(registrationData).Error; err != nil {
+		return nil, e.Wrap(err, "error creating registration")
+	}
+
+	return &model.T, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
@@ -2048,39 +2076,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 		}
 		return data, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
-		if err != nil {
-			return nil, err
-		}
-		return ret, nil
-	}
-	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
-	eventObjs := []*model.EventsObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from events")
-	}
-	eventsQuerySpan.Finish()
-	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
-	allEvents := make(map[string][]interface{})
-	for _, eventObj := range eventObjs {
-		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, e.Wrap(err, "error decoding event data")
-		}
-		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
-	}
-	eventsParseSpan.Finish()
-	return allEvents["events"], nil
+	events, err, _ := r.getEvents(ctx, sessionSecureID, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	return events, err
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
@@ -3068,6 +3065,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType)
+	if workspace.MonthlyMembersLimit != nil {
+		membersLimit = *workspace.MonthlyMembersLimit
+	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
@@ -3500,10 +3500,11 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
-			UID:      &uid,
-			Name:     &firebaseUser.DisplayName,
-			Email:    &firebaseUser.Email,
-			PhotoURL: &firebaseUser.PhotoURL,
+			UID:           &uid,
+			Name:          &firebaseUser.DisplayName,
+			Email:         &firebaseUser.Email,
+			PhotoURL:      &firebaseUser.PhotoURL,
+			EmailVerified: &firebaseUser.EmailVerified,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -3545,6 +3546,30 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
 		firebaseSpan.Finish()
+	}
+
+	// Check email verification status
+	if admin.EmailVerified != nil && !*admin.EmailVerified {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
+			tracer.Tag("admin_uid", uid))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api for email verification")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Model(admin).Updates(&model.Admin{
+			EmailVerified: &firebaseUser.EmailVerified,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error updating admin fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		admin.EmailVerified = &firebaseUser.EmailVerified
+		firebaseSpan.Finish()
+
 	}
 	adminSpan.Finish()
 	return admin, nil
@@ -3591,7 +3616,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {
-		return "", e.Wrap(err, "must have ADMIN role to access the Sripe customer portal")
+		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
 	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
@@ -3607,6 +3632,43 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 	}
 
 	return portalSession.URL, nil
+}
+
+func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin does not have workspace access")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to access the subscription details")
+	}
+
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe customer")
+	}
+
+	if len(c.Subscriptions.Data) == 0 {
+		return &modelInputs.SubscriptionDetails{}, nil
+	}
+
+	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+
+	discount := c.Subscriptions.Data[0].Discount
+	if discount == nil || discount.Coupon == nil {
+		return &modelInputs.SubscriptionDetails{
+			BaseAmount: amount,
+		}, nil
+	}
+
+	return &modelInputs.SubscriptionDetails{
+		BaseAmount:      amount,
+		DiscountAmount:  discount.Coupon.AmountOff,
+		DiscountPercent: discount.Coupon.PercentOff,
+	}, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
@@ -3625,16 +3687,42 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
-	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
-
 	// Direct download only supported for clients that accept Brotli content encoding
-	if !obj.DirectDownloadEnabled || !strings.Contains(acceptEncodingString, "br") {
+	if !obj.DirectDownloadEnabled || !r.isBrotliAccepted(ctx) {
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting messages URL")
 	}
 
 	return str, err
@@ -3757,6 +3845,8 @@ GROUP BY
 	for i := range tags {
 		temp, _ := tags[i].Value()
 		tagValue, _ := temp.(string)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
+		tagValue = strings.Replace(tagValue, "\"", "", -1)
 		tagValue = strings.Replace(tagValue, "{", "[\"", 1)
 		tagValue = strings.Replace(tagValue, "}", "\"]", 1)
 		tagValue = strings.Replace(tagValue, ",", "\",\"", -1)
@@ -3765,6 +3855,45 @@ GROUP BY
 	}
 
 	return tagsResponse, nil
+}
+
+func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
+	ch := make(chan *model.SessionPayload)
+	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		defer close(ch)
+		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+			sessionSecureID,
+			initialEventsCount,
+			r.SubscriptionWorkerPool.WaitingQueueSize())
+
+		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				return
+			}
+			if len(events) != 0 {
+				// TODO live updating for other event types
+				ch <- &model.SessionPayload{
+					Events:          events,
+					Errors:          []model.ErrorObject{},
+					RageClicks:      []model.RageClickEvent{},
+					SessionComments: []model.SessionComment{},
+				}
+			}
+			cursor = *nextCursor
+
+			time.Sleep(1 * time.Second)
+		}
+	})
+	return ch, nil
 }
 
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
@@ -3802,6 +3931,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
@@ -3813,3 +3945,4 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

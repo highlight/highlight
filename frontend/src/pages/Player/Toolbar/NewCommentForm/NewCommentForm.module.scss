@@ -50,3 +50,9 @@
     cursor: pointer;
     text-decoration: underline;
 }
+
+.form {
+    :global(.ant-form-item) {
+        margin-bottom: var(--size-medium) !important;
+    }
+}

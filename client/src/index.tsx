@@ -628,26 +628,61 @@ export class Highlight {
             );
             if (!this.disableConsoleRecording) {
                 this.listeners.push(
-                    ConsoleListener((c: ConsoleMessage) => {
-                        if (c.type == 'Error' && c.value && c.trace)
-                            highlightThis.errors.push({
-                                event: stringify(c.value),
-                                type: 'console.error',
-                                url: window.location.href,
-                                source: c.trace[0].fileName
-                                    ? c.trace[0].fileName
-                                    : '',
-                                lineNumber: c.trace[0].lineNumber
-                                    ? c.trace[0].lineNumber
-                                    : 0,
-                                columnNumber: c.trace[0].columnNumber
-                                    ? c.trace[0].columnNumber
-                                    : 0,
-                                stackTrace: c.trace,
-                                timestamp: new Date().toISOString(),
-                            });
-                        highlightThis.messages.push(c);
-                    })
+                    ConsoleListener(
+                        (c: ConsoleMessage) => {
+                            if (
+                                (c.type === 'Error' || c.type === 'error') &&
+                                c.value &&
+                                c.trace
+                            )
+                                highlightThis.errors.push({
+                                    event: stringify(c.value),
+                                    type: 'console.error',
+                                    url: window.location.href,
+                                    source: c.trace[0]?.fileName
+                                        ? c.trace[0].fileName
+                                        : '',
+                                    lineNumber: c.trace[0]?.lineNumber
+                                        ? c.trace[0].lineNumber
+                                        : 0,
+                                    columnNumber: c.trace[0]?.columnNumber
+                                        ? c.trace[0].columnNumber
+                                        : 0,
+                                    stackTrace: c.trace,
+                                    timestamp: new Date().toISOString(),
+                                });
+                            highlightThis.messages.push(c);
+                        },
+                        {
+                            lengthThreshold: 1000,
+                            level: [
+                                'assert',
+                                'count',
+                                'countReset',
+                                'debug',
+                                'dir',
+                                'dirxml',
+                                'error',
+                                'group',
+                                'groupCollapsed',
+                                'groupEnd',
+                                'info',
+                                'log',
+                                'table',
+                                'time',
+                                'timeEnd',
+                                'timeLog',
+                                'trace',
+                                'warn',
+                            ],
+                            logger: 'console',
+                            stringifyOptions: {
+                                depthOfLimit: 10,
+                                numOfKeysLimit: 100,
+                                stringLengthLimit: 1000,
+                            },
+                        }
+                    )
                 );
             }
             this.listeners.push(

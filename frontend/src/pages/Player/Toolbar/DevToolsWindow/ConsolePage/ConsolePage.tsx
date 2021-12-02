@@ -1,8 +1,10 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
+import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -34,7 +36,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
-    const { pause, replayer, state } = useReplayerContext();
+    const { pause, replayer, state, session } = useReplayerContext();
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
     >([]);
@@ -43,12 +45,42 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         false
     );
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
-    const { data, loading } = useGetMessagesQuery({
+    const { isHighlightAdmin } = useAuthContext();
+    const { loading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
         },
         fetchPolicy: 'no-cache',
+        skip:
+            session === undefined ||
+            (!!session.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
     });
+
+    // If sessionSecureId is set and equals the current session's (ensures effect is run once)
+    // and resources url is defined, fetch using resources url
+    useEffect(() => {
+        if (!!session?.messages_url && isHighlightAdmin) {
+            fetch(session?.messages_url)
+                .then((response) => response.json())
+                .then((data) => {
+                    setParsedMessages(
+                        (data as any[] | undefined)?.map(
+                            (m: ConsoleMessage, i) => {
+                                return {
+                                    ...m,
+                                    id: i,
+                                };
+                            }
+                        ) ?? []
+                    );
+                })
+                .catch((e) => {
+                    setParsedMessages([]);
+                    H.consumeError(e, 'Error direct downloading resources');
+                });
+        }
+    }, [session?.messages_url, isHighlightAdmin]);
+
     const virtuoso = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
@@ -56,17 +88,6 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         const uniqueSet = new Set(base);
         setOptions(['All', ...Array.from(uniqueSet)]);
     }, [parsedMessages]);
-
-    useEffect(() => {
-        setParsedMessages(
-            data?.messages?.map((m: ConsoleMessage, i) => {
-                return {
-                    ...m,
-                    id: i,
-                };
-            }) ?? []
-        );
-    }, [data]);
 
     // Logic for scrolling to current entry.
     useEffect(() => {
@@ -275,18 +296,8 @@ const ConsoleRender = ({
     searchTerm: string;
 }) => {
     const input: Array<any> = typeof m === 'string' ? [m] : m;
-    const result: Array<string | object> = [];
-    // bundle strings together.
-    for (let i = 0; i < input.length; i++) {
-        if (
-            typeof input[i] === 'string' &&
-            typeof result[result.length - 1] === 'string'
-        ) {
-            result[result.length - 1] += ' ' + input[i];
-        } else {
-            result.push(input[i]);
-        }
-    }
+    const result: Array<string | object> = processMessageStrings(input);
+
     return (
         <div>
             {result.map((r) =>
@@ -312,4 +323,31 @@ const ConsoleRender = ({
             )}
         </div>
     );
+};
+
+const processMessageStrings = (
+    message: Array<string | object>
+): Array<string | object> => {
+    const res: Array<string | object> = [];
+
+    message.forEach((_m) => {
+        let m = _m;
+        if (typeof m === 'string') {
+            // Remove escaped quotes at the start and the end of the message.
+            if (m.length > 0 && m[0] === '"' && m[m.length - 1] === '"') {
+                m = `${m.slice(1, m.length - 1)} `;
+            }
+
+            // Replace escaped new lines with an actual new line.
+            m = m.replaceAll('\\n', '\n');
+
+            // Replace the escaped quotes in object keys.
+            m = m.replaceAll('\\"', '"');
+            res.push(m);
+        } else {
+            res.push(m);
+        }
+    });
+
+    return res;
 };

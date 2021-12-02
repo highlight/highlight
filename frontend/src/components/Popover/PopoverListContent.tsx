@@ -51,7 +51,7 @@ const PopoverListContent = ({
                 <>
                     <Virtuoso
                         ref={virtuoso}
-                        overscan={500}
+                        overscan={1000}
                         data={listItems}
                         totalCount={listItems.length}
                         defaultItemHeight={defaultItemHeight}

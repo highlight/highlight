@@ -1,3 +1,4 @@
+import { PopoverProps } from 'antd';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -6,7 +7,7 @@ import Popover from '../Popover/Popover';
 import PopoverListContent from '../Popover/PopoverListContent';
 import styles from './PopoverMenu.module.scss';
 
-interface Props {
+type Props = {
     /** The contents of the popover. This is used if you want to control what content is rendered in the Popover. If the content is not a list then you should use `Popover` instead. */
     content?: React.ReactNode;
     /** The menu items for the popover. */
@@ -16,7 +17,7 @@ interface Props {
     buttonIcon?: React.ReactNode;
     buttonContentsOverride?: React.ReactNode;
     header?: React.ReactNode;
-}
+} & Pick<PopoverProps, 'placement'>;
 
 const PopoverMenu = ({
     content,
@@ -25,6 +26,7 @@ const PopoverMenu = ({
     buttonIcon: buttonContents,
     buttonContentsOverride,
     header,
+    placement,
 }: Props) => {
     if (!content && !menuItems) {
         throw new Error('content or menuItems need to be defined.');
@@ -37,6 +39,7 @@ const PopoverMenu = ({
         <Popover
             isList
             trigger={['click']}
+            placement={placement}
             content={
                 content ? (
                     content
@@ -45,12 +48,14 @@ const PopoverMenu = ({
                         <PopoverListContent
                             small
                             className={styles.popoverMenuList}
-                            listItems={(menuItems || []).map((menuItem) => (
-                                <PopoverMenuItem
-                                    {...menuItem}
-                                    key={menuItem.displayName}
-                                />
-                            ))}
+                            listItems={(menuItems || [])
+                                .filter((menuItem) => menuItem.hidden !== true)
+                                .map((menuItem, index) => (
+                                    <PopoverMenuItem
+                                        {...menuItem}
+                                        key={index}
+                                    />
+                                ))}
                         />
                     </>
                 )
@@ -71,10 +76,11 @@ export default PopoverMenu;
 export interface PopoverMenuItem {
     icon?: React.ReactNode;
     iconPosition?: 'leading' | 'ending';
-    displayName: string;
+    displayName: string | React.ReactNode;
     link?: string;
     action?: () => void;
     active?: boolean;
+    hidden?: boolean;
 }
 
 export const PopoverMenuItem = ({
@@ -119,5 +125,5 @@ export const PopoverMenuItem = ({
         );
     }
 
-    return null;
+    throw new Error('`action` or `link` needs to be defined.');
 };

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	H "github.com/highlight-run/highlight-go"
 	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 
@@ -28,6 +29,9 @@ import (
 	"github.com/stripe/stripe-go/v72/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -166,14 +170,17 @@ func main() {
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
+	subscriptionWorkerPool := workerpool.New(1000)
+	subscriptionWorkerPool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
-		ClearbitClient:    clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
-		DB:                db,
-		MailClient:        sendgrid.NewSendClient(sendgridKey),
-		StripeClient:      stripeClient,
-		StorageClient:     storage,
-		PrivateWorkerPool: privateWorkerpool,
-		OpenSearch:        opensearchClient,
+		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		DB:                     db,
+		MailClient:             sendgrid.NewSendClient(sendgridKey),
+		StripeClient:           stripeClient,
+		StorageClient:          storage,
+		PrivateWorkerPool:      privateWorkerpool,
+		SubscriptionWorkerPool: subscriptionWorkerPool,
+		OpenSearch:             opensearchClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -206,11 +213,35 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
-			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
 				}),
 			)
+
+			privateServer.AddTransport(transport.Websocket{
+				InitFunc: private.WebsocketInitializationFunction(),
+				Upgrader: websocket.Upgrader{
+					CheckOrigin: func(r *http.Request) bool {
+						if r == nil || r.Header["Origin"] == nil || len(r.Header["Origin"]) == 0 {
+							log.Error("Couldn't validate websocket: no origin")
+							return false
+						}
+						return validateOrigin(r, r.Header["Origin"][0])
+					},
+				},
+				KeepAlivePingInterval: 10 * time.Second,
+			})
+			privateServer.AddTransport(transport.Options{})
+			privateServer.AddTransport(transport.GET{})
+			privateServer.AddTransport(transport.POST{})
+			privateServer.AddTransport(transport.MultipartForm{})
+			privateServer.SetQueryCache(lru.New(1000))
+			privateServer.Use(extension.Introspection{})
+			privateServer.Use(extension.AutomaticPersistedQuery{
+				Cache: lru.New(100),
+			})
+
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())

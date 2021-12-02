@@ -1,3 +1,4 @@
+import Switch from '@components/Switch/Switch';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -17,7 +18,10 @@ import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import { useAuthContext } from '../../../authentication/AuthContext';
+import {
+    isLiveModeExposed,
+    useAuthContext,
+} from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import SvgFullscreenIcon from '../../../static/FullscreenIcon';
 import SvgMinimize2Icon from '../../../static/Minimize2Icon';
@@ -83,7 +87,7 @@ export const Toolbar = React.memo(() => {
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin, admin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -250,7 +254,7 @@ export const Toolbar = React.memo(() => {
                     </div>
                 </DevToolsContextProvider>
             )}
-            {!isLiveMode && (
+            {!isLiveMode ? (
                 <div className={styles.playerRail}>
                     <div
                         className={styles.sliderRail}
@@ -316,6 +320,10 @@ export const Toolbar = React.memo(() => {
                             </div>
                         </Draggable>
                     </button>
+                </div>
+            ) : (
+                <div className={styles.playerRail}>
+                    <div className={styles.livePlayerRail} />
                 </div>
             )}
             <div className={styles.toolbarSection}>
@@ -406,17 +414,23 @@ export const Toolbar = React.memo(() => {
                         />
                     </button>
 
-                    {isHighlightAdmin &&
+                    {isLiveModeExposed(isHighlightAdmin, admin) &&
                         session?.processed === false &&
                         !disableControls && (
-                            <button
-                                className={classNames(styles.liveButton)}
-                                onClick={() => {
-                                    setIsLiveMode(!isLiveMode);
-                                }}
+                            <Button
+                                trackingId="LiveModeButton"
+                                className={styles.liveButton}
                             >
-                                {isLiveMode ? 'Stop Live' : 'Go Live'}
-                            </button>
+                                <Switch
+                                    checked={isLiveMode}
+                                    onChange={(checked: boolean) => {
+                                        setIsLiveMode(checked);
+                                    }}
+                                    label="Live Mode"
+                                    trackingId="LiveModeSwitch"
+                                    red={true}
+                                />
+                            </Button>
                         )}
 
                     {!isLiveMode && (

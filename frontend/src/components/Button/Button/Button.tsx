@@ -12,6 +12,8 @@ export type GenericHighlightButtonProps = ButtonProps & {
     iconButton?: boolean;
     /** Reduces the padding. */
     small?: boolean;
+    /** Set to true to make the button glow in intervals. */
+    pulse?: boolean;
 };
 
 const Button = ({
@@ -34,6 +36,7 @@ const Button = ({
                 [styles.iconButton]: iconButton,
                 [styles.small]: small,
                 [styles.link]: props.type === 'link',
+                [styles.pulse]: props.pulse,
             })}
             target={props.type === 'text' && props.href ? '_blank' : undefined}
         >

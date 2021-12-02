@@ -139,6 +139,20 @@ export type CreateProjectMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type SubmitRegistrationFormMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    team_size: Types.Scalars['String'];
+    role: Types.Scalars['String'];
+    use_case: Types.Scalars['String'];
+    heard_about: Types.Scalars['String'];
+    pun?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'submitRegistrationForm'
+>;
+
 export type CreateWorkspaceMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
 }>;
@@ -1022,6 +1036,72 @@ export type UpdateAllowMeterOverageMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type SessionPayloadFragmentFragment = {
+    __typename?: 'SessionPayload';
+} & Pick<Types.SessionPayload, 'events'> & {
+        errors: Array<
+            Types.Maybe<
+                { __typename?: 'ErrorObject' } & Pick<
+                    Types.ErrorObject,
+                    | 'id'
+                    | 'error_group_secure_id'
+                    | 'event'
+                    | 'type'
+                    | 'url'
+                    | 'source'
+                    | 'stack_trace'
+                    | 'timestamp'
+                    | 'payload'
+                    | 'request_id'
+                > & {
+                        structured_stack_trace: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorTrace' } & Pick<
+                                    Types.ErrorTrace,
+                                    | 'fileName'
+                                    | 'lineNumber'
+                                    | 'functionName'
+                                    | 'columnNumber'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >;
+        rage_clicks: Array<
+            { __typename?: 'RageClickEvent' } & Pick<
+                Types.RageClickEvent,
+                'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
+        session_comments: Array<
+            Types.Maybe<
+                { __typename?: 'SessionComment' } & Pick<
+                    Types.SessionComment,
+                    | 'id'
+                    | 'timestamp'
+                    | 'session_id'
+                    | 'session_secure_id'
+                    | 'created_at'
+                    | 'updated_at'
+                    | 'project_id'
+                    | 'text'
+                    | 'x_coordinate'
+                    | 'y_coordinate'
+                    | 'type'
+                    | 'metadata'
+                > & {
+                        author?: Types.Maybe<
+                            { __typename?: 'SanitizedAdmin' } & Pick<
+                                Types.SanitizedAdmin,
+                                'id' | 'name' | 'email' | 'photo_url'
+                            >
+                        >;
+                    }
+            >
+        >;
+    };
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -1146,6 +1226,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'is_public'
             | 'event_counts'
             | 'direct_download_url'
+            | 'resources_url'
+            | 'messages_url'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1192,7 +1274,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret'
+            'id' | 'name' | 'secret' | 'allowed_auto_join_email_origins'
         >
     >;
     workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
@@ -1622,6 +1704,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'photo_url'
             | 'slack_im_channel_id'
             | 'role'
+            | 'email_verified'
         >
     >;
 };
@@ -1667,6 +1750,8 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
             | 'billing_period_end'
             | 'next_invoice_date'
             | 'allow_meter_overage'
+            | 'eligible_for_trial_extension'
+            | 'trial_extension_enabled'
         >
     >;
 };
@@ -1693,7 +1778,19 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
             | 'billing_period_end'
             | 'next_invoice_date'
             | 'allow_meter_overage'
+            | 'eligible_for_trial_extension'
         >
+    >;
+};
+
+export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
+    subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
+        Types.SubscriptionDetails,
+        'baseAmount' | 'discountAmount' | 'discountPercent'
     >;
 };
 
@@ -2579,6 +2676,19 @@ export type GetCustomerPortalUrlQuery = { __typename?: 'Query' } & Pick<
     'customer_portal_url'
 >;
 
+export type OnSessionPayloadAppendedSubscriptionVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+    initial_events_count: Types.Scalars['Int'];
+}>;
+
+export type OnSessionPayloadAppendedSubscription = {
+    __typename?: 'Subscription';
+} & {
+    session_payload_appended?: Types.Maybe<
+        { __typename?: 'SessionPayload' } & SessionPayloadFragmentFragment
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2604,6 +2714,7 @@ export const namedOperations = {
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
+        GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,
         GetMessages: 'GetMessages' as const,
@@ -2650,6 +2761,7 @@ export const namedOperations = {
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         CreateProject: 'CreateProject' as const,
+        SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
         CreateWorkspace: 'CreateWorkspace' as const,
         EditProject: 'EditProject' as const,
         DeleteProject: 'DeleteProject' as const,
@@ -2685,5 +2797,11 @@ export const namedOperations = {
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
+    },
+    Subscription: {
+        OnSessionPayloadAppended: 'OnSessionPayloadAppended' as const,
+    },
+    Fragment: {
+        SessionPayloadFragment: 'SessionPayloadFragment' as const,
     },
 };

@@ -1,8 +1,13 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import { useToggle } from 'react-use';
 
@@ -23,10 +28,16 @@ export const ProjectRouter = () => {
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
+    const [showBanner, toggleShowBanner] = useToggle(false);
     const { project_id } = useParams<{
         project_id: string;
     }>();
     const { setIsLoading } = useAppLoadingContext();
+
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
 
     const { data, loading, error } = useGetProjectDropdownOptionsQuery({
         variables: { project_id },
@@ -55,7 +66,10 @@ export const ProjectRouter = () => {
     }, []);
 
     useEffect(() => {
-        if (isLoggedIn) {
+        if (
+            isLoggedIn ||
+            projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+        ) {
             document.documentElement.style.setProperty(
                 '--sidebar-width',
                 '64px'
@@ -63,7 +77,7 @@ export const ProjectRouter = () => {
         } else {
             document.documentElement.style.setProperty('--sidebar-width', '0');
         }
-    }, [isLoggedIn]);
+    }, [isLoggedIn, projectIdRemapped]);
 
     useEffect(() => {
         if (!error) {
@@ -82,6 +96,8 @@ export const ProjectRouter = () => {
             value={{
                 showKeyboardShortcutsGuide,
                 toggleShowKeyboardShortcutsGuide,
+                showBanner,
+                toggleShowBanner,
             }}
         >
             <ApplicationContextProvider
@@ -93,8 +109,14 @@ export const ProjectRouter = () => {
                 }}
             >
                 <Header />
-                {isLoggedIn && <Sidebar />}
-                <div className={commonStyles.bodyWrapper}>
+                {(isLoggedIn ||
+                    projectIdRemapped ===
+                        DEMO_WORKSPACE_PROXY_APPLICATION_ID) && <Sidebar />}
+                <div
+                    className={classNames(commonStyles.bodyWrapper, {
+                        [commonStyles.bannerShown]: showBanner,
+                    })}
+                >
                     {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
                     {isLoggedIn && (error || !data?.project) ? (
                         <ErrorState

@@ -148,6 +148,39 @@ export const Buttons = () => {
                     POST fetch('https://pokeapi.co/api/v2/pokemon/ditto')
                 </button>
             </div>
+            <div>
+                <button
+                    onClick={() => {
+                        const methods = [
+                            'assert',
+                            'count',
+                            'countReset',
+                            'debug',
+                            'dir',
+                            'dirxml',
+                            'error',
+                            'group',
+                            'groupCollapsed',
+                            'groupEnd',
+                            'info',
+                            'log',
+                            'table',
+                            'time',
+                            'timeEnd',
+                            'timeLog',
+                            'trace',
+                            'warn',
+                        ];
+
+                        methods.forEach((method) => {
+                            // @ts-expect-error
+                            console[method]('HELLO WORLD');
+                        });
+                    }}
+                >
+                    Console Log
+                </button>
+            </div>
         </div>
     );
 };

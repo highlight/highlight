@@ -31,9 +31,19 @@
 }
 
 .portalButton {
-    display: inline-flex;
+    display: flex;
     justify-content: space-evenly;
     width: 200px;
+}
+
+.portalButtonContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xSmall);
+}
+
+.portalButtonIcon {
+    flex-shrink: 0;
 }
 
 .titleContainer {
