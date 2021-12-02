@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
+import Tag from '@components/Tag/Tag';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -69,7 +70,16 @@ const SwitchWorkspace = () => {
                 value: workspace?.id || '',
                 displayValue: workspace?.name || '',
                 id: workspace?.id || '',
-                dropDownIcon: <div className={styles.joinButton}>+ Join</div>,
+                dropDownIcon: (
+                    <Tag
+                        className={styles.joinButton}
+                        infoTooltipText={'You can auto-join this workspace!'}
+                        backgroundColor="var(--color-purple)"
+                        color="var(--color-white)"
+                    >
+                        + Join
+                    </Tag>
+                ),
             }))
         );
 
