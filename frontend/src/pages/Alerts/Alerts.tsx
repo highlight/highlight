@@ -194,12 +194,14 @@ const AlertsPage = () => {
             configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
             type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
             type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
@@ -208,6 +210,7 @@ const AlertsPage = () => {
             Name:
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -216,6 +219,7 @@ const AlertsPage = () => {
             Name:
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -224,18 +228,21 @@ const AlertsPage = () => {
             Name:
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
             type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+            key: alert?.id,
         })),
         ...(alertsPayload?.rage_click_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
             type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
+            key: alert?.id,
         })),
     ];
 
