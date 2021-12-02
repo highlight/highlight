@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import classNames from 'classnames';
 import ColorHash from 'color-hash';
 import React from 'react';
 
@@ -10,6 +11,7 @@ interface Props {
     infoTooltipText?: string;
     /** Text and Background Colors are determined by the hash value. */
     autoColorsText?: string;
+    className?: string;
 }
 
 const Tag: React.FC<Props> = ({
@@ -18,6 +20,7 @@ const Tag: React.FC<Props> = ({
     color = 'var(--text-primary)',
     infoTooltipText,
     autoColorsText,
+    className,
 }) => {
     const hashBackgroundColor = autoColorsText
         ? getTagBackgroundColor(autoColorsText)
@@ -29,7 +32,7 @@ const Tag: React.FC<Props> = ({
                 backgroundColor: backgroundColor || hashBackgroundColor,
                 color,
             }}
-            className={styles.tag}
+            className={classNames(className, styles.tag)}
         >
             {children}
             {infoTooltipText && <InfoTooltip title={infoTooltipText} />}

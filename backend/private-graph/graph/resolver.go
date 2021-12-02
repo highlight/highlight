@@ -68,6 +68,35 @@ func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }
 
+func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
+	domain, err := r.getVerifiedAdminEmailDomain(admin)
+	if err != nil {
+		return "", e.Wrap(err, "error getting verified admin email domain")
+	}
+
+	// this is just the top 10 email domains as of June 6, 2016, and protonmail.com
+	if map[string]bool{"gmail.com": true, "yahoo.com": true, "hotmail.com": true, "aol.com": true, "hotmail.co.uk": true, "protonmail.com": true, "hotmail.fr": true, "msn.com": true, "yahoo.fr": true, "wanadoo.fr": true, "orange.fr": true}[strings.ToLower(domain)] {
+		return "", e.New("not a custom domain")
+	}
+
+	return domain, nil
+}
+
+func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
+	if admin.EmailVerified == nil || !*admin.EmailVerified {
+		return "", e.New("admin email is not verified")
+	}
+	if admin.Email == nil {
+		return "", e.New("admin email is nil")
+	}
+	components := strings.Split(*admin.Email, "@")
+	if len(components) < 2 {
+		return "", e.New("invalid admin email")
+	}
+	domain := components[1]
+	return domain, nil
+}
+
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))

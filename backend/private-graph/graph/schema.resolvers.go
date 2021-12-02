@@ -445,11 +445,10 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
-	components := strings.Split(*admin.Email, "@")
-	if len(components) < 2 {
-		return nil, e.New("admin has invalid email")
+	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting custom verified admin email domain")
 	}
-	domain := components[1]
 	workspace := &model.Workspace{Model: model.Model{ID: workspaceID}}
 	if err := r.DB.Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -3207,24 +3206,24 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
+	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting custom verified admin email domain")
+	}
 
 	joinableWorkspaces := []*model.Workspace{}
-	if *admin.EmailVerified && admin.Email != nil {
-		components := strings.Split(*admin.Email, "@")
-		if len(components) < 2 {
-			return nil, e.New("invalid admin email")
-		}
-		domain := components[1]
-		if err := r.DB.Raw(`
+	if err := r.DB.Raw(`
 			SELECT *
 			FROM workspaces
-			LEFT JOIN workspace_admins ON workspace_admins.workspace_id = id
-			WHERE COALESCE(workspace_admins.admin_id, -1) != ?
+			WHERE id NOT IN (
+			    SELECT workspace_id 
+			    FROM workspace_admins 
+			    WHERE admin_id = ?
+			    )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
 			ORDER BY workspaces.name ASC
 		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
-			return nil, e.Wrap(err, "error getting joinable workspaces")
-		}
+		return nil, e.Wrap(err, "error getting joinable workspaces")
 	}
 
 	return joinableWorkspaces, nil
