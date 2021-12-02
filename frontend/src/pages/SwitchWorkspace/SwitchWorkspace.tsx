@@ -1,5 +1,4 @@
 import Button from '@components/Button/Button/Button';
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
