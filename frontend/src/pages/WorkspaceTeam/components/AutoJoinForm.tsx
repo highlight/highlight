@@ -26,14 +26,6 @@ function AutoJoinForm() {
                 setOriginalOrigins(originalOrigins);
             }
             const allowedDomains: string[] = [];
-            const blackListedDomains = [
-                'gmail.com',
-                'yahoo.com',
-                'hotmail.com',
-                'outlook.com',
-                'protonmail.com',
-                'aol.com',
-            ];
             d.admins.forEach((a) => {
                 const adminDomain = getEmailDomain(a?.email);
                 if (
@@ -82,6 +74,15 @@ function AutoJoinForm() {
 
     const adminsEmailDomain = getEmailDomain(admin?.email);
 
+    const blackListedDomains = [
+        'gmail.com',
+        'yahoo.com',
+        'hotmail.com',
+        'outlook.com',
+        'protonmail.com',
+        'aol.com',
+    ];
+
     return (
         <div className={styles.container}>
             <Switch
@@ -90,7 +91,10 @@ function AutoJoinForm() {
                 checked={emailOrigins.length > 0}
                 loading={loading}
                 onChange={(checked) => {
-                    if (checked) {
+                    if (
+                        checked &&
+                        !blackListedDomains.includes(adminsEmailDomain)
+                    ) {
                         setEmailOrigins([adminsEmailDomain]);
                     } else {
                         setEmailOrigins([]);
