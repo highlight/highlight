@@ -1,15 +1,20 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Select from '@components/Select/Select';
 import Switch from '@components/Switch/Switch';
-import { useGetWorkspaceAdminsQuery } from '@graph/hooks';
+import {
+    useGetWorkspaceAdminsQuery,
+    useUpdateAllowedEmailOriginsMutation,
+} from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
-import React, { useState } from 'react';
+import { message } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 import styles from './AutoJoinForm.module.scss';
 
 function AutoJoinForm() {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { admin } = useAuthContext();
+    const [originalOrigins, setOriginalOrigins] = useState<string[]>([]);
     const { loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
         onCompleted: (d) => {
@@ -18,12 +23,62 @@ function AutoJoinForm() {
                     d.workspace.allowed_auto_join_email_origins
                 );
                 setEmailOrigins(emailOrigins);
-            } else {
-                setEmailOrigins([adminsEmailDomain]);
+                setOriginalOrigins(originalOrigins);
             }
+            const allowedDomains: string[] = [];
+            const blackListedDomains = [
+                'gmail.com',
+                'yahoo.com',
+                'hotmail.com',
+                'outlook.com',
+                'protonmail.com',
+                'aol.com',
+            ];
+            d.admins.forEach((a) => {
+                const adminDomain = getEmailDomain(a?.email);
+                if (
+                    adminDomain.length > 0 &&
+                    !blackListedDomains.includes(adminDomain) &&
+                    !allowedDomains.includes(adminDomain)
+                )
+                    allowedDomains.push(adminDomain);
+            });
+            setAllowedEmailOrigins(allowedDomains);
         },
     });
+
     const [emailOrigins, setEmailOrigins] = useState<string[]>([]);
+    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
+
+    useEffect(() => {
+        if (
+            !loading &&
+            JSON.stringify(originalOrigins) !== JSON.stringify(emailOrigins)
+        ) {
+            updateAllowedEmailOrigins({
+                variables: {
+                    allowed_auto_join_email_origins: JSON.stringify(
+                        emailOrigins
+                    ),
+                    workspace_id: workspace_id,
+                },
+            }).then(() => {
+                message.success(
+                    'Successfully updated auto-join email domains!'
+                );
+            });
+        }
+    }, [
+        loading,
+        emailOrigins,
+        workspace_id,
+        updateAllowedEmailOrigins,
+        originalOrigins,
+    ]);
+
+    const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>(
+        []
+    );
 
     const adminsEmailDomain = getEmailDomain(admin?.email);
 
@@ -43,16 +98,15 @@ function AutoJoinForm() {
                 }}
                 className={styles.switchClass}
             />
-            {emailOrigins.length > 0 && (
+            {allowedEmailOrigins.length > 0 && (
                 <Select
                     placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
                     className={styles.select}
-                    defaultActiveFirstOption
                     loading={loading}
                     value={emailOrigins}
                     mode="tags"
                     onChange={setEmailOrigins}
-                    options={emailOrigins.map((emailOrigin) => ({
+                    options={allowedEmailOrigins.map((emailOrigin) => ({
                         displayValue: emailOrigin,
                         id: emailOrigin,
                         value: emailOrigin,
