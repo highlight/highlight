@@ -34,6 +34,7 @@ export const parseAdminSuggestions = (
             .filter(
                 (suggestion) =>
                     // 1. The admin that is creating the comment
+                    currentAdmin !== undefined &&
                     suggestion?.email !== currentAdmin!.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
