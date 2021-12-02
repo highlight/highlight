@@ -596,6 +596,7 @@ type Query {
     ): [ErrorField]
     projects: [Project]
     workspaces: [Workspace]
+    joinable_workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
     new_user_alerts(project_id: ID!): [SessionAlert]
@@ -644,6 +645,7 @@ type Mutation {
         role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    joinWorkspace(workspace_id: ID!): ID
     changeAdminRole(
         workspace_id: ID!
         admin_id: ID!

@@ -440,6 +440,26 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	return adminId, nil
 }
 
+func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	components := strings.Split(*admin.Email, "@")
+	if len(components) < 2 {
+		return nil, e.New("admin has invalid email")
+	}
+	domain := components[1]
+	workspace := &model.Workspace{Model: model.Model{ID: workspaceID}}
+	if err := r.DB.Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+	if err := r.DB.Model(&workspace).Association("Admins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to association")
+	}
+	return &workspace.ID, nil
+}
+
 func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
@@ -3147,6 +3167,34 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	}
 
 	return workspaces, nil
+}
+
+func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Workspace, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+
+	joinableWorkspaces := []*model.Workspace{}
+	if *admin.EmailVerified && admin.Email != nil {
+		components := strings.Split(*admin.Email, "@")
+		if len(components) < 2 {
+			return nil, e.New("invalid admin email")
+		}
+		domain := components[1]
+		if err := r.DB.Raw(`
+			SELECT *
+			FROM workspaces
+			LEFT JOIN workspace_admins ON workspace_admins.workspace_id = id
+			WHERE COALESCE(workspace_admins.admin_id, -1) != ?
+				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
+			ORDER BY workspaces.name ASC
+		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
+			return nil, e.Wrap(err, "error getting joinable workspaces")
+		}
+	}
+
+	return joinableWorkspaces, nil
 }
 
 func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*model.ErrorAlert, error) {
