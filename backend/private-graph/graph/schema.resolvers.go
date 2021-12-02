@@ -3182,8 +3182,11 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err := r.DB.Raw(`
 			SELECT *
 			FROM workspaces
-			LEFT JOIN workspace_admins ON workspace_admins.workspace_id = id
-			WHERE COALESCE(workspace_admins.admin_id, -1) != ?
+			WHERE id NOT IN (
+			    SELECT workspace_id 
+			    FROM workspace_admins 
+			    WHERE admin_id = ?
+			    )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
 			ORDER BY workspaces.name ASC
 		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
