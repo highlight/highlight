@@ -38,6 +38,7 @@ type Props = Pick<
         displayValue: string | React.ReactNode;
         disabled?: boolean;
         id: string;
+        dropDownIcon?: React.ReactNode;
     }[];
     hasAccent?: boolean;
 };
@@ -70,11 +71,27 @@ const Select = ({
                 )
             }
         >
-            {options?.map(({ displayValue, value, disabled, id }) => (
-                <Option key={id} value={value} disabled={disabled}>
-                    {displayValue}
-                </Option>
-            ))}
+            {options?.map(
+                ({ displayValue, value, disabled, id, dropDownIcon }) => {
+                    let display = displayValue;
+                    if (!!dropDownIcon) {
+                        display = (
+                            <div className={styles.dropdownIcon}>
+                                {displayValue}{' '}
+                                <div className={styles.icon}>
+                                    {dropDownIcon}
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <Option key={id} value={value} disabled={disabled}>
+                            {display}
+                        </Option>
+                    );
+                }
+            )}
             {children}
         </AntDesignSelect>
     );

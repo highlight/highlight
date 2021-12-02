@@ -385,6 +385,10 @@ query GetWorkspaces {
         id
         name
     }
+    joinable_workspaces {
+        id
+        name
+    }
 }
 
 query GetProjectsAndWorkspaces {

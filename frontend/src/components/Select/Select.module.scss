@@ -97,6 +97,13 @@
     }
 }
 
+.dropdownIcon {
+    display: inline;
+    .icon {
+        display: none;
+    }
+}
+
 .dropdown {
     background-color: var(--color-primary-background) !important;
     border-radius: var(--border-radius);
@@ -114,6 +121,15 @@
 
     :global(.ant-select-item-option-selected) {
         color: var(--color-white) !important;
+    }
+
+    .dropdownIcon {
+        align-items: center;
+        display: flex;
+        .icon {
+            display: contents;
+            width: 100%;
+        }
     }
 }
 

@@ -259,6 +259,7 @@ type ComplexityRoot struct {
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
+		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
@@ -327,6 +328,7 @@ type ComplexityRoot struct {
 		IdentifierSuggestion         func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack        func(childComplexity int, projectID int) int
+		JoinableWorkspaces           func(childComplexity int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
@@ -622,6 +624,7 @@ type MutationResolver interface {
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
+	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
 	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
@@ -702,6 +705,7 @@ type QueryResolver interface {
 	ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.ErrorField, error)
 	Projects(ctx context.Context) ([]*model1.Project, error)
 	Workspaces(ctx context.Context) ([]*model1.Workspace, error)
+	JoinableWorkspaces(ctx context.Context) ([]*model1.Workspace, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
 	SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
 	NewUserAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
@@ -1948,6 +1952,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EmailSignup(childComplexity, args["email"].(string)), true
 
+	case "Mutation.joinWorkspace":
+		if e.complexity.Mutation.JoinWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinWorkspace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinWorkspace(childComplexity, args["workspace_id"].(int)), true
+
 	case "Mutation.markSessionAsStarred":
 		if e.complexity.Mutation.MarkSessionAsStarred == nil {
 			break
@@ -2554,6 +2570,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegratedWithSlack(childComplexity, args["project_id"].(int)), true
+
+	case "Query.joinable_workspaces":
+		if e.complexity.Query.JoinableWorkspaces == nil {
+			break
+		}
+
+		return e.complexity.Query.JoinableWorkspaces(childComplexity), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -4704,6 +4727,7 @@ type Query {
     ): [ErrorField]
     projects: [Project]
     workspaces: [Workspace]
+    joinable_workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
     new_user_alerts(project_id: ID!): [SessionAlert]
@@ -4752,6 +4776,7 @@ type Mutation {
         role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    joinWorkspace(workspace_id: ID!): ID
     changeAdminRole(
         workspace_id: ID!
         admin_id: ID!
@@ -6194,6 +6219,21 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 		}
 	}
 	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
 	return args, nil
 }
 
@@ -12419,6 +12459,45 @@ func (ec *executionContext) _Mutation_addAdminToWorkspace(ctx context.Context, f
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_joinWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_joinWorkspace_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().JoinWorkspace(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_changeAdminRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15865,6 +15944,38 @@ func (ec *executionContext) _Query_workspaces(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Workspaces(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Workspace)
+	fc.Result = res
+	return ec.marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_joinable_workspaces(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().JoinableWorkspaces(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24494,6 +24605,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_sendAdminWorkspaceInvite(ctx, field)
 		case "addAdminToWorkspace":
 			out.Values[i] = ec._Mutation_addAdminToWorkspace(ctx, field)
+		case "joinWorkspace":
+			out.Values[i] = ec._Mutation_joinWorkspace(ctx, field)
 		case "changeAdminRole":
 			out.Values[i] = ec._Mutation_changeAdminRole(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -25206,6 +25319,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspaces(ctx, field)
+				return res
+			})
+		case "joinable_workspaces":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_joinable_workspaces(ctx, field)
 				return res
 			})
 		case "error_alerts":

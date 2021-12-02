@@ -77,6 +77,15 @@ export type AddAdminToWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToWorkspace'
 >;
 
+export type JoinWorkspaceMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type JoinWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'joinWorkspace'
+>;
+
 export type ChangeAdminRoleMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -1578,6 +1587,16 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    joinable_workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
 };
 
 export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
@@ -2755,6 +2774,7 @@ export const namedOperations = {
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
+        JoinWorkspace: 'JoinWorkspace' as const,
         ChangeAdminRole: 'ChangeAdminRole' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
