@@ -4211,6 +4211,59 @@ export type GetWorkspacesQueryResult = Apollo.QueryResult<
     Types.GetWorkspacesQuery,
     Types.GetWorkspacesQueryVariables
 >;
+export const GetWorkspacesCountDocument = gql`
+    query GetWorkspacesCount {
+        workspaces_count
+    }
+`;
+
+/**
+ * __useGetWorkspacesCountQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspacesCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspacesCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspacesCountQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetWorkspacesCountQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >(GetWorkspacesCountDocument, baseOptions);
+}
+export function useGetWorkspacesCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >(GetWorkspacesCountDocument, baseOptions);
+}
+export type GetWorkspacesCountQueryHookResult = ReturnType<
+    typeof useGetWorkspacesCountQuery
+>;
+export type GetWorkspacesCountLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspacesCountLazyQuery
+>;
+export type GetWorkspacesCountQueryResult = Apollo.QueryResult<
+    Types.GetWorkspacesCountQuery,
+    Types.GetWorkspacesCountQueryVariables
+>;
 export const GetProjectsAndWorkspacesDocument = gql`
     query GetProjectsAndWorkspaces {
         projects {

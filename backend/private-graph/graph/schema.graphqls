@@ -596,6 +596,7 @@ type Query {
     ): [ErrorField]
     projects: [Project]
     workspaces: [Workspace]
+    workspaces_count: Int64!
     joinable_workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
