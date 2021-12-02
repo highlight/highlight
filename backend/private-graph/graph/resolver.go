@@ -83,7 +83,7 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
-	if !*admin.EmailVerified {
+	if admin.EmailVerified == nil || !*admin.EmailVerified {
 		return "", e.New("admin email is not verified")
 	}
 	if admin.Email == nil {
