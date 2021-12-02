@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
@@ -161,6 +162,15 @@ const SwitchWorkspace = () => {
                             `${actionText} Workspace`
                         )}
                     </Button>
+                    <ButtonLink
+                        trackingId={`SwitchWorkspace-CreateWorkspace`}
+                        className={styles.button}
+                        to="/new"
+                        fullWidth
+                        type="default"
+                    >
+                        Create a New Workspace
+                    </ButtonLink>
                 </form>
             </div>
         </>
