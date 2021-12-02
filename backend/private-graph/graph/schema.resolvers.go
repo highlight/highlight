@@ -3169,6 +3169,39 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	return workspaces, nil
 }
 
+func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return 0, e.Wrap(err, "error retrieving user")
+	}
+
+	var workspacesCount int64
+	if err := r.DB.Table("workspace_admins").Where("admin_id=?", admin.ID).Count(&workspacesCount).Error; err != nil {
+		return 0, e.Wrap(err, "error getting count of workspaces for admin")
+	}
+
+	var joinableWorkspacesCount int64
+	if *admin.EmailVerified && admin.Email != nil {
+		components := strings.Split(*admin.Email, "@")
+		if len(components) < 2 {
+			return workspacesCount, nil
+		}
+		domain := components[1]
+		if err := r.DB.Raw(`
+			SELECT COUNT(*)
+			FROM workspaces
+			LEFT JOIN workspace_admins ON workspace_admins.workspace_id = id
+			WHERE COALESCE(workspace_admins.admin_id, -1) != ?
+				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
+			ORDER BY workspaces.name ASC
+		`, admin.ID, domain).Scan(&workspacesCount).Error; err != nil {
+			return 0, e.Wrap(err, "error getting count of joinable workspaces for admin")
+		}
+	}
+
+	return joinableWorkspacesCount + workspacesCount, nil
+}
+
 func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Workspace, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
