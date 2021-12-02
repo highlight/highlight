@@ -646,6 +646,10 @@ type Mutation {
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     joinWorkspace(workspace_id: ID!): ID
+    updateAllowedEmailOrigins(
+        workspace_id: ID!
+        allowed_auto_join_email_origins: String!
+    ): ID
     changeAdminRole(
         workspace_id: ID!
         admin_id: ID!
