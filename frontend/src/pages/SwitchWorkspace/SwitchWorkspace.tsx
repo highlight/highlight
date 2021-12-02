@@ -73,11 +73,13 @@ const SwitchWorkspace = () => {
                 dropDownIcon: (
                     <Tag
                         className={styles.joinButton}
-                        infoTooltipText={'You can auto-join this workspace!'}
+                        infoTooltipText={
+                            'Your email domain is whitelisted by this workspace!'
+                        }
                         backgroundColor="var(--color-purple)"
                         color="var(--color-white)"
                     >
-                        + Join
+                        Join
                     </Tag>
                 ),
             }))
