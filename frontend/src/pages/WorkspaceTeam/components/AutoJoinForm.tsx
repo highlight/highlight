@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import Alert from '@components/Alert/Alert';
 import Select from '@components/Select/Select';
 import Switch from '@components/Switch/Switch';
 import {
@@ -29,9 +28,7 @@ function AutoJoinForm() {
             d.admins.forEach((a) => {
                 const adminDomain = getEmailDomain(a?.email);
                 if (
-                    a?.email_verified &&
                     adminDomain.length > 0 &&
-                    !blackListedDomains.includes(adminDomain) &&
                     !allowedDomains.includes(adminDomain)
                 )
                     allowedDomains.push(adminDomain);
@@ -65,82 +62,38 @@ function AutoJoinForm() {
 
     const adminsEmailDomain = getEmailDomain(admin?.email);
 
-    const blackListedDomains = [
-        'gmail.com',
-        'yahoo.com',
-        'hotmail.com',
-        'outlook.com',
-        'protonmail.com',
-        'aol.com',
-    ];
-
     return (
         <div className={styles.container}>
-            {allowedEmailOrigins.length > 0 ? (
-                <>
-                    <Switch
-                        trackingId="WorkspaceAutoJoin"
-                        label="Enable Auto Join"
-                        checked={emailOrigins.length > 0}
-                        loading={loading}
-                        onChange={(checked) => {
-                            if (checked) {
-                                if (
-                                    admin?.email_verified &&
-                                    !blackListedDomains.includes(
-                                        adminsEmailDomain
-                                    )
-                                ) {
-                                    onChangeMsg(
-                                        [adminsEmailDomain],
-                                        'Successfully enabled auto-join!'
-                                    );
-                                }
-                            } else {
-                                onChangeMsg(
-                                    [],
-                                    'Successfully disabled auto-join!'
-                                );
-                            }
-                        }}
-                        className={styles.switchClass}
-                    />
-                    <Select
-                        placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-                        className={styles.select}
-                        loading={loading}
-                        value={emailOrigins}
-                        mode="tags"
-                        onChange={onChange}
-                        options={allowedEmailOrigins.map((emailOrigin) => ({
-                            displayValue: emailOrigin,
-                            id: emailOrigin,
-                            value: emailOrigin,
-                        }))}
-                    />
-                </>
-            ) : (
-                <Alert
-                    type="warning"
-                    closable={false}
-                    trackingId="noValidEmailDomains"
-                    message="No one on your team has a verified, custom email domain!"
-                    description={
-                        <>
-                            {'Use a '}
-                            <a
-                                target="_"
-                                href="https://domains.google/get-started/email/"
-                            >
-                                custom domain
-                            </a>
-                            {
-                                ' when signing up for highlight to enable auto-join for your workspace!'
-                            }
-                        </>
+            <Switch
+                trackingId="WorkspaceAutoJoin"
+                label="Enable Auto Join"
+                checked={emailOrigins.length > 0}
+                loading={loading}
+                onChange={(checked) => {
+                    if (checked) {
+                        onChangeMsg(
+                            [adminsEmailDomain],
+                            'Successfully enabled auto-join!'
+                        );
+                    } else {
+                        onChangeMsg([], 'Successfully disabled auto-join!');
                     }
-                />
-            )}
+                }}
+                className={styles.switchClass}
+            />
+            <Select
+                placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+                className={styles.select}
+                loading={loading}
+                value={emailOrigins}
+                mode="tags"
+                onChange={onChange}
+                options={allowedEmailOrigins.map((emailOrigin) => ({
+                    displayValue: emailOrigin,
+                    id: emailOrigin,
+                    value: emailOrigin,
+                }))}
+            />
         </div>
     );
 }
