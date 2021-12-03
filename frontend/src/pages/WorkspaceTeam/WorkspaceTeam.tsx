@@ -1,7 +1,6 @@
 import Alert from '@components/Alert/Alert';
 import Card from '@components/Card/Card';
 import CopyText from '@components/CopyText/CopyText';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
@@ -212,14 +211,12 @@ const WorkspaceTeam = () => {
                             workspace_id
                         )}
                     />
-                    <HighlightGate>
-                        <hr className={styles.hr} />
-                        <p className={styles.boxSubTitle}>
-                            Or you can enable auto join to allow anyone with an
-                            approved email origin join.
-                        </p>
-                        <AutoJoinForm />
-                    </HighlightGate>
+                    <hr className={styles.hr} />
+                    <p className={styles.boxSubTitle}>
+                        Or you can enable auto join to allow anyone with an
+                        approved email origin join.
+                    </p>
+                    <AutoJoinForm />
                 </Modal>
                 <Button
                     trackingId="WorkspaceTeamInviteMember"
