@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
 import Select from '@components/Select/Select';
 import Switch from '@components/Switch/Switch';
 import {
@@ -77,41 +78,60 @@ function AutoJoinForm() {
 
     return (
         <div className={styles.container}>
-            <Switch
-                trackingId="WorkspaceAutoJoin"
-                label="Enable Auto Join"
-                checked={emailOrigins.length > 0}
-                loading={loading}
-                onChange={(checked) => {
-                    if (checked) {
-                        if (
-                            admin?.email_verified &&
-                            !blackListedDomains.includes(adminsEmailDomain)
-                        ) {
-                            onChangeMsg(
-                                [adminsEmailDomain],
-                                'Successfully enabled auto-join!'
-                            );
-                        }
-                    } else {
-                        onChangeMsg([], 'Successfully disabled auto-join!');
+            {allowedEmailOrigins.length < 0 ? (
+                <>
+                    <Switch
+                        trackingId="WorkspaceAutoJoin"
+                        label="Enable Auto Join"
+                        checked={emailOrigins.length > 0}
+                        loading={loading}
+                        onChange={(checked) => {
+                            if (checked) {
+                                if (
+                                    admin?.email_verified &&
+                                    !blackListedDomains.includes(
+                                        adminsEmailDomain
+                                    )
+                                ) {
+                                    onChangeMsg(
+                                        [adminsEmailDomain],
+                                        'Successfully enabled auto-join!'
+                                    );
+                                }
+                            } else {
+                                onChangeMsg(
+                                    [],
+                                    'Successfully disabled auto-join!'
+                                );
+                            }
+                        }}
+                        className={styles.switchClass}
+                    />
+                    <Select
+                        placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+                        className={styles.select}
+                        loading={loading}
+                        value={emailOrigins}
+                        mode="tags"
+                        onChange={onChange}
+                        options={allowedEmailOrigins.map((emailOrigin) => ({
+                            displayValue: emailOrigin,
+                            id: emailOrigin,
+                            value: emailOrigin,
+                        }))}
+                    />
+                </>
+            ) : (
+                <Alert
+                    type="warning"
+                    closable={false}
+                    trackingId="noValidEmailDomains"
+                    message="No one on your team has a verified, custom email domain!"
+                    description={
+                        <>
+                            {`Use a custom domain when signing up for highlight to enable auto-join for your workspace!`}
+                        </>
                     }
-                }}
-                className={styles.switchClass}
-            />
-            {allowedEmailOrigins.length > 0 && (
-                <Select
-                    placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-                    className={styles.select}
-                    loading={loading}
-                    value={emailOrigins}
-                    mode="tags"
-                    onChange={onChange}
-                    options={allowedEmailOrigins.map((emailOrigin) => ({
-                        displayValue: emailOrigin,
-                        id: emailOrigin,
-                        value: emailOrigin,
-                    }))}
                 />
             )}
         </div>
