@@ -143,7 +143,11 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		}
 	}
 
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", newFields); err != nil {
+	openSearchFields := make([]interface{}, len(newFields))
+	for i := range newFields {
+		openSearchFields[i] = newFields[i]
+	}
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
 		return e.Wrap(err, "error appending session fields")
 	}
 
@@ -279,6 +283,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
+
+		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, newErrorGroup); err != nil {
+			return nil, e.Wrap(err, "error indexing error group in opensearch")
+		}
+
 		errorGroup = newErrorGroup
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
@@ -301,6 +310,14 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"StackTrace":       newFrameString,
+		"MappedStackTrace": newMappedStackTraceString,
+		"Environments":     environmentsString,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}
 
 	err := r.AppendErrorFields(fields, errorGroup)
@@ -362,6 +379,15 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
+
+	openSearchFields := make([]interface{}, len(fieldsToAppend))
+	for i := range fieldsToAppend {
+		openSearchFields[i] = fieldsToAppend[i]
+	}
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "Fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending error fields")
+	}
+
 	return nil
 }
 
@@ -984,6 +1010,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 
 	// TODO: update opensearch?
+	// Don't really need to query PayloadUpdatedAt field.
 }
 
 func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {

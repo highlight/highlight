@@ -517,48 +517,6 @@ type Session struct {
 	Lock sql.NullTime
 }
 
-func (s *Session) BeforeUpdate(tx *gorm.DB) error {
-	dest := tx.Statement.Dest
-	if dest != nil {
-
-	}
-	fmt.Println("about to update a session", s.ID)
-	return nil
-}
-
-func (s *Session) AfterUpdate(tx *gorm.DB) error {
-	default_val := reflect.ValueOf(Session{})
-	val := reflect.ValueOf(s)
-
-	changedFields := map[string]interface{}{}
-	for i := 0; i < default_val.NumField(); i++ {
-		typeField := default_val.Type().Field(i)
-
-		v1 := default_val.Field(i)
-		v2 := reflect.Indirect(val).FieldByName(typeField.Name)
-
-		fieldName := typeField.Name
-		if tag, ok := typeField.Tag.Lookup("json"); ok {
-			fieldName = tag
-		}
-
-		if !reflect.DeepEqual(v1.Interface(), v2.Interface()) {
-			changedFields[fieldName] = v2.Interface()
-		}
-	}
-
-	for k, v := range changedFields {
-		fmt.Println("changed -", k, ":", v)
-	}
-
-	dest := tx.Statement.Dest
-	if dest != nil {
-
-	}
-	fmt.Println("just updated a session", s.ID)
-	return nil
-}
-
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
 // a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
