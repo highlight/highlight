@@ -59,14 +59,14 @@ const SwitchWorkspace = () => {
         return <LoadingBar />;
     }
 
-    const workspaceOptions = (data!.workspaces || [])
+    const workspaceOptions = (data?.workspaces || [])
         ?.map((workspace) => ({
             value: workspace?.id || '',
             displayValue: workspace?.name || '',
             id: workspace?.id || '',
         }))
         .concat(
-            (data!.joinable_workspaces! || [])?.map((workspace) => ({
+            (data?.joinable_workspaces || [])?.map((workspace) => ({
                 value: workspace?.id || '',
                 displayValue: workspace?.name || '',
                 id: workspace?.id || '',
