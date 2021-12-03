@@ -267,6 +267,7 @@ type ComplexityRoot struct {
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
+		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -626,6 +627,7 @@ type MutationResolver interface {
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	JoinWorkspace(ctx context.Context, workspaceID int) (*int, error)
+	UpdateAllowedEmailOrigins(ctx context.Context, workspaceID int, allowedAutoJoinEmailOrigins string) (*int, error)
 	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
@@ -2049,6 +2051,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAllowMeterOverage(childComplexity, args["workspace_id"].(int), args["allow_meter_overage"].(bool)), true
+
+	case "Mutation.updateAllowedEmailOrigins":
+		if e.complexity.Mutation.UpdateAllowedEmailOrigins == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAllowedEmailOrigins_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAllowedEmailOrigins(childComplexity, args["workspace_id"].(int), args["allowed_auto_join_email_origins"].(string)), true
 
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
@@ -4787,6 +4801,10 @@ type Mutation {
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     joinWorkspace(workspace_id: ID!): ID
+    updateAllowedEmailOrigins(
+        workspace_id: ID!
+        allowed_auto_join_email_origins: String!
+    ): ID
     changeAdminRole(
         workspace_id: ID!
         admin_id: ID!
@@ -6484,6 +6502,30 @@ func (ec *executionContext) field_Mutation_updateAllowMeterOverage_args(ctx cont
 		}
 	}
 	args["allow_meter_overage"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAllowedEmailOrigins_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["allowed_auto_join_email_origins"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowed_auto_join_email_origins"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allowed_auto_join_email_origins"] = arg1
 	return args, nil
 }
 
@@ -12495,6 +12537,45 @@ func (ec *executionContext) _Mutation_joinWorkspace(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().JoinWorkspace(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateAllowedEmailOrigins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateAllowedEmailOrigins_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAllowedEmailOrigins(rctx, args["workspace_id"].(int), args["allowed_auto_join_email_origins"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24652,6 +24733,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addAdminToWorkspace(ctx, field)
 		case "joinWorkspace":
 			out.Values[i] = ec._Mutation_joinWorkspace(ctx, field)
+		case "updateAllowedEmailOrigins":
+			out.Values[i] = ec._Mutation_updateAllowedEmailOrigins(ctx, field)
 		case "changeAdminRole":
 			out.Values[i] = ec._Mutation_changeAdminRole(ctx, field)
 			if out.Values[i] == graphql.Null {

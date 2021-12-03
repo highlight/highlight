@@ -3,8 +3,9 @@
     column-gap: var(--size-large);
     display: flex;
     flex-direction: row;
-    height: var(--size-xxLarge);
     justify-content: space-between;
+    max-height: fit-content;
+    min-height: var(--size-xxLarge);
 }
 
 .switchClass {
