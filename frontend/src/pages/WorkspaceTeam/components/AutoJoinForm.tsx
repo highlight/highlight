@@ -40,25 +40,24 @@ function AutoJoinForm() {
     });
 
     const [emailOrigins, setEmailOrigins] = useState<string[]>([]);
-    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
+    const onChange = (domains: string[]) => {
+        setEmailOrigins(domains);
+        updateAllowedEmailOrigins().then(() => {
+            message.success('Successfully updated auto-join email domains!');
+        });
+    };
+    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation({
+        variables: {
+            allowed_auto_join_email_origins: JSON.stringify(emailOrigins),
+            workspace_id: workspace_id,
+        },
+    });
 
     useEffect(() => {
         if (
             !loading &&
             JSON.stringify(originalOrigins) !== JSON.stringify(emailOrigins)
         ) {
-            updateAllowedEmailOrigins({
-                variables: {
-                    allowed_auto_join_email_origins: JSON.stringify(
-                        emailOrigins
-                    ),
-                    workspace_id: workspace_id,
-                },
-            }).then(() => {
-                message.success(
-                    'Successfully updated auto-join email domains!'
-                );
-            });
         }
     }, [
         loading,
@@ -94,9 +93,13 @@ function AutoJoinForm() {
                     if (checked) {
                         if (!blackListedDomains.includes(adminsEmailDomain)) {
                             setEmailOrigins([adminsEmailDomain]);
+                            message.success('Successfully enabled auto-join!');
                         }
                     } else {
                         setEmailOrigins([]);
+                        updateAllowedEmailOrigins().then(() => {
+                            message.success('Successfully disabled auto-join!');
+                        });
                     }
                 }}
                 className={styles.switchClass}
@@ -108,7 +111,7 @@ function AutoJoinForm() {
                     loading={loading}
                     value={emailOrigins}
                     mode="tags"
-                    onChange={setEmailOrigins}
+                    onChange={onChange}
                     options={allowedEmailOrigins.map((emailOrigin) => ({
                         displayValue: emailOrigin,
                         id: emailOrigin,
