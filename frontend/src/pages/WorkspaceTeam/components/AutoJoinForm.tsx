@@ -91,11 +91,10 @@ function AutoJoinForm() {
                 checked={emailOrigins.length > 0}
                 loading={loading}
                 onChange={(checked) => {
-                    if (
-                        checked &&
-                        !blackListedDomains.includes(adminsEmailDomain)
-                    ) {
-                        setEmailOrigins([adminsEmailDomain]);
+                    if (checked) {
+                        if (!blackListedDomains.includes(adminsEmailDomain)) {
+                            setEmailOrigins([adminsEmailDomain]);
+                        }
                     } else {
                         setEmailOrigins([]);
                     }
