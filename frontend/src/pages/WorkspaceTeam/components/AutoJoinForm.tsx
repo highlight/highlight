@@ -130,7 +130,10 @@ function AutoJoinForm() {
                     description={
                         <>
                             {'Use a '}
-                            <a href="https://domains.google/get-started/email/">
+                            <a
+                                target="_"
+                                href="https://domains.google/get-started/email/"
+                            >
                                 custom domain
                             </a>
                             {
