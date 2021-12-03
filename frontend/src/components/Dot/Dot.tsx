@@ -13,14 +13,16 @@ interface Props {
     color?: CustomDotColor;
 }
 
-const Dot = ({ pulse, className, color }: Props) => {
+const Dot: React.FC<Props> = ({ pulse, className, color, children }) => {
     return (
         <div
             className={classNames(styles.dot, className, {
                 [styles.pulse]: pulse,
                 [styles.dotRed]: color === CustomDotColor.RED,
             })}
-        />
+        >
+            {children}
+        </div>
     );
 };
 

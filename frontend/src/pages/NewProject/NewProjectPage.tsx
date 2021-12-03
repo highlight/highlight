@@ -1,8 +1,11 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import Dot from '@components/Dot/Dot';
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
+    useGetWorkspacesCountQuery,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -45,6 +48,8 @@ const NewProjectPage = () => {
     useEffect(() => {
         setIsLoading(false);
     }, [setIsLoading]);
+
+    const { data, loading } = useGetWorkspacesCountQuery();
 
     // User is creating a workspace if workspace is not specified in the URL
     const isWorkspace = !workspace_id;
@@ -140,6 +145,22 @@ const NewProjectPage = () => {
                             `Create ${pageTypeCaps}`
                         )}
                     </Button>
+                    {isWorkspace && (
+                        <ButtonLink
+                            trackingId={`Enter${pageTypeCaps}`}
+                            className={classNames(styles.button)}
+                            to="/switch"
+                            fullWidth
+                            type="default"
+                        >
+                            Already Have a Workspace?{' '}
+                            {!loading && !!data && (
+                                <Dot className={styles.workspaceCount}>
+                                    {data.workspaces_count}
+                                </Dot>
+                            )}
+                        </ButtonLink>
+                    )}
                 </form>
             </div>
         </>

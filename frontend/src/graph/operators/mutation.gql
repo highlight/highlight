@@ -43,6 +43,10 @@ mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }
 
+mutation JoinWorkspace($workspace_id: ID!) {
+    joinWorkspace(workspace_id: $workspace_id)
+}
+
 mutation ChangeAdminRole(
     $workspace_id: ID!
     $admin_id: ID!

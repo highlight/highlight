@@ -77,7 +77,7 @@ export const Header = () => {
                                 trackingId="DemoProjectSignUp"
                                 to="/?sign_up=1"
                             >
-                                Get 4 months of Highlight free!
+                                Try Highlight for Free!
                             </ButtonLink>
                         ) : (
                             <FeedbackButton />
@@ -165,7 +165,7 @@ const FreePlanBanner = () => {
         data?.billingDetailsForProject.plan.type !== PlanType.Free;
     if (showProductHuntBanner) {
         bannerMessage = (
-            <div>
+            <span>
                 Highlight is live on Product Hunt 🎉‍{' '}
                 <a
                     target="_blank"
@@ -176,7 +176,7 @@ const FreePlanBanner = () => {
                     Support us
                 </a>{' '}
                 and we'll be forever grateful ❤️
-            </div>
+            </span>
         );
     } else if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(

@@ -1,4 +1,6 @@
 .dateRange {
+    flex-direction: row-reverse !important;
+
     :global(.rdrDateDisplayWrapper) {
         display: none;
     }
@@ -10,6 +12,11 @@
     :global(.rdrDefinedRangesWrapper),
     :global(.rdrStaticRange) {
         background-color: transparent;
+    }
+
+    :global(.rdrDefinedRangesWrapper) {
+        border-left: 1px solid var(--color-gray-300);
+        border-right: 0;
     }
 
     :global(.rdrNextPrevButton) {
@@ -60,6 +67,10 @@
 
     :global(.ant-popover-inner-content) {
         padding: 0 !important;
+    }
+
+    :global(.ant-popover-arrow) {
+        display: none !important;
     }
 }
 

@@ -77,6 +77,15 @@ export type AddAdminToWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToWorkspace'
 >;
 
+export type JoinWorkspaceMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type JoinWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'joinWorkspace'
+>;
+
 export type ChangeAdminRoleMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -1578,7 +1587,26 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    joinable_workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
 };
+
+export type GetWorkspacesCountQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetWorkspacesCountQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'workspaces_count'
+>;
 
 export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
     [key: string]: never;
@@ -2706,6 +2734,7 @@ export const namedOperations = {
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
         GetWorkspaces: 'GetWorkspaces' as const,
+        GetWorkspacesCount: 'GetWorkspacesCount' as const,
         GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
         GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
@@ -2755,6 +2784,7 @@ export const namedOperations = {
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
+        JoinWorkspace: 'JoinWorkspace' as const,
         ChangeAdminRole: 'ChangeAdminRole' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,

@@ -617,6 +617,8 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     projects?: Maybe<Array<Maybe<Project>>>;
     workspaces?: Maybe<Array<Maybe<Workspace>>>;
+    workspaces_count: Scalars['Int64'];
+    joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>;
     error_alerts: Array<Maybe<ErrorAlert>>;
     session_feedback_alerts: Array<Maybe<SessionAlert>>;
     new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>;
@@ -915,6 +917,7 @@ export type Mutation = {
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
+    joinWorkspace?: Maybe<Scalars['ID']>;
     changeAdminRole: Scalars['Boolean'];
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
@@ -1011,6 +1014,10 @@ export type MutationSendAdminWorkspaceInviteArgs = {
 export type MutationAddAdminToWorkspaceArgs = {
     workspace_id: Scalars['ID'];
     invite_id: Scalars['String'];
+};
+
+export type MutationJoinWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type MutationChangeAdminRoleArgs = {
