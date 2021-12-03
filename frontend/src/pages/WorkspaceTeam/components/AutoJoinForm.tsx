@@ -78,7 +78,7 @@ function AutoJoinForm() {
 
     return (
         <div className={styles.container}>
-            {allowedEmailOrigins.length < 0 ? (
+            {allowedEmailOrigins.length > 0 ? (
                 <>
                     <Switch
                         trackingId="WorkspaceAutoJoin"
