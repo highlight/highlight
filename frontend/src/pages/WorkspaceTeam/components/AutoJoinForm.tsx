@@ -129,7 +129,13 @@ function AutoJoinForm() {
                     message="No one on your team has a verified, custom email domain!"
                     description={
                         <>
-                            {`Use a custom domain when signing up for highlight to enable auto-join for your workspace!`}
+                            {'Use a '}
+                            <a href="https://domains.google/get-started/email/">
+                                custom domain
+                            </a>
+                            {
+                                ' when signing up for highlight to enable auto-join for your workspace!'
+                            }
                         </>
                     }
                 />
