@@ -30,7 +30,7 @@ function AutoJoinForm() {
             d.admins.forEach((a) => {
                 const adminDomain = getEmailDomain(a?.email);
                 if (
-                    admin?.email_verified &&
+                    a?.email_verified &&
                     adminDomain.length > 0 &&
                     !blackListedDomains.includes(adminDomain) &&
                     !allowedDomains.includes(adminDomain)
