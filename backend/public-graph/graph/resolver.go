@@ -375,17 +375,15 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"FieldGroup": fieldString,
+	}); err != nil {
+		return e.Wrap(err, "error updating field group for error in opensearch")
+	}
+
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
-	}
-
-	openSearchFields := make([]interface{}, len(fieldsToAppend))
-	for i := range fieldsToAppend {
-		openSearchFields[i] = fieldsToAppend[i]
-	}
-	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "Fields", openSearchFields); err != nil {
-		return e.Wrap(err, "error appending error fields")
 	}
 
 	return nil
