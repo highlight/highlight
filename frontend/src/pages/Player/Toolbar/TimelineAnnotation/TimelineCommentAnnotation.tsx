@@ -1,3 +1,5 @@
+import { SessionCommentType } from '@graph/schemas';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { message } from 'antd';
 import React, { ReactElement, useState } from 'react';
 
@@ -18,8 +20,13 @@ interface Props {
 
 function TimelineCommentAnnotation({ comment }: Props): ReactElement {
     const { pause, replayer } = useReplayerContext();
+    const commentId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.commentId
+    );
 
-    const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+    const [isTooltipOpen, setIsTooltipOpen] = useState(
+        comment.type === SessionCommentType.Feedback && commentId === comment.id
+    );
 
     return (
         <Popover
@@ -29,6 +36,7 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
                     <SessionComment comment={comment} />
                 </div>
             }
+            defaultVisible={isTooltipOpen}
             onVisibleChange={(visible) => {
                 setIsTooltipOpen(visible);
             }}
