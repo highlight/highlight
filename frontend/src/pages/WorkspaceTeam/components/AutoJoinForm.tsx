@@ -84,7 +84,10 @@ function AutoJoinForm() {
                 loading={loading}
                 onChange={(checked) => {
                     if (checked) {
-                        if (!blackListedDomains.includes(adminsEmailDomain)) {
+                        if (
+                            admin?.email_verified &&
+                            !blackListedDomains.includes(adminsEmailDomain)
+                        ) {
                             onChangeMsg(
                                 [adminsEmailDomain],
                                 'Successfully enabled auto-join!'
