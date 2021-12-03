@@ -472,8 +472,6 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
-
-		// TODO: update opensearch?
 	}
 }
 

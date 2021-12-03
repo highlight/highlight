@@ -885,46 +885,46 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 
-	log.Printf("not running db migration ... \n")
-	// if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error installing pgcrypto")
-	// }
-	// // Unguessable, cryptographically random url-safe ID for users to share links
-	// if err := DB.Exec(`
-	// 	CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
-	// 	BEGIN
-	// 		result := encode(gen_random_bytes(21), 'base64');
-	// 		result := replace(result, '+', '0');
-	// 		result := replace(result, '/', '1');
-	// 		result := replace(result, '=', '');
-	// 	END;
-	// 	$$ LANGUAGE PLPGSQL;
-	// `).Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error creating secure_id_generator")
-	// }
+	log.Printf("running db migration ... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return nil, e.Wrap(err, "Error installing pgcrypto")
+	}
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
 
-	// if err := DB.AutoMigrate(
-	// 	Models...,
-	// ); err != nil {
-	// 	return nil, e.Wrap(err, "Error migrating db")
-	// }
+	if err := DB.AutoMigrate(
+		Models...,
+	); err != nil {
+		return nil, e.Wrap(err, "Error migrating db")
+	}
 
-	// // Add unique constraint to daily_error_counts
-	// if err := DB.Exec(`
-	// 	DO $$
-	// 		BEGIN
-	// 			BEGIN
-	// 				ALTER TABLE daily_error_counts
-	// 				ADD CONSTRAINT date_project_id_error_type_uniq
-	// 					UNIQUE (date, project_id, error_type);
-	// 			EXCEPTION
-	// 				WHEN duplicate_table
-	// 				THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-	// 			END;
-	// 		END $$;
-	// `).Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	// }
+	// Add unique constraint to daily_error_counts
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				BEGIN
+					ALTER TABLE daily_error_counts
+					ADD CONSTRAINT date_project_id_error_type_uniq
+						UNIQUE (date, project_id, error_type);
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+				END;
+			END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+	}
 
 	sqlDB, err := DB.DB()
 	if err != nil {

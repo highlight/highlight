@@ -40,6 +40,8 @@ import (
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
 	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
+
+	_ "gorm.io/gorm"
 )
 
 var (
@@ -156,16 +158,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating opensearch client: %v", err)
 	}
-
-	// sup := func(db *gorm.DB) {
-	// 	if db != nil {
-	// 		log.Info("hi")
-	// 	}
-	// }
-
-	// createCallback := db.Callback().Update()
-	// createCallback.Register("gorm:after_update", sup)
-	// createCallback.Match().
 
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)

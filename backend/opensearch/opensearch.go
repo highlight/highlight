@@ -53,7 +53,7 @@ type Client struct {
 func NewOpensearchClient() (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ZANETODO: For testing only. Use certificate for validation.
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 		Addresses: []string{OpensearchDomain},
 		Username:  OpensearchUsername,

@@ -1008,9 +1008,6 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
-
-	// TODO: update opensearch?
-	// Don't really need to query PayloadUpdatedAt field.
 }
 
 func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
