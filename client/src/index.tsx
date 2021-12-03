@@ -854,8 +854,9 @@ export class Highlight {
                 session_id: this.sessionData.sessionID.toString(),
                 timestamp,
                 verbatim,
-                user_email,
-                user_name,
+                user_email: user_email || this.sessionData.userIdentifier,
+                // @ts-expect-error
+                user_name: user_name || this.sessionData.userObject?.name,
             });
 
             this.numberOfFailedRequests = 0;

@@ -1608,6 +1608,15 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetWorkspacesCountQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetWorkspacesCountQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'workspaces_count'
+>;
+
 export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
     [key: string]: never;
 }>;
@@ -2734,6 +2743,7 @@ export const namedOperations = {
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
         GetWorkspaces: 'GetWorkspaces' as const,
+        GetWorkspacesCount: 'GetWorkspacesCount' as const,
         GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
         GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,

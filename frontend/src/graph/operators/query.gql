@@ -391,6 +391,10 @@ query GetWorkspaces {
     }
 }
 
+query GetWorkspacesCount {
+    workspaces_count
+}
+
 query GetProjectsAndWorkspaces {
     projects {
         id

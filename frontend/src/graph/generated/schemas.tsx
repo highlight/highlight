@@ -617,6 +617,7 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     projects?: Maybe<Array<Maybe<Project>>>;
     workspaces?: Maybe<Array<Maybe<Workspace>>>;
+    workspaces_count: Scalars['Int64'];
     joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>;
     error_alerts: Array<Maybe<ErrorAlert>>;
     session_feedback_alerts: Array<Maybe<SessionAlert>>;

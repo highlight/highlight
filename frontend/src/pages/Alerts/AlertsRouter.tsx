@@ -21,7 +21,7 @@ const AlertsRouter = () => {
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { project_id },
     });
-    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
+    const slackUrl = getSlackUrl('Organization');
     const history = useHistory<{ errorName: string }>();
 
     useEffect(() => {
