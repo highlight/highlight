@@ -7,7 +7,7 @@ import {
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import styles from './AutoJoinForm.module.scss';
 
@@ -52,20 +52,6 @@ function AutoJoinForm() {
             workspace_id: workspace_id,
         },
     });
-
-    useEffect(() => {
-        if (
-            !loading &&
-            JSON.stringify(originalOrigins) !== JSON.stringify(emailOrigins)
-        ) {
-        }
-    }, [
-        loading,
-        emailOrigins,
-        workspace_id,
-        updateAllowedEmailOrigins,
-        originalOrigins,
-    ]);
 
     const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>(
         []
