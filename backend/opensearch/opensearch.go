@@ -46,8 +46,9 @@ func GetIndex(suffix Index) string {
 }
 
 type Client struct {
-	Client      *opensearch.Client
-	BulkIndexer opensearchutil.BulkIndexer
+	Client        *opensearch.Client
+	BulkIndexer   opensearchutil.BulkIndexer
+	isInitialized bool
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -77,12 +78,17 @@ func NewOpensearchClient() (*Client, error) {
 	}
 
 	return &Client{
-		Client:      client,
-		BulkIndexer: indexer,
+		Client:        client,
+		BulkIndexer:   indexer,
+		isInitialized: true,
 	}, nil
 }
 
 func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
 	documentId := strconv.Itoa(id)
 
 	b, err := json.Marshal(obj)
@@ -118,6 +124,10 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 }
 
 func (c *Client) Index(index Index, id int, obj interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
 	documentId := strconv.Itoa(id)
 
 	b, err := json.Marshal(obj)
@@ -153,6 +163,10 @@ func (c *Client) Index(index Index, id int, obj interface{}) error {
 }
 
 func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fields []interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
 	// Nothing to append, skip the OpenSearch request
 	if len(fields) == 0 {
 		return nil
@@ -194,6 +208,10 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 }
 
 func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
 	documentId := strconv.Itoa(id)
 
 	b, err := json.Marshal(obj)
@@ -221,5 +239,9 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 }
 
 func (c *Client) Close() error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
 	return c.BulkIndexer.Close(context.Background())
 }
