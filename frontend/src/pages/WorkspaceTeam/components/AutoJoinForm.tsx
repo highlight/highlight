@@ -5,6 +5,7 @@ import {
     useGetWorkspaceAdminsQuery,
     useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -40,18 +41,23 @@ function AutoJoinForm() {
     });
 
     const [emailOrigins, setEmailOrigins] = useState<string[]>([]);
-    const onChange = (domains: string[]) => {
+
+    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
+    const onChangeMsg = (domains: string[], msg: string) => {
         setEmailOrigins(domains);
-        updateAllowedEmailOrigins().then(() => {
-            message.success('Successfully updated auto-join email domains!');
+        updateAllowedEmailOrigins({
+            variables: {
+                allowed_auto_join_email_origins: JSON.stringify(domains),
+                workspace_id: workspace_id,
+            },
+            refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
+        }).then(() => {
+            message.success(msg);
         });
     };
-    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation({
-        variables: {
-            allowed_auto_join_email_origins: JSON.stringify(emailOrigins),
-            workspace_id: workspace_id,
-        },
-    });
+    const onChange = (domains: string[]) => {
+        onChangeMsg(domains, 'Successfully updated auto-join email domains!');
+    };
 
     const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>(
         []
@@ -78,14 +84,13 @@ function AutoJoinForm() {
                 onChange={(checked) => {
                     if (checked) {
                         if (!blackListedDomains.includes(adminsEmailDomain)) {
-                            setEmailOrigins([adminsEmailDomain]);
-                            message.success('Successfully enabled auto-join!');
+                            onChangeMsg(
+                                [adminsEmailDomain],
+                                'Successfully enabled auto-join!'
+                            );
                         }
                     } else {
-                        setEmailOrigins([]);
-                        updateAllowedEmailOrigins().then(() => {
-                            message.success('Successfully disabled auto-join!');
-                        });
+                        onChangeMsg([], 'Successfully disabled auto-join!');
                     }
                 }}
                 className={styles.switchClass}
