@@ -16,7 +16,6 @@ import styles from './AutoJoinForm.module.scss';
 function AutoJoinForm() {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { admin } = useAuthContext();
-    const [originalOrigins, setOriginalOrigins] = useState<string[]>([]);
     const { loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
         onCompleted: (d) => {
@@ -25,7 +24,6 @@ function AutoJoinForm() {
                     d.workspace.allowed_auto_join_email_origins
                 );
                 setEmailOrigins(emailOrigins);
-                setOriginalOrigins(originalOrigins);
             }
             const allowedDomains: string[] = [];
             d.admins.forEach((a) => {
