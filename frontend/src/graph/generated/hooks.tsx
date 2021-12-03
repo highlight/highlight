@@ -3437,7 +3437,6 @@ export const GetWorkspaceAdminsDocument = gql`
             id
             name
             email
-            email_verified
             photo_url
             role
         }

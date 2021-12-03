@@ -1285,12 +1285,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'Admin' } & Pick<
                 Types.Admin,
-                | 'id'
-                | 'name'
-                | 'email'
-                | 'email_verified'
-                | 'photo_url'
-                | 'role'
+                'id' | 'name' | 'email' | 'photo_url' | 'role'
             >
         >
     >;
