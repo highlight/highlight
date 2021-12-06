@@ -28,7 +28,6 @@ const ApplicationPicker = () => {
         allProjects,
         currentProject,
         currentWorkspace,
-        workspaces,
     } = useApplicationContext();
     const { workspace_id, project_id } = useParams<{
         workspace_id: string;
