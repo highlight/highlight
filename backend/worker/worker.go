@@ -24,6 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -187,6 +188,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
+
 		return nil
 	}
 
@@ -279,6 +281,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
+
 		return nil
 	}
 
@@ -683,10 +686,31 @@ func (w *Worker) ReportStripeUsage() {
 	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
 }
 
+func (w *Worker) InitializeOpenSearchIndex() {
+	w.IndexTable(opensearch.IndexFields, &model.Field{})
+	w.IndexTable(opensearch.IndexErrors, &model.ErrorGroup{})
+	w.IndexSessions()
+
+	// Close the indexer channel and flush remaining items
+	if err := w.Resolver.OpenSearch.Close(); err != nil {
+		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+	}
+
+	// Report the indexer statistics
+	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
+	if stats.NumFailed > 0 {
+		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+	} else {
+		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+	}
+}
+
 func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
+	case "init-opensearch":
+		return w.InitializeOpenSearchIndex
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

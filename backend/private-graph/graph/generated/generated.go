@@ -367,6 +367,7 @@ type ComplexityRoot struct {
 		WorkspaceInviteLinks         func(childComplexity int, workspaceID int) int
 		WorkspaceSuggestion          func(childComplexity int, query string) int
 		Workspaces                   func(childComplexity int) int
+		WorkspacesCount              func(childComplexity int) int
 	}
 
 	RageClickEvent struct {
@@ -707,6 +708,7 @@ type QueryResolver interface {
 	ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.ErrorField, error)
 	Projects(ctx context.Context) ([]*model1.Project, error)
 	Workspaces(ctx context.Context) ([]*model1.Workspace, error)
+	WorkspacesCount(ctx context.Context) (int64, error)
 	JoinableWorkspaces(ctx context.Context) ([]*model1.Workspace, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
 	SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
@@ -3021,6 +3023,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Workspaces(childComplexity), true
 
+	case "Query.workspaces_count":
+		if e.complexity.Query.WorkspacesCount == nil {
+			break
+		}
+
+		return e.complexity.Query.WorkspacesCount(childComplexity), true
+
 	case "RageClickEvent.end_timestamp":
 		if e.complexity.RageClickEvent.EndTimestamp == nil {
 			break
@@ -4741,6 +4750,7 @@ type Query {
     ): [ErrorField]
     projects: [Project]
     workspaces: [Workspace]
+    workspaces_count: Int64!
     joinable_workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
@@ -16038,6 +16048,41 @@ func (ec *executionContext) _Query_workspaces(ctx context.Context, field graphql
 	return ec.marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_workspaces_count(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkspacesCount(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_joinable_workspaces(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25402,6 +25447,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspaces(ctx, field)
+				return res
+			})
+		case "workspaces_count":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workspaces_count(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "joinable_workspaces":

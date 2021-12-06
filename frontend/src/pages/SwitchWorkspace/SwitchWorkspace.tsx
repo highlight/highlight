@@ -3,6 +3,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import Tag from '@components/Tag/Tag';
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ const SwitchWorkspace = () => {
 
     const [selectedWorkspace, setSelectedWorkspace] = useState('');
     const [actionText, setActionText] = useState('Enter');
+    const { setIsLoading } = useAppLoadingContext();
 
     const joinWorkspaceMutation = useJoinWorkspaceMutation();
     const [joinWorkspace, { loading: joinLoading }] = joinWorkspaceMutation;
@@ -27,6 +29,10 @@ const SwitchWorkspace = () => {
     const [shouldRedirect, setShouldRedirect] = useState(false);
 
     const { loading, data } = useGetWorkspacesQuery();
+
+    useEffect(() => {
+        setIsLoading(false);
+    }, [setIsLoading]);
 
     useEffect(() => {
         if (!loading) {
@@ -59,14 +65,14 @@ const SwitchWorkspace = () => {
         return <LoadingBar />;
     }
 
-    const workspaceOptions = (data!.workspaces || [])
+    const workspaceOptions = (data?.workspaces || [])
         ?.map((workspace) => ({
             value: workspace?.id || '',
             displayValue: workspace?.name || '',
             id: workspace?.id || '',
         }))
         .concat(
-            (data!.joinable_workspaces! || [])?.map((workspace) => ({
+            (data?.joinable_workspaces || [])?.map((workspace) => ({
                 value: workspace?.id || '',
                 displayValue: workspace?.name || '',
                 id: workspace?.id || '',

@@ -10,6 +10,10 @@ import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
 import SvgArrowRightIcon from '@icons/ArrowRightIcon';
 import SvgBriefcase2Icon from '@icons/Briefcase2Icon';
 import SvgSwitch2Icon from '@icons/Switch2Icon';
+import {
+    DEMO_PROJECT_NAME,
+    DEMO_WORKSPACE_NAME,
+} from '@util/constants/constants';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -24,7 +28,6 @@ const ApplicationPicker = () => {
         allProjects,
         currentProject,
         currentWorkspace,
-        workspaces,
     } = useApplicationContext();
     const { workspace_id, project_id } = useParams<{
         workspace_id: string;
@@ -54,7 +57,7 @@ const ApplicationPicker = () => {
                                           !isLoggedIn &&
                                           projectIdRemapped ===
                                               DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                                              ? 'demo'
+                                              ? DEMO_PROJECT_NAME
                                               : project?.name || ''
                                       }
                                   />
@@ -62,7 +65,7 @@ const ApplicationPicker = () => {
                                       {!isLoggedIn &&
                                       projectIdRemapped ===
                                           DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                                          ? 'demo'
+                                          ? DEMO_PROJECT_NAME
                                           : project?.name || ''}
                                   </span>
                               </span>
@@ -77,11 +80,11 @@ const ApplicationPicker = () => {
         ? 'Workspace Settings'
         : !isLoggedIn &&
           projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
-        ? 'demo'
+        ? DEMO_PROJECT_NAME
         : currentProject?.name;
     const subHeaderDisplayValue =
         !isLoggedIn && projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            ? 'demo'
+            ? DEMO_WORKSPACE_NAME
             : currentWorkspace?.name;
 
     return (
@@ -117,7 +120,6 @@ const ApplicationPicker = () => {
                                 action: () => {
                                     history.push(`/switch`);
                                 },
-                                hidden: workspaces.length <= 1,
                             },
                             {
                                 displayName: 'Workspace Settings',

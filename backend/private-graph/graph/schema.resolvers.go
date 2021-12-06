@@ -292,9 +292,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
+	updatedFields := &model.Session{
 		Viewed: viewed,
-	}).Error; err != nil {
+	}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -3189,6 +3190,38 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	}
 
 	return workspaces, nil
+}
+
+func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return 0, e.Wrap(err, "error retrieving user")
+	}
+
+	var workspacesCount int64
+	if err := r.DB.Table("workspace_admins").Where("admin_id=?", admin.ID).Count(&workspacesCount).Error; err != nil {
+		return 0, e.Wrap(err, "error getting count of workspaces for admin")
+	}
+
+	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	if err != nil {
+		log.Error(err)
+		return workspacesCount, nil
+	}
+	var joinableWorkspacesCount int64
+	if err := r.DB.Raw(`
+			SELECT COUNT(*)
+			FROM workspaces
+			WHERE id NOT IN (
+					SELECT workspace_id 
+					FROM workspace_admins 
+					WHERE admin_id = ? )
+				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
+		`, admin.ID, domain).Scan(&joinableWorkspacesCount).Error; err != nil {
+		return 0, e.Wrap(err, "error getting count of joinable workspaces for admin")
+	}
+
+	return joinableWorkspacesCount + workspacesCount, nil
 }
 
 func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Workspace, error) {

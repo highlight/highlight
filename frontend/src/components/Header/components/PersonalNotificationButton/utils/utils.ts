@@ -9,7 +9,6 @@ import {
     useAddSlackBotIntegrationToProjectMutation,
     useOpenSlackConversationMutation,
 } from '../../../../../graph/generated/hooks';
-import { GetBaseURL } from '../../../../../util/window';
 
 export interface UseSlackBotProps {
     type: 'Organization' | 'Personal';
@@ -44,7 +43,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     });
     const [loading, setLoading] = useState<boolean>(false);
 
-    const slackUrl = getSlackUrl(type, project_id, redirectPath);
+    const slackUrl = getSlackUrl(type);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -66,7 +65,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                         'Personal Slack notifications have been setup!',
                         5
                     );
-                } else if (setupType === 'Organization') {
+                } else {
                     await addSlackBotIntegrationToProject({
                         variables: {
                             project_id: project_id,
@@ -105,14 +104,12 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
 
 export const getSlackUrl = (
     type: 'Personal' | 'Organization',
-    projectId: string,
-    redirectPath: string
+    redirectUri = window.location.href
 ) => {
     const slackScopes =
         type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
-    const redirectUriOrigin = `${GetBaseURL()}/${projectId}`;
 
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUri}`;
 
     return slackUrl;
 };

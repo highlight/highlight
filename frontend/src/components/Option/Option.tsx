@@ -21,13 +21,17 @@ const SearchMatch = ({
             ? startLength
             : reverse
             ? Math.min(
-                  label.toLowerCase().search(selectProps.toLowerCase()) +
+                  label
+                      .toLowerCase()
+                      .search(escapeRegExp(selectProps.toLowerCase())) +
                       selectProps.length +
                       20,
                   label.length
               )
             : Math.max(
-                  label.toLowerCase().search(selectProps.toLowerCase()) - 20,
+                  label
+                      .toLowerCase()
+                      .search(escapeRegExp(selectProps.toLowerCase())) - 20,
                   0
               );
     const parsedLabel =
@@ -97,3 +101,7 @@ export const PropertyOption = (
         </div>
     );
 };
+
+function escapeRegExp(string: string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
