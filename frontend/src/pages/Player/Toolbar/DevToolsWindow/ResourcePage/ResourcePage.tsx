@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import { ErrorObject } from '@graph/schemas';
+import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
@@ -17,7 +18,6 @@ import React, {
     useState,
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
