@@ -817,11 +817,12 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				FROM alert_events
 				WHERE
 					project_id=?
-					AND type = ?
+					AND type=?
 					AND (error_group_id IS NOT NULL 
-						AND error_group_id = ?)
+						AND error_group_id=?)
+					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, 5).Scan(&numAlerts).Error; err != nil {
+			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, 5).Scan(&numAlerts).Error; err != nil {
 				log.Error(e.Wrap(err, "error counting alert events from past 5 seconds"))
 				return
 			}
@@ -1008,6 +1009,8 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			SessionObj *model.Session
 		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
 	}
+
+	log.Warnf("groups: %+v", groups)
 
 	for _, data := range groups {
 		r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
