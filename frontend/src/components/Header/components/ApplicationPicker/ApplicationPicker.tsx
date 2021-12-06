@@ -121,7 +121,6 @@ const ApplicationPicker = () => {
                                 action: () => {
                                     history.push(`/switch`);
                                 },
-                                hidden: workspaces.length <= 1,
                             },
                             {
                                 displayName: 'Workspace Settings',
