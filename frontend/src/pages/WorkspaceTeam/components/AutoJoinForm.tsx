@@ -62,15 +62,6 @@ function AutoJoinForm() {
 
     const adminsEmailDomain = getEmailDomain(admin?.email);
 
-    const blackListedDomains = [
-        'gmail.com',
-        'yahoo.com',
-        'hotmail.com',
-        'outlook.com',
-        'protonmail.com',
-        'aol.com',
-    ];
-
     return (
         <div className={styles.container}>
             <Switch
