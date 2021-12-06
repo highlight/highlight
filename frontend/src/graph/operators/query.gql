@@ -156,7 +156,6 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
         id
         name
         email
-        email_verified
         photo_url
         role
     }
