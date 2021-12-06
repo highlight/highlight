@@ -957,8 +957,7 @@ type ErrorAlert struct {
 }
 
 func (obj *ErrorAlert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
-	input.AlertID = obj.ID
-	return obj.sendSlackAlert(db, input)
+	return obj.sendSlackAlert(db, obj.ID, input)
 }
 
 type SessionAlert struct {
@@ -970,8 +969,7 @@ type SessionAlert struct {
 }
 
 func (obj *SessionAlert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
-	input.AlertID = obj.ID
-	return obj.sendSlackAlert(db, input)
+	return obj.sendSlackAlert(db, obj.ID, input)
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -1197,11 +1195,9 @@ type SendSlackAlertInput struct {
 	RageClicksCount *int64
 	// Timestamp is an optional value for all session alerts.
 	Timestamp *time.Time
-	// AlertID is a required parameter for all alerts.
-	AlertID int
 }
 
-func (obj *Alert) sendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
+func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
@@ -1265,7 +1261,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error 
 			obj.Type = &AlertType.NEW_USER
 		}
 	}
-	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID, AlertID: input.AlertID}
+	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID, AlertID: alertID}
 	switch *obj.Type {
 	case AlertType.ERROR:
 		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
