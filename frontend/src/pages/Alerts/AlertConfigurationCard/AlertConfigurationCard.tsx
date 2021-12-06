@@ -1,8 +1,8 @@
 import Card from '@components/Card/Card';
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
-import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
+import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
 import classNames from 'classnames';
@@ -54,6 +54,7 @@ interface Props {
     slackUrl: string;
     onDeleteHandler?: (alertId: string) => void;
     isCreatingNewAlert?: boolean;
+    isSlackIntegrated: boolean;
 }
 
 export const AlertConfigurationCard = ({
@@ -71,6 +72,7 @@ export const AlertConfigurationCard = ({
     onDeleteHandler,
     isCreatingNewAlert = false,
     identifierOptions,
+    isSlackIntegrated,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -684,41 +686,12 @@ export const AlertConfigurationCard = ({
                                         placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
                                         onChange={onChannelsChange}
                                         notFoundContent={
-                                            channelSuggestions?.length === 0 ? (
-                                                <div
-                                                    className={classNames(
-                                                        styles.selectMessage,
-                                                        styles.notFoundMessage
-                                                    )}
-                                                >
-                                                    Slack is not configured yet.{' '}
-                                                    <a href={slackUrl}>
-                                                        Click here to sync with
-                                                        Slack
-                                                    </a>
-                                                    . After syncing, you can
-                                                    pick the channels or people
-                                                    to sent alerts to.
-                                                </div>
-                                            ) : (
-                                                <div
-                                                    className={classNames(
-                                                        styles.selectMessage,
-                                                        styles.notFoundMessage
-                                                    )}
-                                                >
-                                                    Can't find the channel or
-                                                    person here?{' '}
-                                                    {project_id !==
-                                                        DEMO_WORKSPACE_APPLICATION_ID && (
-                                                        <a href={slackUrl}>
-                                                            Sync Highlight with
-                                                            your Slack Workspace
-                                                        </a>
-                                                    )}
-                                                    .
-                                                </div>
-                                            )
+                                            <SyncWithSlackButton
+                                                isSlackIntegrated={
+                                                    isSlackIntegrated
+                                                }
+                                                slackUrl={slackUrl}
+                                            />
                                         }
                                         defaultValue={alert?.ChannelsToNotify?.map(
                                             (channel: any) =>
@@ -742,25 +715,14 @@ export const AlertConfigurationCard = ({
                                                                     styles.addContainer
                                                                 }
                                                             >
-                                                                Can't find the
-                                                                channel or
-                                                                person here?{' '}
-                                                                {project_id !==
-                                                                    DEMO_WORKSPACE_APPLICATION_ID && (
-                                                                    <a
-                                                                        href={
-                                                                            slackUrl
-                                                                        }
-                                                                    >
-                                                                        Sync
-                                                                        Highlight
-                                                                        with
-                                                                        your
-                                                                        Slack
-                                                                        Workspace
-                                                                    </a>
-                                                                )}
-                                                                .
+                                                                <SyncWithSlackButton
+                                                                    isSlackIntegrated={
+                                                                        isSlackIntegrated
+                                                                    }
+                                                                    slackUrl={
+                                                                        slackUrl
+                                                                    }
+                                                                />
                                                             </div>
                                                         </>
                                                     )}
