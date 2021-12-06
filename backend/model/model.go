@@ -232,36 +232,11 @@ type HasSecret interface {
 func (project *Project) GetSecret() *string     { return project.Secret }
 func (workspace *Workspace) GetSecret() *string { return workspace.Secret }
 
-type Alert struct {
-	OrganizationID       int
-	ProjectID            int
-	ExcludedEnvironments *string
-	CountThreshold       int
-	ThresholdWindow      *int
-	ChannelsToNotify     *string
-	Name                 *string
-	Type                 *string `gorm:"index"`
-	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
-}
-
 type EnhancedUserDetails struct {
 	Model
 	Email       *string `gorm:"unique_index"`
 	PersonJSON  *string
 	CompanyJSON *string
-}
-
-type ErrorAlert struct {
-	Model
-	Alert
-}
-
-type SessionAlert struct {
-	Model
-	Alert
-	TrackProperties *string
-	UserProperties  *string
-	ExcludeRules    *string
 }
 
 type RegistrationData struct {
@@ -272,81 +247,6 @@ type RegistrationData struct {
 	UseCase     *string
 	HeardAbout  *string
 	Pun         *string
-}
-
-func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty session alert object for excluded environments")
-	}
-	excludedString := "[]"
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	var sanitizedExcludedEnvironments []*string
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
-	}
-	return sanitizedExcludedEnvironments, nil
-}
-
-func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty session alert object for channels to notify")
-	}
-	channelString := "[]"
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
-	}
-	return sanitizedChannels, nil
-}
-
-func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
-	if obj == nil {
-		return nil, e.New("empty session alert object for track properties")
-	}
-	propertyString := "[]"
-	if obj.TrackProperties != nil {
-		propertyString = *obj.TrackProperties
-	}
-	var sanitizedProperties []*TrackProperty
-	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
-	}
-	return sanitizedProperties, nil
-}
-
-func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
-	if obj == nil {
-		return nil, e.New("empty session alert object for user properties")
-	}
-	propertyString := "[]"
-	if obj.UserProperties != nil {
-		propertyString = *obj.UserProperties
-	}
-	var sanitizedProperties []*UserProperty
-	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
-	}
-	return sanitizedProperties, nil
-}
-
-func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty session alert object for exclude rules")
-	}
-	excludeRulesString := "[]"
-	if obj.ExcludeRules != nil {
-		excludeRulesString = *obj.ExcludeRules
-	}
-	var sanitizedExcludeRules []*string
-	if err := json.Unmarshal([]byte(excludeRulesString), &sanitizedExcludeRules); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
-	}
-	return sanitizedExcludeRules, nil
 }
 
 type SlackChannel struct {
@@ -1036,6 +936,106 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
+}
+
+type Alert struct {
+	OrganizationID       int
+	ProjectID            int
+	ExcludedEnvironments *string
+	CountThreshold       int
+	ThresholdWindow      *int
+	ChannelsToNotify     *string
+	Name                 *string
+	Type                 *string `gorm:"index"`
+	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+}
+
+type ErrorAlert struct {
+	Model
+	Alert
+}
+
+type SessionAlert struct {
+	Model
+	Alert
+	TrackProperties *string
+	UserProperties  *string
+	ExcludeRules    *string
+}
+
+func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for excluded environments")
+	}
+	excludedString := "[]"
+	if obj.ExcludedEnvironments != nil {
+		excludedString = *obj.ExcludedEnvironments
+	}
+	var sanitizedExcludedEnvironments []*string
+	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
+	}
+	return sanitizedExcludedEnvironments, nil
+}
+
+func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+	}
+	return sanitizedChannels, nil
+}
+
+func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for track properties")
+	}
+	propertyString := "[]"
+	if obj.TrackProperties != nil {
+		propertyString = *obj.TrackProperties
+	}
+	var sanitizedProperties []*TrackProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+	}
+	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for user properties")
+	}
+	propertyString := "[]"
+	if obj.UserProperties != nil {
+		propertyString = *obj.UserProperties
+	}
+	var sanitizedProperties []*UserProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
+	}
+	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for exclude rules")
+	}
+	excludeRulesString := "[]"
+	if obj.ExcludeRules != nil {
+		excludeRulesString = *obj.ExcludeRules
+	}
+	var sanitizedExcludeRules []*string
+	if err := json.Unmarshal([]byte(excludeRulesString), &sanitizedExcludeRules); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
+	}
+	return sanitizedExcludeRules, nil
 }
 
 type SendWelcomeSlackMessageInput struct {
