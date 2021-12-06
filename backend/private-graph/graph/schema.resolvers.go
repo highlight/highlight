@@ -22,8 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/opensearch"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -300,10 +299,6 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
 	return session, nil
 }
 
@@ -317,10 +312,6 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
@@ -337,12 +328,6 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		State: state,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-		"state": state,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
 
 	return errorGroup, nil
@@ -1996,10 +1981,6 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
 	return session, nil
 }
 
@@ -2010,11 +1991,6 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	}
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
-	}
-	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-		"IsPublic": isPublic,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
 	}
 
 	return errorGroup, nil

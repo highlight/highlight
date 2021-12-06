@@ -11,7 +11,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -78,14 +77,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 
 	session.FirstTime = firstTime
 	session.Identifier = userIdentifier
-
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, map[string]interface{}{
-		"user_properties": session.UserProperties,
-		"first_time":      session.FirstTime,
-		"identifier":      session.Identifier,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
