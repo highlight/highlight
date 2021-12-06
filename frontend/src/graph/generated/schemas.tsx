@@ -918,6 +918,7 @@ export type Mutation = {
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
     joinWorkspace?: Maybe<Scalars['ID']>;
+    updateAllowedEmailOrigins?: Maybe<Scalars['ID']>;
     changeAdminRole: Scalars['Boolean'];
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
@@ -1018,6 +1019,11 @@ export type MutationAddAdminToWorkspaceArgs = {
 
 export type MutationJoinWorkspaceArgs = {
     workspace_id: Scalars['ID'];
+};
+
+export type MutationUpdateAllowedEmailOriginsArgs = {
+    workspace_id: Scalars['ID'];
+    allowed_auto_join_email_origins: Scalars['String'];
 };
 
 export type MutationChangeAdminRoleArgs = {

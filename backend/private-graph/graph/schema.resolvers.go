@@ -460,6 +460,29 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	return &workspace.ID, nil
 }
 
+func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, workspaceID int, allowedAutoJoinEmailOrigins string) (*int, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+
+	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+		return nil, e.New("A non-Admin role Admin tried changing an admin role.")
+	}
+
+	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{
+		AllowedAutoJoinEmailOrigins: &allowedAutoJoinEmailOrigins}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace")
+	}
+
+	return &workspaceID, nil
+}
+
 func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {

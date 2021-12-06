@@ -25,7 +25,7 @@ export const isHighlightAdmin = (role: AuthRole) => {
 export const isLiveModeExposed = (isHighlightAdmin: boolean, admin?: Admin) => {
     return (
         isHighlightAdmin ||
-        ['251', '261', '937', '939'].includes(admin?.id || '0')
+        ['251', '261', '937', '939', '2583'].includes(admin?.id || '0')
     );
 };
 
