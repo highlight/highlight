@@ -34,7 +34,6 @@ func (w *Worker) IndexSessions() {
 	}
 
 	if err := w.Resolver.DB.Preload("Fields").Model(modelProto).
-		Order("created_at asc").
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
