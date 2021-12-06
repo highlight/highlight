@@ -1156,7 +1156,6 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 }
 
 type SendSlackAlertInput struct {
-	Organization *Organization
 	// Workspace is a required parameter
 	Workspace *Workspace
 	// SessionSecureID is a required parameter
