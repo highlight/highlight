@@ -26,6 +26,7 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -43,6 +44,7 @@ type Resolver struct {
 	AlertWorkerPool       *workerpool.WorkerPool
 	DB                    *gorm.DB
 	StorageClient         *storage.StorageClient
+	OpenSearch            *opensearch.Client
 }
 
 type Location struct {
@@ -92,7 +94,7 @@ type FieldData struct {
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
+	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil {
 		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
@@ -112,13 +114,8 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
-	var newFieldGroup []FieldData
+	newFields := []*model.Field{}
 	exists := false
-	if session.FieldGroup != nil {
-		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding session field group")
-		}
-	}
 	for _, f := range fields {
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
@@ -127,36 +124,27 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
+
 			fieldsToAppend = append(fieldsToAppend, f)
-			newFieldGroup = append(newFieldGroup, FieldData{
-				Name:  f.Name,
-				Value: f.Value,
-			})
 		} else {
 			exists = false
-			for _, existing := range newFieldGroup {
+			for _, existing := range session.Fields {
 				if field.Name == existing.Name && field.Value == existing.Value {
 					exists = true
 				}
 			}
 			fieldsToAppend = append(fieldsToAppend, field)
 			if !exists {
-				newFieldGroup = append(newFieldGroup, FieldData{
-					Name:  field.Name,
-					Value: field.Value,
-				})
+				newFields = append(newFields, field)
 			}
 		}
 	}
-	fieldBytes, err := json.Marshal(newFieldGroup)
-	if err != nil {
-		return e.Wrap(err, "Error marshalling session field group")
-	}
-	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; e.Is(err, gorm.ErrRecordNotFound) || err != nil {
-		return e.Wrap(err, "Error updating session field group")
+	openSearchFields := make([]interface{}, len(newFields))
+	for i := range newFields {
+		openSearchFields[i] = newFields[i]
 	}
+
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
@@ -289,6 +277,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
+
 		errorGroup = newErrorGroup
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
@@ -368,10 +357,12 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
+
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
+
 	return nil
 }
 
@@ -500,6 +491,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		Environment:                    environment,
 		AppVersion:                     appVersion,
 		VerboseID:                      projectVerboseID,
+		Fields:                         []*model.Field{},
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

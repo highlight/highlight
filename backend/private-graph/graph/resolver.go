@@ -29,6 +29,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -52,6 +53,7 @@ type Resolver struct {
 	StorageClient          *storage.StorageClient
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
+	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 }
 

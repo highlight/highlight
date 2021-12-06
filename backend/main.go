@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/workerpool"
@@ -153,6 +154,11 @@ func main() {
 		log.Fatalf("error creating storage client: %v", err)
 	}
 
+	opensearchClient, err := opensearch.NewOpensearchClient()
+	if err != nil {
+		log.Fatalf("error creating opensearch client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -166,6 +172,7 @@ func main() {
 		StorageClient:          storage,
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
+		OpenSearch:             opensearchClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -255,6 +262,7 @@ func main() {
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
 						AlertWorkerPool:       alertWorkerpool,
+						OpenSearch:            opensearchClient,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))

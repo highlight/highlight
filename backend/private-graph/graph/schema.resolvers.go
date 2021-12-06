@@ -292,9 +292,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
+	updatedFields := &model.Session{
 		Viewed: viewed,
-	}).Error; err != nil {
+	}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
