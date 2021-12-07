@@ -822,7 +822,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 						AND error_group_id=?)
 					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, 5).Scan(&numAlerts).Error; err != nil {
+			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, 15).Scan(&numAlerts).Error; err != nil {
 				log.Error(e.Wrap(err, "error counting alert events from past 5 seconds"))
 				return
 			}
