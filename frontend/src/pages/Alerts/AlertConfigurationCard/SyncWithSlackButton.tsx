@@ -1,7 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useSyncSlackIntegrationMutation } from '@graph/hooks';
-import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -12,16 +11,21 @@ import styles from './SyncWithSlackButton.module.scss';
 interface Props {
     slackUrl: string;
     isSlackIntegrated: boolean;
+    refetchQueries: string[];
 }
 
-const SyncWithSlackButton = ({ slackUrl, isSlackIntegrated }: Props) => {
+const SyncWithSlackButton = ({
+    slackUrl,
+    isSlackIntegrated,
+    refetchQueries,
+}: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const [syncSlackIntegration, { loading }] = useSyncSlackIntegrationMutation(
         {
             variables: {
                 project_id,
             },
-            refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+            refetchQueries,
         }
     );
 
@@ -38,9 +42,9 @@ const SyncWithSlackButton = ({ slackUrl, isSlackIntegrated }: Props) => {
                         className={styles.syncButton}
                         trackingId="SyncHighlightWithSlack"
                         type="text"
-                        onClick={() => {
+                        onClick={async () => {
                             try {
-                                syncSlackIntegration();
+                                await syncSlackIntegration();
                                 message.success('Synced with Slack!');
                             } catch {
                                 message.error(

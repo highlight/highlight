@@ -691,6 +691,10 @@ export const AlertConfigurationCard = ({
                                                     isSlackIntegrated
                                                 }
                                                 slackUrl={slackUrl}
+                                                refetchQueries={[
+                                                    namedOperations.Query
+                                                        .GetAlertsPagePayload,
+                                                ]}
                                             />
                                         }
                                         defaultValue={alert?.ChannelsToNotify?.map(
@@ -722,6 +726,11 @@ export const AlertConfigurationCard = ({
                                                                     slackUrl={
                                                                         slackUrl
                                                                     }
+                                                                    refetchQueries={[
+                                                                        namedOperations
+                                                                            .Query
+                                                                            .GetAlertsPagePayload,
+                                                                    ]}
                                                                 />
                                                             </div>
                                                         </>
