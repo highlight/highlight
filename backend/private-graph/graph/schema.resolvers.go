@@ -193,6 +193,24 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
+func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	admin.Name = &adminDetails.Name
+	admin.UserDefinedRole = &adminDetails.UserDefinedRole
+	admin.Referral = &adminDetails.Referral
+
+	if err := r.DB.Save(admin).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {

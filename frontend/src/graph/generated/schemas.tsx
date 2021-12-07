@@ -347,6 +347,12 @@ export type SearchParams = {
     show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
+export type AdminAboutYouDetails = {
+    name: Scalars['String'];
+    user_defined_role: Scalars['String'];
+    referral: Scalars['String'];
+};
+
 export type ErrorSearchParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -417,6 +423,8 @@ export type Admin = {
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
     email_verified?: Maybe<Scalars['Boolean']>;
+    referral?: Maybe<Scalars['String']>;
+    user_defined_role?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
@@ -912,6 +920,7 @@ export type QuerySubscription_DetailsArgs = {
 
 export type Mutation = {
     __typename?: 'Mutation';
+    updateAdminAboutYouDetails: Scalars['Boolean'];
     createProject?: Maybe<Project>;
     createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
@@ -965,6 +974,10 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationUpdateAdminAboutYouDetailsArgs = {
+    adminDetails: AdminAboutYouDetails;
 };
 
 export type MutationCreateProjectArgs = {
