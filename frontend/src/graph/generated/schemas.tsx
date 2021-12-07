@@ -350,6 +350,7 @@ export type SearchParams = {
 export type AdminAboutYouDetails = {
     name: Scalars['String'];
     user_defined_role: Scalars['String'];
+    referral: Scalars['String'];
 };
 
 export type ErrorSearchParamsInput = {

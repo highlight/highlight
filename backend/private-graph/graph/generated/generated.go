@@ -4530,6 +4530,7 @@ type SearchParams {
 input AdminAboutYouDetails {
     name: String!
     user_defined_role: String!
+    referral: String!
 }
 
 input ErrorSearchParamsInput {
@@ -23635,6 +23636,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
 			it.UserDefinedRole, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referral":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
+			it.Referral, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
