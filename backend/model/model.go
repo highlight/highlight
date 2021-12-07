@@ -587,6 +587,13 @@ type MessagesObject struct {
 	Messages  string
 }
 
+type WebVitalMetric struct {
+	Model
+	SessionID int
+	Name      string
+	Value     float64
+}
+
 func (m *MessagesObject) Contents() string {
 	return m.Messages
 }

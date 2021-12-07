@@ -33,6 +33,10 @@ mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
     )
 }
 
+mutation addWebVitals($session_id: ID!, $metric: WebVitalMetricInput!) {
+    addWebVitals(session_id: $session_id, metric: $metric)
+}
+
 mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
     addTrackProperties(
         session_id: $session_id

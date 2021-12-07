@@ -37,6 +37,7 @@ import {
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
+import { WebVitalsListener } from 'listeners/web-vitals-listener/web-vitals-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -705,6 +706,16 @@ export class Highlight {
                     if (focusTarget) {
                         addCustomEvent('Focus', focusTarget);
                     }
+                })
+            );
+
+            this.listeners.push(
+                WebVitalsListener((data) => {
+                    const { name, value } = data;
+                    this.graphqlSDK.addWebVitals({
+                        session_id: this.sessionData.sessionID.toString(),
+                        metric: { name, value },
+                    });
                 })
             );
 

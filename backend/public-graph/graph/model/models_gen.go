@@ -44,3 +44,8 @@ type StackFrameInput struct {
 	IsNative     *bool         `json:"isNative"`
 	Source       *string       `json:"source"`
 }
+
+type WebVitalMetricInput struct {
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
+}

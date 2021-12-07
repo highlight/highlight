@@ -306,6 +306,19 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	return feedbackComment.ID, nil
 }
 
+func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		log.Error(err)
+		return -1, nil
+	}
+
+	log.Info(metric)
+	// TODO: Add a WebVitalMetric to the DB.
+
+	return sessionID, nil
+}
+
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }
