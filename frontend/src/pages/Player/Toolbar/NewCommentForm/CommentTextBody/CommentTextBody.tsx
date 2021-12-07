@@ -1,10 +1,12 @@
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import SvgSlackLogo from '@components/icons/SlackLogo';
+import { namedOperations } from '@graph/operations';
 import {
     Mention,
     MentionsInput,
     OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions';
+import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
@@ -83,11 +85,14 @@ const CommentTextBody = ({
             noResultsMessage={
                 <>
                     <p className={styles.noResultsMessage}>
-                        Can't find the channel or person here?{' '}
-                        <a href={slackUrl}>
-                            Sync Highlight with your Slack Workspace
-                        </a>
-                        .
+                        <SyncWithSlackButton
+                            isSlackIntegrated={isSlackIntegrated}
+                            slackUrl={slackUrl}
+                            refetchQueries={[
+                                namedOperations.Query
+                                    .GetCommentMentionSuggestions,
+                            ]}
+                        />
                     </p>
                 </>
             }
