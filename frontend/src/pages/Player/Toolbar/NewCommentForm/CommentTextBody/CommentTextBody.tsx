@@ -10,7 +10,6 @@ import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSl
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
@@ -76,8 +75,8 @@ const CommentTextBody = ({
                         <p>Tag a user or Slack account</p>
                     ) : (
                         <p>
-                            Tag a user (Enable Slack tags{' '}
-                            <Link to={`/${project_id}/alerts`}>here</Link>)
+                            Tag a user (
+                            <a href={slackUrl}>Enable Slack Mentions</a>)
                         </p>
                     )}
                 </div>
