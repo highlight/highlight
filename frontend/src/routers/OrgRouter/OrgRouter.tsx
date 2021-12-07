@@ -56,6 +56,7 @@ export const ProjectRouter = () => {
                 company: {
                     id: data?.workspace.id,
                     name: data?.workspace.name,
+                    appliedForExtension: data.workspace.trial_extension_enabled,
                 },
             });
     }, [data?.workspace]);

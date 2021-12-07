@@ -4507,6 +4507,9 @@ export const GetProjectDropdownOptionsDocument = gql`
         workspace: workspace_for_project(project_id: $project_id) {
             id
             name
+            eligible_for_trial_extension
+            trial_extension_enabled
+            trial_end_date
             projects {
                 id
                 name
