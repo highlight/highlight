@@ -14,7 +14,8 @@
         padding: 0;
     }
 
-    h2 {
+    h2,
+    .cardHeader {
         font-size: 22px !important;
         margin-bottom: var(--size-medium) !important;
     }
@@ -63,4 +64,10 @@
             box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
         }
     }
+}
+
+.cardForm {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-large);
 }
