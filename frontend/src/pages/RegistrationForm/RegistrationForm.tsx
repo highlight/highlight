@@ -199,6 +199,7 @@ const RegistrationForm = () => {
                                 company: {
                                     id: workspace_id,
                                     appliedForExtension: true,
+                                    applied_for_extension: true,
                                 },
                             });
                         }}
