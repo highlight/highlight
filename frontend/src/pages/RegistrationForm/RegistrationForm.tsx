@@ -197,10 +197,6 @@ const RegistrationForm = () => {
                             window.Intercom('update', {
                                 company: {
                                     id: workspace_id,
-<<<<<<< HEAD
-                                    appliedForExtension: true,
-=======
->>>>>>> d0b7cda4df97a59d6d38d1adde311a9a4ed5b672
                                     applied_for_extension: true,
                                 },
                             });
