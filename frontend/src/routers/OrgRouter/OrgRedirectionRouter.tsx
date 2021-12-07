@@ -34,8 +34,9 @@ export const ProjectRedirectionRouter = () => {
 
     let redirectTo;
     if (
-        adminAboutYouData?.admin?.name === '' ||
-        adminAboutYouData?.admin?.user_defined_role == null
+        (adminAboutYouData?.admin?.name === '' ||
+            adminAboutYouData?.admin?.user_defined_role == null) &&
+        data?.projects?.length === 0
     ) {
         redirectTo = '/about-you';
     } else if (data?.projects?.length) {
