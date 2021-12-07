@@ -1689,11 +1689,7 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            | 'id'
-            | 'name'
-            | 'eligible_for_trial_extension'
-            | 'trial_extension_enabled'
-            | 'trial_end_date'
+            'id' | 'name' | 'trial_extension_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
