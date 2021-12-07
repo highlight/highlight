@@ -101,6 +101,9 @@ const NewAlertPage = () => {
                         ...getNewAlert(type)?.alert,
                     }}
                     slackUrl={slackUrl}
+                    isSlackIntegrated={
+                        alertsPayload?.is_integrated_with_slack || false
+                    }
                     channelSuggestions={
                         alertsPayload?.slack_channel_suggestion || []
                     }

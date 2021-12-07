@@ -32,6 +32,7 @@ type Props = Pick<
     | 'defaultActiveFirstOption'
     | 'aria-label'
     | 'tagRender'
+    | 'open'
 > & {
     options?: {
         value: string;

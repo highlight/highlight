@@ -1,14 +1,15 @@
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import SvgSlackLogo from '@components/icons/SlackLogo';
+import { namedOperations } from '@graph/operations';
 import {
     Mention,
     MentionsInput,
     OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions';
+import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
@@ -36,7 +37,7 @@ const CommentTextBody = ({
     const { project_id } = useParams<{
         project_id: string;
     }>();
-    const slackUrl = getSlackUrl('Organization');
+    const slackUrl = getSlackUrl('Organization', project_id);
     const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler);
 
     useEffect(() => {
@@ -74,8 +75,8 @@ const CommentTextBody = ({
                         <p>Tag a user or Slack account</p>
                     ) : (
                         <p>
-                            Tag a user (Enable Slack tags{' '}
-                            <Link to={`/${project_id}/alerts`}>here</Link>)
+                            Tag a user (
+                            <a href={slackUrl}>Enable Slack Mentions</a>)
                         </p>
                     )}
                 </div>
@@ -83,11 +84,14 @@ const CommentTextBody = ({
             noResultsMessage={
                 <>
                     <p className={styles.noResultsMessage}>
-                        Can't find the channel or person here?{' '}
-                        <a href={slackUrl}>
-                            Sync Highlight with your Slack Workspace
-                        </a>
-                        .
+                        <SyncWithSlackButton
+                            isSlackIntegrated={isSlackIntegrated}
+                            slackUrl={slackUrl}
+                            refetchQueries={[
+                                namedOperations.Query
+                                    .GetCommentMentionSuggestions,
+                            ]}
+                        />
                     </p>
                 </>
             }

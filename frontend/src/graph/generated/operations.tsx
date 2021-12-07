@@ -1054,6 +1054,17 @@ export type UpdateAllowMeterOverageMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type SyncSlackIntegrationMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & {
+    syncSlackIntegration: { __typename?: 'SlackSyncResponse' } & Pick<
+        Types.SlackSyncResponse,
+        'success' | 'newChannelsAddedCount'
+    >;
+};
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events'> & {
@@ -2836,6 +2847,7 @@ export const namedOperations = {
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
+        SyncSlackIntegration: 'SyncSlackIntegration' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {
