@@ -68,3 +68,7 @@ export const CardForm: React.FC<React.FormHTMLAttributes<HTMLFormElement>> = ({
         </form>
     );
 };
+
+export const CardFormActionsContainer: React.FC = ({ children }) => {
+    return <div className={styles.cardFormActionsContainer}>{children}</div>;
+};

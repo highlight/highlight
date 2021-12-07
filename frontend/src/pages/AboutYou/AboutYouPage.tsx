@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import Card, {
     CardForm,
+    CardFormActionsContainer,
     CardHeader,
     CardSubHeader,
 } from '@components/Card/Card';
@@ -105,20 +106,22 @@ const AboutYouPage = () => {
                         }}
                         autoComplete="off"
                     />
-                    <Button
-                        trackingId="AboutYouPageNext"
-                        type="primary"
-                        block
-                        loading={loading}
-                        htmlType="submit"
-                        disabled={
-                            firstName.length === 0 ||
-                            lastName.length === 0 ||
-                            role.length === 0
-                        }
-                    >
-                        Let's Go!
-                    </Button>
+                    <CardFormActionsContainer>
+                        <Button
+                            trackingId="AboutYouPageNext"
+                            type="primary"
+                            block
+                            loading={loading}
+                            htmlType="submit"
+                            disabled={
+                                firstName.length === 0 ||
+                                lastName.length === 0 ||
+                                role.length === 0
+                            }
+                        >
+                            Let's Go!
+                        </Button>
+                    </CardFormActionsContainer>
                 </CardForm>
             </Card>
         </>

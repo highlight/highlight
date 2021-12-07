@@ -1,5 +1,6 @@
 export const card: string;
 export const cardForm: string;
+export const cardFormActionsContainer: string;
 export const cardHeader: string;
 export const cardSubHeader: string;
 export const h3: string;

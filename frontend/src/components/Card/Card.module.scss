@@ -78,3 +78,9 @@
     line-height: 1.5 !important;
     margin-bottom: var(--size-large) !important;
 }
+
+.cardFormActionsContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-medium);
+}
