@@ -1,7 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import styles from './Landing.module.scss';
 
 export const Landing: React.FC<{}> = ({ children }) => {
+    useEffect(() => {
+        window.Intercom('update', {
+            hide_default_launcher: false,
+        });
+    }, []);
+
     return <div className={styles.contentWrapper}>{children}</div>;
 };
