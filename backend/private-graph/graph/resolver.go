@@ -1220,7 +1220,6 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 
 	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
 	for _, newChannel := range newChannels {
-		log.Println(newChannel.WebhookChannel)
 		channelAlreadyExists := false
 
 		for _, existingChannel := range existingChannels {
