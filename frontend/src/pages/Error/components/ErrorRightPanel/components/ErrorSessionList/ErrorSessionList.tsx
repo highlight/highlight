@@ -3,9 +3,9 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { useParams } from '@util/react-router/useParams';
 import React, { useRef } from 'react';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { GetErrorGroupQuery } from '../../../../../../graph/generated/operations';
 import { Session } from '../../../../../../graph/generated/schemas';

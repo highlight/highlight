@@ -1,9 +1,4 @@
-import {
-    ErrorObject,
-    Session,
-    SessionComment,
-    SessionCommentType,
-} from '@graph/schemas';
+import { ErrorObject, Session, SessionComment } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
@@ -387,7 +382,7 @@ export const getCommentsInSessionIntervalsRelative = (
 ): ParsedSessionInterval[] => {
     const newComments = comments.map((comment) => {
         // Set `timestamp` which represents the relative time in the session of when the session feedback was created.
-        if (comment.type === SessionCommentType.Feedback) {
+        if (comment.type === 'FEEDBACK') {
             const timestamp =
                 new Date(comment.metadata.timestamp).getTime() -
                 sessionStartTime;

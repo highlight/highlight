@@ -816,3 +816,10 @@ mutation UpdateAllowMeterOverage(
         allow_meter_overage
     }
 }
+
+mutation SyncSlackIntegration($project_id: ID!) {
+    syncSlackIntegration(project_id: $project_id) {
+        success
+        newChannelsAddedCount
+    }
+}

@@ -144,6 +144,11 @@ type SessionCommentTagInput struct {
 	Name string `json:"name"`
 }
 
+type SlackSyncResponse struct {
+	Success               bool `json:"success"`
+	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
+}
+
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link"`

@@ -1,7 +1,7 @@
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import React, { useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import styles from './FullCommentList.module.scss';
 
