@@ -194,7 +194,6 @@ const RegistrationForm = () => {
                         disabled={!isValid}
                         loading={loading}
                         onClick={() => {
-                            console.log('applying intercom update');
                             window.Intercom('update', {
                                 company: {
                                     id: workspace_id,
