@@ -1,17 +1,10 @@
 import { useAppLoadingContext } from '@context/AppLoadingContext';
-import {
-    useGetAdminAboutYouQuery,
-    useGetProjectsAndWorkspacesQuery,
-} from '@graph/hooks';
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks';
 import React, { useEffect } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 
 export const ProjectRedirectionRouter = () => {
     const { loading, error, data } = useGetProjectsAndWorkspacesQuery();
-    const {
-        loading: adminAboutYouLoading,
-        data: adminAboutYouData,
-    } = useGetAdminAboutYouQuery();
     const { setIsLoading } = useAppLoadingContext();
     const history = useHistory();
 
@@ -28,18 +21,12 @@ export const ProjectRedirectionRouter = () => {
         return <p>{'App error: ' + JSON.stringify(error)}</p>;
     }
 
-    if (loading || adminAboutYouLoading) {
+    if (loading) {
         return null;
     }
 
     let redirectTo;
-    if (
-        (adminAboutYouData?.admin?.name === '' ||
-            adminAboutYouData?.admin?.user_defined_role == null) &&
-        data?.projects?.length === 0
-    ) {
-        redirectTo = '/about-you';
-    } else if (data?.projects?.length) {
+    if (data?.projects?.length) {
         redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}`;
     } else if (data?.workspaces?.length) {
         redirectTo = `/w/${data!.workspaces[0]!.id}/new`;

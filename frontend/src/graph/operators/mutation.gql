@@ -344,10 +344,6 @@ mutation CreateErrorAlert(
     }
 }
 
-mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
-    updateAdminAboutYouDetails(adminDetails: $adminDetails)
-}
-
 mutation CreateRageClickAlert(
     $project_id: ID!
     $name: String!

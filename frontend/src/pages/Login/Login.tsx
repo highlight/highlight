@@ -1,7 +1,6 @@
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -79,10 +78,6 @@ const LoginForm = () => {
     const [formState, setFormState] = useState<LoginFormState>(
         signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn
     );
-    const [, setSignUpReferral] = useLocalStorage(
-        'HighlightSignUpReferral',
-        ''
-    );
     const { isAuthLoading, isLoggedIn, admin } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
     const { setIsLoading } = useAppLoadingContext();
@@ -128,14 +123,6 @@ const LoginForm = () => {
         setFormState(nextState);
         setError(null);
     };
-
-    // Record where the new user was referred from.
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get('ref') || document.referrer;
-
-        setSignUpReferral(ref);
-    }, [setSignUpReferral]);
 
     useEffect(() => {
         if (isAuthLoading) {

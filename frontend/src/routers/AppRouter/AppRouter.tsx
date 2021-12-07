@@ -2,7 +2,6 @@ import '../../App.scss';
 
 import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import AboutYouPage from '@pages/AboutYou/AboutYouPage';
 import LoginForm from '@pages/Login/Login';
 import NewProjectPage from '@pages/NewProject/NewProjectPage';
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm';
@@ -28,11 +27,6 @@ export const AppRouter = () => {
                     <Route path="/w/:workspace_id(\d+)/invite/:invite_id">
                         <Landing>
                             <NewMemberPage />
-                        </Landing>
-                    </Route>
-                    <Route path="/about-you">
-                        <Landing>
-                            <AboutYouPage />
                         </Landing>
                     </Route>
                     <Route path="/new">

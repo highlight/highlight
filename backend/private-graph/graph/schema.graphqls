@@ -310,12 +310,6 @@ type SearchParams {
     show_live_sessions: Boolean
 }
 
-input AdminAboutYouDetails {
-    name: String!
-    user_defined_role: String!
-    referral: String!
-}
-
 input ErrorSearchParamsInput {
     date_range: DateRangeInput
     os: String
@@ -380,8 +374,6 @@ type Admin {
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
-    referral: String
-    user_defined_role: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -639,7 +631,6 @@ type Query {
 }
 
 type Mutation {
-    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
