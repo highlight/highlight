@@ -1010,8 +1010,6 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
 	}
 
-	log.Warnf("groups: %+v", groups)
-
 	for _, data := range groups {
 		r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
 	}
@@ -1211,7 +1209,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				continue
 			}
 
-			r.sendErrorAlert(projectID, sessionObj, group, errorToInsert.URL)
+			groups[group.ID] = struct {
+				Group      *model.ErrorGroup
+				VisitedURL string
+				SessionObj *model.Session
+			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+		}
+
+		for _, data := range groups {
+			r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
 		}
 
 		putErrorsToDBSpan.Finish()
