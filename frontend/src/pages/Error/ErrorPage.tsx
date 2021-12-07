@@ -106,7 +106,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 // We are explicitly clearing any existing search params so the only applied search param is the date range.
                 ...EmptyErrorsSearchParams,
                 date_range: {
-                    start_date: start_date.startOf('day').toDate(),
+                    start_date: start_date
+                        .startOf('day')
+                        .subtract(1, 'days')
+                        .toDate(),
                     end_date: end_date.endOf('day').toDate(),
                 },
             }));
