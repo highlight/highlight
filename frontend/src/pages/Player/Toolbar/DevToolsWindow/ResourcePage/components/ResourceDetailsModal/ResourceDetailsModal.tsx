@@ -181,7 +181,14 @@ const ResourceDetailsModal = ({
 
         if (response.body) {
             try {
-                const parsedResponseBody = JSON.parse(response.body);
+                let parsedResponseBody: { [key: string]: any } = {};
+                if (typeof response.body === 'object') {
+                    parsedResponseBody = JSON.parse(
+                        JSON.stringify(response.body)
+                    );
+                } else {
+                    parsedResponseBody = JSON.parse(response.body);
+                }
                 Object.keys(parsedResponseBody).forEach((key) => {
                     const renderType =
                         typeof parsedResponseBody[key] === 'object'
@@ -200,7 +207,7 @@ const ResourceDetailsModal = ({
             } catch (e) {
                 responsePayloadData.push({
                     keyDisplayValue: '-',
-                    valueDisplayValue: response.body,
+                    valueDisplayValue: JSON.stringify(response.body),
                     renderType: 'string',
                 });
             }
