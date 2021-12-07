@@ -4,7 +4,6 @@ import Card, { CardForm, CardHeader } from '@components/Card/Card';
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useUpdateAdminAboutYouDetailsMutation } from '@graph/hooks';
-import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -23,10 +22,6 @@ const AboutYouPage = () => {
         updateAdminAboutYourDetails,
         { loading },
     ] = useUpdateAdminAboutYouDetailsMutation();
-    const [signUpReferral, setSignUpReferral] = useLocalStorage(
-        'HighlightSignUpReferral',
-        ''
-    );
 
     useEffect(() => {
         setIsLoading(false);
@@ -49,12 +44,10 @@ const AboutYouPage = () => {
                     adminDetails: {
                         name: `${firstName} ${lastName}`,
                         user_defined_role: role,
-                        referral: signUpReferral,
                     },
                 },
             });
 
-            setSignUpReferral('');
             message.success("Awesome! We'll be in touch soon!");
             history.push('/new');
         } catch {

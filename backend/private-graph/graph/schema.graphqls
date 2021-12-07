@@ -313,7 +313,6 @@ type SearchParams {
 input AdminAboutYouDetails {
     name: String!
     user_defined_role: String!
-    referral: String!
 }
 
 input ErrorSearchParamsInput {
