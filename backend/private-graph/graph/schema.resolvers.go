@@ -1163,6 +1163,32 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 }
 
 func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (bool, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+	slackChannels, err := r.GetSlackChannelsFromSlack(workspace.ID)
+
+	if err != nil {
+		return false, err
+	}
+
+	channelBytes, err := json.Marshal(slackChannels)
+	if err != nil {
+		return false, e.Wrap(err, "error marshaling slack channels")
+	}
+	channelString := string(channelBytes)
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return false, e.Wrap(err, "error updating workspace slack channels")
+	}
+
 	return true, nil
 }
 

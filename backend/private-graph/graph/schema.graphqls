@@ -723,6 +723,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    syncSlackIntegration(project_id: ID!): Boolean!
     createDefaultAlerts(
         project_id: ID!
         alert_types: [String!]!

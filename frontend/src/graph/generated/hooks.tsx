@@ -3123,6 +3123,52 @@ export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateAllowMeterOverageMutation,
     Types.UpdateAllowMeterOverageMutationVariables
 >;
+export const SyncSlackIntegrationDocument = gql`
+    mutation SyncSlackIntegration($project_id: ID!) {
+        syncSlackIntegration(project_id: $project_id)
+    }
+`;
+export type SyncSlackIntegrationMutationFn = Apollo.MutationFunction<
+    Types.SyncSlackIntegrationMutation,
+    Types.SyncSlackIntegrationMutationVariables
+>;
+
+/**
+ * __useSyncSlackIntegrationMutation__
+ *
+ * To run a mutation, you first call `useSyncSlackIntegrationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSyncSlackIntegrationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [syncSlackIntegrationMutation, { data, loading, error }] = useSyncSlackIntegrationMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useSyncSlackIntegrationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SyncSlackIntegrationMutation,
+        Types.SyncSlackIntegrationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SyncSlackIntegrationMutation,
+        Types.SyncSlackIntegrationMutationVariables
+    >(SyncSlackIntegrationDocument, baseOptions);
+}
+export type SyncSlackIntegrationMutationHookResult = ReturnType<
+    typeof useSyncSlackIntegrationMutation
+>;
+export type SyncSlackIntegrationMutationResult = Apollo.MutationResult<Types.SyncSlackIntegrationMutation>;
+export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.SyncSlackIntegrationMutation,
+    Types.SyncSlackIntegrationMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(
         $session_secure_id: String!
