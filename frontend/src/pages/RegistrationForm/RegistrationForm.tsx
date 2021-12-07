@@ -193,11 +193,12 @@ const RegistrationForm = () => {
                         htmlType="submit"
                         disabled={!isValid}
                         loading={loading}
-                        onClick={() =>
+                        onClick={() => {
+                            console.log('applying intercom update');
                             window.Intercom('update', {
                                 company: { appliedForExtension: true },
-                            })
-                        }
+                            });
+                        }}
                     >
                         Get Free Software! 🍭
                     </Button>
