@@ -152,7 +152,7 @@ export const XHRListener = (
                     responseModel['size'] = blob.size;
                 } else {
                     try {
-                        responseModel['body'] = JSON.parse(`'${this.response}`);
+                        responseModel['body'] = this.response;
                     } catch {}
                 }
             }
