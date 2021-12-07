@@ -26,7 +26,7 @@
 .button {
     display: flex;
     margin-bottom: 0;
-    margin-top: 0;
+    margin-top: var(--size-large);
 
     .workspaceCount {
         color: var(--color-white);
