@@ -51,10 +51,6 @@ export const CardHeader: React.FC = ({ children }) => {
     return <h2 className={styles.cardHeader}>{children}</h2>;
 };
 
-export const CardSubHeader: React.FC = ({ children }) => {
-    return <p className={styles.cardSubHeader}>{children}</p>;
-};
-
 export const CardForm: React.FC<React.FormHTMLAttributes<HTMLFormElement>> = ({
     children,
     ...props
