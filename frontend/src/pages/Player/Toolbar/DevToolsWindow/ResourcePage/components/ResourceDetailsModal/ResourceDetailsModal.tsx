@@ -199,7 +199,7 @@ const ResourceDetailsModal = ({
                 });
             } catch (e) {
                 responsePayloadData.push({
-                    keyDisplayValue: 'boba',
+                    keyDisplayValue: '-',
                     valueDisplayValue: response.body,
                     renderType: 'string',
                 });
