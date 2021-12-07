@@ -1,6 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
-import Card, { CardForm, CardHeader } from '@components/Card/Card';
+import Card, {
+    CardForm,
+    CardHeader,
+    CardSubHeader,
+} from '@components/Card/Card';
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useUpdateAdminAboutYouDetailsMutation } from '@graph/hooks';
@@ -69,6 +73,10 @@ const AboutYouPage = () => {
             </Helmet>
             <Card className={styles.card}>
                 <CardHeader>Tell us about yourself!</CardHeader>
+                <CardSubHeader>
+                    If you don't mind, a few quick questions before we get you
+                    Highlighting!
+                </CardSubHeader>
 
                 <CardForm onSubmit={onFormSubmit}>
                     <Input
