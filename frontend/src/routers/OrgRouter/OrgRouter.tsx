@@ -51,6 +51,16 @@ export const ProjectRouter = () => {
     );
 
     useEffect(() => {
+        data?.workspace?.id &&
+            window.Intercom('update', {
+                company: {
+                    id: data?.workspace.id,
+                    name: data?.workspace.name,
+                },
+            });
+    }, [data?.workspace]);
+
+    useEffect(() => {
         if (!isOnPrem) {
             window.Intercom('update', {
                 hide_default_launcher: true,
