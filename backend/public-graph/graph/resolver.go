@@ -1171,6 +1171,11 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		// put errors in db
 		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
+		groups := make(map[int]struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		})
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
