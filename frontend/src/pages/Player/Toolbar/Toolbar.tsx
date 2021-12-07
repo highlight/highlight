@@ -1,4 +1,6 @@
 import Switch from '@components/Switch/Switch';
+import ActivityIcon from '@icons/ActivityIcon';
+import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -436,7 +438,7 @@ export const Toolbar = React.memo(() => {
                     {isLiveMode && (
                         <div className={styles.liveUserStatus}>
                             <SessionToken
-                                icon={<SvgDimensionsIcon />}
+                                icon={<ActivityIcon />}
                                 tooltipTitle="This session is live, but the user is idle."
                             >
                                 User is inactive
