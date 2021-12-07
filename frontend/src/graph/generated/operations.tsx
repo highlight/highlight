@@ -464,6 +464,14 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
+    adminDetails: Types.AdminAboutYouDetails;
+}>;
+
+export type UpdateAdminAboutYouDetailsMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'updateAdminAboutYouDetails'>;
+
 export type CreateRageClickAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -1757,6 +1765,19 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetAdminAboutYouQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetAdminAboutYouQuery = { __typename?: 'Query' } & {
+    admin?: Types.Maybe<
+        { __typename?: 'Admin' } & Pick<
+            Types.Admin,
+            'id' | 'name' | 'user_defined_role' | 'referral'
+        >
+    >;
+};
+
 export type GetProjectQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;
@@ -2760,6 +2781,7 @@ export const namedOperations = {
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
+        GetAdminAboutYou: 'GetAdminAboutYou' as const,
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
@@ -2828,6 +2850,7 @@ export const namedOperations = {
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
         CreateErrorAlert: 'CreateErrorAlert' as const,
+        UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
         CreateRageClickAlert: 'CreateRageClickAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
