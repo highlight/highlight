@@ -3125,7 +3125,10 @@ export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
 >;
 export const SyncSlackIntegrationDocument = gql`
     mutation SyncSlackIntegration($project_id: ID!) {
-        syncSlackIntegration(project_id: $project_id)
+        syncSlackIntegration(project_id: $project_id) {
+            success
+            newChannelsAddedCount
+        }
     }
 `;
 export type SyncSlackIntegrationMutationFn = Apollo.MutationFunction<

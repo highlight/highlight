@@ -44,8 +44,20 @@ const SyncWithSlackButton = ({
                         type="text"
                         onClick={async () => {
                             try {
-                                await syncSlackIntegration();
-                                message.success('Synced with Slack!');
+                                const { data } = await syncSlackIntegration();
+
+                                if (
+                                    data?.syncSlackIntegration
+                                        .newChannelsAddedCount
+                                ) {
+                                    message.success(
+                                        `Synced ${data.syncSlackIntegration.newChannelsAddedCount} Slack channels/people with Highlight!`
+                                    );
+                                } else {
+                                    message.success(
+                                        'Synced with Slack! No new Slack channels/people found.'
+                                    );
+                                }
                             } catch {
                                 message.error(
                                     'Something went wrong when syncing with Slack, try again?'

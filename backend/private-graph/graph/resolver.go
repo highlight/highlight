@@ -1152,7 +1152,7 @@ func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor
 	return events, nil, &nextCursor
 }
 
-func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, error) {
+func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, int, error) {
 	workspace, _ := r.GetWorkspace(workspaceId)
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
@@ -1171,7 +1171,7 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	for {
 		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
 		if err != nil {
-			return &filteredNewChannels, e.Wrap(err, "error getting Slack channels from Slack.")
+			return &filteredNewChannels, 0, e.Wrap(err, "error getting Slack channels from Slack.")
 		}
 
 		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
@@ -1218,6 +1218,7 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 		newChannels = append(newChannels, newChannel)
 	}
 
+	newChannelsCount := 0
 	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
 	for _, newChannel := range newChannels {
 		channelAlreadyExists := false
@@ -1231,10 +1232,11 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 
 		if !channelAlreadyExists {
 			filteredNewChannels = append(filteredNewChannels, newChannel)
+			newChannelsCount++
 		}
 	}
 
 	existingChannels = append(existingChannels, filteredNewChannels...)
 
-	return &existingChannels, nil
+	return &existingChannels, newChannelsCount, nil
 }

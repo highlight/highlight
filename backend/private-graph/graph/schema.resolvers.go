@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -1147,7 +1147,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 			return false, e.Wrap(err, "error updating slack access token in workspace")
 		}
 	}
-	existingChannels, _ := r.GetSlackChannelsFromSlack(workspace.ID)
+	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
 	channelBytes, err := json.Marshal(existingChannels)
 	if err != nil {
 		return false, e.Wrap(err, "error marshaling existing channels")
@@ -1162,34 +1162,40 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	return true, nil
 }
 
-func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (bool, error) {
+func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (*modelInputs.SlackSyncResponse, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
+	response := modelInputs.SlackSyncResponse{
+		Success:               true,
+		NewChannelsAddedCount: 0,
+	}
 	if err != nil {
-		return false, err
+		return &response, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
-		return false, err
+		return &response, err
 	}
-	slackChannels, err := r.GetSlackChannelsFromSlack(workspace.ID)
+	slackChannels, newChannelsCount, err := r.GetSlackChannelsFromSlack(workspace.ID)
 
 	if err != nil {
-		return false, err
+		return &response, err
 	}
 
 	channelBytes, err := json.Marshal(slackChannels)
 	if err != nil {
-		return false, e.Wrap(err, "error marshaling slack channels")
+		return &response, e.Wrap(err, "error marshaling slack channels")
 	}
 	channelString := string(channelBytes)
 	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 		SlackChannels: &channelString,
 	}).Error; err != nil {
-		return false, e.Wrap(err, "error updating workspace slack channels")
+		return &response, e.Wrap(err, "error updating workspace slack channels")
 	}
 
-	return true, nil
+	response.NewChannelsAddedCount = newChannelsCount
+
+	return &response, nil
 }
 
 func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {

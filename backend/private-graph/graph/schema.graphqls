@@ -417,6 +417,11 @@ type SessionComment {
     tags: [String]!
 }
 
+type SlackSyncResponse {
+    success: Boolean!
+    newChannelsAddedCount: Int!
+}
+
 type SessionCommentTag {
     id: ID!
     name: String!
@@ -723,7 +728,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
-    syncSlackIntegration(project_id: ID!): Boolean!
+    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
         project_id: ID!
         alert_types: [String!]!

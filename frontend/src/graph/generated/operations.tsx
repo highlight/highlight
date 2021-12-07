@@ -1058,10 +1058,12 @@ export type SyncSlackIntegrationMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
 
-export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'syncSlackIntegration'
->;
+export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & {
+    syncSlackIntegration: { __typename?: 'SlackSyncResponse' } & Pick<
+        Types.SlackSyncResponse,
+        'success' | 'newChannelsAddedCount'
+    >;
+};
 
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
