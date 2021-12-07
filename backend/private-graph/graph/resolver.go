@@ -1151,3 +1151,91 @@ func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor
 	eventsParseSpan.Finish()
 	return events, nil, &nextCursor
 }
+
+func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, error) {
+	workspace, _ := r.GetWorkspace(workspaceId)
+
+	slackClient := slack.New(*workspace.SlackAccessToken)
+	filteredNewChannels := []model.SlackChannel{}
+	existingChannels, _ := workspace.IntegratedSlackChannels()
+
+	getConversationsParam := slack.GetConversationsParameters{
+		Limit: 1000,
+		// public_channel is for public channels in the Slack workspace
+		// im is for all individuals in the Slack workspace
+		Types: []string{"public_channel", "im"},
+	}
+	allSlackChannelsFromAPI := []slack.Channel{}
+
+	// Slack paginates the channels/people listing.
+	for {
+		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+		if err != nil {
+			return &filteredNewChannels, e.Wrap(err, "error getting Slack channels from Slack.")
+		}
+
+		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+		if cursor == "" {
+			break
+		}
+
+	}
+
+	// We need to get the users in the Slack channel in order to get their name.
+	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+	users, err := slackClient.GetUsers()
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to get users"))
+	}
+
+	newChannels := []model.SlackChannel{}
+	for _, channel := range allSlackChannelsFromAPI {
+		newChannel := model.SlackChannel{}
+
+		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
+		if channel.User != "" {
+			var userToFind *slack.User
+			for _, user := range users {
+				if user.ID == channel.User {
+					userToFind = &user
+					break
+				}
+			}
+
+			if userToFind != nil {
+				// Filter out Slack Bots.
+				if userToFind.IsBot || userToFind.Name == "slackbot" {
+					continue
+				}
+				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
+			}
+		} else {
+			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
+		}
+
+		newChannel.WebhookChannelID = channel.ID
+		newChannels = append(newChannels, newChannel)
+	}
+
+	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
+	for _, newChannel := range newChannels {
+		log.Println(newChannel.WebhookChannel)
+		channelAlreadyExists := false
+
+		for _, existingChannel := range existingChannels {
+			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
+				channelAlreadyExists = true
+				break
+			}
+		}
+
+		if !channelAlreadyExists {
+			filteredNewChannels = append(filteredNewChannels, newChannel)
+		}
+	}
+
+	existingChannels = append(existingChannels, filteredNewChannels...)
+
+	return &existingChannels, nil
+}
