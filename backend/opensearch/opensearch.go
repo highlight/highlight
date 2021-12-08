@@ -239,7 +239,13 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(index Index, query string, count int, results interface{}) (resultCount int64, err error) {
+func (c *Client) Search(index Index, projectID int, query string, count int, results interface{}) (resultCount int64, err error) {
+	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
+		return 0, e.Wrap(err, "query is not valid JSON")
+	}
+
+	query = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+
 	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s}`, count, query))
 	search := opensearchapi.SearchRequest{
 		Index: []string{GetIndex(index)},

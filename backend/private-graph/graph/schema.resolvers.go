@@ -3020,8 +3020,13 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 }
 
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not in project")
+	}
+
 	results := []model.Session{}
-	resultCount, err := r.getOpenSearchQuery(ctx, opensearch.IndexSessions, projectID, query, count, &results)
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, &results)
 	if err != nil {
 		return nil, err
 	}

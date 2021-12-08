@@ -504,10 +504,6 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 	}
 }
 
-func (r *queryResolver) getOpenSearchQuery(ctx context.Context, index opensearch.Index, projectID int, query string, count int, results interface{}) (resultCount int64, err error) {
-	return r.OpenSearch.Search(index, query, count, results)
-}
-
 func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
 		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")

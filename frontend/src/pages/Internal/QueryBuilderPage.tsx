@@ -130,6 +130,7 @@ const QueryBuilderPage: React.FC = () => {
                 [ft.type + '_' + ft.name]: {
                     label: ft.name,
                     type: 'text',
+                    valueSources: ['value'],
                 },
             }),
             {}
@@ -217,34 +218,11 @@ const QueryBuilderPage: React.FC = () => {
             />
             <div className="query-builder-result">
                 <div>
-                    Query string:{' '}
-                    <pre>
-                        {JSON.stringify(
-                            QbUtils.queryString(state.tree, state.config)
-                        )}
-                    </pre>
-                </div>
-                <div>
                     Elastic:{' '}
                     <pre>
                         {JSON.stringify(
                             parseGroup(QbUtils.getTree(state.tree))
                         )}
-                        {/* <JsonViewer
-                            collapsed={false}
-                            src={
-                                QbUtils.elasticSearchFormat(
-                                    state.tree,
-                                    state.config
-                                ) || {}
-                            }
-                        /> */}
-                        {/* {JSON.stringify(
-                            QbUtils.elasticSearchFormat(
-                                state.tree,
-                                state.config
-                            )
-                        )} */}
                     </pre>
                 </div>
                 <div>
