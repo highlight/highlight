@@ -22,7 +22,8 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3016,6 +3017,38 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return sessionList, nil
+}
+
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
+	results := []model.Session{}
+	resultCount, err := r.getOpenSearchQuery(ctx, opensearch.IndexSessions, projectID, query, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: resultCount,
+	}, nil
+}
+
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not in project")
+	}
+
+	res := []*model.Field{}
+
+	if err := r.DB.Raw(`
+		SELECT DISTINCT type, name
+		FROM fields
+		WHERE project_id = ?
+	`, projectID).Scan(&res).Error; err != nil {
+		return nil, e.Wrap(err, "error querying field types for project")
+	}
+
+	return res, nil
 }
 
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {

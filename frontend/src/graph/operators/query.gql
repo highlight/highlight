@@ -311,6 +311,49 @@ mutation SendAdminWorkspaceInvite(
     )
 }
 
+query GetFieldTypes($project_id: ID!) {
+    field_types(project_id: $project_id) {
+        type
+        name
+    }
+}
+
+query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
+    sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
+        sessions {
+            id
+            secure_id
+            fingerprint
+            identifier
+            os_name
+            os_version
+            browser_name
+            browser_version
+            city
+            state
+            postal
+            created_at
+            language
+            length
+            active_length
+            enable_recording_network_contents
+            viewed
+            starred
+            processed
+            fields {
+                name
+                value
+                type
+                id
+            }
+            first_time
+            user_properties
+            event_counts
+        }
+        totalCount
+    }
+}
+
 query GetSessions(
     $project_id: ID!
     $count: Int!

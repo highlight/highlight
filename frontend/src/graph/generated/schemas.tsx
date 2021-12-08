@@ -610,6 +610,8 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
+    sessions_opensearch: SessionResults;
+    field_types: Array<Field>;
     billingDetailsForProject: BillingDetails;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -780,6 +782,16 @@ export type QuerySessionsArgs = {
     lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
+};
+
+export type QuerySessions_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
+    query: Scalars['String'];
+};
+
+export type QueryField_TypesArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QueryBillingDetailsForProjectArgs = {
