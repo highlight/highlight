@@ -62,7 +62,11 @@ const parseRule = (rule: JsonRule): any => {
             };
         case 'not_equal':
             return {
-                term: { 'fields.KeyValue': `${field}_${value}` },
+                bool: {
+                    must_not: {
+                        term: { 'fields.KeyValue': `${field}_${value}` },
+                    },
+                },
             };
         case 'like':
             return {
@@ -72,14 +76,22 @@ const parseRule = (rule: JsonRule): any => {
             };
         case 'not_like':
             return {
-                wildcard: {
-                    'fields.KeyValue': { value: `${field}_*${value}*` },
+                bool: {
+                    must_not: {
+                        wildcard: {
+                            'fields.KeyValue': { value: `${field}_*${value}*` },
+                        },
+                    },
                 },
             };
         case 'is_not_empty':
             return { term: { 'fields.Key': field } };
         case 'is_empty':
-            return { term: { 'fields.Key': field } };
+            return {
+                bool: {
+                    must_not: { term: { 'fields.Key': field } },
+                },
+            };
     }
 };
 
@@ -156,6 +168,8 @@ const QueryBuilderPage: React.FC = () => {
         fields,
         operators,
     };
+
+    config.settings.showNot = false;
 
     const [state, setState] = useState({
         tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config),
