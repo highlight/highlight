@@ -579,12 +579,14 @@ const SessionSegment = ({
                 }}
             >
                 <div
+                    className={styles.sliderRailPlayedSegment}
                     style={{
                         backgroundColor: playedColor,
                         height: '100%',
-                        width: `${
-                            Math.min(Math.max(currentRawPercent, 0), 1) * 100
-                        }%`,
+                        transform: `scaleX(${Math.min(
+                            Math.max(currentRawPercent, 0),
+                            1
+                        )})`,
                     }}
                 ></div>
             </div>

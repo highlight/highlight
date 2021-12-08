@@ -33,6 +33,7 @@ export const sliderMargin: string;
 export const sliderPopover: string;
 export const sliderPopoverTime: string;
 export const sliderRail: string;
+export const sliderRailPlayedSegment: string;
 export const sliderSegment: string;
 export const sliderWrapper: string;
 export const speedControlContainer: string;

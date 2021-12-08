@@ -42,6 +42,12 @@
     width: 100%;
 }
 
+.sliderRailPlayedSegment {
+    height: 100%;
+    transform-origin: left;
+    width: 100%;
+}
+
 .livePlayerRail {
     animation-duration: 2s;
     animation-fill-mode: forwards;
