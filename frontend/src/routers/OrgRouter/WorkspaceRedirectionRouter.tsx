@@ -23,6 +23,7 @@ export const WorkspaceRedirectionRouter = () => {
         error: o_error,
         data: o_data,
     } = useGetProjectsQuery();
+    console.log(`ooga booga why ${o_loading} ${JSON.stringify(o_data)}`);
 
     const history = useHistory();
 
@@ -42,6 +43,7 @@ export const WorkspaceRedirectionRouter = () => {
         (p) => p?.workspace_id === workspace_id
     )[0]?.id;
 
+    console.log(`ooga booga ${JSON.stringify(o_data)}`);
     return (
         <Redirect
             to={

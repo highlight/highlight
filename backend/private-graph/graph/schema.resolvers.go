@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -446,7 +446,7 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
-	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	domain, err := r.getVerifiedAdminEmailDomain(admin)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting custom verified admin email domain")
 	}
@@ -3110,7 +3110,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	}
 
 	projects := []*model.Project{}
-	if err := r.DB.Order("name ASC").Model(&model.Project{}).Where(`
+	if err := r.DB.Debug().Order("name ASC").Model(&model.Project{}).Where(`
 		id IN (
 			SELECT project_id
 			FROM project_admins
@@ -3154,7 +3154,7 @@ func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
 		return 0, e.Wrap(err, "error getting count of workspaces for admin")
 	}
 
-	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	domain, err := r.getVerifiedAdminEmailDomain(admin)
 	if err != nil {
 		log.Error(err)
 		return workspacesCount, nil
@@ -3180,7 +3180,7 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
-	domain, err := r.getCustomVerifiedAdminEmailDomain(admin)
+	domain, err := r.getVerifiedAdminEmailDomain(admin)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting custom verified admin email domain")
 	}

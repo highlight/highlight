@@ -5,6 +5,7 @@ import Select from '@components/Select/Select';
 import Tag from '@components/Tag/Tag';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -23,7 +24,9 @@ const SwitchWorkspace = () => {
     const [actionText, setActionText] = useState('Enter');
     const { setIsLoading } = useAppLoadingContext();
 
-    const joinWorkspaceMutation = useJoinWorkspaceMutation();
+    const joinWorkspaceMutation = useJoinWorkspaceMutation({
+        refetchQueries: [namedOperations.Query.GetProjects],
+    });
     const [joinWorkspace, { loading: joinLoading }] = joinWorkspaceMutation;
 
     const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -97,6 +100,7 @@ const SwitchWorkspace = () => {
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
+        console.log(`ooga booga here`);
         if (
             !!data?.workspaces &&
             data.workspaces.some(
@@ -104,6 +108,7 @@ const SwitchWorkspace = () => {
                     !!workspace?.id && workspace.id === selectedWorkspace
             )
         ) {
+            console.log(`ooga booga there`);
             setShouldRedirect(true);
         } else if (
             !!data?.joinable_workspaces &&
@@ -112,8 +117,10 @@ const SwitchWorkspace = () => {
                     !!workspace?.id && workspace.id === selectedWorkspace
             )
         ) {
+            console.log(`ooga booga where?`);
             joinWorkspace({
                 variables: { workspace_id: selectedWorkspace },
+                refetchQueries: [namedOperations.Query.GetProjects],
             }).then((result) => {
                 if (!!result.data?.joinWorkspace) {
                     message.success('successfuly joined workspace!', 1);

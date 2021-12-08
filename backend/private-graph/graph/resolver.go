@@ -70,20 +70,6 @@ func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 	return r.Query().Admin(ctx)
 }
 
-func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
-	domain, err := r.getVerifiedAdminEmailDomain(admin)
-	if err != nil {
-		return "", e.Wrap(err, "error getting verified admin email domain")
-	}
-
-	// this is just the top 10 email domains as of June 6, 2016, and protonmail.com
-	if map[string]bool{"gmail.com": true, "yahoo.com": true, "hotmail.com": true, "aol.com": true, "hotmail.co.uk": true, "protonmail.com": true, "hotmail.fr": true, "msn.com": true, "yahoo.fr": true, "wanadoo.fr": true, "orange.fr": true}[strings.ToLower(domain)] {
-		return "", e.New("not a custom domain")
-	}
-
-	return domain, nil
-}
-
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
 	if admin.EmailVerified == nil || !*admin.EmailVerified {
 		return "", e.New("admin email is not verified")
@@ -232,7 +218,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	workspace := model.Workspace{}
-	if err := r.DB.Order("name asc").
+	if err := r.DB.Debug().Order("name asc").
 		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
