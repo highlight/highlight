@@ -507,92 +507,100 @@ export const Toolbar = React.memo(() => {
     );
 });
 
-const SessionSegment = ({
-    interval,
-    sliderClientX,
-    wrapperWidth,
-    getSliderTime,
-}: {
-    interval: ParsedSessionInterval;
-    sliderClientX: number;
-    wrapperWidth: number;
-    getSliderTime: (sliderTime: number) => number;
-}) => {
-    const { time } = useReplayerContext();
-    const playedColor = interval.active
-        ? 'var(--color-purple)'
-        : 'var(--color-gray-500)';
-    const unplayedColor = interval.active
-        ? 'var(--color-purple-200)'
-        : 'var(--color-gray-400)';
-    const currentRawPercent =
-        (time - interval.startTime) / (interval.endTime - interval.startTime);
-    const isPercentInInterval = (
-        sliderPercent: number,
-        interval: ParsedSessionInterval
-    ) =>
-        sliderPercent >= interval.startPercent &&
-        sliderPercent < interval.endPercent;
+const SessionSegment = React.memo(
+    ({
+        interval,
+        sliderClientX,
+        wrapperWidth,
+        getSliderTime,
+    }: {
+        interval: ParsedSessionInterval;
+        sliderClientX: number;
+        wrapperWidth: number;
+        getSliderTime: (sliderTime: number) => number;
+    }) => {
+        const { time } = useReplayerContext();
+        const playedColor = interval.active
+            ? 'var(--color-purple)'
+            : 'var(--color-gray-500)';
+        const unplayedColor = interval.active
+            ? 'var(--color-purple-200)'
+            : 'var(--color-gray-400)';
+        const currentRawPercent =
+            (time - interval.startTime) /
+            (interval.endTime - interval.startTime);
+        const isPercentInInterval = (
+            sliderPercent: number,
+            interval: ParsedSessionInterval
+        ) =>
+            sliderPercent >= interval.startPercent &&
+            sliderPercent < interval.endPercent;
 
-    return (
-        <div
-            className={styles.sliderSegment}
-            style={{
-                width: `${
-                    (interval.endPercent - interval.startPercent) * 100
-                }%`,
-            }}
-        >
+        return (
             <div
-                className={styles.sliderPopover}
+                className={styles.sliderSegment}
                 style={{
-                    left: `${Math.min(
-                        Math.max(sliderClientX - 40, 0),
-                        wrapperWidth - 80
-                    )}px`,
-                    display: isPercentInInterval(
-                        sliderClientX / wrapperWidth,
-                        interval
-                    )
-                        ? 'block'
-                        : 'none',
-                }}
-            >
-                <div>{interval.active ? 'Active' : 'Inactive'}</div>
-                <div className={styles.sliderPopoverTime}>
-                    {interval.active
-                        ? MillisToMinutesAndSeconds(
-                              getSliderTime(sliderClientX / wrapperWidth)
-                          )
-                        : MillisToMinutesAndSecondsVerbose(interval.duration)}
-                </div>
-            </div>
-            <div
-                className={classNames(
-                    styles.sliderRail,
-                    isPercentInInterval(sliderClientX / wrapperWidth, interval)
-                        ? styles.segmentHover
-                        : ''
-                )}
-                style={{
-                    backgroundColor: unplayedColor,
+                    width: `${
+                        (interval.endPercent - interval.startPercent) * 100
+                    }%`,
                 }}
             >
                 <div
-                    className={styles.sliderRailPlayedSegment}
+                    className={styles.sliderPopover}
                     style={{
-                        backgroundColor: playedColor,
-                        height: '100%',
-                        transform: `scaleX(${Math.min(
-                            Math.max(currentRawPercent, 0),
-                            1
-                        )})`,
+                        left: `${Math.min(
+                            Math.max(sliderClientX - 40, 0),
+                            wrapperWidth - 80
+                        )}px`,
+                        display: isPercentInInterval(
+                            sliderClientX / wrapperWidth,
+                            interval
+                        )
+                            ? 'block'
+                            : 'none',
                     }}
-                ></div>
+                >
+                    <div>{interval.active ? 'Active' : 'Inactive'}</div>
+                    <div className={styles.sliderPopoverTime}>
+                        {interval.active
+                            ? MillisToMinutesAndSeconds(
+                                  getSliderTime(sliderClientX / wrapperWidth)
+                              )
+                            : MillisToMinutesAndSecondsVerbose(
+                                  interval.duration
+                              )}
+                    </div>
+                </div>
+                <div
+                    className={classNames(
+                        styles.sliderRail,
+                        isPercentInInterval(
+                            sliderClientX / wrapperWidth,
+                            interval
+                        )
+                            ? styles.segmentHover
+                            : ''
+                    )}
+                    style={{
+                        backgroundColor: unplayedColor,
+                    }}
+                >
+                    <div
+                        className={styles.sliderRailPlayedSegment}
+                        style={{
+                            backgroundColor: playedColor,
+                            height: '100%',
+                            transform: `scaleX(${Math.min(
+                                Math.max(currentRawPercent, 0),
+                                1
+                            )})`,
+                        }}
+                    ></div>
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
+);
 
 export const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
