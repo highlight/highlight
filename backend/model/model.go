@@ -1440,18 +1440,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 						log.Errorf("panic: %+v\n%s", rec, buf)
 					}
 				}()
-				if isWebhookChannel {
-					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
-					err := slack.PostWebhook(
-						slackWebhookURL,
-						&msg,
-					)
-					if err != nil {
-						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg via webhook"))
-						return
-					}
-				} else if slackClient != nil {
+				if slackClient != nil {
 					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
@@ -1467,6 +1456,17 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 					if err != nil {
 						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via bot api"))
+						return
+					}
+				} else if isWebhookChannel {
+					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
+					err := slack.PostWebhook(
+						slackWebhookURL,
+						&msg,
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via webhook"))
 						return
 					}
 				} else {
