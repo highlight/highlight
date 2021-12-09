@@ -8,7 +8,6 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useDeleteProjectMutation,
     useGetProjectQuery,
@@ -66,17 +65,9 @@ export const DangerForm = () => {
                             )}
                             disabled={confirmationText !== data?.project?.name}
                             htmlType="submit"
+                            loading={deleteLoading}
                         >
-                            {deleteLoading ? (
-                                <CircularSpinner
-                                    style={{
-                                        fontSize: 18,
-                                        color: 'var(--text-primary-inverted)',
-                                    }}
-                                />
-                            ) : (
-                                'Delete'
-                            )}
+                            Delete
                         </Button>
                     </div>
                 </>
