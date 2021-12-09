@@ -57,7 +57,7 @@ export const DangerForm = () => {
                             }}
                         />
                         <Button
-                            trackingId="DeleteWorkspace"
+                            trackingId="DeleteProject"
                             danger
                             type="primary"
                             className={classNames(
