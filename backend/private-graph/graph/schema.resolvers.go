@@ -2009,7 +2009,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 }
 
 func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
@@ -2025,6 +2025,12 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 
 	if err := r.DB.Create(registrationData).Error; err != nil {
 		return nil, e.Wrap(err, "error creating registration")
+	}
+
+	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
+		"EligibleForTrialExtension": false,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
 	}
 
 	return &model.T, nil
