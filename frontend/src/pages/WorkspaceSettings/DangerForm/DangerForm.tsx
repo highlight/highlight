@@ -8,7 +8,6 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useDeleteProjectMutation,
     useGetProjectQuery,
@@ -43,13 +42,13 @@ export const DangerForm = () => {
             ) : (
                 <>
                     <p className={styles.dangerSubTitle}>
-                        This will immediately remove all team members and
-                        projects, and cancel your subscription. Please type '
-                        {`${data?.project?.name}`}' to confirm.
+                        This will immediately delete all session and errors in
+                        this project. Please type '{`${data?.project?.name}`}'
+                        to confirm.
                     </p>
                     <div className={styles.dangerRow}>
                         <Input
-                            placeholder={`Please type '${data?.project?.name}'`}
+                            placeholder={`${data?.project?.name}`}
                             name="text"
                             value={confirmationText}
                             onChange={(e) => {
@@ -57,7 +56,7 @@ export const DangerForm = () => {
                             }}
                         />
                         <Button
-                            trackingId="DeleteWorkspace"
+                            trackingId="DeleteProject"
                             danger
                             type="primary"
                             className={classNames(
@@ -65,17 +64,10 @@ export const DangerForm = () => {
                                 styles.deleteButton
                             )}
                             disabled={confirmationText !== data?.project?.name}
+                            htmlType="submit"
+                            loading={deleteLoading}
                         >
-                            {deleteLoading ? (
-                                <CircularSpinner
-                                    style={{
-                                        fontSize: 18,
-                                        color: 'var(--text-primary-inverted)',
-                                    }}
-                                />
-                            ) : (
-                                'Delete'
-                            )}
+                            Delete
                         </Button>
                     </div>
                 </>
