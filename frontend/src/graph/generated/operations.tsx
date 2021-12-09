@@ -1802,15 +1802,17 @@ export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
 }>;
 
 export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
-    billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
-        Types.BillingDetails,
-        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
-    > & {
-            plan: { __typename?: 'Plan' } & Pick<
-                Types.Plan,
-                'type' | 'quota' | 'interval' | 'membersLimit'
-            >;
-        };
+    billingDetailsForProject?: Types.Maybe<
+        { __typename?: 'BillingDetails' } & Pick<
+            Types.BillingDetails,
+            'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+        > & {
+                plan: { __typename?: 'Plan' } & Pick<
+                    Types.Plan,
+                    'type' | 'quota' | 'interval' | 'membersLimit'
+                >;
+            }
+    >;
     workspace_for_project?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
