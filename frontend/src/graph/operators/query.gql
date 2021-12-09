@@ -318,6 +318,12 @@ query GetFieldTypes($project_id: ID!) {
     }
 }
 
+query GetFieldsOpensearch($project_id: ID!, $count: Int!, $query: String!) {
+    fields_opensearch(project_id: $project_id, count: $count, query: $query) {
+        value
+    }
+}
+
 query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
     sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
         sessions {

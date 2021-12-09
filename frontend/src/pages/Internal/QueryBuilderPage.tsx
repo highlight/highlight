@@ -5,7 +5,9 @@ import 'react-awesome-query-builder/lib/css/styles.css';
 import 'react-awesome-query-builder/lib/css/compact_styles.css'; //optional, for more compact styles
 
 import Button from '@components/Button/Button/Button';
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import {
+    useGetFieldsOpensearchLazyQuery,
     useGetFieldTypesQuery,
     useGetSessionsOpenSearchLazyQuery,
 } from '@graph/hooks';
@@ -16,6 +18,7 @@ import {
     JsonRule,
     Operator,
     Query,
+    Type,
     TypedMap,
     Utils as QbUtils,
 } from 'react-awesome-query-builder';
@@ -120,8 +123,12 @@ const QueryBuilderPage: React.FC = () => {
 
     const [
         getSessions,
-        { error, data: sessionsData, called, refetch },
+        { data: sessionsData },
     ] = useGetSessionsOpenSearchLazyQuery({ fetchPolicy: 'no-cache' });
+
+    const [getFields, { data: fieldsData }] = useGetFieldsOpensearchLazyQuery({
+        fetchPolicy: 'no-cache',
+    });
 
     const fields =
         data?.field_types.reduce(
@@ -129,7 +136,7 @@ const QueryBuilderPage: React.FC = () => {
                 ...a,
                 [ft.type + '_' + ft.name]: {
                     label: ft.name,
-                    type: 'text',
+                    type: 'zanetest',
                     valueSources: ['value'],
                 },
             }),
@@ -163,11 +170,29 @@ const QueryBuilderPage: React.FC = () => {
         },
     };
 
+    const types: TypedMap<Type> = {
+        zanetest: {
+            valueSources: ['value'],
+            defaultOperator: 'equal',
+            widgets: {
+                zanetest: {
+                    operators: ['equal', 'not_equal'],
+                    widgetProps: {
+                        valuePlaceholder: 'Time',
+                        timeFormat: 'h:mm:ss A',
+                        use12Hours: true,
+                    },
+                },
+            },
+        },
+    };
+
     // You need to provide your own config. See below 'Config format'
     const config: Config = {
         ...InitialConfig,
         fields,
         operators,
+        types,
     };
 
     config.settings.showNot = false;
@@ -185,8 +210,8 @@ const QueryBuilderPage: React.FC = () => {
         // Tip: for better performance you can apply `throttle` - see `examples/demo`
         setState({ tree: immutableTree, config: config });
 
-        const jsonTree = QbUtils.getTree(immutableTree);
-        console.log('jsonTree', jsonTree);
+        // const jsonTree = QbUtils.getTree(immutableTree);
+        // console.log('jsonTree', jsonTree);
         // `jsonTree` can be saved to backend, and later loaded to `queryValue`
     };
 
@@ -234,6 +259,11 @@ const QueryBuilderPage: React.FC = () => {
                         Submit
                     </Button>
                 </div>
+            </div>
+            <div>
+                <JsonViewer
+                    src={sessionsData?.sessions_opensearch.sessions ?? {}}
+                />
             </div>
         </div>
     );

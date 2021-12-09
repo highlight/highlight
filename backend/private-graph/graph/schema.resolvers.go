@@ -3031,6 +3031,31 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	return res, nil
 }
 
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not in project")
+	}
+
+	q := fmt.Sprintf(`"multi_match": {
+      "query": "%s",
+      "type": "bool_prefix",
+      "fields": [
+        "Value",
+        "Value._2gram",
+        "Value._3gram"
+      ]
+    }`, query)
+
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {

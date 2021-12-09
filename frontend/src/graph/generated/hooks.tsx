@@ -4138,6 +4138,68 @@ export type GetFieldTypesQueryResult = Apollo.QueryResult<
     Types.GetFieldTypesQuery,
     Types.GetFieldTypesQueryVariables
 >;
+export const GetFieldsOpensearchDocument = gql`
+    query GetFieldsOpensearch($project_id: ID!, $count: Int!, $query: String!) {
+        fields_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetFieldsOpensearchQuery__
+ *
+ * To run a query within a React component, call `useGetFieldsOpensearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFieldsOpensearchQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
+}
+export function useGetFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
+}
+export type GetFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchQuery
+>;
+export type GetFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchLazyQuery
+>;
+export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetFieldsOpensearchQuery,
+    Types.GetFieldsOpensearchQueryVariables
+>;
 export const GetSessionsOpenSearchDocument = gql`
     query GetSessionsOpenSearch(
         $project_id: ID!
