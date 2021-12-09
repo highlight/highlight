@@ -4814,7 +4814,7 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
@@ -16071,14 +16071,11 @@ func (ec *executionContext) _Query_billingDetailsForProject(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.BillingDetails)
 	fc.Result = res
-	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
+	return ec.marshalOBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -25751,9 +25748,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_billingDetailsForProject(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "billingDetails":
@@ -29518,6 +29512,13 @@ func (ec *executionContext) marshalOAverageSessionLength2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._AverageSessionLength(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BillingDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

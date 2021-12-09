@@ -103,7 +103,7 @@ const ApplicationPicker = () => {
                                 icon: <SvgPlusIcon />,
                                 action: () => {
                                     history.push(
-                                        `/w/${currentWorkspace!.id}/new`
+                                        `/w/${currentWorkspace?.id}/new`
                                     );
                                 },
                             },
@@ -126,7 +126,7 @@ const ApplicationPicker = () => {
                                 icon: <SvgSettingsIcon />,
                                 action: () => {
                                     history.push(
-                                        `/w/${currentWorkspace!.id}/team`
+                                        `/w/${currentWorkspace?.id}/team`
                                     );
                                 },
                             },

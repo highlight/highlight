@@ -624,7 +624,7 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
-    billingDetailsForProject: BillingDetails;
+    billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;

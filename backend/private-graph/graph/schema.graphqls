@@ -597,7 +597,7 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
