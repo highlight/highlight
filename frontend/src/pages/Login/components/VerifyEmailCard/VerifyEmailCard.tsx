@@ -18,7 +18,7 @@ interface Props {
 const VerifyEmailCard = ({ onStartHandler }: Props) => {
     const { setIsLoading } = useAppLoadingContext();
     const { data, stopPolling } = useGetAdminQuery({
-        pollInterval: 1000,
+        pollInterval: 500,
     });
     const [
         sendingVerificationEmailLoading,
@@ -34,6 +34,7 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     useEffect(() => {
         if (isEmailVerified) {
             stopPolling();
+            window.location.reload();
         } else {
             // Show the Intercom message after 5 seconds in case the user needs help.
             setTimeout(() => {

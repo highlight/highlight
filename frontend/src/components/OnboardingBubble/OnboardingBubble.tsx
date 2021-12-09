@@ -84,6 +84,17 @@ const OnboardingBubble = () => {
     });
 
     useEffect(() => {
+        if (data?.isIntegrated && data?.workspace?.id) {
+            window.Intercom('update', {
+                company: {
+                    id: data.workspace.id,
+                    is_integrated: data.isIntegrated,
+                },
+            });
+        }
+    }, [data]);
+
+    useEffect(() => {
         if (data) {
             const STEPS: OnboardingStep[] = [];
             STEPS.push({

@@ -194,6 +194,24 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
+func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	admin.Name = &adminDetails.Name
+	admin.UserDefinedRole = &adminDetails.UserDefinedRole
+	admin.Referral = &adminDetails.Referral
+
+	if err := r.DB.Save(admin).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
@@ -1148,92 +1166,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 			return false, e.Wrap(err, "error updating slack access token in workspace")
 		}
 	}
-
-	slackClient := slack.New(resp.AccessToken)
-
-	getConversationsParam := slack.GetConversationsParameters{
-		Limit: 1000,
-		// public_channel is for public channels in the Slack workspace
-		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
-	}
-	allSlackChannelsFromAPI := []slack.Channel{}
-
-	// Slack paginates the channels/people listing.
-	for {
-		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
-		if err != nil {
-			return false, e.Wrap(err, "error getting Slack channels from Slack.")
-		}
-
-		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
-
-		if cursor == "" {
-			break
-		}
-
-	}
-
-	// We need to get the users in the Slack channel in order to get their name.
-	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
-	users, err := slackClient.GetUsers()
-	if err != nil {
-		log.Error(e.Wrap(err, "failed to get users"))
-	}
-
-	newChannels := []model.SlackChannel{}
-	for _, channel := range allSlackChannelsFromAPI {
-		newChannel := model.SlackChannel{}
-
-		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
-		if channel.User != "" {
-			var userToFind *slack.User
-			for _, user := range users {
-				if user.ID == channel.User {
-					userToFind = &user
-					break
-				}
-			}
-
-			if userToFind != nil {
-				// Filter out Slack Bots.
-				if userToFind.IsBot || userToFind.Name == "slackbot" {
-					continue
-				}
-				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
-			}
-		} else {
-			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
-		}
-
-		newChannel.WebhookChannelID = channel.ID
-		newChannels = append(newChannels, newChannel)
-	}
-
-	existingChannels, err := workspace.IntegratedSlackChannels()
-
-	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
-	filteredNewChannels := []model.SlackChannel{}
-	for _, newChannel := range newChannels {
-		channelAlreadyExists := false
-
-		for _, existingChannel := range existingChannels {
-			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
-				channelAlreadyExists = true
-				break
-			}
-		}
-
-		if !channelAlreadyExists {
-			filteredNewChannels = append(filteredNewChannels, newChannel)
-		}
-	}
-
-	if err != nil {
-		return false, e.Wrap(err, "error retrieving existing slack channels")
-	}
-
-	existingChannels = append(existingChannels, filteredNewChannels...)
+	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
 	channelBytes, err := json.Marshal(existingChannels)
 	if err != nil {
 		return false, e.Wrap(err, "error marshaling existing channels")
@@ -1246,6 +1179,42 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	return true, nil
+}
+
+func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (*modelInputs.SlackSyncResponse, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	response := modelInputs.SlackSyncResponse{
+		Success:               true,
+		NewChannelsAddedCount: 0,
+	}
+	if err != nil {
+		return &response, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return &response, err
+	}
+	slackChannels, newChannelsCount, err := r.GetSlackChannelsFromSlack(workspace.ID)
+
+	if err != nil {
+		return &response, err
+	}
+
+	channelBytes, err := json.Marshal(slackChannels)
+	if err != nil {
+		return &response, e.Wrap(err, "error marshaling slack channels")
+	}
+	channelString := string(channelBytes)
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return &response, e.Wrap(err, "error updating workspace slack channels")
+	}
+
+	response.NewChannelsAddedCount = newChannelsCount
+
+	return &response, nil
 }
 
 func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
@@ -2041,7 +2010,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 }
 
 func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
@@ -2057,6 +2026,12 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 
 	if err := r.DB.Create(registrationData).Error; err != nil {
 		return nil, e.Wrap(err, "error creating registration")
+	}
+
+	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
+		"EligibleForTrialExtension": false,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
 	}
 
 	return &model.T, nil
@@ -3251,8 +3226,8 @@ func (r *queryResolver) WorkspacesCount(ctx context.Context) (int64, error) {
 			SELECT COUNT(*)
 			FROM workspaces
 			WHERE id NOT IN (
-					SELECT workspace_id 
-					FROM workspace_admins 
+					SELECT workspace_id
+					FROM workspace_admins
 					WHERE admin_id = ? )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
 		`, admin.ID, domain).Scan(&joinableWorkspacesCount).Error; err != nil {
@@ -3277,8 +3252,8 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 			SELECT *
 			FROM workspaces
 			WHERE id NOT IN (
-			    SELECT workspace_id 
-			    FROM workspace_admins 
+			    SELECT workspace_id
+			    FROM workspace_admins
 			    WHERE admin_id = ?
 			    )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))

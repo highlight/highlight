@@ -66,6 +66,9 @@ const EditAlertsPage = () => {
                     identifierOptions={
                         alertsPayload?.identifier_suggestion || []
                     }
+                    isSlackIntegrated={
+                        alertsPayload?.is_integrated_with_slack || false
+                    }
                     // @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
                     onDeleteHandler={(alertId) => {

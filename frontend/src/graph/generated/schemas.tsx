@@ -347,6 +347,12 @@ export type SearchParams = {
     show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
+export type AdminAboutYouDetails = {
+    name: Scalars['String'];
+    user_defined_role: Scalars['String'];
+    referral: Scalars['String'];
+};
+
 export type ErrorSearchParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -417,6 +423,8 @@ export type Admin = {
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
     email_verified?: Maybe<Scalars['Boolean']>;
+    referral?: Maybe<Scalars['String']>;
+    user_defined_role?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
@@ -461,6 +469,12 @@ export type SessionComment = {
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
     tags: Array<Maybe<Scalars['String']>>;
+};
+
+export type SlackSyncResponse = {
+    __typename?: 'SlackSyncResponse';
+    success: Scalars['Boolean'];
+    newChannelsAddedCount: Scalars['Int'];
 };
 
 export type SessionCommentTag = {
@@ -918,6 +932,7 @@ export type QuerySubscription_DetailsArgs = {
 
 export type Mutation = {
     __typename?: 'Mutation';
+    updateAdminAboutYouDetails: Scalars['Boolean'];
     createProject?: Maybe<Project>;
     createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
@@ -949,6 +964,7 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    syncSlackIntegration: SlackSyncResponse;
     createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
     createErrorAlert?: Maybe<ErrorAlert>;
@@ -970,6 +986,10 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationUpdateAdminAboutYouDetailsArgs = {
+    adminDetails: AdminAboutYouDetails;
 };
 
 export type MutationCreateProjectArgs = {
@@ -1146,6 +1166,10 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
+};
+
+export type MutationSyncSlackIntegrationArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type MutationCreateDefaultAlertsArgs = {

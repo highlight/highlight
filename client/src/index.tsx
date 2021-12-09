@@ -305,9 +305,24 @@ export class Highlight {
         this.events = [];
         this.errors = [];
         this.messages = [];
+
+        if (window.Intercom) {
+            window.Intercom('onShow', () => {
+                window.Intercom('update', {
+                    highlightSessionURL: this.getCurrentSessionURL(),
+                });
+            });
+        }
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
+        if (!user_identifier || user_identifier === '') {
+            console.warn(
+                `Highlight's identify() call was passed an empty identifier.`,
+                { user_identifier, user_object }
+            );
+            return;
+        }
         if (!this._shouldSendRequest()) {
             return;
         }
@@ -994,6 +1009,12 @@ export class Highlight {
 }
 
 (window as any).Highlight = Highlight;
+interface HighlightWindow extends Window {
+    Highlight: Highlight;
+    Intercom?: any;
+}
+
+declare var window: HighlightWindow;
 
 declare global {
     interface Console {

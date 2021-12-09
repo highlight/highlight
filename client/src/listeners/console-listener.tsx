@@ -89,7 +89,10 @@ export function ConsoleListener(
         if (window) {
             const errorHandler = (event: ErrorEvent) => {
                 const { message, error } = event;
-                const trace = ErrorStackParser.parse(error);
+                let trace: any[] = [];
+                if (error) {
+                    trace = ErrorStackParser.parse(error);
+                }
                 const payload = [
                     stringify(message, logOptions.stringifyOptions),
                 ];

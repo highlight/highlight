@@ -62,9 +62,11 @@ type ComplexityRoot struct {
 		ID               func(childComplexity int) int
 		Name             func(childComplexity int) int
 		PhotoURL         func(childComplexity int) int
+		Referral         func(childComplexity int) int
 		Role             func(childComplexity int) int
 		SlackIMChannelID func(childComplexity int) int
 		UID              func(childComplexity int) int
+		UserDefinedRole  func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -266,6 +268,8 @@ type ComplexityRoot struct {
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
+		SyncSlackIntegration             func(childComplexity int, projectID int) int
+		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
@@ -522,6 +526,11 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	SlackSyncResponse struct {
+		NewChannelsAddedCount func(childComplexity int) int
+		Success               func(childComplexity int) int
+	}
+
 	SocialLink struct {
 		Link func(childComplexity int) int
 		Type func(childComplexity int) int
@@ -617,6 +626,7 @@ type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
 }
 type MutationResolver interface {
+	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
@@ -648,6 +658,7 @@ type MutationResolver interface {
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error)
+	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
@@ -820,6 +831,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Admin.PhotoURL(childComplexity), true
 
+	case "Admin.referral":
+		if e.complexity.Admin.Referral == nil {
+			break
+		}
+
+		return e.complexity.Admin.Referral(childComplexity), true
+
 	case "Admin.role":
 		if e.complexity.Admin.Role == nil {
 			break
@@ -840,6 +858,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.UID(childComplexity), true
+
+	case "Admin.user_defined_role":
+		if e.complexity.Admin.UserDefinedRole == nil {
+			break
+		}
+
+		return e.complexity.Admin.UserDefinedRole(childComplexity), true
 
 	case "AverageSessionLength.length":
 		if e.complexity.AverageSessionLength.Length == nil {
@@ -2043,6 +2068,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SubmitRegistrationForm(childComplexity, args["workspace_id"].(int), args["team_size"].(string), args["role"].(string), args["use_case"].(string), args["heard_about"].(string), args["pun"].(*string)), true
+
+	case "Mutation.syncSlackIntegration":
+		if e.complexity.Mutation.SyncSlackIntegration == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_syncSlackIntegration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SyncSlackIntegration(childComplexity, args["project_id"].(int)), true
+
+	case "Mutation.updateAdminAboutYouDetails":
+		if e.complexity.Mutation.UpdateAdminAboutYouDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAdminAboutYouDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAdminAboutYouDetails(childComplexity, args["adminDetails"].(model.AdminAboutYouDetails)), true
 
 	case "Mutation.updateAllowMeterOverage":
 		if e.complexity.Mutation.UpdateAllowMeterOverage == nil {
@@ -3835,6 +3884,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
+	case "SlackSyncResponse.newChannelsAddedCount":
+		if e.complexity.SlackSyncResponse.NewChannelsAddedCount == nil {
+			break
+		}
+
+		return e.complexity.SlackSyncResponse.NewChannelsAddedCount(childComplexity), true
+
+	case "SlackSyncResponse.success":
+		if e.complexity.SlackSyncResponse.Success == nil {
+			break
+		}
+
+		return e.complexity.SlackSyncResponse.Success(childComplexity), true
+
 	case "SocialLink.link":
 		if e.complexity.SocialLink.Link == nil {
 			break
@@ -4492,6 +4555,12 @@ type SearchParams {
     show_live_sessions: Boolean
 }
 
+input AdminAboutYouDetails {
+    name: String!
+    user_defined_role: String!
+    referral: String!
+}
+
 input ErrorSearchParamsInput {
     date_range: DateRangeInput
     os: String
@@ -4556,6 +4625,8 @@ type Admin {
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
+    referral: String
+    user_defined_role: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -4597,6 +4668,11 @@ type SessionComment {
     type: SessionCommentType!
     metadata: Any
     tags: [String]!
+}
+
+type SlackSyncResponse {
+    success: Boolean!
+    newChannelsAddedCount: Int!
 }
 
 type SessionCommentTag {
@@ -4814,6 +4890,7 @@ type Query {
 }
 
 type Mutation {
+    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
@@ -4911,6 +4988,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
         project_id: ID!
         alert_types: [String!]!
@@ -6512,6 +6590,36 @@ func (ec *executionContext) field_Mutation_submitRegistrationForm_args(ctx conte
 		}
 	}
 	args["pun"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_syncSlackIntegration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAdminAboutYouDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AdminAboutYouDetails
+	if tmp, ok := rawArgs["adminDetails"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adminDetails"))
+		arg0, err = ec.unmarshalNAdminAboutYouDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAboutYouDetails(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["adminDetails"] = arg0
 	return args, nil
 }
 
@@ -8619,6 +8727,70 @@ func (ec *executionContext) _Admin_email_verified(ctx context.Context, field gra
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_referral(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Referral, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_user_defined_role(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserDefinedRole, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AverageSessionLength_length(ctx context.Context, field graphql.CollectedField, obj *model.AverageSessionLength) (ret graphql.Marshaler) {
@@ -12164,6 +12336,48 @@ func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.
 	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateAdminAboutYouDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateAdminAboutYouDetails_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAdminAboutYouDetails(rctx, args["adminDetails"].(model.AdminAboutYouDetails))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13380,6 +13594,48 @@ func (ec *executionContext) _Mutation_addSlackBotIntegrationToProject(ctx contex
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_syncSlackIntegration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_syncSlackIntegration_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SyncSlackIntegration(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SlackSyncResponse)
+	fc.Result = res
+	return ec.marshalNSlackSyncResponse2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createDefaultAlerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -21088,6 +21344,76 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SlackSyncResponse_success(ctx context.Context, field graphql.CollectedField, obj *model.SlackSyncResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SlackSyncResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SlackSyncResponse_newChannelsAddedCount(ctx context.Context, field graphql.CollectedField, obj *model.SlackSyncResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SlackSyncResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NewChannelsAddedCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SocialLink_type(ctx context.Context, field graphql.CollectedField, obj *model.SocialLink) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23457,6 +23783,42 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Context, obj interface{}) (model.AdminAboutYouDetails, error) {
+	var it model.AdminAboutYouDetails
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_defined_role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
+			it.UserDefinedRole, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referral":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
+			it.Referral, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, obj interface{}) (model.DateRangeInput, error) {
 	var it model.DateRangeInput
 	var asMap = obj.(map[string]interface{})
@@ -23943,6 +24305,10 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
 		case "email_verified":
 			out.Values[i] = ec._Admin_email_verified(ctx, field, obj)
+		case "referral":
+			out.Values[i] = ec._Admin_referral(ctx, field, obj)
+		case "user_defined_role":
+			out.Values[i] = ec._Admin_user_defined_role(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24875,6 +25241,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "updateAdminAboutYouDetails":
+			out.Values[i] = ec._Mutation_updateAdminAboutYouDetails(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createProject":
 			out.Values[i] = ec._Mutation_createProject(ctx, field)
 		case "createWorkspace":
@@ -24943,6 +25314,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
 		case "addSlackBotIntegrationToProject":
 			out.Values[i] = ec._Mutation_addSlackBotIntegrationToProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "syncSlackIntegration":
+			out.Values[i] = ec._Mutation_syncSlackIntegration(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -26808,6 +27184,38 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var slackSyncResponseImplementors = []string{"SlackSyncResponse"}
+
+func (ec *executionContext) _SlackSyncResponse(ctx context.Context, sel ast.SelectionSet, obj *model.SlackSyncResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, slackSyncResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SlackSyncResponse")
+		case "success":
+			out.Values[i] = ec._SlackSyncResponse_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "newChannelsAddedCount":
+			out.Values[i] = ec._SlackSyncResponse_newChannelsAddedCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var socialLinkImplementors = []string{"SocialLink"}
 
 func (ec *executionContext) _SocialLink(ctx context.Context, sel ast.SelectionSet, obj *model.SocialLink) graphql.Marshaler {
@@ -27459,6 +27867,11 @@ func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrun�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNAdminAboutYouDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAboutYouDetails(ctx context.Context, v interface{}) (model.AdminAboutYouDetails, error) {
+	res, err := ec.unmarshalInputAdminAboutYouDetails(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNAny2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {
@@ -28668,6 +29081,20 @@ func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionResults(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {
+	return ec._SlackSyncResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSlackSyncResponse2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v *model.SlackSyncResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SlackSyncResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialType(ctx context.Context, v interface{}) (model.SocialType, error) {

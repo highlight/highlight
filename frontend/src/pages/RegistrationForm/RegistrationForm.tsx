@@ -193,6 +193,14 @@ const RegistrationForm = () => {
                         htmlType="submit"
                         disabled={!isValid}
                         loading={loading}
+                        onClick={() => {
+                            window.Intercom('update', {
+                                company: {
+                                    id: workspace_id,
+                                    applied_for_extension: true,
+                                },
+                            });
+                        }}
                     >
                         Get Free Software! 🍭
                     </Button>

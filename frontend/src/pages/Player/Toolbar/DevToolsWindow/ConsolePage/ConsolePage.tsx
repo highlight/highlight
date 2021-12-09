@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
 import { H } from 'highlight.run';
@@ -15,7 +16,6 @@ import React, {
 } from 'react';
 import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';

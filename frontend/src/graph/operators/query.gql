@@ -516,6 +516,15 @@ query GetAdmin {
     }
 }
 
+query GetAdminAboutYou {
+    admin {
+        id
+        name
+        user_defined_role
+        referral
+    }
+}
+
 query GetProject($id: ID!) {
     project(id: $id) {
         id

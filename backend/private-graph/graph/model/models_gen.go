@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type AdminAboutYouDetails struct {
+	Name            string `json:"name"`
+	UserDefinedRole string `json:"user_defined_role"`
+	Referral        string `json:"referral"`
+}
+
 type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }
@@ -142,6 +148,11 @@ type SearchParamsInput struct {
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
+}
+
+type SlackSyncResponse struct {
+	Success               bool `json:"success"`
+	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
 }
 
 type SocialLink struct {

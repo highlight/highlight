@@ -1,6 +1,7 @@
 import { namedOperations } from '@graph/operations';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
+import { GetBaseURL } from '@util/window';
 import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -43,7 +44,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     });
     const [loading, setLoading] = useState<boolean>(false);
 
-    const slackUrl = getSlackUrl(type);
+    const slackUrl = getSlackUrl(type, project_id);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -104,12 +105,13 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
 
 export const getSlackUrl = (
     type: 'Personal' | 'Organization',
-    redirectUri = window.location.href
+    projectId: string
 ) => {
     const slackScopes =
         type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
+    const redirectUriOrigin = `${GetBaseURL()}/${projectId}`;
 
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUri}`;
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/alerts`;
 
     return slackUrl;
 };

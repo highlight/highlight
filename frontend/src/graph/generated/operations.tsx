@@ -464,6 +464,14 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
+    adminDetails: Types.AdminAboutYouDetails;
+}>;
+
+export type UpdateAdminAboutYouDetailsMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'updateAdminAboutYouDetails'>;
+
 export type CreateRageClickAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -1051,6 +1059,17 @@ export type UpdateAllowMeterOverageMutation = { __typename?: 'Mutation' } & {
             Types.Workspace,
             'id' | 'allow_meter_overage'
         >
+    >;
+};
+
+export type SyncSlackIntegrationMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & {
+    syncSlackIntegration: { __typename?: 'SlackSyncResponse' } & Pick<
+        Types.SlackSyncResponse,
+        'success' | 'newChannelsAddedCount'
     >;
 };
 
@@ -1804,6 +1823,19 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'slack_im_channel_id'
             | 'role'
             | 'email_verified'
+        >
+    >;
+};
+
+export type GetAdminAboutYouQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetAdminAboutYouQuery = { __typename?: 'Query' } & {
+    admin?: Types.Maybe<
+        { __typename?: 'Admin' } & Pick<
+            Types.Admin,
+            'id' | 'name' | 'user_defined_role' | 'referral'
         >
     >;
 };
@@ -2813,6 +2845,7 @@ export const namedOperations = {
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
+        GetAdminAboutYou: 'GetAdminAboutYou' as const,
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
@@ -2881,6 +2914,7 @@ export const namedOperations = {
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
         CreateErrorAlert: 'CreateErrorAlert' as const,
+        UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
         CreateRageClickAlert: 'CreateRageClickAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
@@ -2900,6 +2934,7 @@ export const namedOperations = {
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
+        SyncSlackIntegration: 'SyncSlackIntegration' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {

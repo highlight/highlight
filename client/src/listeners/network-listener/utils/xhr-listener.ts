@@ -139,8 +139,7 @@ export const XHRListener = (
 
                 if (
                     (this.responseType === '' ||
-                        this.responseType === 'text' ||
-                        this.responseType === 'json') &&
+                        this.responseType === 'text') &&
                     this.responseText
                 ) {
                     responseModel['body'] = this.responseText;
@@ -151,6 +150,10 @@ export const XHRListener = (
                     const response = await blob.text();
                     responseModel['body'] = response;
                     responseModel['size'] = blob.size;
+                } else {
+                    try {
+                        responseModel['body'] = this.response;
+                    } catch {}
                 }
             }
 
