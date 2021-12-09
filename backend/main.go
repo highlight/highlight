@@ -336,7 +336,10 @@ func main() {
 		if handlerFlag != nil && *handlerFlag != "" {
 			w.GetHandler(*handlerFlag)()
 		} else {
-			w.Start()
+			go func() {
+				w.Start()
+			}()
+			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
 	} else if runtimeParsed == util.All {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
