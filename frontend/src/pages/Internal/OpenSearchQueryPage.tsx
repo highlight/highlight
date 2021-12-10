@@ -37,7 +37,7 @@ const InitialConfig = AntdConfig; // or MaterialConfig or BasicConfig
 // You can load query value from your backend storage (for saving see `Query.onChange()`)
 const queryValue: JsonGroup = { id: QbUtils.uuid(), type: 'group' };
 
-interface ZaneTestWidgetProps {
+interface AutoCompleteWidgetProps {
     setValue: (v: string) => void;
     placeholder: string;
     config: any;
@@ -48,8 +48,8 @@ interface ZaneTestWidgetProps {
     maxLength: number;
 }
 
-const ZaneTestWidget: React.FC<ZaneTestWidgetProps> = (
-    props: ZaneTestWidgetProps
+const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
+    props: AutoCompleteWidgetProps
 ) => {
     const [getFields, { data }] = useGetFieldsOpensearchLazyQuery({
         fetchPolicy: 'no-cache',
@@ -89,9 +89,6 @@ const ZaneTestWidget: React.FC<ZaneTestWidgetProps> = (
                 value={value}
                 placeholder={placeholder}
                 onChange={handleChange}
-                onFocus={() => {
-                    handleChange(value ?? '');
-                }}
                 options={options}
                 {...customProps}
             />
@@ -252,7 +249,7 @@ const OpenSearchQueryPage: React.FC = () => {
             valueSrc: 'value',
             factory: (props) => {
                 // @ts-expect-error
-                return <ZaneTestWidget {...props} />;
+                return <AutoCompleteWidget {...props} />;
             },
             formatValue: (val) => val,
             mongoFormatValue: (val) => val,
@@ -272,9 +269,6 @@ const OpenSearchQueryPage: React.FC = () => {
     };
 
     config.settings.showNot = false;
-    config.settings.customFieldSelectProps = {
-        showSearch: true,
-    };
 
     const [state, setState] = useState({
         tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config),
