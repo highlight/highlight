@@ -19,6 +19,12 @@ const InternalRouter = () => {
                     )}
                 />
                 <Route
+                    path="/_internal/opensearch-query-builder"
+                    component={lazy(
+                        () => import('../../pages/Internal/OpenSearchQueryPage')
+                    )}
+                />
+                <Route
                     exact
                     path="/_internal"
                     component={lazy(

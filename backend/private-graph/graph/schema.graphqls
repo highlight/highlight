@@ -598,6 +598,19 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
+    sessions_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): SessionResults!
+    field_types(project_id: ID!): [Field!]!
+    fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_type: String!
+        field_name: String!
+        query: String!
+    ): [Field!]!
     billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user

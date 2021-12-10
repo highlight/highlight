@@ -22,7 +22,8 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3008,6 +3009,82 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return sessionList, nil
+}
+
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.Session{}
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: resultCount,
+	}, nil
+}
+
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	res := []*model.Field{}
+
+	if err := r.DB.Raw(`
+		SELECT DISTINCT type, name
+		FROM fields
+		WHERE project_id = ?
+	`, projectID).Scan(&res).Error; err != nil {
+		return nil, e.Wrap(err, "error querying field types for project")
+	}
+
+	return res, nil
+}
+
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldType, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}, 
+			{"multi_match": {
+				"query": "%s",
+				"type": "phrase_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldType, fieldName, query)
+	}
+
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
