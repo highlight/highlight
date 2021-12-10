@@ -37,6 +37,7 @@ import {
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
+import { initializeFeedbackWidget } from 'ui/feedback-widget/feedback-widget';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -339,6 +340,14 @@ export class Highlight {
         }
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
+        window.sessionStorage.setItem(
+            'highlightIdentifier',
+            user_identifier.toString()
+        );
+        window.sessionStorage.setItem(
+            'highlightUserObject',
+            JSON.stringify(user_object)
+        );
         try {
             await this.graphqlSDK.identifySession({
                 session_id: this.sessionData.sessionID.toString(),
@@ -470,6 +479,9 @@ export class Highlight {
         try {
             if (organization_id) {
                 this.organizationID = org_id;
+            }
+            if (true) {
+                initializeFeedbackWidget();
             }
             let storedSessionData = JSON.parse(
                 window.sessionStorage.getItem('sessionData') || '{}'
