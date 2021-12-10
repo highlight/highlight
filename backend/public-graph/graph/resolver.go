@@ -807,8 +807,14 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					}
 					if group.MappedStackTrace != nil {
 						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
 					} else {
 						matched, err = regexp.MatchString(*g, group.StackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
 					}
 					if matched {
 						break
