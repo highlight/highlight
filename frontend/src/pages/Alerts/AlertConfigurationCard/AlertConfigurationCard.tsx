@@ -679,14 +679,11 @@ export const AlertConfigurationCard = ({
                             <section>
                                 <h3>Ignore Regex Groups</h3>
                                 <p>
-                                    Configure regex groups to ignore errors by.
-                                    If an error event matches one of these
+                                    Configure{' '}
+                                    <a href="https://regex101.com/">regex</a>{' '}
+                                    groups to ignore errors by. If an error
+                                    string or stack trace matches one of these
                                     groups, the error will not create an alert.
-                                    Only{' '}
-                                    <a href="https://regex101.com/">
-                                        valid regex
-                                    </a>{' '}
-                                    will work.
                                 </p>
                                 <Form.Item name="regexGroups">
                                     <Select
