@@ -2544,6 +2544,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'LastAdminToEditID'
                     | 'ThresholdWindow'
+                    | 'RegexGroups'
                     | 'id'
                     | 'Type'
                     | 'Name'

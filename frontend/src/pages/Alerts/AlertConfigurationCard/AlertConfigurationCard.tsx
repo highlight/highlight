@@ -675,26 +675,6 @@ export const AlertConfigurationCard = ({
                             </section>
                         )}
 
-                        {type === ALERT_TYPE.Error && (
-                            <section>
-                                <h3>Ignore Regex Groups</h3>
-                                <p>
-                                    Configure{' '}
-                                    <a href="https://regex101.com/">regex</a>{' '}
-                                    groups to ignore errors by. If an error
-                                    string or stack trace matches one of these
-                                    groups, the error will not create an alert.
-                                </p>
-                                <Form.Item name="regexGroups">
-                                    <Select
-                                        className={styles.channelSelect}
-                                        mode="tags"
-                                        placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
-                                        onChange={onRegexGroupsChange}
-                                    />
-                                </Form.Item>
-                            </section>
-                        )}
                         <section>
                             <h3>Channels to Notify</h3>
                             <p>
@@ -803,6 +783,27 @@ export const AlertConfigurationCard = ({
                                 />
                             </Form.Item>
                         </section>
+
+                        {type === ALERT_TYPE.Error && (
+                            <section>
+                                <h3>Regex Patterns to Ignore</h3>
+                                <p>
+                                    Configure a set of regex patterns to ignore
+                                    errors with. Any error body or stack trace
+                                    that matches the below patterns will NOT
+                                    result in an alert.
+                                </p>
+                                <Form.Item name="regexGroups">
+                                    <Select
+                                        className={styles.channelSelect}
+                                        mode="tags"
+                                        placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
+                                        onChange={onRegexGroupsChange}
+                                        defaultValue={alert?.RegexGroups}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
 
                         {supportsExcludeRules && (
                             <section>

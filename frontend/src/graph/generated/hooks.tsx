@@ -6897,6 +6897,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             LastAdminToEditID
             ThresholdWindow
+            RegexGroups
             id
             Type
             Name
