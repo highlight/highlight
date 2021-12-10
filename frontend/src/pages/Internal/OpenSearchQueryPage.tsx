@@ -32,7 +32,7 @@ import {
 } from 'react-awesome-query-builder';
 import AntdConfig from 'react-awesome-query-builder/lib/config/antd';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import AsyncSelect from 'react-select/async';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 
 // Choose your skin (ant/material/vanilla):
 const InitialConfig = AntdConfig; // or MaterialConfig or BasicConfig
@@ -86,18 +86,30 @@ const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
     };
 
     return (
-        <Col style={{ width: '200px' }}>
-            <AsyncSelect
+        <Col style={{ width: '300px' }}>
+            <AsyncCreatableSelect
+                allowCreateWhileLoading={false}
                 placeholder={placeholder}
                 isClearable
                 cacheOptions
                 value={{ label: value, value: value }}
-                styles={SharedSelectStyleProps}
+                styles={{
+                    ...SharedSelectStyleProps,
+                    option: (provided) => ({
+                        ...provided,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        direction: 'ltr',
+                        textAlign: 'left',
+                    }),
+                }}
                 loadOptions={generateOptions}
                 components={{
                     DropdownIndicator: () => null,
                     IndicatorSeparator: () => null,
                 }}
+                formatCreateLabel={(inputValue: string) => inputValue}
                 defaultOptions
                 onChange={onChange}
                 isDisabled={readonly}
