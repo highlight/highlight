@@ -3068,7 +3068,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 			{"term":{"Name.keyword":"%s"}}, 
 			{"multi_match": {
 				"query": "%s",
-				"type": "phrase_prefix",
+				"type": "bool_prefix",
 				"fields": [
 					"Value",
 					"Value._2gram",

@@ -6,11 +6,12 @@ import 'react-awesome-query-builder/lib/css/compact_styles.css'; //optional, for
 
 import Button from '@components/Button/Button/Button';
 import {
-    useGetFieldsOpensearchLazyQuery,
+    useGetFieldsOpensearchQuery,
     useGetFieldTypesQuery,
     useGetSessionsOpenSearchLazyQuery,
 } from '@graph/hooks';
-import { AutoComplete, Col } from 'antd';
+import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
+import { Col } from 'antd';
 import React, { useState } from 'react';
 import {
     Builder,
@@ -30,6 +31,8 @@ import {
     JsonGroup,
 } from 'react-awesome-query-builder';
 import AntdConfig from 'react-awesome-query-builder/lib/config/antd';
+import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
+import AsyncSelect from 'react-select/async';
 
 // Choose your skin (ant/material/vanilla):
 const InitialConfig = AntdConfig; // or MaterialConfig or BasicConfig
@@ -51,45 +54,53 @@ interface AutoCompleteWidgetProps {
 const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
     props: AutoCompleteWidgetProps
 ) => {
-    const [getFields, { data }] = useGetFieldsOpensearchLazyQuery({
+    const { refetch } = useGetFieldsOpensearchQuery({
+        skip: true,
         fetchPolicy: 'no-cache',
     });
 
     const [first, ...rest] = props.field.split('_');
 
-    const handleChange = (v: string) => {
-        getFields({
-            variables: {
-                project_id: '1',
-                count: 10,
-                field_type: first,
-                field_name: rest.join('_'),
-                query: v,
-            },
+    const { placeholder, customProps, value, readonly } = props;
+
+    const generateOptions = async (
+        input: string
+    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+        const fetched = await refetch({
+            project_id: '1',
+            count: 10,
+            field_type: first,
+            field_name: rest.join('_'),
+            query: input,
         });
-        props.setValue(v);
+        const suggestions = (
+            fetched.data.fields_opensearch ?? []
+        )?.map((f) => ({ label: f.value, value: f.value }));
+        return suggestions;
     };
 
-    const { config, placeholder, customProps, value, readonly } = props;
-    const { renderSize } = config.settings;
-
-    const options =
-        data?.fields_opensearch.map((f) => ({
-            label: f.value,
-            value: f.value,
-        })) ?? [];
+    const onChange = (
+        current: ValueType<{ label: string; value: string }, false>
+    ) => {
+        props.setValue(current?.value ?? '');
+    };
 
     return (
-        <Col>
-            <AutoComplete
-                style={{ width: '200px' }}
-                disabled={readonly}
-                key="widget-text"
-                size={renderSize}
-                value={value}
+        <Col style={{ width: '200px' }}>
+            <AsyncSelect
                 placeholder={placeholder}
-                onChange={handleChange}
-                options={options}
+                isClearable
+                cacheOptions
+                value={{ label: value, value: value }}
+                styles={SharedSelectStyleProps}
+                loadOptions={generateOptions}
+                components={{
+                    DropdownIndicator: () => null,
+                    IndicatorSeparator: () => null,
+                }}
+                defaultOptions
+                onChange={onChange}
+                isDisabled={readonly}
                 {...customProps}
             />
         </Col>
@@ -227,7 +238,7 @@ const OpenSearchQueryPage: React.FC = () => {
     const types: Types = {
         autocomplete: {
             valueSources: ['value'],
-            defaultOperator: 'equal',
+            defaultOperator: 'is',
             widgets: {
                 autocomplete: {
                     operators: [
@@ -285,7 +296,10 @@ const OpenSearchQueryPage: React.FC = () => {
 
     const renderBuilder = (props: BuilderProps) => (
         <div className="query-builder-container" style={{ padding: '10px' }}>
-            <div className="query-builder qb-lite">
+            <div
+                className="query-builder qb-lite"
+                style={{ minHeight: '400px' }}
+            >
                 <Builder {...props} />
             </div>
         </div>
