@@ -96,6 +96,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             threshold_window: 30,
             name: 'Error',
+            regex_groups: [],
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -217,6 +218,11 @@ export const AlertConfigurationCard = ({
             refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
         };
         setLoading(true);
+        console.log(
+            `ooga booga ${form.getFieldValue(
+                'regexGroups'
+            )} ${form.getFieldValue('regex_groups')}`
+        );
         if (isCreatingNewAlert) {
             try {
                 switch (type) {
@@ -226,6 +232,9 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: lookbackPeriod,
+                                regex_groups: form.getFieldValue(
+                                    'regex_groups'
+                                ),
                             },
                         });
                         break;
@@ -331,6 +340,9 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 error_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
+                                regex_groups: form.getFieldValue(
+                                    'regex_groups'
+                                ),
                             },
                         });
                         break;
@@ -542,6 +554,12 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onRegexGroupsChange = (_value: any) => {
+        const regex_groups = _value;
+        form.setFieldsValue({ regex_groups });
+        setFormTouched(true);
+    };
+
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
         form.setFieldsValue({ excludedEnvironments });
         setFormTouched(true);
@@ -657,6 +675,30 @@ export const AlertConfigurationCard = ({
                                         mode="multiple"
                                         placeholder={`Pick the track properties that you would like to get alerted for.`}
                                         onChange={onTrackPropertiesChange}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
+
+                        {type === ALERT_TYPE.Error && (
+                            <section>
+                                <h3>Ignore Regex Groups</h3>
+                                <p>
+                                    Configure regex groups to ignore errors by.
+                                    If an error event matches one of these
+                                    groups, the error will not create an alert.
+                                    Only{' '}
+                                    <a href="https://regex101.com/">
+                                        valid regex
+                                    </a>{' '}
+                                    will work.
+                                </p>
+                                <Form.Item name="regexGroups">
+                                    <Select
+                                        className={styles.channelSelect}
+                                        mode="tags"
+                                        placeholder={`regex`}
+                                        onChange={onRegexGroupsChange}
                                     />
                                 </Form.Item>
                             </section>
