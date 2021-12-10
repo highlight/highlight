@@ -1523,6 +1523,8 @@ export type GetFieldTypesQuery = { __typename?: 'Query' } & {
 export type GetFieldsOpensearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
+    field_type: Types.Scalars['String'];
+    field_name: Types.Scalars['String'];
     query: Types.Scalars['String'];
 }>;
 

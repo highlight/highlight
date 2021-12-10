@@ -29,8 +29,6 @@ import {
     ImmutableTree,
     JsonGroup,
 } from 'react-awesome-query-builder';
-import AntdWidgets from 'react-awesome-query-builder/lib/components/widgets/antd';
-// For AntDesign widgets only:
 import AntdConfig from 'react-awesome-query-builder/lib/config/antd';
 
 // Choose your skin (ant/material/vanilla):
@@ -91,6 +89,9 @@ const ZaneTestWidget: React.FC<ZaneTestWidgetProps> = (
                 value={value}
                 placeholder={placeholder}
                 onChange={handleChange}
+                onFocus={() => {
+                    handleChange(value ?? '');
+                }}
                 options={options}
                 {...customProps}
             />
@@ -113,8 +114,6 @@ const parseChildren = (children: { [id: string]: JsonItem }): any => {
     }
     return ret;
 };
-
-const { TextWidget, NumberWidget, SelectWidget } = AntdWidgets;
 
 const parseRule = (rule: JsonRule): any => {
     const field = rule.properties.field;
@@ -178,7 +177,7 @@ const parseGroup = (tree: JsonGroup): any => {
     }
 };
 
-const QueryBuilderPage: React.FC = () => {
+const OpenSearchQueryPage: React.FC = () => {
     const { data, loading } = useGetFieldTypesQuery({
         variables: { project_id: '1' },
     });
@@ -252,7 +251,6 @@ const QueryBuilderPage: React.FC = () => {
             type: 'select',
             valueSrc: 'value',
             factory: (props) => {
-                console.log('widget props!', props);
                 // @ts-expect-error
                 return <ZaneTestWidget {...props} />;
             },
@@ -288,12 +286,7 @@ const QueryBuilderPage: React.FC = () => {
     }
 
     const onChange = (immutableTree: ImmutableTree, config: Config) => {
-        // Tip: for better performance you can apply `throttle` - see `examples/demo`
         setState({ tree: immutableTree, config: config });
-
-        // const jsonTree = QbUtils.getTree(immutableTree);
-        // console.log('jsonTree', jsonTree);
-        // `jsonTree` can be saved to backend, and later loaded to `queryValue`
     };
 
     const renderBuilder = (props: BuilderProps) => (
@@ -350,4 +343,4 @@ const QueryBuilderPage: React.FC = () => {
     );
 };
 
-export default QueryBuilderPage;
+export default OpenSearchQueryPage;

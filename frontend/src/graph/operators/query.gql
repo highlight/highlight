@@ -318,8 +318,20 @@ query GetFieldTypes($project_id: ID!) {
     }
 }
 
-query GetFieldsOpensearch($project_id: ID!, $count: Int!, $query: String!) {
-    fields_opensearch(project_id: $project_id, count: $count, query: $query) {
+query GetFieldsOpensearch(
+    $project_id: ID!
+    $count: Int!
+    $field_type: String!
+    $field_name: String!
+    $query: String!
+) {
+    fields_opensearch(
+        project_id: $project_id
+        count: $count
+        field_type: $field_type
+        field_name: $field_name
+        query: $query
+    ) {
         value
     }
 }

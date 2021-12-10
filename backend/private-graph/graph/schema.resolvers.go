@@ -3031,21 +3031,35 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	return res, nil
 }
 
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not in project")
 	}
 
-	q := fmt.Sprintf(`"multi_match": {
-      "query": "%s",
-      "type": "bool_prefix",
-      "fields": [
-        "Value",
-        "Value._2gram",
-        "Value._3gram"
-      ]
-    }`, query)
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldType, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}, 
+			{"multi_match": {
+				"query": "%s",
+				"type": "phrase_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldType, fieldName, query)
+	}
 
 	results := []*model.Field{}
 	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, &results)

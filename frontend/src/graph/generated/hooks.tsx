@@ -4139,10 +4139,18 @@ export type GetFieldTypesQueryResult = Apollo.QueryResult<
     Types.GetFieldTypesQueryVariables
 >;
 export const GetFieldsOpensearchDocument = gql`
-    query GetFieldsOpensearch($project_id: ID!, $count: Int!, $query: String!) {
+    query GetFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $field_type: String!
+        $field_name: String!
+        $query: String!
+    ) {
         fields_opensearch(
             project_id: $project_id
             count: $count
+            field_type: $field_type
+            field_name: $field_name
             query: $query
         ) {
             value
@@ -4164,6 +4172,8 @@ export const GetFieldsOpensearchDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
+ *      field_type: // value for 'field_type'
+ *      field_name: // value for 'field_name'
  *      query: // value for 'query'
  *   },
  * });

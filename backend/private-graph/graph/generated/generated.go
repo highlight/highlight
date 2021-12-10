@@ -331,7 +331,7 @@ type ComplexityRoot struct {
 		Events                       func(childComplexity int, sessionSecureID string) int
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
 		FieldTypes                   func(childComplexity int, projectID int) int
-		FieldsOpensearch             func(childComplexity int, projectID int, count int, query string) int
+		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		IdentifierSuggestion         func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack        func(childComplexity int, projectID int) int
@@ -717,7 +717,7 @@ type QueryResolver interface {
 	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
-	FieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model1.Field, error)
+	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model1.Field, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
@@ -2628,7 +2628,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string)), true
+		return e.complexity.Query.FieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string)), true
 
 	case "Query.identifier_suggestion":
 		if e.complexity.Query.IdentifierSuggestion == nil {
@@ -4862,7 +4862,13 @@ type Query {
         query: String!
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
-    fields_opensearch(project_id: ID!, count: Int!, query: String!): [Field!]!
+    fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_type: String!
+        field_name: String!
+        query: String!
+    ): [Field!]!
     billingDetailsForProject(project_id: ID!): BillingDetails!
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
@@ -7746,14 +7752,32 @@ func (ec *executionContext) field_Query_fields_opensearch_args(ctx context.Conte
 	}
 	args["count"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+	if tmp, ok := rawArgs["field_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_type"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["query"] = arg2
+	args["field_type"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["field_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_name"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["field_name"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg4
 	return args, nil
 }
 
@@ -16278,7 +16302,7 @@ func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string))
+		return ec.resolvers.Query().FieldsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
