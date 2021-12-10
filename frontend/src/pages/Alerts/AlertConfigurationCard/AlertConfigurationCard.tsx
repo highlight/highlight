@@ -218,11 +218,6 @@ export const AlertConfigurationCard = ({
             refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
         };
         setLoading(true);
-        console.log(
-            `ooga booga ${form.getFieldValue(
-                'regexGroups'
-            )} ${form.getFieldValue('regex_groups')}`
-        );
         if (isCreatingNewAlert) {
             try {
                 switch (type) {
