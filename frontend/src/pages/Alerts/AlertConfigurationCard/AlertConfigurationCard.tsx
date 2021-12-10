@@ -96,6 +96,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             threshold_window: 30,
             name: 'Error',
+            regex_groups: [],
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -226,6 +227,9 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: lookbackPeriod,
+                                regex_groups: form.getFieldValue(
+                                    'regex_groups'
+                                ),
                             },
                         });
                         break;
@@ -331,6 +335,9 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 error_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
+                                regex_groups: form.getFieldValue(
+                                    'regex_groups'
+                                ),
                             },
                         });
                         break;
@@ -542,6 +549,12 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onRegexGroupsChange = (_value: any) => {
+        const regex_groups = _value;
+        form.setFieldsValue({ regex_groups });
+        setFormTouched(true);
+    };
+
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
         form.setFieldsValue({ excludedEnvironments });
         setFormTouched(true);
@@ -661,6 +674,7 @@ export const AlertConfigurationCard = ({
                                 </Form.Item>
                             </section>
                         )}
+
                         <section>
                             <h3>Channels to Notify</h3>
                             <p>
@@ -769,6 +783,27 @@ export const AlertConfigurationCard = ({
                                 />
                             </Form.Item>
                         </section>
+
+                        {type === ALERT_TYPE.Error && (
+                            <section>
+                                <h3>Regex Patterns to Ignore</h3>
+                                <p>
+                                    Configure a set of regex patterns to ignore
+                                    errors with. Any error body or stack trace
+                                    that matches the below patterns will NOT
+                                    result in an alert.
+                                </p>
+                                <Form.Item name="regexGroups">
+                                    <Select
+                                        className={styles.channelSelect}
+                                        mode="tags"
+                                        placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
+                                        onChange={onRegexGroupsChange}
+                                        defaultValue={alert?.RegexGroups}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
 
                         {supportsExcludeRules && (
                             <section>

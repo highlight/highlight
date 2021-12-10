@@ -46,6 +46,10 @@ func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *mode
 	return obj.GetExcludedEnvironments()
 }
 
+func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	return obj.GetRegexGroups()
+}
+
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -1308,7 +1312,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1326,6 +1330,12 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		return nil, err
 	}
 
+	regexGroupsBytes, err := json.Marshal(regexGroups)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling regex groups")
+	}
+	regexGroupsString := string(regexGroupsBytes)
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1338,6 +1348,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 		},
+		RegexGroups: &regexGroupsString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -1350,7 +1361,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1372,6 +1383,11 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
+	regexGroupsBytes, err := json.Marshal(regexGroups)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling regex groups")
+	}
+	regexGroupsString := string(regexGroupsBytes)
 
 	alert.ChannelsToNotify = channelsString
 	alert.ExcludedEnvironments = envString
@@ -1379,6 +1395,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.ThresholdWindow = &thresholdWindow
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
+	alert.RegexGroups = &regexGroupsString
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
