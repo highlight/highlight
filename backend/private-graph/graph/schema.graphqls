@@ -489,6 +489,7 @@ type ErrorAlert {
     ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
+    RegexGroups: [String]!
 }
 
 type TrackProperty {
