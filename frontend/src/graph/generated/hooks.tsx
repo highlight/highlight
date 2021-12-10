@@ -1698,6 +1698,7 @@ export const CreateErrorAlertDocument = gql`
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
+        $regex_groups: [String]!
     ) {
         createErrorAlert(
             project_id: $project_id
@@ -1706,6 +1707,7 @@ export const CreateErrorAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            regex_groups: $regex_groups
         ) {
             id
             ChannelsToNotify {
@@ -1717,6 +1719,7 @@ export const CreateErrorAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            RegexGroups
         }
     }
 `;
@@ -1744,6 +1747,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
+ *      regex_groups: // value for 'regex_groups'
  *   },
  * });
  */
@@ -1897,6 +1901,7 @@ export const UpdateErrorAlertDocument = gql`
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
+        $regex_groups: [String]!
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -1906,6 +1911,7 @@ export const UpdateErrorAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            regex_groups: $regex_groups
         ) {
             Name
             ChannelsToNotify {
@@ -1916,6 +1922,7 @@ export const UpdateErrorAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            RegexGroups
         }
     }
 `;
@@ -1944,6 +1951,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
+ *      regex_groups: // value for 'regex_groups'
  *   },
  * });
  */
@@ -7114,6 +7122,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             LastAdminToEditID
             ThresholdWindow
+            RegexGroups
             id
             Type
             Name

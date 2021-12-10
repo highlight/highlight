@@ -439,6 +439,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    regex_groups:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -451,6 +454,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'RegexGroups'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -520,6 +524,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    regex_groups:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -531,6 +538,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'RegexGroups'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1878,15 +1886,17 @@ export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
 }>;
 
 export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
-    billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
-        Types.BillingDetails,
-        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
-    > & {
-            plan: { __typename?: 'Plan' } & Pick<
-                Types.Plan,
-                'type' | 'quota' | 'interval' | 'membersLimit'
-            >;
-        };
+    billingDetailsForProject?: Types.Maybe<
+        { __typename?: 'BillingDetails' } & Pick<
+            Types.BillingDetails,
+            'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+        > & {
+                plan: { __typename?: 'Plan' } & Pick<
+                    Types.Plan,
+                    'type' | 'quota' | 'interval' | 'membersLimit'
+                >;
+            }
+    >;
     workspace_for_project?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
@@ -2610,6 +2620,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'LastAdminToEditID'
                     | 'ThresholdWindow'
+                    | 'RegexGroups'
                     | 'id'
                     | 'Type'
                     | 'Name'

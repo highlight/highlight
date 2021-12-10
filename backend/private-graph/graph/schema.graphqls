@@ -489,6 +489,7 @@ type ErrorAlert {
     ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
+    RegexGroups: [String]!
 }
 
 type TrackProperty {
@@ -610,7 +611,7 @@ type Query {
         field_name: String!
         query: String!
     ): [Field!]!
-    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
@@ -771,6 +772,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -780,6 +782,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(

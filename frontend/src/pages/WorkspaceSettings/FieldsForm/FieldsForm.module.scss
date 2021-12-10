@@ -2,6 +2,10 @@
     display: grid;
     grid-template-columns: 120px 1fr;
     margin-bottom: var(--size-large);
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
 }
 
 .fieldKey {

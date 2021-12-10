@@ -542,6 +542,7 @@ export type ErrorAlert = {
     ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    RegexGroups: Array<Maybe<Scalars['String']>>;
 };
 
 export type TrackProperty = {
@@ -627,7 +628,7 @@ export type Query = {
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Field>;
-    billingDetailsForProject: BillingDetails;
+    billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -1203,6 +1204,7 @@ export type MutationCreateErrorAlertArgs = {
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    regex_groups: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateErrorAlertArgs = {
@@ -1213,6 +1215,7 @@ export type MutationUpdateErrorAlertArgs = {
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    regex_groups: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationDeleteErrorAlertArgs = {
