@@ -805,6 +805,14 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					if matched {
 						break
 					}
+					if group.MappedStackTrace != nil {
+						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
+					} else {
+						matched, err = regexp.MatchString(*g, group.StackTrace)
+					}
+					if matched {
+						break
+					}
 				}
 				if matched {
 					log.Warn("error event matches regex group, skipping alert...")
