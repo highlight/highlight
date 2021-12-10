@@ -759,6 +759,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -768,6 +769,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(
