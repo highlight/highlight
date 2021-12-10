@@ -692,7 +692,7 @@ export const AlertConfigurationCard = ({
                                     <Select
                                         className={styles.channelSelect}
                                         mode="tags"
-                                        placeholder={`regex`}
+                                        placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
                                         onChange={onRegexGroupsChange}
                                     />
                                 </Form.Item>
