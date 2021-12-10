@@ -93,7 +93,17 @@ const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
                 isClearable
                 cacheOptions
                 value={{ label: value, value: value }}
-                styles={SharedSelectStyleProps}
+                styles={{
+                    ...SharedSelectStyleProps,
+                    option: (provided) => ({
+                        ...provided,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        direction: 'ltr',
+                        textAlign: 'left',
+                    }),
+                }}
                 loadOptions={generateOptions}
                 components={{
                     DropdownIndicator: () => null,
