@@ -3014,7 +3014,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not in project")
+		return nil, nil
 	}
 
 	results := []model.Session{}
@@ -3032,7 +3032,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not in project")
+		return nil, nil
 	}
 
 	res := []*model.Field{}
@@ -3051,7 +3051,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not in project")
+		return nil, nil
 	}
 
 	var q string

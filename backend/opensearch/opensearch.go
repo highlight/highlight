@@ -263,7 +263,7 @@ func (c *Client) Search(index Index, projectID int, query string, count int, res
 	}
 
 	if err := searchResponse.Body.Close(); err != nil {
-		return 0, e.Wrap(err, "failed to read search response")
+		return 0, e.Wrap(err, "failed to close search response")
 	}
 
 	var response struct {
