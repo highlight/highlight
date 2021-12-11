@@ -70,6 +70,7 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
     }, onToggleFeedbackFormVisibility);
 
     const submitButton = createSubmitButton(submitButtonLabel);
+    const backdrop = createBackdrop();
 
     [
         headerContainer,
@@ -81,6 +82,7 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
         form.appendChild(element);
     });
     formContainer.appendChild(form);
+    formContainer.appendChild(backdrop);
 
     const launcherButton = createLauncherButton(onToggleFeedbackFormVisibility);
 
@@ -129,6 +131,7 @@ const createFormElement = (
     form.id = 'highlight-form';
 
     form.style.setProperty('position', 'fixed');
+    form.style.setProperty('z-index', '10');
     form.style.setProperty('transform', 'translate(-50%, -50%)');
     form.style.setProperty('top', '50%');
     form.style.setProperty('left', '50%');
@@ -153,6 +156,19 @@ const createFormElement = (
     form.appendChild(closeButton);
 
     return form;
+};
+
+const createBackdrop = () => {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'highlight-backdrop';
+    backdrop.style.setProperty('position', 'fixed');
+    backdrop.style.setProperty('top', '0');
+    backdrop.style.setProperty('left', '0');
+    backdrop.style.setProperty('width', '100vw');
+    backdrop.style.setProperty('height', '100vh');
+    backdrop.style.setProperty('background', 'hsl(0deg 0% 0% / 75%)');
+
+    return backdrop;
 };
 
 const createCloseButton = (onCloseHandler: () => void) => {
@@ -260,6 +276,8 @@ const createLauncherButton = (onClickHandler: () => void) => {
     const button = document.createElement('button');
     button.id = 'highlight-feedback-launcher-button';
     button.style.setProperty('border', '0');
+    button.style.setProperty('z-index', '10');
+    button.style.setProperty('position', 'relative');
     button.style.setProperty('height', '60px');
     button.style.setProperty('width', '60px');
     button.style.setProperty('border-radius', '50%');
