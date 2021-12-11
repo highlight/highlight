@@ -200,6 +200,7 @@ const createFormTitle = (label: string) => {
     formTitle.innerText = label;
     formTitle.style.setProperty('font-size', '24px');
     formTitle.style.setProperty('margin', '0');
+    formTitle.style.setProperty('font-weight', '500');
 
     return formTitle;
 };
@@ -210,6 +211,7 @@ const createFormSubTitle = (label: string) => {
     formTitle.style.setProperty('font-size', '16px');
     formTitle.style.setProperty('margin', '0 !important');
     formTitle.style.setProperty('margin-top', '8px', 'important');
+    formTitle.style.setProperty('margin-bottom', '0px', 'important');
     formTitle.style.setProperty('font-weight', '400');
     formTitle.style.setProperty('color', '#828282', 'important');
 
