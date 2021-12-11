@@ -18,15 +18,24 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
     const formContainer = createFormContainer(FORM_CONTAINER_ID);
 
     const headerContainer = document.createElement('div');
+    headerContainer.id = 'highlight-header-container';
     const formTitle = createFormTitle(title);
     const formSubTitle = createFormSubTitle(subTitle);
     [formTitle, formSubTitle].forEach((element) => {
         headerContainer.appendChild(element);
     });
 
-    const nameInput = createInput('text', 'Ada Lovelace');
-    const emailInput = createInput('email', 'ada@lovelace.org');
-    const verbatimInput = createTextArea();
+    const nameInput = createInput(
+        'text',
+        'Ada Lovelace',
+        'highlight-name-input'
+    );
+    const emailInput = createInput(
+        'email',
+        'ada@lovelace.org',
+        'highlight-email-input'
+    );
+    const verbatimInput = createTextArea('highlight-verbatim-input');
 
     const onToggleFeedbackFormVisibility = () => {
         if (document.body.querySelector(`#${FORM_CONTAINER_ID}`)) {
@@ -61,6 +70,7 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
     }, onToggleFeedbackFormVisibility);
 
     const submitButton = createSubmitButton(submitButtonLabel);
+    const backdrop = createBackdrop();
 
     [
         headerContainer,
@@ -72,6 +82,7 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
         form.appendChild(element);
     });
     formContainer.appendChild(form);
+    formContainer.appendChild(backdrop);
 
     const launcherButton = createLauncherButton(onToggleFeedbackFormVisibility);
 
@@ -117,8 +128,10 @@ const createFormElement = (
     onCloseHandler: () => void
 ) => {
     const form = document.createElement('form');
+    form.id = 'highlight-form';
 
     form.style.setProperty('position', 'fixed');
+    form.style.setProperty('z-index', '10');
     form.style.setProperty('transform', 'translate(-50%, -50%)');
     form.style.setProperty('top', '50%');
     form.style.setProperty('left', '50%');
@@ -143,6 +156,19 @@ const createFormElement = (
     form.appendChild(closeButton);
 
     return form;
+};
+
+const createBackdrop = () => {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'highlight-backdrop';
+    backdrop.style.setProperty('position', 'fixed');
+    backdrop.style.setProperty('top', '0');
+    backdrop.style.setProperty('left', '0');
+    backdrop.style.setProperty('width', '100vw');
+    backdrop.style.setProperty('height', '100vh');
+    backdrop.style.setProperty('background', 'hsl(0deg 0% 0% / 75%)');
+
+    return backdrop;
 };
 
 const createCloseButton = (onCloseHandler: () => void) => {
@@ -170,17 +196,20 @@ const createCloseButton = (onCloseHandler: () => void) => {
     return closeButton;
 };
 
-const createInput = (type: string, placeholder: string) => {
+const createInput = (type: string, placeholder: string, id: string) => {
     const input = document.createElement('input');
     input.type = type;
+    input.id = id;
     input.placeholder = placeholder;
+    input.style.setProperty('height', '40px');
     applyInputStyles(input);
 
     return input;
 };
 
-const createTextArea = () => {
+const createTextArea = (id: string) => {
     const textArea = document.createElement('textarea');
+    textArea.id = id;
     applyInputStyles(textArea);
 
     return textArea;
@@ -188,6 +217,7 @@ const createTextArea = () => {
 
 const createSubmitButton = (label: string) => {
     const submitButton = document.createElement('input');
+    submitButton.id = 'highlight-form-submit-button';
     applyButtonStyles(submitButton);
     submitButton.type = 'submit';
     submitButton.value = label;
@@ -197,23 +227,27 @@ const createSubmitButton = (label: string) => {
 
 const createFormTitle = (label: string) => {
     const formTitle = document.createElement('h1');
+    formTitle.id = 'highlight-form-title';
     formTitle.innerText = label;
     formTitle.style.setProperty('font-size', '24px');
     formTitle.style.setProperty('margin', '0');
+    formTitle.style.setProperty('font-weight', '500');
 
     return formTitle;
 };
 
 const createFormSubTitle = (label: string) => {
-    const formTitle = document.createElement('h2');
-    formTitle.innerText = label;
-    formTitle.style.setProperty('font-size', '16px');
-    formTitle.style.setProperty('margin', '0 !important');
-    formTitle.style.setProperty('margin-top', '8px', 'important');
-    formTitle.style.setProperty('font-weight', '400');
-    formTitle.style.setProperty('color', '#828282', 'important');
+    const subTitle = document.createElement('h2');
+    subTitle.id = 'highlight-form-sub-title';
+    subTitle.innerText = label;
+    subTitle.style.setProperty('font-size', '16px');
+    subTitle.style.setProperty('margin', '0 !important');
+    subTitle.style.setProperty('margin-top', '8px', 'important');
+    subTitle.style.setProperty('margin-bottom', '0px', 'important');
+    subTitle.style.setProperty('font-weight', '400');
+    subTitle.style.setProperty('color', '#828282', 'important');
 
-    return formTitle;
+    return subTitle;
 };
 
 const createContainer = (id: string) => {
@@ -240,7 +274,10 @@ const createFormContainer = (id: string) => {
 
 const createLauncherButton = (onClickHandler: () => void) => {
     const button = document.createElement('button');
+    button.id = 'highlight-feedback-launcher-button';
     button.style.setProperty('border', '0');
+    button.style.setProperty('z-index', '10');
+    button.style.setProperty('position', 'relative');
     button.style.setProperty('height', '60px');
     button.style.setProperty('width', '60px');
     button.style.setProperty('border-radius', '50%');
