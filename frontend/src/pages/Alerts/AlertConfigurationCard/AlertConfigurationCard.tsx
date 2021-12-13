@@ -839,7 +839,7 @@ export const AlertConfigurationCard = ({
                                     <Select
                                         className={styles.lookbackPeriodSelect}
                                         onChange={onCadenceChange}
-                                        options={CADENCE_PERIODS}
+                                        options={CADENCES}
                                     />
                                 </Form.Item>
                             </section>
@@ -973,7 +973,7 @@ export const AlertConfigurationCard = ({
     );
 };
 
-const CADENCE_PERIODS = [
+const CADENCES = [
     {
         displayValue: '1 second',
         value: '1',
@@ -1075,14 +1075,12 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 const DEFAULT_CADENCE = '15';
 
 const getCadenceOption = (seconds = DEFAULT_CADENCE): any => {
-    const option = CADENCE_PERIODS.find(
+    const option = CADENCES.find(
         (option) => option.value === seconds?.toString()
     );
 
     if (!option) {
-        return CADENCE_PERIODS.find(
-            (option) => option.value === DEFAULT_CADENCE
-        );
+        return CADENCES.find((option) => option.value === DEFAULT_CADENCE);
     }
 
     return option;
