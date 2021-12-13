@@ -953,6 +953,7 @@ type Alert struct {
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+	Cadence              int     `gorm:"default:15"`
 }
 
 type ErrorAlert struct {
