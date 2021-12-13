@@ -3330,7 +3330,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 		return nil, e.Wrap(err, "error querying project")
 	}
 	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Debug().Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
 	return alerts, nil
