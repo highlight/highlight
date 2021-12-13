@@ -166,7 +166,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         onCompleted: (data) => {
             if (data.session === null) {
                 setSessionViewability(SessionViewability.ERROR);
-            } else if (data.session?.within_billing_quota) {
+            } else if (data.session?.within_billing_quota || isHighlightAdmin) {
+                if (!data.session?.within_billing_quota && isHighlightAdmin) {
+                    alert(
+                        "btw this session is outside of the project's billing quota."
+                    );
+                }
                 if (isLoggedIn && session_secure_id !== 'repro') {
                     markSessionAsViewed({
                         variables: {
