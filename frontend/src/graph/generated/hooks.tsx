@@ -48,6 +48,7 @@ export const SessionPayloadFragmentFragmentDoc = gql`
             type
             metadata
         }
+        last_user_interaction_time
     }
 `;
 export const MarkSessionAsViewedDocument = gql`

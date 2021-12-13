@@ -1083,7 +1083,7 @@ export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & {
 
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
-} & Pick<Types.SessionPayload, 'events'> & {
+} & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
         errors: Array<
             Types.Maybe<
                 { __typename?: 'ErrorObject' } & Pick<

@@ -89,6 +89,7 @@ export interface ReplayerContextInterface {
     isPlayerReady: boolean;
     isLiveMode: boolean;
     setIsLiveMode: React.Dispatch<React.SetStateAction<boolean>>;
+    lastActiveTimestamp: number;
     /**
      * The percentage value of the current player time relative to the total duration.
      * `playerProgress` is `null` if there is no active session.

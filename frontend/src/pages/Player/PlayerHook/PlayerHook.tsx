@@ -98,6 +98,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [subscriptionEventsPayload, setSubscriptionEventsPayload] = useState<
         Array<HighlightEvent>
     >([]);
+    const [lastActiveTimestamp, setLastActiveTimestamp] = useState<number>(0);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -233,6 +234,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.VIEWABLE);
             setLoadedEventsIndex(0);
             setIsLiveMode(false);
+            setLastActiveTimestamp(0);
         },
         [setPlayerTimeToPersistance]
     );
@@ -270,6 +272,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                             // @ts-ignore The typedef for subscriptionData is incorrect
                             subscriptionData.data!.session_payload_appended
                                 .events!
+                        );
+                        setLastActiveTimestamp(
+                            // @ts-ignore The typedef for subscriptionData is incorrect
+                            subscriptionData.data!.session_payload_appended
+                                .last_user_interaction_time
                         );
                     }
                     // Prev is the value in Apollo cache - it is empty, don't bother updating it
@@ -778,6 +785,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             sessionViewability === SessionViewability.VIEWABLE,
         isLiveMode,
         setIsLiveMode,
+        lastActiveTimestamp,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime
