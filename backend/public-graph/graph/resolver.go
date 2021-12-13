@@ -1020,14 +1020,33 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
 
-			// If we see a snapshot event, attempt to inject CORS stylesheets.
-			for _, e := range parsedEvents.Events {
-				if e.Type == parse.FullSnapshot {
-					d, err := parse.InjectStylesheets(e.Data)
+			var lastUserInteractionTimestamp time.Time
+			for _, event := range parsedEvents.Events {
+				if event.Type == parse.FullSnapshot {
+					// If we see a snapshot event, attempt to inject CORS stylesheets.
+					d, err := parse.InjectStylesheets(event.Data)
 					if err != nil {
 						continue
 					}
-					e.Data = d
+					event.Data = d
+				} else if event.Type == parse.IncrementalSnapshot {
+					var mouseInteractionEventData parse.MouseInteractionEventData
+					err = json.Unmarshal(event.Data, &mouseInteractionEventData)
+					if err != nil {
+						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
+						continue
+					}
+					if mouseInteractionEventData.Source == nil {
+						// all user interaction events must have a source
+						continue
+					}
+					if _, ok := map[parse.EventSource]bool{
+						parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+						parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+					}[*mouseInteractionEventData.Source]; !ok {
+						continue
+					}
+					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
 			}
 
@@ -1039,6 +1058,11 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
+			}
+			if !lastUserInteractionTimestamp.IsZero() {
+				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
+					return e.Wrap(err, "error updating LastUserInteractionTime")
+				}
 			}
 		}
 		parseEventsSpan.Finish()

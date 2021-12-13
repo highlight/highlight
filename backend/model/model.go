@@ -480,8 +480,9 @@ type Session struct {
 	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
 	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
-	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
-	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
+	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
+	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
+	LastUserInteractionTime *time.Time `json:"last_user_interaction_time"`
 	// Custom properties
 	Viewed                         *bool   `json:"viewed"`
 	Starred                        *bool   `json:"starred"`
