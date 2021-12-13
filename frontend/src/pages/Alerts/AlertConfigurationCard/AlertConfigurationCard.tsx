@@ -77,6 +77,9 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
+    const [cadence, setCadence] = useState(
+        getCadenceOption(alert?.Cadence).value
+    );
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
@@ -97,6 +100,7 @@ export const AlertConfigurationCard = ({
             threshold_window: 30,
             name: 'Error',
             regex_groups: [],
+            cadence: 15,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -230,6 +234,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
+                                cadence: cadence,
                             },
                         });
                         break;
@@ -338,6 +343,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
+                                cadence: cadence,
                             },
                         });
                         break;
@@ -565,6 +571,11 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onCadenceChange = (_cadence: any, cadenceOption: any) => {
+        setCadence(cadenceOption.value);
+        setFormTouched(true);
+    };
+
     const onLookbackPeriodChange = (
         _lookbackPeriod: any,
         lookbackPeriodOption: any
@@ -621,6 +632,7 @@ export const AlertConfigurationCard = ({
                             ),
                             name: alert.Name || defaultName,
                             [excludedIdentifiersFormName]: alert.ExcludeRules,
+                            cadence: [cadence],
                         }}
                         key={project_id}
                     >
@@ -805,6 +817,34 @@ export const AlertConfigurationCard = ({
                             </section>
                         )}
 
+                        {type === ALERT_TYPE.Error && (
+                            <section>
+                                <h3>Alert Cadence</h3>
+                                <span>
+                                    You will only get alerted for the same error
+                                    once, at most, every{' '}
+                                    <b>
+                                        <TextTransition
+                                            inline
+                                            text={`${
+                                                getCadenceOption(cadence)
+                                                    .displayValue ||
+                                                `${DEFAULT_CADENCE} seconds.`
+                                            }`}
+                                        />
+                                    </b>
+                                    .
+                                </span>
+                                <Form.Item name="cadence">
+                                    <Select
+                                        className={styles.lookbackPeriodSelect}
+                                        onChange={onCadenceChange}
+                                        options={CADENCE_PERIODS}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
+
                         {supportsExcludeRules && (
                             <section>
                                 <h3>Excluded Identifiers</h3>
@@ -933,6 +973,49 @@ export const AlertConfigurationCard = ({
     );
 };
 
+const CADENCE_PERIODS = [
+    {
+        displayValue: '1 second',
+        value: '1',
+        id: '1s',
+    },
+    {
+        displayValue: '5 seconds',
+        value: '5',
+        id: '5s',
+    },
+    {
+        displayValue: '15 seconds',
+        value: '15',
+        id: '15s',
+    },
+    {
+        displayValue: '30 seconds',
+        value: '30',
+        id: '30s',
+    },
+    {
+        displayValue: '1 minute',
+        value: '60',
+        id: '1m',
+    },
+    {
+        displayValue: '5 minutes',
+        value: '300',
+        id: '5m',
+    },
+    {
+        displayValue: '15 minutes',
+        value: '900',
+        id: '15m',
+    },
+    {
+        displayValue: '30 minutes',
+        value: '1800',
+        id: '30m',
+    },
+];
+
 const LOOKBACK_PERIODS = [
     {
         displayValue: '5 minutes',
@@ -984,6 +1067,22 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
             value: '30',
             id: '30m',
         };
+    }
+
+    return option;
+};
+
+const DEFAULT_CADENCE = '15';
+
+const getCadenceOption = (seconds = DEFAULT_CADENCE): any => {
+    const option = CADENCE_PERIODS.find(
+        (option) => option.value === seconds?.toString()
+    );
+
+    if (!option) {
+        return CADENCE_PERIODS.find(
+            (option) => option.value === DEFAULT_CADENCE
+        );
     }
 
     return option;
