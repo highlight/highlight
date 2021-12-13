@@ -827,7 +827,8 @@ export const AlertConfigurationCard = ({
                                         <TextTransition
                                             inline
                                             text={
-                                                cadence === '1'
+                                                cadence === '1' ||
+                                                cadence === '60'
                                                     ? getCadenceOption(cadence)
                                                           .displayValue
                                                     : getCadenceOption(
