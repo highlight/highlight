@@ -606,7 +606,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 }
             };
 
-            timerId = requestAnimationFrame(addEventsWorker);
+            setTimeout(addEventsWorker, 0);
 
             return () => {
                 cancelAnimationFrame(timerId);
