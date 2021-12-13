@@ -49,15 +49,22 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     );
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { isHighlightAdmin } = useAuthContext();
-    const { loading } = useGetMessagesQuery({
+    const [loading, setLoading] = useState(true);
+    const skipQuery =
+        session === undefined || (!!session.messages_url && isHighlightAdmin);
+    const { loading: queryLoading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
         },
         fetchPolicy: 'no-cache',
-        skip:
-            session === undefined ||
-            (!!session.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
+        skip: skipQuery, // Skip if there is a URL to fetch messages
     });
+
+    useEffect(() => {
+        if (!skipQuery) {
+            setLoading(queryLoading);
+        }
+    }, [queryLoading, skipQuery]);
 
     const { refetch: refetchSession } = useGetSessionQuery({
         fetchPolicy: 'no-cache',
@@ -68,7 +75,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     // and resources url is defined, fetch using resources url
     useEffect(() => {
         if (!!session?.messages_url && isHighlightAdmin) {
-            console.log('session?.messages_url', session?.messages_url);
+            setLoading(true);
             refetchSession({
                 secure_id: session_secure_id,
             })
@@ -96,7 +103,8 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                 .catch((e) => {
                     setParsedMessages([]);
                     H.consumeError(e, 'Error direct downloading resources');
-                });
+                })
+                .finally(() => setLoading(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.messages_url, isHighlightAdmin]);

@@ -25,13 +25,22 @@ export const useResources = (
         skip: true,
     });
 
-    const { data, loading: resourcesLoading } = useGetResourcesQuery({
+    const [resourcesLoading, setResourcesLoading] = useState(true);
+    const skipQuery =
+        sessionSecureId === undefined ||
+        session === undefined ||
+        (!!session.resources_url && isHighlightAdmin);
+
+    const { data, loading: queryLoading } = useGetResourcesQuery({
         fetchPolicy: 'no-cache',
-        skip:
-            sessionSecureId === undefined ||
-            session === undefined ||
-            (!!session.resources_url && isHighlightAdmin),
+        skip: skipQuery,
     });
+
+    useEffect(() => {
+        if (!skipQuery) {
+            setResourcesLoading(queryLoading);
+        }
+    }, [queryLoading, skipQuery]);
 
     const [resources, setResources] = useState<
         Array<PerformanceResourceTiming & { id: number }>
@@ -54,6 +63,7 @@ export const useResources = (
             !!session?.resources_url &&
             isHighlightAdmin
         ) {
+            setResourcesLoading(true);
             refetchSession({
                 secure_id: sessionSecureId,
             })
@@ -78,7 +88,8 @@ export const useResources = (
                 .catch((e) => {
                     setResources([]);
                     H.consumeError(e, 'Error direct downloading resources');
-                });
+                })
+                .finally(() => setResourcesLoading(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionSecureId, session?.secure_id]);
