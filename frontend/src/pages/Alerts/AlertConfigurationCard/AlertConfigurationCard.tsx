@@ -821,19 +821,27 @@ export const AlertConfigurationCard = ({
                             <section>
                                 <h3>Alert Cadence</h3>
                                 <span>
-                                    You will only get alerted for the same error
-                                    once, at most, every{' '}
+                                    You will not get alerted for the same error
+                                    more than once within a{' '}
                                     <b>
                                         <TextTransition
                                             inline
-                                            text={`${
-                                                getCadenceOption(cadence)
-                                                    .displayValue ||
-                                                `${DEFAULT_CADENCE} seconds.`
-                                            }`}
+                                            text={
+                                                cadence === '1'
+                                                    ? getCadenceOption(cadence)
+                                                          .displayValue
+                                                    : getCadenceOption(
+                                                          cadence
+                                                      ).displayValue.slice(
+                                                          0,
+                                                          -1
+                                                      ) ||
+                                                      `${DEFAULT_CADENCE} second`
+                                            }
                                         />
                                     </b>
-                                    .
+                                    {` `}
+                                    period.
                                 </span>
                                 <Form.Item name="cadence">
                                     <Select
