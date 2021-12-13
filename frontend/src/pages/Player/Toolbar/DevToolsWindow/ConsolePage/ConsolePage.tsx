@@ -106,8 +106,12 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                 })
                 .finally(() => setLoading(false));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session?.messages_url, isHighlightAdmin]);
+    }, [
+        session?.messages_url,
+        isHighlightAdmin,
+        refetchSession,
+        session_secure_id,
+    ]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
 
