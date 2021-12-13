@@ -1032,7 +1032,6 @@ export class Highlight {
         this.events = this.events.slice(events.length);
 
         const errors = [...this.errors];
-        console.log(errors);
         this.errors = this.errors.slice(errors.length);
 
         this.logger.log(
