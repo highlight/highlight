@@ -1313,7 +1313,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1348,6 +1348,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
+			Cadence:              cadence,
 		},
 		RegexGroups: &regexGroupsString,
 	}
@@ -1362,7 +1363,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1397,6 +1398,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
 	alert.RegexGroups = &regexGroupsString
+	alert.Cadence = cadence
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -3328,7 +3330,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 		return nil, e.Wrap(err, "error querying project")
 	}
 	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+	if err := r.DB.Debug().Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
 	return alerts, nil
@@ -4094,3 +4096,13 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorAlertResolver) Cadence(ctx context.Context, obj *model.ErrorAlert) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}

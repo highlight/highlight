@@ -490,6 +490,7 @@ type ErrorAlert {
     LastAdminToEditID: ID
     Type: String!
     RegexGroups: [String]!
+    Cadence: Int!
 }
 
 type TrackProperty {
@@ -773,6 +774,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        cadence: Int!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -783,6 +785,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        cadence: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(

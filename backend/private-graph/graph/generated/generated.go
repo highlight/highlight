@@ -107,6 +107,7 @@ type ComplexityRoot struct {
 	}
 
 	ErrorAlert struct {
+		Cadence              func(childComplexity int) int
 		ChannelsToNotify     func(childComplexity int) int
 		CountThreshold       func(childComplexity int) int
 		ExcludedEnvironments func(childComplexity int) int
@@ -234,7 +235,7 @@ type ComplexityRoot struct {
 		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
 		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateDefaultAlerts              func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput) int
-		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) int
+		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
@@ -274,7 +275,7 @@ type ComplexityRoot struct {
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
-		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) int
+		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
@@ -665,8 +666,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
-	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model1.ErrorAlert, error)
-	UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model1.ErrorAlert, error)
+	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) (*model1.ErrorAlert, error)
+	UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, cadence int) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
 	UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
@@ -1003,6 +1004,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EnhancedUserDetailsResult.Socials(childComplexity), true
+
+	case "ErrorAlert.Cadence":
+		if e.complexity.ErrorAlert.Cadence == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.Cadence(childComplexity), true
 
 	case "ErrorAlert.ChannelsToNotify":
 		if e.complexity.ErrorAlert.ChannelsToNotify == nil {
@@ -1671,7 +1679,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string)), true
+		return e.complexity.Mutation.CreateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string), args["cadence"].(int)), true
 
 	case "Mutation.createErrorComment":
 		if e.complexity.Mutation.CreateErrorComment == nil {
@@ -2151,7 +2159,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string)), true
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string), args["cadence"].(int)), true
 
 	case "Mutation.updateErrorGroupIsPublic":
 		if e.complexity.Mutation.UpdateErrorGroupIsPublic == nil {
@@ -4759,6 +4767,7 @@ type ErrorAlert {
     LastAdminToEditID: ID
     Type: String!
     RegexGroups: [String]!
+    Cadence: Int!
 }
 
 type TrackProperty {
@@ -5042,6 +5051,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        cadence: Int!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -5052,6 +5062,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        cadence: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(
@@ -5376,6 +5387,15 @@ func (ec *executionContext) field_Mutation_createErrorAlert_args(ctx context.Con
 		}
 	}
 	args["regex_groups"] = arg6
+	var arg7 int
+	if tmp, ok := rawArgs["cadence"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadence"))
+		arg7, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cadence"] = arg7
 	return args, nil
 }
 
@@ -6804,6 +6824,15 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["regex_groups"] = arg7
+	var arg8 int
+	if tmp, ok := rawArgs["cadence"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadence"))
+		arg8, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cadence"] = arg8
 	return args, nil
 }
 
@@ -9876,6 +9905,41 @@ func (ec *executionContext) _ErrorAlert_RegexGroups(ctx context.Context, field g
 	res := resTmp.([]*string)
 	fc.Result = res
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorAlert_Cadence(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cadence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -13879,7 +13943,7 @@ func (ec *executionContext) _Mutation_createErrorAlert(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorAlert(rctx, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string))
+		return ec.resolvers.Mutation().CreateErrorAlert(rctx, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string), args["cadence"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13918,7 +13982,7 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["project_id"].(int), args["name"].(string), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string))
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["project_id"].(int), args["name"].(string), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["regex_groups"].([]*string), args["cadence"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24779,6 +24843,11 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "Cadence":
+			out.Values[i] = ec._ErrorAlert_Cadence(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
