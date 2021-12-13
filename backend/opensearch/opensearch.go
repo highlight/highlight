@@ -246,7 +246,7 @@ func (c *Client) Search(index Index, projectID int, query string, count int, res
 
 	query = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
 
-	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s}`, count, query))
+	content := strings.NewReader(fmt.Sprintf(`{"track_total_hits": true, "size": %d, "query": %s}`, count, query))
 	search := opensearchapi.SearchRequest{
 		Index: []string{GetIndex(index)},
 		Body:  content,
