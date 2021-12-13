@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import { useGetResourcesQuery } from '@graph/hooks';
+import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks';
 import { Session } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -20,11 +20,13 @@ export const useResources = (
     const [sessionSecureId, setSessionSecureId] = useState<string>();
     const { isHighlightAdmin } = useAuthContext();
 
+    const { refetch: refetchSession } = useGetSessionQuery({
+        fetchPolicy: 'no-cache',
+        skip: true,
+    });
+
     const { data, loading: resourcesLoading } = useGetResourcesQuery({
         fetchPolicy: 'no-cache',
-        variables: {
-            session_secure_id: sessionSecureId! ?? '',
-        },
         skip:
             sessionSecureId === undefined ||
             session === undefined ||
@@ -52,7 +54,17 @@ export const useResources = (
             !!session?.resources_url &&
             isHighlightAdmin
         ) {
-            fetch(session?.resources_url)
+            refetchSession({
+                secure_id: sessionSecureId,
+            })
+                .then((result) => {
+                    const newUrl = result.data.session?.resources_url;
+                    if (newUrl) {
+                        return fetch(newUrl);
+                    } else {
+                        throw new Error('resources_url not defined');
+                    }
+                })
                 .then((response) => response.json())
                 .then((data) => {
                     setResources(

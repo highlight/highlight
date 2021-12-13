@@ -19,7 +19,10 @@ import Skeleton from 'react-loading-skeleton';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
-import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
+import {
+    useGetMessagesQuery,
+    useGetSessionQuery,
+} from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
@@ -56,11 +59,27 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
             (!!session.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
     });
 
+    const { refetch: refetchSession } = useGetSessionQuery({
+        fetchPolicy: 'no-cache',
+        skip: true,
+    });
+
     // If sessionSecureId is set and equals the current session's (ensures effect is run once)
     // and resources url is defined, fetch using resources url
     useEffect(() => {
         if (!!session?.messages_url && isHighlightAdmin) {
-            fetch(session?.messages_url)
+            console.log('session?.messages_url', session?.messages_url);
+            refetchSession({
+                secure_id: session_secure_id,
+            })
+                .then((result) => {
+                    const newUrl = result.data.session?.messages_url;
+                    if (newUrl) {
+                        return fetch(newUrl);
+                    } else {
+                        throw new Error('resources_url not defined');
+                    }
+                })
                 .then((response) => response.json())
                 .then((data) => {
                     setParsedMessages(
@@ -79,6 +98,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                     H.consumeError(e, 'Error direct downloading resources');
                 });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.messages_url, isHighlightAdmin]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
