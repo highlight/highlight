@@ -53,7 +53,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         fetchPolicy: 'no-cache',
         skip:
             session === undefined ||
-            (!!session.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
+            (!!session?.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
     });
 
     // If sessionSecureId is set and equals the current session's (ensures effect is run once)
