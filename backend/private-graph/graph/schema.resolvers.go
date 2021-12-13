@@ -2087,7 +2087,11 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 		}
 		return data, nil
 	}
-	events, err, _ := r.getEvents(ctx, sessionSecureID, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -4022,7 +4026,12 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			default:
 			}
 
-			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			session, err := r.canAdminViewSession(ctx, sessionSecureID)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching session for subscription"))
+				return
+			}
+			events, err, nextCursor := r.getEvents(ctx, session, cursor)
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
@@ -4030,10 +4039,11 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			if len(events) != 0 {
 				// TODO live updating for other event types
 				ch <- &model.SessionPayload{
-					Events:          events,
-					Errors:          []model.ErrorObject{},
-					RageClicks:      []model.RageClickEvent{},
-					SessionComments: []model.SessionComment{},
+					Events:                  events,
+					Errors:                  []model.ErrorObject{},
+					RageClicks:              []model.RageClickEvent{},
+					SessionComments:         []model.SessionComment{},
+					LastUserInteractionTime: session.LastUserInteractionTime,
 				}
 			}
 			cursor = *nextCursor

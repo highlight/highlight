@@ -1107,11 +1107,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner"), nil
-	}
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))

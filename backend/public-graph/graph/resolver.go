@@ -492,6 +492,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		AppVersion:                     appVersion,
 		VerboseID:                      projectVerboseID,
 		Fields:                         []*model.Field{},
+		LastUserInteractionTime:        time.Now(),
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -1123,7 +1124,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
 			}
-
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {

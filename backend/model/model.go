@@ -386,7 +386,7 @@ type Session struct {
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
-	LastUserInteractionTime *time.Time `json:"last_user_interaction_time"`
+	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
 	// Custom properties
 	Viewed                         *bool   `json:"viewed"`
 	Starred                        *bool   `json:"starred"`
@@ -717,10 +717,11 @@ type RageClickEvent struct {
 }
 
 type SessionPayload struct {
-	Events          []interface{}    `json:"events"`
-	Errors          []ErrorObject    `json:"errors"`
-	RageClicks      []RageClickEvent `json:"rage_clicks"`
-	SessionComments []SessionComment `json:"session_comments"`
+	Events                  []interface{}    `json:"events"`
+	Errors                  []ErrorObject    `json:"errors"`
+	RageClicks              []RageClickEvent `json:"rage_clicks"`
+	SessionComments         []SessionComment `json:"session_comments"`
+	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
 }
 
 type AlertEvent struct {
