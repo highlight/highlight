@@ -6,6 +6,7 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../client/src/index';
+import { FeedbackWidgetOptions } from '../../client/src/ui/feedback-widget/feedback-widget';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import {
@@ -95,6 +96,10 @@ export type HighlightOptions = {
      * @see {@link https://docs.highlight.run/session-shortcut} for more information.
      */
     sessionShortcut?: SessionShortcutOptions;
+    /**
+     * Specifies whether to show the Highlight feedback widget. This allows users to submit feedback for their current session.
+     */
+    feedbackWidget?: FeedbackWidgetOptions;
 };
 
 interface SessionFeedbackOptions {
@@ -149,6 +154,10 @@ export interface HighlightPublicInterface {
      * Calling this will add a feedback comment to the session.
      */
     addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void;
+    /**
+     * Calling this will toggle the visibility of the feedback modal.
+     */
+    toggleSessionFeedbackModal: () => void;
 }
 
 interface Metadata {
@@ -215,6 +224,7 @@ export const H: HighlightPublicInterface = {
                     environment: options?.environment || 'production',
                     appVersion: options?.version,
                     sessionShortcut: options?.sessionShortcut,
+                    feedbackWidget: options?.feedbackWidget,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(projectID);
@@ -246,6 +256,15 @@ export const H: HighlightPublicInterface = {
                     user_email: userEmail,
                     user_name: userName,
                 })
+            );
+        } catch (e) {
+            HighlightWarning('error', e);
+        }
+    },
+    toggleSessionFeedbackModal: () => {
+        try {
+            H.onHighlightReady(() =>
+                highlight_obj.toggleFeedbackWidgetVisibility()
             );
         } catch (e) {
             HighlightWarning('error', e);
