@@ -842,7 +842,6 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				return
 			}
 
-			alertEventsLookbackPeriod := 15 // only count alert_events from the past 15 seconds
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
@@ -854,8 +853,8 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 						AND error_group_id=?)
 					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, alertEventsLookbackPeriod).Scan(&numAlerts).Error; err != nil {
-				log.Error(e.Wrapf(err, "error counting alert events from past %d seconds", alertEventsLookbackPeriod))
+			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, errorAlert.Cadence).Scan(&numAlerts).Error; err != nil {
+				log.Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Cadence))
 				return
 			}
 			if numAlerts > 0 {
