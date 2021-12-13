@@ -17,8 +17,8 @@ const LimitedSessionCard = () => {
 
     /** Show upsell when the current usage is 80% of the project's plan. */
     const upsell =
-        (data?.billingDetailsForProject.meter ?? 0) /
-            (data?.billingDetailsForProject.plan.quota ?? 1) >=
+        (data?.billingDetailsForProject?.meter ?? 0) /
+            (data?.billingDetailsForProject?.plan.quota ?? 1) >=
         1.0;
 
     /** An project is within a trial period by us setting an explicit trial end date on the project. */
@@ -36,7 +36,8 @@ const LimitedSessionCard = () => {
             <p className={styles.description}>
                 There are{' '}
                 <b>
-                    {data?.billingDetailsForProject.sessionsOutOfQuota} sessions
+                    {data?.billingDetailsForProject?.sessionsOutOfQuota}{' '}
+                    sessions
                 </b>{' '}
                 that can be viewed after you upgrade. Sessions recorded before
                 you reached your quota are still viewable.

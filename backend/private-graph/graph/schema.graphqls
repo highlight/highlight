@@ -310,6 +310,12 @@ type SearchParams {
     show_live_sessions: Boolean
 }
 
+input AdminAboutYouDetails {
+    name: String!
+    user_defined_role: String!
+    referral: String!
+}
+
 input ErrorSearchParamsInput {
     date_range: DateRangeInput
     os: String
@@ -374,6 +380,8 @@ type Admin {
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
+    referral: String
+    user_defined_role: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -481,6 +489,7 @@ type ErrorAlert {
     ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
+    RegexGroups: [String]!
 }
 
 type TrackProperty {
@@ -589,7 +598,20 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetailsForProject(project_id: ID!): BillingDetails!
+    sessions_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): SessionResults!
+    field_types(project_id: ID!): [Field!]!
+    fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_type: String!
+        field_name: String!
+        query: String!
+    ): [Field!]!
+    billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
@@ -631,6 +653,7 @@ type Query {
 }
 
 type Mutation {
+    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
@@ -749,6 +772,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -758,6 +782,7 @@ type Mutation {
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        regex_groups: [String]!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(

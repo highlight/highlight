@@ -117,7 +117,7 @@ const AlertSetupModal = () => {
 
     const [showModal, setShowModal] = useState(!shouldCloseSetupPersisted);
 
-    if (loading && shouldCloseSetupPersisted) {
+    if (loading || shouldCloseSetupPersisted) {
         return null;
     }
 

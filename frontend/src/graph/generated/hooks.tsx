@@ -1698,6 +1698,7 @@ export const CreateErrorAlertDocument = gql`
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
+        $regex_groups: [String]!
     ) {
         createErrorAlert(
             project_id: $project_id
@@ -1706,6 +1707,7 @@ export const CreateErrorAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            regex_groups: $regex_groups
         ) {
             id
             ChannelsToNotify {
@@ -1717,6 +1719,7 @@ export const CreateErrorAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            RegexGroups
         }
     }
 `;
@@ -1744,6 +1747,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
+ *      regex_groups: // value for 'regex_groups'
  *   },
  * });
  */
@@ -1765,6 +1769,52 @@ export type CreateErrorAlertMutationResult = Apollo.MutationResult<Types.CreateE
 export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorAlertMutation,
     Types.CreateErrorAlertMutationVariables
+>;
+export const UpdateAdminAboutYouDetailsDocument = gql`
+    mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
+        updateAdminAboutYouDetails(adminDetails: $adminDetails)
+    }
+`;
+export type UpdateAdminAboutYouDetailsMutationFn = Apollo.MutationFunction<
+    Types.UpdateAdminAboutYouDetailsMutation,
+    Types.UpdateAdminAboutYouDetailsMutationVariables
+>;
+
+/**
+ * __useUpdateAdminAboutYouDetailsMutation__
+ *
+ * To run a mutation, you first call `useUpdateAdminAboutYouDetailsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAdminAboutYouDetailsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAdminAboutYouDetailsMutation, { data, loading, error }] = useUpdateAdminAboutYouDetailsMutation({
+ *   variables: {
+ *      adminDetails: // value for 'adminDetails'
+ *   },
+ * });
+ */
+export function useUpdateAdminAboutYouDetailsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAdminAboutYouDetailsMutation,
+        Types.UpdateAdminAboutYouDetailsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAdminAboutYouDetailsMutation,
+        Types.UpdateAdminAboutYouDetailsMutationVariables
+    >(UpdateAdminAboutYouDetailsDocument, baseOptions);
+}
+export type UpdateAdminAboutYouDetailsMutationHookResult = ReturnType<
+    typeof useUpdateAdminAboutYouDetailsMutation
+>;
+export type UpdateAdminAboutYouDetailsMutationResult = Apollo.MutationResult<Types.UpdateAdminAboutYouDetailsMutation>;
+export type UpdateAdminAboutYouDetailsMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAdminAboutYouDetailsMutation,
+    Types.UpdateAdminAboutYouDetailsMutationVariables
 >;
 export const CreateRageClickAlertDocument = gql`
     mutation CreateRageClickAlert(
@@ -1851,6 +1901,7 @@ export const UpdateErrorAlertDocument = gql`
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
+        $regex_groups: [String]!
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -1860,6 +1911,7 @@ export const UpdateErrorAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            regex_groups: $regex_groups
         ) {
             Name
             ChannelsToNotify {
@@ -1870,6 +1922,7 @@ export const UpdateErrorAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            RegexGroups
         }
     }
 `;
@@ -1898,6 +1951,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
+ *      regex_groups: // value for 'regex_groups'
  *   },
  * });
  */
@@ -4035,6 +4089,231 @@ export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions
     Types.SendAdminWorkspaceInviteMutation,
     Types.SendAdminWorkspaceInviteMutationVariables
 >;
+export const GetFieldTypesDocument = gql`
+    query GetFieldTypes($project_id: ID!) {
+        field_types(project_id: $project_id) {
+            type
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetFieldTypesQuery__
+ *
+ * To run a query within a React component, call `useGetFieldTypesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFieldTypesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFieldTypesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetFieldTypesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >(GetFieldTypesDocument, baseOptions);
+}
+export function useGetFieldTypesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >(GetFieldTypesDocument, baseOptions);
+}
+export type GetFieldTypesQueryHookResult = ReturnType<
+    typeof useGetFieldTypesQuery
+>;
+export type GetFieldTypesLazyQueryHookResult = ReturnType<
+    typeof useGetFieldTypesLazyQuery
+>;
+export type GetFieldTypesQueryResult = Apollo.QueryResult<
+    Types.GetFieldTypesQuery,
+    Types.GetFieldTypesQueryVariables
+>;
+export const GetFieldsOpensearchDocument = gql`
+    query GetFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $field_type: String!
+        $field_name: String!
+        $query: String!
+    ) {
+        fields_opensearch(
+            project_id: $project_id
+            count: $count
+            field_type: $field_type
+            field_name: $field_name
+            query: $query
+        ) {
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetFieldsOpensearchQuery__
+ *
+ * To run a query within a React component, call `useGetFieldsOpensearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFieldsOpensearchQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      field_type: // value for 'field_type'
+ *      field_name: // value for 'field_name'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
+}
+export function useGetFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
+}
+export type GetFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchQuery
+>;
+export type GetFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchLazyQuery
+>;
+export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetFieldsOpensearchQuery,
+    Types.GetFieldsOpensearchQueryVariables
+>;
+export const GetSessionsOpenSearchDocument = gql`
+    query GetSessionsOpenSearch(
+        $project_id: ID!
+        $count: Int!
+        $query: String!
+    ) {
+        sessions_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            sessions {
+                id
+                secure_id
+                fingerprint
+                identifier
+                os_name
+                os_version
+                browser_name
+                browser_version
+                city
+                state
+                postal
+                created_at
+                language
+                length
+                active_length
+                enable_recording_network_contents
+                viewed
+                starred
+                processed
+                fields {
+                    name
+                    value
+                    type
+                    id
+                }
+                first_time
+                user_properties
+                event_counts
+            }
+            totalCount
+        }
+    }
+`;
+
+/**
+ * __useGetSessionsOpenSearchQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsOpenSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsOpenSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsOpenSearchQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSessionsOpenSearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >(GetSessionsOpenSearchDocument, baseOptions);
+}
+export function useGetSessionsOpenSearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >(GetSessionsOpenSearchDocument, baseOptions);
+}
+export type GetSessionsOpenSearchQueryHookResult = ReturnType<
+    typeof useGetSessionsOpenSearchQuery
+>;
+export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<
+    typeof useGetSessionsOpenSearchLazyQuery
+>;
+export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
+    Types.GetSessionsOpenSearchQuery,
+    Types.GetSessionsOpenSearchQueryVariables
+>;
 export const GetSessionsDocument = gql`
     query GetSessions(
         $project_id: ID!
@@ -4691,6 +4970,64 @@ export type GetAdminLazyQueryHookResult = ReturnType<
 export type GetAdminQueryResult = Apollo.QueryResult<
     Types.GetAdminQuery,
     Types.GetAdminQueryVariables
+>;
+export const GetAdminAboutYouDocument = gql`
+    query GetAdminAboutYou {
+        admin {
+            id
+            name
+            user_defined_role
+            referral
+        }
+    }
+`;
+
+/**
+ * __useGetAdminAboutYouQuery__
+ *
+ * To run a query within a React component, call `useGetAdminAboutYouQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAdminAboutYouQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAdminAboutYouQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAdminAboutYouQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >(GetAdminAboutYouDocument, baseOptions);
+}
+export function useGetAdminAboutYouLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >(GetAdminAboutYouDocument, baseOptions);
+}
+export type GetAdminAboutYouQueryHookResult = ReturnType<
+    typeof useGetAdminAboutYouQuery
+>;
+export type GetAdminAboutYouLazyQueryHookResult = ReturnType<
+    typeof useGetAdminAboutYouLazyQuery
+>;
+export type GetAdminAboutYouQueryResult = Apollo.QueryResult<
+    Types.GetAdminAboutYouQuery,
+    Types.GetAdminAboutYouQueryVariables
 >;
 export const GetProjectDocument = gql`
     query GetProject($id: ID!) {
@@ -6785,6 +7122,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             LastAdminToEditID
             ThresholdWindow
+            RegexGroups
             id
             Type
             Name

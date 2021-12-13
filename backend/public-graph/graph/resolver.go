@@ -760,7 +760,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	return withinBillingQuota
 }
 
-func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
+func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {
 	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
@@ -782,12 +782,51 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					return
 				}
 			}
-			numErrors := int64(-1)
 			if errorAlert.ThresholdWindow == nil {
 				t := 30
 				errorAlert.ThresholdWindow = &t
 			}
 
+			if errorAlert.RegexGroups != nil {
+				groups, err := errorAlert.GetRegexGroups()
+				if err != nil {
+					log.Error(e.Wrap(err, "error getting regex groups from ErrorAlert"))
+					continue
+				}
+				matched := false
+				for _, g := range groups {
+					if g == nil {
+						continue
+					}
+					matched, err = regexp.MatchString(*g, group.Event)
+					if err != nil {
+						log.Warn(err)
+					}
+					if matched {
+						break
+					}
+					if group.MappedStackTrace != nil {
+						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
+					} else {
+						matched, err = regexp.MatchString(*g, group.StackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
+					}
+					if matched {
+						break
+					}
+				}
+				if matched {
+					log.Warn("error event matches regex group, skipping alert...")
+					continue
+				}
+			}
+
+			numErrors := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
 				FROM error_objects
@@ -802,6 +841,28 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			if numErrors+1 < int64(errorAlert.CountThreshold) {
 				return
 			}
+
+			alertEventsLookbackPeriod := 15 // only count alert_events from the past 15 seconds
+			numAlerts := int64(-1)
+			if err := r.DB.Raw(`
+				SELECT COUNT(*)
+				FROM alert_events
+				WHERE
+					project_id=?
+					AND type=?
+					AND (error_group_id IS NOT NULL 
+						AND error_group_id=?)
+					AND alert_id=?
+					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
+			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, alertEventsLookbackPeriod).Scan(&numAlerts).Error; err != nil {
+				log.Error(e.Wrapf(err, "error counting alert events from past %d seconds", alertEventsLookbackPeriod))
+				return
+			}
+			if numAlerts > 0 {
+				log.Warnf("num alerts > 0 for project_id=%d, error_group_id=%d", projectID, group.ID)
+				return
+			}
+
 			var project model.Project
 			if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 				log.Error(e.Wrap(err, "error querying project"))
@@ -813,7 +874,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(err)
 			}
 
-			err = errorAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
+			err = errorAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 			if err != nil {
 				log.Error(e.Wrap(err, "error sending slack error message"))
 				return
@@ -927,6 +988,11 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
 		tracer.ResourceName("db.errors"))
+	groups := make(map[int]struct {
+		Group      *model.ErrorGroup
+		VisitedURL string
+		SessionObj *model.Session
+	})
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {
@@ -969,7 +1035,15 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			continue
 		}
 
-		r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
+		groups[group.ID] = struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+	}
+
+	for _, data := range groups {
+		r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
 	}
 
 	putErrorsToDBSpan.Finish()
@@ -1153,6 +1227,11 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		// put errors in db
 		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
+		groups := make(map[int]struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		})
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
@@ -1191,7 +1270,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				continue
 			}
 
-			r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
+			groups[group.ID] = struct {
+				Group      *model.ErrorGroup
+				VisitedURL string
+				SessionObj *model.Session
+			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+		}
+
+		for _, data := range groups {
+			r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
 		}
 
 		putErrorsToDBSpan.Finish()

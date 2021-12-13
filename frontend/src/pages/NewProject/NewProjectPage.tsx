@@ -1,4 +1,5 @@
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import { CardForm, CardFormActionsContainer } from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
@@ -99,21 +100,19 @@ const NewProjectPage = () => {
                 <title>{isWorkspace ? 'New Workspace' : 'New Project'}</title>
             </Helmet>
             <div className={styles.box} key={workspace_id}>
-                <form onSubmit={onSubmit}>
-                    <h2
-                        className={styles.title}
-                    >{`Create a ${pageTypeCaps}`}</h2>
-                    <p className={styles.subTitle}>
-                        {isWorkspace &&
-                            `This is usually your company name (e.g. Pied Piper, Hooli, Google, etc.) and can contain multiple projects.`}
-                        {!isWorkspace &&
-                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
-                    </p>
-                    {error && (
-                        <div className={commonStyles.errorMessage}>
-                            {`Error with ${pageType} name ` + error}
-                        </div>
-                    )}
+                <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
+                <p className={styles.subTitle}>
+                    {isWorkspace &&
+                        `This is usually your company name (e.g. Pied Piper, Hooli, Google, etc.) and can contain multiple projects.`}
+                    {!isWorkspace &&
+                        `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
+                </p>
+                {error && (
+                    <div className={commonStyles.errorMessage}>
+                        {`Error with ${pageType} name ` + error}
+                    </div>
+                )}
+                <CardForm onSubmit={onSubmit}>
                     <Input
                         placeholder={
                             isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
@@ -126,42 +125,44 @@ const NewProjectPage = () => {
                         autoComplete="off"
                         autoFocus
                     />
-                    <Button
-                        trackingId={`Create${pageTypeCaps}`}
-                        type="primary"
-                        className={classNames(styles.button)}
-                        block
-                        htmlType="submit"
-                        disabled={name.length === 0}
-                    >
-                        {projectLoading || workspaceLoading ? (
-                            <CircularSpinner
-                                style={{
-                                    fontSize: 18,
-                                    color: 'var(--text-primary-inverted)',
-                                }}
-                            />
-                        ) : (
-                            `Create ${pageTypeCaps}`
-                        )}
-                    </Button>
-                    {isWorkspace && (
-                        <ButtonLink
-                            trackingId={`Enter${pageTypeCaps}`}
+                    <CardFormActionsContainer>
+                        <Button
+                            trackingId={`Create${pageTypeCaps}`}
+                            type="primary"
                             className={classNames(styles.button)}
-                            to="/switch"
-                            fullWidth
-                            type="default"
+                            block
+                            htmlType="submit"
+                            disabled={name.length === 0}
                         >
-                            Already Have a Workspace?{' '}
-                            {!loading && !!data && (
-                                <Dot className={styles.workspaceCount}>
-                                    {data.workspaces_count}
-                                </Dot>
+                            {projectLoading || workspaceLoading ? (
+                                <CircularSpinner
+                                    style={{
+                                        fontSize: 18,
+                                        color: 'var(--text-primary-inverted)',
+                                    }}
+                                />
+                            ) : (
+                                `Create ${pageTypeCaps}`
                             )}
-                        </ButtonLink>
-                    )}
-                </form>
+                        </Button>
+                        {isWorkspace && (
+                            <ButtonLink
+                                trackingId={`Enter${pageTypeCaps}`}
+                                className={classNames(styles.button)}
+                                to="/switch"
+                                fullWidth
+                                type="default"
+                            >
+                                Already Have a Workspace?{' '}
+                                {!loading && !!data && (
+                                    <Dot className={styles.workspaceCount}>
+                                        {data.workspaces_count}
+                                    </Dot>
+                                )}
+                            </ButtonLink>
+                        )}
+                    </CardFormActionsContainer>
+                </CardForm>
             </div>
         </>
     );

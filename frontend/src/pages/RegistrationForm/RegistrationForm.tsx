@@ -194,9 +194,11 @@ const RegistrationForm = () => {
                         disabled={!isValid}
                         loading={loading}
                         onClick={() => {
-                            console.log('applying intercom update');
                             window.Intercom('update', {
-                                company: { appliedForExtension: true },
+                                company: {
+                                    id: workspace_id,
+                                    applied_for_extension: true,
+                                },
                             });
                         }}
                     >

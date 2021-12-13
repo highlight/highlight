@@ -322,6 +322,7 @@ mutation CreateErrorAlert(
     $threshold_window: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
+    $regex_groups: [String]!
 ) {
     createErrorAlert(
         project_id: $project_id
@@ -330,6 +331,7 @@ mutation CreateErrorAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        regex_groups: $regex_groups
     ) {
         id
         ChannelsToNotify {
@@ -341,7 +343,12 @@ mutation CreateErrorAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        RegexGroups
     }
+}
+
+mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
+    updateAdminAboutYouDetails(adminDetails: $adminDetails)
 }
 
 mutation CreateRageClickAlert(
@@ -381,6 +388,7 @@ mutation UpdateErrorAlert(
     $threshold_window: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
+    $regex_groups: [String]!
 ) {
     updateErrorAlert(
         project_id: $project_id
@@ -390,6 +398,7 @@ mutation UpdateErrorAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        regex_groups: $regex_groups
     ) {
         Name
         ChannelsToNotify {
@@ -400,6 +409,7 @@ mutation UpdateErrorAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        RegexGroups
     }
 }
 

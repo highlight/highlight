@@ -347,6 +347,12 @@ export type SearchParams = {
     show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
+export type AdminAboutYouDetails = {
+    name: Scalars['String'];
+    user_defined_role: Scalars['String'];
+    referral: Scalars['String'];
+};
+
 export type ErrorSearchParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -417,6 +423,8 @@ export type Admin = {
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
     email_verified?: Maybe<Scalars['Boolean']>;
+    referral?: Maybe<Scalars['String']>;
+    user_defined_role?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
@@ -534,6 +542,7 @@ export type ErrorAlert = {
     ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    RegexGroups: Array<Maybe<Scalars['String']>>;
 };
 
 export type TrackProperty = {
@@ -616,7 +625,10 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
-    billingDetailsForProject: BillingDetails;
+    sessions_opensearch: SessionResults;
+    field_types: Array<Field>;
+    fields_opensearch: Array<Field>;
+    billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -788,6 +800,24 @@ export type QuerySessionsArgs = {
     params?: Maybe<SearchParamsInput>;
 };
 
+export type QuerySessions_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
+    query: Scalars['String'];
+};
+
+export type QueryField_TypesArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryFields_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
+    field_type: Scalars['String'];
+    field_name: Scalars['String'];
+    query: Scalars['String'];
+};
+
 export type QueryBillingDetailsForProjectArgs = {
     project_id: Scalars['ID'];
 };
@@ -912,6 +942,7 @@ export type QuerySubscription_DetailsArgs = {
 
 export type Mutation = {
     __typename?: 'Mutation';
+    updateAdminAboutYouDetails: Scalars['Boolean'];
     createProject?: Maybe<Project>;
     createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
@@ -965,6 +996,10 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationUpdateAdminAboutYouDetailsArgs = {
+    adminDetails: AdminAboutYouDetails;
 };
 
 export type MutationCreateProjectArgs = {
@@ -1169,6 +1204,7 @@ export type MutationCreateErrorAlertArgs = {
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    regex_groups: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateErrorAlertArgs = {
@@ -1179,6 +1215,7 @@ export type MutationUpdateErrorAlertArgs = {
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    regex_groups: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationDeleteErrorAlertArgs = {

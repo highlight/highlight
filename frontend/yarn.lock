@@ -3030,10 +3030,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@0.12.14":
-  version "0.12.14"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.14.tgz#64c4d229798aeb0eb43a70c37664c68de38eef25"
-  integrity sha512-cgDazXr9RdWnmuH30s+Cxn4EFg76RCUh4sgxxJfkcaRrqSDVWGVGM3whXzdmeqWshQguysXfKKrawX3v02hsmA==
+"@highlight-run/rrweb@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.0.7.tgz#8c41d90be7b77cf13cf4081da68d238dc26faf9f"
+  integrity sha512-gf0G5qhMMSZypUZJD8NCORPXbYOqk8TeQNT4EyeWEaMB/C2SzEjKZFNiWX49lLFYsGRM8ACZmiINoMafJooHYw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -9159,10 +9159,10 @@ highlight.js@^10.4.1, highlight.js@~10.7.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
   integrity sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==
 
-highlight.run@2.8.4:
-  version "2.8.4"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.8.4.tgz#af4dfc868e26bd502dac615eb8929c81b731945d"
-  integrity sha512-I+ezTmGV77QE6tfgByeOPRUr2/dvJwtDwC+k6S/glyxoB8fc+WSMWnKQhV5siqqcz/7On0D5OmlD+FCpbS0tRA==
+highlight.run@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.9.0.tgz#64aa4a2e4f73f3616ffade6743642a2f46a2d2e8"
+  integrity sha512-T/UrP1TlN4T20NQyI/hqF/uKlQ+/aJ3T351mIAsH5XOh4OvkXkIUSUNAVbAPeSme/jtkkUC3qN21NQ+sXBr/2A==
 
 history@^4.9.0:
   version "4.10.1"
