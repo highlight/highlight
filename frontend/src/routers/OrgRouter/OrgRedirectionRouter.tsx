@@ -11,7 +11,9 @@ export const ProjectRedirectionRouter = () => {
     const {
         loading: adminAboutYouLoading,
         data: adminAboutYouData,
-    } = useGetAdminAboutYouQuery();
+    } = useGetAdminAboutYouQuery({
+        fetchPolicy: 'no-cache',
+    });
     const { setIsLoading } = useAppLoadingContext();
     const history = useHistory();
 
@@ -34,9 +36,8 @@ export const ProjectRedirectionRouter = () => {
 
     let redirectTo;
     if (
-        (adminAboutYouData?.admin?.name === '' ||
-            adminAboutYouData?.admin?.user_defined_role == null) &&
-        data?.projects?.length === 0
+        adminAboutYouData?.admin?.name === '' ||
+        adminAboutYouData?.admin?.user_defined_role == null
     ) {
         redirectTo = '/about-you';
     } else if (data?.projects?.length) {
