@@ -27,6 +27,12 @@
     }
 }
 
+.popover {
+    :global(.ant-popover-arrow) {
+        display: none !important;
+    }
+}
+
 .header {
     align-items: center;
     border-bottom: 1px solid var(--color-gray-300);
