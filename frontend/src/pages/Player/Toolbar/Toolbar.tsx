@@ -1,4 +1,5 @@
 import Switch from '@components/Switch/Switch';
+import ScrubbingPreview from '@pages/Player/Toolbar/ScrubbingPreview/ScrubbingPreview';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -558,6 +559,9 @@ const SessionSegment = ({
                         : 'none',
                 }}
             >
+                <ScrubbingPreview
+                    time={getSliderTime(sliderClientX / wrapperWidth)}
+                />
                 <div>{interval.active ? 'Active' : 'Inactive'}</div>
                 <div className={styles.sliderPopoverTime}>
                     {interval.active

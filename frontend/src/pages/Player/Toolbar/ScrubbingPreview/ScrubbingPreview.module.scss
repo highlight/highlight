@@ -1,0 +1,10 @@
+.scrubbingPreview {
+    height: 145px;
+    position: relative;
+
+    :global(.replayer-wrapper) {
+        left: 0;
+        top: 0;
+        transform: scale(0.1);
+    }
+}
