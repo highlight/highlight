@@ -677,7 +677,7 @@ export class Highlight {
                                 (c.type === 'Error' || c.type === 'error') &&
                                 c.value &&
                                 c.trace
-                            )
+                            ) {
                                 highlightThis.errors.push({
                                     event: stringify(c.value),
                                     type: 'console.error',
@@ -694,7 +694,9 @@ export class Highlight {
                                     stackTrace: c.trace,
                                     timestamp: new Date().toISOString(),
                                 });
-                            highlightThis.messages.push(c);
+                            } else {
+                                highlightThis.messages.push(c);
+                            }
                         },
                         {
                             lengthThreshold: 1000,

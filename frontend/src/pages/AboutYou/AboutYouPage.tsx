@@ -61,9 +61,9 @@ const AboutYouPage = () => {
 
             setSignUpReferral('');
             message.success(
-                `👋 Nice to meet you ${firstName}! Let's get started!`
+                `Nice to meet you ${firstName}, let's get started!`
             );
-            history.push('/new');
+            history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
         }

@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import { useGetResourcesQuery } from '@graph/hooks';
+import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks';
 import { Session } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -20,16 +20,27 @@ export const useResources = (
     const [sessionSecureId, setSessionSecureId] = useState<string>();
     const { isHighlightAdmin } = useAuthContext();
 
-    const { data, loading: resourcesLoading } = useGetResourcesQuery({
+    const { refetch: refetchSession } = useGetSessionQuery({
         fetchPolicy: 'no-cache',
-        variables: {
-            session_secure_id: sessionSecureId! ?? '',
-        },
-        skip:
-            sessionSecureId === undefined ||
-            session === undefined ||
-            (!!session.resources_url && isHighlightAdmin),
+        skip: true,
     });
+
+    const [resourcesLoading, setResourcesLoading] = useState(true);
+    const skipQuery =
+        sessionSecureId === undefined ||
+        session === undefined ||
+        (!!session.resources_url && isHighlightAdmin);
+
+    const { data, loading: queryLoading } = useGetResourcesQuery({
+        fetchPolicy: 'no-cache',
+        skip: skipQuery,
+    });
+
+    useEffect(() => {
+        if (!skipQuery) {
+            setResourcesLoading(queryLoading);
+        }
+    }, [queryLoading, skipQuery]);
 
     const [resources, setResources] = useState<
         Array<PerformanceResourceTiming & { id: number }>
@@ -52,7 +63,18 @@ export const useResources = (
             !!session?.resources_url &&
             isHighlightAdmin
         ) {
-            fetch(session?.resources_url)
+            setResourcesLoading(true);
+            refetchSession({
+                secure_id: sessionSecureId,
+            })
+                .then((result) => {
+                    const newUrl = result.data.session?.resources_url;
+                    if (newUrl) {
+                        return fetch(newUrl);
+                    } else {
+                        throw new Error('resources_url not defined');
+                    }
+                })
                 .then((response) => response.json())
                 .then((data) => {
                     setResources(
@@ -66,7 +88,8 @@ export const useResources = (
                 .catch((e) => {
                     setResources([]);
                     H.consumeError(e, 'Error direct downloading resources');
-                });
+                })
+                .finally(() => setResourcesLoading(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionSecureId, session?.secure_id]);
