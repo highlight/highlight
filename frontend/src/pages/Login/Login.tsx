@@ -49,6 +49,7 @@ export const AuthAdminRouter = () => {
                     email: admin?.email,
                     user_id: admin?.uid,
                     sessionUrl,
+                    role: admin?.role,
                 });
             });
         }
