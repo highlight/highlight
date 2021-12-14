@@ -51,7 +51,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     const { isHighlightAdmin } = useAuthContext();
     const [loading, setLoading] = useState(true);
     const skipQuery =
-        session === undefined || (!!session.messages_url && isHighlightAdmin);
+        session === undefined || (!!session?.messages_url && isHighlightAdmin);
     const { loading: queryLoading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
