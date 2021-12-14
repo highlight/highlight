@@ -2945,11 +2945,25 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
+	filterCount := len(params.UserProperties) +
+		len(params.ExcludedProperties) +
+		len(params.TrackProperties) +
+		len(params.ExcludedTrackProperties)
+	if params.Referrer != nil {
+		filterCount += 1
+	}
+	if params.VisitedURL != nil {
+		filterCount += 1
+	}
+
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
+	logTags := []string{
+		fmt.Sprintf("project_id:%d", projectID),
+		fmt.Sprintf("filtered:%t", fieldFilters != ""),
+		fmt.Sprintf("filter_count:%d", filterCount)}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
