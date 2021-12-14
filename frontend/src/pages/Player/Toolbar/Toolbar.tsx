@@ -70,6 +70,7 @@ export const Toolbar = React.memo(() => {
         isPlayerReady,
         isLiveMode,
         setIsLiveMode,
+        lastActiveString,
         sessionResults,
         session,
     } = useReplayerContext();
@@ -435,13 +436,13 @@ export const Toolbar = React.memo(() => {
                             </Button>
                         )}
 
-                    {isLiveMode && (
+                    {isLiveMode && lastActiveString && (
                         <div className={styles.liveUserStatus}>
                             <SessionToken
                                 icon={<ActivityIcon />}
                                 tooltipTitle="This session is live, but the user is idle."
                             >
-                                User is inactive
+                                User was last active {lastActiveString}
                             </SessionToken>
                         </div>
                     )}
