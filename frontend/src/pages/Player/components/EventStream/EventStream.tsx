@@ -223,6 +223,9 @@ export default EventStream;
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
     if (e.type === EventType.Custom) {
+        if (e.data.tag === 'Segment Identify') {
+            e.data.tag = 'Segment';
+        }
         return !!e.data.tag;
     }
     // If its not an 'incrementalSnapshot', discard.
@@ -323,7 +326,7 @@ const getFilteredEvents = (
                         return false;
                     }
                     return 'viewport'.includes(normalizedSearchQuery);
-                case 'Segment Identify':
+                case 'Segment':
                     if (!eventTypeFilters.showSegment) {
                         return false;
                     }

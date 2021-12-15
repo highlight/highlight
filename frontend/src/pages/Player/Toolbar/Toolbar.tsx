@@ -609,7 +609,7 @@ export const TimelineAnnotationColors: {
     Reload: '--color-green-300',
     Navigate: '--color-yellow-400',
     Errors: '--color-red-400',
-    Segment: '--color-orange-400',
+    Segment: '--color-green-500',
     Track: '--color-blue-300',
     Comments: '--color-green-500',
     Identify: '--color-orange-500',
