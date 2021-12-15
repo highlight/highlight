@@ -199,8 +199,13 @@ export const getEventRenderDetails = (
             case 'Navigate':
             case 'Click':
             case 'Focus':
-            case 'Segment':
-                details.displayValue = payload;
+            case 'Segment Identify':
+                try {
+                    const keys = Object.keys(JSON.parse(payload));
+                    details.displayValue = `{${keys.join(', ')}}`;
+                } catch {
+                    details.displayValue = payload;
+                }
                 break;
             default:
                 details.displayValue = payload;
