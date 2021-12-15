@@ -40,7 +40,7 @@ const BarChart = ({
                         <div
                             className={styles.bar}
                             style={{
-                                height: `${height * (num / maxNum)}px`,
+                                height: `${(height - 4) * (num / maxNum)}px`,
                             }}
                         />
                         <div className={styles.barBase}></div>
