@@ -5,6 +5,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
+import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -167,7 +168,7 @@ export const ResourcePage = React.memo(
                             )}.`
                         );
                     } else {
-                        setSelectedDevToolsTab('Errors');
+                        setSelectedDevToolsTab(DevToolTabType.Errors);
                         setErrorPanel(matchingError);
                         const startTime = replayer?.getMetaData().startTime;
                         if (startTime && matchingError.timestamp) {

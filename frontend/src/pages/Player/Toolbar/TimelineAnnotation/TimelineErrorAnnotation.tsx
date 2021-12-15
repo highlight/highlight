@@ -1,4 +1,5 @@
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
@@ -36,9 +37,9 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         if (errorId && error.id === errorId) {
             setShowDevTools(true);
             if (error.request_id) {
-                setSelectedDevToolsTab('Network');
+                setSelectedDevToolsTab(DevToolTabType.Network);
             } else {
-                setSelectedDevToolsTab('Errors');
+                setSelectedDevToolsTab(DevToolTabType.Errors);
                 setErrorPanel(error);
             }
         }
@@ -62,7 +63,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                         <GoToButton
                             onClick={() => {
                                 setShowDevTools(true);
-                                setSelectedDevToolsTab('Errors');
+                                setSelectedDevToolsTab(DevToolTabType.Errors);
                                 setErrorPanel(error);
                             }}
                             label="More info"

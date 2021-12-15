@@ -1,3 +1,4 @@
+import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
@@ -20,9 +21,13 @@ const usePlayerConfiguration = () => {
         'highlightMenuOpenDevTools',
         false
     );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<
-        'Errors' | 'Console' | 'Network'
-    >('tabs-DevTools-active-tab', 'Errors');
+    const [
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
+    ] = useLocalStorage<DevToolTabType>(
+        'tabs-DevTools-active-tab',
+        DevToolTabType.Errors
+    );
     const [_autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
