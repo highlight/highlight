@@ -174,6 +174,10 @@ func (w *CompressedJSONArrayWriter) Close() error {
 		if _, err := w.writer.Write([]byte("]")); err != nil {
 			return errors.Wrap(err, "error writing message end")
 		}
+	} else {
+		if _, err := w.writer.Write([]byte("[]")); err != nil {
+			return errors.Wrap(err, "error writing empty message")
+		}
 	}
 	if err := w.writer.Close(); err != nil {
 		return errors.Wrap(err, "error closing writer")
