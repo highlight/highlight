@@ -324,62 +324,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		// Sending session init alert
-		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
-			Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-			return e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID)
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID)
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == s.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return nil
-			}
-
-			// check if session was created by a should-ignore identifier
-			excludedIdentifiers, err := sessionAlert.GetExcludeRules()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID)
-			}
-			isSessionByExcludedIdentifier := false
-			for _, identifier := range excludedIdentifiers {
-				if identifier != nil && *identifier == s.Identifier {
-					isSessionByExcludedIdentifier = true
-					break
-				}
-			}
-			if isSessionByExcludedIdentifier {
-				return nil
-			}
-
-			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-			if err != nil {
-				return e.Wrap(err, "error querying workspace")
-			}
-
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject})
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
-			}
-
-		}
-		return nil
-	})
-
-	g.Go(func() error {
 		if len(rageClickSets) < 1 {
 			return nil
 		}

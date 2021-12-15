@@ -184,6 +184,9 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	r.AlertWorkerPool.SubmitRecover(func() {
 		// Sending User Properties Alert
+		if propType != PropertyType.USER {
+			return
+		}
 		var sessionAlerts []*model.SessionAlert
 		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID))
@@ -655,6 +658,66 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
+
+	r.AlertWorkerPool.SubmitRecover(func() {
+		// Sending session init alert
+		var sessionAlerts []*model.SessionAlert
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
+			Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
+			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
+			return
+		}
+
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID))
+				return
+			}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == session.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return
+			}
+
+			// check if session was created by a should-ignore identifier
+			excludedIdentifiers, err := sessionAlert.GetExcludeRules()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID))
+				return
+			}
+			isSessionByExcludedIdentifier := false
+			for _, identifier := range excludedIdentifiers {
+				if identifier != nil && *identifier == session.Identifier {
+					isSessionByExcludedIdentifier = true
+					break
+				}
+			}
+			if isSessionByExcludedIdentifier {
+				return
+			}
+
+			workspace, err := r.getWorkspace(project.WorkspaceID)
+			if err != nil {
+				log.Error(e.Wrap(err, "error querying workspace"))
+				return
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserObject: session.UserObject})
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID))
+				return
+			}
+
+		}
+	})
 
 	return session, nil
 }
