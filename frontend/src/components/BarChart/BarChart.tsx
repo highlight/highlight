@@ -16,7 +16,7 @@ const BarChart = ({
     xAxis = 'day',
     yAxis = 'occurence',
     height = 60,
-    width = 120,
+    width = 100,
 }: Props) => {
     const [maxNum, setMaxNum] = useState(5);
 
