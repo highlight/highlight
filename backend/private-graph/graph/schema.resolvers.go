@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3072,14 +3072,14 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	if query == "" {
 		q = fmt.Sprintf(`
 		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Type.keyword":"%s"}},
 			{"term":{"Name.keyword":"%s"}}
 		]}}`, fieldType, fieldName)
 	} else {
 		q = fmt.Sprintf(`
 		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}}, 
-			{"term":{"Name.keyword":"%s"}}, 
+			{"term":{"Type.keyword":"%s"}},
+			{"term":{"Name.keyword":"%s"}},
 			{"multi_match": {
 				"query": "%s",
 				"type": "bool_prefix",

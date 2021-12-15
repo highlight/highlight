@@ -11,6 +11,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -313,8 +314,18 @@ func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metr
 		return -1, nil
 	}
 
-	log.Info(metric)
-	// TODO: Add a WebVitalMetric to the DB.
+	newMetric := &model.Metric{
+		Name:      metric.Name,
+		Value:     metric.Value,
+		ProjectID: session.ProjectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricTypeWebVital,
+	}
+
+	if err := r.DB.Create(&newMetric).Error; err != nil {
+		log.Error(err)
+		return -1, nil
+	}
 
 	return sessionID, nil
 }

@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
+	&Metric{},
 }
 
 func init() {
@@ -587,10 +588,12 @@ type MessagesObject struct {
 	Messages  string
 }
 
-type WebVitalMetric struct {
+type Metric struct {
 	Model
-	SessionID int
-	Name      string
+	SessionID int                    `gorm:"index;not null;"`
+	ProjectID int                    `gorm:"index;not null;"`
+	Type      modelInputs.MetricType `gorm:"index;not null;"`
+	Name      string                 `gorm:"index;not null;"`
 	Value     float64
 }
 
