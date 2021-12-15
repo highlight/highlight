@@ -623,8 +623,15 @@ export class Highlight {
                                 source: 'segment',
                             });
                         } else if (obj.type === 'identify') {
+                            // Removes the starting and end quotes
+                            // Example: "boba" -> boba
+                            const trimmedUserId = obj.userId.replace(
+                                /^"(.*)"$/,
+                                '$1'
+                            );
+
                             highlightThis.identify(
-                                obj.userId,
+                                trimmedUserId,
                                 obj.traits,
                                 'segment'
                             );
