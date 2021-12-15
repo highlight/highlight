@@ -1,5 +1,5 @@
 import Tooltip from '@components/Tooltip/Tooltip';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styles from './BarChart.module.scss';
 
@@ -18,6 +18,12 @@ const BarChart = ({
     height = 60,
     width = 120,
 }: Props) => {
+    const [maxNum, setMaxNum] = useState(5);
+
+    useEffect(() => {
+        setMaxNum(Math.max(...data, 5));
+    }, [data]);
+
     return (
         <div
             style={{ height: height, width: width }}
@@ -34,9 +40,7 @@ const BarChart = ({
                         <div
                             className={styles.bar}
                             style={{
-                                height: `${
-                                    (height * num) / Math.max(...data, 5)
-                                }px`,
+                                height: `${height * (num / maxNum)}px`,
                             }}
                         />
                         <div className={styles.barBase}></div>
