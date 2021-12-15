@@ -965,6 +965,7 @@ type Alert struct {
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+	Frequency            int     `gorm:"default:15"` // time in seconds
 }
 
 type ErrorAlert struct {

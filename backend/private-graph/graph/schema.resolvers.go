@@ -1313,7 +1313,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1348,6 +1348,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
+			Frequency:            frequency,
 		},
 		RegexGroups: &regexGroupsString,
 	}
@@ -1362,7 +1363,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1397,6 +1398,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
 	alert.RegexGroups = &regexGroupsString
+	alert.Frequency = frequency
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,

@@ -250,7 +250,7 @@ const AlertsPage = () => {
         <>
             <AlertSetupModal />
             <div className={styles.subTitleContainer}>
-                <p>Manage your alerts for your project.</p>
+                <p>Manage the alerts for your project.</p>
                 {alertsPayload?.is_integrated_with_slack &&
                     alertsAsTableRows.length > 0 && (
                         <ButtonLink
