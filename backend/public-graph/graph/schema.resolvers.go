@@ -163,6 +163,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
+
 	return &sessionID, nil
 }
 

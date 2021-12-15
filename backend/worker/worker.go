@@ -324,66 +324,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		// Sending Track Properties Alert
-		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
-			return e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID)
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == s.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return nil
-			}
-
-			// get matched track properties between the alert and session
-			trackProperties, err := sessionAlert.GetTrackProperties()
-			if err != nil {
-				return e.Wrap(err, "error getting track properties from session")
-			}
-			var trackPropertyIds []int
-			for _, trackProperty := range trackProperties {
-				trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
-			}
-			stmt := w.Resolver.DB.Model(&model.Field{}).
-				Where(&model.Field{ProjectID: projectID, Type: "track"}).
-				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-				Where("id IN ?", trackPropertyIds)
-			var matchedFields []*model.Field
-			if err := stmt.Find(&matchedFields).Error; err != nil {
-				return e.Wrap(err, "error querying matched fields by session_id")
-			}
-			if len(matchedFields) < 1 {
-				return nil
-			}
-
-			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-			if err != nil {
-				return e.Wrap(err, "error querying workspace")
-			}
-
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields, UserObject: s.UserObject})
-			if err != nil {
-				return e.Wrap(err, "error sending track properties alert slack message")
-			}
-
-		}
-
-		return nil
-	})
-
-	g.Go(func() error {
 		// Sending User Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
