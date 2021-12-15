@@ -22,13 +22,6 @@ export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
-export const isLiveModeExposed = (isHighlightAdmin: boolean, admin?: Admin) => {
-    return (
-        isHighlightAdmin ||
-        ['251', '261', '937', '939', '2583', '2613'].includes(admin?.id || '0')
-    );
-};
-
 export const [useAuthContext, AuthContextProvider] = createContext<{
     role: AuthRole;
     admin?: Admin;
