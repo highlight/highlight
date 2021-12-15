@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SvgDimensionsIcon(props: React.SVGProps<SVGSVGElement>) {
+function SvgActivityIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             width="1em"
@@ -11,9 +11,9 @@ function SvgDimensionsIcon(props: React.SVGProps<SVGSVGElement>) {
             {...props}
         >
             <path
-                d="M4.75 11.75H8.25L10.25 4.75L13.75 19.25L15.75 11.75H19.25"
+                d="M4.75 11.75h3.5l2-7 3.5 14.5 2-7.5h3.5"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
@@ -21,4 +21,4 @@ function SvgDimensionsIcon(props: React.SVGProps<SVGSVGElement>) {
     );
 }
 
-export default SvgDimensionsIcon;
+export default SvgActivityIcon;
