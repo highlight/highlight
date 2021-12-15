@@ -100,9 +100,12 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                         ) ?? []
                     );
                 })
-                .catch((e) => {
+                .catch((_e) => {
                     setParsedMessages([]);
-                    H.consumeError(e, 'Error direct downloading resources');
+                    const e = _e as Error;
+                    if (e.name !== 'SyntaxError') {
+                        H.consumeError(e, 'Error direct downloading resources');
+                    }
                 })
                 .finally(() => setLoading(false));
         }

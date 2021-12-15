@@ -88,9 +88,12 @@ export const useResources = (
                         ).sort((a, b) => a.startTime - b.startTime)
                     );
                 })
-                .catch((e) => {
+                .catch((_e) => {
                     setResources([]);
-                    H.consumeError(e, 'Error direct downloading resources');
+                    const e = _e as Error;
+                    if (e.name !== 'SyntaxError') {
+                        H.consumeError(e, 'Error direct downloading resources');
+                    }
                 })
                 .finally(() => setResourcesLoading(false));
         }
