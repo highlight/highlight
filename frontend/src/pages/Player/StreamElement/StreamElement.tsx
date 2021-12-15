@@ -1,5 +1,6 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
+import SegmentIcon from '@icons/SegmentIcon';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -17,7 +18,6 @@ import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import SvgLinkIcon from '../../../static/LinkIcon';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
-import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import SvgTargetIcon from '../../../static/TargetIcon';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -200,7 +200,12 @@ export const getEventRenderDetails = (
             case 'Click':
             case 'Focus':
             case 'Segment':
-                details.displayValue = payload;
+                try {
+                    const keys = Object.keys(JSON.parse(payload));
+                    details.displayValue = `{${keys.join(', ')}}`;
+                } catch {
+                    details.displayValue = payload;
+                }
                 break;
             default:
                 details.displayValue = payload;
