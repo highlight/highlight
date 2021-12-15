@@ -1,3 +1,4 @@
+import BarChart from '@components/BarChart/BarChart';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -168,30 +169,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                     })}
                 >
                     <div className={styles.avatarWrapper}>
-                        {errorDates.map((num, ind) => (
-                            <Tooltip
-                                title={`${
-                                    5 - ind
-                                } day(s) ago\n ${num} occurences`}
-                                overlayStyle={{
-                                    whiteSpace: 'pre-line',
-                                }}
-                                key={ind}
-                            >
-                                <div className={styles.errorBarDiv}>
-                                    <div
-                                        className={styles.errorBar}
-                                        style={{
-                                            height: `${
-                                                (60 * num) /
-                                                Math.max(...errorDates, 5)
-                                            }px`,
-                                        }}
-                                    />
-                                    <div className={styles.errorBarBase}></div>
-                                </div>
-                            </Tooltip>
-                        ))}
+                        <BarChart data={errorDates} />
                     </div>
                     <div className={styles.errorTextSectionWrapper}>
                         <div
