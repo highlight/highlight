@@ -20,10 +20,7 @@ import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import {
-    isLiveModeExposed,
-    useAuthContext,
-} from '../../../authentication/AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import SvgFullscreenIcon from '../../../static/FullscreenIcon';
 import SvgMinimize2Icon from '../../../static/Minimize2Icon';
@@ -417,24 +414,22 @@ export const Toolbar = React.memo(() => {
                         />
                     </button>
 
-                    {isLiveModeExposed(isHighlightAdmin, admin) &&
-                        session?.processed === false &&
-                        !disableControls && (
-                            <Button
-                                trackingId="LiveModeButton"
-                                className={styles.liveButton}
-                            >
-                                <Switch
-                                    checked={isLiveMode}
-                                    onChange={(checked: boolean) => {
-                                        setIsLiveMode(checked);
-                                    }}
-                                    label="Live Mode"
-                                    trackingId="LiveModeSwitch"
-                                    red={true}
-                                />
-                            </Button>
-                        )}
+                    {session?.processed === false && !disableControls && (
+                        <Button
+                            trackingId="LiveModeButton"
+                            className={styles.liveButton}
+                        >
+                            <Switch
+                                checked={isLiveMode}
+                                onChange={(checked: boolean) => {
+                                    setIsLiveMode(checked);
+                                }}
+                                label="Live Mode"
+                                trackingId="LiveModeSwitch"
+                                red={true}
+                            />
+                        </Button>
+                    )}
 
                     {isLiveMode && lastActiveString && (
                         <div className={styles.liveUserStatus}>

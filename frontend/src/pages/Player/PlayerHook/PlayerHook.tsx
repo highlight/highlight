@@ -15,10 +15,7 @@ import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import {
-    isLiveModeExposed,
-    useAuthContext,
-} from '../../../authentication/AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     OnSessionPayloadAppendedDocument,
     useGetSessionPayloadLazyQuery,
@@ -348,10 +345,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 eventsPayload
             );
             if (loadedEventsIndex <= 0) {
-                setIsLiveMode(
-                    isLiveModeExposed(isHighlightAdmin, admin) &&
-                        sessionData?.session?.processed === false
-                );
+                setIsLiveMode(sessionData?.session?.processed === false);
                 setState(ReplayerState.Loading);
                 // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
                 const playerMountingRoot = document.getElementById(
