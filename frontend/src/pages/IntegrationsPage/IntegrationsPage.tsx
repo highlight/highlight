@@ -1,7 +1,6 @@
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import Integration from '@pages/IntegrationsPage/components/Integration';
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
-import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 
@@ -9,8 +8,6 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './IntegrationsPage.module.scss';
 
 const IntegrationsPage = () => {
-    const { workspace_id } = useParams<{ workspace_id: string }>();
-
     return (
         <>
             <Helmet>

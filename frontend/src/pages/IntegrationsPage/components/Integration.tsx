@@ -12,14 +12,7 @@ interface Props {
 }
 
 const Integration = ({
-    integration: {
-        configurationPath,
-        icon,
-        name,
-        externalLink,
-        description,
-        configurationPage,
-    },
+    integration: { icon, name, description, configurationPage },
 }: Props) => {
     const [showConfiguration, setShowConfiguration] = useState(false);
     const [integrationEnabled, setIntegrationEnabled] = useState(false);
