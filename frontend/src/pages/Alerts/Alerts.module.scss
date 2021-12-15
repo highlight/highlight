@@ -92,3 +92,17 @@
     display: inline-block;
     line-height: 1;
 }
+
+.line {
+    background-color: var(--color-gray-300);
+    min-height: 105%;
+    position: absolute;
+    transform: translateY(-17px);
+    width: 1px;
+}
+
+.chart {
+    display: flex;
+    justify-content: center;
+    padding-left: var(--size-medium) !important;
+}

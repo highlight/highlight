@@ -1,4 +1,5 @@
 import Alert from '@components/Alert/Alert';
+import BarChart from '@components/BarChart/BarChart';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
@@ -179,6 +180,19 @@ const TABLE_COLUMNS = [
             >
                 Configure <SvgChevronRightIcon />
             </Link>
+        ),
+    },
+    {
+        title: 'Frequency',
+        dataIndex: 'frequency',
+        key: 'frequency',
+        render: (data: Array<number>, record: any) => (
+            <>
+                <div className={styles.line}></div>
+                <div className={styles.chart}>
+                    <BarChart data={[1, 2, 3, 4, 5, 5, 3, 1, 1]} />
+                </div>
+            </>
         ),
     },
 ];
