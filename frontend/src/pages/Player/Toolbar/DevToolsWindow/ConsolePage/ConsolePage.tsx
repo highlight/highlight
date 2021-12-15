@@ -52,7 +52,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     const [loading, setLoading] = useState(true);
     const skipQuery =
         session === undefined || (!!session?.messages_url && isHighlightAdmin);
-    const { loading: queryLoading } = useGetMessagesQuery({
+    const { data, loading: queryLoading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
         },
@@ -120,6 +120,17 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         const uniqueSet = new Set(base);
         setOptions(['All', ...Array.from(uniqueSet)]);
     }, [parsedMessages]);
+
+    useEffect(() => {
+        setParsedMessages(
+            data?.messages?.map((m: ConsoleMessage, i) => {
+                return {
+                    ...m,
+                    id: i,
+                };
+            }) ?? []
+        );
+    }, [data]);
 
     // Logic for scrolling to current entry.
     useEffect(() => {
