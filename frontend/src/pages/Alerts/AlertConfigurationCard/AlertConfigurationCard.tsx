@@ -838,7 +838,7 @@ export const AlertConfigurationCard = ({
                                                           0,
                                                           -1
                                                       ) ||
-                                                      `${DEFAULT_CADENCE} second`
+                                                      `${DEFAULT_FREQUENCY} second`
                                             }
                                         />
                                     </b>
@@ -849,7 +849,7 @@ export const AlertConfigurationCard = ({
                                     <Select
                                         className={styles.lookbackPeriodSelect}
                                         onChange={onFrequencyChange}
-                                        options={CADENCES}
+                                        options={FREQUENCIES}
                                     />
                                 </Form.Item>
                             </section>
@@ -983,7 +983,7 @@ export const AlertConfigurationCard = ({
     );
 };
 
-const CADENCES = [
+const FREQUENCIES = [
     {
         displayValue: '1 second',
         value: '1',
@@ -1082,15 +1082,15 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
     return option;
 };
 
-const DEFAULT_CADENCE = '15';
+const DEFAULT_FREQUENCY = '15';
 
-const getFrequencyOption = (seconds = DEFAULT_CADENCE): any => {
-    const option = CADENCES.find(
+const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
+    const option = FREQUENCIES.find(
         (option) => option.value === seconds?.toString()
     );
 
     if (!option) {
-        return CADENCES.find((option) => option.value === DEFAULT_CADENCE);
+        return FREQUENCIES.find((option) => option.value === DEFAULT_FREQUENCY);
     }
 
     return option;
