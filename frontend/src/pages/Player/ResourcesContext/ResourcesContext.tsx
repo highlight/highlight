@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks';
 import { Session } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
@@ -18,7 +17,6 @@ export const useResources = (
 ): ResourcesContext => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [sessionSecureId, setSessionSecureId] = useState<string>();
-    const { isHighlightAdmin } = useAuthContext();
 
     const { refetch: refetchSession } = useGetSessionQuery({
         fetchPolicy: 'no-cache',
@@ -29,7 +27,7 @@ export const useResources = (
     const skipQuery =
         sessionSecureId === undefined ||
         session === undefined ||
-        (!!session.resources_url && isHighlightAdmin);
+        !!session.resources_url;
 
     const { data, loading: queryLoading } = useGetResourcesQuery({
         variables: {
@@ -63,8 +61,7 @@ export const useResources = (
     useEffect(() => {
         if (
             sessionSecureId === session?.secure_id &&
-            !!session?.resources_url &&
-            isHighlightAdmin
+            !!session?.resources_url
         ) {
             setResourcesLoading(true);
             refetchSession({
