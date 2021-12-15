@@ -593,6 +593,7 @@ export type SessionPayload = {
     errors: Array<Maybe<ErrorObject>>;
     rage_clicks: Array<RageClickEvent>;
     session_comments: Array<Maybe<SessionComment>>;
+    last_user_interaction_time: Scalars['Timestamp'];
 };
 
 export type Query = {

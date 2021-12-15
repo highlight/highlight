@@ -9,7 +9,8 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
-import { useCallback, useEffect, useState } from 'react';
+import moment from 'moment';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -98,6 +99,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [subscriptionEventsPayload, setSubscriptionEventsPayload] = useState<
         Array<HighlightEvent>
     >([]);
+    const lastActiveTimestampRef = useRef(0);
+    const [lastActiveString, setLastActiveString] = useState<string | null>(
+        null
+    );
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -240,6 +245,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.VIEWABLE);
             setLoadedEventsIndex(0);
             setIsLiveMode(false);
+            lastActiveTimestampRef.current = 0;
+            setLastActiveString(null);
         },
         [setPlayerTimeToPersistance]
     );
@@ -278,6 +285,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                             subscriptionData.data!.session_payload_appended
                                 .events!
                         );
+                        lastActiveTimestampRef.current = new Date(
+                            // @ts-ignore The typedef for subscriptionData is incorrect
+                            subscriptionData.data!.session_payload_appended.last_user_interaction_time
+                        ).getTime();
                     }
                     // Prev is the value in Apollo cache - it is empty, don't bother updating it
                     return prev;
@@ -646,6 +657,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                                 : ReplayerState.SessionEnded
                         );
                     }
+                    // Compute the string rather than number here, so that dependencies don't
+                    // have to re-render on every tick
+                    updateLastActiveString(
+                        events[0].timestamp + replayer.getCurrentTime()
+                    );
                 }
                 setTimerId(requestAnimationFrame(frameAction));
             };
@@ -759,6 +775,25 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
+    const updateLastActiveString = (currentTime: number) => {
+        const lastActiveTimestamp = lastActiveTimestampRef.current;
+        if (
+            isLiveMode &&
+            lastActiveTimestamp != 0 &&
+            lastActiveTimestamp < currentTime - 5000
+        ) {
+            if (lastActiveTimestamp > currentTime - 1000 * 60) {
+                setLastActiveString('less than a minute ago');
+            } else {
+                setLastActiveString(
+                    moment(lastActiveTimestamp).from(currentTime)
+                );
+            }
+        } else {
+            setLastActiveString(null);
+        }
+    };
+
     return {
         scale,
         setScale,
@@ -785,6 +820,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             sessionViewability === SessionViewability.VIEWABLE,
         isLiveMode,
         setIsLiveMode,
+        lastActiveString,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime

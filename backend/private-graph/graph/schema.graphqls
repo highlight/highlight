@@ -536,6 +536,7 @@ type SessionPayload {
     errors: [ErrorObject]!
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
+    last_user_interaction_time: Timestamp!
 }
 
 scalar Upload
