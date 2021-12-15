@@ -965,10 +965,24 @@ type Alert struct {
 type ErrorAlert struct {
 	Model
 	Alert
+	RegexGroups *string
 }
 
 func (obj *ErrorAlert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
 	return obj.sendSlackAlert(db, obj.ID, input)
+}
+
+func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {
+	var regexGroups []*string
+	if obj.RegexGroups == nil || *obj.RegexGroups == "" {
+		return regexGroups, nil
+	}
+
+	err := json.Unmarshal([]byte(*obj.RegexGroups), &regexGroups)
+	if err != nil {
+		return nil, err
+	}
+	return regexGroups, nil
 }
 
 type SessionAlert struct {

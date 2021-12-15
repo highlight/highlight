@@ -70,5 +70,5 @@ jobs:
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
                 task-definition: ${{ steps.image-worker.outputs.task-definition }}
-                service: worker-service
+                service: worker-service-v2
                 cluster: highlight-production-cluster

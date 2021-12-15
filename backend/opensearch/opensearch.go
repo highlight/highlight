@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -236,6 +237,65 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
 
 	return nil
+}
+
+func (c *Client) Search(index Index, projectID int, query string, count int, results interface{}) (resultCount int64, err error) {
+	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
+		return 0, e.Wrap(err, "query is not valid JSON")
+	}
+
+	query = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+
+	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s}`, count, query))
+	search := opensearchapi.SearchRequest{
+		Index: []string{GetIndex(index)},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(context.Background(), c.Client)
+	if err != nil {
+		return 0, e.Wrap(err, "failed to search index")
+	}
+
+	res, err := ioutil.ReadAll(searchResponse.Body)
+	if err != nil {
+		return 0, e.Wrap(err, "failed to read search response")
+	}
+
+	if err := searchResponse.Body.Close(); err != nil {
+		return 0, e.Wrap(err, "failed to close search response")
+	}
+
+	var response struct {
+		Hits struct {
+			Total struct {
+				Value int64 `json:"value"`
+			} `json:"total"`
+			Hits []struct {
+				Source interface{} `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+
+	if err := json.Unmarshal(res, &response); err != nil {
+		return 0, e.Wrap(err, "failed to unmarshal response")
+	}
+
+	sources := []interface{}{}
+	for _, hit := range response.Hits.Hits {
+		sources = append(sources, hit.Source)
+	}
+
+	marshalled, err := json.Marshal(sources)
+	if err != nil {
+		return 0, e.Wrap(err, "failed to re-marshal sources")
+	}
+
+	if err := json.Unmarshal(marshalled, results); err != nil {
+		return 0, e.Wrap(err, "failed to unmarshal sources")
+	}
+
+	return response.Hits.Total.Value, nil
 }
 
 func (c *Client) Close() error {

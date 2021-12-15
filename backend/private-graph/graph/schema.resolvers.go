@@ -23,6 +23,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -44,6 +45,10 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
 	return obj.GetExcludedEnvironments()
+}
+
+func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	return obj.GetRegexGroups()
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
@@ -129,8 +134,8 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 	var fields []*model.ErrorField
 	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
 	if err != nil {
-		err := e.Wrap(err, "error converting field group to struct")
-		return nil, err
+		log.Error(err)
+		return fields, nil
 	}
 	var parsedFields []*model.ErrorField
 	for _, f := range fields {
@@ -214,12 +219,12 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in the workspace")
+		return nil, nil
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting admin")
+		return nil, nil
 	}
 
 	project := &model.Project{
@@ -238,7 +243,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*model.Workspace, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting admin")
+		return nil, nil
 	}
 
 	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
@@ -1308,7 +1313,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1326,6 +1331,12 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		return nil, err
 	}
 
+	regexGroupsBytes, err := json.Marshal(regexGroups)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling regex groups")
+	}
+	regexGroupsString := string(regexGroupsBytes)
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1338,6 +1349,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 		},
+		RegexGroups: &regexGroupsString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -1350,7 +1362,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1372,6 +1384,11 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
+	regexGroupsBytes, err := json.Marshal(regexGroups)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling regex groups")
+	}
+	regexGroupsString := string(regexGroupsBytes)
 
 	alert.ChannelsToNotify = channelsString
 	alert.ExcludedEnvironments = envString
@@ -1379,6 +1396,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.ThresholdWindow = &thresholdWindow
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
+	alert.RegexGroups = &regexGroupsString
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -2009,7 +2027,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 }
 
 func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error) {
-	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
@@ -2027,6 +2045,12 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 		return nil, e.Wrap(err, "error creating registration")
 	}
 
+	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
+		"EligibleForTrialExtension": false,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
+	}
+
 	return &model.T, nil
 }
 
@@ -2041,7 +2065,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 	s, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, nil
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
@@ -2461,13 +2485,13 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 }
 
 func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID int) ([]*model.SessionComment, error) {
+	var sessionComments []*model.SessionComment
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org for session comments")
+		return sessionComments, nil
 	}
 
-	var sessionComments []*model.SessionComment
 	if err := r.DB.Model(model.SessionComment{}).Where("project_id = ?", projectID).Find(&sessionComments).Error; err != nil {
-		return nil, e.Wrap(err, "error getting session comments for project")
+		return sessionComments, e.Wrap(err, "error getting session comments for project")
 	}
 
 	return sessionComments, nil
@@ -2500,13 +2524,13 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 }
 
 func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model.ErrorComment, error) {
+	var errorComments []*model.ErrorComment
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org for error comments")
+		return errorComments, nil
 	}
 
-	var errorComments []*model.ErrorComment
 	if err := r.DB.Model(model.ErrorComment{}).Where("project_id = ?", projectID).Find(&errorComments).Error; err != nil {
-		return nil, e.Wrap(err, "error getting error comments for project")
+		return errorComments, e.Wrap(err, "error getting error comments for project")
 	}
 
 	return errorComments, nil
@@ -2515,7 +2539,7 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 func (r *queryResolver) ProjectAdmins(ctx context.Context, projectID int) ([]*model.Admin, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, nil
 	}
 
 	admins := []*model.Admin{}
@@ -2539,7 +2563,7 @@ func (r *queryResolver) ProjectAdmins(ctx context.Context, projectID int) ([]*mo
 func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "current admin not in the workspace")
+		return nil, nil
 	}
 
 	admins := []*model.Admin{}
@@ -2552,7 +2576,7 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, nil
 	}
 	var count int64
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
@@ -2921,11 +2945,25 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
+	filterCount := len(params.UserProperties) +
+		len(params.ExcludedProperties) +
+		len(params.TrackProperties) +
+		len(params.ExcludedTrackProperties)
+	if params.Referrer != nil {
+		filterCount += 1
+	}
+	if params.VisitedURL != nil {
+		filterCount += 1
+	}
+
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
+	logTags := []string{
+		fmt.Sprintf("project_id:%d", projectID),
+		fmt.Sprintf("filtered:%t", fieldFilters != ""),
+		fmt.Sprintf("filter_count:%d", filterCount)}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
@@ -2987,10 +3025,86 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.Session{}
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: resultCount,
+	}, nil
+}
+
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	res := []*model.Field{}
+
+	if err := r.DB.Raw(`
+		SELECT DISTINCT type, name
+		FROM fields
+		WHERE project_id = ?
+	`, projectID).Scan(&res).Error; err != nil {
+		return nil, e.Wrap(err, "error querying field types for project")
+	}
+
+	return res, nil
+}
+
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldType, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Name.keyword":"%s"}}, 
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldType, fieldName, query)
+	}
+
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not in project")
+		return nil, nil
 	}
 
 	return r.BillingDetails(ctx, project.WorkspaceID)
@@ -2999,7 +3113,7 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
 	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not in workspace")
+		return nil, nil
 	}
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
@@ -3072,10 +3186,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
 	fields := []*model.Field{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return fields, nil
+	}
 	res := r.DB.Where(&model.Field{Name: name}).
 		Where("project_id = ?", projectID).
 		Where("length(value) > ?", 0).
@@ -3083,7 +3197,8 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
+		log.Error(err)
+		return fields, nil
 	}
 	return fields, nil
 }
@@ -3150,7 +3265,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, nil
 	}
 
 	workspaces := []*model.Workspace{}
@@ -3453,7 +3568,7 @@ func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, nil
 	}
 	return project, nil
 }
@@ -3461,7 +3576,7 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in the workspace")
+		return nil, nil
 	}
 
 	projects := []model.Project{}
@@ -3476,7 +3591,7 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model.WorkspaceInviteLink, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in workspace")
+		return nil, nil
 	}
 
 	var workspaceInviteLink *model.WorkspaceInviteLink
@@ -3511,7 +3626,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, nil
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -3684,7 +3799,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int) (*modelInputs.SubscriptionDetails, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin does not have workspace access")
+		return nil, nil
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {

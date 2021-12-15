@@ -157,12 +157,12 @@ const FreePlanBanner = () => {
 
     let bannerMessage:
         | string
-        | React.ReactNode = `You've used ${data?.billingDetailsForProject.meter}/${data?.billingDetailsForProject.plan.quota} of your free sessions.`;
+        | React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`;
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
     const showProductHuntBanner =
-        data?.billingDetailsForProject.plan.type !== PlanType.Free;
+        data?.billingDetailsForProject?.plan.type !== PlanType.Free;
     if (showProductHuntBanner) {
         bannerMessage = (
             <span>
@@ -232,7 +232,7 @@ const FreePlanBanner = () => {
         >
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
-                {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+                {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
                     !canExtend && (
                         <>
                             {' '}
@@ -246,7 +246,7 @@ const FreePlanBanner = () => {
                         </>
                     )}
             </div>
-            {data?.billingDetailsForProject.plan.type === PlanType.Free &&
+            {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
                 hasTrial && (
                     <button
                         onClick={() => {

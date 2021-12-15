@@ -38,7 +38,9 @@ export const getDisplayName = (session: Maybe<Session>) => {
     return (
         userProperties?.highlightDisplayName ||
         userProperties?.email ||
-        session?.identifier ||
+        (session?.identifier && session.identifier !== 'null'
+            ? session.identifier
+            : null) ||
         (session?.fingerprint && `#${session?.fingerprint}`) ||
         'unidentified'
     );

@@ -439,6 +439,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    regex_groups:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -451,6 +454,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'RegexGroups'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -520,6 +524,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    regex_groups:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -531,6 +538,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'RegexGroups'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1510,6 +1518,82 @@ export type SendAdminWorkspaceInviteMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'sendAdminWorkspaceInvite'>;
 
+export type GetFieldTypesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetFieldTypesQuery = { __typename?: 'Query' } & {
+    field_types: Array<
+        { __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
+    >;
+};
+
+export type GetFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    field_type: Types.Scalars['String'];
+    field_name: Types.Scalars['String'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & {
+    fields_opensearch: Array<
+        { __typename?: 'Field' } & Pick<Types.Field, 'value'>
+    >;
+};
+
+export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
+    sessions_opensearch: { __typename?: 'SessionResults' } & Pick<
+        Types.SessionResults,
+        'totalCount'
+    > & {
+            sessions: Array<
+                { __typename?: 'Session' } & Pick<
+                    Types.Session,
+                    | 'id'
+                    | 'secure_id'
+                    | 'fingerprint'
+                    | 'identifier'
+                    | 'os_name'
+                    | 'os_version'
+                    | 'browser_name'
+                    | 'browser_version'
+                    | 'city'
+                    | 'state'
+                    | 'postal'
+                    | 'created_at'
+                    | 'language'
+                    | 'length'
+                    | 'active_length'
+                    | 'enable_recording_network_contents'
+                    | 'viewed'
+                    | 'starred'
+                    | 'processed'
+                    | 'first_time'
+                    | 'user_properties'
+                    | 'event_counts'
+                > & {
+                        fields?: Types.Maybe<
+                            Array<
+                                Types.Maybe<
+                                    { __typename?: 'Field' } & Pick<
+                                        Types.Field,
+                                        'name' | 'value' | 'type' | 'id'
+                                    >
+                                >
+                            >
+                        >;
+                    }
+            >;
+        };
+};
+
 export type GetSessionsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -1802,15 +1886,17 @@ export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
 }>;
 
 export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
-    billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
-        Types.BillingDetails,
-        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
-    > & {
-            plan: { __typename?: 'Plan' } & Pick<
-                Types.Plan,
-                'type' | 'quota' | 'interval' | 'membersLimit'
-            >;
-        };
+    billingDetailsForProject?: Types.Maybe<
+        { __typename?: 'BillingDetails' } & Pick<
+            Types.BillingDetails,
+            'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+        > & {
+                plan: { __typename?: 'Plan' } & Pick<
+                    Types.Plan,
+                    'type' | 'quota' | 'interval' | 'membersLimit'
+                >;
+            }
+    >;
     workspace_for_project?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
@@ -2534,6 +2620,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'LastAdminToEditID'
                     | 'ThresholdWindow'
+                    | 'RegexGroups'
                     | 'id'
                     | 'Type'
                     | 'Name'
@@ -2771,6 +2858,9 @@ export const namedOperations = {
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetFieldTypes: 'GetFieldTypes' as const,
+        GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
+        GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,

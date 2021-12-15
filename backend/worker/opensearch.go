@@ -22,13 +22,37 @@ func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	}
 }
 
+type OpenSearchSession struct {
+	*model.Session
+	Fields []*OpenSearchField `json:"fields"`
+}
+
+type OpenSearchField struct {
+	*model.Field
+	Key      string
+	KeyValue string
+}
+
 func (w *Worker) IndexSessions() {
 	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, result := range *results {
-			w.indexItem(opensearch.IndexSessions, result)
+			fields := []*OpenSearchField{}
+			for _, field := range result.Fields {
+				f := OpenSearchField{
+					Field:    field,
+					Key:      field.Type + "_" + field.Name,
+					KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
+				}
+				fields = append(fields, &f)
+			}
+			os := OpenSearchSession{
+				Session: result,
+				Fields:  fields,
+			}
+			w.indexItem(opensearch.IndexSessions, &os)
 		}
 		return nil
 	}

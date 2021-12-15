@@ -787,6 +787,45 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				errorAlert.ThresholdWindow = &t
 			}
 
+			if errorAlert.RegexGroups != nil {
+				groups, err := errorAlert.GetRegexGroups()
+				if err != nil {
+					log.Error(e.Wrap(err, "error getting regex groups from ErrorAlert"))
+					continue
+				}
+				matched := false
+				for _, g := range groups {
+					if g == nil {
+						continue
+					}
+					matched, err = regexp.MatchString(*g, group.Event)
+					if err != nil {
+						log.Warn(err)
+					}
+					if matched {
+						break
+					}
+					if group.MappedStackTrace != nil {
+						matched, err = regexp.MatchString(*g, *group.MappedStackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
+					} else {
+						matched, err = regexp.MatchString(*g, group.StackTrace)
+						if err != nil {
+							log.Warn(err)
+						}
+					}
+					if matched {
+						break
+					}
+				}
+				if matched {
+					log.Warn("error event matches regex group, skipping alert...")
+					continue
+				}
+			}
+
 			numErrors := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
@@ -803,6 +842,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				return
 			}
 
+			alertEventsLookbackPeriod := 15 // only count alert_events from the past 15 seconds
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
@@ -814,8 +854,8 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 						AND error_group_id=?)
 					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, 15).Scan(&numAlerts).Error; err != nil {
-				log.Error(e.Wrap(err, "error counting alert events from past 15 seconds"))
+			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, alertEventsLookbackPeriod).Scan(&numAlerts).Error; err != nil {
+				log.Error(e.Wrapf(err, "error counting alert events from past %d seconds", alertEventsLookbackPeriod))
 				return
 			}
 			if numAlerts > 0 {

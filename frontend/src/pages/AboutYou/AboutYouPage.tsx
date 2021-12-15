@@ -60,8 +60,10 @@ const AboutYouPage = () => {
             });
 
             setSignUpReferral('');
-            message.success("Awesome! We'll be in touch soon!");
-            history.push('/new');
+            message.success(
+                `Nice to meet you ${firstName}, let's get started!`
+            );
+            history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
         }

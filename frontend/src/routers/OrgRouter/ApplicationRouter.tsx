@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import AlertsRouter from '@pages/Alerts/AlertsRouter';
+import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam } from '@util/url/params';
@@ -187,6 +188,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 </Route>
                 <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
+                </Route>
+                <Route path="/:project_id/integrations">
+                    <IntegrationsPage />
                 </Route>
                 <Route path="/:project_id/buttons">
                     <Suspense fallback={null}>

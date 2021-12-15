@@ -269,7 +269,7 @@ export const ResourcePage = React.memo(
                     </div>
                 </div>
                 <div className={styles.networkTableWrapper}>
-                    {loading ? (
+                    {loading || !session ? (
                         <div className={devStyles.skeletonWrapper}>
                             <Skeleton
                                 count={2}

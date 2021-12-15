@@ -1,5 +1,6 @@
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
@@ -125,9 +126,9 @@ const SessionCommentHeader = ({
                         H.track('Create Linear issue');
                         const url = getCommentLink();
                         window.open(
-                            `http://linear.app/new?title=Highlight session comment for ${
-                                session?.identifier
-                            }&description=${comment.text.replaceAll(
+                            `http://linear.app/new?title=Highlight session comment for ${getDisplayName(
+                                session
+                            )}&description=${comment.text.replaceAll(
                                 '@',
                                 ''
                             )}%0A%0ASession: ${url.href

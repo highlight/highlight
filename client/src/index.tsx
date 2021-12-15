@@ -37,7 +37,11 @@ import {
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
-import { WebVitalsListener } from 'listeners/web-vitals-listener/web-vitals-listener';
+import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
+import {
+    FeedbackWidgetOptions,
+    initializeFeedbackWidget,
+} from './ui/feedback-widget/feedback-widget';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -118,6 +122,7 @@ export type HighlightClassOptions = {
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
+    feedbackWidget?: FeedbackWidgetOptions;
 };
 
 /**
@@ -209,7 +214,9 @@ export class Highlight {
     _backendUrl: string;
     _recordingStartTime: number = 0;
     _isOnLocalHost: boolean = false;
+    _onToggleFeedbackFormVisibility: () => void;
     pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
+    feedbackWidgetOptions: FeedbackWidgetOptions;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -293,6 +300,13 @@ export class Highlight {
         this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionShortcut = options.sessionShortcut || false;
+        this.feedbackWidgetOptions = {
+            enabled: options.feedbackWidget?.enabled || false,
+            subTitle: options.feedbackWidget?.subTitle,
+            submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
+            title: options.feedbackWidget?.title,
+        };
+        this._onToggleFeedbackFormVisibility = () => {};
         this.sessionData = {
             sessionID: 0,
             sessionSecureID: '',
@@ -306,9 +320,24 @@ export class Highlight {
         this.events = [];
         this.errors = [];
         this.messages = [];
+
+        if (window.Intercom) {
+            window.Intercom('onShow', () => {
+                window.Intercom('update', {
+                    highlightSessionURL: this.getCurrentSessionURL(),
+                });
+            });
+        }
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
+        if (!user_identifier || user_identifier === '') {
+            console.warn(
+                `Highlight's identify() call was passed an empty identifier.`,
+                { user_identifier, user_object }
+            );
+            return;
+        }
         if (!this._shouldSendRequest()) {
             return;
         }
@@ -325,6 +354,14 @@ export class Highlight {
         }
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
+        window.sessionStorage.setItem(
+            'highlightIdentifier',
+            user_identifier.toString()
+        );
+        window.sessionStorage.setItem(
+            'highlightUserObject',
+            JSON.stringify(user_object)
+        );
         try {
             await this.graphqlSDK.identifySession({
                 session_id: this.sessionData.sessionID.toString(),
@@ -456,6 +493,12 @@ export class Highlight {
         try {
             if (organization_id) {
                 this.organizationID = org_id;
+            }
+            if (this.feedbackWidgetOptions.enabled) {
+                const {
+                    onToggleFeedbackFormVisibility,
+                } = initializeFeedbackWidget(this.feedbackWidgetOptions);
+                this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
             let storedSessionData = JSON.parse(
                 window.sessionStorage.getItem('sessionData') || '{}'
@@ -635,7 +678,7 @@ export class Highlight {
                                 (c.type === 'Error' || c.type === 'error') &&
                                 c.value &&
                                 c.trace
-                            )
+                            ) {
                                 highlightThis.errors.push({
                                     event: stringify(c.value),
                                     type: 'console.error',
@@ -652,7 +695,9 @@ export class Highlight {
                                     stackTrace: c.trace,
                                     timestamp: new Date().toISOString(),
                                 });
-                            highlightThis.messages.push(c);
+                            } else {
+                                highlightThis.messages.push(c);
+                            }
                         },
                         {
                             lengthThreshold: 1000,
@@ -846,6 +891,16 @@ export class Highlight {
         return null;
     }
 
+    toggleFeedbackWidgetVisibility() {
+        if (this.feedbackWidgetOptions.enabled) {
+            this._onToggleFeedbackFormVisibility();
+        } else {
+            console.warn(
+                `Highlight's toggleFeedbackWidgetVisibility() was called. You need to configure feedbackWidget in the Highlight options to show the feedback widget.`
+            );
+        }
+    }
+
     addSessionFeedback({
         timestamp,
         verbatim,
@@ -1005,6 +1060,12 @@ export class Highlight {
 }
 
 (window as any).Highlight = Highlight;
+interface HighlightWindow extends Window {
+    Highlight: Highlight;
+    Intercom?: any;
+}
+
+declare var window: HighlightWindow;
 
 declare global {
     interface Console {
