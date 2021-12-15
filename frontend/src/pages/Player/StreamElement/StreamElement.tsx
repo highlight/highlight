@@ -200,6 +200,7 @@ export const getEventRenderDetails = (
             case 'Click':
             case 'Focus':
             case 'Segment Identify':
+            case 'Segment Track':
                 try {
                     const keys = Object.keys(JSON.parse(payload));
                     details.displayValue = `{${keys.join(', ')}}`;
