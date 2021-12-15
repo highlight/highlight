@@ -1412,11 +1412,8 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
-		if identifier == "" {
-			identifier = "User"
-		}
-		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", identifier), false, false)
+		previewText = "Highlight: New Session Created"
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*New Session Created:*\n\n", false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
