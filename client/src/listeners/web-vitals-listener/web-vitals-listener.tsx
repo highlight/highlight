@@ -8,11 +8,10 @@ export const WebVitalsListener = (callback: (metric: Metric) => void) => {
         var script = document.createElement('script');
         script.src = 'https://unpkg.com/web-vitals/dist/web-vitals.iife.js';
         script.onload = function () {
-            window?.webVitals.getCLS(callback);
-            window?.webVitals.getFCP(callback);
-            window?.webVitals.getLID(callback);
-            window?.webVitals.getLCP(callback);
-            window?.webVitals.getTTFB(callback);
+            window?.webVitals?.getCLS(callback);
+            window?.webVitals?.getFCP(callback);
+            window?.webVitals?.getLCP(callback);
+            window?.webVitals?.getTTFB(callback);
         };
         document.head.appendChild(script);
     })();
