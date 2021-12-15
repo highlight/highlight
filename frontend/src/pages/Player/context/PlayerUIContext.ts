@@ -34,6 +34,7 @@ interface PlayerUIContext {
     setSelectedRightPanelTab: (
         newValue: 'Events' | 'Comments' | 'Metadata'
     ) => void;
+    isQueryBuilder: boolean;
 }
 
 export const [
