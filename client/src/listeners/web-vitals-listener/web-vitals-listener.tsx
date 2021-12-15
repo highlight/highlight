@@ -10,6 +10,7 @@ export const WebVitalsListener = (callback: (metric: Metric) => void) => {
         script.onload = function () {
             window?.webVitals?.getCLS(callback);
             window?.webVitals?.getFCP(callback);
+            window?.webVitals?.getFID(callback);
             window?.webVitals?.getLCP(callback);
             window?.webVitals?.getTTFB(callback);
         };
