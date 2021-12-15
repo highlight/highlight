@@ -9,7 +9,7 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
-import { DateTime } from 'luxon';
+import moment from 'moment';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
@@ -285,11 +285,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                             subscriptionData.data!.session_payload_appended
                                 .events!
                         );
-                        lastActiveTimestampRef.current = DateTime.fromISO(
+                        lastActiveTimestampRef.current = new Date(
                             // @ts-ignore The typedef for subscriptionData is incorrect
-                            subscriptionData.data!.session_payload_appended
-                                .last_user_interaction_time
-                        ).toMillis();
+                            subscriptionData.data!.session_payload_appended.last_user_interaction_time
+                        ).getTime();
                     }
                     // Prev is the value in Apollo cache - it is empty, don't bother updating it
                     return prev;
@@ -787,9 +786,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setLastActiveString('less than a minute ago');
             } else {
                 setLastActiveString(
-                    DateTime.fromMillis(lastActiveTimestamp).toRelative({
-                        base: DateTime.fromMillis(currentTime),
-                    })
+                    moment(lastActiveTimestamp).from(currentTime)
                 );
             }
         } else {
