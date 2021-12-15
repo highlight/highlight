@@ -117,13 +117,7 @@ const MinimalSessionCard = React.memo(
                 >
                     <div className={styles.avatarWrapper}>
                         <Avatar
-                            seed={
-                                (session?.identifier
-                                    ? session?.identifier
-                                    : (
-                                          session?.fingerprint || ''
-                                      ).toString()) ?? ''
-                            }
+                            seed={getDisplayName(session)}
                             style={{ height: 25, width: 25 }}
                             customImage={customAvatarImage}
                         />

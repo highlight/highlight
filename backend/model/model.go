@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
+	&Metric{},
 }
 
 func init() {
@@ -384,8 +385,9 @@ type Session struct {
 	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
 	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
-	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
-	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
+	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
+	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
+	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
 	// Custom properties
 	Viewed                         *bool   `json:"viewed"`
 	Starred                        *bool   `json:"starred"`
@@ -587,6 +589,15 @@ type MessagesObject struct {
 	Messages  string
 }
 
+type Metric struct {
+	Model
+	SessionID int                    `gorm:"index;not null;"`
+	ProjectID int                    `gorm:"index;not null;"`
+	Type      modelInputs.MetricType `gorm:"index;not null;"`
+	Name      string                 `gorm:"index;not null;"`
+	Value     float64
+}
+
 func (m *MessagesObject) Contents() string {
 	return m.Messages
 }
@@ -716,10 +727,11 @@ type RageClickEvent struct {
 }
 
 type SessionPayload struct {
-	Events          []interface{}    `json:"events"`
-	Errors          []ErrorObject    `json:"errors"`
-	RageClicks      []RageClickEvent `json:"rage_clicks"`
-	SessionComments []SessionComment `json:"session_comments"`
+	Events                  []interface{}    `json:"events"`
+	Errors                  []ErrorObject    `json:"errors"`
+	RageClicks              []RageClickEvent `json:"rage_clicks"`
+	SessionComments         []SessionComment `json:"session_comments"`
+	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
 }
 
 type AlertEvent struct {
@@ -953,6 +965,7 @@ type Alert struct {
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+	Frequency            int     `gorm:"default:15"` // time in seconds
 }
 
 type ErrorAlert struct {
@@ -1400,11 +1413,8 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
-		if identifier == "" {
-			identifier = "User"
-		}
-		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", identifier), false, false)
+		previewText = "Highlight: New Session Created"
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*New Session Created:*\n\n", false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

@@ -77,6 +77,9 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
+    const [frequency, setFrequency] = useState(
+        getFrequencyOption(alert?.Frequency).value
+    );
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
@@ -97,6 +100,7 @@ export const AlertConfigurationCard = ({
             threshold_window: 30,
             name: 'Error',
             regex_groups: [],
+            frequency: 15,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -230,6 +234,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
+                                frequency: frequency,
                             },
                         });
                         break;
@@ -338,6 +343,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
+                                frequency: frequency,
                             },
                         });
                         break;
@@ -565,6 +571,11 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onFrequencyChange = (_frequency: any, frequencyOption: any) => {
+        setFrequency(frequencyOption.value);
+        setFormTouched(true);
+    };
+
     const onLookbackPeriodChange = (
         _lookbackPeriod: any,
         lookbackPeriodOption: any
@@ -621,6 +632,7 @@ export const AlertConfigurationCard = ({
                             ),
                             name: alert.Name || defaultName,
                             [excludedIdentifiersFormName]: alert.ExcludeRules,
+                            frequency: [frequency],
                         }}
                         key={project_id}
                     >
@@ -805,6 +817,44 @@ export const AlertConfigurationCard = ({
                             </section>
                         )}
 
+                        {type === ALERT_TYPE.Error && (
+                            <section>
+                                <h3>Alert Frequency</h3>
+                                <span>
+                                    You will not get alerted for the same error
+                                    more than once within a{' '}
+                                    <b>
+                                        <TextTransition
+                                            inline
+                                            text={
+                                                frequency === '1' ||
+                                                frequency === '60'
+                                                    ? getFrequencyOption(
+                                                          frequency
+                                                      ).displayValue
+                                                    : getFrequencyOption(
+                                                          frequency
+                                                      ).displayValue.slice(
+                                                          0,
+                                                          -1
+                                                      ) ||
+                                                      `${DEFAULT_FREQUENCY} second`
+                                            }
+                                        />
+                                    </b>
+                                    {` `}
+                                    period.
+                                </span>
+                                <Form.Item name="frequency">
+                                    <Select
+                                        className={styles.lookbackPeriodSelect}
+                                        onChange={onFrequencyChange}
+                                        options={FREQUENCIES}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
+
                         {supportsExcludeRules && (
                             <section>
                                 <h3>Excluded Identifiers</h3>
@@ -933,6 +983,49 @@ export const AlertConfigurationCard = ({
     );
 };
 
+const FREQUENCIES = [
+    {
+        displayValue: '1 second',
+        value: '1',
+        id: '1s',
+    },
+    {
+        displayValue: '5 seconds',
+        value: '5',
+        id: '5s',
+    },
+    {
+        displayValue: '15 seconds',
+        value: '15',
+        id: '15s',
+    },
+    {
+        displayValue: '30 seconds',
+        value: '30',
+        id: '30s',
+    },
+    {
+        displayValue: '1 minute',
+        value: '60',
+        id: '1m',
+    },
+    {
+        displayValue: '5 minutes',
+        value: '300',
+        id: '5m',
+    },
+    {
+        displayValue: '15 minutes',
+        value: '900',
+        id: '15m',
+    },
+    {
+        displayValue: '30 minutes',
+        value: '1800',
+        id: '30m',
+    },
+];
+
 const LOOKBACK_PERIODS = [
     {
         displayValue: '5 minutes',
@@ -984,6 +1077,20 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
             value: '30',
             id: '30m',
         };
+    }
+
+    return option;
+};
+
+const DEFAULT_FREQUENCY = '15';
+
+const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
+    const option = FREQUENCIES.find(
+        (option) => option.value === seconds?.toString()
+    );
+
+    if (!option) {
+        return FREQUENCIES.find((option) => option.value === DEFAULT_FREQUENCY);
     }
 
     return option;

@@ -37,6 +37,7 @@ import {
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
+import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import {
     FeedbackWidgetOptions,
     initializeFeedbackWidget,
@@ -622,8 +623,15 @@ export class Highlight {
                                 source: 'segment',
                             });
                         } else if (obj.type === 'identify') {
+                            // Removes the starting and end quotes
+                            // Example: "boba" -> boba
+                            const trimmedUserId = obj.userId.replace(
+                                /^"(.*)"$/,
+                                '$1'
+                            );
+
                             highlightThis.identify(
-                                obj.userId,
+                                trimmedUserId,
                                 obj.traits,
                                 'segment'
                             );
@@ -750,6 +758,18 @@ export class Highlight {
                     if (focusTarget) {
                         addCustomEvent('Focus', focusTarget);
                     }
+                })
+            );
+
+            this.listeners.push(
+                WebVitalsListener((data) => {
+                    const { name, value } = data;
+                    try {
+                        this.graphqlSDK.addWebVitals({
+                            session_id: this.sessionData.sessionID.toString(),
+                            metric: { name, value },
+                        });
+                    } catch {}
                 })
             );
 

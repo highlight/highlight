@@ -4,6 +4,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
+import SvgAppsIcon from '@icons/AppsIcon';
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useAuthorization } from '@util/authorization/authorization';
@@ -109,6 +110,17 @@ export const Sidebar = () => {
             displayName: 'Alerts',
             route: 'alerts',
             hidden: isWorkspace,
+        },
+        {
+            Icon: SvgAppsIcon,
+            displayName: 'Integrations',
+            route: 'integrations',
+            hidden:
+                isWorkspace ||
+                isOnPrem ||
+                !checkPolicyAccess({
+                    policyName: POLICY_NAMES.IntegrationsUpdate,
+                }),
         },
     ];
 
