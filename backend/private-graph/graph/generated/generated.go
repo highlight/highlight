@@ -4396,6 +4396,10 @@ enum ErrorState {
     IGNORED
 }
 
+enum MetricType {
+    WebVital
+}
+
 enum AdminRole {
     ADMIN
     MEMBER

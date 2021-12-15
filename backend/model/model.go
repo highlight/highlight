@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
+	&Metric{},
 }
 
 func init() {
@@ -585,6 +586,15 @@ type MessagesObject struct {
 	Model
 	SessionID int
 	Messages  string
+}
+
+type Metric struct {
+	Model
+	SessionID int                    `gorm:"index;not null;"`
+	ProjectID int                    `gorm:"index;not null;"`
+	Type      modelInputs.MetricType `gorm:"index;not null;"`
+	Name      string                 `gorm:"index;not null;"`
+	Value     float64
 }
 
 func (m *MessagesObject) Contents() string {

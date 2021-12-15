@@ -151,6 +151,10 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum MetricType {
+    WebVital = 'WebVital',
+}
+
 export enum AdminRole {
     Admin = 'ADMIN',
     Member = 'MEMBER',

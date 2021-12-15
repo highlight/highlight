@@ -237,6 +237,45 @@ func (e ErrorState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type MetricType string
+
+const (
+	MetricTypeWebVital MetricType = "WebVital"
+)
+
+var AllMetricType = []MetricType{
+	MetricTypeWebVital,
+}
+
+func (e MetricType) IsValid() bool {
+	switch e {
+	case MetricTypeWebVital:
+		return true
+	}
+	return false
+}
+
+func (e MetricType) String() string {
+	return string(e)
+}
+
+func (e *MetricType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricType", str)
+	}
+	return nil
+}
+
+func (e MetricType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type PlanType string
 
 const (

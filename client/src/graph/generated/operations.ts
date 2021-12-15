@@ -66,6 +66,11 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
+};
+
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
@@ -79,6 +84,7 @@ export type Mutation = {
   pushPayload?: Maybe<Scalars['ID']>;
   pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
+  addWebVitals: Scalars['ID'];
 };
 
 
@@ -136,6 +142,12 @@ export type MutationAddSessionFeedbackArgs = {
   timestamp: Scalars['Timestamp'];
 };
 
+
+export type MutationAddWebVitalsArgs = {
+  session_id: Scalars['ID'];
+  metric: WebVitalMetricInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   ignore?: Maybe<Scalars['Any']>;
@@ -181,6 +193,17 @@ export type AddSessionPropertiesMutationVariables = Types.Exact<{
 export type AddSessionPropertiesMutation = (
   { __typename?: 'Mutation' }
   & Pick<Types.Mutation, 'addSessionProperties'>
+);
+
+export type AddWebVitalsMutationVariables = Types.Exact<{
+  session_id: Types.Scalars['ID'];
+  metric: Types.WebVitalMetricInput;
+}>;
+
+
+export type AddWebVitalsMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Types.Mutation, 'addWebVitals'>
 );
 
 export type AddTrackPropertiesMutationVariables = Types.Exact<{
@@ -268,6 +291,11 @@ export const AddSessionPropertiesDocument = gql`
   )
 }
     `;
+export const AddWebVitalsDocument = gql`
+    mutation addWebVitals($session_id: ID!, $metric: WebVitalMetricInput!) {
+  addWebVitals(session_id: $session_id, metric: $metric)
+}
+    `;
 export const AddTrackPropertiesDocument = gql`
     mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
   addTrackProperties(
@@ -327,6 +355,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     addSessionProperties(variables: AddSessionPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddSessionPropertiesMutation> {
       return withWrapper(() => client.request<AddSessionPropertiesMutation>(print(AddSessionPropertiesDocument), variables, requestHeaders));
+    },
+    addWebVitals(variables: AddWebVitalsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddWebVitalsMutation> {
+      return withWrapper(() => client.request<AddWebVitalsMutation>(print(AddWebVitalsDocument), variables, requestHeaders));
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
       return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));
