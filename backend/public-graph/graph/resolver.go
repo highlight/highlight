@@ -100,8 +100,9 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	}
 
 	modelFields := []*model.Field{}
+	projectID := session.ProjectID
 	for k, fv := range properties {
-		modelFields = append(modelFields, &model.Field{ProjectID: session.ProjectID, Name: k, Value: fv, Type: string(propType)})
+		modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 	}
 
 	err := r.AppendFields(modelFields, session)
@@ -114,7 +115,6 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 		if propType != PropertyType.TRACK {
 			return
 		}
-		projectID := session.ProjectID
 		var sessionAlerts []*model.SessionAlert
 		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID))
@@ -179,6 +179,75 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
+		}
+	})
+
+	r.AlertWorkerPool.SubmitRecover(func() {
+		// Sending User Properties Alert
+		var sessionAlerts []*model.SessionAlert
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+			log.Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID))
+			return
+		}
+
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID))
+				return
+			}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == session.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return
+			}
+
+			// get matched user properties between the alert and session
+			userProperties, err := sessionAlert.GetUserProperties()
+			if err != nil {
+				log.Error(e.Wrap(err, "error getting user properties from session"))
+				return
+			}
+			var userPropertyIds []int
+			for _, userProperty := range userProperties {
+				userPropertyIds = append(userPropertyIds, userProperty.ID)
+			}
+			stmt := r.DB.Model(&model.Field{}).
+				Where(&model.Field{ProjectID: projectID, Type: "user"}).
+				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
+				Where("id IN ?", userPropertyIds)
+			var matchedFields []*model.Field
+			if err := stmt.Find(&matchedFields).Error; err != nil {
+				log.Error(e.Wrap(err, "error querying matched fields by session_id"))
+				return
+			}
+			if len(matchedFields) < 1 {
+				return
+			}
+
+			project := &model.Project{}
+			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+				log.Error(e.Wrap(err, "error querying project"))
+				return
+			}
+			workspace, err := r.getWorkspace(project.WorkspaceID)
+			if err != nil {
+				log.Error(e.Wrap(err, "error querying workspace"))
+				return
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+			if err != nil {
+				log.Error(e.Wrapf(err, "error sending user properties alert slack message"))
+				return
+			}
 		}
 	})
 
