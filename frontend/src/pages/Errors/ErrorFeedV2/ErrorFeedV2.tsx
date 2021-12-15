@@ -168,9 +168,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             error_secure_id === errorGroup?.secure_id,
                     })}
                 >
-                    <div className={styles.avatarWrapper}>
-                        <BarChart data={errorDates} />
-                    </div>
+                    <BarChart data={errorDates} />
                     <div className={styles.errorTextSectionWrapper}>
                         <div
                             className={styles.errorTextSection}

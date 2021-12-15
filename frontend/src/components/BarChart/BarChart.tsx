@@ -7,12 +7,22 @@ interface Props {
     data: Array<number>;
     xAxis?: string;
     yAxis?: string;
-    loading?: boolean;
+    height?: number;
+    width?: number;
 }
 
-const BarChart = ({ data, xAxis = 'day', yAxis = 'occurence' }: Props) => {
+const BarChart = ({
+    data,
+    xAxis = 'day',
+    yAxis = 'occurence',
+    height = 60,
+    width = 120,
+}: Props) => {
     return (
-        <>
+        <div
+            style={{ height: height, width: width }}
+            className={styles.barChartWrapper}
+        >
             {data.map((num, ind) => (
                 <Tooltip
                     title={`${
@@ -25,7 +35,7 @@ const BarChart = ({ data, xAxis = 'day', yAxis = 'occurence' }: Props) => {
                             className={styles.bar}
                             style={{
                                 height: `${
-                                    (60 * num) / Math.max(...data, 5)
+                                    (height * num) / Math.max(...data, 5)
                                 }px`,
                             }}
                         />
@@ -33,7 +43,7 @@ const BarChart = ({ data, xAxis = 'day', yAxis = 'occurence' }: Props) => {
                     </div>
                 </Tooltip>
             ))}
-        </>
+        </div>
     );
 };
 
