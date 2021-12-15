@@ -757,10 +757,12 @@ export class Highlight {
             this.listeners.push(
                 WebVitalsListener((data) => {
                     const { name, value } = data;
-                    this.graphqlSDK.addWebVitals({
-                        session_id: this.sessionData.sessionID.toString(),
-                        metric: { name, value },
-                    });
+                    try {
+                        this.graphqlSDK.addWebVitals({
+                            session_id: this.sessionData.sessionID.toString(),
+                            metric: { name, value },
+                        });
+                    } catch {}
                 })
             );
 
