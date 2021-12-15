@@ -43,6 +43,7 @@ fragment SessionPayloadFragment on SessionPayload {
         type
         metadata
     }
+    last_user_interaction_time
 }
 
 query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
@@ -1003,6 +1004,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         ThresholdWindow
         RegexGroups
+        Frequency
         id
         Type
         Name

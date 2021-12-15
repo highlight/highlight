@@ -11,6 +11,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -304,6 +305,29 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	})
 
 	return feedbackComment.ID, nil
+}
+
+func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		log.Error(err)
+		return -1, nil
+	}
+
+	newMetric := &model.Metric{
+		Name:      metric.Name,
+		Value:     metric.Value,
+		ProjectID: session.ProjectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricTypeWebVital,
+	}
+
+	if err := r.DB.Create(&newMetric).Error; err != nil {
+		log.Error(err)
+		return -1, nil
+	}
+
+	return sessionID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

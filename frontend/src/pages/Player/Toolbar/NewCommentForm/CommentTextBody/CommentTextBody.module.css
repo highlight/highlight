@@ -26,6 +26,10 @@
     padding: 0;
 }
 
+.mentions--multiLine .mentions__highlighter span {
+    overflow-wrap: anywhere;
+}
+
 .mentions--multiLine .mentions__input {
     border: 1px solid transparent;
     color: var(--color-gray-500);

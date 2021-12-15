@@ -127,6 +127,10 @@ enum ErrorState {
     IGNORED
 }
 
+enum MetricType {
+    WebVital
+}
+
 enum AdminRole {
     ADMIN
     MEMBER
@@ -490,6 +494,7 @@ type ErrorAlert {
     LastAdminToEditID: ID
     Type: String!
     RegexGroups: [String]!
+    Frequency: Int!
 }
 
 type TrackProperty {
@@ -532,6 +537,7 @@ type SessionPayload {
     errors: [ErrorObject]!
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
+    last_user_interaction_time: Timestamp!
 }
 
 scalar Upload
@@ -773,6 +779,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        frequency: Int!
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
@@ -783,6 +790,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         regex_groups: [String]!
+        frequency: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(

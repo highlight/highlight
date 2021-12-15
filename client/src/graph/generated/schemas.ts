@@ -60,6 +60,11 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
+};
+
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
@@ -73,6 +78,7 @@ export type Mutation = {
   pushPayload?: Maybe<Scalars['ID']>;
   pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
+  addWebVitals: Scalars['ID'];
 };
 
 
@@ -128,6 +134,12 @@ export type MutationAddSessionFeedbackArgs = {
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
   timestamp: Scalars['Timestamp'];
+};
+
+
+export type MutationAddWebVitalsArgs = {
+  session_id: Scalars['ID'];
+  metric: WebVitalMetricInput;
 };
 
 export type Query = {

@@ -46,6 +46,11 @@ input BackendErrorObjectInput {
     payload: String
 }
 
+input WebVitalMetricInput {
+    name: String!
+    value: Float!
+}
+
 input ReplayEventsInput {
     events: [Any]!
 }
@@ -84,6 +89,7 @@ type Mutation {
         verbatim: String!
         timestamp: Timestamp!
     ): ID!
+    addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
 }
 
 type Query {

@@ -1,4 +1,7 @@
-import { onlyAllowAdminRole } from '@util/authorization/authorizationUtils';
+import {
+    onlyAllowAdminRole,
+    onlyAllowHighlightStaff,
+} from '@util/authorization/authorizationUtils';
 
 /**
  * Policies for the frontend.
@@ -8,11 +11,13 @@ export enum POLICY_NAMES {
     BillingUpdate,
     BillingView,
     RolesUpdate,
+    IntegrationsUpdate,
 }
 const AUTHORIZATION_POLICIES = {
     [POLICY_NAMES.BillingUpdate]: onlyAllowAdminRole,
     [POLICY_NAMES.BillingView]: onlyAllowAdminRole,
     [POLICY_NAMES.RolesUpdate]: onlyAllowAdminRole,
+    [POLICY_NAMES.IntegrationsUpdate]: onlyAllowHighlightStaff,
 } as const;
 
 export default AUTHORIZATION_POLICIES;

@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1313,7 +1313,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1348,6 +1348,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
+			Frequency:            frequency,
 		},
 		RegexGroups: &regexGroupsString,
 	}
@@ -1362,7 +1363,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1397,6 +1398,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
 	alert.RegexGroups = &regexGroupsString
+	alert.Frequency = frequency
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -2087,7 +2089,11 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 		}
 		return data, nil
 	}
-	events, err, _ := r.getEvents(ctx, sessionSecureID, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -2945,11 +2951,25 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
+	filterCount := len(params.UserProperties) +
+		len(params.ExcludedProperties) +
+		len(params.TrackProperties) +
+		len(params.ExcludedTrackProperties)
+	if params.Referrer != nil {
+		filterCount += 1
+	}
+	if params.VisitedURL != nil {
+		filterCount += 1
+	}
+
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
+	logTags := []string{
+		fmt.Sprintf("project_id:%d", projectID),
+		fmt.Sprintf("filtered:%t", fieldFilters != ""),
+		fmt.Sprintf("filter_count:%d", filterCount)}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
@@ -3058,14 +3078,14 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	if query == "" {
 		q = fmt.Sprintf(`
 		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}}, 
+			{"term":{"Type.keyword":"%s"}},
 			{"term":{"Name.keyword":"%s"}}
 		]}}`, fieldType, fieldName)
 	} else {
 		q = fmt.Sprintf(`
 		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}}, 
-			{"term":{"Name.keyword":"%s"}}, 
+			{"term":{"Type.keyword":"%s"}},
+			{"term":{"Name.keyword":"%s"}},
 			{"multi_match": {
 				"query": "%s",
 				"type": "bool_prefix",
@@ -4022,7 +4042,12 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			default:
 			}
 
-			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			session, err := r.canAdminViewSession(ctx, sessionSecureID)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching session for subscription"))
+				return
+			}
+			events, err, nextCursor := r.getEvents(ctx, session, cursor)
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
@@ -4030,10 +4055,11 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			if len(events) != 0 {
 				// TODO live updating for other event types
 				ch <- &model.SessionPayload{
-					Events:          events,
-					Errors:          []model.ErrorObject{},
-					RageClicks:      []model.RageClickEvent{},
-					SessionComments: []model.SessionComment{},
+					Events:                  events,
+					Errors:                  []model.ErrorObject{},
+					RageClicks:              []model.RageClickEvent{},
+					SessionComments:         []model.SessionComment{},
+					LastUserInteractionTime: session.LastUserInteractionTime,
 				}
 			}
 			cursor = *nextCursor

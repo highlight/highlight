@@ -151,6 +151,10 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum MetricType {
+    WebVital = 'WebVital',
+}
+
 export enum AdminRole {
     Admin = 'ADMIN',
     Member = 'MEMBER',
@@ -543,6 +547,7 @@ export type ErrorAlert = {
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     RegexGroups: Array<Maybe<Scalars['String']>>;
+    Frequency: Scalars['Int'];
 };
 
 export type TrackProperty = {
@@ -589,6 +594,7 @@ export type SessionPayload = {
     errors: Array<Maybe<ErrorObject>>;
     rage_clicks: Array<RageClickEvent>;
     session_comments: Array<Maybe<SessionComment>>;
+    last_user_interaction_time: Scalars['Timestamp'];
 };
 
 export type Query = {
@@ -1205,6 +1211,7 @@ export type MutationCreateErrorAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
+    frequency: Scalars['Int'];
 };
 
 export type MutationUpdateErrorAlertArgs = {
@@ -1216,6 +1223,7 @@ export type MutationUpdateErrorAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
+    frequency: Scalars['Int'];
 };
 
 export type MutationDeleteErrorAlertArgs = {

@@ -39,6 +39,7 @@ const PopoverMenu = ({
         <Popover
             isList
             trigger={['click']}
+            popoverClassName={styles.popover}
             placement={placement}
             content={
                 content ? (
