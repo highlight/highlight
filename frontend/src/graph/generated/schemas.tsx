@@ -543,7 +543,7 @@ export type ErrorAlert = {
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     RegexGroups: Array<Maybe<Scalars['String']>>;
-    Cadence: Scalars['Int'];
+    Frequency: Scalars['Int'];
 };
 
 export type TrackProperty = {
@@ -1206,7 +1206,7 @@ export type MutationCreateErrorAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
-    cadence: Scalars['Int'];
+    frequency: Scalars['Int'];
 };
 
 export type MutationUpdateErrorAlertArgs = {
@@ -1218,7 +1218,7 @@ export type MutationUpdateErrorAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
-    cadence: Scalars['Int'];
+    frequency: Scalars['Int'];
 };
 
 export type MutationDeleteErrorAlertArgs = {

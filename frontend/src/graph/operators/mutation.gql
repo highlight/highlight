@@ -323,7 +323,7 @@ mutation CreateErrorAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $regex_groups: [String]!
-    $cadence: Int!
+    $frequency: Int!
 ) {
     createErrorAlert(
         project_id: $project_id
@@ -333,7 +333,7 @@ mutation CreateErrorAlert(
         environments: $environments
         threshold_window: $threshold_window
         regex_groups: $regex_groups
-        cadence: $cadence
+        frequency: $frequency
     ) {
         id
         ChannelsToNotify {
@@ -346,7 +346,7 @@ mutation CreateErrorAlert(
         ThresholdWindow
         LastAdminToEditID
         RegexGroups
-        Cadence
+        Frequency
     }
 }
 
@@ -392,7 +392,7 @@ mutation UpdateErrorAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $regex_groups: [String]!
-    $cadence: Int!
+    $frequency: Int!
 ) {
     updateErrorAlert(
         project_id: $project_id
@@ -403,7 +403,7 @@ mutation UpdateErrorAlert(
         environments: $environments
         threshold_window: $threshold_window
         regex_groups: $regex_groups
-        cadence: $cadence
+        frequency: $frequency
     ) {
         Name
         ChannelsToNotify {
@@ -415,7 +415,7 @@ mutation UpdateErrorAlert(
         ThresholdWindow
         LastAdminToEditID
         RegexGroups
-        Cadence
+        Frequency
     }
 }
 

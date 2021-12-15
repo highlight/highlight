@@ -77,8 +77,8 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
-    const [cadence, setCadence] = useState(
-        getCadenceOption(alert?.Cadence).value
+    const [frequency, setFrequency] = useState(
+        getFrequencyOption(alert?.Frequency).value
     );
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
@@ -100,7 +100,7 @@ export const AlertConfigurationCard = ({
             threshold_window: 30,
             name: 'Error',
             regex_groups: [],
-            cadence: 15,
+            frequency: 15,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -234,7 +234,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
-                                cadence: cadence,
+                                frequency: frequency,
                             },
                         });
                         break;
@@ -343,7 +343,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups: form.getFieldValue(
                                     'regex_groups'
                                 ),
-                                cadence: cadence,
+                                frequency: frequency,
                             },
                         });
                         break;
@@ -571,8 +571,8 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
-    const onCadenceChange = (_cadence: any, cadenceOption: any) => {
-        setCadence(cadenceOption.value);
+    const onFrequencyChange = (_frequency: any, frequencyOption: any) => {
+        setFrequency(frequencyOption.value);
         setFormTouched(true);
     };
 
@@ -632,7 +632,7 @@ export const AlertConfigurationCard = ({
                             ),
                             name: alert.Name || defaultName,
                             [excludedIdentifiersFormName]: alert.ExcludeRules,
-                            cadence: [cadence],
+                            frequency: [frequency],
                         }}
                         key={project_id}
                     >
@@ -819,7 +819,7 @@ export const AlertConfigurationCard = ({
 
                         {type === ALERT_TYPE.Error && (
                             <section>
-                                <h3>Alert Cadence</h3>
+                                <h3>Alert Frequency</h3>
                                 <span>
                                     You will not get alerted for the same error
                                     more than once within a{' '}
@@ -827,12 +827,13 @@ export const AlertConfigurationCard = ({
                                         <TextTransition
                                             inline
                                             text={
-                                                cadence === '1' ||
-                                                cadence === '60'
-                                                    ? getCadenceOption(cadence)
-                                                          .displayValue
-                                                    : getCadenceOption(
-                                                          cadence
+                                                frequency === '1' ||
+                                                frequency === '60'
+                                                    ? getFrequencyOption(
+                                                          frequency
+                                                      ).displayValue
+                                                    : getFrequencyOption(
+                                                          frequency
                                                       ).displayValue.slice(
                                                           0,
                                                           -1
@@ -844,10 +845,10 @@ export const AlertConfigurationCard = ({
                                     {` `}
                                     period.
                                 </span>
-                                <Form.Item name="cadence">
+                                <Form.Item name="frequency">
                                     <Select
                                         className={styles.lookbackPeriodSelect}
-                                        onChange={onCadenceChange}
+                                        onChange={onFrequencyChange}
                                         options={CADENCES}
                                     />
                                 </Form.Item>
@@ -1083,7 +1084,7 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 
 const DEFAULT_CADENCE = '15';
 
-const getCadenceOption = (seconds = DEFAULT_CADENCE): any => {
+const getFrequencyOption = (seconds = DEFAULT_CADENCE): any => {
     const option = CADENCES.find(
         (option) => option.value === seconds?.toString()
     );

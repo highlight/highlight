@@ -1003,7 +1003,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         ThresholdWindow
         RegexGroups
-        Cadence
+        Frequency
         id
         Type
         Name

@@ -442,7 +442,7 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
     regex_groups:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
-    cadence: Types.Scalars['Int'];
+    frequency: Types.Scalars['Int'];
 }>;
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -456,7 +456,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
             | 'RegexGroups'
-            | 'Cadence'
+            | 'Frequency'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -529,7 +529,7 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     regex_groups:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
-    cadence: Types.Scalars['Int'];
+    frequency: Types.Scalars['Int'];
 }>;
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -542,7 +542,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
             | 'RegexGroups'
-            | 'Cadence'
+            | 'Frequency'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -2625,7 +2625,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'ThresholdWindow'
                     | 'RegexGroups'
-                    | 'Cadence'
+                    | 'Frequency'
                     | 'id'
                     | 'Type'
                     | 'Name'

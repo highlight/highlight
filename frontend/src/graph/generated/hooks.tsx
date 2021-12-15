@@ -1699,7 +1699,7 @@ export const CreateErrorAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $regex_groups: [String]!
-        $cadence: Int!
+        $frequency: Int!
     ) {
         createErrorAlert(
             project_id: $project_id
@@ -1709,7 +1709,7 @@ export const CreateErrorAlertDocument = gql`
             environments: $environments
             threshold_window: $threshold_window
             regex_groups: $regex_groups
-            cadence: $cadence
+            frequency: $frequency
         ) {
             id
             ChannelsToNotify {
@@ -1722,7 +1722,7 @@ export const CreateErrorAlertDocument = gql`
             ThresholdWindow
             LastAdminToEditID
             RegexGroups
-            Cadence
+            Frequency
         }
     }
 `;
@@ -1751,7 +1751,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
- *      cadence: // value for 'cadence'
+ *      frequency: // value for 'frequency'
  *   },
  * });
  */
@@ -1906,7 +1906,7 @@ export const UpdateErrorAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $regex_groups: [String]!
-        $cadence: Int!
+        $frequency: Int!
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -1917,7 +1917,7 @@ export const UpdateErrorAlertDocument = gql`
             environments: $environments
             threshold_window: $threshold_window
             regex_groups: $regex_groups
-            cadence: $cadence
+            frequency: $frequency
         ) {
             Name
             ChannelsToNotify {
@@ -1929,7 +1929,7 @@ export const UpdateErrorAlertDocument = gql`
             ThresholdWindow
             LastAdminToEditID
             RegexGroups
-            Cadence
+            Frequency
         }
     }
 `;
@@ -1959,7 +1959,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
- *      cadence: // value for 'cadence'
+ *      frequency: // value for 'frequency'
  *   },
  * });
  */
@@ -7131,7 +7131,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             ThresholdWindow
             RegexGroups
-            Cadence
+            Frequency
             id
             Type
             Name
