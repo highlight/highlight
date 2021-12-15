@@ -137,7 +137,9 @@ const shouldSend = (payload: any) => {
 
     try {
         hashMessage = JSON.stringify(payload);
-    } catch {}
+    } catch {
+        return false;
+    }
 
     const hashDigest = hashCode(hashMessage);
 
