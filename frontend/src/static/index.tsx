@@ -1,3 +1,4 @@
+export { default as ActivityIcon } from './ActivityIcon';
 export { default as AnnotationDotsIcon } from './AnnotationDotsIcon';
 export { default as AnnotationWarningIcon } from './AnnotationWarningIcon';
 export { default as AnnouncementIcon } from './AnnouncementIcon';
