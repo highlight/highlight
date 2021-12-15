@@ -32,6 +32,9 @@ export const useResources = (
         (!!session.resources_url && isHighlightAdmin);
 
     const { data, loading: queryLoading } = useGetResourcesQuery({
+        variables: {
+            session_secure_id: sessionSecureId! ?? '',
+        },
         fetchPolicy: 'no-cache',
         skip: skipQuery,
     });
