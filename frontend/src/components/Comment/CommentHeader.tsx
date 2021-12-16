@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import SvgShare2Icon from '@icons/Share2Icon';
 import { CommentSuggestion } from '@util/comment/util';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
@@ -58,12 +59,14 @@ export const parseAdminSuggestions = (
 
 export const CommentHeader = ({
     comment,
-    menu,
+    moreMenu,
     children,
     footer,
+    shareMenu,
 }: PropsWithChildren<{
     comment: any;
-    menu: JSX.Element;
+    moreMenu: JSX.Element;
+    shareMenu?: JSX.Element;
     footer?: React.ReactNode;
 }>) => {
     const { isLoggedIn } = useAuthContext();
@@ -98,7 +101,19 @@ export const CommentHeader = ({
                 </div>
                 <span className={styles.endActions}>
                     {isLoggedIn && (
-                        <DotsMenu menu={menu} trackingId="CommentsHeader" />
+                        <>
+                            {shareMenu && (
+                                <DotsMenu
+                                    menu={shareMenu}
+                                    trackingId="CommentsShare"
+                                    icon={<SvgShare2Icon />}
+                                />
+                            )}
+                            <DotsMenu
+                                menu={moreMenu}
+                                trackingId="CommentsHeader"
+                            />
+                        </>
                     )}
                 </span>
                 <div className={styles.childrenContainer}>{children}</div>

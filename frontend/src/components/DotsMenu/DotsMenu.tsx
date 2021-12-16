@@ -16,9 +16,16 @@ type Props = {
     menu: JSX.Element;
     /** The trackingId for opening the menu. */
     trackingId: string;
+    /** Override the default ellipsis icon (...) */
+    icon?: React.ReactNode;
 } & Pick<DropDownProps, 'placement'>;
 
-const DotsMenu = ({ menu, trackingId, placement }: Props) => {
+const DotsMenu = ({
+    menu,
+    trackingId,
+    placement,
+    icon = <SvgDotsHorizontalIcon />,
+}: Props) => {
     return (
         <Dropdown overlay={menu} trigger={['click']} placement={placement}>
             <button
@@ -27,7 +34,7 @@ const DotsMenu = ({ menu, trackingId, placement }: Props) => {
                     H.track(trackingId);
                 }}
             >
-                <SvgDotsHorizontalIcon />
+                {icon}
             </button>
         </Dropdown>
     );
