@@ -2850,6 +2850,16 @@ export type OnSessionPayloadAppendedSubscription = {
     >;
 };
 
+export type GetWebVitalsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetWebVitalsQuery = { __typename?: 'Query' } & {
+    web_vitals: Array<
+        { __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2912,6 +2922,7 @@ export const namedOperations = {
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
+        GetWebVitals: 'GetWebVitals' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

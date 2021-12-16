@@ -198,6 +198,10 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
+func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
+	return obj.Type.String(), nil
+}
+
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 
@@ -2446,6 +2450,21 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	return allResources["resources"], nil
 }
 
+func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	webVitals := []*model.Metric{}
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return webVitals, nil
+	}
+
+	if err := r.DB.Where(&model.Metric{Type: "WebVital", SessionID: s.ID}).Find(&webVitals).Error; err != nil {
+		log.Error(err)
+		return webVitals, nil
+	}
+
+	return webVitals, nil
+}
+
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
 	if util.IsDevEnv() && sessionSecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
@@ -4085,6 +4104,9 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
+// Metric returns generated.MetricResolver implementation.
+func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -4113,6 +4135,7 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
+type metricResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

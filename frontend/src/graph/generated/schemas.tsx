@@ -597,6 +597,13 @@ export type SessionPayload = {
     last_user_interaction_time: Scalars['Timestamp'];
 };
 
+export type Metric = {
+    __typename?: 'Metric';
+    type: Scalars['String'];
+    name: Scalars['String'];
+    value: Scalars['Float'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -609,6 +616,7 @@ export type Query = {
     enhanced_user_details?: Maybe<EnhancedUserDetailsResult>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    web_vitals: Array<Metric>;
     session_comments: Array<Maybe<SessionComment>>;
     session_comment_tags_for_project: Array<SessionCommentTag>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
@@ -710,6 +718,10 @@ export type QueryErrorsArgs = {
 };
 
 export type QueryResourcesArgs = {
+    session_secure_id: Scalars['String'];
+};
+
+export type QueryWeb_VitalsArgs = {
     session_secure_id: Scalars['String'];
 };
 
