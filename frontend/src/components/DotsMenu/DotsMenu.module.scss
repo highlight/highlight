@@ -18,4 +18,8 @@
     &:active {
         background: var(--color-gray-400);
     }
+
+    svg {
+        color: var(--text-primary);
+    }
 }
