@@ -1,3 +1,4 @@
+import MetricsPage from '@pages/Player/Toolbar/DevToolsWindow/MetricsPage/MetricsPage';
 import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
@@ -34,6 +35,10 @@ export const DevToolsWindow = React.memo(
                 panelContent: (
                     <ResourcePage startTime={startTime} time={time} />
                 ),
+            },
+            {
+                key: 'Metrics',
+                panelContent: <MetricsPage />,
             },
         ];
 

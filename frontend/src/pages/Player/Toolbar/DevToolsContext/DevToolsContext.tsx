@@ -4,6 +4,7 @@ export enum DevToolTabType {
     Errors = 'Errors',
     Console = 'Console',
     Network = 'Network',
+    Metrics = 'Metrics',
 }
 interface DevToolsContext {
     openDevTools: boolean;
