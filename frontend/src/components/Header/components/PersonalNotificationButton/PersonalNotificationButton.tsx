@@ -81,7 +81,7 @@ const PersonalNotificationButton = ({
                 }
             }}
         >
-            {text || 'Get Comment Notifications'}
+            {text || 'Tag Slack Channels in Comments'}
         </Button>
     );
 };
