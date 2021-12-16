@@ -1,8 +1,8 @@
-import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 
+import { DevToolTabType } from '../../Toolbar/DevToolsContext/DevToolsContext';
 import { EventsForTimeline } from '.';
 
 /**
