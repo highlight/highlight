@@ -548,6 +548,7 @@ export type ErrorAlert = {
     Type: Scalars['String'];
     RegexGroups: Array<Maybe<Scalars['String']>>;
     Frequency: Scalars['Int'];
+    DailyFrequency: Array<Maybe<Scalars['Int64']>>;
 };
 
 export type TrackProperty = {
@@ -577,6 +578,7 @@ export type SessionAlert = {
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     ExcludeRules: Array<Maybe<Scalars['String']>>;
+    DailyFrequency: Array<Maybe<Scalars['Int64']>>;
 };
 
 export type WorkspaceInviteLink = {

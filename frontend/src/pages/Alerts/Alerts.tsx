@@ -190,7 +190,7 @@ const TABLE_COLUMNS = [
             <>
                 <div className={styles.line}></div>
                 <div className={styles.chart}>
-                    <BarChart data={[1, 2, 3, 4, 5, 5, 3, 1, 1]} />
+                    <BarChart data={record.DailyFrequency} />
                 </div>
             </>
         ),

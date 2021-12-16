@@ -1008,6 +1008,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         id
         Type
         Name
+        DailyFrequency
     }
     session_feedback_alerts(project_id: $project_id) {
         ChannelsToNotify {
@@ -1022,6 +1023,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         id
         Name
         Type
+        DailyFrequency
     }
     new_session_alerts(project_id: $project_id) {
         ChannelsToNotify {
@@ -1037,6 +1039,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         id
         Type
         ExcludeRules
+        DailyFrequency
     }
     rage_click_alerts(project_id: $project_id) {
         id
@@ -1051,6 +1054,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         Type
+        DailyFrequency
     }
     new_user_alerts(project_id: $project_id) {
         id
@@ -1064,6 +1068,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         Type
+        DailyFrequency
     }
     track_properties_alerts(project_id: $project_id) {
         id
@@ -1082,6 +1087,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         CountThreshold
         Name
         Type
+        DailyFrequency
     }
     user_properties_alerts(project_id: $project_id) {
         id
@@ -1100,6 +1106,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         CountThreshold
         Name
         Type
+        DailyFrequency
     }
 }
 
