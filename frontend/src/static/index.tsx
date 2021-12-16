@@ -91,6 +91,7 @@ export { default as SearchIcon } from './SearchIcon';
 export { default as SegmentIcon } from './SegmentIcon';
 export { default as SessionsIcon } from './SessionsIcon';
 export { default as SettingsIcon } from './SettingsIcon';
+export { default as Share2Icon } from './Share2Icon';
 export { default as ShareIcon } from './ShareIcon';
 export { default as ShieldWarningIcon } from './ShieldWarningIcon';
 export { default as SkipBackIcon } from './SkipBackIcon';

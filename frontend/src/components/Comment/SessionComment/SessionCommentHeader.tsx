@@ -46,7 +46,7 @@ const SessionCommentHeader = ({
         return url;
     };
 
-    const menu = (
+    const moreMenu = (
         <Menu>
             <Menu.Item
                 onClick={() => {
@@ -149,8 +149,89 @@ const SessionCommentHeader = ({
         </Menu>
     );
 
+    const shareMenu = (
+        <Menu>
+            {session && (
+                <Menu.Item
+                    onClick={() => {
+                        H.track('Create Linear issue');
+                        const url = getCommentLink();
+                        window.open(
+                            `http://linear.app/new?title=Highlight session comment for ${getDisplayName(
+                                session
+                            )}&description=${comment.text.replaceAll(
+                                '@',
+                                ''
+                            )}%0A%0ASession: ${url.href
+                                .replaceAll('=', '%3D')
+                                .replaceAll('&', '%26')}`,
+                            '_blank'
+                        );
+                    }}
+                >
+                    Create Linear issue
+                </Menu.Item>
+            )}
+            <Menu.Item
+                onClick={() => {
+                    window.open(
+                        'https://highlight.canny.io/feature-requests/p/jira-integration',
+                        '_blank'
+                    );
+                }}
+            >
+                Vote on Jira Integration
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    window.open(
+                        'https://highlight.canny.io/feature-requests/p/clickup-integration',
+                        '_blank'
+                    );
+                }}
+            >
+                Vote on ClickUp Integration
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    window.open(
+                        'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
+                        '_blank'
+                    );
+                }}
+            >
+                Vote on Monday Integration
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    window.open(
+                        'https://highlight.canny.io/feature-requests/p/asana-integration',
+                        '_blank'
+                    );
+                }}
+            >
+                Vote on Asana Integration
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    window.open(
+                        'https://highlight.canny.io/feature-requests?',
+                        '_blank'
+                    );
+                }}
+            >
+                Suggest an Integration
+            </Menu.Item>
+        </Menu>
+    );
+
     return (
-        <CommentHeader comment={comment} menu={menu} footer={footer}>
+        <CommentHeader
+            comment={comment}
+            moreMenu={moreMenu}
+            footer={footer}
+            shareMenu={shareMenu}
+        >
             {children}
         </CommentHeader>
     );

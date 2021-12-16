@@ -56,6 +56,8 @@
 
 .endActions {
     align-self: flex-start;
+    column-gap: var(--size-xxSmall);
+    display: flex;
     margin-left: auto;
 }
 
