@@ -1,4 +1,5 @@
 import { useGetWebVitalsQuery } from '@graph/hooks';
+import Metric from '@pages/Player/Toolbar/DevToolsWindow/MetricsPage/components/Metric';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/Toolbar/DevToolsWindow/MetricsPage/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -22,16 +23,14 @@ const MetricsPage = React.memo(() => {
                     <Skeleton />
                 ) : (
                     data?.web_vitals.map(({ name, value }) => {
-                        console.log(WEB_VITALS_CONFIGURATION);
                         const configuration = WEB_VITALS_CONFIGURATION[name];
 
                         return (
-                            <div key={name}>
-                                <h3>{configuration.name}</h3>
-                                <p>
-                                    {value} {configuration.units}
-                                </p>
-                            </div>
+                            <Metric
+                                key={name}
+                                configuration={configuration}
+                                value={value}
+                            />
                         );
                     })
                 )}
