@@ -59,6 +59,7 @@
     column-gap: var(--size-xxSmall);
     display: flex;
     margin-left: auto;
+    margin-right: calc(-1 * var(--size-xSmall));
 }
 
 .footer {
