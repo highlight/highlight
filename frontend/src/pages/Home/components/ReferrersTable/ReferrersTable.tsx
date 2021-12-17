@@ -1,13 +1,13 @@
-import {
-    BarChartTablePercentage,
-    BarChartTablePill,
-    BarChartTableRowGroup,
-} from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import {
+    ProgressBarTablePercentage,
+    ProgressBarTablePill,
+    ProgressBarTableRowGroup,
+} from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import SvgReferrer from '@icons/Referrer';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
+import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
@@ -65,7 +65,7 @@ const ReferrersTable = () => {
 
     return (
         <Card title="Top Referrers" noTitleBottomMargin>
-            <BarChartTable
+            <ProgressBarTable
                 columns={Columns}
                 data={tableData}
                 loading={loading}
@@ -107,13 +107,13 @@ const Columns: ColumnsType<any> = [
         key: 'percent',
         render: (percent, record) => {
             return (
-                <BarChartTableRowGroup alignment="ending">
-                    <BarChartTablePercentage percent={percent} />
-                    <BarChartTablePill
+                <ProgressBarTableRowGroup alignment="ending">
+                    <ProgressBarTablePercentage percent={percent} />
+                    <ProgressBarTablePill
                         displayValue={`${record.count} refers`}
                         icon={<SvgReferrer />}
                     />
-                </BarChartTableRowGroup>
+                </ProgressBarTableRowGroup>
             );
         },
     },

@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
@@ -48,10 +47,8 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         false
     );
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
-    const { isHighlightAdmin } = useAuthContext();
     const [loading, setLoading] = useState(true);
-    const skipQuery =
-        session === undefined || (!!session?.messages_url && isHighlightAdmin);
+    const skipQuery = session === undefined || !!session?.messages_url;
     const { data, loading: queryLoading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
@@ -74,7 +71,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     // If sessionSecureId is set and equals the current session's (ensures effect is run once)
     // and resources url is defined, fetch using resources url
     useEffect(() => {
-        if (!!session?.messages_url && isHighlightAdmin) {
+        if (!!session?.messages_url) {
             setLoading(true);
             refetchSession({
                 secure_id: session_secure_id,
@@ -106,12 +103,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                 })
                 .finally(() => setLoading(false));
         }
-    }, [
-        session?.messages_url,
-        isHighlightAdmin,
-        refetchSession,
-        session_secure_id,
-    ]);
+    }, [session?.messages_url, refetchSession, session_secure_id]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
 
