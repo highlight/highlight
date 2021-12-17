@@ -10,6 +10,7 @@ interface Props {
     height?: number;
     width?: number;
     sharedMaxNum?: number;
+    showBase?: boolean;
 }
 
 const BarChart = ({
@@ -19,6 +20,7 @@ const BarChart = ({
     height = 60,
     width = 100,
     sharedMaxNum,
+    showBase = true,
 }: Props) => {
     const [maxNum, setMaxNum] = useState(5);
 
@@ -49,7 +51,7 @@ const BarChart = ({
                                 height: `${(height - 4) * (num / maxNum)}px`,
                             }}
                         />
-                        <div className={styles.barBase}></div>
+                        {showBase && <div className={styles.barBase}></div>}
                     </div>
                 </Tooltip>
             ))}
