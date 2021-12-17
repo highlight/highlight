@@ -44,16 +44,6 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
         >
             <span className={styles.name}>{name}</span>
             <ScoreVisualization value={value} configuration={configuration} />
-            <span className={styles.value}>
-                {value.toFixed(2)}
-                <span className={styles.units}>{configuration.units}</span>
-                <InfoTooltip
-                    className={styles.infoTooltip}
-                    title={getInfoTooltipText(configuration, value)}
-                    align={{ offset: [-13, 0] }}
-                    placement="topLeft"
-                />
-            </span>
         </div>
     );
 };
@@ -156,7 +146,24 @@ const ScoreVisualization = ({
                     transition={{
                         type: 'spring',
                     }}
-                ></motion.div>
+                >
+                    <span
+                        className={classNames(styles.value, {
+                            [styles.mirror]: valueScore === ValueScore.Poor,
+                        })}
+                    >
+                        {value.toFixed(2)}
+                        <span className={styles.units}>
+                            {configuration.units}
+                        </span>
+                        <InfoTooltip
+                            className={styles.infoTooltip}
+                            title={getInfoTooltipText(configuration, value)}
+                            align={{ offset: [-13, 0] }}
+                            placement="topLeft"
+                        />
+                    </span>
+                </motion.div>
             </Tooltip>
             <div
                 className={classNames(styles.good, {

@@ -46,6 +46,12 @@
 
     .value {
         margin-left: auto;
+        transform: translateY(-100%);
+
+        &.mirror {
+            position: absolute;
+            right: 0;
+        }
     }
 }
 
@@ -59,7 +65,7 @@
     display: flex;
     height: 1ch;
     position: relative;
-    width: 125px;
+    width: 100%;
 
     > div {
         background-color: var(--color-gray-300);
