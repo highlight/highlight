@@ -201,11 +201,13 @@ function getTooltipText(
     configuration: WebVitalDescriptor,
     value: number
 ): React.ReactNode {
-    const message = `This session scored ${value.toFixed(
-        2
-    )}. An okay score is less than ${
-        configuration.maxNeedsImprovementValue
-    } and a great score is less than ${configuration.maxGoodValue}.`;
+    const message = `This session scored ${value.toFixed(2)} ${
+        configuration.units
+    }. An okay score is less than ${configuration.maxNeedsImprovementValue} ${
+        configuration.units
+    } and a great score is less than ${configuration.maxGoodValue} ${
+        configuration.units
+    }.`;
 
     return (
         <div
