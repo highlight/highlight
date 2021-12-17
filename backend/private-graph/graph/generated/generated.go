@@ -110,7 +110,6 @@ type ComplexityRoot struct {
 	ErrorAlert struct {
 		ChannelsToNotify     func(childComplexity int) int
 		CountThreshold       func(childComplexity int) int
-		DailyFrequency       func(childComplexity int) int
 		ExcludedEnvironments func(childComplexity int) int
 		Frequency            func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -492,7 +491,6 @@ type ComplexityRoot struct {
 	SessionAlert struct {
 		ChannelsToNotify     func(childComplexity int) int
 		CountThreshold       func(childComplexity int) int
-		DailyFrequency       func(childComplexity int) int
 		ExcludeRules         func(childComplexity int) int
 		ExcludedEnvironments func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -618,8 +616,6 @@ type ErrorAlertResolver interface {
 	ExcludedEnvironments(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
 
 	RegexGroups(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
-
-	DailyFrequency(ctx context.Context, obj *model1.ErrorAlert) ([]*int64, error)
 }
 type ErrorCommentResolver interface {
 	Author(ctx context.Context, obj *model1.ErrorComment) (*model.SanitizedAdmin, error)
@@ -792,7 +788,6 @@ type SessionAlertResolver interface {
 	UserProperties(ctx context.Context, obj *model1.SessionAlert) ([]*model1.UserProperty, error)
 
 	ExcludeRules(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
-	DailyFrequency(ctx context.Context, obj *model1.SessionAlert) ([]*int64, error)
 }
 type SessionCommentResolver interface {
 	Author(ctx context.Context, obj *model1.SessionComment) (*model.SanitizedAdmin, error)
@@ -1036,13 +1031,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorAlert.CountThreshold(childComplexity), true
-
-	case "ErrorAlert.DailyFrequency":
-		if e.complexity.ErrorAlert.DailyFrequency == nil {
-			break
-		}
-
-		return e.complexity.ErrorAlert.DailyFrequency(childComplexity), true
 
 	case "ErrorAlert.ExcludedEnvironments":
 		if e.complexity.ErrorAlert.ExcludedEnvironments == nil {
@@ -3750,13 +3738,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionAlert.CountThreshold(childComplexity), true
 
-	case "SessionAlert.DailyFrequency":
-		if e.complexity.SessionAlert.DailyFrequency == nil {
-			break
-		}
-
-		return e.complexity.SessionAlert.DailyFrequency(childComplexity), true
-
 	case "SessionAlert.ExcludeRules":
 		if e.complexity.SessionAlert.ExcludeRules == nil {
 			break
@@ -4844,7 +4825,6 @@ type ErrorAlert {
     Type: String!
     RegexGroups: [String]!
     Frequency: Int!
-    DailyFrequency: [Int64]!
 }
 
 type TrackProperty {
@@ -4872,7 +4852,6 @@ type SessionAlert {
     LastAdminToEditID: ID
     Type: String!
     ExcludeRules: [String]!
-    DailyFrequency: [Int64]!
 }
 
 type WorkspaceInviteLink {
@@ -10041,41 +10020,6 @@ func (ec *executionContext) _ErrorAlert_Frequency(ctx context.Context, field gra
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorAlert_DailyFrequency(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorAlert",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorAlert().DailyFrequency(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*int64)
-	fc.Result = res
-	return ec.marshalNInt642ᚕᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -21113,41 +21057,6 @@ func (ec *executionContext) _SessionAlert_ExcludeRules(ctx context.Context, fiel
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SessionAlert_DailyFrequency(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SessionAlert",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.SessionAlert().DailyFrequency(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*int64)
-	fc.Result = res
-	return ec.marshalNInt642ᚕᚖint64(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25201,20 +25110,6 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "DailyFrequency":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ErrorAlert_DailyFrequency(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -27647,20 +27542,6 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._SessionAlert_ExcludeRules(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "DailyFrequency":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._SessionAlert_DailyFrequency(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

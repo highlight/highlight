@@ -42,7 +42,7 @@ const AlertsRouter = () => {
             <Helmet>
                 <title>Alerts</title>
             </Helmet>
-            <LeadAlignLayout maxWidth={850}>
+            <LeadAlignLayout>
                 <Breadcrumb
                     getBreadcrumbName={(url) =>
                         getAlertsBreadcrumbNames(history.location.state)(url)
