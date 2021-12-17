@@ -177,6 +177,7 @@ const TABLE_COLUMNS = [
                         sharedMaxNum={frequency}
                         height={30}
                         data={record.DailyFrequency}
+                        showBase={false}
                     />
                 </div>
             </div>
