@@ -3,7 +3,7 @@ import { ColumnsType } from 'antd/lib/table';
 import React from 'react';
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
-import styles from './BarChartTable.module.scss';
+import styles from './ProgressBarTable.module.scss';
 
 interface Props {
     columns: ColumnsType<any>;
@@ -16,7 +16,7 @@ interface Props {
 }
 
 // TODO: rename this, a Bar Chart is something else.
-const BarChartTable = ({
+const ProgressBarTable = ({
     columns,
     data,
     onClickHandler,
@@ -51,4 +51,4 @@ const BarChartTable = ({
     );
 };
 
-export default BarChartTable;
+export default ProgressBarTable;

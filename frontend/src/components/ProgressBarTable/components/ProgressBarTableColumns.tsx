@@ -1,19 +1,19 @@
 import { Avatar } from '@components/Avatar/Avatar';
-import { getPercentageDisplayValue } from '@components/BarChartTable/utils/utils';
+import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils';
 import { Session } from '@graph/schemas';
 import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import classNames from 'classnames';
 import React from 'react';
 
-import styles from './BarChartTableColumns.module.scss';
+import styles from './ProgressBarTableColumns.module.scss';
 
-interface BarChartTablePercentageProps {
+interface ProgressBarTablePercentageProps {
     percent: number;
 }
 
-export const BarChartTablePercentage = ({
+export const ProgressBarTablePercentage = ({
     percent,
-}: BarChartTablePercentageProps) => {
+}: ProgressBarTablePercentageProps) => {
     return (
         <div className={styles.percentContainer}>
             <div
@@ -29,11 +29,11 @@ export const BarChartTablePercentage = ({
     );
 };
 
-interface BarChartTableRowGroupProps {
+interface ProgressBarTableRowGroupProps {
     alignment?: 'leading' | 'ending';
 }
 
-export const BarChartTableRowGroup: React.FC<BarChartTableRowGroupProps> = ({
+export const ProgressBarTableRowGroup: React.FC<ProgressBarTableRowGroupProps> = ({
     alignment = 'leading',
     children,
 }) => {
@@ -48,15 +48,15 @@ export const BarChartTableRowGroup: React.FC<BarChartTableRowGroupProps> = ({
     );
 };
 
-interface BarChartTablePillProps {
+interface ProgressBarTablePillProps {
     icon?: React.ReactNode;
     displayValue: string;
 }
 
-export const BarChartTablePill = ({
+export const ProgressBarTablePill = ({
     displayValue,
     icon,
-}: BarChartTablePillProps) => {
+}: ProgressBarTablePillProps) => {
     return (
         <div className={styles.pill}>
             {icon && icon}
@@ -65,15 +65,15 @@ export const BarChartTablePill = ({
     );
 };
 
-interface BarChartTableUserAvatarProps {
+interface ProgressBarTableUserAvatarProps {
     userProperties: string;
     identifier: string;
 }
 
-export const BarChartTableUserAvatar = ({
+export const ProgressBarTableUserAvatar = ({
     identifier,
     userProperties,
-}: BarChartTableUserAvatarProps) => {
+}: ProgressBarTableUserAvatarProps) => {
     return (
         <Avatar
             seed={identifier}

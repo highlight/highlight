@@ -1,14 +1,14 @@
-import {
-    BarChartTablePercentage,
-    BarChartTablePill,
-    BarChartTableRowGroup,
-    BarChartTableUserAvatar,
-} from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import {
+    ProgressBarTablePercentage,
+    ProgressBarTablePill,
+    ProgressBarTableRowGroup,
+    ProgressBarTableUserAvatar,
+} from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import SvgClockIcon from '@icons/ClockIcon';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -17,8 +17,8 @@ import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import Input from '../../../../components/Input/Input';
+import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
@@ -100,7 +100,7 @@ const ActiveUsersTable = () => {
             }
             noTitleBottomMargin
         >
-            <BarChartTable
+            <ProgressBarTable
                 loading={loading}
                 columns={Columns}
                 data={filteredTableData}
@@ -167,13 +167,13 @@ const Columns: ColumnsType<any> = [
         render: (user, record) => {
             return (
                 <div className={styles.hostContainer}>
-                    <BarChartTableRowGroup>
-                        <BarChartTableUserAvatar
+                    <ProgressBarTableRowGroup>
+                        <ProgressBarTableUserAvatar
                             identifier={user}
                             userProperties={record.userProperties}
                         />
                         <span>{user}</span>
-                    </BarChartTableRowGroup>
+                    </ProgressBarTableRowGroup>
                 </div>
             );
         },
@@ -184,17 +184,17 @@ const Columns: ColumnsType<any> = [
         key: 'active_time_percentage',
         render: (percent, record) => {
             return (
-                <BarChartTableRowGroup alignment="ending">
-                    <BarChartTablePercentage percent={percent * 100} />
+                <ProgressBarTableRowGroup alignment="ending">
+                    <ProgressBarTablePercentage percent={percent * 100} />
                     <Tooltip title="Total active time the user has spent on your app">
-                        <BarChartTablePill
+                        <ProgressBarTablePill
                             displayValue={`${formatShortTime(
                                 record.total_active_time / 1000
                             )}`}
                             icon={<SvgClockIcon />}
                         />
                     </Tooltip>
-                </BarChartTableRowGroup>
+                </ProgressBarTableRowGroup>
             );
         },
     },
