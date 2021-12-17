@@ -1,13 +1,13 @@
-import {
-    BarChartTablePill,
-    BarChartTableRowGroup,
-    BarChartTableUserAvatar,
-} from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import {
+    ProgressBarTablePill,
+    ProgressBarTableRowGroup,
+    ProgressBarTableUserAvatar,
+} from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -16,8 +16,8 @@ import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import Input from '../../../../components/Input/Input';
+import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetRageClicksForProjectQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
@@ -104,7 +104,7 @@ const RageClicksForProjectTable = () => {
                 </div>
             }
         >
-            <BarChartTable
+            <ProgressBarTable
                 loading={loading}
                 columns={Columns}
                 data={filteredTableData}
@@ -152,13 +152,13 @@ const Columns: ColumnsType<any> = [
         render: (user, record) => {
             return (
                 <div className={styles.hostContainer}>
-                    <BarChartTableRowGroup>
-                        <BarChartTableUserAvatar
+                    <ProgressBarTableRowGroup>
+                        <ProgressBarTableUserAvatar
                             identifier={user}
                             userProperties={record.userProperties}
                         />
                         <span>{user}</span>
-                    </BarChartTableRowGroup>
+                    </ProgressBarTableRowGroup>
                 </div>
             );
         },
@@ -169,14 +169,14 @@ const Columns: ColumnsType<any> = [
         key: 'totalClicks',
         align: 'right',
         render: (count) => (
-            <BarChartTableRowGroup alignment="ending">
+            <ProgressBarTableRowGroup alignment="ending">
                 <Tooltip title="The number of rage clicks in the session.">
-                    <BarChartTablePill
+                    <ProgressBarTablePill
                         displayValue={`${count} clicks`}
                         icon={<SvgCursorClickIcon />}
                     />
                 </Tooltip>
-            </BarChartTableRowGroup>
+            </ProgressBarTableRowGroup>
         ),
     },
 ];
