@@ -46,6 +46,12 @@
 
     .value {
         margin-left: auto;
+        transform: translateY(-100%);
+
+        &.mirror {
+            position: absolute;
+            right: 0;
+        }
     }
 }
 
@@ -59,10 +65,10 @@
     display: flex;
     height: 1ch;
     position: relative;
-    width: 125px;
+    width: 100%;
 
     > div {
-        background-color: var(--color);
+        background-color: var(--color-gray-300);
         border-radius: var(--size-xxSmall);
         flex-grow: 1;
         height: 100%;
@@ -70,21 +76,18 @@
 
     .poor {
         --color: var(--poor-color);
-        opacity: 0.4;
     }
 
     .needsImprovement {
         --color: var(--needs-improvement-color);
-        opacity: 0.4;
     }
 
     .good {
         --color: var(--good-color);
-        opacity: 0.4;
     }
 
     .active {
-        opacity: 1;
+        background-color: var(--color);
     }
 
     .scoreIndicator {
