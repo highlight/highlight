@@ -7136,6 +7136,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Type
             Name
+            DailyFrequency
         }
         session_feedback_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7150,6 +7151,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Name
             Type
+            DailyFrequency
         }
         new_session_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7165,6 +7167,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Type
             ExcludeRules
+            DailyFrequency
         }
         rage_click_alerts(project_id: $project_id) {
             id
@@ -7179,6 +7182,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             Type
+            DailyFrequency
         }
         new_user_alerts(project_id: $project_id) {
             id
@@ -7192,6 +7196,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             Type
+            DailyFrequency
         }
         track_properties_alerts(project_id: $project_id) {
             id
@@ -7210,6 +7215,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             Name
             Type
+            DailyFrequency
         }
         user_properties_alerts(project_id: $project_id) {
             id
@@ -7228,6 +7234,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             Name
             Type
+            DailyFrequency
         }
     }
 `;

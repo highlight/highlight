@@ -15,7 +15,6 @@ interface Props {
     loading: boolean;
 }
 
-// TODO: rename this, a Bar Chart is something else.
 const ProgressBarTable = ({
     columns,
     data,

@@ -51,6 +51,29 @@ func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAl
 	return obj.GetRegexGroups()
 }
 
+func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.ErrorAlert) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=? 
+			AND e.alert_id=? 
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date ASC;
+	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
+}
+
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -3933,6 +3956,29 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
 	return obj.GetExcludeRules()
+}
+
+func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.SessionAlert) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=? 
+			AND e.alert_id=? 
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date ASC;
+	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {

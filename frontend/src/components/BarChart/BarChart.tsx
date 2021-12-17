@@ -9,6 +9,8 @@ interface Props {
     yAxis?: string;
     height?: number;
     width?: number;
+    sharedMaxNum?: number;
+    showBase?: boolean;
 }
 
 const BarChart = ({
@@ -17,12 +19,18 @@ const BarChart = ({
     yAxis = 'occurence',
     height = 60,
     width = 100,
+    sharedMaxNum,
+    showBase = true,
 }: Props) => {
     const [maxNum, setMaxNum] = useState(5);
 
     useEffect(() => {
-        setMaxNum(Math.max(...data, 5));
-    }, [data]);
+        if (!!sharedMaxNum) {
+            setMaxNum(sharedMaxNum);
+        } else {
+            setMaxNum(Math.max(...data, 5));
+        }
+    }, [sharedMaxNum, data]);
 
     return (
         <div
@@ -43,7 +51,7 @@ const BarChart = ({
                                 height: `${(height - 4) * (num / maxNum)}px`,
                             }}
                         />
-                        <div className={styles.barBase}></div>
+                        {showBase && <div className={styles.barBase}></div>}
                     </div>
                 </Tooltip>
             ))}

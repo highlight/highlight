@@ -5,14 +5,20 @@ import styles from './LeadAlignLayout.module.scss';
 
 interface Props {
     fullWidth?: boolean;
+    maxWidth?: number;
 }
 
-const LeadAlignLayout: React.FC<Props> = ({ fullWidth = false, children }) => {
+const LeadAlignLayout: React.FC<Props> = ({
+    fullWidth = false,
+    maxWidth,
+    children,
+}) => {
     return (
         <main
             className={classNames(styles.leadAlignLayout, {
                 [styles.fullWidth]: fullWidth,
             })}
+            style={{ maxWidth: maxWidth }}
         >
             {children}
         </main>
