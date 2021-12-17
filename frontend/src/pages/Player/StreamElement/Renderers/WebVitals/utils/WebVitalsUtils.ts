@@ -11,6 +11,7 @@ export interface WebVitalDescriptor {
     maxNeedsImprovementValue: number;
     poorValue: number;
     units: string;
+    helpArticle: string;
 }
 
 export const WEB_VITALS_CONFIGURATION: {
@@ -22,6 +23,7 @@ export const WEB_VITALS_CONFIGURATION: {
         maxNeedsImprovementValue: 0.25,
         poorValue: 0,
         units: 'Layout Shift',
+        helpArticle: 'https://web.dev/cls',
     },
     FID: {
         maxGoodValue: 100,
@@ -29,6 +31,7 @@ export const WEB_VITALS_CONFIGURATION: {
         maxNeedsImprovementValue: 300,
         poorValue: 0,
         units: 'ms',
+        helpArticle: 'https://web.dev/fid',
     },
     LCP: {
         maxGoodValue: 2500,
@@ -36,6 +39,7 @@ export const WEB_VITALS_CONFIGURATION: {
         maxNeedsImprovementValue: 4000,
         poorValue: 0,
         units: 'ms',
+        helpArticle: 'https://web.dev/lcp',
     },
     FCP: {
         maxGoodValue: 1800,
@@ -43,6 +47,7 @@ export const WEB_VITALS_CONFIGURATION: {
         maxNeedsImprovementValue: 3000,
         poorValue: 0,
         units: 'ms',
+        helpArticle: 'https://web.dev/fcp',
     },
     TTFB: {
         maxGoodValue: 500,
@@ -50,5 +55,6 @@ export const WEB_VITALS_CONFIGURATION: {
         maxNeedsImprovementValue: 3000,
         poorValue: 0,
         units: 'ms',
+        helpArticle: 'https://web.dev/ttfb',
     },
 };

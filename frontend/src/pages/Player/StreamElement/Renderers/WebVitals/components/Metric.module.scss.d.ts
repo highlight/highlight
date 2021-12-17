@@ -1,5 +1,6 @@
 export const detailedMetric: string;
 export const goodScore: string;
+export const infoTooltip: string;
 export const metric: string;
 export const name: string;
 export const needsImprovementScore: string;
