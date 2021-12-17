@@ -37,24 +37,29 @@ const BarChart = ({
             style={{ height: height, width: width }}
             className={styles.barChartWrapper}
         >
-            {data.map((num, ind) => (
-                <Tooltip
-                    title={`${
-                        data.length - 1 - ind
-                    } ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
-                    key={ind}
-                >
-                    <div className={styles.barDiv}>
-                        <div
-                            className={styles.bar}
-                            style={{
-                                height: `${(height - 4) * (num / maxNum)}px`,
-                            }}
-                        />
-                        {showBase && <div className={styles.barBase}></div>}
-                    </div>
-                </Tooltip>
-            ))}
+            {data.map((num, ind) => {
+                const tmpBarHeight = (height - 4) * (num / maxNum);
+                const barHeight =
+                    tmpBarHeight === 0 ? 0 : Math.max(tmpBarHeight, 3);
+                return (
+                    <Tooltip
+                        title={`${
+                            data.length - 1 - ind
+                        } ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
+                        key={ind}
+                    >
+                        <div className={styles.barDiv}>
+                            <div
+                                className={styles.bar}
+                                style={{
+                                    height: `${barHeight}px`,
+                                }}
+                            />
+                            {showBase && <div className={styles.barBase}></div>}
+                        </div>
+                    </Tooltip>
+                );
+            })}
         </div>
     );
 };
