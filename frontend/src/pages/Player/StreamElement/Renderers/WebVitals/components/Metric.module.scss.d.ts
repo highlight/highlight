@@ -1,3 +1,4 @@
+export const active: string;
 export const detailedMetric: string;
 export const good: string;
 export const goodScore: string;
@@ -8,6 +9,7 @@ export const needsImprovement: string;
 export const needsImprovementScore: string;
 export const poor: string;
 export const poorScore: string;
+export const scoreIndicator: string;
 export const scoreVisualization: string;
 export const simpleMetric: string;
 export const units: string;

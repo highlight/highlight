@@ -125,11 +125,64 @@ const ScoreVisualization = ({
     configuration,
     value,
 }: ScoreVisualizationProps) => {
+    const valueScore = getValueScore(value, configuration);
+    const scorePosition = getScorePosition(configuration, value);
+    let gapSpacing = 0;
+
+    switch (valueScore) {
+        case ValueScore.Good:
+            gapSpacing = 2 * 2;
+            break;
+        case ValueScore.NeedsImprovement:
+            gapSpacing = 2 * 1;
+            break;
+    }
+
     return (
         <div className={styles.scoreVisualization}>
-            <div className={styles.poor}></div>
-            <div className={styles.needsImprovement}></div>
-            <div className={styles.good}></div>
+            <div
+                className={styles.scoreIndicator}
+                style={{
+                    left: `calc(${
+                        scorePosition * 100
+                    }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
+                }}
+            ></div>
+            <div
+                className={classNames(styles.poor, {
+                    [styles.active]: valueScore === ValueScore.Poor,
+                })}
+            ></div>
+            <div
+                className={classNames(styles.needsImprovement, {
+                    [styles.active]: valueScore === ValueScore.NeedsImprovement,
+                })}
+            ></div>
+            <div
+                className={classNames(styles.good, {
+                    [styles.active]: valueScore === ValueScore.Good,
+                })}
+            ></div>
         </div>
     );
+};
+
+const getScorePosition = (
+    { maxGoodValue, maxNeedsImprovementValue }: WebVitalDescriptor,
+    value: number
+) => {
+    // Randomly put this somewhere in the poor range. There's no max for the poor range.
+    if (value > maxNeedsImprovementValue) {
+        return Math.random() * 0.33;
+    }
+
+    if (value <= maxNeedsImprovementValue && value > maxGoodValue) {
+        const range = maxNeedsImprovementValue - maxGoodValue;
+        return 0.33 + (value - maxGoodValue) / range;
+    }
+
+    const relativePercent = value / maxGoodValue;
+    const percent = 0.33 + 0.33 + 0.33 * relativePercent;
+
+    return percent;
 };

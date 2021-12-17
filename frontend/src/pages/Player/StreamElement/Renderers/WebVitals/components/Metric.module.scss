@@ -54,26 +54,52 @@
 }
 
 .scoreVisualization {
+    --color: transparent;
     column-gap: 2px;
     display: flex;
     height: 1ch;
+    position: relative;
     width: 125px;
 
     > div {
+        background-color: var(--color);
         border-radius: var(--size-xxSmall);
         flex-grow: 1;
         height: 100%;
     }
 
     .poor {
-        background-color: var(--poor-color);
+        --color: var(--poor-color);
+        opacity: 0.4;
     }
 
     .needsImprovement {
-        background-color: var(--needs-improvement-color);
+        --color: var(--needs-improvement-color);
+        opacity: 0.4;
     }
 
     .good {
-        background-color: var(--good-color);
+        --color: var(--good-color);
+        opacity: 0.4;
+    }
+
+    .active {
+        opacity: 1;
+    }
+
+    .scoreIndicator {
+        --size: var(--size-medium);
+
+        background: var(--color-white);
+        border: 2px solid var(--color-gray-400);
+        border-radius: 50%;
+        box-shadow: var(--box-shadow);
+        flex-grow: 0;
+        flex-shrink: 0;
+        height: var(--size);
+        position: absolute;
+        top: calc(var(--size) / -4);
+        width: var(--size);
+        z-index: 2;
     }
 }
