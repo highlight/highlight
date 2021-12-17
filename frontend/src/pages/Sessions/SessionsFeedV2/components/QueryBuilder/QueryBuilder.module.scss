@@ -29,6 +29,19 @@
 }
 
 .optionLabelContainer {
+    display: inline-flex;
+    justify-content: space-between;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.optionLabelType {
+    color: var(--color-gray-500);
+    display: flex;
+}
+
+.optionLabelName {
     display: flex;
 }
 
@@ -87,12 +100,14 @@
 }
 
 .separator {
-    background: none !important;
     border: 0;
     font-size: 12px;
     justify-content: center;
     padding: 3px;
     width: 32px;
+    &:hover {
+        background-color: var(--color-purple-100) !important;
+    }
 }
 
 .ruleItem {

@@ -8,6 +8,8 @@ export const label: string;
 export const menu: string;
 export const nameLabel: string;
 export const optionLabelContainer: string;
+export const optionLabelName: string;
+export const optionLabelType: string;
 export const popover: string;
 export const ruleContainer: string;
 export const ruleItem: string;
