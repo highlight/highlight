@@ -132,11 +132,11 @@ const ScoreVisualization = ({
     let gapSpacing = 0;
 
     switch (valueScore) {
-        case ValueScore.Good:
-            gapSpacing = 2 * 2;
-            break;
         case ValueScore.NeedsImprovement:
             gapSpacing = 2 * 1;
+            break;
+        case ValueScore.Poor:
+            gapSpacing = 2 * 2;
             break;
     }
 
@@ -177,24 +177,41 @@ const ScoreVisualization = ({
     );
 };
 
-const getScorePosition = (
-    { maxGoodValue, maxNeedsImprovementValue }: WebVitalDescriptor,
-    value: number
-) => {
-    // Randomly put this somewhere in the poor range. There's no max for the poor range.
-    if (value > maxNeedsImprovementValue) {
-        return Math.random() * 0.33;
+const getScorePosition = (configuration: WebVitalDescriptor, value: number) => {
+    const valueScore = getValueScore(value, configuration);
+    let offset = 0;
+    let min = 0;
+    let max = 0;
+    const OFFSET_AMOUNT = 0.33;
+
+    switch (valueScore) {
+        case ValueScore.Good:
+            offset = OFFSET_AMOUNT * 0;
+            min = 0;
+            max = configuration.maxGoodValue;
+            break;
+        case ValueScore.NeedsImprovement:
+            offset = OFFSET_AMOUNT * 1;
+            min = configuration.maxGoodValue;
+            max = configuration.maxNeedsImprovementValue;
+            break;
+        case ValueScore.Poor:
+            offset = OFFSET_AMOUNT * 2;
+            min = configuration.maxNeedsImprovementValue;
+            max = Infinity;
+            break;
     }
 
-    if (value <= maxNeedsImprovementValue && value > maxGoodValue) {
-        const range = maxNeedsImprovementValue - maxGoodValue;
-        return 0.33 + (value - maxGoodValue) / range;
+    // There's no upper value for a poor value so we generate a random value.
+    if (max === Infinity) {
+        return offset + Math.random() * OFFSET_AMOUNT;
     }
 
-    const relativePercent = value / maxGoodValue;
-    const percent = 0.33 + 0.33 + 0.33 * relativePercent;
+    const range = max - min;
+    const percent = (value - min) / range;
+    const relativePercent = OFFSET_AMOUNT * percent;
 
-    return percent;
+    return offset + relativePercent;
 };
 
 function getTooltipText(
