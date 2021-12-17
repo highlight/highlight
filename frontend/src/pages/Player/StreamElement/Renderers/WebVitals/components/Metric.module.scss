@@ -1,0 +1,36 @@
+.metric {
+    .name {
+        column-gap: 0.5ch;
+        display: flex;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .units {
+        color: var(--color-gray-500) !important;
+        font-weight: 400 !important;
+    }
+
+    &.goodScore {
+        color: var(--color-green-500) !important;
+    }
+    &.needsImprovementScore {
+        color: var(--color-yellow-500) !important;
+    }
+    &.poorScore {
+        color: var(--color-red-500) !important;
+    }
+}
+
+.simpleMetric {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: grid;
+    grid-template-columns: 3fr auto;
+}
+
+.detailedMetric {
+    display: flex;
+    justify-content: space-between;
+}

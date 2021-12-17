@@ -28,6 +28,8 @@ export const EventStreamTypesFilter = () => {
         showSegment,
         showTrack,
         showViewport,
+        showWebVitals,
+        setShowWebVitals,
     } = useEventTypeFilters();
     const activeFiltersCount = [
         showIdentify,
@@ -73,6 +75,14 @@ export const EventStreamTypesFilter = () => {
                                 },
                                 label: <Label label="Viewport" />,
                                 key: 'Viewport',
+                            },
+                            {
+                                checked: showWebVitals,
+                                onChange: (e) => {
+                                    setShowWebVitals(e.target.checked);
+                                },
+                                label: <Label label="Web Vitals" />,
+                                key: 'Web Vitals',
                             },
                             {
                                 checked: showSegment,

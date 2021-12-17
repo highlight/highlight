@@ -1,0 +1,9 @@
+.wrapper {
+    display: flex;
+}
+
+.detailedView {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xxSmall);
+}

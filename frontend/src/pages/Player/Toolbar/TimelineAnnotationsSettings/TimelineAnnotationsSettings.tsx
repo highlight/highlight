@@ -15,7 +15,7 @@ type EventTypesKeys = {
     [key in EventsForTimelineKeys[number]]: string | React.ReactNode;
 };
 
-export const EventTypeDescriptions: EventTypesKeys = {
+export const EventTypeDescriptions: Omit<EventTypesKeys, 'Web Vitals'> = {
     Segment: (
         <span>
             The client-side segment installation fired a track or identify
@@ -49,6 +49,8 @@ interface Props {
     disabled: boolean;
 }
 
+const EventTypeToExclude: string[] = ['Web Vitals'];
+
 const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
     const {
         selectedTimelineAnnotationTypes,
@@ -66,7 +68,10 @@ const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
                         annotations.
                     </p>
                     <CheckboxList
-                        checkboxOptions={EventsForTimeline.map((eventType) => ({
+                        checkboxOptions={EventsForTimeline.filter(
+                            (eventType) =>
+                                !EventTypeToExclude.includes(eventType)
+                        ).map((eventType) => ({
                             checked: selectedTimelineAnnotationTypes.includes(
                                 eventType
                             ),

@@ -614,6 +614,7 @@ export const TimelineAnnotationColors: {
     Comments: '--color-green-500',
     Identify: '--color-orange-500',
     Viewport: '--color-purple-600',
+    'Web Vitals': '--color-red-600',
 };
 
 export function getAnnotationColor(

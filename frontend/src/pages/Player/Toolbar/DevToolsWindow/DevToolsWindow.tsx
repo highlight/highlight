@@ -1,5 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
-import MetricsPage from '@pages/Player/Toolbar/DevToolsWindow/MetricsPage/MetricsPage';
 import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
@@ -17,7 +15,6 @@ export const DevToolsWindow = React.memo(
     ({ time, startTime }: { time: number; startTime: number }) => {
         const { openDevTools, setOpenDevTools } = useDevToolsContext();
         const { isPlayerFullscreen } = usePlayerUIContext();
-        const { isHighlightAdmin } = useAuthContext();
 
         if (!openDevTools || isPlayerFullscreen) {
             return null;
@@ -39,13 +36,6 @@ export const DevToolsWindow = React.memo(
                 ),
             },
         ];
-
-        if (isHighlightAdmin) {
-            TABS.push({
-                key: 'Metrics',
-                panelContent: <MetricsPage />,
-            });
-        }
 
         return (
             <ResizePanel
