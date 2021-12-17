@@ -8,7 +8,6 @@ export const hiddenSlackIntegrationButton: string;
 export const integrationAlert: string;
 export const integrationButton: string;
 export const intercomButton: string;
-export const line: string;
 export const nameCell: string;
 export const primary: string;
 export const subTitleContainer: string;

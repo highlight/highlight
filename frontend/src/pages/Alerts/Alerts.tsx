@@ -167,6 +167,16 @@ const TABLE_COLUMNS = [
         },
     },
     {
+        title: 'Frequency',
+        dataIndex: 'frequency',
+        key: 'frequency',
+        render: (data: Array<number>, record: any) => (
+            <div className={styles.chart}>
+                <BarChart height={30} data={record.DailyFrequency} />
+            </div>
+        ),
+    },
+    {
         title: 'Configure',
         dataIndex: 'configure',
         key: 'configure',
@@ -180,19 +190,6 @@ const TABLE_COLUMNS = [
             >
                 Configure <SvgChevronRightIcon />
             </Link>
-        ),
-    },
-    {
-        title: 'Frequency',
-        dataIndex: 'frequency',
-        key: 'frequency',
-        render: (data: Array<number>, record: any) => (
-            <>
-                <div className={styles.line}></div>
-                <div className={styles.chart}>
-                    <BarChart data={record.DailyFrequency} />
-                </div>
-            </>
         ),
     },
 ];
