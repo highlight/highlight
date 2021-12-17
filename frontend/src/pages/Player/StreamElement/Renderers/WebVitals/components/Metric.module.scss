@@ -97,8 +97,10 @@
         flex-grow: 0;
         flex-shrink: 0;
         height: var(--size);
+        left: 0;
         position: absolute;
         top: calc(var(--size) / -4);
+        transition: left 0.2s ease-in;
         width: var(--size);
         z-index: 2;
     }

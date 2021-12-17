@@ -1,6 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { WebVitalDescriptor } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import classNames from 'classnames';
+import { motion } from 'framer-motion';
 import React from 'react';
 
 import styles from './Metric.module.scss';
@@ -140,14 +141,17 @@ const ScoreVisualization = ({
 
     return (
         <div className={styles.scoreVisualization}>
-            <div
+            <motion.div
                 className={styles.scoreIndicator}
-                style={{
+                animate={{
                     left: `calc(${
                         scorePosition * 100
                     }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
                 }}
-            ></div>
+                transition={{
+                    type: 'spring',
+                }}
+            ></motion.div>
             <div
                 className={classNames(styles.poor, {
                     [styles.active]: valueScore === ValueScore.Poor,
