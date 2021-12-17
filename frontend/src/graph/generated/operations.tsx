@@ -2629,7 +2629,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Type'
                     | 'Name'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2654,7 +2653,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Name'
                     | 'Type'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2680,7 +2678,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Type'
                     | 'ExcludeRules'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2705,7 +2702,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'Name'
                     | 'Type'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2730,7 +2726,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'LastAdminToEditID'
                         | 'Name'
                         | 'Type'
-                        | 'DailyFrequency'
                     > & {
                             ChannelsToNotify: Array<
                                 Types.Maybe<
@@ -2757,7 +2752,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'Name'
                     | 'Type'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2789,7 +2783,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'Name'
                     | 'Type'
-                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

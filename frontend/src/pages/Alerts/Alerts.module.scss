@@ -92,13 +92,3 @@
     display: inline-block;
     line-height: 1;
 }
-
-.chart {
-    display: flex;
-    justify-content: center;
-    .innerChart {
-        background-color: var(--color-gray-100);
-        border-radius: 5px;
-        padding: var(--size-small);
-    }
-}
