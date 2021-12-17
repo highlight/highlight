@@ -1,10 +1,15 @@
 import { createContext } from '../../../../util/context/context';
 
+export enum DevToolTabType {
+    Errors = 'Errors',
+    Console = 'Console',
+    Network = 'Network',
+}
 interface DevToolsContext {
     openDevTools: boolean;
     setOpenDevTools: (val: boolean) => void;
-    devToolsTab: 'Errors' | 'Console' | 'Network';
-    setDevToolsTab: (val: 'Errors' | 'Console' | 'Network') => void;
+    devToolsTab: DevToolTabType;
+    setDevToolsTab: (val: DevToolTabType) => void;
 }
 
 export const [

@@ -37,6 +37,10 @@ export const useEventTypeFilters = () => {
         `highlight-show-reload`,
         true
     );
+    const [showWebVitals, setShowWebVitals] = useLocalStorage(
+        `highlight-show-web-vitals`,
+        true
+    );
 
     return {
         showIdentify,
@@ -57,5 +61,7 @@ export const useEventTypeFilters = () => {
         setShowClick,
         showReload,
         setShowReload,
+        showWebVitals,
+        setShowWebVitals,
     };
 };

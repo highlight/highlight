@@ -1131,3 +1131,10 @@ subscription OnSessionPayloadAppended(
         ...SessionPayloadFragment
     }
 }
+
+query GetWebVitals($session_secure_id: String!) {
+    web_vitals(session_secure_id: $session_secure_id) {
+        name
+        value
+    }
+}
