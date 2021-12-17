@@ -56,7 +56,7 @@ const EventStream = () => {
     });
 
     useEffect(() => {
-        if (data?.web_vitals) {
+        if (data?.web_vitals && data.web_vitals?.length > 0) {
             const webVitalEvent = {
                 data: {
                     payload: {
@@ -72,6 +72,8 @@ const EventStream = () => {
                 identifier: '-1',
             };
             setEvents([webVitalEvent, ...replayerEvents]);
+        } else {
+            setEvents([...replayerEvents]);
         }
     }, [data?.web_vitals, replayerEvents]);
 
