@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -325,7 +324,7 @@ func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metr
 
 	// Check to see if this metric already exists.
 	if err := r.DB.First(&existingMetric).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
 			recordAlreadyExists = true
 		}
 	}
