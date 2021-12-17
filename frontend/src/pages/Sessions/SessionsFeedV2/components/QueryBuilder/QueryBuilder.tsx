@@ -1,38 +1,45 @@
 import Button from '@components/Button/Button/Button';
 import Popover from '@components/Popover/Popover';
+import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { useMemo } from 'react';
 import AsyncSelect from 'react-select/async';
+import AsyncCreatableSelect from 'react-select/async-creatable';
+import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
 
 import {
+    useGetAppVersionsQuery,
     useGetFieldsOpensearchQuery,
     useGetFieldTypesQuery,
-    useGetSessionSearchResultsQuery,
 } from '../../../../../graph/generated/hooks';
-import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
-import { usePlayerUIContext } from '../../../../Player/context/PlayerUIContext';
-import { useSearchContext } from '../../../SearchContext/SearchContext';
 import styles from './QueryBuilder.module.scss';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface RuleProps {
-    ruleKey: SelectOption;
-    ruleOp: SelectOption;
-    ruleVal: SelectOption;
+    field: SelectOption | undefined;
+    op: string | undefined;
+    val: MultiselectOption | undefined;
 }
 
-interface Cardinality {
-    cardinality: number;
+interface SelectOption {
+    kind: 'single';
+    label: string;
+    value: string;
+}
+interface MultiselectOption {
+    kind: 'multi';
+    options: readonly {
+        label: string;
+        value: string;
+    }[];
 }
 
-type SelectOption = { label: string; value: string } | undefined;
-type OnChange = (val: SelectOption) => void;
+type OnChangeInput = SelectOption | MultiselectOption | undefined;
+type OnChange = (val: OnChangeInput) => void;
 type LoadOptions = (input: string, callback: any) => Promise<any>;
 
 interface RuleFuncs {
@@ -45,8 +52,10 @@ interface RuleFuncs {
     onRemove: () => void;
 }
 
+type PopoutType = 'select' | 'multiselect' | 'creatable';
 interface PopoutProps {
-    value: SelectOption;
+    type: PopoutType;
+    value: OnChangeInput;
     onChange: OnChange;
     loadOptions: LoadOptions;
 }
@@ -60,44 +69,124 @@ const PopoutContent = ({
     onChange,
     loadOptions,
     setVisible,
-}: PopoutProps & SetVisible) => {
-    return (
-        <AsyncSelect
-            autoFocus
-            openMenuOnFocus
-            value={value ?? null}
-            styles={SharedSelectStyleProps}
-            loadOptions={loadOptions}
-            defaultOptions
-            components={{
-                DropdownIndicator: () => null,
-                IndicatorSeparator: () => null,
-            }}
-            onChange={(item) => onChange(item ?? undefined)}
-            onBlur={() => setVisible(false)}
-        />
-    );
+    type,
+    ...props
+}: PopoutProps & SetVisible & OptionTypeBase) => {
+    switch (type) {
+        case 'select':
+            return (
+                <AsyncSelect
+                    autoFocus
+                    openMenuOnFocus
+                    value={value?.kind === 'single' ? value : null}
+                    styles={SharedSelectStyleProps}
+                    loadOptions={loadOptions}
+                    defaultOptions
+                    components={{
+                        DropdownIndicator: () => null,
+                        IndicatorSeparator: () => null,
+                    }}
+                    onChange={(item) => {
+                        onChange(
+                            !!item ? { kind: 'single', ...item } : undefined
+                        );
+                        setVisible(false);
+                    }}
+                    onBlur={() => setVisible(false)}
+                    {...props}
+                />
+            );
+        case 'multiselect':
+            return (
+                <AsyncSelect
+                    autoFocus
+                    openMenuOnFocus
+                    isMulti
+                    value={value?.kind === 'multi' ? value.options : null}
+                    styles={SharedSelectStyleProps}
+                    loadOptions={loadOptions}
+                    defaultOptions
+                    components={{
+                        DropdownIndicator: () => null,
+                        IndicatorSeparator: () => null,
+                    }}
+                    onChange={(item) => {
+                        onChange(
+                            !!item
+                                ? {
+                                      kind: 'multi',
+                                      options: item as readonly {
+                                          label: string;
+                                          value: string;
+                                      }[],
+                                  }
+                                : undefined
+                        );
+                        if (value === undefined) {
+                            setVisible(false);
+                        }
+                    }}
+                    onBlur={() => setVisible(false)}
+                    {...props}
+                />
+            );
+        case 'creatable':
+            return (
+                <AsyncCreatableSelect
+                    autoFocus
+                    openMenuOnFocus
+                    isMulti
+                    value={value?.kind === 'multi' ? value.options : null}
+                    styles={SharedSelectStyleProps}
+                    loadOptions={loadOptions}
+                    defaultOptions
+                    components={{
+                        DropdownIndicator: () => null,
+                        IndicatorSeparator: () => null,
+                    }}
+                    onChange={(item) => {
+                        onChange(
+                            !!item
+                                ? {
+                                      kind: 'multi',
+                                      options: item as readonly {
+                                          label: string;
+                                          value: string;
+                                      }[],
+                                  }
+                                : undefined
+                        );
+                        if (value === undefined) {
+                            setVisible(false);
+                        }
+                    }}
+                    onBlur={() => setVisible(false)}
+                    formatCreateLabel={(label) => label}
+                    createOptionPosition="first"
+                    allowCreateWhileLoading={false}
+                    {...props}
+                />
+            );
+    }
 };
 
-const SelectPopout = ({ value, onChange, ...props }: PopoutProps) => {
+const SelectPopout = ({ value, ...props }: PopoutProps) => {
     // Visible by default if no value yet
     const [visible, setVisible] = useState(!value);
+    const onSetVisible = (val: boolean) => {
+        setVisible(val);
+    };
 
     return (
         <Popover
             content={
                 <PopoutContent
                     value={value}
-                    onChange={(val) => {
-                        setVisible(false);
-                        onChange(val);
-                    }}
-                    setVisible={setVisible}
+                    setVisible={onSetVisible}
                     {...props}
                 />
             }
             placement="bottomLeft"
-            trigger={['click']}
             contentContainerClassName={styles.popover}
             visible={visible}
             destroyTooltipOnHide
@@ -108,27 +197,34 @@ const SelectPopout = ({ value, onChange, ...props }: PopoutProps) => {
                 className={classNames(styles.ruleItem, {
                     [styles.invalid]: !value && !visible,
                 })}
-                onClick={() => setVisible(true)}
+                onClick={() => onSetVisible(true)}
             >
-                {value?.label ?? '--'}
+                {value === undefined && '--'}
+                {value?.kind === 'single' && value.label}
+                {value?.kind === 'multi' &&
+                    value.options.length > 1 &&
+                    `${value.options.length} selections`}
+                {value?.kind === 'multi' &&
+                    value.options.length === 1 &&
+                    value.options[0].label}
+                {value?.kind === 'multi' && value.options.length === 0 && '--'}
             </Button>
         </Popover>
     );
 };
 
-const getInput = (
-    ruleOp: string,
-    popoutProps: PopoutProps
-): React.ReactNode | undefined => {
-    if (!!ruleOp && CARDINALITY_MAP[ruleOp] >= 0) {
-        return <SelectPopout {...popoutProps} />;
+const getPopoutType = (op: string): PopoutType => {
+    switch (op) {
+        case 'contains':
+        case 'not_contains':
+            return 'creatable';
+        default:
+            return 'multiselect';
     }
 };
 
 const QueryRule = ({
-    ruleKey,
-    ruleOp,
-    ruleVal,
+    rule,
     onChangeKey,
     getKeyOptions,
     onChangeOperator,
@@ -136,31 +232,37 @@ const QueryRule = ({
     onChangeValue,
     getValueOptions,
     onRemove,
-}: RuleProps & RuleFuncs) => {
+}: { rule: RuleProps } & RuleFuncs) => {
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
-                value={ruleKey}
+                value={rule.field}
                 onChange={onChangeKey}
                 loadOptions={getKeyOptions}
+                type="select"
             />
-            {!!ruleKey && (
+            {!!rule.field && (
                 <SelectPopout
-                    value={ruleOp}
+                    value={getOperator(rule.op, isSingle(rule.val))}
                     onChange={onChangeOperator}
                     loadOptions={getOperatorOptions}
+                    type="select"
                 />
             )}
-            {!!ruleOp &&
-                getInput(ruleOp.value, {
-                    value: ruleVal,
-                    onChange: onChangeValue,
-                    loadOptions: getValueOptions,
-                })}
+            {!!rule.op && hasArguments(rule.op) && (
+                <SelectPopout
+                    value={rule.val}
+                    onChange={onChangeValue}
+                    loadOptions={getValueOptions}
+                    type={getPopoutType(rule.op)}
+                />
+            )}
             <Button
                 trackingId="SessionsQueryRemoveRule"
                 className={styles.ruleItem}
-                onClick={onRemove}
+                onClick={() => {
+                    onRemove();
+                }}
             >
                 <SvgXIcon />
             </Button>
@@ -168,61 +270,165 @@ const QueryRule = ({
     );
 };
 
-const IS_OPERATOR = {
-    value: 'is',
-    label: 'is',
-    cardinality: 1,
+const hasArguments = (op: string): boolean =>
+    ['is', 'is_not', 'contains', 'not_contains'].includes(op);
+
+const isNegative = (op: string): boolean =>
+    ['is_not', 'not_contains', 'not_exists'].includes(op);
+
+const LABEL_MAP_SINGLE: { [key: string]: string } = {
+    is: 'is',
+    is_not: 'is not',
+    contains: 'contains',
+    not_contains: 'does not contain',
+    exists: 'exists',
+    not_exists: 'does not exist',
 };
 
-const CARDINALITY_MAP: { [key: string]: number } = {
-    is: 1,
-    is_not: 1,
-    contains: 1,
-    not_contains: 1,
-    exists: 0,
-    not_exists: 0,
+const LABEL_MAP_MULTI: { [key: string]: string } = {
+    is: 'is any of',
+    is_not: 'is not any of',
+    contains: 'contains any of',
+    not_contains: 'does not contain any of',
+    exists: 'exists',
+    not_exists: 'does not exist',
 };
 
-const OPERATORS = [
-    IS_OPERATOR,
+const NEGATION_MAP: { [key: string]: string } = {
+    is: 'is_not',
+    is_not: 'is',
+    contains: 'not_contains',
+    not_contains: 'contains',
+    exists: 'not_exists',
+    not_exists: 'exists',
+};
+
+const OPERATORS: string[] = [
+    'is',
+    'is_not',
+    'contains',
+    'not_contains',
+    'exists',
+    'not_exists',
+];
+
+const getOperator = (
+    value: string | undefined,
+    isSingle: boolean
+): SelectOption | undefined =>
+    !value
+        ? undefined
+        : {
+              kind: 'single',
+              value: value,
+              label: (isSingle ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[value],
+          };
+
+const isSingle = (val: OnChangeInput) =>
+    !(val?.kind === 'multi' && val.options.length > 1);
+
+const CUSTOM_PREFIX = '_custom';
+
+const parseInner = (field: string, op: string, value?: string): any => {
+    if (field.startsWith(CUSTOM_PREFIX)) {
+        const fieldName = field.substring(CUSTOM_PREFIX.length + 1);
+        switch (op) {
+            case 'is':
+                return { term: { [`${fieldName}.keyword`]: value } };
+            case 'contains':
+                return {
+                    wildcard: { [`${fieldName}.keyword`]: `*${value}*` },
+                };
+            case 'exists':
+                return { exists: { field: fieldName } };
+        }
+    } else {
+        switch (op) {
+            case 'is':
+                return { term: { 'fields.KeyValue': `${field}_${value}` } };
+            case 'contains':
+                return {
+                    wildcard: { 'fields.KeyValue': `${field}_*${value}*` },
+                };
+            case 'exists':
+                return { term: { 'fields.Key': field } };
+        }
+    }
+};
+
+const parseRuleImpl = (
+    field: string,
+    op: string,
+    multiValue: MultiselectOption
+): any => {
+    if (isNegative(op)) {
+        return {
+            bool: {
+                must_not: {
+                    ...parseRuleImpl(field, NEGATION_MAP[op], multiValue),
+                },
+            },
+        };
+    } else if (hasArguments(op)) {
+        return {
+            bool: {
+                should: multiValue.options.map(({ value }) =>
+                    parseInner(field, op, value)
+                ),
+            },
+        };
+    } else {
+        return parseInner(field, op);
+    }
+};
+
+const parseRule = (rule: RuleProps): any => {
+    const field = rule.field!.value;
+    const multiValue = rule.val!;
+    const op = rule.op!;
+
+    return parseRuleImpl(field, op, multiValue);
+};
+
+const parseGroup = (isAnd: boolean, rules: RuleProps[]): any => ({
+    bool: {
+        [isAnd ? 'must' : 'should']: rules.map((rule) => parseRule(rule)),
+    },
+});
+
+interface CustomField {
+    hi: string;
+}
+
+const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
     {
-        value: 'is_not',
-        label: 'is not',
-        cardinality: 1,
+        type: CUSTOM_PREFIX,
+        name: 'app_version',
+        hi: 'hi',
     },
     {
-        value: 'contains',
-        label: 'contains',
-        cardinality: 1,
+        type: CUSTOM_PREFIX,
+        name: 'created_at',
+        hi: 'hi',
     },
     {
-        value: 'not_contains',
-        label: 'does not contain',
-        cardinality: 1,
-    },
-    {
-        value: 'exists',
-        label: 'exists',
-        cardinality: 0,
-    },
-    {
-        value: 'not_exists',
-        label: 'does not exist',
-        cardinality: 0,
+        type: CUSTOM_PREFIX,
+        name: 'active_length',
+        hi: 'hi',
     },
 ];
+
+const isComplete = (rule: RuleProps) =>
+    rule.field !== undefined &&
+    rule.op !== undefined &&
+    (!hasArguments(rule.op) || rule.val !== undefined);
 
 const QueryBuilder = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
-    const [query, setQuery] = useState('');
-    const [selectedProperties, setSelectedProperties] = useState<
-        SessionSearchOption[]
-    >([]);
-    const { searchParams, setSearchParams } = useSearchContext();
-    const { setSearchBarRef } = usePlayerUIContext();
-    const { selectedSearchFilters } = useSelectedSessionSearchFilters();
+
+    const { setSearchQuery } = useSearchContext();
 
     const { data: fieldData } = useGetFieldTypesQuery({
         variables: { project_id },
@@ -232,19 +438,25 @@ const QueryBuilder = () => {
         skip: true,
     });
 
-    const { loading, data, refetch } = useGetSessionSearchResultsQuery({
-        variables: {
-            project_id,
-            query: '',
-        },
+    const { data: appVersionData } = useGetAppVersionsQuery({
+        variables: { project_id },
     });
 
+    const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
+
     const [rules, setRules] = useState<RuleProps[]>([]);
-    const addRule = () =>
-        setRules([
-            ...rules,
-            { ruleKey: undefined, ruleOp: undefined, ruleVal: undefined },
-        ]);
+    const newRule = () => {
+        setCurrentRule({
+            field: undefined,
+            op: undefined,
+            val: undefined,
+        });
+        setStep1Visible(true);
+    };
+    const addRule = (rule: RuleProps) => {
+        setRules([...rules, rule]);
+        setCurrentRule(undefined);
+    };
     const removeRule = (index: number) =>
         setRules(rules.filter((_, idx) => idx !== index));
     const updateRule = (index: number, newProps: any) => {
@@ -258,8 +470,13 @@ const QueryBuilder = () => {
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     const getKeyOptions = async (input: string) => {
+        if (fieldData?.field_types === undefined) {
+            return;
+        }
+
         const results = fieldData?.field_types
-            .filter((ft) => ft.name.includes(input))
+            .concat(CUSTOM_FIELDS)
+            .filter((ft) => ft.name.toLowerCase().includes(input.toLowerCase()))
             .map((ft) => ({
                 label: ft.name,
                 value: ft.type + '_' + ft.name,
@@ -267,17 +484,38 @@ const QueryBuilder = () => {
         return results;
     };
 
-    const getOperatorOptions = async (input: string) => {
-        return OPERATORS.filter((op) => op.label.includes(input));
+    const getOperatorOptionsCallback = (isSingle: boolean) => {
+        return async (input: string) => {
+            return OPERATORS.map((op) =>
+                getOperator(op, isSingle)
+            ).filter((op) =>
+                op?.label.toLowerCase().includes(input.toLowerCase())
+            );
+        };
     };
 
-    const getValueOptionsCallback = (ruleKey: SelectOption) => {
+    const getValueOptionsCallback = (field: SelectOption | undefined) => {
         return async (input: string) => {
-            if (ruleKey === undefined) {
+            if (field === undefined) {
                 return;
             }
 
-            const [first, ...rest] = ruleKey.value.split('_');
+            if (field.value === '_custom_app_version') {
+                console.log(
+                    '_custom_app_version',
+                    appVersionData?.app_version_suggestion
+                );
+                return appVersionData?.app_version_suggestion
+                    .map((av) => ({
+                        label: av,
+                        value: av,
+                    }))
+                    .filter((op) =>
+                        op?.label?.toLowerCase().includes(input.toLowerCase())
+                    );
+            }
+
+            const [first, ...rest] = field.value.split('_');
 
             return await fetchFields({
                 project_id,
@@ -294,67 +532,22 @@ const QueryBuilder = () => {
         };
     };
 
-    const generateOptions = (input: string, callback: any) => {
-        refetch({
-            project_id,
-            query: input,
-        }).then((fetched) => {
-            callback(
-                getSuggestions(fetched.data, selectedSearchFilters, input, 3)
-            );
-        });
-    };
-
-    const debouncedGenerateOptions = useMemo(
-        () => _.debounce(generateOptions, 200),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-    );
-
     useEffect(() => {
-        if (searchParams) {
-            const userProperties = (
-                searchParams.user_properties || []
-            ).map((property) => transformToOption(property, 'userProperties'));
-            const trackProperties = (
-                searchParams.track_properties || []
-            ).map((property) => transformToOption(property, 'trackProperties'));
-            const visitedUrl =
-                (searchParams.visited_url?.length || 0) > 0
-                    ? searchParams.visited_url
-                    : undefined;
-            const referrer =
-                (searchParams.referrer?.length || 0) > 0
-                    ? searchParams.referrer
-                    : undefined;
+        const allComplete = rules.every(isComplete);
 
-            const selectedValues: SessionSearchOption[] = [
-                ...userProperties,
-                ...trackProperties,
-            ];
-
-            if (visitedUrl) {
-                selectedValues.push({
-                    apiType: 'visitedUrls',
-                    id: visitedUrl,
-                    name: visitedUrl,
-                    value: `visitedUrl:${visitedUrl}`,
-                    valueType: 'visitedUrl',
-                });
-            }
-            if (referrer) {
-                selectedValues.push({
-                    apiType: 'referrers',
-                    id: referrer,
-                    name: referrer,
-                    value: `referrer:${referrer}`,
-                    valueType: 'referrer',
-                });
-            }
-
-            setSelectedProperties(selectedValues);
+        if (!allComplete) {
+            return;
         }
-    }, [searchParams]);
+
+        const query = parseGroup(isAnd, rules);
+        setSearchQuery(JSON.stringify(query));
+    }, [isAnd, rules, setSearchQuery]);
+
+    console.log('rules!', rules);
+    console.log('currentRule!', currentRule);
+
+    const [step1Visible, setStep1Visible] = useState(false);
+    const [step2Visible, setStep2Visible] = useState(false);
 
     return (
         <div className={styles.builderContainer}>
@@ -368,7 +561,7 @@ const QueryBuilder = () => {
                                       trackingId="SessionsQuerySeparatorToggle"
                                       onClick={toggleIsAnd}
                                       key={`separator-${index}`}
-                                      type="text"
+                                      type="dashed"
                                   >
                                       {isAnd ? 'and' : 'or'}
                                   </Button>,
@@ -376,28 +569,29 @@ const QueryBuilder = () => {
                             : []),
                         <QueryRule
                             key={`rule-${index}`}
-                            ruleKey={rule.ruleKey}
-                            ruleOp={rule.ruleOp}
-                            ruleVal={rule.ruleVal}
-                            onChangeKey={(val: SelectOption) => {
-                                console.log('onChangeKey', val);
-                                return updateRule(index, {
-                                    ruleKey: val,
-                                    ruleOp: IS_OPERATOR,
-                                });
+                            rule={rule}
+                            onChangeKey={(val) => {
+                                // Default to 'is' when rule is not defined yet
+                                if (rule.op === undefined) {
+                                    updateRule(index, { field: val, op: 'is' });
+                                } else {
+                                    updateRule(index, { field: val });
+                                }
                             }}
                             getKeyOptions={getKeyOptions}
-                            onChangeOperator={(val: SelectOption) => {
-                                console.log('onChangeOperator', val);
-                                return updateRule(index, { ruleOp: val });
+                            onChangeOperator={(val) => {
+                                if (val?.kind === 'single') {
+                                    updateRule(index, { op: val.value });
+                                }
                             }}
-                            getOperatorOptions={getOperatorOptions}
-                            onChangeValue={(val: SelectOption) => {
-                                console.log('onChangeValue', val);
-                                return updateRule(index, { ruleVal: val });
+                            getOperatorOptions={getOperatorOptionsCallback(
+                                isSingle(rule.val)
+                            )}
+                            onChangeValue={(val) => {
+                                updateRule(index, { val: val });
                             }}
                             getValueOptions={getValueOptionsCallback(
-                                rule.ruleKey
+                                rule.field
                             )}
                             onRemove={() => removeRule(index)}
                         />,
@@ -405,215 +599,62 @@ const QueryBuilder = () => {
                 </div>
             )}
             <div>
-                <Button
-                    className={styles.addFilter}
-                    trackingId="SessionsQueryAddRule"
-                    onClick={addRule}
+                <Popover
+                    content={
+                        currentRule?.field !== undefined ? (
+                            <PopoutContent
+                                key={'popover-2'}
+                                value={undefined}
+                                setVisible={setStep2Visible}
+                                onChange={(val) => {
+                                    addRule({
+                                        ...currentRule,
+                                        val: val as
+                                            | MultiselectOption
+                                            | undefined,
+                                    });
+                                }}
+                                loadOptions={getValueOptionsCallback(
+                                    currentRule.field
+                                )}
+                                type="multiselect"
+                                placeholder={`Select a value for ${currentRule.field.label}`}
+                            />
+                        ) : (
+                            <PopoutContent
+                                key={'popover-1'}
+                                value={undefined}
+                                setVisible={setStep1Visible}
+                                onChange={(val) => {
+                                    setCurrentRule({
+                                        field: val as SelectOption | undefined,
+                                        op: 'is',
+                                        val: undefined,
+                                    });
+                                    setStep2Visible(true);
+                                }}
+                                loadOptions={getKeyOptions}
+                                type="select"
+                                placeholder="Select a field"
+                            />
+                        )
+                    }
+                    placement="bottomLeft"
+                    contentContainerClassName={styles.popover}
+                    destroyTooltipOnHide
+                    visible={step1Visible || step2Visible}
                 >
-                    + Filter
-                </Button>
+                    <Button
+                        className={styles.addFilter}
+                        trackingId="SessionsQueryAddRule2"
+                        onClick={newRule}
+                    >
+                        + Filter
+                    </Button>
+                </Popover>
             </div>
         </div>
     );
 };
 
 export default QueryBuilder;
-
-/**
- * The session properties that support search.
- */
-type API_TYPES =
-    | 'trackProperties'
-    | 'userProperties'
-    | 'visitedUrls'
-    | 'referrers';
-
-export interface SessionSearchOption {
-    valueType: string;
-    name: string;
-    id: string;
-    value: string;
-    apiType: API_TYPES;
-}
-
-interface Suggestion {
-    id: string;
-    name: string;
-    value: string;
-}
-
-const transformToOption = (
-    { id, name, value }: Suggestion,
-    apiType: API_TYPES
-): SessionSearchOption => {
-    const valueToUse = value;
-
-    if (
-        valueToUse.split(':').length === 2 &&
-        !valueToUse.includes('https://')
-    ) {
-        const [value, name] = valueToUse.split(':');
-        return {
-            id,
-            valueType: value,
-            name,
-            value: valueToUse,
-            apiType,
-        };
-    }
-
-    return {
-        id,
-        valueType: name,
-        name: value,
-        value: `${name}:${value}`,
-        apiType,
-    };
-};
-
-const getSuggestions = (
-    data: any,
-    selectedTypes: string[],
-    query: string,
-    limitResultsCount?: number
-) => {
-    const suggestions: {
-        label: string;
-        tooltip: string | React.ReactNode;
-        options: SessionSearchOption[];
-    }[] = [];
-
-    if (selectedTypes.includes('Track Properties')) {
-        suggestions.push({
-            label: 'Track Properties',
-            tooltip: (
-                <>
-                    Track Properties are properties related to events that have
-                    happened in your application. These are set by you in your
-                    application. You can{' '}
-                    <a
-                        href="https://docs.highlight.run/tracking-events"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        learn more here
-                    </a>
-                    .
-                </>
-            ),
-            options: [
-                ...getIncludesOption(query, 'trackProperties', 'track'),
-                ...(data?.trackProperties
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'trackProperties')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('User Properties')) {
-        suggestions.push({
-            label: 'User Properties',
-            tooltip: (
-                <>
-                    User Properties are properties related to the user. These
-                    are set by you in your application. You can{' '}
-                    <a
-                        href="https://docs.highlight.run/identifying-users"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        learn more here
-                    </a>
-                    .
-                </>
-            ),
-            options: [
-                ...getIncludesOption(query, 'userProperties', 'user'),
-                ...(data?.userProperties
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'userProperties')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('Visited URLs')) {
-        suggestions.push({
-            label: 'Visited URLs',
-            tooltip:
-                'Visited URLs are the URLs a user has visited. Filtering with a Visited URL will show you all sessions where a user visited that URL.',
-            options: [
-                ...getIncludesOption(query, 'visitedUrls', 'visitedUrl'),
-                ...(data?.visitedUrls
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'visitedUrls')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('Referrers')) {
-        suggestions.push({
-            label: 'Referrers',
-            tooltip:
-                'Referrers are the websites your users came from. For example, if a user on Twitter clicked a link to your application, the referrer would be Twitter.',
-            options: [
-                ...getIncludesOption(query, 'referrers', 'referrers'),
-                ...(data?.referrers
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'referrers')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-
-    return suggestions;
-};
-
-const getIncludesOption = (
-    query: string,
-    apiType: string,
-    valueType: string
-) => {
-    return query.length === 0
-        ? []
-        : [
-              {
-                  apiType,
-                  id: '-1',
-                  name: `Contains: ${query}`,
-                  value: `${query}`,
-                  valueType,
-              },
-          ];
-};
-
-const transformSelectedProperties = (selectedProperties: any[]) => {
-    return selectedProperties?.map((property) => {
-        if (property.value.includes('contains:')) {
-            return {
-                ...property,
-                name: 'contains',
-                value: property.name,
-            };
-        }
-        if (property.name.includes('Contains:')) {
-            if (
-                property.apiType === 'visitedUrls' ||
-                property.apiType === 'referrers'
-            ) {
-                return {
-                    ...property,
-                    name: property.value,
-                };
-            }
-            return {
-                ...property,
-                name: 'contains',
-            };
-        }
-        return property;
-    });
-};

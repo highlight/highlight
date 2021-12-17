@@ -88,6 +88,7 @@
 
 .separator {
     background: none !important;
+    border: 0;
     font-size: 12px;
     justify-content: center;
     padding: 3px;
@@ -150,7 +151,7 @@
     flex-direction: column;
     padding-bottom: var(--size-medium);
     row-gap: var(--size-medium);
-    width: 250px;
+    width: 300px;
 
     .label {
         display: flex;

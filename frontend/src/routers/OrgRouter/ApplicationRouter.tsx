@@ -48,6 +48,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
         `highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
         undefined
     );
+
+    const [searchQuery, setSearchQuery] = useState('');
+
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
@@ -163,6 +166,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setShowStarredSessions,
                 selectedSegment,
                 setSelectedSegment,
+                searchQuery,
+                setSearchQuery,
             }}
         >
             <KeyboardShortcutsEducation />

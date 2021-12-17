@@ -50,6 +50,8 @@ interface SearchContext {
               }
             | undefined
     ) => void;
+    searchQuery: string;
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const [
