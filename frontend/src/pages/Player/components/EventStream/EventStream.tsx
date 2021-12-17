@@ -89,7 +89,6 @@ const EventStream = () => {
         () => (debug ? events : events.filter(usefulEvent)),
         [events, debug]
     );
-    console.log(usefulEvents);
 
     const filteredEvents = useMemo(
         () => getFilteredEvents(searchQuery, usefulEvents, eventTypeFilters),
