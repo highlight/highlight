@@ -5,6 +5,7 @@ export const configurationContainer: string;
 export const configureButton: string;
 export const emptyContainer: string;
 export const hiddenSlackIntegrationButton: string;
+export const innerChart: string;
 export const integrationAlert: string;
 export const integrationButton: string;
 export const intercomButton: string;

@@ -172,11 +172,13 @@ const TABLE_COLUMNS = [
         key: 'frequency',
         render: (frequency: any, record: any) => (
             <div className={styles.chart}>
-                <BarChart
-                    sharedMaxNum={frequency}
-                    height={30}
-                    data={record.DailyFrequency}
-                />
+                <div className={styles.innerChart}>
+                    <BarChart
+                        sharedMaxNum={frequency}
+                        height={30}
+                        data={record.DailyFrequency}
+                    />
+                </div>
             </div>
         ),
     },
