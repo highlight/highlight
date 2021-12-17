@@ -1,5 +1,10 @@
 .metric {
-    .name {
+    --good-color: var(--color-green-500) !important;
+    --needs-improvement-color: var(--color-yellow-500) !important;
+    --poor-color: var(--color-red-500) !important;
+
+    .name,
+    .value {
         column-gap: 0.5ch;
         display: flex;
         font-size: 12px !important;
@@ -13,13 +18,13 @@
     }
 
     &.goodScore {
-        color: var(--color-green-500) !important;
+        color: var(--good-color);
     }
     &.needsImprovementScore {
-        color: var(--color-yellow-500) !important;
+        color: var(--needs-improvement-color);
     }
     &.poorScore {
-        color: var(--color-red-500) !important;
+        color: var(--poor-color);
     }
 }
 
@@ -31,10 +36,44 @@
 }
 
 .detailedMetric {
+    align-items: center;
+    column-gap: var(--size-xSmall);
     display: flex;
-    justify-content: space-between;
+
+    .name {
+        width: 4ch;
+    }
+
+    .value {
+        margin-left: auto;
+    }
 }
 
 .infoTooltip {
     color: var(--color-gray-500) !important;
+}
+
+.scoreVisualization {
+    column-gap: 2px;
+    display: flex;
+    height: 1ch;
+    width: 125px;
+
+    > div {
+        border-radius: var(--size-xxSmall);
+        flex-grow: 1;
+        height: 100%;
+    }
+
+    .poor {
+        background-color: var(--poor-color);
+    }
+
+    .needsImprovement {
+        background-color: var(--needs-improvement-color);
+    }
+
+    .good {
+        background-color: var(--good-color);
+    }
 }

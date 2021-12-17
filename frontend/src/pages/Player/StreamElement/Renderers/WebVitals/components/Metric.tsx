@@ -41,7 +41,8 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
             })}
         >
             <span className={styles.name}>{name}</span>
-            <span className={styles.name}>
+            <ScoreVisualization value={value} configuration={configuration} />
+            <span className={styles.value}>
                 {value.toFixed(2)}
                 <span className={styles.units}>{configuration.units}</span>
                 <InfoTooltip
@@ -114,3 +115,21 @@ function getTooltipText(
         </div>
     );
 }
+
+interface ScoreVisualizationProps {
+    value: number;
+    configuration: WebVitalDescriptor;
+}
+
+const ScoreVisualization = ({
+    configuration,
+    value,
+}: ScoreVisualizationProps) => {
+    return (
+        <div className={styles.scoreVisualization}>
+            <div className={styles.poor}></div>
+            <div className={styles.needsImprovement}></div>
+            <div className={styles.good}></div>
+        </div>
+    );
+};

@@ -22,7 +22,7 @@ export const WEB_VITALS_CONFIGURATION: {
         name: WebVitalName.CLS,
         maxNeedsImprovementValue: 0.25,
         poorValue: 0,
-        units: 'Layout Shift',
+        units: 'LS',
         helpArticle: 'https://web.dev/cls',
     },
     FID: {
