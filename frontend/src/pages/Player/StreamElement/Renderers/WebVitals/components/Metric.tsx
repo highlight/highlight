@@ -159,8 +159,8 @@ const ScoreVisualization = ({
                 ></motion.div>
             </Tooltip>
             <div
-                className={classNames(styles.poor, {
-                    [styles.active]: valueScore === ValueScore.Poor,
+                className={classNames(styles.good, {
+                    [styles.active]: valueScore === ValueScore.Good,
                 })}
             ></div>
             <div
@@ -169,8 +169,8 @@ const ScoreVisualization = ({
                 })}
             ></div>
             <div
-                className={classNames(styles.good, {
-                    [styles.active]: valueScore === ValueScore.Good,
+                className={classNames(styles.poor, {
+                    [styles.active]: valueScore === ValueScore.Poor,
                 })}
             ></div>
         </div>
