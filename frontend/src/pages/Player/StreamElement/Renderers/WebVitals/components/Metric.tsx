@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import Tooltip from '@components/Tooltip/Tooltip';
 import { WebVitalDescriptor } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import classNames from 'classnames';
 import { motion } from 'framer-motion';
@@ -48,7 +49,7 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
                 <span className={styles.units}>{configuration.units}</span>
                 <InfoTooltip
                     className={styles.infoTooltip}
-                    title={getTooltipText(configuration, value)}
+                    title={getInfoTooltipText(configuration, value)}
                     align={{ offset: [-13, 0] }}
                     placement="topLeft"
                 />
@@ -79,7 +80,7 @@ function getValueScore(
     return ValueScore.Poor;
 }
 
-function getTooltipText(
+function getInfoTooltipText(
     configuration: WebVitalDescriptor,
     value: number
 ): React.ReactNode {
@@ -141,17 +142,22 @@ const ScoreVisualization = ({
 
     return (
         <div className={styles.scoreVisualization}>
-            <motion.div
-                className={styles.scoreIndicator}
-                animate={{
-                    left: `calc(${
-                        scorePosition * 100
-                    }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
-                }}
-                transition={{
-                    type: 'spring',
-                }}
-            ></motion.div>
+            <Tooltip
+                title={() => getTooltipText(configuration, value)}
+                mouseEnterDelay={0}
+            >
+                <motion.div
+                    className={styles.scoreIndicator}
+                    animate={{
+                        left: `calc(${
+                            scorePosition * 100
+                        }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
+                    }}
+                    transition={{
+                        type: 'spring',
+                    }}
+                ></motion.div>
+            </Tooltip>
             <div
                 className={classNames(styles.poor, {
                     [styles.active]: valueScore === ValueScore.Poor,
@@ -190,3 +196,32 @@ const getScorePosition = (
 
     return percent;
 };
+
+function getTooltipText(
+    configuration: WebVitalDescriptor,
+    value: number
+): React.ReactNode {
+    const message = `This session scored ${value.toFixed(
+        2
+    )}. An okay score is less than ${
+        configuration.maxNeedsImprovementValue
+    } and a great score is less than ${configuration.maxGoodValue}.`;
+
+    return (
+        <div
+            // This is to prevent the stream element from collapsing from clicking on a link.
+            onClick={(e) => {
+                e.stopPropagation();
+            }}
+        >
+            {message}{' '}
+            <a
+                href={configuration.helpArticle}
+                target="_blank"
+                rel="noreferrer"
+            >
+                Learn more about optimizing {configuration.name}.
+            </a>
+        </div>
+    );
+}
