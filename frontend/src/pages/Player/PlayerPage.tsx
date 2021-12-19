@@ -81,7 +81,6 @@ const Player = ({ integrated }: Props) => {
         sessionViewability,
         isPlayerReady,
         session,
-        isLiveMode,
     } = player;
     const resources = useResources(session);
     const {
