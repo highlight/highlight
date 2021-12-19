@@ -1,11 +1,11 @@
 .card {
-    position: absolute;
     align-self: center;
     height: fit-content;
     justify-self: center;
-    z-index: 100;
     margin-left: 100px;
     margin-right: 100px;
+    position: absolute;
+    z-index: 100;
 }
 
 .card p {

@@ -267,9 +267,9 @@
 }
 
 .loadingWrapper {
-    display: grid;
     align-items: center;
+    display: grid;
+    height: fit-content;
     justify-items: center;
     width: fit-content;
-    height: fit-content;
 }
