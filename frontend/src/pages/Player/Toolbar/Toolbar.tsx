@@ -87,7 +87,7 @@ export const Toolbar = React.memo(() => {
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
-    const { isLoggedIn, isHighlightAdmin, admin } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;

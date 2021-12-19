@@ -406,8 +406,7 @@ const Player = ({ integrated }: Props) => {
                                                 )}
                                                 id="player"
                                             />
-                                            {/* {!isPlayerReady && ( */}
-                                            {
+                                            {!isPlayerReady && (
                                                 <div
                                                     className={
                                                         styles.loadingWrapper
@@ -426,9 +425,11 @@ const Player = ({ integrated }: Props) => {
                                                                 ?.clientWidth
                                                         }
                                                     />
-                                                    <LoadingLiveSessionCard />
+                                                    {isLiveMode && (
+                                                        <LoadingLiveSessionCard />
+                                                    )}
                                                 </div>
-                                            }
+                                            )}
                                         </div>
                                         <ResourcesContextProvider
                                             value={resources}
