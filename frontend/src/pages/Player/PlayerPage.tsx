@@ -425,7 +425,8 @@ const Player = ({ integrated }: Props) => {
                                                                 ?.clientWidth
                                                         }
                                                     />
-                                                    {isLiveMode && (
+                                                    {session?.processed ===
+                                                        false && (
                                                         <LoadingLiveSessionCard />
                                                     )}
                                                 </div>
