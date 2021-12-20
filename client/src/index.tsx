@@ -305,10 +305,7 @@ export class Highlight {
                 throw error;
             }
         };
-        this.graphqlSDK = getSdk(
-            client,
-            async (requestFn) => await graphQLRequestWrapper(requestFn)
-        );
+        this.graphqlSDK = getSdk(client, graphQLRequestWrapper);
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
 
