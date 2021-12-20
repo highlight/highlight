@@ -1,5 +1,4 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
-import Tooltip from '@components/Tooltip/Tooltip';
 import { WebVitalDescriptor } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import classNames from 'classnames';
 import { motion } from 'framer-motion';
@@ -42,7 +41,15 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
                 [styles.poorScore]: valueScore === ValueScore.Poor,
             })}
         >
-            <span className={styles.name}>{name}</span>
+            <span className={styles.name}>
+                {name}{' '}
+                <InfoTooltip
+                    className={styles.infoTooltip}
+                    title={getInfoTooltipText(configuration, value)}
+                    align={{ offset: [-13, 0] }}
+                    placement="topLeft"
+                />
+            </span>
             <ScoreVisualization value={value} configuration={configuration} />
         </div>
     );
@@ -132,39 +139,26 @@ const ScoreVisualization = ({
 
     return (
         <div className={styles.scoreVisualization}>
-            <Tooltip
-                title={() => getTooltipText(configuration, value)}
-                mouseEnterDelay={0}
+            <motion.div
+                className={styles.scoreIndicator}
+                animate={{
+                    left: `calc(${
+                        scorePosition * 100
+                    }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
+                }}
+                transition={{
+                    type: 'spring',
+                }}
             >
-                <motion.div
-                    className={styles.scoreIndicator}
-                    animate={{
-                        left: `calc(${
-                            scorePosition * 100
-                        }% - calc(var(--size) / 2) + ${gapSpacing}px)`,
-                    }}
-                    transition={{
-                        type: 'spring',
-                    }}
+                <span
+                    className={classNames(styles.value, {
+                        [styles.mirror]: valueScore === ValueScore.Poor,
+                    })}
                 >
-                    <span
-                        className={classNames(styles.value, {
-                            [styles.mirror]: valueScore === ValueScore.Poor,
-                        })}
-                    >
-                        {value.toFixed(2)}
-                        <span className={styles.units}>
-                            {configuration.units}
-                        </span>
-                        <InfoTooltip
-                            className={styles.infoTooltip}
-                            title={getInfoTooltipText(configuration, value)}
-                            align={{ offset: [-13, 0] }}
-                            placement="topLeft"
-                        />
-                    </span>
-                </motion.div>
-            </Tooltip>
+                    {value.toFixed(2)}
+                    <span className={styles.units}>{configuration.units}</span>
+                </span>
+            </motion.div>
             <div
                 className={classNames(styles.good, {
                     [styles.active]: valueScore === ValueScore.Good,
@@ -220,34 +214,3 @@ const getScorePosition = (configuration: WebVitalDescriptor, value: number) => {
 
     return offset + relativePercent;
 };
-
-function getTooltipText(
-    configuration: WebVitalDescriptor,
-    value: number
-): React.ReactNode {
-    const message = `This session scored ${value.toFixed(2)} ${
-        configuration.units
-    }. An okay score is less than ${configuration.maxNeedsImprovementValue} ${
-        configuration.units
-    } and a great score is less than ${configuration.maxGoodValue} ${
-        configuration.units
-    }.`;
-
-    return (
-        <div
-            // This is to prevent the stream element from collapsing from clicking on a link.
-            onClick={(e) => {
-                e.stopPropagation();
-            }}
-        >
-            {message}{' '}
-            <a
-                href={configuration.helpArticle}
-                target="_blank"
-                rel="noreferrer"
-            >
-                Learn more about optimizing {configuration.name}.
-            </a>
-        </div>
-    );
-}

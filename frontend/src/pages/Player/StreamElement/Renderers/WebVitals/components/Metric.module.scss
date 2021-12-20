@@ -5,11 +5,14 @@
 
     .name,
     .value {
-        column-gap: 0.5ch;
         display: flex;
         font-size: 12px !important;
         font-weight: 500 !important;
         margin-bottom: 0 !important;
+    }
+
+    .value {
+        column-gap: 0.25ch;
     }
 
     .units {
@@ -41,7 +44,7 @@
     display: flex;
 
     .name {
-        width: 4ch;
+        width: 6ch;
     }
 
     .value {
