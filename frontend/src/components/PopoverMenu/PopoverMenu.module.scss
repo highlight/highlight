@@ -18,6 +18,15 @@
         column-gap: var(--size-xSmall);
         display: flex !important;
         width: 100%;
+
+        > div {
+            overflow: hidden;
+        }
+
+        span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .endingIcon {

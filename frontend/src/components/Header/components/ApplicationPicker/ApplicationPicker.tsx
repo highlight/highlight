@@ -44,35 +44,33 @@ const ApplicationPicker = () => {
 
     const projectOptions = [
         ...(allProjects
-            ? allProjects
-                  .filter((project) => project?.id !== project_id)
-                  .map((project) => ({
-                      value: project?.id || '',
-                      displayValue: (
-                          <div>
-                              <span className={styles.existingProjectOption}>
-                                  <MiniWorkspaceIcon
-                                      className={styles.workspaceIcon}
-                                      projectName={
-                                          !isLoggedIn &&
-                                          projectIdRemapped ===
-                                              DEMO_WORKSPACE_PROXY_APPLICATION_ID
-                                              ? DEMO_PROJECT_NAME
-                                              : project?.name || ''
-                                      }
-                                  />
-                                  <span>
-                                      {!isLoggedIn &&
+            ? allProjects.map((project) => ({
+                  value: project?.id || '',
+                  displayValue: (
+                      <div>
+                          <span className={styles.existingProjectOption}>
+                              <MiniWorkspaceIcon
+                                  className={styles.workspaceIcon}
+                                  projectName={
+                                      !isLoggedIn &&
                                       projectIdRemapped ===
                                           DEMO_WORKSPACE_PROXY_APPLICATION_ID
                                           ? DEMO_PROJECT_NAME
-                                          : project?.name || ''}
-                                  </span>
+                                          : project?.name || ''
+                                  }
+                              />
+                              <span>
+                                  {!isLoggedIn &&
+                                  projectIdRemapped ===
+                                      DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                                      ? DEMO_PROJECT_NAME
+                                      : project?.name || ''}
                               </span>
-                          </div>
-                      ),
-                      id: project?.id || '',
-                  }))
+                          </span>
+                      </div>
+                  ),
+                  id: project?.id || '',
+              }))
             : []),
     ];
 
@@ -160,6 +158,7 @@ const ApplicationPicker = () => {
                                     history.push(`/${project.id}/${path}`);
                                 },
                                 icon: null,
+                                active: project?.id === project_id,
                             }))}
                             buttonTrackingId="ApplicationPickerSettings"
                             buttonContentsOverride={
