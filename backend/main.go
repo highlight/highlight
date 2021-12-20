@@ -244,11 +244,13 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile))
-		if err != nil {
-			log.Fatal(err)
+		if !util.IsDevOrTestEnv() {
+			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile))
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer profiler.Stop()
 		}
-		defer profiler.Stop()
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
