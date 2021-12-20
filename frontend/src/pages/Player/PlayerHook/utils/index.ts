@@ -241,6 +241,7 @@ const CustomEventsForTimeline = [
     'Comments',
     'Viewport',
     'Identify',
+    'Web Vitals',
 ] as const;
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 

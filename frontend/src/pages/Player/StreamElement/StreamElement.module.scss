@@ -18,6 +18,10 @@
     grid-template-columns: 22px 1fr min-content;
     height: 100%;
     width: 100%;
+
+    &.noTimestamp {
+        grid-template-columns: 22px 1fr;
+    }
 }
 
 .card {

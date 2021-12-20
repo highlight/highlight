@@ -7136,6 +7136,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Type
             Name
+            DailyFrequency
         }
         session_feedback_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7150,6 +7151,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Name
             Type
+            DailyFrequency
         }
         new_session_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7165,6 +7167,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Type
             ExcludeRules
+            DailyFrequency
         }
         rage_click_alerts(project_id: $project_id) {
             id
@@ -7179,6 +7182,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             Type
+            DailyFrequency
         }
         new_user_alerts(project_id: $project_id) {
             id
@@ -7192,6 +7196,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             Type
+            DailyFrequency
         }
         track_properties_alerts(project_id: $project_id) {
             id
@@ -7210,6 +7215,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             Name
             Type
+            DailyFrequency
         }
         user_properties_alerts(project_id: $project_id) {
             id
@@ -7228,6 +7234,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             Name
             Type
+            DailyFrequency
         }
     }
 `;
@@ -7444,3 +7451,60 @@ export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
     typeof useOnSessionPayloadAppendedSubscription
 >;
 export type OnSessionPayloadAppendedSubscriptionResult = Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;
+export const GetWebVitalsDocument = gql`
+    query GetWebVitals($session_secure_id: String!) {
+        web_vitals(session_secure_id: $session_secure_id) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetWebVitalsQuery__
+ *
+ * To run a query within a React component, call `useGetWebVitalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWebVitalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWebVitalsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetWebVitalsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >(GetWebVitalsDocument, baseOptions);
+}
+export function useGetWebVitalsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >(GetWebVitalsDocument, baseOptions);
+}
+export type GetWebVitalsQueryHookResult = ReturnType<
+    typeof useGetWebVitalsQuery
+>;
+export type GetWebVitalsLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalsLazyQuery
+>;
+export type GetWebVitalsQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalsQuery,
+    Types.GetWebVitalsQueryVariables
+>;

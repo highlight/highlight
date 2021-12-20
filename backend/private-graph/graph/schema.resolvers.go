@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -49,6 +49,29 @@ func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *mode
 
 func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
 	return obj.GetRegexGroups()
+}
+
+func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.ErrorAlert) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=? 
+			AND e.alert_id=? 
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date ASC;
+	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
@@ -196,6 +219,10 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
+}
+
+func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
+	return obj.Type.String(), nil
 }
 
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
@@ -2446,6 +2473,21 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	return allResources["resources"], nil
 }
 
+func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	webVitals := []*model.Metric{}
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return webVitals, nil
+	}
+
+	if err := r.DB.Where(&model.Metric{Type: "WebVital", SessionID: s.ID}).Find(&webVitals).Error; err != nil {
+		log.Error(err)
+		return webVitals, nil
+	}
+
+	return webVitals, nil
+}
+
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
 	if util.IsDevEnv() && sessionSecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
@@ -3916,6 +3958,29 @@ func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.Sess
 	return obj.GetExcludeRules()
 }
 
+func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.SessionAlert) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.type=? 
+			AND e.alert_id=? 
+			AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date ASC;
+	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily alert frequency")
+	}
+
+	return dailyAlerts, nil
+}
+
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 
@@ -4085,6 +4150,9 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
+// Metric returns generated.MetricResolver implementation.
+func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -4113,6 +4181,7 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
+type metricResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

@@ -1,5 +1,6 @@
 import 'intro.js/introjs.css';
 
+import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { Step, Steps } from 'intro.js-react';
 import React, { useState } from 'react';
@@ -104,7 +105,7 @@ const PlayerPageProductTour = () => {
                     setPlayerRightPanelActiveTab('Events');
                     setShowRightPanel(true);
                     setShowLeftPanel(false);
-                    setSelectedDevToolsTab('Errors');
+                    setSelectedDevToolsTab(DevToolTabType.Errors);
                 }}
                 enabled={enableTour}
                 steps={steps}
@@ -128,11 +129,11 @@ const PlayerPageProductTour = () => {
                             break;
                         case 6:
                             setShowDevTools(true);
-                            setSelectedDevToolsTab('Console');
+                            setSelectedDevToolsTab(DevToolTabType.Console);
                             break;
                         case 7:
                             setShowDevTools(true);
-                            setSelectedDevToolsTab('Network');
+                            setSelectedDevToolsTab(DevToolTabType.Network);
                             break;
                     }
                 }}

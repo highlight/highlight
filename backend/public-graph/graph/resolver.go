@@ -290,6 +290,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		openSearchFields[i] = newFields[i]
 	}
 
+	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")

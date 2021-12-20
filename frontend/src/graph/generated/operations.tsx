@@ -2629,6 +2629,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Type'
                     | 'Name'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2653,6 +2654,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Name'
                     | 'Type'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2678,6 +2680,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'Type'
                     | 'ExcludeRules'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2702,6 +2705,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'Name'
                     | 'Type'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2726,6 +2730,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'LastAdminToEditID'
                         | 'Name'
                         | 'Type'
+                        | 'DailyFrequency'
                     > & {
                             ChannelsToNotify: Array<
                                 Types.Maybe<
@@ -2752,6 +2757,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'Name'
                     | 'Type'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2783,6 +2789,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'CountThreshold'
                     | 'Name'
                     | 'Type'
+                    | 'DailyFrequency'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2850,6 +2857,16 @@ export type OnSessionPayloadAppendedSubscription = {
     >;
 };
 
+export type GetWebVitalsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetWebVitalsQuery = { __typename?: 'Query' } & {
+    web_vitals: Array<
+        { __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2912,6 +2929,7 @@ export const namedOperations = {
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
+        GetWebVitals: 'GetWebVitals' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

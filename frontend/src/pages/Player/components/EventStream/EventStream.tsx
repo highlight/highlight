@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
+import { useGetWebVitalsQuery } from '@graph/hooks';
 import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { EventType } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
@@ -12,6 +13,7 @@ import {
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, {
@@ -28,8 +30,14 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import styles from './EventStream.module.scss';
 
 const EventStream = () => {
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events, state } = useReplayerContext();
+    const {
+        replayer,
+        time,
+        events: replayerEvents,
+        state,
+    } = useReplayerContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [currEvent, setCurrEvent] = useState('');
     const [showDetails, setShowDetails] = useState(false);
@@ -39,7 +47,35 @@ const EventStream = () => {
         isInteractingWithStreamEvents,
         setIsInteractingWithStreamEvents,
     ] = useState(false);
+    const [events, setEvents] = useState<HighlightEvent[]>([]);
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const { data } = useGetWebVitalsQuery({
+        variables: {
+            session_secure_id,
+        },
+    });
+
+    useEffect(() => {
+        if (data?.web_vitals && data.web_vitals?.length > 0) {
+            const webVitalEvent = {
+                data: {
+                    payload: {
+                        vitals: data.web_vitals.map(({ name, value }) => ({
+                            name,
+                            value,
+                        })),
+                    },
+                    tag: 'Web Vitals',
+                },
+                timestamp: 0,
+                type: 5,
+                identifier: '-1',
+            };
+            setEvents([webVitalEvent, ...replayerEvents]);
+        } else {
+            setEvents([...replayerEvents]);
+        }
+    }, [data?.web_vitals, replayerEvents]);
 
     useEffect(() => {
         if (!replayer) return;
@@ -223,6 +259,9 @@ export default EventStream;
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
     if (e.type === EventType.Custom) {
+        if (e.data.tag === 'Segment Identify') {
+            e.data.tag = 'Segment';
+        }
         return !!e.data.tag;
     }
     // If its not an 'incrementalSnapshot', discard.
@@ -323,7 +362,12 @@ const getFilteredEvents = (
                         return false;
                     }
                     return 'viewport'.includes(normalizedSearchQuery);
-                case 'Segment Identify':
+                case 'WebVital':
+                    if (!eventTypeFilters.showWebVitals) {
+                        return false;
+                    }
+                    return 'web vitals'.includes(normalizedSearchQuery);
+                case 'Segment':
                     if (!eventTypeFilters.showSegment) {
                         return false;
                     }

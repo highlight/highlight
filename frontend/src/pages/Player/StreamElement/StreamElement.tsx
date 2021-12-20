@@ -1,5 +1,8 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
+import SvgActivityIcon from '@icons/ActivityIcon';
+import SegmentIcon from '@icons/SegmentIcon';
+import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -17,7 +20,6 @@ import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import SvgLinkIcon from '../../../static/LinkIcon';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
-import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import SvgTargetIcon from '../../../static/TargetIcon';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -28,6 +30,8 @@ import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/Ti
 import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
+
+const EVENT_TYPES_TO_NOT_RENDER_TIME = ['Web Vitals'];
 
 export const StreamElement = ({
     e,
@@ -53,6 +57,10 @@ export const StreamElement = ({
     const timeSinceStart = e?.timestamp - start;
 
     const showExpandedView = searchQuery.length > 0 || showDetails || selected;
+    const shouldShowTimestamp =
+        e.type === EventType.Custom &&
+        !EVENT_TYPES_TO_NOT_RENDER_TIME.includes(e.data.tag);
+
     return (
         <div
             className={classNames(styles.cardContainer, {
@@ -71,7 +79,9 @@ export const StreamElement = ({
                 primaryColor={getAnnotationColor(details.title as any)}
             >
                 <div
-                    className={classNames(styles.streamElement)}
+                    className={classNames(styles.streamElement, {
+                        [styles.noTimestamp]: !shouldShowTimestamp,
+                    })}
                     key={e.identifier}
                     id={e.identifier}
                 >
@@ -82,7 +92,7 @@ export const StreamElement = ({
                     </div>
                     <div
                         className={
-                            showExpandedView
+                            showExpandedView && shouldShowTimestamp
                                 ? styles.eventContentVerbose
                                 : styles.eventContent
                         }
@@ -93,15 +103,18 @@ export const StreamElement = ({
                             })}
                         >
                             {/* Removes the starting and ending quotes */}
-                            {JSON.stringify(details.displayValue)?.replaceAll(
-                                /^\"|\"$/g,
-                                ''
-                            )}
+                            {!details.isReactNode
+                                ? JSON.stringify(
+                                      details.displayValue
+                                  )?.replaceAll(/^\"|\"$/g, '')
+                                : details.displayValue}
                         </p>
                     </div>
-                    <div className={classNames(styles.eventTime)}>
-                        {MillisToMinutesAndSeconds(timeSinceStart)}
-                    </div>
+                    {shouldShowTimestamp && (
+                        <div className={classNames(styles.eventTime)}>
+                            {MillisToMinutesAndSeconds(timeSinceStart)}
+                        </div>
+                    )}
                     {showExpandedView && (
                         <>
                             {debug ? (
@@ -129,39 +142,56 @@ export const StreamElement = ({
                                             }
                                         />
                                     </h2>
-                                    <StreamElementPayload
-                                        payload={
-                                            typeof details.payload === 'object'
-                                                ? JSON.stringify(
-                                                      details.payload
-                                                  )
-                                                : details.payload
-                                        }
-                                        searchQuery={searchQuery}
-                                    />
+
+                                    {e.type === EventType.Custom &&
+                                    e.data.tag === 'Web Vitals' ? (
+                                        <WebVitalSimpleRenderer
+                                            showDetailedView
+                                            // @ts-expect-error
+                                            vitals={e.data.payload.vitals}
+                                        />
+                                    ) : (
+                                        <StreamElementPayload
+                                            payload={
+                                                typeof details.payload ===
+                                                'object'
+                                                    ? JSON.stringify(
+                                                          details.payload
+                                                      )
+                                                    : details.payload
+                                            }
+                                            searchQuery={searchQuery}
+                                        />
+                                    )}
                                 </div>
                             )}
-                            <div className={styles.timestamp}>
-                                {moment(e.timestamp).format('h:mm:ss A')}
-                            </div>
-                            <GoToButton
-                                className={styles.goToButton}
-                                onClick={(e) => {
-                                    // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
-                                    e.stopPropagation();
-                                    // Sets the current event as null. It will be reset as the player continues.
-                                    onGoToHandler('');
-                                    pause(timeSinceStart);
+                            {shouldShowTimestamp && (
+                                <>
+                                    <div className={styles.timestamp}>
+                                        {moment(e.timestamp).format(
+                                            'h:mm:ss A'
+                                        )}
+                                    </div>
+                                    <GoToButton
+                                        className={styles.goToButton}
+                                        onClick={(e) => {
+                                            // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
+                                            e.stopPropagation();
+                                            // Sets the current event as null. It will be reset as the player continues.
+                                            onGoToHandler('');
+                                            pause(timeSinceStart);
 
-                                    message.success(
-                                        `Changed player time showing you ${
-                                            details.title
-                                        } at ${MillisToMinutesAndSeconds(
-                                            timeSinceStart
-                                        )}`
-                                    );
-                                }}
-                            />
+                                            message.success(
+                                                `Changed player time showing you ${
+                                                    details.title
+                                                } at ${MillisToMinutesAndSeconds(
+                                                    timeSinceStart
+                                                )}`
+                                            );
+                                        }}
+                                    />
+                                </>
+                            )}
                         </>
                     )}
                 </div>
@@ -173,7 +203,8 @@ export const StreamElement = ({
 type EventRenderDetails = {
     title?: string;
     payload?: string;
-    displayValue: string;
+    displayValue: string | React.ReactNode;
+    isReactNode?: boolean;
 };
 
 export const getEventRenderDetails = (
@@ -200,7 +231,18 @@ export const getEventRenderDetails = (
             case 'Click':
             case 'Focus':
             case 'Segment':
-                details.displayValue = payload;
+                try {
+                    const keys = Object.keys(JSON.parse(payload));
+                    details.displayValue = `{${keys.join(', ')}}`;
+                } catch {
+                    details.displayValue = payload;
+                }
+                break;
+            case 'Web Vitals':
+                details.displayValue = (
+                    <WebVitalSimpleRenderer vitals={payload.vitals} />
+                );
+                details.isReactNode = true;
                 break;
             default:
                 details.displayValue = payload;
@@ -235,6 +277,8 @@ export const getPlayerEventIcon = (title: string, debug?: boolean) =>
         <SvgDimensionsIcon className={classNames(styles.defaultIcon)} />
     ) : title === 'Focus' ? (
         <SvgCursorIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Web Vitals' ? (
+        <SvgActivityIcon className={classNames(styles.defaultIcon)} />
     ) : debug ? (
         <FaBug className={classNames(styles.defaultIcon)} />
     ) : (

@@ -1,4 +1,5 @@
 import Alert from '@components/Alert/Alert';
+import BarChart from '@components/BarChart/BarChart';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
@@ -18,7 +19,7 @@ import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
 import styles from './Alerts.module.scss';
@@ -166,6 +167,23 @@ const TABLE_COLUMNS = [
         },
     },
     {
+        title: 'Frequency',
+        dataIndex: 'frequency',
+        key: 'frequency',
+        render: (frequency: any, record: any) => (
+            <div className={styles.chart}>
+                <div className={styles.innerChart}>
+                    <BarChart
+                        sharedMaxNum={frequency}
+                        height={30}
+                        data={record.DailyFrequency}
+                        showBase={false}
+                    />
+                </div>
+            </div>
+        ),
+    },
+    {
         title: 'Configure',
         dataIndex: 'configure',
         key: 'configure',
@@ -188,6 +206,49 @@ const AlertsPage = () => {
     const { alertsPayload, loading } = useAlertsContext();
 
     const history = useHistory();
+    const [maxNum, setMaxNum] = useState(5);
+    useEffect(() => {
+        if (!loading) {
+            let tempMax = 5;
+            alertsPayload?.error_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.new_user_alerts?.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.session_feedback_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.track_properties_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.user_properties_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.new_session_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            alertsPayload?.rage_click_alerts.forEach((val) => {
+                if (!!val?.DailyFrequency) {
+                    tempMax = Math.max(tempMax, ...val.DailyFrequency);
+                }
+            });
+            setMaxNum(tempMax);
+        }
+    }, [alertsPayload, loading]);
+
     const alertsAsTableRows = [
         ...(alertsPayload?.error_alerts || []).map((alert) => ({
             ...alert,
@@ -195,6 +256,7 @@ const AlertsPage = () => {
             type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
@@ -202,6 +264,7 @@ const AlertsPage = () => {
             type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
@@ -211,6 +274,7 @@ const AlertsPage = () => {
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -220,6 +284,7 @@ const AlertsPage = () => {
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -229,6 +294,7 @@ const AlertsPage = () => {
                 alert?.Name ||
                 ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
@@ -236,6 +302,7 @@ const AlertsPage = () => {
             type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
         ...(alertsPayload?.rage_click_alerts || []).map((alert) => ({
             ...alert,
@@ -243,6 +310,7 @@ const AlertsPage = () => {
             type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
             key: alert?.id,
+            frequency: maxNum,
         })),
     ];
 

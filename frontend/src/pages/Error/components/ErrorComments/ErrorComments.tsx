@@ -242,7 +242,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
         refetchQueries: [namedOperations.Query.GetErrorComments],
     });
 
-    const menu = (
+    const moreMenu = (
         <Menu>
             <Menu.Item
                 onClick={() => {
@@ -259,7 +259,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
     );
 
     return (
-        <CommentHeader menu={menu} comment={comment}>
+        <CommentHeader moreMenu={moreMenu} comment={comment}>
             {children}
         </CommentHeader>
     );

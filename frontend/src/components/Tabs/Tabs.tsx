@@ -42,7 +42,7 @@ const Tabs = ({
     ...props
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
-        `tabs-${id || 'unknown'}-active-tab`,
+        `tabs-${id}-active-tab`,
         tabs[0].key || '0'
     );
 

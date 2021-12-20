@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -314,17 +315,41 @@ func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metr
 		return -1, nil
 	}
 
-	newMetric := &model.Metric{
+	existingMetric := &model.Metric{
 		Name:      metric.Name,
-		Value:     metric.Value,
 		ProjectID: session.ProjectID,
 		SessionID: sessionID,
 		Type:      modelInputs.MetricTypeWebVital,
 	}
+	recordAlreadyExists := false
 
-	if err := r.DB.Create(&newMetric).Error; err != nil {
-		log.Error(err)
-		return -1, nil
+	// Check to see if this metric already exists.
+	if err := r.DB.First(&existingMetric).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			recordAlreadyExists = true
+		}
+	}
+
+	if !recordAlreadyExists {
+		newMetric := &model.Metric{
+			Name:      metric.Name,
+			Value:     metric.Value,
+			ProjectID: session.ProjectID,
+			SessionID: sessionID,
+			Type:      modelInputs.MetricTypeWebVital,
+		}
+
+		if err := r.DB.Create(&newMetric).Error; err != nil {
+			log.Error(err)
+			return -1, nil
+		}
+	} else {
+		// Update the existing record if it already exists
+		existingMetric.Value = metric.Value
+		if err := r.DB.Save(&existingMetric).Error; err != nil {
+			log.Error(err)
+			return -1, nil
+		}
 	}
 
 	return sessionID, nil
