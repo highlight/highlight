@@ -27,6 +27,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/v72/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -243,6 +244,11 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+		err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer profiler.Stop()
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
