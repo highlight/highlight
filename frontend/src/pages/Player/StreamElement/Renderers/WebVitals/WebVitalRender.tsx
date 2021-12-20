@@ -3,7 +3,8 @@ import SimpleMetric, {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import classNames from 'classnames';
-import React from 'react';
+import { H } from 'highlight.run';
+import React, { useEffect } from 'react';
 
 import styles from './WebVitalRender.module.scss';
 
@@ -16,6 +17,12 @@ interface Props {
 }
 const WebVitalSimpleRenderer = React.memo(
     ({ vitals, showDetailedView }: Props) => {
+        useEffect(() => {
+            if (showDetailedView) {
+                H.track('ViewedWebVitalsDetails');
+            }
+        }, [showDetailedView]);
+
         return (
             <div
                 className={classNames({
