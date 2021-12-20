@@ -540,6 +540,7 @@ type SessionPayload {
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
     last_user_interaction_time: Timestamp!
+    has_ended: Boolean!
 }
 
 type Metric {

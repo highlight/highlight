@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4100,6 +4100,8 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
 		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		lastUserInteractionTime := time.Unix(0, 0)
+		hasEnded := false
 		for {
 			select {
 			case <-ctx.Done():
@@ -4117,15 +4119,22 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
 			}
-			if len(events) != 0 {
+			if len(events) != 0 ||
+				lastUserInteractionTime != session.LastUserInteractionTime ||
+				hasEnded != (session.Processed != nil && *session.Processed) {
+				lastUserInteractionTime = session.LastUserInteractionTime
+				hasEnded = session.Processed != nil && *session.Processed
 				// TODO live updating for other event types
 				ch <- &model.SessionPayload{
 					Events:                  events,
 					Errors:                  []model.ErrorObject{},
 					RageClicks:              []model.RageClickEvent{},
 					SessionComments:         []model.SessionComment{},
-					LastUserInteractionTime: session.LastUserInteractionTime,
+					LastUserInteractionTime: lastUserInteractionTime,
+					HasEnded:                hasEnded,
 				}
+				log.Infof("Session processed: %t",
+					session.Processed != nil && *session.Processed)
 			}
 			cursor = *nextCursor
 

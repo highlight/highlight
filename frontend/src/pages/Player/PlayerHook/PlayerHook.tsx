@@ -89,6 +89,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
+    const [hasLiveSessionEnded, setHasLiveSessionEnded] = useState<boolean>(
+        false
+    );
     const [
         unsubscribeSessionPayloadFn,
         setUnsubscribeSessionPayloadFn,
@@ -242,6 +245,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.VIEWABLE);
             setLoadedEventsIndex(0);
             setIsLiveMode(false);
+            setHasLiveSessionEnded(false);
             lastActiveTimestampRef.current = 0;
             setLastActiveString(null);
         },
@@ -266,6 +270,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (
             isLiveMode &&
+            !hasLiveSessionEnded &&
             state > ReplayerState.Loading &&
             !unsubscribeSessionPayloadFn
         ) {
@@ -277,15 +282,16 @@ export const usePlayer = (): ReplayerContextInterface => {
                 },
                 updateQuery: (prev, { subscriptionData }) => {
                     if (subscriptionData.data) {
-                        setSubscriptionEventsPayload(
+                        const subscriptionPayload: any =
                             // @ts-ignore The typedef for subscriptionData is incorrect
-                            subscriptionData.data!.session_payload_appended
-                                .events!
+                            subscriptionData.data!.session_payload_appended;
+                        setSubscriptionEventsPayload(
+                            subscriptionPayload.events!
                         );
                         lastActiveTimestampRef.current = new Date(
-                            // @ts-ignore The typedef for subscriptionData is incorrect
-                            subscriptionData.data!.session_payload_appended.last_user_interaction_time
+                            subscriptionPayload.last_user_interaction_time
                         ).getTime();
+                        setHasLiveSessionEnded(subscriptionPayload.has_ended);
                     }
                     // Prev is the value in Apollo cache - it is empty, don't bother updating it
                     return prev;
@@ -295,7 +301,10 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (state === ReplayerState.Paused) {
                 play();
             }
-        } else if (!isLiveMode && unsubscribeSessionPayloadFn) {
+        } else if (
+            (!isLiveMode || hasLiveSessionEnded) &&
+            unsubscribeSessionPayloadFn
+        ) {
             unsubscribeSessionPayloadFn!();
             setUnsubscribeSessionPayloadFn(() => null);
             if (state === ReplayerState.Playing) {
@@ -304,7 +313,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
         // We don't want to re-evaluate this every time the play/pause fn changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode, state, unsubscribeSessionPayloadFn]);
+    }, [isLiveMode, state, unsubscribeSessionPayloadFn, hasLiveSessionEnded]);
 
     // Reset all state when loading events.
     useEffect(() => {

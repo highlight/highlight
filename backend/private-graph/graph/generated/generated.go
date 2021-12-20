@@ -530,6 +530,7 @@ type ComplexityRoot struct {
 	SessionPayload struct {
 		Errors                  func(childComplexity int) int
 		Events                  func(childComplexity int) int
+		HasEnded                func(childComplexity int) int
 		LastUserInteractionTime func(childComplexity int) int
 		RageClicks              func(childComplexity int) int
 		SessionComments         func(childComplexity int) int
@@ -3953,6 +3954,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionPayload.Events(childComplexity), true
 
+	case "SessionPayload.has_ended":
+		if e.complexity.SessionPayload.HasEnded == nil {
+			break
+		}
+
+		return e.complexity.SessionPayload.HasEnded(childComplexity), true
+
 	case "SessionPayload.last_user_interaction_time":
 		if e.complexity.SessionPayload.LastUserInteractionTime == nil {
 			break
@@ -4889,6 +4897,7 @@ type SessionPayload {
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
     last_user_interaction_time: Timestamp!
+    has_ended: Boolean!
 }
 
 type Metric {
@@ -21868,6 +21877,41 @@ func (ec *executionContext) _SessionPayload_last_user_interaction_time(ctx conte
 	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionPayload_has_ended(ctx context.Context, field graphql.CollectedField, obj *model1.SessionPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasEnded, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27855,6 +27899,11 @@ func (ec *executionContext) _SessionPayload(ctx context.Context, sel ast.Selecti
 			}
 		case "last_user_interaction_time":
 			out.Values[i] = ec._SessionPayload_last_user_interaction_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "has_ended":
+			out.Values[i] = ec._SessionPayload_has_ended(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

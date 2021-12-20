@@ -44,6 +44,7 @@ fragment SessionPayloadFragment on SessionPayload {
         metadata
     }
     last_user_interaction_time
+    has_ended
 }
 
 query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {

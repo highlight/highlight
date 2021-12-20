@@ -732,6 +732,7 @@ type SessionPayload struct {
 	RageClicks              []RageClickEvent `json:"rage_clicks"`
 	SessionComments         []SessionComment `json:"session_comments"`
 	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
+	HasEnded				bool			 `json:"has_ended"`
 }
 
 type AlertEvent struct {

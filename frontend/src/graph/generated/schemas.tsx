@@ -597,6 +597,7 @@ export type SessionPayload = {
     rage_clicks: Array<RageClickEvent>;
     session_comments: Array<Maybe<SessionComment>>;
     last_user_interaction_time: Scalars['Timestamp'];
+    has_ended: Scalars['Boolean'];
 };
 
 export type Metric = {
