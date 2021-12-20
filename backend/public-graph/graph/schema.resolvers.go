@@ -321,12 +321,15 @@ func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metr
 		SessionID: sessionID,
 		Type:      modelInputs.MetricTypeWebVital,
 	}
-	recordAlreadyExists := false
+	recordAlreadyExists := true
 
 	// Check to see if this metric already exists.
-	if err := r.DB.First(&existingMetric).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			recordAlreadyExists = true
+	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			recordAlreadyExists = false
+		} else {
+			log.Error(err)
+			return -1, nil
 		}
 	}
 
