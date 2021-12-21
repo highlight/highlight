@@ -16,7 +16,7 @@ import {
 } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
-import { print } from 'graphql';
+import { graphql, print } from 'graphql';
 
 import {
     ConsoleMessage,
@@ -284,7 +284,28 @@ export class Highlight {
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
-        this.graphqlSDK = getSdk(client);
+        const graphQLRequestWrapper = async <T,>(
+            requestFn: () => Promise<T>,
+            retries: number = 0
+        ): Promise<T> => {
+            const MAX_RETRIES = 5;
+            const INITIAL_BACKOFF = 300;
+            try {
+                return await requestFn();
+            } catch (error: any) {
+                if (error?.response?.status >= 500 && retries < MAX_RETRIES) {
+                    await new Promise((resolve) =>
+                        setTimeout(
+                            resolve,
+                            INITIAL_BACKOFF * Math.pow(2, retries)
+                        )
+                    );
+                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                }
+                throw error;
+            }
+        };
+        this.graphqlSDK = getSdk(client, graphQLRequestWrapper);
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
 
@@ -997,8 +1018,8 @@ export class Highlight {
     _shouldSendRequest(): boolean {
         return (
             this._recordingStartTime !== 0 &&
-            (this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
-                this.sessionData.sessionID !== 0)
+            this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
+            this.sessionData.sessionID !== 0
         );
     }
 
