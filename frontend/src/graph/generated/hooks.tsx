@@ -3433,6 +3433,7 @@ export const GetSessionDocument = gql`
             direct_download_url
             resources_url
             messages_url
+            deviceMemory
         }
     }
 `;

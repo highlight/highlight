@@ -373,7 +373,7 @@ func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, m
 	recordAlreadyExists := true
 
 	// Check to see if this metric already exists.
-	if err := r.DB.Debug().Where(&existingMetric).First(&existingMetric).Error; err != nil {
+	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			recordAlreadyExists = false
 		} else {
@@ -391,14 +391,14 @@ func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, m
 			Type:      modelInputs.MetricTypeDevice,
 		}
 
-		if err := r.DB.Debug().Create(&newMetric).Error; err != nil {
+		if err := r.DB.Create(&newMetric).Error; err != nil {
 			log.Error(err)
 			return -1, nil
 		}
 	} else {
 		// Update the existing record if it already exists
 		existingMetric.Value = metric.Value
-		if err := r.DB.Debug().Save(&existingMetric).Error; err != nil {
+		if err := r.DB.Save(&existingMetric).Error; err != nil {
 			log.Error(err)
 			return -1, nil
 		}

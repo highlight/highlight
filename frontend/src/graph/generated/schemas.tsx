@@ -66,6 +66,7 @@ export type Session = {
     direct_download_url?: Maybe<Scalars['String']>;
     resources_url?: Maybe<Scalars['String']>;
     messages_url?: Maybe<Scalars['String']>;
+    deviceMemory?: Maybe<Scalars['Int']>;
 };
 
 export type RageClickEvent = {

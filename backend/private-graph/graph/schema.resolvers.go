@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -62,8 +62,8 @@ func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.Erro
 		) d LEFT OUTER JOIN
 		alert_events e
 		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-			AND e.type=? 
-			AND e.alert_id=? 
+			AND e.type=?
+			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
 		ORDER BY d.date ASC;
@@ -3938,6 +3938,28 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 	return str, err
 }
 
+func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
+	var deviceMemory *int
+	metric := &model.Metric{}
+
+	if err := r.DB.Model(&model.Metric{}).Where(&model.Metric{
+		Type:      modelInputs.MetricTypeDevice,
+		Name:      "DeviceMemory",
+		SessionID: obj.ID,
+	}).First(&metric).Error; err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			log.Error(err)
+		}
+	}
+
+	if metric != nil {
+		valueAsInt := int(metric.Value)
+		deviceMemory = &valueAsInt
+	}
+
+	return deviceMemory, nil
+}
+
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }
@@ -3969,8 +3991,8 @@ func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.Se
 		) d LEFT OUTER JOIN
 		alert_events e
 		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-			AND e.type=? 
-			AND e.alert_id=? 
+			AND e.type=?
+			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
 		ORDER BY d.date ASC;

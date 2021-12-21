@@ -49,6 +49,7 @@ type Session {
     direct_download_url: String
     resources_url: String
     messages_url: String
+    deviceMemory: Int
 }
 
 type RageClickEvent {
