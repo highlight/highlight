@@ -42,6 +42,7 @@ import {
     FeedbackWidgetOptions,
     initializeFeedbackWidget,
 } from './ui/feedback-widget/feedback-widget';
+import { getPerformanceMethods } from 'utils/performance/performance';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -599,6 +600,18 @@ export class Highlight {
                         );
                     }
                     this.numberOfFailedRequests = 0;
+                    const { getDeviceDetails } = getPerformanceMethods();
+                    if (getDeviceDetails) {
+                        const deviceDetails = getDeviceDetails();
+
+                        this.graphqlSDK.addDeviceMetric({
+                            session_id: this.sessionData.sessionID.toString(),
+                            metric: {
+                                name: 'DeviceMemory',
+                                value: deviceDetails.deviceMemory,
+                            },
+                        });
+                    }
                 } catch (e) {
                     if (this._isOnLocalHost) {
                         console.error(e);

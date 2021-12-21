@@ -458,6 +458,7 @@ type ComplexityRoot struct {
 		ClientConfig                   func(childComplexity int) int
 		ClientVersion                  func(childComplexity int) int
 		CreatedAt                      func(childComplexity int) int
+		DeviceMemory                   func(childComplexity int) int
 		DirectDownloadURL              func(childComplexity int) int
 		EnableRecordingNetworkContents func(childComplexity int) int
 		EnableStrictPrivacy            func(childComplexity int) int
@@ -783,6 +784,7 @@ type SessionResolver interface {
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
 	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
 	MessagesURL(ctx context.Context, obj *model1.Session) (*string, error)
+	DeviceMemory(ctx context.Context, obj *model1.Session) (*int, error)
 }
 type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
@@ -3533,6 +3535,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
 
+	case "Session.deviceMemory":
+		if e.complexity.Session.DeviceMemory == nil {
+			break
+		}
+
+		return e.complexity.Session.DeviceMemory(childComplexity), true
+
 	case "Session.direct_download_url":
 		if e.complexity.Session.DirectDownloadURL == nil {
 			break
@@ -4398,6 +4407,7 @@ type Session {
     direct_download_url: String
     resources_url: String
     messages_url: String
+    deviceMemory: Int
 }
 
 type RageClickEvent {
@@ -4478,6 +4488,7 @@ enum ErrorState {
 
 enum MetricType {
     WebVital
+    Device
 }
 
 enum AdminRole {
@@ -20699,6 +20710,38 @@ func (ec *executionContext) _Session_messages_url(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_deviceMemory(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().DeviceMemory(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27529,6 +27572,17 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Session_messages_url(ctx, field, obj)
+				return res
+			})
+		case "deviceMemory":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_deviceMemory(ctx, field, obj)
 				return res
 			})
 		default:

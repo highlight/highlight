@@ -1277,6 +1277,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'direct_download_url'
             | 'resources_url'
             | 'messages_url'
+            | 'deviceMemory'
         > & {
                 fields?: Types.Maybe<
                     Array<

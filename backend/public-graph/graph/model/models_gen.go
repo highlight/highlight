@@ -18,6 +18,11 @@ type BackendErrorObjectInput struct {
 	Payload         *string   `json:"payload"`
 }
 
+type DeviceMetricInput struct {
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
+}
+
 type ErrorObjectInput struct {
 	Event        string             `json:"event"`
 	Type         string             `json:"type"`

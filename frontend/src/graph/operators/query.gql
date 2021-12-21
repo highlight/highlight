@@ -139,6 +139,7 @@ query GetSession($secure_id: String!) {
         direct_download_url
         resources_url
         messages_url
+        deviceMemory
     }
 }
 
