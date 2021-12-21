@@ -1,3 +1,4 @@
+import { bytesToPrettyString } from '@util/string';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -211,6 +212,16 @@ const MetadataPanel = () => {
                 >
                     #{session?.fingerprint}
                 </Link>
+            ),
+            renderType: 'string',
+        });
+    }
+
+    if (session && session?.deviceMemory !== 0) {
+        deviceData.push({
+            keyDisplayValue: 'RAM',
+            valueDisplayValue: bytesToPrettyString(
+                session.deviceMemory! * 1024 * 1024
             ),
             renderType: 'string',
         });
