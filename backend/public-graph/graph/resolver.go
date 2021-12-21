@@ -94,7 +94,7 @@ type FieldData struct {
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil {
 		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
@@ -259,8 +259,6 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
-	newFields := []*model.Field{}
-	exists := false
 	for _, f := range fields {
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
@@ -272,22 +270,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
-			exists = false
-			for _, existing := range session.Fields {
-				if field.Name == existing.Name && field.Value == existing.Value {
-					exists = true
-				}
-			}
 			fieldsToAppend = append(fieldsToAppend, field)
-			if !exists {
-				newFields = append(newFields, field)
-			}
 		}
-	}
-
-	openSearchFields := make([]interface{}, len(newFields))
-	for i := range newFields {
-		openSearchFields[i] = newFields[i]
 	}
 
 	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
