@@ -3,15 +3,9 @@ import Popover from '@components/Popover/Popover';
 import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
-import {
-    DateRange,
-    DateRangePicker,
-} from '@pages/Sessions/SearchInputs/DateInput';
-import { LengthInput } from '@pages/Sessions/SearchInputs/LengthInput';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -161,6 +155,8 @@ const PopoutContent = ({
                 />
             );
         case 'multiselect':
+        case 'date_range': // TODO: To be implemented as a separate component
+        case 'range': // TODO: To be implemented as a separate component
             return (
                 <AsyncSelect
                     autoFocus
@@ -231,48 +227,6 @@ const PopoutContent = ({
                     {...props}
                 />
             );
-        case 'date_range':
-            return (
-                <DateRangePicker
-                    autoFocus
-                    open
-                    onBlur={() => setVisible(false)}
-                    dateRange={
-                        value?.kind === 'multi'
-                            ? value.options
-                                  .map((op) => ({
-                                      start_date: op.data?.start,
-                                      end_date: op.data?.end,
-                                  }))
-                                  .find(() => true)
-                            : undefined
-                    }
-                    setDateRange={(dateRange: DateRange) => {
-                        const startDate = dateRange?.start_date;
-                        const startFormatted = moment(startDate).format(
-                            'MM/DD'
-                        );
-                        const endDate = dateRange?.end_date;
-                        const endFormatted = moment(endDate).format('MM/DD');
-                        onChange({
-                            kind: 'multi',
-                            options: [
-                                {
-                                    label: `${startFormatted} and ${endFormatted}`,
-                                    value: '',
-                                    data: {
-                                        start: startDate,
-                                        end: endDate,
-                                    },
-                                },
-                            ],
-                        });
-                        setVisible(false);
-                    }}
-                />
-            );
-        case 'range':
-            return <LengthInput />;
     }
 };
 

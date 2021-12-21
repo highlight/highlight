@@ -1,33 +1,3 @@
-.select {
-    width: 100%;
-
-    > div {
-        background-color: var(--color-primary-background);
-    }
-}
-
-.searchIcon {
-    color: var(--color-gray-400);
-    height: var(--size-medium);
-    margin-right: var(--size-small);
-    width: var(--size-medium);
-}
-
-.valueLabel {
-    font-size: 12px;
-    padding: var(--size-xxSmall) var(--size-xxSmall);
-    padding-left: var(--size-xSmall);
-}
-
-.keyLabel {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    flex-shrink: 0;
-    font-size: 12px;
-    margin-left: auto;
-}
-
 .optionLabelContainer {
     display: inline-flex;
     justify-content: space-between;
@@ -53,33 +23,6 @@
     white-space: nowrap;
 }
 
-.filterContainer {
-    align-items: center;
-    display: flex;
-    font-size: 12px !important;
-    padding: var(--size-xSmall) var(--size-small);
-
-    h4 {
-        color: var(--color-gray-500);
-        margin: 0 !important;
-        margin-right: var(--size-xxSmall) !important;
-    }
-
-    button {
-        font-size: 12px;
-    }
-}
-
-.groupHeading {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
-}
-
-.menu {
-    z-index: 5 !important;
-}
-
 .builderContainer {
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
@@ -95,7 +38,7 @@
     column-gap: var(--size-xxSmall);
     display: inline-flex;
     flex-wrap: wrap;
-    justify-content: start;
+    justify-content: flex-start;
     row-gap: var(--size-xSmall);
 }
 

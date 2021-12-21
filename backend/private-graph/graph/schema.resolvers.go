@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3080,7 +3080,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}
 
 	results := []model.Session{}
-	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, stripe.String("created_at"), stripe.String("desc"), &results)
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, "created_at", "desc", &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3141,7 +3141,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	results := []*model.Field{}
-	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, nil, nil, &results)
+	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, "", "", &results)
 	if err != nil {
 		return nil, err
 	}

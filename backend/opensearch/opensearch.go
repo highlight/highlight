@@ -239,15 +239,15 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(index Index, projectID int, query string, count int, sortField *string, sortOrder *string, results interface{}) (resultCount int64, err error) {
+func (c *Client) Search(index Index, projectID int, query string, count int, sortField string, sortOrder string, results interface{}) (resultCount int64, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
 		return 0, e.Wrap(err, "query is not valid JSON")
 	}
 
 	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
 	sort := ""
-	if sortField != nil && sortOrder != nil {
-		sort = fmt.Sprintf(`, "sort" : [{"%s" : {"order" : "%s"}}]`, *sortField, *sortOrder)
+	if sortField != "" && sortOrder != "" {
+		sort = fmt.Sprintf(`, "sort" : [{"%s" : {"order" : "%s"}}]`, sortField, sortOrder)
 	}
 	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s%s}`, count, q, sort))
 	search := opensearchapi.SearchRequest{
