@@ -49,7 +49,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.31.0
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
-	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
+	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect

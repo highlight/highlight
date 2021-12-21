@@ -8,6 +8,7 @@ import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
 import { Session } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
+import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
@@ -409,18 +410,29 @@ const Player = ({ integrated }: Props) => {
                                                 id="player"
                                             />
                                             {!isPlayerReady && (
-                                                <PlayerSkeleton
-                                                    showingLeftPanel={
-                                                        showLeftPanel
+                                                <div
+                                                    className={
+                                                        styles.loadingWrapper
                                                     }
-                                                    showingRightPanel={
-                                                        showRightPanel
-                                                    }
-                                                    width={
-                                                        playerWrapperRef.current
-                                                            ?.clientWidth
-                                                    }
-                                                />
+                                                >
+                                                    <PlayerSkeleton
+                                                        showingLeftPanel={
+                                                            showLeftPanel
+                                                        }
+                                                        showingRightPanel={
+                                                            showRightPanel
+                                                        }
+                                                        width={
+                                                            playerWrapperRef
+                                                                .current
+                                                                ?.clientWidth
+                                                        }
+                                                    />
+                                                    {session?.processed ===
+                                                        false && (
+                                                        <LoadingLiveSessionCard />
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                         <ResourcesContextProvider
