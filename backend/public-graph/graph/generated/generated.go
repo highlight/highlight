@@ -45,6 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
+		AddDeviceMetric      func(childComplexity int, sessionID int, metric model.DeviceMetricInput) int
 		AddSessionFeedback   func(childComplexity int, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
 		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
@@ -76,6 +77,7 @@ type MutationResolver interface {
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 	AddWebVitals(ctx context.Context, sessionID int, metric model.WebVitalMetricInput) (int, error)
+	AddDeviceMetric(ctx context.Context, sessionID int, metric model.DeviceMetricInput) (int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -95,6 +97,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.addDeviceMetric":
+		if e.complexity.Mutation.AddDeviceMetric == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addDeviceMetric_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddDeviceMetric(childComplexity, args["session_id"].(int), args["metric"].(model.DeviceMetricInput)), true
 
 	case "Mutation.addSessionFeedback":
 		if e.complexity.Mutation.AddSessionFeedback == nil {
@@ -349,6 +363,11 @@ input WebVitalMetricInput {
     value: Float!
 }
 
+input DeviceMetricInput {
+    name: String!
+    value: Float!
+}
+
 input ReplayEventsInput {
     events: [Any]!
 }
@@ -388,6 +407,7 @@ type Mutation {
         timestamp: Timestamp!
     ): ID!
     addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
+    addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
 }
 
 type Query {
@@ -400,6 +420,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addDeviceMetric_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 model.DeviceMetricInput
+	if tmp, ok := rawArgs["metric"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric"))
+		arg1, err = ec.unmarshalNDeviceMetricInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐDeviceMetricInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1080,6 +1124,48 @@ func (ec *executionContext) _Mutation_addWebVitals(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddWebVitals(rctx, args["session_id"].(int), args["metric"].(model.WebVitalMetricInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addDeviceMetric(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addDeviceMetric_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddDeviceMetric(rctx, args["session_id"].(int), args["metric"].(model.DeviceMetricInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2517,6 +2603,34 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeviceMetricInput(ctx context.Context, obj interface{}) (model.DeviceMetricInput, error) {
+	var it model.DeviceMetricInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, obj interface{}) (model.ErrorObjectInput, error) {
 	var it model.ErrorObjectInput
 	var asMap = obj.(map[string]interface{})
@@ -2767,6 +2881,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addWebVitals":
 			out.Values[i] = ec._Mutation_addWebVitals(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addDeviceMetric":
+			out.Values[i] = ec._Mutation_addDeviceMetric(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3173,6 +3292,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNDeviceMetricInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐDeviceMetricInput(ctx context.Context, v interface{}) (model.DeviceMetricInput, error) {
+	res, err := ec.unmarshalInputDeviceMetricInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx context.Context, v interface{}) ([]*model.ErrorObjectInput, error) {

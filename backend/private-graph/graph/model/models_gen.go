@@ -241,15 +241,17 @@ type MetricType string
 
 const (
 	MetricTypeWebVital MetricType = "WebVital"
+	MetricTypeDevice   MetricType = "Device"
 )
 
 var AllMetricType = []MetricType{
 	MetricTypeWebVital,
+	MetricTypeDevice,
 }
 
 func (e MetricType) IsValid() bool {
 	switch e {
-	case MetricTypeWebVital:
+	case MetricTypeWebVital, MetricTypeDevice:
 		return true
 	}
 	return false

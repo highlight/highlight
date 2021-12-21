@@ -71,6 +71,11 @@ export type WebVitalMetricInput = {
   value: Scalars['Float'];
 };
 
+export type DeviceMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
+};
+
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
@@ -85,6 +90,7 @@ export type Mutation = {
   pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
   addWebVitals: Scalars['ID'];
+  addDeviceMetric: Scalars['ID'];
 };
 
 
@@ -148,6 +154,12 @@ export type MutationAddWebVitalsArgs = {
   metric: WebVitalMetricInput;
 };
 
+
+export type MutationAddDeviceMetricArgs = {
+  session_id: Scalars['ID'];
+  metric: DeviceMetricInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   ignore?: Maybe<Scalars['Any']>;
@@ -204,6 +216,17 @@ export type AddWebVitalsMutationVariables = Types.Exact<{
 export type AddWebVitalsMutation = (
   { __typename?: 'Mutation' }
   & Pick<Types.Mutation, 'addWebVitals'>
+);
+
+export type AddDeviceMetricMutationVariables = Types.Exact<{
+  session_id: Types.Scalars['ID'];
+  metric: Types.DeviceMetricInput;
+}>;
+
+
+export type AddDeviceMetricMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Types.Mutation, 'addDeviceMetric'>
 );
 
 export type AddTrackPropertiesMutationVariables = Types.Exact<{
@@ -296,6 +319,11 @@ export const AddWebVitalsDocument = gql`
   addWebVitals(session_id: $session_id, metric: $metric)
 }
     `;
+export const AddDeviceMetricDocument = gql`
+    mutation addDeviceMetric($session_id: ID!, $metric: DeviceMetricInput!) {
+  addDeviceMetric(session_id: $session_id, metric: $metric)
+}
+    `;
 export const AddTrackPropertiesDocument = gql`
     mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
   addTrackProperties(
@@ -358,6 +386,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     addWebVitals(variables: AddWebVitalsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddWebVitalsMutation> {
       return withWrapper(() => client.request<AddWebVitalsMutation>(print(AddWebVitalsDocument), variables, requestHeaders));
+    },
+    addDeviceMetric(variables: AddDeviceMetricMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddDeviceMetricMutation> {
+      return withWrapper(() => client.request<AddDeviceMetricMutation>(print(AddDeviceMetricDocument), variables, requestHeaders));
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
       return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));

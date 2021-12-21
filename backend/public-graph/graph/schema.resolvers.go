@@ -357,6 +357,56 @@ func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metr
 	return sessionID, nil
 }
 
+func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		log.Error(err)
+		return -1, nil
+	}
+
+	existingMetric := &model.Metric{
+		Name:      metric.Name,
+		ProjectID: session.ProjectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricTypeDevice,
+	}
+	recordAlreadyExists := true
+
+	// Check to see if this metric already exists.
+	if err := r.DB.Debug().Where(&existingMetric).First(&existingMetric).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			recordAlreadyExists = false
+		} else {
+			log.Error(err)
+			return -1, nil
+		}
+	}
+
+	if !recordAlreadyExists {
+		newMetric := &model.Metric{
+			Name:      metric.Name,
+			Value:     metric.Value,
+			ProjectID: session.ProjectID,
+			SessionID: sessionID,
+			Type:      modelInputs.MetricTypeDevice,
+		}
+
+		if err := r.DB.Debug().Create(&newMetric).Error; err != nil {
+			log.Error(err)
+			return -1, nil
+		}
+	} else {
+		// Update the existing record if it already exists
+		existingMetric.Value = metric.Value
+		if err := r.DB.Debug().Save(&existingMetric).Error; err != nil {
+			log.Error(err)
+			return -1, nil
+		}
+	}
+
+	return sessionID, nil
+}
+
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }

@@ -51,6 +51,11 @@ input WebVitalMetricInput {
     value: Float!
 }
 
+input DeviceMetricInput {
+    name: String!
+    value: Float!
+}
+
 input ReplayEventsInput {
     events: [Any]!
 }
@@ -90,6 +95,7 @@ type Mutation {
         timestamp: Timestamp!
     ): ID!
     addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
+    addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
 }
 
 type Query {

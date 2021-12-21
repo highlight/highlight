@@ -65,6 +65,11 @@ export type WebVitalMetricInput = {
   value: Scalars['Float'];
 };
 
+export type DeviceMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
+};
+
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
@@ -79,6 +84,7 @@ export type Mutation = {
   pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
   addWebVitals: Scalars['ID'];
+  addDeviceMetric: Scalars['ID'];
 };
 
 
@@ -140,6 +146,12 @@ export type MutationAddSessionFeedbackArgs = {
 export type MutationAddWebVitalsArgs = {
   session_id: Scalars['ID'];
   metric: WebVitalMetricInput;
+};
+
+
+export type MutationAddDeviceMetricArgs = {
+  session_id: Scalars['ID'];
+  metric: DeviceMetricInput;
 };
 
 export type Query = {

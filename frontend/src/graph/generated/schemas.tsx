@@ -153,6 +153,7 @@ export enum ErrorState {
 
 export enum MetricType {
     WebVital = 'WebVital',
+    Device = 'Device',
 }
 
 export enum AdminRole {
