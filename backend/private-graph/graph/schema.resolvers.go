@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -3080,7 +3081,13 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}
 
 	results := []model.Session{}
-	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, count, "created_at", "desc", &results)
+	options := opensearch.SearchOptions{
+		MaxResults:  ptr.Int(count),
+		SortField:   ptr.String("created_at"),
+		SortOrder:   ptr.String("desc"),
+		ReturnCount: ptr.Bool(true),
+	}
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3101,8 +3108,14 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 
 	if err := r.DB.Raw(`
 		SELECT DISTINCT type, name
-		FROM fields
+		FROM fields f
 		WHERE project_id = ?
+		AND type IS NOT null
+		AND EXISTS (
+			SELECT 1
+			FROM session_fields sf
+			WHERE f.id = sf.field_id
+		)
 	`, projectID).Scan(&res).Error; err != nil {
 		return nil, e.Wrap(err, "error querying field types for project")
 	}
@@ -3110,7 +3123,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	return res, nil
 }
 
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model.Field, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3141,12 +3154,25 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	results := []*model.Field{}
-	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, count, "", "", &results)
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
 
-	return results, nil
+	// Get all unique values from the returned fields
+	valueMap := map[string]bool{}
+	for _, result := range results {
+		valueMap[result.Value] = true
+	}
+	values := []string{}
+	for value := range valueMap {
+		values = append(values, value)
+	}
+
+	return values, nil
 }
 
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {

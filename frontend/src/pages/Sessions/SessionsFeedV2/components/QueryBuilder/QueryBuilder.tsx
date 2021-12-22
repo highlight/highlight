@@ -740,9 +740,9 @@ const QueryBuilder = () => {
                 field_name: field.data.name,
                 query: input,
             }).then((res) => {
-                return res.data.fields_opensearch.map((fd) => ({
-                    label: fd.value,
-                    value: fd.value,
+                return res.data.fields_opensearch.map((val) => ({
+                    label: val,
+                    value: val,
                 }));
             });
         };

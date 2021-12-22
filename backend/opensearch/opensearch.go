@@ -52,6 +52,13 @@ type Client struct {
 	isInitialized bool
 }
 
+type SearchOptions struct {
+	MaxResults  *int
+	SortField   *string
+	SortOrder   *string
+	ReturnCount *bool
+}
+
 func NewOpensearchClient() (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
 		Transport: &http.Transport{
@@ -239,17 +246,33 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(index Index, projectID int, query string, count int, sortField string, sortOrder string, results interface{}) (resultCount int64, err error) {
+func (c *Client) Search(index Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
 		return 0, e.Wrap(err, "query is not valid JSON")
 	}
 
 	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+
 	sort := ""
-	if sortField != "" && sortOrder != "" {
-		sort = fmt.Sprintf(`, "sort" : [{"%s" : {"order" : "%s"}}]`, sortField, sortOrder)
+	if options.SortField != nil {
+		sortOrder := "asc"
+		if options.SortOrder != nil {
+			sortOrder = *options.SortOrder
+		}
+		sort = fmt.Sprintf(`, "sort" : [{"%s" : {"order" : "%s"}}]`, *options.SortField, sortOrder)
 	}
-	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s%s}`, count, q, sort))
+
+	trackTotalHits := "false"
+	if options.ReturnCount != nil && *options.ReturnCount {
+		trackTotalHits = "true"
+	}
+
+	count := 10
+	if options.MaxResults != nil {
+		count = *options.MaxResults
+	}
+
+	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s%s, "track_total_hits": %s}`, count, q, sort, trackTotalHits))
 	search := opensearchapi.SearchRequest{
 		Index: []string{GetIndex(index)},
 		Body:  content,
