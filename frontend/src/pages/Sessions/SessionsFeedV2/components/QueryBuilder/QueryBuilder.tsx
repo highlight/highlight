@@ -526,7 +526,7 @@ const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
                     },
                 };
             case 'exists':
-                return { term: { 'fields.Key': field } };
+                return { term: { 'fields.Key': field.value } };
         }
     }
 };
