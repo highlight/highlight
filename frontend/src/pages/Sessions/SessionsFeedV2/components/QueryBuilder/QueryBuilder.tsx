@@ -278,6 +278,8 @@ const getPopoutType = (op: Operator): PopoutType => {
     switch (op) {
         case 'contains':
         case 'not_contains':
+        case 'matches':
+        case 'not_matches':
             return 'creatable';
         case 'between_date':
             return 'date_range';
@@ -343,6 +345,7 @@ const isNegative = (op: Operator): boolean =>
         'not_exists',
         'not_between',
         'not_between_date',
+        'not_matches',
     ].includes(op);
 
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
@@ -356,6 +359,8 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
     not_between: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
+    matches: 'matches',
+    not_matches: 'does not match',
 };
 
 const LABEL_MAP_MULTI: { [K in Operator]: string } = {
@@ -369,6 +374,8 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_between: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
+    matches: 'matches any of',
+    not_matches: 'does not match any of',
 };
 
 const NEGATION_MAP: { [K in Operator]: Operator } = {
@@ -382,6 +389,8 @@ const NEGATION_MAP: { [K in Operator]: Operator } = {
     not_between: 'between',
     between_date: 'not_between_date',
     not_between_date: 'between_date',
+    matches: 'not_matches',
+    not_matches: 'matches',
 };
 
 type Operator =
@@ -394,7 +403,9 @@ type Operator =
     | 'between'
     | 'not_between'
     | 'between_date'
-    | 'not_between_date';
+    | 'not_between_date'
+    | 'matches'
+    | 'not_matches';
 
 const OPERATORS: Operator[] = [
     'is',
@@ -403,6 +414,8 @@ const OPERATORS: Operator[] = [
     'not_contains',
     'exists',
     'not_exists',
+    'matches',
+    'not_matches',
 ];
 
 const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
@@ -470,7 +483,7 @@ const getDateRange = (val: OnChangeInput) => {
 
 const CUSTOM_TYPE = '_custom';
 
-const parseInner = (field: SelectOption, op: string, value?: string): any => {
+const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
     if (field.data?.type === CUSTOM_TYPE) {
         const name = field.data?.name;
         const isKeyword = !(field.data?.options.type !== 'text');
@@ -483,6 +496,12 @@ const parseInner = (field: SelectOption, op: string, value?: string): any => {
                 return {
                     wildcard: {
                         [`${name}${isKeyword ? '.keyword' : ''}`]: `*${value}*`,
+                    },
+                };
+            case 'matches':
+                return {
+                    regexp: {
+                        [`${name}${isKeyword ? '.keyword' : ''}`]: value,
                     },
                 };
             case 'exists':
@@ -498,6 +517,12 @@ const parseInner = (field: SelectOption, op: string, value?: string): any => {
                 return {
                     wildcard: {
                         'fields.KeyValue': `${field.value}_*${value}*`,
+                    },
+                };
+            case 'matches':
+                return {
+                    regexp: {
+                        'fields.KeyValue': `${field.value}_${value}`,
                     },
                 };
             case 'exists':
