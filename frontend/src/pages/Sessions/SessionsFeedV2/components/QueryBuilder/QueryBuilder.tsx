@@ -869,6 +869,7 @@ const QueryBuilder = () => {
                         className={styles.addFilter}
                         trackingId="SessionsQueryAddRule2"
                         onClick={newRule}
+                        type="dashed"
                     >
                         + Filter
                     </Button>

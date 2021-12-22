@@ -99,7 +99,7 @@ export const SessionFeed = React.memo(() => {
             }
             setShowLoadingSkeleton(false);
         },
-        skip: !isQueryBuilder,
+        skip: !isQueryBuilder || !searchQuery,
     });
 
     const {
