@@ -53,10 +53,11 @@ type Client struct {
 }
 
 type SearchOptions struct {
-	MaxResults  *int
-	SortField   *string
-	SortOrder   *string
-	ReturnCount *bool
+	MaxResults    *int
+	SortField     *string
+	SortOrder     *string
+	ReturnCount   *bool
+	ExcludeFields []string
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -272,7 +273,18 @@ func (c *Client) Search(index Index, projectID int, query string, options Search
 		count = *options.MaxResults
 	}
 
-	content := strings.NewReader(fmt.Sprintf(`{"size": %d, "query": %s%s, "track_total_hits": %s}`, count, q, sort, trackTotalHits))
+	excludesStr := ""
+	for _, e := range options.ExcludeFields {
+		if excludesStr != "" {
+			excludesStr += ", "
+		}
+
+		excludesStr += `"` + e + `"`
+	}
+
+	content := strings.NewReader(
+		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "query": %s%s, "track_total_hits": %s}`,
+			excludesStr, count, q, sort, trackTotalHits))
 	search := opensearchapi.SearchRequest{
 		Index: []string{GetIndex(index)},
 		Body:  content,
