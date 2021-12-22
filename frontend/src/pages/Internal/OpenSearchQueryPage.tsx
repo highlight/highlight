@@ -75,7 +75,7 @@ const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
         });
         const suggestions = (
             fetched.data.fields_opensearch ?? []
-        )?.map((f) => ({ label: f.value, value: f.value }));
+        )?.map((val) => ({ label: val, value: val }));
         return suggestions;
     };
 

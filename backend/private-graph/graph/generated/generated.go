@@ -739,7 +739,7 @@ type QueryResolver interface {
 	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
-	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]*model1.Field, error)
+	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
@@ -4985,7 +4985,7 @@ type Query {
         field_type: String!
         field_name: String!
         query: String!
-    ): [Field!]!
+    ): [String!]!
     billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
@@ -16738,9 +16738,9 @@ func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Field)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFieldᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetailsForProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {

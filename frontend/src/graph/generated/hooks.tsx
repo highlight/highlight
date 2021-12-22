@@ -4170,9 +4170,7 @@ export const GetFieldsOpensearchDocument = gql`
             field_type: $field_type
             field_name: $field_name
             query: $query
-        ) {
-            value
-        }
+        )
     }
 `;
 

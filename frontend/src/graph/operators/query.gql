@@ -333,9 +333,7 @@ query GetFieldsOpensearch(
         field_type: $field_type
         field_name: $field_name
         query: $query
-    ) {
-        value
-    }
+    )
 }
 
 query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {

@@ -645,7 +645,7 @@ export type Query = {
     sessions: SessionResults;
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
-    fields_opensearch: Array<Field>;
+    fields_opensearch: Array<Scalars['String']>;
     billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;

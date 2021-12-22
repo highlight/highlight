@@ -1541,11 +1541,10 @@ export type GetFieldsOpensearchQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
 }>;
 
-export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & {
-    fields_opensearch: Array<
-        { __typename?: 'Field' } & Pick<Types.Field, 'value'>
-    >;
-};
+export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'fields_opensearch'
+>;
 
 export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];

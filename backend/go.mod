@@ -15,6 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
+	github.com/aws/smithy-go v1.8.0
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible

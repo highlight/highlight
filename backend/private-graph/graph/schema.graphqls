@@ -627,7 +627,7 @@ type Query {
         field_type: String!
         field_name: String!
         query: String!
-    ): [Field!]!
+    ): [String!]!
     billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
