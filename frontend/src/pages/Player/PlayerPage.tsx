@@ -51,6 +51,7 @@ import { Helmet } from 'react-helmet';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import AsyncSelect from 'react-select/async';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import WaitingAnimation from '../../lottie/waiting.json';
 import styles from './PlayerPage.module.scss';
@@ -112,6 +113,8 @@ const Player = ({ integrated }: Props) => {
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
+    let [isQueryBuilder] = useQueryParam('query_builder', BooleanParam);
+    isQueryBuilder = isQueryBuilder ?? false;
 
     useEffect(() => {
         if (!session_secure_id) {
@@ -197,6 +200,7 @@ const Player = ({ integrated }: Props) => {
                 setDetailedPanel,
                 selectedRightPanelTab,
                 setSelectedRightPanelTab,
+                isQueryBuilder,
             }}
         >
             <Helmet>

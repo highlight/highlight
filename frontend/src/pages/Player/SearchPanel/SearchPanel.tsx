@@ -1,3 +1,5 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import QueryBuilder from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import React from 'react';
 
 import SessionSearch from '../../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
@@ -11,14 +13,24 @@ interface Props {
 }
 
 const SearchPanel = React.memo(({ visible }: Props) => {
+    const { isQueryBuilder } = usePlayerUIContext();
     return (
         <div className={styles.searchPanel}>
             {visible && (
                 <>
                     <div className={styles.filtersContainer}>
-                        <SessionSearch />
-                        <SegmentPickerForPlayer />
-                        <SessionSearchFilters />
+                        {isQueryBuilder ? (
+                            <>
+                                <SegmentPickerForPlayer />
+                                <QueryBuilder />
+                            </>
+                        ) : (
+                            <>
+                                <SessionSearch />
+                                <SegmentPickerForPlayer />
+                                <SessionSearchFilters />
+                            </>
+                        )}
                     </div>
                     <SessionFeed />
                 </>

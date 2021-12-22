@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
@@ -23,6 +24,7 @@ import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import {
     useGetBillingDetailsForProjectQuery,
+    useGetSessionsOpenSearchQuery,
     useGetSessionsQuery,
     useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
@@ -51,6 +53,8 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
+    const { isQueryBuilder } = usePlayerUIContext();
+
     const [
         sessionFeedIsInTopScrollPosition,
         setSessionFeedIsInTopScrollPosition,
@@ -62,6 +66,7 @@ export const SessionFeed = React.memo(() => {
         searchParams,
         showStarredSessions,
         setSearchParams,
+        searchQuery,
     } = useSearchContext();
     const { show_live_sessions } = searchParams;
     const { integrated } = useIntegrated();
@@ -78,7 +83,30 @@ export const SessionFeed = React.memo(() => {
         }
     );
 
-    const { loading, fetchMore, called } = useGetSessionsQuery({
+    const {
+        loading: loadingOpenSearch,
+        fetchMore: fetchOpenSearch,
+        called: calledOpenSearch,
+    } = useGetSessionsOpenSearchQuery({
+        variables: {
+            query: searchQuery,
+            count: count + 10,
+            project_id,
+        },
+        onCompleted: (response) => {
+            if (response?.sessions_opensearch) {
+                setSessionResults(response.sessions_opensearch);
+            }
+            setShowLoadingSkeleton(false);
+        },
+        skip: !isQueryBuilder || !searchQuery,
+    });
+
+    const {
+        loading: loadingOriginal,
+        fetchMore: fetchOriginal,
+        called: calledOriginal,
+    } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -98,7 +126,12 @@ export const SessionFeed = React.memo(() => {
             }
             setShowLoadingSkeleton(false);
         },
+        skip: isQueryBuilder,
     });
+
+    const called = isQueryBuilder ? calledOpenSearch : calledOriginal;
+    const loading = isQueryBuilder ? loadingOpenSearch : loadingOriginal;
+    const fetchMore = isQueryBuilder ? fetchOpenSearch : fetchOriginal;
 
     useEffect(() => {
         if (loading) {
