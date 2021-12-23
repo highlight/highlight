@@ -1,4 +1,6 @@
 .optionLabelContainer {
+    align-items: center;
+    display: flex;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
@@ -14,6 +16,11 @@
     margin-right: 6px;
     padding-left: 4px;
     padding-right: 4px;
+    width: fit-content;
+}
+
+.labelTypeContainer {
+    width: 60px;
 }
 
 .optionLabelName {
@@ -27,6 +34,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.optionTooltip {
+    margin-left: 4px;
 }
 
 .builderContainer {
@@ -120,6 +131,7 @@
 }
 
 .popoverContainer {
+    width: fit-content;
     :global(.ant-popover-inner-content) {
         padding: 0;
     }

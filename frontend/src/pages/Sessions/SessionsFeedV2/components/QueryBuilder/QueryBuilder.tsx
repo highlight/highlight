@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
@@ -74,6 +75,9 @@ interface SetVisible {
     setVisible: (val: boolean) => void;
 }
 
+const TOOLTIP_MESSAGE =
+    'This property was automatically collected by Highlight';
+
 const styleProps: Styles<{ label: string; value: string }, false> = {
     ...SharedSelectStyleProps,
     option: (provided, { isFocused }) => ({
@@ -83,7 +87,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
-        padding: '8px',
+        padding: '8px 12px',
         fontSize: '12px',
         color: 'var(--color-text-primary)',
         backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
@@ -113,7 +117,11 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
     }),
     valueContainer: (provided) => ({
         ...provided,
-        padding: '8px',
+        padding: '8px 12px',
+    }),
+    noOptionsMessage: (provided) => ({
+        ...provided,
+        fontSize: '12px',
     }),
 };
 
@@ -142,14 +150,9 @@ const getMultiselectOption = (props: any) => {
                         }}
                     ></Checkbox>
 
-                    {data?.typeLabel && (
-                        <span className={styles.optionLabelType}>
-                            {data.typeLabel}
-                        </span>
-                    )}
-                    <span className={styles.optionLabelName}>
+                    <div className={styles.optionLabelName}>
                         {data?.nameLabel ? data.nameLabel : label}
-                    </span>
+                    </div>
                 </div>
             </components.Option>
         </div>
@@ -160,6 +163,7 @@ const getOption = (props: any) => {
     const {
         data: { data },
         label,
+        value,
     } = props;
 
     return (
@@ -167,13 +171,26 @@ const getOption = (props: any) => {
             <components.Option {...props}>
                 <div className={styles.optionLabelContainer}>
                     {data?.typeLabel && (
-                        <span className={styles.optionLabelType}>
-                            {data.typeLabel}
-                        </span>
+                        <div className={styles.labelTypeContainer}>
+                            <div className={styles.optionLabelType}>
+                                {data.typeLabel}
+                            </div>
+                        </div>
                     )}
-                    <span className={styles.optionLabelName}>
+                    <div className={styles.optionLabelName}>
                         {data?.nameLabel ? data.nameLabel : label}
-                    </span>
+                    </div>
+                    {(data?.type === 'session' ||
+                        data?.type === CUSTOM_TYPE ||
+                        value === 'user_identifier') && (
+                        <InfoTooltip
+                            title={TOOLTIP_MESSAGE}
+                            size="medium"
+                            hideArrow
+                            placement="right"
+                            className={styles.optionTooltip}
+                        />
+                    )}
                 </div>
             </components.Option>
         </div>
@@ -337,6 +354,10 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
         setVisible(val);
     };
 
+    const invalid =
+        value === undefined ||
+        (value?.kind === 'multi' && value.options.length === 0);
+
     return (
         <Popover
             isList
@@ -357,11 +378,11 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 type="text"
                 trackingId={`SessionsQuerySelect`}
                 className={classNames(styles.ruleItem, {
-                    [styles.invalid]: !value && !visible,
+                    [styles.invalid]: invalid,
                 })}
                 onClick={() => onSetVisible(true)}
             >
-                {value === undefined && '--'}
+                {invalid && '--'}
                 {value?.kind === 'single' &&
                     (value.data?.nameLabel ?? value.label)}
                 {value?.kind === 'multi' &&
@@ -370,7 +391,6 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 {value?.kind === 'multi' &&
                     value.options.length === 1 &&
                     value.options[0].label}
-                {value?.kind === 'multi' && value.options.length === 0 && '--'}
             </Button>
         </Popover>
     );
@@ -537,6 +557,7 @@ const LABEL_MAP: { [key: string]: string } = {
     browser_version: 'Browser Version',
     environment: 'Environment',
     processed: 'Status',
+    viewed: 'Viewed',
 };
 
 const getOperator = (
@@ -725,7 +746,8 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
     rule.op !== undefined &&
-    (!hasArguments(rule.op) || rule.val !== undefined);
+    (!hasArguments(rule.op) ||
+        (rule.val !== undefined && rule.val.options.length !== 0));
 
 const getDefaultOperator = (field: SelectOption | undefined) =>
     (field?.data?.options?.operators ?? OPERATORS)[0];
@@ -785,8 +807,7 @@ const QueryBuilder = () => {
             .map((ft) => ({
                 data: {
                     type: ft.type,
-                    typeLabel:
-                        ft.type === CUSTOM_TYPE ? 'session:' : ft.type + ':',
+                    typeLabel: ft.type === CUSTOM_TYPE ? 'session' : ft.type,
                     name: ft.name,
                     nameLabel: LABEL_MAP[ft.name] ?? ft.name,
                     options: ft.options,
