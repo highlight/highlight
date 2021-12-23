@@ -5,6 +5,7 @@ import SvgXIcon from '@icons/XIcon';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
+import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { components } from 'react-select';
@@ -75,14 +76,108 @@ interface SetVisible {
 
 const styleProps: Styles<{ label: string; value: string }, false> = {
     ...SharedSelectStyleProps,
-    option: (provided) => ({
+    option: (provided, { isFocused }) => ({
         ...provided,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
+        padding: '8px',
+        fontSize: '12px',
+        color: 'var(--color-text-primary)',
+        backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
+        '&:active': {
+            backgroundColor: 'var(--color-gray-200)',
+        },
     }),
+    menuList: (provided) => ({
+        ...provided,
+        scrollbarWidth: 'none',
+        padding: '0',
+        '&::-webkit-scrollbar': {
+            display: 'none',
+        },
+    }),
+    control: (provided) => ({
+        ...provided,
+        border: '0',
+        boxShadow: '0',
+        fontSize: '12px',
+        background: 'none',
+        'border-radius': '0',
+        'border-bottom': '1px solid var(--color-gray-300)',
+        '&:hover': {
+            'border-bottom': '1px solid var(--color-gray-300)',
+        },
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: '8px',
+    }),
+};
+
+const getMultiselectOption = (props: any) => {
+    const {
+        data: { data },
+        label,
+        value,
+        isSelected,
+        selectOption,
+    } = props;
+
+    return (
+        <div>
+            <components.Option {...props}>
+                <div className={styles.optionLabelContainer}>
+                    <Checkbox
+                        className={styles.optionCheckbox}
+                        checked={isSelected}
+                        onChange={() => {
+                            selectOption({
+                                label: label,
+                                value: value,
+                                data: { fromCheckbox: true },
+                            });
+                        }}
+                    ></Checkbox>
+
+                    {data?.typeLabel && (
+                        <span className={styles.optionLabelType}>
+                            {data.typeLabel}
+                        </span>
+                    )}
+                    <span className={styles.optionLabelName}>
+                        {data?.nameLabel ? data.nameLabel : label}
+                    </span>
+                </div>
+            </components.Option>
+        </div>
+    );
+};
+
+const getOption = (props: any) => {
+    const {
+        data: { data },
+        label,
+    } = props;
+
+    return (
+        <div>
+            <components.Option {...props}>
+                <div className={styles.optionLabelContainer}>
+                    {data?.typeLabel && (
+                        <span className={styles.optionLabelType}>
+                            {data.typeLabel}
+                        </span>
+                    )}
+                    <span className={styles.optionLabelName}>
+                        {data?.nameLabel ? data.nameLabel : label}
+                    </span>
+                </div>
+            </components.Option>
+        </div>
+    );
 };
 
 const PopoutContent = ({
@@ -103,46 +198,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
-                        Option: (props) => {
-                            const {
-                                data: { data },
-                                label,
-                            } = props;
-
+                        Menu: (props) => {
                             return (
-                                <div>
-                                    <components.Option {...props}>
-                                        <div
-                                            className={
-                                                styles.optionLabelContainer
-                                            }
-                                        >
-                                            <span
-                                                className={
-                                                    styles.optionLabelName
-                                                }
-                                            >
-                                                {data?.nameLabel
-                                                    ? data.nameLabel
-                                                    : label}
-                                            </span>
-                                            {data?.typeLabel && (
-                                                <span
-                                                    className={
-                                                        styles.optionLabelType
-                                                    }
-                                                >
-                                                    {data.typeLabel}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </components.Option>
-                                </div>
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
                             );
                         },
+                        Option: getOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -166,9 +238,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
+                        Menu: (props) => {
+                            return (
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
+                            );
+                        },
+                        Option: getMultiselectOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -200,9 +286,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
+                        Menu: (props) => {
+                            return (
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
+                            );
+                        },
+                        Option: getMultiselectOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -239,6 +339,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
 
     return (
         <Popover
+            isList
             content={
                 <PopoutContent
                     value={value}
@@ -247,7 +348,8 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 />
             }
             placement="bottomLeft"
-            contentContainerClassName={styles.popover}
+            contentContainerClassName={styles.contentContainer}
+            popoverClassName={styles.popoverContainer}
             visible={visible}
             destroyTooltipOnHide
         >
@@ -683,7 +785,8 @@ const QueryBuilder = () => {
             .map((ft) => ({
                 data: {
                     type: ft.type,
-                    typeLabel: ft.type === CUSTOM_TYPE ? 'session' : ft.type,
+                    typeLabel:
+                        ft.type === CUSTOM_TYPE ? 'session:' : ft.type + ':',
                     name: ft.name,
                     nameLabel: LABEL_MAP[ft.name] ?? ft.name,
                     options: ft.options,
@@ -692,7 +795,11 @@ const QueryBuilder = () => {
                 value: ft.type + '_' + ft.name,
             }))
             .filter((ft) =>
-                ft.data.nameLabel.toLowerCase().includes(input.toLowerCase())
+                (
+                    ft.data.typeLabel?.toLowerCase() +
+                    ':' +
+                    ft.data.nameLabel.toLowerCase()
+                ).includes(input.toLowerCase())
             )
             .sort((a, b) => {
                 const aLower = a.data.nameLabel.toLowerCase();
@@ -862,7 +969,7 @@ const QueryBuilder = () => {
                                 }}
                                 loadOptions={getKeyOptions}
                                 type="select"
-                                placeholder="Select a field"
+                                placeholder="Filter..."
                             />
                         ) : (
                             <PopoutContent
@@ -881,12 +988,13 @@ const QueryBuilder = () => {
                                     currentRule.field
                                 )}
                                 type={getPopoutType(currentRule.op)}
-                                placeholder={`Select a value for ${currentRule.field.data?.nameLabel}`}
+                                placeholder={`Select...`}
                             />
                         )
                     }
                     placement="bottomLeft"
-                    contentContainerClassName={styles.popover}
+                    contentContainerClassName={styles.contentContainer}
+                    popoverClassName={styles.popoverContainer}
                     destroyTooltipOnHide
                     visible={step1Visible || step2Visible}
                 >
