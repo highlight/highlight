@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { addCustomEvent, record } from '@highlight-run/rrweb';
 import {
     eventWithTime,
@@ -504,6 +505,9 @@ export class Highlight {
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
     async initialize(organization_id?: number | string) {
+        if (true) {
+            return;
+        }
         var org_id = '';
         if (typeof organization_id === 'number') {
             org_id = organization_id.toString();
