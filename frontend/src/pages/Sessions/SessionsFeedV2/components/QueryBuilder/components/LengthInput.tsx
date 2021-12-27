@@ -97,12 +97,7 @@ export const LengthInput = ({
     );
 };
 
-const AdvancedLengthInput = ({
-    start,
-    end,
-    onChange,
-    setVisible,
-}: LengthInputProps) => {
+const AdvancedLengthInput = ({ start, end, onChange }: LengthInputProps) => {
     const onStartingDurationChangeHandler = (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
