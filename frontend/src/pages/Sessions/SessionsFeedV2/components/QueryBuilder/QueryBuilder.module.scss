@@ -1,18 +1,31 @@
 .optionLabelContainer {
-    display: inline-flex;
-    justify-content: space-between;
+    align-items: center;
+    display: flex;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
 }
 
+.optionCheckbox {
+    margin-right: 6px;
+}
+
 .optionLabelType {
-    color: var(--color-gray-500);
-    display: flex;
+    background: var(--color-gray-300);
+    border-radius: 3px;
+    margin-right: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
+    width: fit-content;
+}
+
+.labelTypeContainer {
+    width: 60px;
 }
 
 .optionLabelName {
-    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nameLabel {
@@ -21,6 +34,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.optionTooltip {
+    margin-left: 4px;
 }
 
 .builderContainer {
@@ -104,12 +121,29 @@
     padding: 0 4px;
 }
 
-.popover {
+.menuListContainer {
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.popoverContainer {
+    width: fit-content;
+    :global(.ant-popover-inner-content) {
+        padding: 0;
+    }
+}
+
+.contentContainer {
     display: flex;
     flex-direction: column;
-    padding-bottom: var(--size-medium);
+    max-width: 300px;
+    min-width: 150px;
+    padding-bottom: 0;
     row-gap: var(--size-medium);
-    width: 300px;
 
     .label {
         display: flex;

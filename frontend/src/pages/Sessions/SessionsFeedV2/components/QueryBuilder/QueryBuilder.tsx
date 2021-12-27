@@ -1,10 +1,12 @@
 import Button from '@components/Button/Button/Button';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
+import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { components } from 'react-select';
@@ -73,16 +75,126 @@ interface SetVisible {
     setVisible: (val: boolean) => void;
 }
 
+const TOOLTIP_MESSAGE =
+    'This property was automatically collected by Highlight';
+
 const styleProps: Styles<{ label: string; value: string }, false> = {
     ...SharedSelectStyleProps,
-    option: (provided) => ({
+    option: (provided, { isFocused }) => ({
         ...provided,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
+        padding: '8px 12px',
+        fontSize: '12px',
+        color: 'var(--color-text-primary)',
+        backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
+        '&:active': {
+            backgroundColor: 'var(--color-gray-200)',
+        },
     }),
+    menuList: (provided) => ({
+        ...provided,
+        scrollbarWidth: 'none',
+        padding: '0',
+        '&::-webkit-scrollbar': {
+            display: 'none',
+        },
+    }),
+    control: (provided) => ({
+        ...provided,
+        border: '0',
+        boxShadow: '0',
+        fontSize: '12px',
+        background: 'none',
+        'border-radius': '0',
+        'border-bottom': '1px solid var(--color-gray-300)',
+        '&:hover': {
+            'border-bottom': '1px solid var(--color-gray-300)',
+        },
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: '8px 12px',
+    }),
+    noOptionsMessage: (provided) => ({
+        ...provided,
+        fontSize: '12px',
+    }),
+};
+
+const getMultiselectOption = (props: any) => {
+    const {
+        data: { data },
+        label,
+        value,
+        isSelected,
+        selectOption,
+    } = props;
+
+    return (
+        <div>
+            <components.Option {...props}>
+                <div className={styles.optionLabelContainer}>
+                    <Checkbox
+                        className={styles.optionCheckbox}
+                        checked={isSelected}
+                        onChange={() => {
+                            selectOption({
+                                label: label,
+                                value: value,
+                                data: { fromCheckbox: true },
+                            });
+                        }}
+                    ></Checkbox>
+
+                    <div className={styles.optionLabelName}>
+                        {data?.nameLabel ? data.nameLabel : label}
+                    </div>
+                </div>
+            </components.Option>
+        </div>
+    );
+};
+
+const getOption = (props: any) => {
+    const {
+        data: { data },
+        label,
+        value,
+    } = props;
+
+    return (
+        <div>
+            <components.Option {...props}>
+                <div className={styles.optionLabelContainer}>
+                    {data?.typeLabel && (
+                        <div className={styles.labelTypeContainer}>
+                            <div className={styles.optionLabelType}>
+                                {data.typeLabel}
+                            </div>
+                        </div>
+                    )}
+                    <div className={styles.optionLabelName}>
+                        {data?.nameLabel ? data.nameLabel : label}
+                    </div>
+                    {(data?.type === 'session' ||
+                        data?.type === CUSTOM_TYPE ||
+                        value === 'user_identifier') && (
+                        <InfoTooltip
+                            title={TOOLTIP_MESSAGE}
+                            size="medium"
+                            hideArrow
+                            placement="right"
+                            className={styles.optionTooltip}
+                        />
+                    )}
+                </div>
+            </components.Option>
+        </div>
+    );
 };
 
 const PopoutContent = ({
@@ -103,46 +215,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
-                        Option: (props) => {
-                            const {
-                                data: { data },
-                                label,
-                            } = props;
-
+                        Menu: (props) => {
                             return (
-                                <div>
-                                    <components.Option {...props}>
-                                        <div
-                                            className={
-                                                styles.optionLabelContainer
-                                            }
-                                        >
-                                            <span
-                                                className={
-                                                    styles.optionLabelName
-                                                }
-                                            >
-                                                {data?.nameLabel
-                                                    ? data.nameLabel
-                                                    : label}
-                                            </span>
-                                            {data?.typeLabel && (
-                                                <span
-                                                    className={
-                                                        styles.optionLabelType
-                                                    }
-                                                >
-                                                    {data.typeLabel}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </components.Option>
-                                </div>
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
                             );
                         },
+                        Option: getOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -166,9 +255,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
+                        Menu: (props) => {
+                            return (
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
+                            );
+                        },
+                        Option: getMultiselectOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -200,9 +303,23 @@ const PopoutContent = ({
                     styles={styleProps}
                     loadOptions={loadOptions}
                     defaultOptions
+                    menuIsOpen
+                    controlShouldRenderValue={false}
+                    hideSelectedOptions={false}
+                    isClearable={false}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
+                        Menu: (props) => {
+                            return (
+                                <components.MenuList
+                                    className={styles.menuListContainer}
+                                    maxHeight={400}
+                                    {...props}
+                                ></components.MenuList>
+                            );
+                        },
+                        Option: getMultiselectOption,
                     }}
                     onChange={(item) => {
                         onChange(
@@ -237,8 +354,13 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
         setVisible(val);
     };
 
+    const invalid =
+        value === undefined ||
+        (value?.kind === 'multi' && value.options.length === 0);
+
     return (
         <Popover
+            isList
             content={
                 <PopoutContent
                     value={value}
@@ -247,7 +369,8 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 />
             }
             placement="bottomLeft"
-            contentContainerClassName={styles.popover}
+            contentContainerClassName={styles.contentContainer}
+            popoverClassName={styles.popoverContainer}
             visible={visible}
             destroyTooltipOnHide
         >
@@ -255,11 +378,11 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 type="text"
                 trackingId={`SessionsQuerySelect`}
                 className={classNames(styles.ruleItem, {
-                    [styles.invalid]: !value && !visible,
+                    [styles.invalid]: invalid,
                 })}
                 onClick={() => onSetVisible(true)}
             >
-                {value === undefined && '--'}
+                {invalid && '--'}
                 {value?.kind === 'single' &&
                     (value.data?.nameLabel ?? value.label)}
                 {value?.kind === 'multi' &&
@@ -268,7 +391,6 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 {value?.kind === 'multi' &&
                     value.options.length === 1 &&
                     value.options[0].label}
-                {value?.kind === 'multi' && value.options.length === 0 && '--'}
             </Button>
         </Popover>
     );
@@ -435,6 +557,7 @@ const LABEL_MAP: { [key: string]: string } = {
     browser_version: 'Browser Version',
     environment: 'Environment',
     processed: 'Status',
+    viewed: 'Viewed',
 };
 
 const getOperator = (
@@ -623,7 +746,8 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
     rule.op !== undefined &&
-    (!hasArguments(rule.op) || rule.val !== undefined);
+    (!hasArguments(rule.op) ||
+        (rule.val !== undefined && rule.val.options.length !== 0));
 
 const getDefaultOperator = (field: SelectOption | undefined) =>
     (field?.data?.options?.operators ?? OPERATORS)[0];
@@ -692,7 +816,11 @@ const QueryBuilder = () => {
                 value: ft.type + '_' + ft.name,
             }))
             .filter((ft) =>
-                ft.data.nameLabel.toLowerCase().includes(input.toLowerCase())
+                (
+                    ft.data.typeLabel?.toLowerCase() +
+                    ':' +
+                    ft.data.nameLabel.toLowerCase()
+                ).includes(input.toLowerCase())
             )
             .sort((a, b) => {
                 const aLower = a.data.nameLabel.toLowerCase();
@@ -862,7 +990,7 @@ const QueryBuilder = () => {
                                 }}
                                 loadOptions={getKeyOptions}
                                 type="select"
-                                placeholder="Select a field"
+                                placeholder="Filter..."
                             />
                         ) : (
                             <PopoutContent
@@ -881,12 +1009,13 @@ const QueryBuilder = () => {
                                     currentRule.field
                                 )}
                                 type={getPopoutType(currentRule.op)}
-                                placeholder={`Select a value for ${currentRule.field.data?.nameLabel}`}
+                                placeholder={`Select...`}
                             />
                         )
                     }
                     placement="bottomLeft"
-                    contentContainerClassName={styles.popover}
+                    contentContainerClassName={styles.contentContainer}
+                    popoverClassName={styles.popoverContainer}
                     destroyTooltipOnHide
                     visible={step1Visible || step2Visible}
                 >
