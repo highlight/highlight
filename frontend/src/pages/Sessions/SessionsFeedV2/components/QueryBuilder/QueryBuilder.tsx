@@ -440,7 +440,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
             contentContainerClassName={styles.contentContainer}
             popoverClassName={styles.popoverContainer}
             visible={visible}
-            destroyTooltipOnHide={props.type !== 'range'}
+            destroyTooltipOnHide
         >
             <Button
                 type="text"
@@ -1123,9 +1123,7 @@ const QueryBuilder = () => {
                     placement="bottomLeft"
                     contentContainerClassName={styles.contentContainer}
                     popoverClassName={styles.popoverContainer}
-                    destroyTooltipOnHide={
-                        getPopoutType(currentRule?.op) !== 'range'
-                    }
+                    destroyTooltipOnHide
                     visible={step1Visible || step2Visible}
                 >
                     <Button
