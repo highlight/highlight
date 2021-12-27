@@ -1,12 +1,9 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
-import { useGetAlertsPagePayloadQuery } from '@graph/hooks';
-import { GetAlertsPagePayloadQuery } from '@graph/operations';
-import AlertsPage from '@pages/Alerts/Alerts';
-import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
-import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
-import NewAlertPage from '@pages/Alerts/NewAlertPage';
+import { useGetProjectAdminsQuery } from '@graph/hooks';
+import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
+import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
+import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -15,75 +12,70 @@ import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
-    const [alertsPayload, setAlertsPayload] = useState<
-        GetAlertsPagePayloadQuery | undefined
-    >(undefined);
-    const { data, loading } = useGetAlertsPagePayloadQuery({
+    const { loading, data } = useGetProjectAdminsQuery({
         variables: { project_id },
     });
-    const slackUrl = getSlackUrl('Organization', project_id);
     const history = useHistory<{ errorName: string }>();
+    const [dashboards, setDashboards] = useState<any[]>([]);
 
     useEffect(() => {
         if (!loading) {
-            setAlertsPayload(data);
+            setDashboards([
+                {
+                    id: 1,
+                    name: 'Test Dashboard 1',
+                    updated_at: '2021-11-10T13:05:13.997412-08:00',
+                    LastAdminToEditID: '2',
+                    allAdmins: data?.admins || [],
+                    loading,
+                },
+                {
+                    id: 2,
+                    name: 'Test Dashboard 2',
+                    updated_at: '2021-11-19T13:05:13.997412-08:00',
+                    LastAdminToEditID: '5',
+                    allAdmins: data?.admins || [],
+                    loading,
+                },
+            ]);
         }
-    }, [data, loading]);
+    }, [data?.admins, loading]);
 
     return (
-        <AlertsContextProvider
-            value={{
-                alertsPayload,
-                setAlertsPayload,
-                loading,
-                slackUrl,
-            }}
-        >
+        <DashboardsContextProvider value={{ dashboards, setDashboards }}>
             <Helmet>
-                <title>Alerts</title>
+                <title>Dashboards</title>
             </Helmet>
             <LeadAlignLayout maxWidth={850}>
                 <Breadcrumb
                     getBreadcrumbName={(url) =>
-                        getAlertsBreadcrumbNames(history.location.state)(url)
+                        getDashboardsBreadcrumbNames(history.location.state)(
+                            url
+                        )
                     }
                     linkRenderAs="h2"
                 />
                 <Switch>
                     <Route exact path={path}>
-                        <AlertsPage />
-                    </Route>
-                    <Route exact path={`${path}/new`}>
-                        <NewAlertPage />
-                    </Route>
-                    <Route exact path={`${path}/new/:type`}>
-                        <NewAlertPage />
+                        <DashboardsHomePage />
                     </Route>
                     <Route path={`${path}/:id`}>
-                        <EditAlertsPage />
+                        <DashboardPage />
                     </Route>
                 </Switch>
             </LeadAlignLayout>
-        </AlertsContextProvider>
+        </DashboardsContextProvider>
     );
 };
 
 export default DashboardsRouter;
 
-const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
+const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
     return (url: string) => {
-        if (url.endsWith('/alerts')) {
-            return 'Alerts';
+        if (url.endsWith('/dashboards')) {
+            return 'Dashboards';
         }
 
-        if (url.endsWith('/alerts/new')) {
-            return 'Create';
-        }
-
-        if (url.includes('/alerts/new/')) {
-            return `${suffixes?.errorName}`;
-        }
-
-        return `Edit ${suffixes?.errorName}`;
+        return `${suffixes?.dashboardName}`;
     };
 };
