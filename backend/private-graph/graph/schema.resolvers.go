@@ -3088,7 +3088,37 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}
-	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, query, options, &results)
+	q := fmt.Sprintf(`
+	{"bool": {
+		"must":[
+			{"bool": {
+				"must_not":[
+					{"term":{"excluded":"true"}},
+					{"bool": {
+						"must":[
+							{"term":{"processed":"true"}},
+							{"bool":
+								{"should": [
+									{"range": {
+										"active_length": {
+											"lt": 1000
+										}
+									}},
+									{"range": {
+										"length": {
+											"lt": 1000
+										}
+								  	}}
+							  	]}
+						  	}
+					  	]
+					}}
+				]
+			}},
+			%s
+		]
+	}}`, query)
+	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
