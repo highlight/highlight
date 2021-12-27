@@ -12,12 +12,14 @@ export enum POLICY_NAMES {
     BillingView,
     RolesUpdate,
     IntegrationsUpdate,
+    Dashboards,
 }
 const AUTHORIZATION_POLICIES = {
     [POLICY_NAMES.BillingUpdate]: onlyAllowAdminRole,
     [POLICY_NAMES.BillingView]: onlyAllowAdminRole,
     [POLICY_NAMES.RolesUpdate]: onlyAllowAdminRole,
     [POLICY_NAMES.IntegrationsUpdate]: onlyAllowHighlightStaff,
+    [POLICY_NAMES.Dashboards]: onlyAllowHighlightStaff,
 } as const;
 
 export default AUTHORIZATION_POLICIES;

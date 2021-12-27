@@ -13,6 +13,7 @@ export { default as Briefcase2Icon } from './Briefcase2Icon';
 export { default as Browser } from './Browser';
 export { default as BugIcon } from './BugIcon';
 export { default as CalendarIcon } from './CalendarIcon';
+export { default as ChartIcon } from './ChartIcon';
 export { default as Check } from './Check';
 export { default as CheckCircleIcon } from './CheckCircleIcon';
 export { default as Checkmark } from './Checkmark';

@@ -5,6 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import SvgAppsIcon from '@icons/AppsIcon';
+import SvgChartIcon from '@icons/ChartIcon';
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useAuthorization } from '@util/authorization/authorization';
@@ -44,37 +45,35 @@ export const Sidebar = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
+    const isInDemoProject = projectIdRemapped === DEMO_WORKSPACE_APPLICATION_ID;
 
     const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         {
             Icon: SvgHomeIcon,
             displayName: 'Home',
             route: 'home',
-            hidden:
-                !(
-                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-                    !isLoggedIn
-                ) && isWorkspace,
+            hidden: !(isInDemoProject && !isLoggedIn) && isWorkspace,
         },
         {
             Icon: SvgSessionsIcon,
             displayName: 'Sessions',
             route: 'sessions',
-            hidden:
-                !(
-                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-                    !isLoggedIn
-                ) && isWorkspace,
+            hidden: !(isInDemoProject && !isLoggedIn) && isWorkspace,
         },
         {
             Icon: SvgBugIcon,
             displayName: 'Errors',
             route: 'errors',
+            hidden: !(isInDemoProject && !isLoggedIn) && isWorkspace,
+        },
+        {
+            Icon: SvgChartIcon,
+            displayName: 'Dashboards',
+            route: 'dashboards',
             hidden:
-                !(
-                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-                    !isLoggedIn
-                ) && isWorkspace,
+                isWorkspace ||
+                isInDemoProject ||
+                !checkPolicyAccess({ policyName: POLICY_NAMES.Dashboards }),
         },
     ];
 
