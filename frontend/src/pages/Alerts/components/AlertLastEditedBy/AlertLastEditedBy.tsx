@@ -1,4 +1,4 @@
-import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import { Admin } from '@graph/schemas';
 import moment from 'moment';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -8,12 +8,17 @@ import styles from './AlertLastEditedBy.module.scss';
 interface Props {
     adminId: string;
     lastEditedTimestamp: string;
+    allAdmins: Admin[];
+    loading: boolean;
 }
 
-const AlertLastEditedBy = ({ adminId, lastEditedTimestamp }: Props) => {
-    const { alertsPayload, loading } = useAlertsContext();
-
-    const admin = alertsPayload?.admins.find((admin) => admin?.id === adminId);
+const AlertLastEditedBy = ({
+    adminId,
+    lastEditedTimestamp,
+    allAdmins,
+    loading,
+}: Props) => {
+    const admin = allAdmins.find((admin) => admin?.id === adminId);
     const displayName = admin?.name || 'Highlight';
 
     return (

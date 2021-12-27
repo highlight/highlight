@@ -141,6 +141,8 @@ const TABLE_COLUMNS = [
                         <AlertLastEditedBy
                             adminId={record.LastAdminToEditID}
                             lastEditedTimestamp={record.updated_at}
+                            allAdmins={record.allAdmins}
+                            loading={record.loading}
                         />
                     </div>
                 </div>
@@ -257,6 +259,8 @@ const AlertsPage = () => {
             Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
@@ -265,6 +269,8 @@ const AlertsPage = () => {
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
@@ -275,6 +281,8 @@ const AlertsPage = () => {
                 ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -285,6 +293,8 @@ const AlertsPage = () => {
                 ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
@@ -295,6 +305,8 @@ const AlertsPage = () => {
                 ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
@@ -303,6 +315,8 @@ const AlertsPage = () => {
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
         ...(alertsPayload?.rage_click_alerts || []).map((alert) => ({
             ...alert,
@@ -311,6 +325,8 @@ const AlertsPage = () => {
             Name: alert?.Name || ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
             key: alert?.id,
             frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
         })),
     ];
 
