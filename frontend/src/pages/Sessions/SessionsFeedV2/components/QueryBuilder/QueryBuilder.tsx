@@ -1098,7 +1098,6 @@ const QueryBuilder = () => {
                                 loadOptions={getKeyOptions}
                                 type="select"
                                 placeholder="Filter..."
-                                onBlur={() => setStep1Visible(false)}
                             />
                         ) : (
                             <PopoutContent
@@ -1118,7 +1117,6 @@ const QueryBuilder = () => {
                                 )}
                                 type={getPopoutType(currentRule.op)}
                                 placeholder={`Select...`}
-                                onBlur={() => setStep2Visible(false)}
                             />
                         )
                     }
