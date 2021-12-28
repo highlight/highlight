@@ -37,7 +37,6 @@ func TestMain(m *testing.M) {
 
 func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
-	nullStr := "null"
 	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	tests := map[string]struct {
@@ -64,7 +63,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:        "error",
 					ProjectID:    1,
 					State:        model.ErrorGroupStates.OPEN,
-					FieldGroup:   &nullStr,
 					Environments: `{"dev":2}`,
 				},
 			},
@@ -89,7 +87,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:        "error",
 					ProjectID:    1,
 					State:        model.ErrorGroupStates.OPEN,
-					FieldGroup:   &nullStr,
 					Environments: `{"dev":1,"prod":1}`,
 				},
 			},
@@ -113,7 +110,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:        "error",
 					ProjectID:    1,
 					State:        model.ErrorGroupStates.OPEN,
-					FieldGroup:   &nullStr,
 					Environments: `{"dev":1}`,
 				},
 			},
@@ -139,7 +135,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:        1,
 					StackTrace:       shortTraceStr,
 					State:            model.ErrorGroupStates.OPEN,
-					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					MappedStackTrace: util.MakeStringPointer("null"),
 				},
@@ -165,7 +160,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Event:            "error",
 					ProjectID:        1,
 					StackTrace:       longTraceStr,
-					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					State:            model.ErrorGroupStates.OPEN,
 					MappedStackTrace: util.MakeStringPointer("null"),
