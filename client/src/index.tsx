@@ -726,7 +726,7 @@ export class Highlight {
                                     return;
                                 }
                                 highlightThis.errors.push({
-                                    event: stringify(c.value),
+                                    event: errorValue,
                                     type: 'console.error',
                                     url: window.location.href,
                                     source: c.trace[0]?.fileName
