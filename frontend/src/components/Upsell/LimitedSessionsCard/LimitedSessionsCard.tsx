@@ -26,7 +26,11 @@ const LimitedSessionCard = () => {
         data?.workspace_for_project
     );
 
-    if (!upsell || projectWithinTrialPeriod) {
+    if (
+        !upsell ||
+        projectWithinTrialPeriod ||
+        data?.workspace_for_project?.allow_meter_overage
+    ) {
         return null;
     }
 
