@@ -249,7 +249,7 @@ export type ErrorGroup = {
     metadata_log: Array<Maybe<ErrorMetadata>>;
     mapped_stack_trace?: Maybe<Scalars['String']>;
     stack_trace?: Maybe<Scalars['String']>;
-    field_group?: Maybe<Array<Maybe<ErrorField>>>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;
     error_frequency: Array<Maybe<Scalars['Int64']>>;

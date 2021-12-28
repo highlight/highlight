@@ -1,6 +1,6 @@
 export const GetErrorGroupQueryMock1 = {
     error_group: {
-        field_group: [
+        fields: [
             {
                 name: 'browser',
                 value: 'Safari',
@@ -8769,7 +8769,7 @@ export const GetErrorGroupQueryMock2 = {
                 __typename: 'ErrorMetadata',
             },
         ],
-        field_group: [
+        fields: [
             { name: 'browser', value: 'Android', __typename: 'ErrorField' },
             { name: 'os_name', value: 'Android', __typename: 'ErrorField' },
             {

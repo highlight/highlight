@@ -144,7 +144,7 @@ type ComplexityRoot struct {
 		Environments         func(childComplexity int) int
 		ErrorFrequency       func(childComplexity int) int
 		Event                func(childComplexity int) int
-		FieldGroup           func(childComplexity int) int
+		Fields               func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		IsPublic             func(childComplexity int) int
 		MappedStackTrace     func(childComplexity int) int
@@ -630,7 +630,6 @@ type ErrorGroupResolver interface {
 	StructuredStackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 
-	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 
 	ErrorFrequency(ctx context.Context, obj *model1.ErrorGroup) ([]*int64, error)
@@ -1214,12 +1213,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Event(childComplexity), true
 
-	case "ErrorGroup.field_group":
-		if e.complexity.ErrorGroup.FieldGroup == nil {
+	case "ErrorGroup.fields":
+		if e.complexity.ErrorGroup.Fields == nil {
 			break
 		}
 
-		return e.complexity.ErrorGroup.FieldGroup(childComplexity), true
+		return e.complexity.ErrorGroup.Fields(childComplexity), true
 
 	case "ErrorGroup.id":
 		if e.complexity.ErrorGroup.ID == nil {
@@ -4576,7 +4575,7 @@ type ErrorGroup {
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
     stack_trace: String
-    field_group: [ErrorField]
+    fields: [ErrorField]
     state: ErrorState!
     environments: String
     error_frequency: [Int64]!
@@ -10815,7 +10814,7 @@ func (ec *executionContext) _ErrorGroup_stack_trace(ctx context.Context, field g
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorGroup_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10826,14 +10825,14 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 		Object:     "ErrorGroup",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().FieldGroup(rctx, obj)
+		return obj.Fields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25456,17 +25455,8 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorGroup_mapped_stack_trace(ctx, field, obj)
 		case "stack_trace":
 			out.Values[i] = ec._ErrorGroup_stack_trace(ctx, field, obj)
-		case "field_group":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ErrorGroup_field_group(ctx, field, obj)
-				return res
-			})
+		case "fields":
+			out.Values[i] = ec._ErrorGroup_fields(ctx, field, obj)
 		case "state":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
