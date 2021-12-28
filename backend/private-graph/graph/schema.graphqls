@@ -218,7 +218,7 @@ type ErrorGroup {
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
     stack_trace: String
-    field_group: [ErrorField]
+    fields: [ErrorField]
     state: ErrorState!
     environments: String
     error_frequency: [Int64]!

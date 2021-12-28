@@ -151,26 +151,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return metadataLogs, nil
 }
 
-func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
-	if obj == nil || obj.FieldGroup == nil {
-		return nil, nil
-	}
-	var fields []*model.ErrorField
-	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
-	if err != nil {
-		log.Error(err)
-		return fields, nil
-	}
-	var parsedFields []*model.ErrorField
-	for _, f := range fields {
-		if f.Name == "event" {
-			continue
-		}
-		parsedFields = append(parsedFields, f)
-	}
-	return parsedFields, nil
-}
-
 func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
 	switch obj.State {
 	case model.ErrorGroupStates.OPEN:
@@ -1001,7 +981,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -2294,7 +2274,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
-	return r.canAdminViewErrorGroup(ctx, secureID)
+	return r.canAdminViewErrorGroup(ctx, secureID, true)
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
@@ -2547,7 +2527,7 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 }
 
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -2708,7 +2688,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 }
 
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}

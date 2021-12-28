@@ -11,7 +11,7 @@ describe('ErrorPageUtils', () => {
         it('should handle an undefined error group', () => {
             const result = getErrorGroupMetadata({
                 error_group: {
-                    field_group: undefined,
+                    fields: undefined,
                 },
             } as GetErrorGroupQuery);
 

@@ -639,7 +639,7 @@ query GetErrorGroup($secure_id: String!) {
             user_properties
             request_id
         }
-        field_group {
+        fields {
             name
             value
         }

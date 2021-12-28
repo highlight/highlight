@@ -6,14 +6,14 @@ type ErrorFieldMetadata = Pick<ErrorField, 'name' | 'value'>[];
 export const getErrorGroupMetadata = (
     errorGroup: GetErrorGroupQuery | undefined
 ): ErrorFieldMetadata => {
-    if (!errorGroup?.error_group?.field_group) {
+    if (!errorGroup?.error_group?.fields) {
         return [];
     }
 
     const uniqueFields = new Set<string>();
     const delimiter = '!---!';
 
-    errorGroup.error_group.field_group
+    errorGroup.error_group.fields
         .filter((field) => field?.name !== 'visited_url')
         .forEach((field) => {
             if (field?.name && field.value) {

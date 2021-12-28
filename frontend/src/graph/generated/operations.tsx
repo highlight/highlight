@@ -2002,7 +2002,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
-                field_group?: Types.Maybe<
+                fields?: Types.Maybe<
                     Array<
                         Types.Maybe<
                             { __typename?: 'ErrorField' } & Pick<

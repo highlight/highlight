@@ -5332,7 +5332,7 @@ export const GetErrorGroupDocument = gql`
                 user_properties
                 request_id
             }
-            field_group {
+            fields {
                 name
                 value
             }
