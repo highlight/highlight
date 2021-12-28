@@ -43,6 +43,7 @@ import {
     initializeFeedbackWidget,
 } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from 'utils/performance/performance';
+import { ERRORS_TO_IGNORE } from 'constants/errors';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -720,8 +721,12 @@ export class Highlight {
                                 c.value &&
                                 c.trace
                             ) {
+                                const errorValue = stringify(c.value);
+                                if (ERRORS_TO_IGNORE.includes(errorValue)) {
+                                    return;
+                                }
                                 highlightThis.errors.push({
-                                    event: stringify(c.value),
+                                    event: errorValue,
                                     type: 'console.error',
                                     url: window.location.href,
                                     source: c.trace[0]?.fileName
