@@ -23,17 +23,9 @@ const DashboardsRouter = () => {
             setDashboards([
                 {
                     id: 1,
-                    name: 'Test Dashboard 1',
-                    updated_at: '2021-11-10T13:05:13.997412-08:00',
-                    LastAdminToEditID: '2',
-                    allAdmins: data?.admins || [],
-                    loading,
-                },
-                {
-                    id: 2,
-                    name: 'Test Dashboard 2',
-                    updated_at: '2021-11-19T13:05:13.997412-08:00',
-                    LastAdminToEditID: '5',
+                    name: 'Web Vitals',
+                    updated_at: '2021-12-29T13:05:13.997412-08:00',
+                    LastAdminToEditID: '0',
                     allAdmins: data?.admins || [],
                     loading,
                 },

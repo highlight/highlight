@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import { useGetProjectAdminsQuery } from '@graph/hooks';
@@ -22,9 +23,14 @@ const DashboardsHomePage = () => {
 
     const onCreateNewDashboard = () => {
         // TODO: Create a new dashboard in DB.
-        const newId = 2;
+        alert(
+            "Hi I don't do anything yet. I only show up for Highlight staff."
+        );
+        if (false) {
+            const newId = 2;
 
-        history.push(`/${project_id}/dashboards/${newId}`);
+            history.push(`/${project_id}/dashboards/${newId}`);
+        }
     };
 
     return (
@@ -34,14 +40,16 @@ const DashboardsHomePage = () => {
                     Dashboards allow you to visualize what's happening in your
                     app.
                 </p>
-                <Button
-                    trackingId="NewDashboard"
-                    className={alertStyles.callToAction}
-                    onClick={onCreateNewDashboard}
-                    type="primary"
-                >
-                    New Dashboard
-                </Button>
+                <HighlightGate>
+                    <Button
+                        trackingId="NewDashboard"
+                        className={alertStyles.callToAction}
+                        onClick={onCreateNewDashboard}
+                        type="primary"
+                    >
+                        New Dashboard
+                    </Button>
+                </HighlightGate>
             </div>
 
             <Card noPadding>
