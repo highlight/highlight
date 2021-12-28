@@ -137,11 +137,7 @@ export const XHRListener = (
                 });
                 responseModel.headers = headerMap;
 
-                if (
-                    (this.responseType === '' ||
-                        this.responseType === 'text') &&
-                    this.responseText
-                ) {
+                if (this.responseType === '' || this.responseType === 'text') {
                     responseModel['body'] = this.responseText;
                     // Each character is 8 bytes, total size is number of characters multiplied by 8.
                     responseModel['size'] = this.responseText.length * 8;

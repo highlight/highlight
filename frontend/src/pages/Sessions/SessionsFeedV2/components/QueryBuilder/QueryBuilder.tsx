@@ -5,9 +5,12 @@ import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
+import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
+import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -244,8 +247,6 @@ const PopoutContent = ({
                 />
             );
         case 'multiselect':
-        case 'date_range': // TODO: To be implemented as a separate component
-        case 'range': // TODO: To be implemented as a separate component
             return (
                 <AsyncSelect
                     autoFocus
@@ -344,6 +345,72 @@ const PopoutContent = ({
                     {...props}
                 />
             );
+        case 'date_range':
+            return (
+                <DateInput
+                    startDate={
+                        value?.kind === 'multi'
+                            ? value.options[0]?.data?.start
+                            : undefined
+                    }
+                    endDate={
+                        value?.kind === 'multi'
+                            ? value.options[0]?.data?.end
+                            : undefined
+                    }
+                    onChange={(start, end) => {
+                        const startStr = moment(start).format('MMM D');
+                        const endStr = moment(end).format('MMM D');
+                        onChange({
+                            kind: 'multi',
+                            options: [
+                                {
+                                    label: `${startStr} and ${endStr}`,
+                                    value: '',
+                                    data: { start: start, end: end },
+                                },
+                            ],
+                        });
+                        setVisible(false);
+                    }}
+                    setVisible={setVisible}
+                />
+            );
+        case 'range':
+            return (
+                <LengthInput
+                    start={
+                        value?.kind === 'multi'
+                            ? value.options[0]?.data?.start
+                            : 0
+                    }
+                    end={
+                        value?.kind === 'multi'
+                            ? value.options[0]?.data?.end
+                            : 60
+                    }
+                    onChange={(start, end) => {
+                        const ints =
+                            Number.isInteger(start) && Number.isInteger(end);
+                        const label = ints
+                            ? `${start} and ${end} minutes`
+                            : `${start * 60} and ${end * 60} seconds`;
+
+                        onChange({
+                            kind: 'multi',
+                            options: [
+                                {
+                                    label: label,
+                                    value: '',
+                                    data: { start: start, end: end },
+                                },
+                            ],
+                        });
+                        setVisible(false);
+                    }}
+                    setVisible={setVisible}
+                />
+            );
     }
 };
 
@@ -366,6 +433,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                     value={value}
                     setVisible={onSetVisible}
                     {...props}
+                    onBlur={() => onSetVisible(false)}
                 />
             }
             placement="bottomLeft"
@@ -396,7 +464,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
     );
 };
 
-const getPopoutType = (op: Operator): PopoutType => {
+const getPopoutType = (op: Operator | undefined): PopoutType => {
     switch (op) {
         case 'contains':
         case 'not_contains':
@@ -558,6 +626,10 @@ const LABEL_MAP: { [key: string]: string } = {
     environment: 'Environment',
     processed: 'Status',
     viewed: 'Viewed',
+    first_time: 'First Time',
+    starred: 'Starred',
+    identifier: 'Identifier',
+    reload: 'Reloaded',
 };
 
 const getOperator = (
@@ -569,7 +641,7 @@ const getOperator = (
     }
 
     let label: string;
-    if (op == 'between_date' || op === 'not_between_date') {
+    if (DATE_OPERATORS.includes(op)) {
         const dateRange = getDateRange(val);
         const hasStart = !!dateRange?.start_date;
         const hasEnd = !!dateRange?.end_date;
@@ -606,7 +678,12 @@ const getDateRange = (val: OnChangeInput) => {
 
 const CUSTOM_TYPE = '_custom';
 
-const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
+const parseInner = (
+    field: SelectOption,
+    op: Operator,
+    value?: string,
+    data?: any
+): any => {
     if (field.data?.type === CUSTOM_TYPE) {
         const name = field.data?.name;
         const isKeyword = !(field.data?.options.type !== 'text');
@@ -629,6 +706,26 @@ const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
                 };
             case 'exists':
                 return { exists: { field: name } };
+            case 'between_date':
+                return {
+                    range: {
+                        [name]: {
+                            gte: data?.start,
+                            lte: data?.end,
+                        },
+                    },
+                };
+            case 'between':
+                return {
+                    range: {
+                        [name]: {
+                            gte: data?.start * 60 * 1000,
+                            ...(data?.end === 60
+                                ? null
+                                : { lte: data?.end * 60 * 1000 }),
+                        },
+                    },
+                };
         }
     } else {
         switch (op) {
@@ -670,8 +767,8 @@ const parseRuleImpl = (
     } else if (hasArguments(op)) {
         return {
             bool: {
-                should: multiValue.options.map(({ value }) =>
-                    parseInner(field, op, value)
+                should: multiValue.options.map(({ value, data }) =>
+                    parseInner(field, op, value, data)
                 ),
             },
         };
@@ -737,6 +834,20 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
     {
         type: CUSTOM_TYPE,
         name: 'processed',
+        options: {
+            type: 'boolean',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'first_time',
+        options: {
+            type: 'boolean',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'starred',
         options: {
             type: 'boolean',
         },
@@ -865,19 +976,15 @@ const QueryBuilder = () => {
                                 label: val as string,
                                 value: val as string,
                             })) ?? [];
-                }
-
-                if (field.value === '_custom_viewed') {
-                    options = [
-                        { label: 'true', value: 'true' },
-                        { label: 'false', value: 'false' },
-                    ];
-                }
-
-                if (field.value === '_custom_processed') {
+                } else if (field.value === '_custom_processed') {
                     options = [
                         { label: 'Live', value: 'false' },
                         { label: 'Completed', value: 'true' },
+                    ];
+                } else if (field.data?.options.type === 'boolean') {
+                    options = [
+                        { label: 'true', value: 'true' },
+                        { label: 'false', value: 'false' },
                     ];
                 }
 

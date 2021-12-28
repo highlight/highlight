@@ -428,25 +428,25 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 
 	environmentsString := r.getIncrementedEnvironmentCount(errorGroup, errorObj)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
-	}
-
-	err := r.AppendErrorFields(fields, errorGroup)
+	fieldString, err := r.AppendErrorFields(fields, errorGroup)
 	if err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
+	}
+
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString, FieldGroup: fieldString}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	return errorGroup, nil
 }
 
-func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
+func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) (*string, error) {
 	fieldsToAppend := []*model.ErrorField{}
 	var newFieldGroup []FieldData
 	exists := false
 	if errorGroup.FieldGroup != nil {
 		if err := json.Unmarshal([]byte(*errorGroup.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding error group field group data")
+			return nil, e.Wrap(err, "error decoding error group field group data")
 		}
 	}
 	for _, f := range fields {
@@ -455,7 +455,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating error field")
+				return nil, e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
 			newFieldGroup = append(newFieldGroup, FieldData{
@@ -480,20 +480,16 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 	fieldBytes, err := json.Marshal(newFieldGroup)
 	if err != nil {
-		return e.Wrap(err, "Error marshalling error group field group")
+		return nil, e.Wrap(err, "Error marshalling error group field group")
 	}
 	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
-		return e.Wrap(err, "Error updating error group field group")
-	}
-
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
-		return e.Wrap(err, "error updating error fields")
+		return nil, e.Wrap(err, "error updating error fields")
 	}
 
-	return nil
+	return &fieldString, nil
 }
 
 func GetLocationFromIP(ip string) (location *Location, err error) {
