@@ -627,8 +627,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 		if o.FirstFullSnapshotTimestamp.IsZero() {
 			if event.Type == parse.FullSnapshot {
 				o.FirstFullSnapshotTimestamp = event.Timestamp
-			} else if event.Type != parse.Meta && event.Type != parse.Custom {
-				o.Error = errors.New(fmt.Sprintf("Received an event of type %d before receiving full snapshot", event.Type))
+			} else if event.Type == parse.IncrementalSnapshot {
+				o.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
 				return o
 			}
 		}
