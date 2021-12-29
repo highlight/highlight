@@ -19,3 +19,14 @@
     height: var(--size-small);
     width: var(--size-small);
 }
+
+.tooltipEntry {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    margin-bottom: 0 !important;
+
+    &:not(&:last-of-type) {
+        margin-bottom: var(--size-xSmall) !important;
+    }
+}

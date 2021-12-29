@@ -2,18 +2,24 @@ import React from 'react';
 
 import styles from './RechartTooltip.module.scss';
 
-export const RechartTooltip = ({ active, payload, label }: any) => {
+export const RechartTooltip = ({ active, payload, label, render }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className={styles.tooltip}>
-                <h4>{label}</h4>
-                <p>
-                    {payload[0].value} {payload[0].payload.label}
-                </p>
-                {payload[0].payload.label && (
+                {render ? (
+                    render(payload)
+                ) : (
                     <>
-                        <br />
-                        <p>Click to see {payload[0].payload.label}.</p>
+                        <h4>{label}</h4>
+                        <p>
+                            {payload[0].value} {payload[0].payload.label}
+                        </p>
+                        {payload[0].payload.label && (
+                            <>
+                                <br />
+                                <p>Click to see {payload[0].payload.label}.</p>
+                            </>
+                        )}
                     </>
                 )}
             </div>

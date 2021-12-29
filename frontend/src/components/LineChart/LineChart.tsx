@@ -1,3 +1,5 @@
+import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import moment from 'moment';
 import React from 'react';
 import {
     CartesianGrid,
@@ -68,7 +70,53 @@ const LineChart = ({
                     axisLine={{ stroke: gridColor }}
                     dx={-6}
                 />
-                <Tooltip />
+                <Tooltip
+                    content={
+                        <RechartTooltip
+                            render={(payload: any) => {
+                                return (
+                                    <>
+                                        <h4>
+                                            {moment(
+                                                new Date(
+                                                    payload[0].payload.date
+                                                )
+                                            ).format('D MMM YYYY')}
+                                        </h4>
+                                        <div>
+                                            {payload
+                                                .reverse()
+                                                .map((entry: any) => {
+                                                    return (
+                                                        <p
+                                                            key={entry.dataKey}
+                                                            className={
+                                                                styles.tooltipEntry
+                                                            }
+                                                        >
+                                                            <div
+                                                                className={
+                                                                    styles.legendIcon
+                                                                }
+                                                                style={{
+                                                                    background:
+                                                                        entry.color,
+                                                                }}
+                                                            ></div>
+                                                            <div>
+                                                                {entry.dataKey}:{' '}
+                                                                {entry.value}
+                                                            </div>
+                                                        </p>
+                                                    );
+                                                })}
+                                        </div>
+                                    </>
+                                );
+                            }}
+                        />
+                    }
+                />
                 <Legend
                     verticalAlign="bottom"
                     height={18}
