@@ -1,0 +1,21 @@
+.legendContainer {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex;
+    justify-content: center;
+    margin-top: var(--size-xSmall);
+}
+
+.legendItem {
+    align-items: center;
+    color: var(--color-gray-500);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+}
+
+.legendIcon {
+    border-radius: var(--size-xxSmall);
+    height: var(--size-small);
+    width: var(--size-small);
+}

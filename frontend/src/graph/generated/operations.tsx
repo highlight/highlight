@@ -1151,6 +1151,22 @@ export type SessionPayloadFragmentFragment = {
         >;
     };
 
+export type GetWebVitalDashboardQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    web_vital_name: Types.Scalars['String'];
+}>;
+
+export type GetWebVitalDashboardQuery = { __typename?: 'Query' } & {
+    web_vital_dashboard: Array<
+        Types.Maybe<
+            { __typename?: 'WebVitalDashboardPayload' } & Pick<
+                Types.WebVitalDashboardPayload,
+                'date' | 'avg' | 'p50' | 'p75' | 'p90' | 'p99'
+            >
+        >
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -2869,6 +2885,7 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
 
 export const namedOperations = {
     Query: {
+        GetWebVitalDashboard: 'GetWebVitalDashboard' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,

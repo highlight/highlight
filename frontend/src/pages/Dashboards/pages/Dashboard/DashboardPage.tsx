@@ -1,7 +1,12 @@
+import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+
+import styles from './DashboardPage.module.scss';
+
+const SUPPORTED_WEB_VITALS = ['CLS', 'FCP', 'FID', 'LCP', 'TTFB'] as const;
 
 const DashboardPage = () => {
     const history = useHistory();
@@ -16,8 +21,10 @@ const DashboardPage = () => {
     }, [dashboards, history, id]);
 
     return (
-        <div>
-            <h2>Hello</h2>
+        <div className={styles.grid}>
+            {SUPPORTED_WEB_VITALS.map((webVital) => (
+                <DashboardCard webVitalName={webVital} key={webVital} />
+            ))}
         </div>
     );
 };

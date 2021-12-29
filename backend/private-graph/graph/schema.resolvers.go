@@ -23,7 +23,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3936,6 +3936,32 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		DiscountAmount:  discount.Coupon.AmountOff,
 		DiscountPercent: discount.Coupon.PercentOff,
 	}, nil
+}
+
+func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string) ([]*modelInputs.WebVitalDashboardPayload, error) {
+	payload := []*modelInputs.WebVitalDashboardPayload{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, nil
+	}
+
+	if err := r.DB.Raw(`
+	SELECT
+		created_at::date as date,
+		AVG(value) as avg,
+		percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
+		percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
+		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
+		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
+	FROM metrics
+	where name=?
+	and project_id=?
+	group by created_at::date, name;
+	`, webVitalName, projectID).Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return payload, nil
+	}
+
+	return payload, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

@@ -1,4 +1,4 @@
-enum WebVitalName {
+export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
     FCP = 'First Contentful Paint',
     FID = 'First Input Delay',

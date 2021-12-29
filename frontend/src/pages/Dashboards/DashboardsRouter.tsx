@@ -38,7 +38,7 @@ const DashboardsRouter = () => {
             <Helmet>
                 <title>Dashboards</title>
             </Helmet>
-            <LeadAlignLayout maxWidth={850}>
+            <LeadAlignLayout fullWidth>
                 <Breadcrumb
                     getBreadcrumbName={(url) =>
                         getDashboardsBreadcrumbNames(history.location.state)(

@@ -70,7 +70,10 @@ export const Sidebar = () => {
             Icon: SvgChartIcon,
             displayName: 'Dashboards',
             route: 'dashboards',
-            hidden: isWorkspace || isInDemoProject,
+            hidden:
+                isWorkspace ||
+                isInDemoProject ||
+                !checkPolicyAccess({ policyName: POLICY_NAMES.Dashboards }),
         },
     ];
 

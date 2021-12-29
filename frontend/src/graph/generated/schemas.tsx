@@ -608,6 +608,16 @@ export type Metric = {
     value: Scalars['Float'];
 };
 
+export type WebVitalDashboardPayload = {
+    __typename?: 'WebVitalDashboardPayload';
+    date: Scalars['String'];
+    avg: Scalars['Float'];
+    p50: Scalars['Float'];
+    p75: Scalars['Float'];
+    p90: Scalars['Float'];
+    p99: Scalars['Float'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -680,6 +690,7 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
+    web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
 };
 
 export type QuerySessionArgs = {
@@ -960,6 +971,11 @@ export type QueryCustomer_Portal_UrlArgs = {
 
 export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
+};
+
+export type QueryWeb_Vital_DashboardArgs = {
+    project_id: Scalars['ID'];
+    web_vital_name: Scalars['String'];
 };
 
 export type Mutation = {

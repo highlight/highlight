@@ -194,6 +194,15 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type WebVitalDashboardPayload struct {
+	Date string  `json:"date"`
+	Avg  float64 `json:"avg"`
+	P50  float64 `json:"p50"`
+	P75  float64 `json:"p75"`
+	P90  float64 `json:"p90"`
+	P99  float64 `json:"p99"`
+}
+
 type ErrorState string
 
 const (

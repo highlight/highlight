@@ -3235,6 +3235,71 @@ export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
     Types.SyncSlackIntegrationMutation,
     Types.SyncSlackIntegrationMutationVariables
 >;
+export const GetWebVitalDashboardDocument = gql`
+    query GetWebVitalDashboard($project_id: ID!, $web_vital_name: String!) {
+        web_vital_dashboard(
+            project_id: $project_id
+            web_vital_name: $web_vital_name
+        ) {
+            date
+            avg
+            p50
+            p75
+            p90
+            p99
+        }
+    }
+`;
+
+/**
+ * __useGetWebVitalDashboardQuery__
+ *
+ * To run a query within a React component, call `useGetWebVitalDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWebVitalDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWebVitalDashboardQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      web_vital_name: // value for 'web_vital_name'
+ *   },
+ * });
+ */
+export function useGetWebVitalDashboardQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
+}
+export function useGetWebVitalDashboardLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
+}
+export type GetWebVitalDashboardQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardQuery
+>;
+export type GetWebVitalDashboardLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardLazyQuery
+>;
+export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalDashboardQuery,
+    Types.GetWebVitalDashboardQueryVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(
         $session_secure_id: String!
