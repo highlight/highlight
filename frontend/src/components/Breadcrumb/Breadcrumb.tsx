@@ -1,5 +1,6 @@
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import { Breadcrumb as AntDesignBreadcrumb } from 'antd';
+import classNames from 'classnames';
 import React from 'react';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -24,7 +25,12 @@ const Breadcrumb = ({ getBreadcrumbName, linkRenderAs = 'span' }: Props) => {
         }
         return (
             <AntDesignBreadcrumb.Item key={url}>
-                <Link to={url}>
+                <Link
+                    to={url}
+                    className={classNames({
+                        [styles.disabled]: index === pathSnippets.length - 1,
+                    })}
+                >
                     {linkRenderAs === 'h2' ? (
                         <h2 className={styles.h2}>{getBreadcrumbName(url)}</h2>
                     ) : (

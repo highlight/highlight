@@ -1,0 +1,6 @@
+.grid {
+    display: grid;
+    gap: var(--size-large);
+    grid-template-columns: repeat(auto-fit, minmax(640px, 1fr));
+    padding-top: var(--size-large);
+}
