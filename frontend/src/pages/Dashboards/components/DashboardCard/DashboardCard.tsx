@@ -3,7 +3,10 @@ import LineChart from '@components/LineChart/LineChart';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
-import { WebVitalName } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import {
+    WEB_VITALS_CONFIGURATION,
+    WebVitalName,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import moment from 'moment';
 import React from 'react';
@@ -49,6 +52,7 @@ const DashboardCard = ({ webVitalName }: Props) => {
                         p75: 'var(--color-yellow-400)',
                         avg: 'var(--color-green-700)',
                     }}
+                    yAxisLabel={WEB_VITALS_CONFIGURATION[webVitalName].units}
                 />
             )}
         </Card>

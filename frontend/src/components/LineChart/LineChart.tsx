@@ -21,6 +21,7 @@ interface Props {
     xAxisTickFormatter?: (value: any, index: number) => string;
     yAxisTickFormatter?: (value: any, index: number) => string;
     lineColorMapping: any;
+    yAxisLabel: string;
 }
 
 const LineChart = ({
@@ -30,6 +31,7 @@ const LineChart = ({
     xAxisTickFormatter,
     yAxisTickFormatter,
     lineColorMapping,
+    yAxisLabel,
 }: Props) => {
     const nonXAxisKeys = Object.keys(data[0]).filter(
         (keyName) => keyName !== xAxisDataKeyName && keyName !== '__typename'
@@ -65,10 +67,10 @@ const LineChart = ({
                 />
                 <YAxis
                     tickFormatter={yAxisTickFormatter}
-                    tick={{ fontSize: '11px', fill: labelColor }}
+                    tick={{ fontSize: '8px', fill: labelColor }}
                     tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
-                    dx={-6}
+                    dx={0}
                 />
                 <Tooltip
                     content={
@@ -105,7 +107,10 @@ const LineChart = ({
                                                             ></div>
                                                             <div>
                                                                 {entry.dataKey}:{' '}
-                                                                {entry.value}
+                                                                {entry.value.toFixed(
+                                                                    2
+                                                                )}{' '}
+                                                                {yAxisLabel}
                                                             </div>
                                                         </p>
                                                     );
