@@ -1,6 +1,8 @@
+import Button from '@components/Button/Button/Button';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import classNames from 'classnames';
 import moment from 'moment';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     CartesianGrid,
     Legend,
@@ -38,6 +40,9 @@ const LineChart = ({
     );
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
+    const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
+        nonXAxisKeys
+    );
 
     return (
         <ResponsiveContainer width="100%" height={height}>
@@ -133,21 +138,59 @@ const LineChart = ({
                         return (
                             <div className={styles.legendContainer}>
                                 {payload?.map((entry, index) => (
-                                    <span
+                                    <Button
+                                        trackingId="LineChartLegendFilter"
                                         key={`item-${index}`}
+                                        type="text"
+                                        size="small"
                                         onClick={() => {
-                                            console.log(
-                                                `Do something for ${entry.value}`
-                                            );
+                                            setDataTypesToShow((previous) => {
+                                                // Toggle off
+                                                if (
+                                                    previous.includes(
+                                                        entry.value
+                                                    )
+                                                ) {
+                                                    return previous.filter(
+                                                        (e) => e !== entry.value
+                                                    );
+                                                } else {
+                                                    // Toggle on
+                                                    return [
+                                                        ...previous,
+                                                        entry.value,
+                                                    ];
+                                                }
+                                            });
                                         }}
-                                        className={styles.legendItem}
+                                        className={classNames(
+                                            styles.legendItem
+                                        )}
                                     >
                                         <div
-                                            className={styles.legendIcon}
+                                            className={classNames(
+                                                styles.legendIcon,
+                                                {
+                                                    [styles.notShowing]: !dataTypesToShow.includes(
+                                                        entry.value
+                                                    ),
+                                                }
+                                            )}
                                             style={{ background: entry.color }}
                                         ></div>
-                                        {entry.value}
-                                    </span>
+                                        <span
+                                            className={classNames(
+                                                styles.legendValue,
+                                                {
+                                                    [styles.notShowing]: !dataTypesToShow.includes(
+                                                        entry.value
+                                                    ),
+                                                }
+                                            )}
+                                        >
+                                            {entry.value}
+                                        </span>
+                                    </Button>
                                 ))}
                             </div>
                         );
@@ -155,6 +198,7 @@ const LineChart = ({
                 />
                 {nonXAxisKeys.map((key) => (
                     <Line
+                        hide={!dataTypesToShow.includes(key)}
                         key={key}
                         type="linear"
                         dataKey={key}
