@@ -25,7 +25,9 @@ const DashboardCard = ({ webVitalName }: Props) => {
         <Card interactable title={WebVitalName[webVitalName]}>
             {loading ? (
                 <Skeleton height={235} />
-            ) : data === undefined || !!data.web_vital_dashboard ? (
+            ) : data === undefined ||
+              data.web_vital_dashboard === undefined ||
+              data.web_vital_dashboard.length === 0 ? (
                 <div className={styles.noDataContainer}>
                     <EmptyCardPlaceholder
                         message={`Doesn't look like we've gotten any ${webVitalName} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
