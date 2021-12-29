@@ -8,7 +8,7 @@ import { H } from '..';
 export type WrappedNextApiHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler => {
+export const withHighlight = (origHandler: NextApiHandler): WrappedNextApiHandler => {
         // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
         return async (req, res) => {
                 // first order of business: monkeypatch `res.end()` so that it will wait for us to send events to sentry before it
