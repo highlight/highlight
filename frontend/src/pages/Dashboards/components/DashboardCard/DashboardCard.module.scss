@@ -1,3 +1,10 @@
-.card {
-    height: 400px;
+.noDataContainer {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 300px;
+    padding-top: var(--size-medium);
+    text-align: center;
 }

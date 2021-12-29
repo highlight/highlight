@@ -102,7 +102,6 @@ const TABLE_COLUMNS = [
         dataIndex: 'name',
         key: 'name',
         render: (name: string, record: any) => {
-            console.log(record);
             return (
                 <div className={alertStyles.nameCell}>
                     <div className={alertStyles.primary}>{name}</div>

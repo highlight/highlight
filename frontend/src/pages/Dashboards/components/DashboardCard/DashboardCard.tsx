@@ -2,10 +2,13 @@ import Card from '@components/Card/Card';
 import LineChart from '@components/LineChart/LineChart';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
+import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WebVitalName } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import moment from 'moment';
 import React from 'react';
+
+import styles from './DashboardCard.module.scss';
 
 interface Props {
     webVitalName: string;
@@ -17,18 +20,21 @@ const DashboardCard = ({ webVitalName }: Props) => {
         variables: { project_id, web_vital_name: webVitalName },
     });
 
-    if (!loading) {
-        console.log(data?.web_vital_dashboard);
-    }
     return (
         // @ts-expect-error
         <Card interactable title={WebVitalName[webVitalName]}>
             {loading ? (
                 <Skeleton height={235} />
+            ) : data === undefined || !!data.web_vital_dashboard ? (
+                <div className={styles.noDataContainer}>
+                    <EmptyCardPlaceholder
+                        message={`Doesn't look like we've gotten any ${webVitalName} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                    />
+                </div>
             ) : (
                 <LineChart
                     height={235}
-                    data={data?.web_vital_dashboard || []}
+                    data={data.web_vital_dashboard}
                     xAxisDataKeyName="date"
                     xAxisTickFormatter={(tickItem) => {
                         return moment(new Date(tickItem), 'DD MMM YYYY').format(
