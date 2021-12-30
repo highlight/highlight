@@ -23,6 +23,8 @@ const DashboardCard = ({ webVitalName }: Props) => {
         variables: { project_id, web_vital_name: webVitalName },
     });
 
+    const webVitalConfig = WEB_VITALS_CONFIGURATION[webVitalName];
+
     return (
         // @ts-expect-error
         <Card interactable title={WebVitalName[webVitalName]}>
@@ -40,6 +42,18 @@ const DashboardCard = ({ webVitalName }: Props) => {
                 <LineChart
                     height={235}
                     data={data.web_vital_dashboard}
+                    referenceLines={[
+                        {
+                            label: 'Goal',
+                            value: webVitalConfig.maxGoodValue,
+                            color: 'var(--color-green-300)',
+                        },
+                        {
+                            label: 'Needs Improvement',
+                            value: webVitalConfig.maxNeedsImprovementValue,
+                            color: 'var(--color-red-300)',
+                        },
+                    ]}
                     xAxisDataKeyName="date"
                     xAxisTickFormatter={(tickItem) => {
                         return moment(new Date(tickItem), 'DD MMM YYYY').format(

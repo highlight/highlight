@@ -8,6 +8,7 @@ import {
     Legend,
     Line,
     LineChart as RechartsLineChart,
+    ReferenceLine,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -18,6 +19,7 @@ import styles from './LineChart.module.scss';
 
 interface Props {
     data: any[];
+    referenceLines?: any[];
     height: number;
     xAxisDataKeyName?: string;
     xAxisTickFormatter?: (value: any, index: number) => string;
@@ -28,6 +30,7 @@ interface Props {
 
 const LineChart = ({
     height,
+    referenceLines,
     xAxisDataKeyName = 'date',
     data,
     xAxisTickFormatter,
@@ -196,6 +199,26 @@ const LineChart = ({
                         );
                     }}
                 />
+                {referenceLines?.map((referenceLine) => (
+                    <ReferenceLine
+                        key={referenceLine.label}
+                        y={referenceLine.value}
+                        // label={referenceLine.label}
+                        stroke={referenceLine.color}
+                        strokeDasharray="3 3"
+                        alwaysShow
+                        isFront
+                    >
+                        {/* <Label
+                            position={'insideLeft'}
+                            alignmentBaseline="before-edge"
+                            offset={10}
+                            className={styles.referenceLineValue}
+                        >
+                            {referenceLine.label}
+                        </Label> */}
+                    </ReferenceLine>
+                ))}
                 {nonXAxisKeys.map((key) => (
                     <Line
                         hide={!dataTypesToShow.includes(key)}
