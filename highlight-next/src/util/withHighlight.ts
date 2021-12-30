@@ -9,21 +9,10 @@ export type WrappedNextApiHandler = (
     res: NextApiResponse
 ) => Promise<void>;
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const withHighlight = (
     origHandler: NextApiHandler
 ): WrappedNextApiHandler => {
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     return async (req, res) => {
-        // first order of business: monkeypatch `res.end()` so that it will wait for us to send events to sentry before it
-        // fires (if we don't do this, the lambda will close too early and events will be either delayed or lost)
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        res.end = wrapEndMethod(res.end);
-
-        //// `local.bind` causes everything to run inside a domain, just like `local.run` does, but it also lets the callback
-        //// return a value. In our case, all any of the codepaths return is a promise of `void`, but nextjs still counts on
-        //// getting that before it will finish the response.
-        //const boundHandler = local.bind(async () => {
         try {
             const handlerResult = await origHandler(req, res);
 
@@ -100,36 +89,7 @@ export const withHighlight = (
             // the error as already having been captured.)
             throw e;
         }
-        //});
-
-        // Since API route handlers are all async, nextjs always awaits the return value (meaning it's fine for us to return
-        // a promise here rather than a real result, and it saves us the overhead of an `await` call.)
-        //return boundHandler();
     };
 };
-
-type ResponseEndMethod = NextApiResponse['end'];
-type WrappedResponseEndMethod = NextApiResponse['end'];
-
-/**
- * Wrap `res.end()` so that it closes the transaction and flushes events before letting the request finish.
- *
- * Note: This wraps a sync method with an async method. While in general that's not a great idea in terms of keeping
- * things in the right order, in this case it's safe', as explained in detail in the long comment in the main
- * `withSentry()` function.
- *
- * @param origEnd The original `res.end()` method
- * @returns The wrapped version
- */
-function wrapEndMethod(origEnd: ResponseEndMethod): WrappedResponseEndMethod {
-    return async function newEnd(this: NextApiResponse, ...args: unknown[]) {
-        // If the request didn't error, we will have temporarily marked the response finished to avoid a nextjs warning
-        // message. (See long note above.) Now we need to flip `finished` back to `false` so that the real `res.end()`
-        // method doesn't throw `ERR_STREAM_WRITE_AFTER_END` (which it will if presented with an already-finished response).
-        this.finished = false;
-
-        return origEnd.call(this, ...args);
-    };
-}
 
 // this code was heavily assisted by https://github.com/getsentry/sentry-javascript/blob/2f2d099dcc668f12109913caf36097f73a1bc966/packages/nextjs/src/utils/withSentry.ts
