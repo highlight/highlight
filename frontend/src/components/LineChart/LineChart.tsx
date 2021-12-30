@@ -206,7 +206,6 @@ const LineChart = ({
                         // label={referenceLine.label}
                         stroke={referenceLine.color}
                         strokeDasharray="3 3"
-                        alwaysShow
                         isFront
                     >
                         {/* <Label
