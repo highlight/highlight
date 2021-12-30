@@ -1,6 +1,5 @@
 .legendContainer {
     align-items: center;
-    column-gap: var(--size-small);
     display: flex;
     justify-content: center;
     margin-top: var(--size-xSmall);
@@ -8,14 +7,43 @@
 
 .legendItem {
     align-items: center;
-    color: var(--color-gray-500);
+    color: var(--color-gray-500) !important;
     column-gap: var(--size-xxSmall);
     display: flex;
     font-size: 12px;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+.legendValue {
+    color: var(--color-gray-500) !important;
+
+    &.notShowing {
+        text-decoration: line-through;
+    }
 }
 
 .legendIcon {
     border-radius: var(--size-xxSmall);
     height: var(--size-small);
     width: var(--size-small);
+
+    &.notShowing {
+        filter: grayscale(0.5);
+    }
+}
+
+.tooltipEntry {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    margin-bottom: 0 !important;
+
+    &:not(&:last-of-type) {
+        margin-bottom: var(--size-xSmall) !important;
+    }
+}
+
+.referenceLineValue {
+    color: var(--color-gray-500);
 }
