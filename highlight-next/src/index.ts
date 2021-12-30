@@ -5,7 +5,8 @@ import { GraphQLClient } from 'graphql-request';
 export interface HighlightInterface {
         consumeError: (
                 error: Error,
-                secureSessionId: string, requestId: string,
+                secureSessionId: string, 
+                requestId: string,
         ) => void;
 }
 
@@ -13,7 +14,8 @@ var highlight_obj: Highlight;
 export const H: HighlightInterface = {
         consumeError: (
                 error: Error,
-                secureSessionId: string, requestId: string,
+                secureSessionId: string, 
+                requestId: string,
         ) => {
                 try {
                         highlight_obj.consumeCustomError(
@@ -46,7 +48,9 @@ export class Highlight {
                 }
                 const variables: PushBackendPayloadMutationVariables = {
                         errors: {
-                                event: error.message,
+                                event: error.message
+                                        ? `${error.name}: ${error.message}`
+                                        : `${error.name}`,
                                 request_id: requestId,
                                 session_secure_id: secureSessionId,
                                 source: '',
