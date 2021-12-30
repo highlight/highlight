@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SvgShieldWarningIcon(props: React.SVGProps<SVGSVGElement>) {
+function SvgSkullIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             width="1em"
@@ -11,22 +11,16 @@ function SvgShieldWarningIcon(props: React.SVGProps<SVGSVGElement>) {
             {...props}
         >
             <path
-                d="M12 4.75L4.75 8S4 19.25 12 19.25 19.25 8 19.25 8L12 4.75z"
+                d="M4.75 12a7.25 7.25 0 0114.5 0v1.25a2 2 0 01-2 2h-1v3a1 1 0 01-1 1h-6.5a1 1 0 01-1-1v-3h-1a2 2 0 01-2-2V12z"
                 stroke="currentColor"
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
             <path
-                d="M12.5 15a.5.5 0 11-1 0 .5.5 0 011 0z"
+                d="M16.25 11a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zM10.25 11a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zM10.75 17.75v1.5M13.25 17.75v1.5"
                 stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <path
-                d="M12 9v2"
-                stroke="currentColor"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
@@ -34,4 +28,4 @@ function SvgShieldWarningIcon(props: React.SVGProps<SVGSVGElement>) {
     );
 }
 
-export default SvgShieldWarningIcon;
+export default SvgSkullIcon;

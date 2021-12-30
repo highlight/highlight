@@ -25,6 +25,7 @@
 
 .legendIcon {
     border-radius: var(--size-xxSmall);
+    flex-shrink: 0;
     height: var(--size-small);
     width: var(--size-small);
 
@@ -46,4 +47,23 @@
 
 .referenceLineValue {
     color: var(--color-gray-500);
+}
+
+.tooltipRow {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.scoreIcon {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    flex-shrink: 0;
+}
+
+.tooltipValue {
+    color: var(--text-primary);
 }
