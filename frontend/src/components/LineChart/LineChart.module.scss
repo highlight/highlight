@@ -24,7 +24,7 @@
 }
 
 .legendIcon {
-    border-radius: var(--size-xxSmall);
+    border-radius: 2px;
     flex-shrink: 0;
     height: var(--size-small);
     width: var(--size-small);
@@ -39,10 +39,6 @@
     column-gap: var(--size-xxSmall);
     display: flex;
     margin-bottom: 0 !important;
-
-    &:not(&:last-of-type) {
-        margin-bottom: var(--size-xSmall) !important;
-    }
 }
 
 .referenceLineValue {
@@ -58,12 +54,17 @@
 }
 
 .scoreIcon {
+    --size: var(--size-small);
     align-items: center;
     color: var(--color-gray-500);
     display: flex;
     flex-shrink: 0;
+    height: var(--size);
+    width: var(--size);
 }
 
 .tooltipValue {
     color: var(--text-primary);
+    font-size: 12px;
+    line-height: initial;
 }
