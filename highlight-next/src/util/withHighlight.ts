@@ -66,8 +66,8 @@ export const withHighlight = (
 
             return handlerResult;
         } catch (e) {
-            if (req.headers && req.headers['X-Highlight-Request']) {
-                const vals = `${req.headers['X-Highlight-Request']}`.split('/');
+            if (req.headers && req.headers['x-highlight-request']) {
+                const vals = `${req.headers['x-highlight-request']}`.split('/');
                 var secureSessionId = '';
                 var requestId = '';
                 if (vals.length == 2) {
