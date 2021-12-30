@@ -43,9 +43,7 @@ export class Highlight {
                 let res: ErrorStackParser.StackFrame[] = [];
                 try {
                         res = ErrorStackParser.parse(error);
-                } catch (e) {
-                        console.error(e);
-                }
+                } catch {}
                 const variables: PushBackendPayloadMutationVariables = {
                         errors: {
                                 event: error.message
