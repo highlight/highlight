@@ -63,8 +63,9 @@ const DashboardCard = ({ webVitalName }: Props) => {
                     lineColorMapping={{
                         p99: 'var(--color-red-400)',
                         p90: 'var(--color-orange-400)',
-                        p75: 'var(--color-yellow-400)',
-                        avg: 'var(--color-green-700)',
+                        p75: 'var(--color-green-600)',
+                        p50: 'var(--color-blue-400)',
+                        avg: 'var(--color-gray-400)',
                     }}
                     yAxisLabel={WEB_VITALS_CONFIGURATION[webVitalName].units}
                 />

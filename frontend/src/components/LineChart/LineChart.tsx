@@ -8,7 +8,6 @@ import {
     WebVitalValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
-import moment from 'moment';
 import React, { useState } from 'react';
 import {
     CartesianGrid,
@@ -93,13 +92,6 @@ const LineChart = ({
                             render={(payload: any) => {
                                 return (
                                     <>
-                                        <h4>
-                                            {moment(
-                                                new Date(
-                                                    payload[0].payload.date
-                                                )
-                                            ).format('D MMM YYYY')}
-                                        </h4>
                                         <div>
                                             {payload
                                                 .reverse()
@@ -126,10 +118,6 @@ const LineChart = ({
                                                                 }
                                                             >
                                                                 <span>
-                                                                    {
-                                                                        entry.dataKey
-                                                                    }
-                                                                    :{' '}
                                                                     <span
                                                                         className={
                                                                             styles.tooltipValue
@@ -137,11 +125,9 @@ const LineChart = ({
                                                                     >
                                                                         {entry.value.toFixed(
                                                                             2
-                                                                        )}{' '}
-                                                                        {
-                                                                            yAxisLabel
-                                                                        }
-                                                                    </span>
+                                                                        )}
+                                                                    </span>{' '}
+                                                                    {yAxisLabel}
                                                                 </span>
                                                                 {getScoreIcon(
                                                                     getWebVitalValueScore(
