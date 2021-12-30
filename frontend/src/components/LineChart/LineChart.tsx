@@ -1,5 +1,12 @@
 import Button from '@components/Button/Button/Button';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
+import SvgShieldWarningIcon from '@icons/ShieldWarningIcon';
+import SvgSkullIcon from '@icons/SkullIcon';
+import {
+    getWebVitalValueScore,
+    WebVitalValueScore,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
@@ -113,12 +120,40 @@ const LineChart = ({
                                                                         entry.color,
                                                                 }}
                                                             ></div>
-                                                            <div>
-                                                                {entry.dataKey}:{' '}
-                                                                {entry.value.toFixed(
-                                                                    2
-                                                                )}{' '}
-                                                                {yAxisLabel}
+                                                            <div
+                                                                className={
+                                                                    styles.tooltipRow
+                                                                }
+                                                            >
+                                                                <span>
+                                                                    {
+                                                                        entry.dataKey
+                                                                    }
+                                                                    :{' '}
+                                                                    <span
+                                                                        className={
+                                                                            styles.tooltipValue
+                                                                        }
+                                                                    >
+                                                                        {entry.value.toFixed(
+                                                                            2
+                                                                        )}{' '}
+                                                                        {
+                                                                            yAxisLabel
+                                                                        }
+                                                                    </span>
+                                                                </span>
+                                                                {getScoreIcon(
+                                                                    getWebVitalValueScore(
+                                                                        entry.value,
+                                                                        {
+                                                                            maxGoodValue: referenceLines![0]
+                                                                                .value,
+                                                                            maxNeedsImprovementValue: referenceLines![1]
+                                                                                .value,
+                                                                        }
+                                                                    )
+                                                                )}
                                                             </div>
                                                         </p>
                                                     );
@@ -235,3 +270,20 @@ const LineChart = ({
 };
 
 export default LineChart;
+
+const getScoreIcon = (score: WebVitalValueScore) => {
+    let icon = <></>;
+    switch (score) {
+        case WebVitalValueScore.Good:
+            icon = <SvgCheckCircleIcon />;
+            break;
+        case WebVitalValueScore.NeedsImprovement:
+            icon = <SvgShieldWarningIcon />;
+            break;
+        case WebVitalValueScore.Poor:
+            icon = <SvgSkullIcon />;
+            break;
+    }
+
+    return <div className={styles.scoreIcon}>{icon}</div>;
+};
