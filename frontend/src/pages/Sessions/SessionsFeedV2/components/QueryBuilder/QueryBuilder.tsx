@@ -977,6 +977,10 @@ const QueryBuilder = () => {
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     useEffect(() => {
+        if (!queryBuilderState) {
+            return;
+        }
+
         const isAnd = queryBuilderState.isAnd;
         const rules = queryBuilderState.rules;
         toggleIsAnd(isAnd);
