@@ -909,7 +909,7 @@ const getType = (value: string) => {
 };
 
 const getName = (value: string) => {
-    const [_, ...rest] = value.split('_');
+    const [, ...rest] = value.split('_');
     return rest.join('_');
 };
 
