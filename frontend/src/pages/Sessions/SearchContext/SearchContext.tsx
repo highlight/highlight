@@ -52,6 +52,8 @@ interface SearchContext {
     ) => void;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    queryBuilderState: any;
+    setQueryBuilderState: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export const [

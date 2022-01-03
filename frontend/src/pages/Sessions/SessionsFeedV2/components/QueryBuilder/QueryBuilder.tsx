@@ -36,14 +36,12 @@ interface SelectOption {
     kind: 'single';
     label: string;
     value: string;
-    data?: any;
 }
 interface MultiselectOption {
     kind: 'multi';
     options: readonly {
         label: string;
         value: string;
-        data?: any;
     }[];
 }
 
@@ -163,28 +161,25 @@ const getMultiselectOption = (props: any) => {
 };
 
 const getOption = (props: any) => {
-    const {
-        data: { data },
-        label,
-        value,
-    } = props;
+    const { label, value } = props;
+    const type = getType(value);
+    const nameLabel = getNameLabel(label);
+    const typeLabel = getTypeLabel(value);
 
     return (
         <div>
             <components.Option {...props}>
                 <div className={styles.optionLabelContainer}>
-                    {data?.typeLabel && (
+                    {!!typeLabel && (
                         <div className={styles.labelTypeContainer}>
                             <div className={styles.optionLabelType}>
-                                {data.typeLabel}
+                                {typeLabel}
                             </div>
                         </div>
                     )}
-                    <div className={styles.optionLabelName}>
-                        {data?.nameLabel ? data.nameLabel : label}
-                    </div>
-                    {(data?.type === 'session' ||
-                        data?.type === CUSTOM_TYPE ||
+                    <div className={styles.optionLabelName}>{nameLabel}</div>
+                    {(type === 'session' ||
+                        type === CUSTOM_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
                             title={TOOLTIP_MESSAGE}
@@ -350,24 +345,25 @@ const PopoutContent = ({
                 <DateInput
                     startDate={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.start
+                            ? new Date(value.options[0]?.value.split('_')[0])
                             : undefined
                     }
                     endDate={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.end
+                            ? new Date(value.options[0]?.value.split('_')[1])
                             : undefined
                     }
                     onChange={(start, end) => {
                         const startStr = moment(start).format('MMM D');
                         const endStr = moment(end).format('MMM D');
+                        const startIso = moment(start).toISOString();
+                        const endIso = moment(end).toISOString();
                         onChange({
                             kind: 'multi',
                             options: [
                                 {
                                     label: `${startStr} and ${endStr}`,
-                                    value: '',
-                                    data: { start: start, end: end },
+                                    value: `${startIso}_${endIso}`,
                                 },
                             ],
                         });
@@ -381,12 +377,12 @@ const PopoutContent = ({
                 <LengthInput
                     start={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.start
+                            ? Number(value.options[0]?.value.split('_')[0])
                             : 0
                     }
                     end={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.end
+                            ? Number(value.options[0]?.value.split('_')[1])
                             : 60
                     }
                     onChange={(start, end) => {
@@ -401,8 +397,7 @@ const PopoutContent = ({
                             options: [
                                 {
                                     label: label,
-                                    value: '',
-                                    data: { start: start, end: end },
+                                    value: `${start}_${end}`,
                                 },
                             ],
                         });
@@ -451,8 +446,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 onClick={() => onSetVisible(true)}
             >
                 {invalid && '--'}
-                {value?.kind === 'single' &&
-                    (value.data?.nameLabel ?? value.label)}
+                {value?.kind === 'single' && getNameLabel(value.label)}
                 {value?.kind === 'multi' &&
                     value.options.length > 1 &&
                     `${value.options.length} selections`}
@@ -640,21 +634,7 @@ const getOperator = (
         return undefined;
     }
 
-    let label: string;
-    if (DATE_OPERATORS.includes(op)) {
-        const dateRange = getDateRange(val);
-        const hasStart = !!dateRange?.start_date;
-        const hasEnd = !!dateRange?.end_date;
-        if (hasStart && !hasEnd) {
-            label = isNegative(op) ? 'is not after' : 'is after';
-        } else if (hasEnd && !hasStart) {
-            label = isNegative(op) ? 'is not before' : 'is before';
-        } else {
-            label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
-        }
-    } else {
-        label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
-    }
+    const label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
     return {
         kind: 'single',
         value: op,
@@ -665,28 +645,12 @@ const getOperator = (
 const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
-const getDateRange = (val: OnChangeInput) => {
-    return val?.kind === 'multi'
-        ? val.options
-              .map((op) => ({
-                  start_date: op.data?.start,
-                  end_date: op.data?.end,
-              }))
-              .find(() => true)
-        : undefined;
-};
+const CUSTOM_TYPE = 'custom';
 
-const CUSTOM_TYPE = '_custom';
-
-const parseInner = (
-    field: SelectOption,
-    op: Operator,
-    value?: string,
-    data?: any
-): any => {
-    if (field.data?.type === CUSTOM_TYPE) {
-        const name = field.data?.name;
-        const isKeyword = !(field.data?.options.type !== 'text');
+const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
+    if (getType(field.value) === CUSTOM_TYPE) {
+        const name = field.label;
+        const isKeyword = !(getCustomFieldOptions(field)?.type !== 'text');
         switch (op) {
             case 'is':
                 return {
@@ -710,8 +674,8 @@ const parseInner = (
                 return {
                     range: {
                         [name]: {
-                            gte: data?.start,
-                            lte: data?.end,
+                            gte: value?.split('_')[0],
+                            lte: value?.split('_')[1],
                         },
                     },
                 };
@@ -719,10 +683,15 @@ const parseInner = (
                 return {
                     range: {
                         [name]: {
-                            gte: data?.start * 60 * 1000,
-                            ...(data?.end === 60
+                            gte: Number(value?.split('_')[0]) * 60 * 1000,
+                            ...(Number(value?.split('_')[1]) === 60
                                 ? null
-                                : { lte: data?.end * 60 * 1000 }),
+                                : {
+                                      lte:
+                                          Number(value?.split('_')[1]) *
+                                          60 *
+                                          1000,
+                                  }),
                         },
                     },
                 };
@@ -767,8 +736,8 @@ const parseRuleImpl = (
     } else if (hasArguments(op)) {
         return {
             bool: {
-                should: multiValue.options.map(({ value, data }) =>
-                    parseInner(field, op, value, data)
+                should: multiValue.options.map(({ value }) =>
+                    parseInner(field, op, value)
                 ),
             },
         };
@@ -854,6 +823,67 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
     },
 ];
 
+const toJSON = (rules: RuleProps[]): any => {
+    const ruleGroups = rules
+        .map((rule) => {
+            if (!rule.field || !rule.op || !rule.val) {
+                return undefined;
+            }
+
+            return [
+                rule.field.value,
+                rule.op,
+                rule.val.options.map((op) => {
+                    if (op.value === op.label) {
+                        return op.value;
+                    } else {
+                        return {
+                            l: op.label,
+                            v: op.value,
+                        };
+                    }
+                }),
+            ];
+        })
+        .filter((ruleGroup) => !!ruleGroup);
+
+    return ruleGroups;
+};
+
+const fromJSON = (ruleGroups: any): RuleProps[] => {
+    const rules = ruleGroups.map((group: any) => {
+        const fieldVal = group[0];
+        const opVal = group[1];
+        const vals = group[2];
+
+        return {
+            field: {
+                kind: 'single',
+                label: getName(fieldVal),
+                value: fieldVal,
+            },
+            op: opVal as Operator,
+            val: {
+                kind: 'multi',
+                options: vals.map((val: any) => {
+                    if (val.v && val.l) {
+                        return {
+                            value: val.v,
+                            label: val.l,
+                        };
+                    }
+                    return {
+                        label: val,
+                        value: val,
+                    };
+                }),
+            },
+        };
+    });
+
+    return rules;
+};
+
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
     rule.op !== undefined &&
@@ -861,14 +891,51 @@ const isComplete = (rule: RuleProps) =>
         (rule.val !== undefined && rule.val.options.length !== 0));
 
 const getDefaultOperator = (field: SelectOption | undefined) =>
-    (field?.data?.options?.operators ?? OPERATORS)[0];
+    ((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0];
+
+const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
+
+const getTypeLabel = (value: string) => {
+    const type = getType(value);
+    const mapped = type === CUSTOM_TYPE ? 'session' : type;
+    if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
+        return mapped;
+    }
+    return undefined;
+};
+
+const getType = (value: string) => {
+    return value.split('_')[0];
+};
+
+const getName = (value: string) => {
+    const [_, ...rest] = value.split('_');
+    return rest.join('_');
+};
+
+const getCustomFieldOptions = (field: SelectOption | undefined) => {
+    if (!field) {
+        return undefined;
+    }
+
+    const type = getType(field.value);
+    if (type !== CUSTOM_TYPE) {
+        return undefined;
+    }
+
+    return CUSTOM_FIELDS.find((f) => f.name === field.label)?.options;
+};
 
 const QueryBuilder = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
 
-    const { setSearchQuery } = useSearchContext();
+    const {
+        setSearchQuery,
+        queryBuilderState,
+        setQueryBuilderState,
+    } = useSearchContext();
 
     const { data: fieldData } = useGetFieldTypesQuery({
         variables: { project_id },
@@ -909,6 +976,14 @@ const QueryBuilder = () => {
 
     const [isAnd, toggleIsAnd] = useToggle(true);
 
+    useEffect(() => {
+        const isAnd = queryBuilderState.isAnd;
+        const rules = queryBuilderState.rules;
+        toggleIsAnd(isAnd);
+        setRules(fromJSON(rules));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const getKeyOptions = async (input: string) => {
         if (fieldData?.field_types === undefined) {
             return;
@@ -916,26 +991,19 @@ const QueryBuilder = () => {
 
         const results = CUSTOM_FIELDS.concat(fieldData?.field_types)
             .map((ft) => ({
-                data: {
-                    type: ft.type,
-                    typeLabel: ft.type === CUSTOM_TYPE ? 'session' : ft.type,
-                    name: ft.name,
-                    nameLabel: LABEL_MAP[ft.name] ?? ft.name,
-                    options: ft.options,
-                },
                 label: ft.name,
                 value: ft.type + '_' + ft.name,
             }))
             .filter((ft) =>
                 (
-                    ft.data.typeLabel?.toLowerCase() +
+                    getTypeLabel(ft.value)?.toLowerCase() +
                     ':' +
-                    ft.data.nameLabel.toLowerCase()
+                    getNameLabel(ft.label).toLowerCase()
                 ).includes(input.toLowerCase())
             )
             .sort((a, b) => {
-                const aLower = a.data.nameLabel.toLowerCase();
-                const bLower = b.data.nameLabel.toLowerCase();
+                const aLower = getNameLabel(a.label).toLowerCase();
+                const bLower = getNameLabel(b.label).toLowerCase();
                 if (aLower < bLower) {
                     return -1;
                 } else if (aLower === bLower) {
@@ -962,13 +1030,13 @@ const QueryBuilder = () => {
 
     const getValueOptionsCallback = (field: SelectOption | undefined) => {
         return async (input: string) => {
-            if (field?.data === undefined) {
+            if (field === undefined) {
                 return;
             }
 
-            if (field.data?.type === CUSTOM_TYPE) {
+            if (getType(field.value) === CUSTOM_TYPE) {
                 let options: { label: string; value: string }[] = [];
-                if (field.value === '_custom_app_version') {
+                if (field.value === 'custom_app_version') {
                     options =
                         appVersionData?.app_version_suggestion
                             .filter((val) => !!val)
@@ -976,12 +1044,12 @@ const QueryBuilder = () => {
                                 label: val as string,
                                 value: val as string,
                             })) ?? [];
-                } else if (field.value === '_custom_processed') {
+                } else if (field.value === 'custom_processed') {
                     options = [
                         { label: 'Live', value: 'false' },
                         { label: 'Completed', value: 'true' },
                     ];
-                } else if (field.data?.options.type === 'boolean') {
+                } else if (getCustomFieldOptions(field)?.type === 'boolean') {
                     options = [
                         { label: 'true', value: 'true' },
                         { label: 'false', value: 'false' },
@@ -996,8 +1064,8 @@ const QueryBuilder = () => {
             return await fetchFields({
                 project_id,
                 count: 10,
-                field_type: field.data.type,
-                field_name: field.data.name,
+                field_type: getType(field.value),
+                field_name: field.label,
                 query: input,
             }).then((res) => {
                 return res.data.fields_opensearch.map((val) => ({
@@ -1015,9 +1083,10 @@ const QueryBuilder = () => {
             return;
         }
 
+        setQueryBuilderState({ isAnd: isAnd, rules: toJSON(rules) });
         const query = parseGroup(isAnd, rules);
         setSearchQuery(JSON.stringify(query));
-    }, [isAnd, rules, setSearchQuery]);
+    }, [isAnd, rules, setSearchQuery, setQueryBuilderState]);
 
     const [step1Visible, setStep1Visible] = useState(false);
     const [step2Visible, setStep2Visible] = useState(false);
@@ -1061,7 +1130,7 @@ const QueryBuilder = () => {
                                 }
                             }}
                             getOperatorOptions={getOperatorOptionsCallback(
-                                rule.field?.data?.options,
+                                getCustomFieldOptions(rule.field),
                                 rule.val
                             )}
                             onChangeValue={(val) => {
