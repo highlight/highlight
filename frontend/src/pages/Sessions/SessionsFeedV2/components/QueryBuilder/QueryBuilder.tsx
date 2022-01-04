@@ -968,7 +968,6 @@ const QueryBuilder = () => {
     const [rules, setRulesImpl] = useState<RuleProps[]>([]);
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
-        // setQueryBuilderState({ isAnd: isAnd, rules: serializeRules(rules) });
     };
     const newRule = () => {
         setCurrentRule({
@@ -1012,7 +1011,6 @@ const QueryBuilder = () => {
 
     const [initialQuery] = useQueryParam('query', JsonParam);
 
-    // When the page is first loaded,
     useEffect(() => {
         if (!!initialQuery) {
             setQueryBuilderState({

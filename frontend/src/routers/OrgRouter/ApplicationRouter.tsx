@@ -79,12 +79,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
         JsonParam
     );
 
-    // const [queryBuilderState, setQ] = useQueryParam('query2', JsonParam);
-    // const setQueryBuilderState = (newValue: any) => {
-    //     console.log('settingQueryBuilderState!!', newValue);
-    //     setQ(newValue);
-    // };
-
     const [queryBuilderState, setQueryBuilderState] = useState<any>(undefined);
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
@@ -146,10 +140,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
         if (selectedSegment && selectedSegment.id && selectedSegment.value) {
             if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
-                setActiveSegmentUrlParam(selectedSegment);
+                setActiveSegmentUrlParam(selectedSegment, 'replace');
             }
         } else if (activeSegmentUrlParam !== undefined) {
-            setActiveSegmentUrlParam(undefined);
+            setActiveSegmentUrlParam(undefined, 'replace');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam]);

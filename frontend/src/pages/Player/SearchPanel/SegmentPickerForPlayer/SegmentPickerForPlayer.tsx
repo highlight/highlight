@@ -422,7 +422,7 @@ const SegmentPickerForPlayer = () => {
                     ) {
                         setSelectedSegment(undefined);
                         setSegmentName(null);
-                        // setSearchParams(EmptySessionsSearchParams);
+                        setSearchParams(EmptySessionsSearchParams);
                     }
                 }}
             />
