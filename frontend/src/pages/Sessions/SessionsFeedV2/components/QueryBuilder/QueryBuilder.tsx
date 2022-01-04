@@ -946,6 +946,7 @@ const QueryBuilder = () => {
 
     const {
         setSearchQuery,
+        searchParams,
         setSearchParams,
         queryBuilderState,
         setQueryBuilderState,
@@ -1006,8 +1007,38 @@ const QueryBuilder = () => {
 
         toggleIsAnd(isAnd);
         setRules(deserializeRules(rules));
+    }, [queryBuilderState, toggleIsAnd]);
+
+    useEffect(() => {
+        if (
+            searchParams.show_live_sessions &&
+            queryBuilderState &&
+            queryBuilderState.rules
+        ) {
+            setQueryBuilderState({
+                isAnd: queryBuilderState.isAnd,
+                rules: queryBuilderState.rules.map((group: any[]) => {
+                    if (group[0] === 'custom_processed' && group[1] === 'is') {
+                        const newValue = [
+                            {
+                                l: 'Completed',
+                                v: 'true',
+                            },
+                            {
+                                l: 'Live',
+                                v: 'false',
+                            },
+                        ];
+                        return [group[0], group[1], newValue];
+                    } else {
+                        return group;
+                    }
+                }),
+            });
+        }
+        // This should only run when the live sessions flag is updated
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [queryBuilderState]);
+    }, [searchParams.show_live_sessions]);
 
     const [initialQuery] = useQueryParam('query', JsonParam);
 
