@@ -267,6 +267,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
+			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, f); err != nil {
+				return e.Wrap(err, "error indexing new field")
+			}
 
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
@@ -275,6 +278,24 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 
 	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
+	type OpenSearchField struct {
+		*model.Field
+		Key      string
+		KeyValue string
+	}
+
+	openSearchFields := make([]interface{}, len(fieldsToAppend))
+	for i, field := range fieldsToAppend {
+		openSearchFields[i] = OpenSearchField{
+			Field:    field,
+			Key:      field.Type + "_" + field.Name,
+			KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
+		}
+	}
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending session fields")
+	}
+
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
@@ -403,10 +424,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
 			State:      modelInputs.ErrorStateOpen.String(),
+			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
+
+		// if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, newErrorGroup); err != nil {
+		// 	return nil, e.Wrap(err, "error indexing error group in opensearch")
+		// }
 
 		errorGroup = newErrorGroup
 	}
@@ -437,6 +463,14 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
+	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+	// 	"StackTrace":       newFrameString,
+	// 	"MappedStackTrace": newMappedStackTraceString,
+	// 	"Environments":     environmentsString,
+	// }); err != nil {
+	// 	return nil, e.Wrap(err, "error updating error group in opensearch")
+	// }
+
 	return errorGroup, nil
 }
 
@@ -455,6 +489,14 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			fieldsToAppend = append(fieldsToAppend, field)
 		}
 	}
+
+	openSearchFields := make([]interface{}, len(fieldsToAppend))
+	for i, field := range fieldsToAppend {
+		openSearchFields[i] = field
+	}
+	// if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
+	// 	return e.Wrap(err, "error appending error fields")
+	// }
 
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
@@ -595,6 +637,10 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
+	}
+
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return nil, e.Wrap(err, "error indexing session in opensearch")
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
