@@ -79,6 +79,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
         JsonParam
     );
 
+    const [queryBuilderState, setQueryBuilderState] = useQueryParam(
+        'query',
+        JsonParam
+    );
+
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
@@ -169,6 +174,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setSelectedSegment,
                 searchQuery,
                 setSearchQuery,
+                queryBuilderState,
+                setQueryBuilderState,
             }}
         >
             <KeyboardShortcutsEducation />
