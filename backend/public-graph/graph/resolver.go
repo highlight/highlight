@@ -459,8 +459,17 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+	// Don't save errors that come from rrweb at record time.
+	if strings.Contains(*newMappedStackTraceString, "rrweb") {
+		var now = time.Now()
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{Model: model.Model{DeletedAt: &now}}).Error; err != nil {
+			return nil, e.Wrap(err, "Error soft deleting rrweb error group.")
+		}
+
+	} else {
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
+			return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+		}
 	}
 
 	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
@@ -1054,7 +1063,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				WHERE
 					project_id=?
 					AND type=?
-					AND (error_group_id IS NOT NULL 
+					AND (error_group_id IS NOT NULL
 						AND error_group_id=?)
 					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
