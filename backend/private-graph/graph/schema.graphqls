@@ -294,6 +294,7 @@ input SearchParamsInput {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 type SearchParams {
@@ -314,6 +315,7 @@ type SearchParams {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 input AdminAboutYouDetails {

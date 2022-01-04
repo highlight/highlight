@@ -436,6 +436,7 @@ type ComplexityRoot struct {
 		Identified              func(childComplexity int) int
 		LengthRange             func(childComplexity int) int
 		OS                      func(childComplexity int) int
+		Query                   func(childComplexity int) int
 		Referrer                func(childComplexity int) int
 		ShowLiveSessions        func(childComplexity int) int
 		TrackProperties         func(childComplexity int) int
@@ -3438,6 +3439,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.OS(childComplexity), true
 
+	case "SearchParams.query":
+		if e.complexity.SearchParams.Query == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.Query(childComplexity), true
+
 	case "SearchParams.referrer":
 		if e.complexity.SearchParams.Referrer == nil {
 			break
@@ -4716,6 +4724,7 @@ input SearchParamsInput {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 type SearchParams {
@@ -4736,6 +4745,7 @@ type SearchParams {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 input AdminAboutYouDetails {
@@ -19496,6 +19506,38 @@ func (ec *executionContext) _SearchParams_show_live_sessions(ctx context.Context
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchParams_query(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Query, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Segment_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25139,6 +25181,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+			it.Query, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -27716,6 +27766,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_first_time(ctx, field, obj)
 		case "show_live_sessions":
 			out.Values[i] = ec._SearchParams_show_live_sessions(ctx, field, obj)
+		case "query":
+			out.Values[i] = ec._SearchParams_query(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -3,6 +3,12 @@ import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import {
+    deserializeGroup,
+    getDefaultRules,
+    RuleProps,
+    serializeRules,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -39,6 +45,7 @@ const SegmentPickerForPlayer = () => {
         setShowStarredSessions,
         selectedSegment,
         setSelectedSegment,
+        setQueryBuilderState,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
         variables: { project_id },
@@ -57,15 +64,165 @@ const SegmentPickerForPlayer = () => {
         (s) => s?.id === selectedSegment?.id
     );
 
+    const propertiesToRules = (
+        properties: any[],
+        type: string,
+        op: string
+    ): RuleProps[] => {
+        const propsMap = new Map<string, any[]>();
+        for (const prop of properties) {
+            if (!propsMap.has(prop.name)) {
+                propsMap.set(prop.name, []);
+            }
+            propsMap.get(prop.name)?.push(prop.value);
+        }
+        const rules: RuleProps[] = [];
+        for (const [name, vals] of propsMap) {
+            rules.push(deserializeGroup(`${type}_${name}`, op, vals));
+        }
+        return rules;
+    };
+
+    // If there is no query builder param (for segments saved
+    // before the query builder was released), create one.
+    const addQueryBuilderParam = (params: any) => {
+        if (!!params.query) {
+            return params;
+        }
+        const rules: RuleProps[] = [];
+        if (params.user_properties) {
+            rules.push(
+                ...propertiesToRules(params.user_properties, 'user', 'is')
+            );
+        }
+        if (params.excluded_properties) {
+            rules.push(
+                ...propertiesToRules(
+                    params.excluded_properties,
+                    'user',
+                    'is_not'
+                )
+            );
+        }
+        if (params.track_properties) {
+            rules.push(
+                ...propertiesToRules(params.track_properties, 'track', 'is')
+            );
+        }
+        if (params.excluded_track_properties) {
+            rules.push(
+                ...propertiesToRules(
+                    params.excluded_track_properties,
+                    'track',
+                    'is_not'
+                )
+            );
+        }
+        if (params.date_range) {
+            const start = params.date_range.start_date;
+            const end = params.date_range.end_date;
+            rules.push(
+                deserializeGroup('created_at', 'between_date', [
+                    {
+                        l: `${start} and ${end}`,
+                        v: `${start}_${end}`,
+                    },
+                ])
+            );
+        }
+        if (params.length_range) {
+            const min = params.length_range.min;
+            const max = params.length_range.max;
+            rules.push(
+                deserializeGroup('active_length', 'between', [
+                    {
+                        l: `${min} and ${max}`,
+                        v: `${min}_${max}`,
+                    },
+                ])
+            );
+        }
+        if (params.browser) {
+            rules.push(
+                deserializeGroup('session_browser', 'is', [params.browser])
+            );
+        }
+        if (params.os) {
+            rules.push(deserializeGroup('session_os_name', 'is', [params.os]));
+        }
+        if (params.environments) {
+            rules.push(
+                deserializeGroup(
+                    'session_environment',
+                    'is',
+                    params.environments
+                )
+            );
+        }
+        if (params.app_versions) {
+            rules.push(
+                deserializeGroup(
+                    'custom_app_version',
+                    'is',
+                    params.app_versions
+                )
+            );
+        }
+        if (params.device_id) {
+            rules.push(
+                deserializeGroup('session_device_id', 'is', [params.device_id])
+            );
+        }
+        if (params.visited_url) {
+            rules.push(
+                deserializeGroup('session_visited-url', 'is', [
+                    params.visited_url,
+                ])
+            );
+        }
+        if (params.referrer) {
+            rules.push(
+                deserializeGroup('session_referrer', 'is', [params.referrer])
+            );
+        }
+        if (params.identified) {
+            rules.push(deserializeGroup('user_identifier', 'exists', []));
+        }
+        if (params.hide_viewed) {
+            rules.push(deserializeGroup('custom_viewed', 'is', ['false']));
+        }
+        if (params.first_time) {
+            rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
+        }
+        if (!params.show_live_sessions) {
+            rules.push(
+                deserializeGroup('custom_processed', 'is', [
+                    { v: 'true', l: 'Completed' },
+                ])
+            );
+        }
+        return {
+            ...params,
+            query: JSON.stringify({
+                isAnd: true,
+                rules: serializeRules(rules),
+            }),
+        };
+    };
+
     useEffect(() => {
         if (currentSegment) {
-            const segmentParameters = gqlSanitize({
-                ...currentSegment?.params,
-            });
+            const segmentParameters = addQueryBuilderParam(
+                gqlSanitize({
+                    ...currentSegment?.params,
+                })
+            );
             setExistingParams(segmentParameters);
             setSearchParams(segmentParameters);
+            setQueryBuilderState(JSON.parse(segmentParameters.query));
             setSegmentName(currentSegment?.name || null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
     useEffect(() => {
@@ -114,6 +271,14 @@ const SegmentPickerForPlayer = () => {
                         setShowStarredSessions(true);
                         setExistingParams(EmptySessionsSearchParams);
                         setSearchParams(EmptySessionsSearchParams);
+                        setQueryBuilderState({
+                            isAnd: true,
+                            rules: serializeRules([
+                                deserializeGroup('custom_starred', 'is', [
+                                    'true',
+                                ]),
+                            ]),
+                        });
                         setSegmentName('Starred');
                         setSelectedSegment({ value, id: STARRED_SEGMENT_ID });
                         return;
@@ -131,6 +296,10 @@ const SegmentPickerForPlayer = () => {
                         setExistingParams(EmptySessionsSearchParams);
                         setSearchParams(EmptySessionsSearchParams);
                         setSegmentName(null);
+                        setQueryBuilderState({
+                            isAnd: true,
+                            rules: getDefaultRules(),
+                        });
                     }
                     setSelectedSegment(nextValue);
                 }}
@@ -253,7 +422,7 @@ const SegmentPickerForPlayer = () => {
                     ) {
                         setSelectedSegment(undefined);
                         setSegmentName(null);
-                        setSearchParams(EmptySessionsSearchParams);
+                        // setSearchParams(EmptySessionsSearchParams);
                     }
                 }}
             />

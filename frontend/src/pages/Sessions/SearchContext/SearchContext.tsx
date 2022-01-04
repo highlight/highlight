@@ -28,6 +28,7 @@ export type SearchParams = {
     first_time?: boolean;
     /** Whether to show sessions that have not been processed yet. */
     show_live_sessions?: boolean;
+    query?: any;
 };
 
 interface SearchContext {

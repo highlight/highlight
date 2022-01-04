@@ -2317,6 +2317,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'environments'
                             | 'device_id'
                             | 'show_live_sessions'
+                            | 'query'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<
