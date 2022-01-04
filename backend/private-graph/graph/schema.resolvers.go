@@ -2988,7 +2988,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
-	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND (active_length >= 0 AND active_length < 1000)) OR (active_length IS NULL AND (length >= 0 AND length < 1000))))) "
 	logTags := []string{
 		fmt.Sprintf("project_id:%d", projectID),
 		fmt.Sprintf("filtered:%t", fieldFilters != ""),
