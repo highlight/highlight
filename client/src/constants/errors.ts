@@ -7,6 +7,6 @@ export const ERRORS_TO_IGNORE = [
 ];
 
 export const ERROR_PATTERNS_TO_IGNORE = [
-    '{\\"isTrusted\\":true',
+    '{"isTrusted":true',
     '\\"ResizeObserver loop',
 ];
