@@ -80,7 +80,9 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).
+		Where(&model.EventsObject{SessionID: s.ID}).
+		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects")
 	}
