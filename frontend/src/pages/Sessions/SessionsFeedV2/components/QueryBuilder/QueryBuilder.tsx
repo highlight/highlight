@@ -18,6 +18,7 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
+import { JsonParam, useQueryParam } from 'use-query-params';
 
 import {
     useGetAppVersionsQuery,
@@ -26,7 +27,7 @@ import {
 } from '../../../../../graph/generated/hooks';
 import styles from './QueryBuilder.module.scss';
 
-interface RuleProps {
+export interface RuleProps {
     field: SelectOption | undefined;
     op: Operator | undefined;
     val: MultiselectOption | undefined;
@@ -823,7 +824,15 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
     },
 ];
 
-const toJSON = (rules: RuleProps[]): any => {
+export const getDefaultRules = (): any => {
+    return serializeRules([
+        deserializeGroup('custom_processed', 'is', [
+            { v: 'true', l: 'Completed' },
+        ]),
+    ]);
+};
+
+export const serializeRules = (rules: RuleProps[]): any => {
     const ruleGroups = rules
         .map((rule) => {
             if (!rule.field || !rule.op || !rule.val) {
@@ -850,35 +859,39 @@ const toJSON = (rules: RuleProps[]): any => {
     return ruleGroups;
 };
 
-const fromJSON = (ruleGroups: any): RuleProps[] => {
-    const rules = ruleGroups.map((group: any) => {
-        const fieldVal = group[0];
-        const opVal = group[1];
-        const vals = group[2];
-
-        return {
-            field: {
-                kind: 'single',
-                label: getName(fieldVal),
-                value: fieldVal,
-            },
-            op: opVal as Operator,
-            val: {
-                kind: 'multi',
-                options: vals.map((val: any) => {
-                    if (val.v && val.l) {
-                        return {
-                            value: val.v,
-                            label: val.l,
-                        };
-                    }
+export const deserializeGroup = (
+    fieldVal: any,
+    opVal: any,
+    vals: any
+): RuleProps => {
+    return {
+        field: {
+            kind: 'single',
+            label: getName(fieldVal),
+            value: fieldVal,
+        },
+        op: opVal as Operator,
+        val: {
+            kind: 'multi',
+            options: vals.map((val: any) => {
+                if (val.v && val.l) {
                     return {
-                        label: val,
-                        value: val,
+                        value: val.v,
+                        label: val.l,
                     };
-                }),
-            },
-        };
+                }
+                return {
+                    label: val,
+                    value: val,
+                };
+            }),
+        },
+    };
+};
+
+const deserializeRules = (ruleGroups: any): RuleProps[] => {
+    const rules = ruleGroups.map((group: any[]) => {
+        return deserializeGroup(group[0], group[1], group[2]);
     });
 
     return rules;
@@ -933,6 +946,7 @@ const QueryBuilder = () => {
 
     const {
         setSearchQuery,
+        setSearchParams,
         queryBuilderState,
         setQueryBuilderState,
     } = useSearchContext();
@@ -951,7 +965,11 @@ const QueryBuilder = () => {
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
 
-    const [rules, setRules] = useState<RuleProps[]>([]);
+    const [rules, setRulesImpl] = useState<RuleProps[]>([]);
+    const setRules = (rules: RuleProps[]) => {
+        setRulesImpl(rules);
+        // setQueryBuilderState({ isAnd: isAnd, rules: serializeRules(rules) });
+    };
     const newRule = () => {
         setCurrentRule({
             field: undefined,
@@ -977,14 +995,32 @@ const QueryBuilder = () => {
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     useEffect(() => {
+        let isAnd;
+        let rules;
         if (!queryBuilderState) {
-            return;
+            isAnd = true;
+            rules = getDefaultRules();
+        } else {
+            isAnd = queryBuilderState.isAnd;
+            rules = queryBuilderState.rules;
         }
 
-        const isAnd = queryBuilderState.isAnd;
-        const rules = queryBuilderState.rules;
         toggleIsAnd(isAnd);
-        setRules(fromJSON(rules));
+        setRules(deserializeRules(rules));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [queryBuilderState]);
+
+    const [initialQuery] = useQueryParam('query', JsonParam);
+
+    // When the page is first loaded,
+    useEffect(() => {
+        if (!!initialQuery) {
+            setQueryBuilderState({
+                isAnd: initialQuery.isAnd,
+                rules: initialQuery.rules,
+            });
+        }
+        // This should run once on component mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -1087,10 +1123,16 @@ const QueryBuilder = () => {
             return;
         }
 
-        setQueryBuilderState({ isAnd: isAnd, rules: toJSON(rules) });
         const query = parseGroup(isAnd, rules);
         setSearchQuery(JSON.stringify(query));
-    }, [isAnd, rules, setSearchQuery, setQueryBuilderState]);
+        setSearchParams((params) => ({
+            ...params,
+            query: JSON.stringify({
+                isAnd,
+                rules: serializeRules(rules),
+            }),
+        }));
+    }, [isAnd, rules, setSearchQuery, setSearchParams]);
 
     const [step1Visible, setStep1Visible] = useState(false);
     const [step2Visible, setStep2Visible] = useState(false);

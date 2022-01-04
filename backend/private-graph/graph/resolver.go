@@ -349,6 +349,7 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	}
 	modelParams.Environments = append(modelParams.Environments, params.Environments...)
 	modelParams.AppVersions = append(modelParams.AppVersions, params.AppVersions...)
+	modelParams.Query = params.Query
 	return modelParams
 }
 

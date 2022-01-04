@@ -844,6 +844,7 @@ query GetSegments($project_id: ID!) {
             environments
             device_id
             show_live_sessions
+            query
         }
     }
 }

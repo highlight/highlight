@@ -6207,6 +6207,7 @@ export const GetSegmentsDocument = gql`
                 environments
                 device_id
                 show_live_sessions
+                query
             }
         }
     }
