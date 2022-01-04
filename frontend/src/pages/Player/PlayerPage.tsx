@@ -62,7 +62,7 @@ interface Props {
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { currentWorkspace } = useApplicationContext();
-    const { session_secure_id } = useParams<{
+    const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
     }>();
@@ -113,7 +113,9 @@ const Player = ({ integrated }: Props) => {
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
     const { isHighlightAdmin } = useAuthContext();
-    const isQueryBuilder = isHighlightAdmin ?? false;
+
+    // Projects can be enabled on a one-off basis by adding to the list below:
+    const isQueryBuilder = isHighlightAdmin || ['1'].includes(project_id);
 
     useEffect(() => {
         if (!session_secure_id) {
