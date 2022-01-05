@@ -17,14 +17,19 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
             try {
                 res = ErrorStackParser.parse(error);
             } catch {} // @eslint-ignore
+            const framesToUse = removeHighlightFrameIfExists(res);
             callback({
                 event: stringify(event),
                 type: 'window.onerror',
                 url: window.location.href,
                 source: source ? source : '',
-                lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
-                columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
-                stackTrace: res,
+                lineNumber: framesToUse[0]?.lineNumber
+                    ? framesToUse[0]?.lineNumber
+                    : 0,
+                columnNumber: framesToUse[0]?.columnNumber
+                    ? framesToUse[0]?.columnNumber
+                    : 0,
+                stackTrace: framesToUse,
                 timestamp: new Date().toISOString(),
             });
         }
@@ -32,4 +37,21 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
     return () => {
         window.onerror = initialOnError;
     };
+};
+
+const removeHighlightFrameIfExists = (
+    frames: ErrorStackParser.StackFrame[]
+): ErrorStackParser.StackFrame[] => {
+    if (frames.length === 0) {
+        return frames;
+    }
+
+    const firstFrame = frames[0];
+    if (
+        firstFrame.functionName === 'console.error' &&
+        firstFrame.fileName?.includes('highlight.run')
+    ) {
+        return frames.slice(1);
+    }
+    return frames;
 };
