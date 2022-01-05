@@ -107,7 +107,7 @@ const MetadataPanel = () => {
             ),
         },
         {
-            keyDisplayValue: 'Record Network Requests',
+            keyDisplayValue: 'Record Network Request Contents',
             valueDisplayValue: session?.enable_recording_network_contents
                 ? 'Enabled'
                 : 'Disabled',
@@ -129,14 +129,6 @@ const MetadataPanel = () => {
         },
     ];
 
-    if (session?.city) {
-        sessionData.push({
-            keyDisplayValue: 'Location',
-            valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
-            renderType: 'string',
-        });
-    }
-
     // Data exposed to Highlight employees.
     if (isHighlightAdmin) {
         if (session?.object_storage_enabled) {
@@ -151,6 +143,13 @@ const MetadataPanel = () => {
             valueDisplayValue: session?.client_version || 'Unknown',
             renderType: 'string',
         });
+        if (session?.client_config) {
+            sessionData.push({
+                keyDisplayValue: 'Client Config',
+                valueDisplayValue: JSON.parse(session.client_config),
+                renderType: 'json',
+            });
+        }
     }
 
     const userData: KeyValueTableRow[] = [
@@ -179,6 +178,14 @@ const MetadataPanel = () => {
             renderType: 'string',
         },
     ];
+
+    if (session?.city) {
+        userData.push({
+            keyDisplayValue: 'Location',
+            valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
+            renderType: 'string',
+        });
+    }
 
     parsedFields?.forEach((field) => {
         if (field.name !== 'avatar') {
