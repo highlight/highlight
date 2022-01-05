@@ -51,7 +51,6 @@ import { Helmet } from 'react-helmet';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import AsyncSelect from 'react-select/async';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import WaitingAnimation from '../../lottie/waiting.json';
 import styles from './PlayerPage.module.scss';
@@ -63,7 +62,7 @@ interface Props {
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { currentWorkspace } = useApplicationContext();
-    const { session_secure_id } = useParams<{
+    const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
     }>();
@@ -113,8 +112,10 @@ const Player = ({ integrated }: Props) => {
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
-    let [isQueryBuilder] = useQueryParam('query_builder', BooleanParam);
-    isQueryBuilder = isQueryBuilder ?? false;
+    const { isHighlightAdmin } = useAuthContext();
+
+    // Projects can be enabled on a one-off basis by adding to the list below:
+    const isQueryBuilder = isHighlightAdmin || ['1'].includes(project_id);
 
     useEffect(() => {
         if (!session_secure_id) {

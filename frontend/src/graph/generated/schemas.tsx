@@ -330,6 +330,7 @@ export type SearchParamsInput = {
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
     show_live_sessions?: Maybe<Scalars['Boolean']>;
+    query?: Maybe<Scalars['String']>;
 };
 
 export type SearchParams = {
@@ -351,6 +352,7 @@ export type SearchParams = {
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
     show_live_sessions?: Maybe<Scalars['Boolean']>;
+    query?: Maybe<Scalars['String']>;
 };
 
 export type AdminAboutYouDetails = {

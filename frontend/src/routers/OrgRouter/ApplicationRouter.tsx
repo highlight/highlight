@@ -79,10 +79,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
         JsonParam
     );
 
-    const [queryBuilderState, setQueryBuilderState] = useQueryParam(
-        'query',
-        JsonParam
-    );
+    const [queryBuilderState, setQueryBuilderState] = useState<any>(undefined);
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams

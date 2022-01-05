@@ -511,6 +511,7 @@ type SearchParams struct {
 	HideViewed              bool            `json:"hide_viewed"`
 	FirstTime               bool            `json:"first_time"`
 	ShowLiveSessions        bool            `json:"show_live_sessions"`
+	Query                   *string         `json:"query"`
 }
 type Segment struct {
 	Model

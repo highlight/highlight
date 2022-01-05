@@ -460,7 +460,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	// Don't save errors that come from rrweb at record time.
-	if strings.Contains(*newMappedStackTraceString, "rrweb") {
+	if newMappedStackTraceString != nil && strings.Contains(*newMappedStackTraceString, "rrweb") {
 		var now = time.Now()
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{Model: model.Model{DeletedAt: &now}}).Error; err != nil {
 			return nil, e.Wrap(err, "Error soft deleting rrweb error group.")
