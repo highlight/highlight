@@ -115,7 +115,9 @@ const Player = ({ integrated }: Props) => {
     const { isHighlightAdmin } = useAuthContext();
 
     // Projects can be enabled on a one-off basis by adding to the list below:
-    const isQueryBuilder = isHighlightAdmin || ['1'].includes(project_id);
+    const isQueryBuilder =
+        isHighlightAdmin ||
+        ['1', '162', '79', '120', '493'].includes(project_id);
 
     useEffect(() => {
         if (!session_secure_id) {
