@@ -330,6 +330,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
 	return session, nil
 }
 
@@ -343,6 +347,10 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
@@ -360,6 +368,12 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
+
+	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+	// 	"state": state,
+	// }); err != nil {
+	// 	return nil, e.Wrap(err, "error updating error group state in OpenSearch")
+	// }
 
 	return errorGroup, nil
 }
@@ -2001,6 +2015,10 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
 	return session, nil
 }
 
@@ -2012,6 +2030,11 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
 	}
+	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+	// 	"IsPublic": isPublic,
+	// }); err != nil {
+	// 	return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
+	// }
 
 	return errorGroup, nil
 }
@@ -2988,7 +3011,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
-	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND (active_length >= 0 AND active_length < 1000)) OR (active_length IS NULL AND (length >= 0 AND length < 1000))))) "
 	logTags := []string{
 		fmt.Sprintf("project_id:%d", projectID),
 		fmt.Sprintf("filtered:%t", fieldFilters != ""),

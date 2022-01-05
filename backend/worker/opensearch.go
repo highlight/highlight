@@ -80,3 +80,39 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) 
 		w.indexItem(index, modelObj)
 	}
 }
+
+const SESSION_MAPPINGS = `
+{
+	"properties": {
+		"fields": {
+			"properties": {
+				"Key": {
+					"type": "keyword",
+					"normalizer": "lowercase"
+				},
+				"KeyValue": {
+					"type": "keyword",
+					"normalizer": "lowercase"
+				}
+			}
+		}
+	}
+}`
+
+const FIELD_MAPPINGS = ` 
+{
+	"properties": {
+		"Value": {
+			"type": "search_as_you_type"
+		}
+	}
+}`
+
+func (w *Worker) InitIndexMappings() {
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, SESSION_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating sessions mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating fields mappings: %+v", err)
+	}
+}

@@ -49,6 +49,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
 	totalPayloadSize, err := w.S3Client.PushFilesToS3(ctx, s.ID, s.ProjectID, storage.S3SessionsPayloadBucketName, payloadManager)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -62,6 +66,14 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"object_storage_enabled":  true,
+		"payload_size":            totalPayloadSize,
+		"direct_download_enabled": true,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Delete all the events_objects in the DB.
@@ -80,7 +92,9 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).
+		Where(&model.EventsObject{SessionID: s.ID}).
+		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects")
 	}
@@ -189,6 +203,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -282,6 +303,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -296,6 +324,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"processed":     true,
+		"length":        sessionTotalLengthInMilliseconds,
+		"active_length": activeDuration.Milliseconds(),
+		"EventCounts":   eventCountsString,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Update session count on dailydb
@@ -512,8 +549,9 @@ func (w *Worker) ReportStripeUsage() {
 }
 
 func (w *Worker) InitializeOpenSearchIndex() {
+	w.InitIndexMappings()
 	w.IndexTable(opensearch.IndexFields, &model.Field{})
-	w.IndexTable(opensearch.IndexErrors, &model.ErrorGroup{})
+	// w.IndexTable(opensearch.IndexErrors, &model.ErrorGroup{})
 	w.IndexSessions()
 
 	// Close the indexer channel and flush remaining items

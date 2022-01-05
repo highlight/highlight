@@ -336,6 +336,37 @@ func (c *Client) Search(index Index, projectID int, query string, options Search
 	return response.Hits.Total.Value, nil
 }
 
+func (c *Client) PutMapping(index Index, bodyStr string) error {
+	body := strings.NewReader(bodyStr)
+
+	indexStr := GetIndex(index)
+
+	createRequest := opensearchapi.IndicesCreateRequest{
+		Index: indexStr,
+	}
+
+	createResponse, err := createRequest.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error creating index")
+	}
+
+	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)
+
+	mappingRequest := opensearchapi.IndicesPutMappingRequest{
+		Index: []string{indexStr},
+		Body:  body,
+	}
+
+	mappingResponse, err := mappingRequest.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error creating mapping")
+	}
+
+	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
+
+	return nil
+}
+
 func (c *Client) Close() error {
 	if c == nil || !c.isInitialized {
 		return nil
