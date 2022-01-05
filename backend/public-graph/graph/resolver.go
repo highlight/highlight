@@ -430,9 +430,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
 
-		// if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, newErrorGroup); err != nil {
-		// 	return nil, e.Wrap(err, "error indexing error group in opensearch")
-		// }
+		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, newErrorGroup); err != nil {
+			return nil, e.Wrap(err, "error indexing error group in opensearch")
+		}
 
 		errorGroup = newErrorGroup
 	}
@@ -472,13 +472,13 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		}
 	}
 
-	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-	// 	"StackTrace":       newFrameString,
-	// 	"MappedStackTrace": newMappedStackTraceString,
-	// 	"Environments":     environmentsString,
-	// }); err != nil {
-	// 	return nil, e.Wrap(err, "error updating error group in opensearch")
-	// }
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"StackTrace":       newFrameString,
+		"MappedStackTrace": newMappedStackTraceString,
+		"Environments":     environmentsString,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group in opensearch")
+	}
 
 	return errorGroup, nil
 }
@@ -493,19 +493,32 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
+			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, f); err != nil {
+				return e.Wrap(err, "error indexing new error field")
+			}
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
 			fieldsToAppend = append(fieldsToAppend, field)
 		}
 	}
 
+	type OpenSearchErrorField struct {
+		*model.ErrorField
+		Key      string
+		KeyValue string
+	}
+
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
 	for i, field := range fieldsToAppend {
-		openSearchFields[i] = field
+		openSearchFields[i] = OpenSearchErrorField{
+			ErrorField: field,
+			Key:        field.Name,
+			KeyValue:   field.Name + "_" + field.Value,
+		}
 	}
-	// if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
-	// 	return e.Wrap(err, "error appending error fields")
-	// }
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending error fields")
+	}
 
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {

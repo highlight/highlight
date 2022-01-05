@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -37,9 +38,10 @@ var (
 type Index string
 
 var (
-	IndexSessions Index = "sessions"
-	IndexFields   Index = "fields"
-	IndexErrors   Index = "errors"
+	IndexSessions    Index = "sessions"
+	IndexFields      Index = "fields"
+	IndexErrors      Index = "errors"
+	IndexErrorFields Index = "error-fields"
 )
 
 func GetIndex(suffix Index) string {
@@ -109,10 +111,11 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
-		Index:      indexStr,
-		Action:     "update",
-		DocumentID: documentId,
-		Body:       body,
+		Index:           indexStr,
+		Action:          "update",
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
@@ -192,10 +195,11 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
-		Index:      indexStr,
-		Action:     "update",
-		DocumentID: documentId,
-		Body:       body,
+		Index:           indexStr,
+		Action:          "update",
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
