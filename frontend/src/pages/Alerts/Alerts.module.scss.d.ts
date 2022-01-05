@@ -4,6 +4,7 @@ export const chart: string;
 export const configurationContainer: string;
 export const configureButton: string;
 export const emptyContainer: string;
+export const frequencyGraphEmptyMessage: string;
 export const hiddenSlackIntegrationButton: string;
 export const innerChart: string;
 export const integrationAlert: string;

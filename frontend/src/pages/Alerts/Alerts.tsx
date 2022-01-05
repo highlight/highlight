@@ -172,18 +172,29 @@ const TABLE_COLUMNS = [
         title: 'Frequency',
         dataIndex: 'frequency',
         key: 'frequency',
-        render: (frequency: any, record: any) => (
-            <div className={styles.chart}>
-                <div className={styles.innerChart}>
-                    <BarChart
-                        sharedMaxNum={frequency}
-                        height={30}
-                        data={record.DailyFrequency}
-                        showBase={false}
-                    />
+        render: (frequency: any, record: any) => {
+            const hasData = record.DailyFrequency.some(
+                (value: number) => value !== 0
+            );
+            return (
+                <div className={styles.chart}>
+                    <div className={styles.innerChart}>
+                        {hasData ? (
+                            <BarChart
+                                sharedMaxNum={frequency}
+                                height={30}
+                                data={record.DailyFrequency}
+                                showBase={false}
+                            />
+                        ) : (
+                            <p className={styles.frequencyGraphEmptyMessage}>
+                                No Recent Alerts
+                            </p>
+                        )}
+                    </div>
                 </div>
-            </div>
-        ),
+            );
+        },
     },
     {
         title: 'Configure',
