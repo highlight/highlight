@@ -3030,10 +3030,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.0.tgz#6a7353e7b843cf72aa48e91d96ce363f06d57795"
-  integrity sha512-MYbtlXbNi5AIirMshIbX72uZF0GNlbW1LHc20+abMoHWl/YlLlzhvgxeZluU5ByB3D4IUPBIegM29qXSY6kGjA==
+"@highlight-run/rrweb@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.1.tgz#680ae6540691b91589c6439c5f34b9478710b2d4"
+  integrity sha512-YZCjtgjcERVlo3DkaKq2sQJkXEBJdEoolDUvp9A3M/6hKOVXVjJAxGrqzAvtxsoU6lgltEtJHpbzNythG2d3YQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
