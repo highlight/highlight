@@ -289,7 +289,6 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	searchIndexes := []string{}
 	for _, index := range indexes {
 		searchIndexes = append(searchIndexes, GetIndex(index))
-		fmt.Printf(GetIndex(index))
 	}
 	search := opensearchapi.SearchRequest{
 		Index: searchIndexes,
