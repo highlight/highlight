@@ -7,7 +7,7 @@ export const getErrorTitle = (event: any): string | null => {
                     firstValue[0] === '"' &&
                     firstValue[firstValue.length - 1] === '"'
                 ) {
-                    return firstValue.slice(1, firstValue.length - 1);
+                    return firstValue.slice(1, -1);
                 }
                 return firstValue;
             } else if (typeof firstValue === 'object') {

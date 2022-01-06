@@ -19,7 +19,22 @@ const ErrorDescription = ({ errorGroup }: Props) => {
 
 export default ErrorDescription;
 
-const formatErrorDescription = (event: any) => {
+const formatErrorDescription = (rawEvent: any) => {
+    let event = rawEvent;
+
+    if (event.length === 1) {
+        const firstEvent = event[0];
+        if (firstEvent) {
+            if (
+                firstEvent[0] === '"' &&
+                firstEvent[firstEvent.length - 1] === '"'
+            ) {
+                event = firstEvent.slice(1, -1);
+
+                return event;
+            }
+        }
+    }
     const textToRender = `[${event}]`;
     let isJson = true;
 
@@ -33,5 +48,5 @@ const formatErrorDescription = (event: any) => {
         return textToRender;
     }
 
-    return event || '';
+    return rawEvent || '';
 };
