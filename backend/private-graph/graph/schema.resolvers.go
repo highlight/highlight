@@ -3724,10 +3724,13 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 		}
 	}
 
-	// Create a new invite link if the current one expires within 7 days.
-	daysRemainingForInvite := int(math.Abs(time.Now().UTC().Sub(*workspaceInviteLink.ExpirationDate).Hours() / 24))
-	if daysRemainingForInvite <= 7 {
-		shouldCreateNewInviteLink = true
+	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {
+		// Create a new invite link if the current one expires within 7 days.
+		daysRemainingForInvite := int(math.Abs(time.Now().UTC().Sub(*workspaceInviteLink.ExpirationDate).Hours() / 24))
+		if daysRemainingForInvite <= 7 {
+			shouldCreateNewInviteLink = true
+		}
+
 	}
 
 	if shouldCreateNewInviteLink {
