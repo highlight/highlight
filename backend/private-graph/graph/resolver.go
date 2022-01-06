@@ -1085,10 +1085,11 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 	}
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool) *model.WorkspaceInviteLink {
 	// Unit is days.
-	EXPIRATION_DATE := 7
+	EXPIRATION_DATE := 30
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
+
 	secret, _ := r.GenerateRandomStringURLSafe(16)
 
 	newInviteLink := &model.WorkspaceInviteLink{
@@ -1099,12 +1100,20 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string)
 		Secret:         &secret,
 	}
 
+	if !shouldExpire {
+		newInviteLink.ExpirationDate = nil
+	}
+
 	return newInviteLink
 }
 
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
-	if inviteLink == nil || inviteLink.ExpirationDate == nil {
+	if inviteLink == nil {
 		return true
+	}
+	// Links without an ExpirationDate never expire.
+	if inviteLink.ExpirationDate == nil {
+		return false
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }

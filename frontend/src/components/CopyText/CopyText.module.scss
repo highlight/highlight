@@ -21,3 +21,20 @@
         white-space: nowrap;
     }
 }
+
+.inlineContainer {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+
+    .copyButton {
+        color: inherit !important;
+        height: 1.2em;
+        width: 1.2em;
+
+        svg {
+            color: inherit;
+            height: 1em;
+        }
+    }
+}
