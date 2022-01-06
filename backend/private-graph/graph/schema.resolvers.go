@@ -2081,11 +2081,13 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 		return nil, e.Wrap(err, "error creating registration")
 	}
 
-	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
-		"EligibleForTrialExtension": false,
-		"TrialEndDate":              workspace.TrialEndDate.Add(30 * 24 * time.Hour), // add 30 days to the current end date
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
+	if workspace.EligibleForTrialExtension {
+		if err := r.DB.Model(workspace).Updates(map[string]interface{}{
+			"EligibleForTrialExtension": false,
+			"TrialEndDate":              workspace.TrialEndDate.Add(30 * 24 * time.Hour), // add 30 days to the current end date
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
+		}
 	}
 
 	return &model.T, nil
