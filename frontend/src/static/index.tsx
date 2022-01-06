@@ -62,6 +62,7 @@ export { default as LinkIcon } from './LinkIcon';
 export { default as Lock } from './Lock';
 export { default as LogIn } from './LogIn';
 export { default as Logos } from './Logos';
+export { default as MailIcon } from './MailIcon';
 export { default as MapIcon } from './MapIcon';
 export { default as MaximizeIcon } from './MaximizeIcon';
 export { default as MessageIcon } from './MessageIcon';
