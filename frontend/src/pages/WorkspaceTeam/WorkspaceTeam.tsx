@@ -188,10 +188,13 @@ const WorkspaceTeam = () => {
                             description={
                                 <>
                                     You can also share with them this link:{' '}
-                                    <span className={styles.link}>
-                                        {
-                                            sendInviteEmailData.sendAdminWorkspaceInvite
-                                        }
+                                    <span>
+                                        <CopyText
+                                            text={
+                                                sendInviteEmailData.sendAdminWorkspaceInvite
+                                            }
+                                            inline
+                                        />
                                     </span>
                                 </>
                             }
