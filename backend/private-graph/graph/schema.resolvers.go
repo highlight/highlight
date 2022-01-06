@@ -254,7 +254,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, nil
 	}
 
-	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+	trialEnd := time.Now().Add(30 * 24 * time.Hour) // Trial expires 30 days from current day
 
 	workspace := &model.Workspace{
 		Admins:                    []model.Admin{*admin},
@@ -2083,6 +2083,7 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 
 	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
 		"EligibleForTrialExtension": false,
+		"TrialEndDate":              workspace.TrialEndDate.Add(30 * 24 * time.Hour), // add 30 days to the current end date
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
 	}
