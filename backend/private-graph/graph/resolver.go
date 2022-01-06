@@ -1087,7 +1087,7 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 
 func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
 	// Unit is days.
-	EXPIRATION_DATE := 7
+	EXPIRATION_DATE := 30
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
 	secret, _ := r.GenerateRandomStringURLSafe(16)
 
