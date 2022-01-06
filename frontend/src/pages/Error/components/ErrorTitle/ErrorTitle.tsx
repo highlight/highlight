@@ -22,7 +22,7 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
     useEffect(() => {
         if (headerText) {
             if (errorGroup?.event) {
-                const title = getErrorTitle(errorGroup.event.toString());
+                const title = getErrorTitle(errorGroup.event);
                 if (title) {
                     setHeaderTextAsJson(title);
                 } else {

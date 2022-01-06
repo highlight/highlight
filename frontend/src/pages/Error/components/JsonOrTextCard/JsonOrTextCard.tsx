@@ -60,7 +60,7 @@ const JsonOrTextCard = ({ jsonOrText, title }: Props) => {
                     )}
                 </>
             ) : (
-                <JsonViewer src={textAsJson} collapsed={1} />
+                <JsonViewer src={textAsJson} collapsed={2} />
             )}
         </Card>
     );

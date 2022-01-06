@@ -143,7 +143,28 @@ const logRequest = (
             if (shouldRecordHeaderAndBody) {
                 let text: string;
                 try {
-                    text = await response.clone().text();
+                    /**
+                     * We are using the TextDecoder because it supports a larger number of use cases.
+                     * Using just `response.text()` sometimes causes the body to fail due to the request being aborted.
+                     * https://stackoverflow.com/questions/41946457/getting-text-from-fetch-response-object
+                     */
+                    const clone = response.clone();
+                    const body = clone.body;
+                    if (body) {
+                        let reader = body.getReader();
+                        let utf8Decoder = new TextDecoder();
+                        let nextChunk;
+
+                        let result = '';
+
+                        while (!(nextChunk = await reader.read()).done) {
+                            let partialData = nextChunk.value;
+                            result += utf8Decoder.decode(partialData);
+                        }
+                        text = result;
+                    } else {
+                        text = '';
+                    }
                 } catch (e) {
                     text = `Unable to clone response: ${e as string}`;
                 }

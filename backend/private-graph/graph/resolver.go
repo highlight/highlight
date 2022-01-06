@@ -165,41 +165,41 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, e.Wrap(err, "500: error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin")
+		return nil, e.New("500: error querying admin")
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for invite Link")
+		return nil, e.Wrap(err, "500: error querying for invite Link")
 	}
 
 	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
 		if *inviteLink.InviteeEmail != *admin.Email {
-			return nil, e.New("This invite is not valid for the admin.")
+			return nil, e.New("403: This invite is not valid for the admin.")
 		}
 	}
 
 	if r.IsInviteLinkExpired(inviteLink) {
 		if err := r.DB.Delete(inviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while trying to delete expired invite link")
+			return nil, e.Wrap(err, "500: error while trying to delete expired invite link")
 		}
-		return nil, e.New("This invite link has expired.")
+		return nil, e.New("405: This invite link has expired.")
 	}
 
 	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
-		return nil, e.Wrap(err, "error adding admin to association")
+		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
 
 	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
 	// Non-admin specific invites are multi-use and only have an expiration date.
 	if inviteLink.InviteeEmail != nil {
 		if err := r.DB.Delete(inviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while trying to delete used invite link")
+			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
 	return &workspaceId, nil
