@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -23,7 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -451,7 +452,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	}
 
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -467,6 +468,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
 	if err != nil {
 		log.Error(err, " failed to add admin to workspace")
+		return adminId, err
 	}
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
@@ -475,11 +477,13 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
+			return adminId, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
+			return adminId, e.New("500")
 		}
 	}
 
@@ -3737,7 +3741,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	var workspaceInviteLink *model.WorkspaceInviteLink
 	shouldCreateNewInviteLink := false
 
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").First(&workspaceInviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Order("created_at desc").First(&workspaceInviteLink).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			shouldCreateNewInviteLink = true
 		} else {
@@ -3752,8 +3756,14 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 		}
 	}
 
+	// Create a new invite link if the current one expires within 7 days.
+	daysRemainingForInvite := int(math.Abs(time.Now().UTC().Sub(*workspaceInviteLink.ExpirationDate).Hours() / 24))
+	if daysRemainingForInvite <= 7 {
+		shouldCreateNewInviteLink = true
+	}
+
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN, true)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")

@@ -97,8 +97,18 @@
     display: flex;
     justify-content: center;
     .innerChart {
+        align-items: center;
         background-color: var(--color-gray-100);
         border-radius: 5px;
+        display: flex;
+        height: 54px;
+        justify-content: center;
         padding: var(--size-small);
+        width: 124px;
     }
+}
+
+.frequencyGraphEmptyMessage {
+    font-size: 12px;
+    margin-bottom: 0 !important;
 }

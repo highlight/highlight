@@ -3030,14 +3030,16 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@1.0.8":
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.0.8.tgz#9165174a2fbbf64d6a31b4b8ee58aa8b8c5ee07c"
-  integrity sha512-Jr4bsoqcsOY+0XWbLoAgee5x5jjKr3O5nlGCJ3VXSnWYw6xQ6TKe53vMHaUrlt9vbUrEEnoArhJk3nlyMHaBhQ==
+"@highlight-run/rrweb@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.3.tgz#9c0625f32f6604fa98c6435a9c4fc9aa6df16ead"
+  integrity sha512-+E3nLrkZMoXv5fELKbCpLeo0O6xZfU+vaJnMV20PecoBXloBGtLi7A+jUh0J9nlU3VmI/nHal36bTJr71Cq8cw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
+    base64-arraybuffer "^1.0.1"
     fflate "^0.4.4"
+    identity-obj-proxy "^3.0.0"
     mitt "^1.1.3"
 
 "@iarna/toml@^2.2.5":
@@ -9451,7 +9453,7 @@ idb@3.0.2:
   resolved "https://registry.yarnpkg.com/idb/-/idb-3.0.2.tgz#c8e9122d5ddd40f13b60ae665e4862f8b13fa384"
   integrity sha512-+FLa/0sTXqyux0o6C+i2lOR0VoS60LU/jzUo5xjfY6+7sEEgy4Gz1O7yFBXvjd7N0NyIGWIRg8DcQSLEG+VSPw==
 
-identity-obj-proxy@3.0.0:
+identity-obj-proxy@3.0.0, identity-obj-proxy@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/identity-obj-proxy/-/identity-obj-proxy-3.0.0.tgz#94d2bda96084453ef36fbc5aaec37e0f79f1fc14"
   integrity sha1-lNK9qWCERT7zb7xarsN+D3nx/BQ=

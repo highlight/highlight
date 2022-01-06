@@ -1,16 +1,14 @@
-const MAX_TITLE_CHARACTER_LENGTH = 50;
-
-export const getErrorTitle = (str: string): string | null => {
-    if (str.length === 0) {
-        return null;
-    }
-
+export const getErrorTitle = (event: any): string | null => {
     try {
-        const json = JSON.parse(str);
-
-        if (Array.isArray(json)) {
-            const firstValue = json[0];
+        if (Array.isArray(event)) {
+            const firstValue = event[0];
             if (typeof firstValue === 'string') {
+                if (
+                    firstValue[0] === '"' &&
+                    firstValue[firstValue.length - 1] === '"'
+                ) {
+                    return firstValue.slice(1, -1);
+                }
                 return firstValue;
             } else if (typeof firstValue === 'object') {
                 const values = Object.values(firstValue);
@@ -22,9 +20,9 @@ export const getErrorTitle = (str: string): string | null => {
                 }
             }
         }
-    } catch {
-        return str.slice(0, MAX_TITLE_CHARACTER_LENGTH);
+    } catch (e) {
+        return event.toString();
     }
 
-    return str.slice(0, MAX_TITLE_CHARACTER_LENGTH);
+    return event.toString();
 };
