@@ -356,6 +356,7 @@ type ComplexityRoot struct {
 		ProjectSuggestion            func(childComplexity int, query string) int
 		Projects                     func(childComplexity int) int
 		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
+		QuickFieldsOpensearch        func(childComplexity int, projectID int, count int, query string) int
 		RageClickAlerts              func(childComplexity int, projectID int) int
 		RageClicks                   func(childComplexity int, sessionSecureID string) int
 		RageClicksForProject         func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -750,6 +751,7 @@ type QueryResolver interface {
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
+	QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model1.Field, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
@@ -2864,6 +2866,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.PropertySuggestion(childComplexity, args["project_id"].(int), args["query"].(string), args["type"].(string)), true
+
+	case "Query.quickFields_opensearch":
+		if e.complexity.Query.QuickFieldsOpensearch == nil {
+			break
+		}
+
+		args, err := ec.field_Query_quickFields_opensearch_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.QuickFieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string)), true
 
 	case "Query.rage_click_alerts":
 		if e.complexity.Query.RageClickAlerts == nil {
@@ -5069,6 +5083,11 @@ type Query {
         field_name: String!
         query: String!
     ): [String!]!
+    quickFields_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): [Field]!
     billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
@@ -8229,6 +8248,39 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 		}
 	}
 	args["type"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_quickFields_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -16852,6 +16904,48 @@ func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field 
 	res := resTmp.([]string)
 	fc.Result = res
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_quickFields_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_quickFields_opensearch_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().QuickFieldsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Field)
+	fc.Result = res
+	return ec.marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetailsForProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -27074,6 +27168,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "quickFields_opensearch":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_quickFields_opensearch(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "billingDetailsForProject":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -29488,6 +29596,43 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑ
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOErrorTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

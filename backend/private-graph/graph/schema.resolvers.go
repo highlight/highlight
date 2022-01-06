@@ -3121,7 +3121,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			%s
 		]
 	}}`, query)
-	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, q, options, &results)
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3191,7 +3191,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, options, &results)
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3207,6 +3207,38 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, query)
+
+	results := []*model.Field{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
