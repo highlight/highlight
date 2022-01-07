@@ -576,6 +576,11 @@ type Query {
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
+    error_groups_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
     enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult

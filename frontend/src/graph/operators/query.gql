@@ -386,6 +386,43 @@ query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
     }
 }
 
+query GetErrorGroupsOpenSearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+) {
+    error_groups_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+    ) {
+        error_groups {
+            created_at
+            id
+            secure_id
+            type
+            event
+            state
+            state
+            environments
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            metadata_log {
+                error_id
+                session_secure_id
+                timestamp
+            }
+            error_frequency
+        }
+        totalCount
+    }
+}
+
 query GetSessions(
     $project_id: ID!
     $count: Int!

@@ -1,6 +1,9 @@
 import 'rc-slider/assets/index.css';
 
-import { useAuthContext } from '@authentication/AuthContext';
+import {
+    queryBuilderEnabled,
+    useAuthContext,
+} from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
@@ -114,9 +117,7 @@ const Player = ({ integrated }: Props) => {
     >('tabs-PlayerRightPanel-active-tab', 'Events');
     const { isHighlightAdmin } = useAuthContext();
 
-    // Projects can be enabled on a one-off basis by adding to the list below:
-    const isQueryBuilder =
-        isHighlightAdmin || ['1', '162', '120', '493'].includes(project_id);
+    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     useEffect(() => {
         if (!session_secure_id) {

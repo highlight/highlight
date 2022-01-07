@@ -20,6 +20,9 @@ type ErrorSearchContext = {
     setExistingParams: React.Dispatch<React.SetStateAction<ErrorSearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
+    isQueryBuilder: boolean;
+    searchQuery: string;
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export const [

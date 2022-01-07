@@ -627,6 +627,7 @@ export type Query = {
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
     error_groups?: Maybe<ErrorResults>;
+    error_groups_opensearch: ErrorResults;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     enhanced_user_details?: Maybe<EnhancedUserDetailsResult>;
@@ -658,6 +659,7 @@ export type Query = {
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
+    quickFields_opensearch: Array<Maybe<Field>>;
     billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -716,6 +718,12 @@ export type QueryError_GroupsArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     params?: Maybe<ErrorSearchParamsInput>;
+};
+
+export type QueryError_Groups_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
+    query: Scalars['String'];
 };
 
 export type QueryError_GroupArgs = {
@@ -850,6 +858,12 @@ export type QueryFields_OpensearchArgs = {
     count: Scalars['Int'];
     field_type: Scalars['String'];
     field_name: Scalars['String'];
+    query: Scalars['String'];
+};
+
+export type QueryQuickFields_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
     query: Scalars['String'];
 };
 

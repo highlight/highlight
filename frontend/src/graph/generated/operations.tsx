@@ -1614,6 +1614,56 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
         };
 };
 
+export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
+    error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
+        Types.ErrorResults,
+        'totalCount'
+    > & {
+            error_groups: Array<
+                { __typename?: 'ErrorGroup' } & Pick<
+                    Types.ErrorGroup,
+                    | 'created_at'
+                    | 'id'
+                    | 'secure_id'
+                    | 'type'
+                    | 'event'
+                    | 'state'
+                    | 'environments'
+                    | 'stack_trace'
+                    | 'error_frequency'
+                > & {
+                        structured_stack_trace: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorTrace' } & Pick<
+                                    Types.ErrorTrace,
+                                    | 'fileName'
+                                    | 'lineNumber'
+                                    | 'functionName'
+                                    | 'columnNumber'
+                                >
+                            >
+                        >;
+                        metadata_log: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorMetadata' } & Pick<
+                                    Types.ErrorMetadata,
+                                    | 'error_id'
+                                    | 'session_secure_id'
+                                    | 'timestamp'
+                                >
+                            >
+                        >;
+                    }
+            >;
+        };
+};
+
 export type GetSessionsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -2901,6 +2951,7 @@ export const namedOperations = {
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+        GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,

@@ -24,7 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2301,6 +2301,40 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return errorResults, nil
+}
+
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.ErrorGroup{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(count),
+		SortField:     ptr.String("created_at"),
+		SortOrder:     ptr.String("desc"),
+		ReturnCount:   ptr.Bool(true),
+		ExcludeFields: []string{"FieldGroup", "Fields"}, // Excluding certain fields for performance
+	}
+
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, eg := range results {
+		// Equivalent to what used to be
+		// `stack_trace = coalesce(mapped_stack_trace, stack_trace)`
+		if eg.MappedStackTrace != nil {
+			eg.StackTrace = *eg.MappedStackTrace
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: results,
+		TotalCount:  resultCount,
+	}, nil
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {

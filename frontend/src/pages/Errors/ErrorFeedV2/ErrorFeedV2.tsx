@@ -14,7 +14,10 @@ import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
+import {
+    useGetErrorGroupsOpenSearchQuery,
+    useGetErrorGroupsQuery,
+} from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
@@ -32,30 +35,61 @@ export const ErrorFeedV2 = () => {
         error_groups: [],
         totalCount: 0,
     });
-    const { searchParams } = useErrorSearchContext();
+    const { searchParams, searchQuery } = useErrorSearchContext();
     const [
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
+    const { isQueryBuilder } = useErrorSearchContext();
 
-    const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
+    const {
+        loading: loadingOpenSearch,
+        fetchMore: fetchOpenSearch,
+        data: errorDataOpenSearch,
+    } = useGetErrorGroupsOpenSearchQuery({
         variables: {
-            project_id,
+            query: searchQuery,
             count: count + 10,
-            params: searchParams,
+            project_id,
         },
         onCompleted: () => {
             setShowLoadingSkeleton(false);
         },
+        skip: !isQueryBuilder || !searchQuery,
     });
 
+    const {
+        loading: loadingOriginal,
+        fetchMore: fetchOriginal,
+        data: errorDataOriginal,
+    } = useGetErrorGroupsQuery({
+        variables: {
+            params: searchParams,
+            count: count + 10,
+            project_id,
+        },
+        onCompleted: () => {
+            setShowLoadingSkeleton(false);
+        },
+        skip: isQueryBuilder,
+    });
+
+    const loading = isQueryBuilder ? loadingOpenSearch : loadingOriginal;
+    const fetchMore = isQueryBuilder ? fetchOpenSearch : fetchOriginal;
+
     useEffect(() => {
-        if (errorData?.error_groups) {
-            setData(gqlSanitize(errorData.error_groups));
+        if (errorDataOriginal?.error_groups) {
+            setData(gqlSanitize(errorDataOriginal?.error_groups));
         }
-    }, [errorData]);
+        if (errorDataOpenSearch?.error_groups_opensearch) {
+            setData(gqlSanitize(errorDataOpenSearch?.error_groups_opensearch));
+        }
+    }, [
+        errorDataOpenSearch?.error_groups_opensearch,
+        errorDataOriginal?.error_groups,
+    ]);
 
     useEffect(() => {
         setShowLoadingSkeleton(true);
