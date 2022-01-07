@@ -373,6 +373,16 @@ export const usePlayer = (): ReplayerContextInterface => {
                         H.consumeError(e, 'Failed to JSON parse client config');
                     }
                 }
+
+                if (newEvents.length < 2) {
+                    if (sessionData?.session?.processed === false) {
+                        setState(ReplayerState.NoEventsYet);
+                        return;
+                    } else {
+                        setState(ReplayerState.Error);
+                        return;
+                    }
+                }
                 const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                     root: playerMountingRoot,
                     triggerFocus: false,
