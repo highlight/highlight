@@ -439,7 +439,6 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
             destroyTooltipOnHide
         >
             <Button
-                type="text"
                 trackingId={`SessionsQuerySelect`}
                 className={classNames(styles.ruleItem, {
                     [styles.invalid]: invalid,
