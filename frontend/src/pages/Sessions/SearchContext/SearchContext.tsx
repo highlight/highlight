@@ -28,7 +28,7 @@ export type SearchParams = {
     first_time?: boolean;
     /** Whether to show sessions that have not been processed yet. */
     show_live_sessions?: boolean;
-    query?: any;
+    query?: string;
 };
 
 interface SearchContext {
@@ -53,8 +53,6 @@ interface SearchContext {
     ) => void;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-    queryBuilderState: any;
-    setQueryBuilderState: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export const [

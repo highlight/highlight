@@ -5,7 +5,7 @@ import DashboardsRouter from '@pages/Dashboards/DashboardsRouter';
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
-import { FieldArrayParam } from '@util/url/params';
+import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
@@ -43,6 +43,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
@@ -73,13 +74,12 @@ const ApplicationRouter = ({ integrated }: Props) => {
         show_live_sessions: BooleanParam,
         environments: ArrayParam,
         app_versions: ArrayParam,
+        query: QueryBuilderStateParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
         JsonParam
     );
-
-    const [queryBuilderState, setQueryBuilderState] = useState<any>(undefined);
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -171,8 +171,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setSelectedSegment,
                 searchQuery,
                 setSearchQuery,
-                queryBuilderState,
-                setQueryBuilderState,
             }}
         >
             <KeyboardShortcutsEducation />

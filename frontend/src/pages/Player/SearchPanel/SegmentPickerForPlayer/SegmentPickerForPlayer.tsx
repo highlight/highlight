@@ -3,12 +3,7 @@ import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
-import {
-    addQueryBuilderParam,
-    deserializeGroup,
-    getDefaultRules,
-    serializeRules,
-} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -45,7 +40,6 @@ const SegmentPickerForPlayer = () => {
         setShowStarredSessions,
         selectedSegment,
         setSelectedSegment,
-        setQueryBuilderState,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
         variables: { project_id },
@@ -66,23 +60,19 @@ const SegmentPickerForPlayer = () => {
 
     useEffect(() => {
         if (currentSegment) {
-            const segmentParameters = addQueryBuilderParam(
-                gqlSanitize({
-                    ...currentSegment?.params,
-                })
-            );
+            const segmentParameters = gqlSanitize({
+                ...currentSegment?.params,
+            });
+            if (!segmentParameters.query) {
+                segmentParameters.query = JSON.stringify(
+                    getQueryFromParams(segmentParameters)
+                );
+            }
             setExistingParams(segmentParameters);
             setSearchParams(segmentParameters);
-            setQueryBuilderState(JSON.parse(segmentParameters.query));
             setSegmentName(currentSegment?.name || null);
         }
-    }, [
-        currentSegment,
-        setExistingParams,
-        setQueryBuilderState,
-        setSearchParams,
-        setSegmentName,
-    ]);
+    }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
     useEffect(() => {
         // Compares original params and current search params to check if they are different
@@ -128,16 +118,15 @@ const SegmentPickerForPlayer = () => {
                 onChange={(value, option) => {
                     if ((option as any)?.key === STARRED_SEGMENT_ID) {
                         setShowStarredSessions(true);
-                        setExistingParams(EmptySessionsSearchParams);
-                        setSearchParams(EmptySessionsSearchParams);
-                        setQueryBuilderState({
-                            isAnd: true,
-                            rules: serializeRules([
-                                deserializeGroup('custom_starred', 'is', [
-                                    'true',
-                                ]),
-                            ]),
-                        });
+                        const searchParams = {
+                            ...EmptySessionsSearchParams,
+                            query: JSON.stringify({
+                                isAnd: true,
+                                rules: [['custom_starred', 'is', 'true']],
+                            }),
+                        };
+                        setExistingParams(searchParams);
+                        setSearchParams(searchParams);
                         setSegmentName('Starred');
                         setSelectedSegment({ value, id: STARRED_SEGMENT_ID });
                         return;
@@ -155,10 +144,6 @@ const SegmentPickerForPlayer = () => {
                         setExistingParams(EmptySessionsSearchParams);
                         setSearchParams(EmptySessionsSearchParams);
                         setSegmentName(null);
-                        setQueryBuilderState({
-                            isAnd: true,
-                            rules: getDefaultRules(),
-                        });
                     }
                     setSelectedSegment(nextValue);
                 }}

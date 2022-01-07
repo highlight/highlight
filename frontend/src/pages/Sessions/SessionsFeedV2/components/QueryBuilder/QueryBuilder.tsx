@@ -3,7 +3,10 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import { Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
+import {
+    SearchParams,
+    useSearchContext,
+} from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -18,7 +21,6 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
-import { JsonParam, useQueryParam } from 'use-query-params';
 
 import {
     useGetAppVersionsQuery,
@@ -125,6 +127,37 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         ...provided,
         fontSize: '12px',
     }),
+    loadingMessage: (provided) => ({
+        ...provided,
+        fontSize: '12px',
+    }),
+};
+
+const getDateLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = split[0];
+    const end = split[1];
+    const startStr = moment(start).format('MMM D');
+    const endStr = moment(end).format('MMM D');
+    return `${startStr} and ${endStr}`;
+};
+
+const getLengthLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = Number(split[0]);
+    const end = Number(split[1]);
+    const ints = Number.isInteger(start) && Number.isInteger(end);
+    return ints
+        ? `${start} and ${end} minutes`
+        : `${start * 60} and ${end * 60} seconds`;
+};
+
+const getProcessedLabel = (value: string): string => {
+    if (value === 'false') {
+        return 'Live';
+    } else {
+        return 'Completed';
+    }
 };
 
 const getMultiselectOption = (props: any) => {
@@ -355,16 +388,16 @@ const PopoutContent = ({
                             : undefined
                     }
                     onChange={(start, end) => {
-                        const startStr = moment(start).format('MMM D');
-                        const endStr = moment(end).format('MMM D');
                         const startIso = moment(start).toISOString();
                         const endIso = moment(end).toISOString();
+                        const value = `${startIso}_${endIso}`;
+
                         onChange({
                             kind: 'multi',
                             options: [
                                 {
-                                    label: `${startStr} and ${endStr}`,
-                                    value: `${startIso}_${endIso}`,
+                                    label: getDateLabel(value),
+                                    value: value,
                                 },
                             ],
                         });
@@ -387,18 +420,14 @@ const PopoutContent = ({
                             : 60
                     }
                     onChange={(start, end) => {
-                        const ints =
-                            Number.isInteger(start) && Number.isInteger(end);
-                        const label = ints
-                            ? `${start} and ${end} minutes`
-                            : `${start * 60} and ${end * 60} seconds`;
+                        const value = `${start}_${end}`;
 
                         onChange({
                             kind: 'multi',
                             options: [
                                 {
-                                    label: label,
-                                    value: `${start}_${end}`,
+                                    label: getLengthLabel(value),
+                                    value,
                                 },
                             ],
                         });
@@ -823,46 +852,55 @@ const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
     },
 ];
 
-export const getDefaultRules = (): any => {
-    return serializeRules([
-        deserializeGroup('custom_processed', 'is', [
-            { v: 'true', l: 'Completed' },
-        ]),
-    ]);
+export type QueryBuilderRule = string[];
+
+export interface QueryBuilderState {
+    isAnd: boolean;
+    rules: QueryBuilderRule[];
+}
+
+export const getDefaultQuery = (): string =>
+    JSON.stringify({
+        isAnd: true,
+        rules: getDefaultRules(),
+    });
+
+const getDefaultRules = (): QueryBuilderRule[] => {
+    return [['custom_processed', 'is', 'true']];
 };
 
-export const serializeRules = (rules: RuleProps[]): any => {
+export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
     const ruleGroups = rules
         .map((rule) => {
             if (!rule.field || !rule.op || !rule.val) {
-                return undefined;
+                return [];
             }
 
             return [
                 rule.field.value,
                 rule.op,
-                rule.val.options.map((op) => {
-                    if (op.value === op.label) {
-                        return op.value;
-                    } else {
-                        return {
-                            l: op.label,
-                            v: op.value,
-                        };
-                    }
+                ...rule.val.options.map((op) => {
+                    return op.value;
                 }),
             ];
         })
-        .filter((ruleGroup) => !!ruleGroup);
+        .filter((ruleGroup) => !!ruleGroup && ruleGroup.length > 0);
 
     return ruleGroups;
 };
 
+const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
+    custom_processed: getProcessedLabel,
+    custom_created_at: getDateLabel,
+    custom_active_length: getLengthLabel,
+};
+
 export const deserializeGroup = (
-    fieldVal: any,
-    opVal: any,
-    vals: any
+    fieldVal: string,
+    opVal: string,
+    vals: string[]
 ): RuleProps => {
+    const labelFunc = LABEL_FUNC_MAP[fieldVal];
     return {
         field: {
             kind: 'single',
@@ -872,15 +910,9 @@ export const deserializeGroup = (
         op: opVal as Operator,
         val: {
             kind: 'multi',
-            options: vals.map((val: any) => {
-                if (val.v && val.l) {
-                    return {
-                        value: val.v,
-                        label: val.l,
-                    };
-                }
+            options: vals.map((val) => {
                 return {
-                    label: val,
+                    label: labelFunc ? labelFunc(val) : val,
                     value: val,
                 };
             }),
@@ -890,7 +922,8 @@ export const deserializeGroup = (
 
 const deserializeRules = (ruleGroups: any): RuleProps[] => {
     const rules = ruleGroups.map((group: any[]) => {
-        return deserializeGroup(group[0], group[1], group[2]);
+        const [field, op, ...vals] = group;
+        return deserializeGroup(field, op, vals);
     });
 
     return rules;
@@ -948,7 +981,7 @@ const propertiesToRules = (
         if (!propsMap.has(prop.name)) {
             propsMap.set(prop.name, []);
         }
-        propsMap.get(prop.name)?.push(prop.value);
+        propsMap.get(prop.name)?.push(prop.value.split(':')[0]);
     }
     const rules: RuleProps[] = [];
     for (const [name, vals] of propsMap) {
@@ -959,10 +992,7 @@ const propertiesToRules = (
 
 // If there is no query builder param (for segments saved
 // before the query builder was released), create one.
-export const addQueryBuilderParam = (params: any) => {
-    if (!!params.query) {
-        return params;
-    }
+export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     const rules: RuleProps[] = [];
     if (params.user_properties) {
         rules.push(...propertiesToRules(params.user_properties, 'user', 'is'));
@@ -987,14 +1017,11 @@ export const addQueryBuilderParam = (params: any) => {
         );
     }
     if (params.date_range) {
-        const start = params.date_range.start_date;
-        const end = params.date_range.end_date;
+        const start = moment(params.date_range.start_date).toISOString();
+        const end = moment(params.date_range.end_date).toISOString();
         rules.push(
-            deserializeGroup('created_at', 'between_date', [
-                {
-                    l: `${start} and ${end}`,
-                    v: `${start}_${end}`,
-                },
+            deserializeGroup('custom_created_at', 'between_date', [
+                `${start}_${end}`,
             ])
         );
     }
@@ -1002,28 +1029,35 @@ export const addQueryBuilderParam = (params: any) => {
         const min = params.length_range.min;
         const max = params.length_range.max;
         rules.push(
-            deserializeGroup('active_length', 'between', [
-                {
-                    l: `${min} and ${max}`,
-                    v: `${min}_${max}`,
-                },
+            deserializeGroup('custom_active_length', 'between', [
+                `${min}_${max}`,
             ])
         );
     }
     if (params.browser) {
-        rules.push(deserializeGroup('session_browser', 'is', [params.browser]));
+        rules.push(
+            deserializeGroup('session_browser_name', 'is', [params.browser])
+        );
     }
     if (params.os) {
         rules.push(deserializeGroup('session_os_name', 'is', [params.os]));
     }
-    if (params.environments) {
+    if (params.environments && params.environments.length > 0) {
         rules.push(
-            deserializeGroup('session_environment', 'is', params.environments)
+            deserializeGroup(
+                'session_environment',
+                'is',
+                params.environments.map((env) => env ?? '')
+            )
         );
     }
-    if (params.app_versions) {
+    if (params.app_versions && params.app_versions.length > 0) {
         rules.push(
-            deserializeGroup('custom_app_version', 'is', params.app_versions)
+            deserializeGroup(
+                'custom_app_version',
+                'is',
+                params.app_versions.map((ver) => ver ?? '')
+            )
         );
     }
     if (params.device_id) {
@@ -1051,18 +1085,15 @@ export const addQueryBuilderParam = (params: any) => {
         rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
     }
     if (!params.show_live_sessions) {
+        rules.push(deserializeGroup('custom_processed', 'is', ['true']));
+    } else {
         rules.push(
-            deserializeGroup('custom_processed', 'is', [
-                { v: 'true', l: 'Completed' },
-            ])
+            deserializeGroup('custom_processed', 'is', ['true', 'false'])
         );
     }
     return {
-        ...params,
-        query: JSON.stringify({
-            isAnd: true,
-            rules: serializeRules(rules),
-        }),
+        isAnd: true,
+        rules: serializeRules(rules),
     };
 };
 
@@ -1075,8 +1106,6 @@ const QueryBuilder = () => {
         setSearchQuery,
         searchParams,
         setSearchParams,
-        queryBuilderState,
-        setQueryBuilderState,
     } = useSearchContext();
 
     const { data: fieldData } = useGetFieldTypesQuery({
@@ -1120,65 +1149,6 @@ const QueryBuilder = () => {
     };
 
     const [isAnd, toggleIsAnd] = useToggle(true);
-
-    useEffect(() => {
-        let isAnd;
-        let rules;
-        if (!queryBuilderState) {
-            isAnd = true;
-            rules = getDefaultRules();
-        } else {
-            isAnd = queryBuilderState.isAnd;
-            rules = queryBuilderState.rules;
-        }
-
-        toggleIsAnd(isAnd);
-        setRules(deserializeRules(rules));
-    }, [queryBuilderState, toggleIsAnd]);
-
-    useEffect(() => {
-        if (
-            searchParams.show_live_sessions &&
-            queryBuilderState &&
-            queryBuilderState.rules
-        ) {
-            setQueryBuilderState({
-                isAnd: queryBuilderState.isAnd,
-                rules: queryBuilderState.rules.map((group: any[]) => {
-                    if (group[0] === 'custom_processed' && group[1] === 'is') {
-                        const newValue = [
-                            {
-                                l: 'Completed',
-                                v: 'true',
-                            },
-                            {
-                                l: 'Live',
-                                v: 'false',
-                            },
-                        ];
-                        return [group[0], group[1], newValue];
-                    } else {
-                        return group;
-                    }
-                }),
-            });
-        }
-        // This should only run when the live sessions flag is updated
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams.show_live_sessions]);
-
-    const [initialQuery] = useQueryParam('query', JsonParam);
-
-    useEffect(() => {
-        if (!!initialQuery) {
-            setQueryBuilderState({
-                isAnd: initialQuery.isAnd,
-                rules: initialQuery.rules,
-            });
-        }
-        // This should run once on component mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const getKeyOptions = async (input: string) => {
         if (fieldData?.field_types === undefined) {
@@ -1272,7 +1242,31 @@ const QueryBuilder = () => {
         };
     };
 
+    // Track the current state of the query builder to detect changes
+    const [qbState, setQbState] = useState<string | undefined>(undefined);
+
+    // If the search query is updated externally, set the rules and `isAnd` toggle based on it
     useEffect(() => {
+        if (!!searchParams.query && searchParams.query !== qbState) {
+            const newState = JSON.parse(searchParams.query);
+            toggleIsAnd(newState.isAnd);
+            setRules(deserializeRules(newState.rules));
+        }
+    }, [searchParams.query, toggleIsAnd, qbState]);
+
+    useEffect(() => {
+        // If search params are updated and no query exists,
+        // build it from the other params for backwards compatibility.
+        if (searchParams.query === undefined) {
+            const newState = getQueryFromParams(searchParams);
+            const newQuery = JSON.stringify(newState);
+            setSearchParams((params) => ({
+                ...params,
+                query: newQuery,
+            }));
+            return;
+        }
+
         const allComplete = rules.every(isComplete);
 
         if (!allComplete) {
@@ -1281,14 +1275,20 @@ const QueryBuilder = () => {
 
         const query = parseGroup(isAnd, rules);
         setSearchQuery(JSON.stringify(query));
-        setSearchParams((params) => ({
-            ...params,
-            query: JSON.stringify({
-                isAnd,
-                rules: serializeRules(rules),
-            }),
-        }));
-    }, [isAnd, rules, setSearchQuery, setSearchParams]);
+        const newState = JSON.stringify({
+            isAnd,
+            rules: serializeRules(rules),
+        });
+
+        // Update if the state has changed
+        if (newState !== qbState) {
+            setQbState(newState);
+            setSearchParams((params) => ({
+                ...params,
+                query: newState,
+            }));
+        }
+    }, [isAnd, qbState, rules, searchParams, setSearchParams, setSearchQuery]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
