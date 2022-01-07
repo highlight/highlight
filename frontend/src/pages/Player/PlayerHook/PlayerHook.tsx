@@ -1,3 +1,4 @@
+import { datadogLogs } from '@datadog/browser-logs';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
@@ -8,6 +9,7 @@ import {
     getAllUrlEvents,
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
+import { timerEnd } from '@util/timer/timer';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -734,6 +736,14 @@ export const usePlayer = (): ReplayerContextInterface => {
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
         replayer?.play(newTime);
+
+        // Log how long it took to move to the new time.
+        const timelineChangeTime = timerEnd('timelineChangeTime');
+        console.log({ timelineChangeTime });
+        datadogLogs.logger.info('Timeline Change Time', {
+            duration: timelineChangeTime,
+            sessionId: session?.secure_id,
+        });
     };
 
     const pause = useCallback(
@@ -744,8 +754,16 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setTime(newTime);
             }
             replayer?.pause(newTime);
+
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
+            });
         },
-        [replayer]
+        [replayer, session?.secure_id]
     );
 
     /**

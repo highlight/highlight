@@ -13,6 +13,7 @@ import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
 import { useParams } from '@util/react-router/useParams';
+import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
@@ -295,6 +296,7 @@ export const Toolbar = React.memo(() => {
                                     staticSidebarWidth -
                                     leftSidebarWidth) /
                                 wrapperWidth;
+                            timerStart('timelineChangeTime');
                             setTime(getSliderTime(ratio));
                         }}
                     >
