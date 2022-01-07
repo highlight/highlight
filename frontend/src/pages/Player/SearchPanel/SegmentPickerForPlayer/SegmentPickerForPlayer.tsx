@@ -3,6 +3,7 @@ import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -62,6 +63,11 @@ const SegmentPickerForPlayer = () => {
             const segmentParameters = gqlSanitize({
                 ...currentSegment?.params,
             });
+            if (!segmentParameters.query) {
+                segmentParameters.query = JSON.stringify(
+                    getQueryFromParams(segmentParameters)
+                );
+            }
             setExistingParams(segmentParameters);
             setSearchParams(segmentParameters);
             setSegmentName(currentSegment?.name || null);
