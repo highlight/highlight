@@ -13,6 +13,7 @@
 .optionLabelType {
     background: var(--color-gray-300);
     border-radius: 3px;
+    color: var(--text-primary) !important;
     margin-right: 6px;
     padding-left: 4px;
     padding-right: 4px;
@@ -24,6 +25,7 @@
 }
 
 .optionLabelName {
+    color: var(--text-primary) !important;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -37,6 +39,7 @@
 }
 
 .optionTooltip {
+    color: var(--text-primary) !important;
     margin-left: 4px;
 }
 
@@ -71,7 +74,7 @@
 }
 
 .ruleItem {
-    background-color: var(--color-purple-400) !important;
+    background-color: var(--color-query-builder-rule-background) !important;
     border: 0 !important;
     border-radius: 0;
     color: var(--color-primary-background) !important;
@@ -79,7 +82,8 @@
     padding: 3px 6px;
 
     &:hover {
-        background-color: var(--color-purple-600) !important;
+        background-color: var(--color-query-builder-rule-background) !important;
+        opacity: 80%;
     }
 
     &:first-child {

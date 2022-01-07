@@ -261,6 +261,7 @@ const OnPremiseBanner = () => {
     );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DemoWorkspaceBanner = () => {
     const { currentProject, allProjects } = useApplicationContext();
     const { pathname } = useLocation();
