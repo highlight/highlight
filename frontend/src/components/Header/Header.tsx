@@ -94,7 +94,7 @@ const getBanner = (project_id: string) => {
     if (isOnPrem) {
         return <OnPremiseBanner />;
     } else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        return <DemoWorkspaceBanner />;
+        return <ProductHuntBanner />;
     } else {
         return <FreePlanBanner />;
     }
@@ -145,10 +145,10 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    // if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
-    //     toggleShowBanner(false);
-    //     return null;
-    // }
+    if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
+        toggleShowBanner(false);
+        return null;
+    }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
         toggleShowBanner(false);
@@ -161,27 +161,12 @@ const FreePlanBanner = () => {
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
-    const showProductHuntBanner =
-        data?.billingDetailsForProject?.plan.type !== PlanType.Free;
-    if (showProductHuntBanner) {
-        bannerMessage = (
-            <span>
-                Highlight is live on Product Hunt 🎉‍{' '}
-                <a
-                    target="_blank"
-                    href="https://www.producthunt.com/posts/highlight-5"
-                    className={styles.trialLink}
-                    rel="noreferrer"
-                >
-                    Support us
-                </a>{' '}
-                and we'll be forever grateful ❤️
-            </span>
-        );
-    } else if (hasTrial) {
+    if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
-        ).format('MM/DD/YY')}. `;
+        ).format(
+            'MM/DD/YY'
+        )}. After this trial, you will be on the free tier. `;
 
         if (canExtend) {
             if (integrated) {
@@ -198,7 +183,7 @@ const FreePlanBanner = () => {
                         >
                             Fill this out
                         </Link>{' '}
-                        before your trial ends to extend this by 4 months!
+                        before your trial ends to extend this by 1 month!
                     </>
                 );
             } else {
@@ -215,7 +200,7 @@ const FreePlanBanner = () => {
                         >
                             Integrate
                         </Link>{' '}
-                        before your trial ends to extend this by 4 months!
+                        before your trial ends to extend this by 1 month!
                     </>
                 );
             }
@@ -225,40 +210,34 @@ const FreePlanBanner = () => {
     toggleShowBanner(true);
 
     return (
-        <div
-            className={classNames(styles.trialWrapper, {
-                [styles.productHunt]: showProductHuntBanner,
-            })}
-        >
+        <div className={styles.trialWrapper}>
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
-                {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
-                    !canExtend && (
-                        <>
-                            {' '}
-                            Upgrade{' '}
-                            <Link
-                                className={styles.trialLink}
-                                to={`/w/${data?.workspace_for_project?.id}/billing`}
-                            >
-                                here!
-                            </Link>
-                        </>
-                    )}
-            </div>
-            {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
-                hasTrial && (
-                    <button
-                        onClick={() => {
-                            H.track('TemporarilyHideFreePlanBanner', {
-                                hasTrial,
-                            });
-                            setTemporarilyHideBanner(true);
-                        }}
-                    >
-                        <SvgXIcon />
-                    </button>
+                {!canExtend && (
+                    <>
+                        {' '}
+                        Upgrade{' '}
+                        <Link
+                            className={styles.trialLink}
+                            to={`/w/${data?.workspace_for_project?.id}/billing`}
+                        >
+                            here!
+                        </Link>
+                    </>
                 )}
+            </div>
+            {hasTrial && (
+                <button
+                    onClick={() => {
+                        H.track('TemporarilyHideFreePlanBanner', {
+                            hasTrial,
+                        });
+                        setTemporarilyHideBanner(true);
+                    }}
+                >
+                    <SvgXIcon />
+                </button>
+            )}
         </div>
     );
 };
@@ -303,6 +282,35 @@ const DemoWorkspaceBanner = () => {
                 <Link className={styles.demoLink} to={redirectLink}>
                     Go back to your project.
                 </Link>
+            </div>
+        </div>
+    );
+};
+
+const ProductHuntBanner = () => {
+    const { toggleShowBanner } = useGlobalContext();
+
+    toggleShowBanner(true);
+
+    const bannerMessage = (
+        <span>
+            Highlight is live on Product Hunt 🎉‍{' '}
+            <a
+                target="_blank"
+                href="https://www.producthunt.com/posts/highlight-5"
+                className={styles.trialLink}
+                rel="noreferrer"
+            >
+                Support us
+            </a>{' '}
+            and we'll be forever grateful ❤️
+        </span>
+    );
+
+    return (
+        <div className={classNames(styles.trialWrapper, styles.productHunt)}>
+            <div className={classNames(styles.trialTimeText)}>
+                {bannerMessage}
             </div>
         </div>
     );
