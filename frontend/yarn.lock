@@ -2186,6 +2186,21 @@
   resolved "https://registry.yarnpkg.com/@ctrl/tinycolor/-/tinycolor-3.4.0.tgz#c3c5ae543c897caa9c2a68630bed355be5f9990f"
   integrity sha512-JZButFdZ1+/xAfpguQHoabIXkcqRRKpMrWKBkpEZZyxfY9C1DpADFB8PEqGSTeFr135SaTRfKqGKx5xSCLI7ZQ==
 
+"@datadog/browser-core@4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-core/-/browser-core-4.0.1.tgz#00e62df8bf94c4e162471ea1ce43d8d4cff23ac0"
+  integrity sha512-2IOkbXyXiPIH+cv55NJSSms9U0ipQ2te0X/ZgMpVvlRDHhG0t1Nx/UUyaL3Sa1i3fRYAuAKJDCI/JAnEjn7zCw==
+  dependencies:
+    tslib "^1.10.0"
+
+"@datadog/browser-logs@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-logs/-/browser-logs-4.0.1.tgz#3a84ab14f9d772d4c767a5500a3ca7f4c08de29a"
+  integrity sha512-RTTvsdBD2g0oYezm4lOXBr3TVv4EXADHyScrKq4TFK592S2bOKvxq+bzvAfDs8sikzHPlhAbTXzFdVjiI+Lhfw==
+  dependencies:
+    "@datadog/browser-core" "4.0.1"
+    tslib "^1.10.0"
+
 "@date-io/core@^1.3.13":
   version "1.3.13"
   resolved "https://registry.yarnpkg.com/@date-io/core/-/core-1.3.13.tgz#90c71da493f20204b7a972929cc5c482d078b3fa"
