@@ -65,7 +65,7 @@ func (w *Worker) IndexSessions() {
 
 type OpenSearchError struct {
 	*model.ErrorGroup
-	Fields []*OpenSearchErrorField `json:"fields"`
+	Fields []*OpenSearchErrorField
 }
 
 type OpenSearchErrorField struct {
