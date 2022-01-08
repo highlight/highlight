@@ -104,6 +104,8 @@ export interface ReplayerContextInterface {
     rageClicks: RageClick[];
     viewport: viewportResizeDimension | undefined;
     currentUrl: string | undefined;
+    /** The timestamp for the first rrweb event. */
+    sessionStartDateTime: number;
 }
 
 export const [

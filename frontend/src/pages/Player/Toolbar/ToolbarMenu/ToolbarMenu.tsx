@@ -7,6 +7,7 @@ import {
     DevToolsToolbarItem,
     MouseTrailToolbarItem,
     PlaybackSpeedControlToolbarItem,
+    PlayerTimeToolbarItem,
     SkipInactiveToolbarItem,
     TimelineAnnotationsToolbarItem,
 } from '@pages/Player/Toolbar/ToolbarItems/ToolbarItems';
@@ -58,6 +59,11 @@ const ToolbarMenu = React.memo(({ loading }: Props) => {
                             />,
                             <DevToolsToolbarItem
                                 key="devtools"
+                                loading={loading}
+                                renderContext="menu"
+                            />,
+                            <PlayerTimeToolbarItem
+                                key="playerTime"
                                 loading={loading}
                                 renderContext="menu"
                             />,

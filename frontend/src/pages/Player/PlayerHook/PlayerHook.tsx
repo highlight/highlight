@@ -849,6 +849,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             : null,
         viewport,
         currentUrl,
+        sessionStartDateTime: events.length > 0 ? events[0].timestamp : 0,
     };
 };
 

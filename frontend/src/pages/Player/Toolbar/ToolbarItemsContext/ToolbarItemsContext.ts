@@ -23,6 +23,8 @@ interface ToolbarItemsContext {
     setSkipInactive: ToolbarItemSetter;
     autoPlay: ToolbarItem;
     setAutoPlay: ToolbarItemSetter;
+    showPlayerTime: ToolbarItem;
+    setShowPlayerTime: ToolbarItemSetter;
 }
 
 export const [
