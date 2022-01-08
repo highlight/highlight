@@ -46,6 +46,12 @@ const useToolbarItems = () => {
             isPinned: false,
         }
     );
+    const [showPlayerTime, setShowPlayerTime] = useLocalStorage<ToolbarItem>(
+        `${LocalStorageKeyPrefix}-playerTime`,
+        {
+            isPinned: false,
+        }
+    );
 
     return {
         devToolsButton,
@@ -60,6 +66,8 @@ const useToolbarItems = () => {
         setSkipInactive,
         autoPlay,
         setAutoPlay,
+        showPlayerTime,
+        setShowPlayerTime,
     };
 };
 
