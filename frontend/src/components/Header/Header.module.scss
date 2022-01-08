@@ -123,6 +123,13 @@
     z-index: 100;
 }
 
+.quicksearchWrapper {
+    align-items: center;
+    display: flex;
+    flex: 0 1 360px;
+    margin: auto;
+}
+
 .searchBar {
     align-items: center;
     border: 1px solid var(--color-gray-300);

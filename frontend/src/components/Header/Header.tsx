@@ -5,6 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -69,6 +70,9 @@ export const Header = () => {
                         </div>
                     )}
 
+                    <div className={styles.quicksearchWrapper}>
+                        <QuickSearch />
+                    </div>
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         {!isLoggedIn ? (

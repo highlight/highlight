@@ -1562,6 +1562,23 @@ export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
     'fields_opensearch'
 >;
 
+export type GetQuickFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetQuickFieldsOpensearchQuery = { __typename?: 'Query' } & {
+    quickFields_opensearch: Array<
+        Types.Maybe<
+            { __typename?: 'Field' } & Pick<
+                Types.Field,
+                'type' | 'name' | 'value'
+            >
+        >
+    >;
+};
+
 export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -2900,6 +2917,7 @@ export const namedOperations = {
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
+        GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,

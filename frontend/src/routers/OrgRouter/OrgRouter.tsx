@@ -3,13 +3,29 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import {
+    SearchContextProvider,
+    SearchParams,
+} from '@pages/Sessions/SearchContext/SearchContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import _ from 'lodash';
+import React, { useEffect, useState } from 'react';
+import { useRouteMatch } from 'react-router-dom';
 import { useToggle } from 'react-use';
+import {
+    ArrayParam,
+    BooleanParam,
+    JsonParam,
+    StringParam,
+    useQueryParam,
+    useQueryParams,
+} from 'use-query-params';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
@@ -97,6 +113,126 @@ export const ProjectRouter = () => {
         }
     }, [error, integratedLoading, loading, setIsLoading]);
 
+    // Params and hooks for SearchContextProvider
+
+    const [segmentName, setSegmentName] = useState<string | null>(null);
+    const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
+        false
+    );
+    const [searchParams, setSearchParams] = useState<SearchParams>(
+        EmptySessionsSearchParams
+    );
+
+    const [selectedSegment, setSelectedSegment] = useLocalStorage<
+        { value: string; id: string } | undefined
+    >(
+        `highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
+        undefined
+    );
+
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const [
+        searchParamsToUrlParams,
+        setSearchParamsToUrlParams,
+    ] = useQueryParams({
+        user_properties: FieldArrayParam,
+        identified: BooleanParam,
+        browser: StringParam,
+        date_range: JsonParam,
+        excluded_properties: FieldArrayParam,
+        hide_viewed: BooleanParam,
+        length_range: JsonParam,
+        os: StringParam,
+        referrer: StringParam,
+        track_properties: FieldArrayParam,
+        excluded_track_properties: FieldArrayParam,
+        visited_url: StringParam,
+        first_time: BooleanParam,
+        device_id: StringParam,
+        show_live_sessions: BooleanParam,
+        environments: ArrayParam,
+        app_versions: ArrayParam,
+        query: QueryBuilderStateParam,
+    });
+    const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+        'segment',
+        JsonParam
+    );
+
+    const [existingParams, setExistingParams] = useState<SearchParams>(
+        EmptySessionsSearchParams
+    );
+
+    const sessionsMatch = useRouteMatch('/:project_id/sessions');
+
+    useEffect(() => {
+        const areAnySearchParamsSet = !_.isEqual(
+            EmptySessionsSearchParams,
+            searchParams
+        );
+
+        // Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
+        if (!segmentName && areAnySearchParamsSet) {
+            // `undefined` values will not be persisted to the URL.
+            // Because of that, we only want to change the values from `undefined`
+            // to the actual value when the value is different to the empty state.
+            const searchParamsToReflectInUrl = { ...InitialSearchParamsForUrl };
+            Object.keys(searchParams).forEach((key) => {
+                // @ts-expect-error
+                const currentSearchParam = searchParams[key];
+                // @ts-expect-error
+                const emptySearchParam = EmptySessionsSearchParams[key];
+                if (Array.isArray(currentSearchParam)) {
+                    if (currentSearchParam.length !== emptySearchParam.length) {
+                        // @ts-expect-error
+                        searchParamsToReflectInUrl[key] = currentSearchParam;
+                    }
+                } else if (currentSearchParam !== emptySearchParam) {
+                    // @ts-expect-error
+                    searchParamsToReflectInUrl[key] = currentSearchParam;
+                }
+            });
+
+            setSearchParamsToUrlParams({
+                ...searchParamsToReflectInUrl,
+            });
+        }
+    }, [setSearchParamsToUrlParams, searchParams, segmentName]);
+
+    useEffect(() => {
+        if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
+            setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Session Segment Deep Linking
+    useEffect(() => {
+        // Only this effect on the sessions page
+        if (!sessionsMatch) {
+            return;
+        }
+
+        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+            if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
+                setActiveSegmentUrlParam(selectedSegment, 'replace');
+            }
+        } else if (activeSegmentUrlParam !== undefined) {
+            setActiveSegmentUrlParam(undefined, 'replace');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam]);
+
+    useEffect(() => {
+        if (activeSegmentUrlParam) {
+            setSelectedSegment(activeSegmentUrlParam);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     if (loading || integratedLoading) {
         return null;
     }
@@ -118,39 +254,77 @@ export const ProjectRouter = () => {
                     workspaces: data?.workspaces || [],
                 }}
             >
-                <Header />
-                {(isLoggedIn ||
-                    projectIdRemapped ===
-                        DEMO_WORKSPACE_PROXY_APPLICATION_ID) && <Sidebar />}
-                <div
-                    className={classNames(commonStyles.bodyWrapper, {
-                        [commonStyles.bannerShown]: showBanner,
-                    })}
+                <SearchContextProvider
+                    value={{
+                        searchParams,
+                        setSearchParams,
+                        existingParams,
+                        setExistingParams,
+                        segmentName,
+                        setSegmentName,
+                        showStarredSessions,
+                        setShowStarredSessions,
+                        selectedSegment,
+                        setSelectedSegment,
+                        searchQuery,
+                        setSearchQuery,
+                    }}
                 >
-                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-                    {isLoggedIn && (error || !data?.project) ? (
-                        <ErrorState
-                            message={`
+                    <Header />
+                    {(isLoggedIn ||
+                        projectIdRemapped ===
+                            DEMO_WORKSPACE_PROXY_APPLICATION_ID) && <Sidebar />}
+                    <div
+                        className={classNames(commonStyles.bodyWrapper, {
+                            [commonStyles.bannerShown]: showBanner,
+                        })}
+                    >
+                        {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+                        {isLoggedIn && (error || !data?.project) ? (
+                            <ErrorState
+                                message={`
                         Seems like you don’t have access to this page 😢. If you're
                         part of a team, ask your project admin to send you an
                         invite. Otherwise, feel free to make an account!
                         `}
-                            errorString={
-                                'ProjectRouter Error: ' + JSON.stringify(error)
-                            }
-                        />
-                    ) : (
-                        <>
-                            {isLoggedIn && !hasFinishedOnboarding && (
-                                <>
-                                    <OnboardingBubble />
-                                </>
-                            )}
-                            <ApplicationRouter integrated={integrated} />
-                        </>
-                    )}
-                </div>
+                                errorString={
+                                    'ProjectRouter Error: ' +
+                                    JSON.stringify(error)
+                                }
+                            />
+                        ) : (
+                            <>
+                                {isLoggedIn && !hasFinishedOnboarding && (
+                                    <>
+                                        <OnboardingBubble />
+                                    </>
+                                )}
+                                <ApplicationRouter integrated={integrated} />
+                            </>
+                        )}
+                    </div>
+                </SearchContextProvider>
             </ApplicationContextProvider>
         </GlobalContextProvider>
     );
+};
+
+const InitialSearchParamsForUrl = {
+    browser: undefined,
+    date_range: undefined,
+    device_id: undefined,
+    excluded_properties: undefined,
+    excluded_track_properties: undefined,
+    first_time: undefined,
+    hide_viewed: undefined,
+    identified: undefined,
+    length_range: undefined,
+    os: undefined,
+    referrer: undefined,
+    track_properties: undefined,
+    user_properties: undefined,
+    visited_url: undefined,
+    show_live_sessions: undefined,
+    environments: undefined,
+    app_versions: undefined,
 };
