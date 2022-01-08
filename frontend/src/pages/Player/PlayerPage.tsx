@@ -383,6 +383,30 @@ const Player = ({ integrated }: Props) => {
                                                     </ElevatedCard>
                                                 </div>
                                             )}
+                                            {replayerState ===
+                                                ReplayerState.Error && (
+                                                <div
+                                                    className={
+                                                        styles.manuallyStoppedMessageContainer
+                                                    }
+                                                    style={{
+                                                        height: replayer?.wrapper.getBoundingClientRect()
+                                                            .height,
+                                                        width: replayer?.wrapper.getBoundingClientRect()
+                                                            .width,
+                                                    }}
+                                                >
+                                                    <ElevatedCard title="This session doesn't exist.">
+                                                        <p>
+                                                            If you're seeing
+                                                            this than this
+                                                            session you're
+                                                            trying to view
+                                                            doesn't exist.
+                                                        </p>
+                                                    </ElevatedCard>
+                                                </div>
+                                            )}
                                             {isPlayerReady && (
                                                 <PlayerCommentCanvas
                                                     setModalPosition={
@@ -430,8 +454,10 @@ const Player = ({ integrated }: Props) => {
                                                                 ?.clientWidth
                                                         }
                                                     />
-                                                    {session?.processed ===
-                                                        false && (
+                                                    {(session?.processed ===
+                                                        false ||
+                                                        replayerState ===
+                                                            ReplayerState.NoEventsYet) && (
                                                         <LoadingLiveSessionCard />
                                                     )}
                                                 </div>

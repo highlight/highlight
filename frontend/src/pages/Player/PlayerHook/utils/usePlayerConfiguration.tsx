@@ -67,6 +67,10 @@ const usePlayerConfiguration = () => {
         'highlightShowPlayerMouseTail',
         true
     );
+    const [showPlayerAbsoluteTime, setShowPlayerAbsoluteTime] = useLocalStorage(
+        'highlightShowPlayerAbsoluteTime',
+        true
+    );
     const [
         _showDetailedSessionView,
         setShowDetailedSessionView,
@@ -114,6 +118,8 @@ const usePlayerConfiguration = () => {
         setShowPlayerMouseTail,
         showDetailedSessionView,
         setShowDetailedSessionView,
+        showPlayerAbsoluteTime,
+        setShowPlayerAbsoluteTime,
     };
 };
 

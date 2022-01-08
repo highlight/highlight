@@ -1,6 +1,7 @@
 import Switch from '@components/Switch/Switch';
 import ToggleButton from '@components/ToggleButton/ToggleButton';
 import Tooltip from '@components/Tooltip/Tooltip';
+import SvgClockIcon from '@icons/ClockIcon';
 import SvgDevtoolsIcon from '@icons/DevtoolsIcon';
 import SvgFastForwardIcon from '@icons/FastForwardIcon';
 import SvgMouseIcon from '@icons/MouseIcon';
@@ -446,6 +447,65 @@ export const AutoPlayToolbarItem = React.memo(
                     </ToggleButton>
                 }
                 tooltipTitle="Automatically starts playing the video."
+            />
+        );
+    }
+);
+
+export const PlayerTimeToolbarItem = React.memo(
+    ({ loading, renderContext }: ToolbarItemProps) => {
+        const {
+            showPlayerAbsoluteTime,
+            setShowPlayerAbsoluteTime,
+        } = usePlayerConfiguration();
+        const { showPlayerTime, setShowPlayerTime } = useToolbarItemsContext();
+
+        if (!shouldRender(showPlayerTime, renderContext)) {
+            return null;
+        }
+
+        return (
+            <ToolbarItemComponent
+                trackingId="PlayerTime"
+                configuration={showPlayerTime}
+                menuRender={
+                    <Switch
+                        label="Show Absolute Time"
+                        className={styles.switchElement}
+                        labelFirst
+                        justifySpaceBetween
+                        noMarginAroundSwitch
+                        checked={showPlayerAbsoluteTime}
+                        onChange={(checked) => {
+                            setShowPlayerAbsoluteTime(checked);
+                        }}
+                        trackingId="ToolbarPlayerTime"
+                    />
+                }
+                onPinToggle={() => {
+                    setShowPlayerTime({ isPinned: !showPlayerTime.isPinned });
+                }}
+                renderContext={renderContext}
+                toolbarRender={
+                    <ToggleButton
+                        id={`${PlayerPageProductTourSelectors.DevToolsButton}`}
+                        trackingId="PlayerTime"
+                        type="text"
+                        className={styles.devToolsButton}
+                        onClick={() => {
+                            setShowPlayerAbsoluteTime(!showPlayerAbsoluteTime);
+                        }}
+                        disabled={loading}
+                        toggled={showPlayerAbsoluteTime}
+                    >
+                        <SvgClockIcon
+                            className={classNames(styles.devToolsIcon, {
+                                [styles.devToolsActive]: showPlayerAbsoluteTime,
+                            })}
+                        />
+                    </ToggleButton>
+                }
+                tooltipTitle="Shows timestamps in absolute time (at the time the event happened)"
             />
         );
     }
