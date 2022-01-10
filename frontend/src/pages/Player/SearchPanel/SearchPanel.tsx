@@ -1,5 +1,5 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
-import QueryBuilder from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import React from 'react';
 
 import SessionSearch from '../../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
@@ -22,7 +22,7 @@ const SearchPanel = React.memo(({ visible }: Props) => {
                         {isQueryBuilder ? (
                             <>
                                 <SegmentPickerForPlayer />
-                                <QueryBuilder />
+                                <SessionsQueryBuilder />
                             </>
                         ) : (
                             <>
