@@ -63,6 +63,47 @@ func (w *Worker) IndexSessions() {
 	}
 }
 
+type OpenSearchError struct {
+	*model.ErrorGroup
+	Fields []*OpenSearchErrorField
+}
+
+type OpenSearchErrorField struct {
+	*model.ErrorField
+	Key      string
+	KeyValue string
+}
+
+func (w *Worker) IndexErrors() {
+	modelProto := &model.ErrorGroup{}
+	results := &[]*model.ErrorGroup{}
+
+	inner := func(tx *gorm.DB, batch int) error {
+		for _, result := range *results {
+			fields := []*OpenSearchErrorField{}
+			for _, field := range result.Fields {
+				f := OpenSearchErrorField{
+					ErrorField: field,
+					Key:        field.Name,
+					KeyValue:   field.Name + "_" + field.Value,
+				}
+				fields = append(fields, &f)
+			}
+			os := OpenSearchError{
+				ErrorGroup: result,
+				Fields:     fields,
+			}
+			w.indexItem(opensearch.IndexErrors, &os)
+		}
+		return nil
+	}
+
+	if err := w.Resolver.DB.Preload("Fields").Model(modelProto).
+		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+	}
+}
+
 func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) {
 	modelProto := modelPrototype
 
@@ -81,7 +122,7 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) 
 	}
 }
 
-const SESSION_MAPPINGS = `
+const NESTED_FIELD_MAPPINGS = `
 {
 	"properties": {
 		"fields": {
@@ -109,10 +150,16 @@ const FIELD_MAPPINGS = `
 }`
 
 func (w *Worker) InitIndexMappings() {
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, SESSION_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating sessions mappings: %+v", err)
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, NESTED_FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating session mappings: %+v", err)
 	}
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating fields mappings: %+v", err)
+		log.Warnf("OPENSEARCH_ERROR error creating field mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrors, NESTED_FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating error mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
 	}
 }
