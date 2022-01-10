@@ -99,7 +99,14 @@ func (w *Worker) IndexErrors() {
 		return nil
 	}
 
-	if err := w.Resolver.DB.Preload("Fields").Model(modelProto).
+	// A little hacky, but some of the error groups with low ids have a very high number of fields,
+	// and it causes and error when > 65536 fields are loaded at once
+	if err := w.Resolver.DB.Preload("Fields").Where("id <= 10").Model(modelProto).
+		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+	}
+
+	if err := w.Resolver.DB.Preload("Fields").Where("id > 10").Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
