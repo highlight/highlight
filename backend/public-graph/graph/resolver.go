@@ -878,10 +878,6 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if len(minifiedFileBytes) > 5000000 {
-		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
-		return nil, err
-	}
 
 	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {

@@ -6,6 +6,7 @@ import {
     DevToolsToolbarItem,
     MouseTrailToolbarItem,
     PlaybackSpeedControlToolbarItem,
+    PlayerTimeToolbarItem,
     SkipInactiveToolbarItem,
     TimelineAnnotationsToolbarItem,
 } from '@pages/Player/Toolbar/ToolbarItems/ToolbarItems';
@@ -13,6 +14,7 @@ import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
 import { useParams } from '@util/react-router/useParams';
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -491,6 +493,10 @@ export const Toolbar = React.memo(() => {
                                 loading={disableControls}
                                 renderContext="toolbar"
                             />
+                            <PlayerTimeToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
                         </>
                     )}
                 </div>
@@ -529,7 +535,8 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { time } = useReplayerContext();
+    const { time, sessionStartDateTime } = useReplayerContext();
+    const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';
@@ -576,6 +583,18 @@ const SessionSegment = ({
                               getSliderTime(sliderClientX / wrapperWidth)
                           )
                         : MillisToMinutesAndSecondsVerbose(interval.duration)}
+                    {showPlayerAbsoluteTime && interval.active && (
+                        <div>
+                            (
+                            {playerTimeToSessionAbsoluteTime({
+                                sessionStartTime: sessionStartDateTime,
+                                relativeTime: getSliderTime(
+                                    sliderClientX / wrapperWidth
+                                ),
+                            })}
+                            )
+                        </div>
+                    )}
                 </div>
             </div>
             <div
