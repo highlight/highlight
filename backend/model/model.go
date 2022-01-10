@@ -668,7 +668,7 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string        `json:"state" gorm:"default:OPEN"`
-	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
+	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
 	FieldGroup       *string
 	Environments     string
 	IsPublic         bool `gorm:"default:false"`
