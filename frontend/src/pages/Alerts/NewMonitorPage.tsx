@@ -13,7 +13,7 @@ import { useParams } from '@util/react-router/useParams';
 import { Divider, Form } from 'antd';
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import alertConfigurationCardStyles from './AlertConfigurationCard/AlertConfigurationCard.module.scss';
@@ -25,15 +25,17 @@ interface Props {
 }
 
 const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
-    const { url } = useRouteMatch();
     const { project_id } = useParams<{
         project_id: string;
     }>();
-    const { alertsPayload, slackUrl } = useAlertsContext();
+    const { slackUrl } = useAlertsContext();
     const history = useHistory();
     const [form] = Form.useForm();
-    const [config, setConfig] = useState<WebVitalDescriptor | null>(null);
+    const [config, setConfig] = useState<WebVitalDescriptor | null>(
+        WEB_VITALS_CONFIGURATION['LCP']
+    );
     const [functionName, __setFunctionName] = useState<string>('p90');
+    const [threshold, __setThreshold] = useState<number>(1000);
     const [searchQuery, setSearchQuery] = useState('');
 
     const onFinish = (values: any) => {
@@ -81,6 +83,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                         form={form}
                         name="newMonitor"
                         initialValues={{
+                            metricToMonitor: 'LCP',
                             function: 'p90',
                             threshold: config?.maxGoodValue || 1000,
                         }}
@@ -105,6 +108,9 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                             if ('function' in changedValues) {
                                 __setFunctionName(changedValues.function);
                             }
+                            if ('threshold' in changedValues) {
+                                __setThreshold(changedValues.threshold);
+                            }
                         }}
                     >
                         <section>
@@ -127,26 +133,6 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                     options={metricTypeOptions}
                                     placeholder="Metric to Monitor"
                                 />
-                            </Form.Item>
-                        </section>
-
-                        <section>
-                            <h3>Name</h3>
-                            <p>
-                                Add a name for your monitor. This makes it
-                                easier to find later. This can be changed at
-                                anytime.
-                            </p>
-                            <Form.Item
-                                name="name"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: 'Your monitor needs a name.',
-                                    },
-                                ]}
-                            >
-                                <Input />
                             </Form.Item>
                         </section>
 
@@ -185,11 +171,10 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                 An alert will be created if{' '}
                                 <code>
                                     <b>
-                                        {functionName}
-                                        (Cumulative Layout Shift)
+                                        {functionName}({config?.name})
                                     </b>
                                 </code>{' '}
-                                is over <b>1000</b>.
+                                is over <b>{threshold}</b>.
                             </p>
                             <Form.Item
                                 shouldUpdate
@@ -203,6 +188,26 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                 <Input
                                     addonAfter={config?.units || undefined}
                                 />
+                            </Form.Item>
+                        </section>
+
+                        <section>
+                            <h3>Name</h3>
+                            <p>
+                                Add a name for your monitor. This makes it
+                                easier to find later. This can be changed at
+                                anytime.
+                            </p>
+                            <Form.Item
+                                name="name"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Your monitor needs a name.',
+                                    },
+                                ]}
+                            >
+                                <Input />
                             </Form.Item>
                         </section>
 
