@@ -44,7 +44,16 @@ export enum ALERT_NAMES {
     RAGE_CLICK_ALERT = 'Rage Clicks',
 }
 
-export const ALERT_CONFIGURATIONS = {
+interface AlertConfiguration {
+    name: string;
+    canControlThreshold: boolean;
+    type: ALERT_TYPE;
+    description: string | React.ReactNode;
+    icon: React.ReactNode;
+    supportsExcludeRules: boolean;
+}
+
+export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
     ERROR_ALERT: {
         name: ALERT_NAMES['ERROR_ALERT'],
         canControlThreshold: true,
