@@ -218,6 +218,7 @@ const getOption = (props: any) => {
                     {(type === 'session' ||
                         type === CUSTOM_TYPE ||
                         type === ERROR_TYPE ||
+                        type === ERROR_FIELD_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
                             title={TOOLTIP_MESSAGE}
@@ -683,6 +684,7 @@ const isSingle = (val: OnChangeInput) =>
 
 export const CUSTOM_TYPE = 'custom';
 export const ERROR_TYPE = 'error';
+export const ERROR_FIELD_TYPE = 'error-field';
 
 interface FieldOptions {
     operators?: Operator[];
@@ -735,7 +737,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
-    custom_state: getStateLabel,
+    error_state: getStateLabel,
 };
 
 export const deserializeGroup = (
@@ -782,8 +784,7 @@ const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
 
 const getTypeLabel = (value: string) => {
     const type = getType(value);
-    const mapped =
-        type === CUSTOM_TYPE || type === ERROR_TYPE ? 'session' : type;
+    const mapped = type === CUSTOM_TYPE ? 'session' : type;
     if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
         return mapped;
     }
@@ -856,7 +857,7 @@ const QueryBuilder = ({
             }
 
             const type = getType(field.value);
-            if (type !== CUSTOM_TYPE) {
+            if (type !== CUSTOM_TYPE && type !== ERROR_TYPE) {
                 return undefined;
             }
 
@@ -870,7 +871,7 @@ const QueryBuilder = ({
 
     const parseInner = useCallback(
         (field: SelectOption, op: Operator, value?: string): any => {
-            if (getType(field.value) === CUSTOM_TYPE) {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
                 const name = field.label;
                 const isKeyword = !(
                     getCustomFieldOptions(field)?.type !== 'text'
@@ -933,8 +934,8 @@ const QueryBuilder = ({
                 }
             } else {
                 let key = field.value;
-                if (key.startsWith(ERROR_TYPE)) {
-                    key = key.replace(`${ERROR_TYPE}_`, '');
+                if (key.startsWith(ERROR_FIELD_TYPE)) {
+                    key = key.replace(`${ERROR_FIELD_TYPE}_`, '');
                 }
                 switch (op) {
                     case 'is':
@@ -1101,7 +1102,7 @@ const QueryBuilder = ({
                 return;
             }
 
-            if (getType(field.value) === CUSTOM_TYPE) {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
                 let options: { label: string; value: string }[] = [];
                 if (field.value === 'custom_app_version') {
                     options =
@@ -1116,12 +1117,12 @@ const QueryBuilder = ({
                         label: getProcessedLabel(v),
                         value: v,
                     }));
-                } else if (field.value === 'custom_state') {
+                } else if (field.value === 'error_state') {
                     options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
                         label: getStateLabel(v),
                         value: v,
                     }));
-                } else if (field.value === 'custom_Type') {
+                } else if (field.value === 'error_Type') {
                     options = [
                         'Backend',
                         'console.error',

@@ -4,10 +4,10 @@ import {
     useErrorSearchContext,
 } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext';
 import QueryBuilder, {
-    CUSTOM_TYPE,
     CustomField,
     DATE_OPERATORS,
     deserializeGroup,
+    ERROR_FIELD_TYPE,
     ERROR_TYPE,
     FetchFieldVariables,
     QueryBuilderState,
@@ -19,14 +19,14 @@ import React from 'react';
 
 const CUSTOM_FIELDS: CustomField[] = [
     {
-        type: CUSTOM_TYPE,
+        type: ERROR_TYPE,
         name: 'Type',
         options: {
             type: 'text',
         },
     },
     {
-        type: CUSTOM_TYPE,
+        type: ERROR_TYPE,
         name: 'created_at',
         options: {
             operators: DATE_OPERATORS,
@@ -34,35 +34,35 @@ const CUSTOM_FIELDS: CustomField[] = [
         },
     },
     {
-        type: CUSTOM_TYPE,
+        type: ERROR_TYPE,
         name: 'state',
         options: {
             type: 'text',
         },
     },
     {
-        type: ERROR_TYPE,
+        type: ERROR_FIELD_TYPE,
         name: 'browser',
         options: {
             type: 'text',
         },
     },
     {
-        type: ERROR_TYPE,
+        type: ERROR_FIELD_TYPE,
         name: 'event',
         options: {
             type: 'text',
         },
     },
     {
-        type: ERROR_TYPE,
+        type: ERROR_FIELD_TYPE,
         name: 'os_name',
         options: {
             type: 'text',
         },
     },
     {
-        type: ERROR_TYPE,
+        type: ERROR_FIELD_TYPE,
         name: 'visited_url',
         options: {
             type: 'text',
@@ -80,28 +80,30 @@ export const getQueryFromParams = (
         const start = moment(params.date_range.start_date).toISOString();
         const end = moment(params.date_range.end_date).toISOString();
         rules.push(
-            deserializeGroup('custom_created_at', 'between_date', [
+            deserializeGroup('error_created_at', 'between_date', [
                 `${start}_${end}`,
             ])
         );
     }
     if (params.event) {
-        rules.push(deserializeGroup('error_event', 'is', [params.event]));
+        rules.push(deserializeGroup('error-field_event', 'is', [params.event]));
     }
     if (params.os) {
-        rules.push(deserializeGroup('error_os_name', 'is', [params.os]));
+        rules.push(deserializeGroup('error-field_os_name', 'is', [params.os]));
     }
     if (params.state) {
-        rules.push(deserializeGroup('custom_state', 'is', [params.state]));
+        rules.push(deserializeGroup('error_state', 'is', [params.state]));
     } else {
-        rules.push(deserializeGroup('custom_state', 'is', ['OPEN']));
+        rules.push(deserializeGroup('error_state', 'is', ['OPEN']));
     }
     if (params.type) {
-        rules.push(deserializeGroup('custom_Type', 'is', [params.type]));
+        rules.push(deserializeGroup('error_Type', 'is', [params.type]));
     }
     if (params.visited_url) {
         rules.push(
-            deserializeGroup('error_visited_url', 'is', [params.visited_url])
+            deserializeGroup('error-field_visited_url', 'is', [
+                params.visited_url,
+            ])
         );
     }
     return {
