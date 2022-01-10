@@ -551,7 +551,8 @@ func (w *Worker) ReportStripeUsage() {
 func (w *Worker) InitializeOpenSearchIndex() {
 	w.InitIndexMappings()
 	w.IndexTable(opensearch.IndexFields, &model.Field{})
-	// w.IndexTable(opensearch.IndexErrors, &model.ErrorGroup{})
+	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{})
+	w.IndexErrors()
 	w.IndexSessions()
 
 	// Close the indexer channel and flush remaining items
