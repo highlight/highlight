@@ -2315,7 +2315,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		SortField:     ptr.String("updated_at"),
 		SortOrder:     ptr.String("desc"),
 		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"FieldGroup", "Fields"}, // Excluding certain fields for performance
+		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
 	}
 
 	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
