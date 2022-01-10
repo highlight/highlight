@@ -63,6 +63,7 @@ type ErrorSearchParamsInput struct {
 	State      *ErrorState     `json:"state"`
 	Event      *string         `json:"event"`
 	Type       *string         `json:"type"`
+	Query      *string         `json:"query"`
 }
 
 type ErrorTrace struct {
