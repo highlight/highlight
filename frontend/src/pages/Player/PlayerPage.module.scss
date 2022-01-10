@@ -265,3 +265,11 @@
     height: fit-content;
     justify-self: center;
 }
+
+.loadingWrapper {
+    align-items: center;
+    display: grid;
+    height: fit-content;
+    justify-items: center;
+    width: fit-content;
+}

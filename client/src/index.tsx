@@ -996,7 +996,7 @@ export class Highlight {
 
     _shouldSendRequest(): boolean {
         return (
-            this._recordingStartTime !== 0 ||
+            this._recordingStartTime !== 0 &&
             (this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
                 this.sessionData.sessionID !== 0)
         );

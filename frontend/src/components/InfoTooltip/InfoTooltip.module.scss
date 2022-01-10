@@ -1,4 +1,5 @@
 .tooltip {
+    flex-shrink: 0;
     z-index: 9999999999999 !important;
     a {
         color: var(--text-primary-inverted) !important;
@@ -19,6 +20,7 @@
 
 .icon {
     --size: var(--size-small);
+    flex-shrink: 0;
     height: var(--size);
     width: var(--size);
 
