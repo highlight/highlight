@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import Input from '@components/Input/Input';
+import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
@@ -11,7 +12,8 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form } from 'antd';
-import React, { useState } from 'react';
+import moment from 'moment';
+import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router-dom';
 
@@ -31,7 +33,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const { slackUrl } = useAlertsContext();
     const history = useHistory();
     const [form] = Form.useForm();
-    const [config, setConfig] = useState<WebVitalDescriptor | null>(
+    const [config, setConfig] = useState<WebVitalDescriptor>(
         WEB_VITALS_CONFIGURATION['LCP']
     );
     const [functionName, __setFunctionName] = useState<string>('p90');
@@ -67,6 +69,20 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     );
 
     const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
+    const randomData = useMemo(() => {
+        const pointsToGenerate = 100;
+        const now = new Date();
+        return Array.from(new Array(pointsToGenerate)).map((_, index) => {
+            const randomValue =
+                Math.random() * (config.maxNeedsImprovementValue * 0.7);
+            return {
+                value: randomValue,
+                date: moment(now)
+                    .subtract(pointsToGenerate - index, 'minutes')
+                    .format('h:mm A'),
+            };
+        });
+    }, [config]);
 
     return (
         <div>
@@ -79,6 +95,31 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                     an alert when a metric exceeds a value.
                 </p>
                 <Card>
+                    <div className={styles.chartContainer}>
+                        <LineChart
+                            height={235}
+                            data={randomData}
+                            hideLegend
+                            xAxisDataKeyName="date"
+                            lineColorMapping={{
+                                value: 'var(--color-blue-400)',
+                            }}
+                            yAxisLabel={config.units}
+                            referenceAreaProps={{
+                                x1: randomData[0].date,
+                                y1: threshold,
+                                fill: 'var(--color-red-200)',
+                                fillOpacity: 0.8,
+                                label: `Values above "${threshold} ${config.units}" will create an alert.`,
+                            }}
+                            xAxisProps={{
+                                tickLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                                axisLine: { stroke: 'var(--color-gray-600)' },
+                            }}
+                        />
+                    </div>
                     <Form
                         form={form}
                         name="newMonitor"
@@ -104,6 +145,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                     },
                                 ]);
                                 setConfig(webVitalConfig);
+                                __setThreshold(webVitalConfig.maxGoodValue);
                             }
                             if ('function' in changedValues) {
                                 __setFunctionName(changedValues.function);

@@ -3,3 +3,11 @@
     display: flex;
     justify-content: flex-end;
 }
+
+.chartContainer {
+    margin-bottom: var(--size-large);
+    :global(.recharts-rectangle) + text {
+        fill: var(--text-primary);
+        font: normal 18px 'Steradian';
+    }
+}
