@@ -1,16 +1,18 @@
+import { useGetErrorFieldsOpensearchQuery } from '@graph/hooks';
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext';
 import QueryBuilder, {
     CUSTOM_TYPE,
     CustomField,
     DATE_OPERATORS,
     ERROR_TYPE,
+    FetchFieldVariables,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import React from 'react';
 
 const CUSTOM_FIELDS: CustomField[] = [
     {
         type: CUSTOM_TYPE,
-        name: 'type',
+        name: 'Type',
         options: {
             type: 'text',
         },
@@ -62,28 +64,17 @@ const CUSTOM_FIELDS: CustomField[] = [
 
 const ErrorQueryBuilder = () => {
     const { setSearchQuery } = useErrorSearchContext();
-    const { refetch: fetchFields } = {
+    const { refetch } = useGetErrorFieldsOpensearchQuery({
         skip: true,
-    };
+    });
+    const fetchFields = (variables: FetchFieldVariables) =>
+        refetch(variables).then((r) => r.data.error_fields_opensearch);
 
     return (
         <QueryBuilder
             setSearchQuery={setSearchQuery}
             customFields={CUSTOM_FIELDS}
-            fetchFields={function (
-                variables?: Partial<
-                    Exact<{
-                        project_id: string;
-                        count: number;
-                        field_type: string;
-                        field_name: string;
-                        query: string;
-                    }>
-                >
-            ): Promise<ApolloQueryResult<GetFieldsOpensearchQuery>> {
-                throw new Error('Function not implemented.');
-            }}
-            fieldData={undefined}
+            fetchFields={fetchFields}
         />
     );
 };

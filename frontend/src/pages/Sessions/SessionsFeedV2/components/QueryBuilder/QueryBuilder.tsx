@@ -1,11 +1,7 @@
-import { ApolloQueryResult } from '@apollo/client';
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import {
-    GetFieldsOpensearchQuery,
-    GetFieldTypesQuery,
-} from '@graph/operations';
+import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import {
@@ -647,6 +643,7 @@ const LABEL_MAP: { [key: string]: string } = {
     browser_name: 'Browser',
     browser: 'Browser',
     'visited-url': 'Visited URL',
+    visited_url: 'Visited URL',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
@@ -658,6 +655,7 @@ const LABEL_MAP: { [key: string]: string } = {
     starred: 'Starred',
     identifier: 'Identifier',
     reload: 'Reloaded',
+    state: 'State',
 };
 
 const getOperator = (
@@ -921,23 +919,23 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     };
 };
 
+export type FetchFieldVariables =
+    | Partial<
+          Exact<{
+              project_id: string;
+              count: number;
+              field_type: string;
+              field_name: string;
+              query: string;
+          }>
+      >
+    | undefined;
+
 interface QueryBuilderProps {
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
     customFields: CustomField[];
-    fetchFields: (
-        variables?:
-            | Partial<
-                  Exact<{
-                      project_id: string;
-                      count: number;
-                      field_type: string;
-                      field_name: string;
-                      query: string;
-                  }>
-              >
-            | undefined
-    ) => Promise<ApolloQueryResult<GetFieldsOpensearchQuery>>;
-    fieldData: GetFieldTypesQuery | undefined;
+    fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
+    fieldData?: GetFieldTypesQuery;
 }
 
 const QueryBuilder = ({
@@ -1020,25 +1018,29 @@ const QueryBuilder = ({
                     };
             }
         } else {
+            let key = field.value;
+            if (key.startsWith(ERROR_TYPE)) {
+                key = key.replace(`${ERROR_TYPE}_`, '');
+            }
             switch (op) {
                 case 'is':
                     return {
-                        term: { 'fields.KeyValue': `${field.value}_${value}` },
+                        term: { 'fields.KeyValue': `${key}_${value}` },
                     };
                 case 'contains':
                     return {
                         wildcard: {
-                            'fields.KeyValue': `${field.value}_*${value}*`,
+                            'fields.KeyValue': `${key}_*${value}*`,
                         },
                     };
                 case 'matches':
                     return {
                         regexp: {
-                            'fields.KeyValue': `${field.value}_${value}`,
+                            'fields.KeyValue': `${key}_${value}`,
                         },
                     };
                 case 'exists':
-                    return { term: { 'fields.Key': field.value } };
+                    return { term: { 'fields.Key': key } };
             }
         }
     };
@@ -1185,6 +1187,19 @@ const QueryBuilder = ({
                         { label: 'Live', value: 'false' },
                         { label: 'Completed', value: 'true' },
                     ];
+                } else if (field.value === 'custom_state') {
+                    options = [
+                        { label: 'Open', value: 'OPEN' },
+                        { label: 'Resolved', value: 'RESOLVED' },
+                        { label: 'Ignored', value: 'IGNORED' },
+                    ];
+                } else if (field.value === 'custom_Type') {
+                    options = [
+                        { label: 'Backend', value: 'Backend' },
+                        { label: 'console.error', value: 'console.error' },
+                        { label: 'window.onerror', value: 'window.onerror' },
+                        { label: 'custom', value: 'custom' },
+                    ];
                 } else if (getCustomFieldOptions(field)?.type === 'boolean') {
                     options = [
                         { label: 'true', value: 'true' },
@@ -1204,7 +1219,7 @@ const QueryBuilder = ({
                 field_name: field.label,
                 query: input,
             }).then((res) => {
-                return res.data.fields_opensearch.map((val) => ({
+                return res.map((val) => ({
                     label: val,
                     value: val,
                 }));

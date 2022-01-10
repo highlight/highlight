@@ -24,7 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3250,7 +3250,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	return values, nil
 }
 
-func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3278,7 +3278,7 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 		]}}`, fieldName, query)
 	}
 
-	results := []*model.Field{}
+	results := []*model.ErrorField{}
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}

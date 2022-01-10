@@ -865,6 +865,7 @@ export type QueryFields_OpensearchArgs = {
 export type QueryError_Fields_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
+    field_type: Scalars['String'];
     field_name: Scalars['String'];
     query: Scalars['String'];
 };
