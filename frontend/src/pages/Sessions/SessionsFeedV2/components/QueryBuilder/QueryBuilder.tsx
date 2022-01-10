@@ -28,8 +28,6 @@ export interface RuleProps {
     val: MultiselectOption | undefined;
 }
 
-export type QueryBuilderType = 'sessions' | 'errors';
-
 interface SelectOption {
     kind: 'single';
     label: string;
@@ -784,8 +782,9 @@ const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
 
 const getTypeLabel = (value: string) => {
     const type = getType(value);
-    const mapped = type === CUSTOM_TYPE ? 'session' : type;
-    if (!!mapped && ['track', 'user', 'session', 'error'].includes(mapped)) {
+    const mapped =
+        type === CUSTOM_TYPE || type === ERROR_TYPE ? 'session' : type;
+    if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
         return mapped;
     }
     return undefined;
@@ -1113,28 +1112,30 @@ const QueryBuilder = ({
                                 value: val as string,
                             })) ?? [];
                 } else if (field.value === 'custom_processed') {
-                    options = [
-                        { label: 'Live', value: 'false' },
-                        { label: 'Completed', value: 'true' },
-                    ];
+                    options = ['true', 'false'].map((v) => ({
+                        label: getProcessedLabel(v),
+                        value: v,
+                    }));
                 } else if (field.value === 'custom_state') {
-                    options = [
-                        { label: 'Open', value: 'OPEN' },
-                        { label: 'Resolved', value: 'RESOLVED' },
-                        { label: 'Ignored', value: 'IGNORED' },
-                    ];
+                    options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+                        label: getStateLabel(v),
+                        value: v,
+                    }));
                 } else if (field.value === 'custom_Type') {
                     options = [
-                        { label: 'Backend', value: 'Backend' },
-                        { label: 'console.error', value: 'console.error' },
-                        { label: 'window.onerror', value: 'window.onerror' },
-                        { label: 'custom', value: 'custom' },
-                    ];
+                        'Backend',
+                        'console.error',
+                        'window.onerror',
+                        'custom',
+                    ].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
                 } else if (getCustomFieldOptions(field)?.type === 'boolean') {
-                    options = [
-                        { label: 'true', value: 'true' },
-                        { label: 'false', value: 'false' },
-                    ];
+                    options = ['true', 'false'].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
                 }
 
                 return options.filter((opt) =>
