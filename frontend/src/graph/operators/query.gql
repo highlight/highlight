@@ -930,6 +930,7 @@ query GetErrorSegments($project_id: ID!) {
             visited_url
             state
             event
+            query
         }
     }
 }

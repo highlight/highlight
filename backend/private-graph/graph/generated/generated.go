@@ -201,6 +201,7 @@ type ComplexityRoot struct {
 		DateRange  func(childComplexity int) int
 		Event      func(childComplexity int) int
 		OS         func(childComplexity int) int
+		Query      func(childComplexity int) int
 		State      func(childComplexity int) int
 		VisitedURL func(childComplexity int) int
 	}
@@ -1545,6 +1546,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorSearchParams.OS(childComplexity), true
+
+	case "ErrorSearchParams.query":
+		if e.complexity.ErrorSearchParams.Query == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.Query(childComplexity), true
 
 	case "ErrorSearchParams.state":
 		if e.complexity.ErrorSearchParams.State == nil {
@@ -4804,6 +4812,7 @@ input ErrorSearchParamsInput {
     state: ErrorState
     event: String
     type: String
+    query: String
 }
 
 type ErrorSearchParams {
@@ -4813,6 +4822,7 @@ type ErrorSearchParams {
     visited_url: String
     state: ErrorState
     event: String
+    query: String
 }
 
 type DateRange {
@@ -12458,6 +12468,38 @@ func (ec *executionContext) _ErrorSearchParams_event(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Event, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_query(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Query, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25243,6 +25285,14 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+			it.Query, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -26433,6 +26483,8 @@ func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._ErrorSearchParams_state(ctx, field, obj)
 		case "event":
 			out.Values[i] = ec._ErrorSearchParams_event(ctx, field, obj)
+		case "query":
+			out.Values[i] = ec._ErrorSearchParams_query(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

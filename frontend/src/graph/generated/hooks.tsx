@@ -6498,6 +6498,7 @@ export const GetErrorSegmentsDocument = gql`
                 visited_url
                 state
                 event
+                query
             }
         }
     }

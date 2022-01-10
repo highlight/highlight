@@ -4,10 +4,6 @@ import Popover from '@components/Popover/Popover';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
-import {
-    SearchParams,
-    useSearchContext,
-} from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -156,6 +152,16 @@ const getProcessedLabel = (value: string): string => {
         return 'Live';
     } else {
         return 'Completed';
+    }
+};
+
+const getStateLabel = (value: string): string => {
+    if (value === 'RESOLVED') {
+        return 'Resolved';
+    } else if (value === 'IGNORED') {
+        return 'Ignored';
+    } else {
+        return 'Open';
     }
 };
 
@@ -731,6 +737,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
+    custom_state: getStateLabel,
 };
 
 export const deserializeGroup = (
@@ -793,7 +800,7 @@ const getName = (value: string) => {
     return rest.join('_');
 };
 
-const propertiesToRules = (
+export const propertiesToRules = (
     properties: any[],
     type: string,
     op: string
@@ -810,113 +817,6 @@ const propertiesToRules = (
         rules.push(deserializeGroup(`${type}_${name}`, op, vals));
     }
     return rules;
-};
-
-// If there is no query builder param (for segments saved
-// before the query builder was released), create one.
-export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
-    const rules: RuleProps[] = [];
-    if (params.user_properties) {
-        rules.push(...propertiesToRules(params.user_properties, 'user', 'is'));
-    }
-    if (params.excluded_properties) {
-        rules.push(
-            ...propertiesToRules(params.excluded_properties, 'user', 'is_not')
-        );
-    }
-    if (params.track_properties) {
-        rules.push(
-            ...propertiesToRules(params.track_properties, 'track', 'is')
-        );
-    }
-    if (params.excluded_track_properties) {
-        rules.push(
-            ...propertiesToRules(
-                params.excluded_track_properties,
-                'track',
-                'is_not'
-            )
-        );
-    }
-    if (params.date_range) {
-        const start = moment(params.date_range.start_date).toISOString();
-        const end = moment(params.date_range.end_date).toISOString();
-        rules.push(
-            deserializeGroup('custom_created_at', 'between_date', [
-                `${start}_${end}`,
-            ])
-        );
-    }
-    if (params.length_range) {
-        const min = params.length_range.min;
-        const max = params.length_range.max;
-        rules.push(
-            deserializeGroup('custom_active_length', 'between', [
-                `${min}_${max}`,
-            ])
-        );
-    }
-    if (params.browser) {
-        rules.push(
-            deserializeGroup('session_browser_name', 'is', [params.browser])
-        );
-    }
-    if (params.os) {
-        rules.push(deserializeGroup('session_os_name', 'is', [params.os]));
-    }
-    if (params.environments && params.environments.length > 0) {
-        rules.push(
-            deserializeGroup(
-                'session_environment',
-                'is',
-                params.environments.map((env) => env ?? '')
-            )
-        );
-    }
-    if (params.app_versions && params.app_versions.length > 0) {
-        rules.push(
-            deserializeGroup(
-                'custom_app_version',
-                'is',
-                params.app_versions.map((ver) => ver ?? '')
-            )
-        );
-    }
-    if (params.device_id) {
-        rules.push(
-            deserializeGroup('session_device_id', 'is', [params.device_id])
-        );
-    }
-    if (params.visited_url) {
-        rules.push(
-            deserializeGroup('session_visited-url', 'is', [params.visited_url])
-        );
-    }
-    if (params.referrer) {
-        rules.push(
-            deserializeGroup('session_referrer', 'is', [params.referrer])
-        );
-    }
-    if (params.identified) {
-        rules.push(deserializeGroup('user_identifier', 'exists', []));
-    }
-    if (params.hide_viewed) {
-        rules.push(deserializeGroup('custom_viewed', 'is', ['false']));
-    }
-    if (params.first_time) {
-        rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
-    }
-    if (!params.show_live_sessions) {
-        rules.push(deserializeGroup('custom_processed', 'is', ['true']));
-    } else {
-        rules.push(
-            deserializeGroup('custom_processed', 'is', ['true', 'false'])
-        );
-    }
-    return {
-        isAnd: true,
-        rules: serializeRules(rules),
-    };
 };
 
 export type FetchFieldVariables =
@@ -936,6 +836,9 @@ interface QueryBuilderProps {
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
+    getQueryFromParams: (params: any) => QueryBuilderState;
+    searchParams: any;
+    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const QueryBuilder = ({
@@ -943,6 +846,9 @@ const QueryBuilder = ({
     customFields,
     fetchFields,
     fieldData,
+    getQueryFromParams,
+    searchParams,
+    setSearchParams,
 }: QueryBuilderProps) => {
     const getCustomFieldOptions = (field: SelectOption | undefined) => {
         if (!field) {
@@ -1088,8 +994,6 @@ const QueryBuilder = ({
     const { project_id } = useParams<{
         project_id: string;
     }>();
-
-    const { searchParams, setSearchParams } = useSearchContext();
 
     const { data: appVersionData } = useGetAppVersionsQuery({
         variables: { project_id },
@@ -1245,7 +1149,7 @@ const QueryBuilder = ({
         if (searchParams.query === undefined) {
             const newState = getQueryFromParams(searchParams);
             const newQuery = JSON.stringify(newState);
-            setSearchParams((params) => ({
+            setSearchParams((params: any) => ({
                 ...params,
                 query: newQuery,
             }));
@@ -1268,7 +1172,7 @@ const QueryBuilder = ({
         // Update if the state has changed
         if (newState !== qbState) {
             setQbState(newState);
-            setSearchParams((params) => ({
+            setSearchParams((params: any) => ({
                 ...params,
                 query: newState,
             }));

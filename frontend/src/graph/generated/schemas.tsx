@@ -369,6 +369,7 @@ export type ErrorSearchParamsInput = {
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
     type?: Maybe<Scalars['String']>;
+    query?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -379,6 +380,7 @@ export type ErrorSearchParams = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
+    query?: Maybe<Scalars['String']>;
 };
 
 export type DateRange = {

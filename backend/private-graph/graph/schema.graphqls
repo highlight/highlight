@@ -332,6 +332,7 @@ input ErrorSearchParamsInput {
     state: ErrorState
     event: String
     type: String
+    query: String
 }
 
 type ErrorSearchParams {
@@ -341,6 +342,7 @@ type ErrorSearchParams {
     visited_url: String
     state: ErrorState
     event: String
+    query: String
 }
 
 type DateRange {
