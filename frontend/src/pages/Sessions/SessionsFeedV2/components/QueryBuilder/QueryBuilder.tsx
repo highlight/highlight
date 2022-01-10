@@ -11,7 +11,7 @@ import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import AsyncCreatableSelect from 'react-select/async-creatable';
@@ -850,146 +850,172 @@ const QueryBuilder = ({
     searchParams,
     setSearchParams,
 }: QueryBuilderProps) => {
-    const getCustomFieldOptions = (field: SelectOption | undefined) => {
-        if (!field) {
-            return undefined;
-        }
+    const getCustomFieldOptions = useCallback(
+        (field: SelectOption | undefined) => {
+            if (!field) {
+                return undefined;
+            }
 
-        const type = getType(field.value);
-        if (type !== CUSTOM_TYPE) {
-            return undefined;
-        }
+            const type = getType(field.value);
+            if (type !== CUSTOM_TYPE) {
+                return undefined;
+            }
 
-        return customFields.find((f) => f.name === field.label)?.options;
-    };
+            return customFields.find((f) => f.name === field.label)?.options;
+        },
+        [customFields]
+    );
 
     const getDefaultOperator = (field: SelectOption | undefined) =>
         ((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0];
 
-    const parseInner = (
-        field: SelectOption,
-        op: Operator,
-        value?: string
-    ): any => {
-        if (getType(field.value) === CUSTOM_TYPE) {
-            const name = field.label;
-            const isKeyword = !(getCustomFieldOptions(field)?.type !== 'text');
-            switch (op) {
-                case 'is':
-                    return {
-                        term: {
-                            [`${name}${isKeyword ? '.keyword' : ''}`]: value,
-                        },
-                    };
-                case 'contains':
-                    return {
-                        wildcard: {
-                            [`${name}${
-                                isKeyword ? '.keyword' : ''
-                            }`]: `*${value}*`,
-                        },
-                    };
-                case 'matches':
-                    return {
-                        regexp: {
-                            [`${name}${isKeyword ? '.keyword' : ''}`]: value,
-                        },
-                    };
-                case 'exists':
-                    return { exists: { field: name } };
-                case 'between_date':
-                    return {
-                        range: {
-                            [name]: {
-                                gte: value?.split('_')[0],
-                                lte: value?.split('_')[1],
+    const parseInner = useCallback(
+        (field: SelectOption, op: Operator, value?: string): any => {
+            if (getType(field.value) === CUSTOM_TYPE) {
+                const name = field.label;
+                const isKeyword = !(
+                    getCustomFieldOptions(field)?.type !== 'text'
+                );
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
                             },
-                        },
-                    };
-                case 'between':
-                    return {
-                        range: {
-                            [name]: {
-                                gte: Number(value?.split('_')[0]) * 60 * 1000,
-                                ...(Number(value?.split('_')[1]) === 60
-                                    ? null
-                                    : {
-                                          lte:
-                                              Number(value?.split('_')[1]) *
-                                              60 *
-                                              1000,
-                                      }),
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: `*${value}*`,
                             },
-                        },
-                    };
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
+                            },
+                        };
+                    case 'exists':
+                        return { exists: { field: name } };
+                    case 'between_date':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: value?.split('_')[0],
+                                    lte: value?.split('_')[1],
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte:
+                                        Number(value?.split('_')[0]) *
+                                        60 *
+                                        1000,
+                                    ...(Number(value?.split('_')[1]) === 60
+                                        ? null
+                                        : {
+                                              lte:
+                                                  Number(value?.split('_')[1]) *
+                                                  60 *
+                                                  1000,
+                                          }),
+                                },
+                            },
+                        };
+                }
+            } else {
+                let key = field.value;
+                if (key.startsWith(ERROR_TYPE)) {
+                    key = key.replace(`${ERROR_TYPE}_`, '');
+                }
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: { 'fields.KeyValue': `${key}_${value}` },
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                'fields.KeyValue': `${key}_*${value}*`,
+                            },
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                'fields.KeyValue': `${key}_${value}`,
+                            },
+                        };
+                    case 'exists':
+                        return { term: { 'fields.Key': key } };
+                }
             }
-        } else {
-            let key = field.value;
-            if (key.startsWith(ERROR_TYPE)) {
-                key = key.replace(`${ERROR_TYPE}_`, '');
-            }
-            switch (op) {
-                case 'is':
-                    return {
-                        term: { 'fields.KeyValue': `${key}_${value}` },
-                    };
-                case 'contains':
-                    return {
-                        wildcard: {
-                            'fields.KeyValue': `${key}_*${value}*`,
-                        },
-                    };
-                case 'matches':
-                    return {
-                        regexp: {
-                            'fields.KeyValue': `${key}_${value}`,
-                        },
-                    };
-                case 'exists':
-                    return { term: { 'fields.Key': key } };
-            }
-        }
-    };
-
-    const parseRuleImpl = (
-        field: SelectOption,
-        op: Operator,
-        multiValue: MultiselectOption
-    ): any => {
-        if (isNegative(op)) {
-            return {
-                bool: {
-                    must_not: {
-                        ...parseRuleImpl(field, NEGATION_MAP[op], multiValue),
-                    },
-                },
-            };
-        } else if (hasArguments(op)) {
-            return {
-                bool: {
-                    should: multiValue.options.map(({ value }) =>
-                        parseInner(field, op, value)
-                    ),
-                },
-            };
-        } else {
-            return parseInner(field, op);
-        }
-    };
-
-    const parseRule = (rule: RuleProps): any => {
-        const field = rule.field!;
-        const multiValue = rule.val!;
-        const op = rule.op!;
-
-        return parseRuleImpl(field, op, multiValue);
-    };
-
-    const parseGroup = (isAnd: boolean, rules: RuleProps[]): any => ({
-        bool: {
-            [isAnd ? 'must' : 'should']: rules.map((rule) => parseRule(rule)),
         },
-    });
+        [getCustomFieldOptions]
+    );
+
+    const parseRuleImpl = useCallback(
+        (
+            field: SelectOption,
+            op: Operator,
+            multiValue: MultiselectOption
+        ): any => {
+            if (isNegative(op)) {
+                return {
+                    bool: {
+                        must_not: {
+                            ...parseRuleImpl(
+                                field,
+                                NEGATION_MAP[op],
+                                multiValue
+                            ),
+                        },
+                    },
+                };
+            } else if (hasArguments(op)) {
+                return {
+                    bool: {
+                        should: multiValue.options.map(({ value }) =>
+                            parseInner(field, op, value)
+                        ),
+                    },
+                };
+            } else {
+                return parseInner(field, op);
+            }
+        },
+        [parseInner]
+    );
+
+    const parseRule = useCallback(
+        (rule: RuleProps): any => {
+            const field = rule.field!;
+            const multiValue = rule.val!;
+            const op = rule.op!;
+
+            return parseRuleImpl(field, op, multiValue);
+        },
+        [parseRuleImpl]
+    );
+
+    const parseGroup = useCallback(
+        (isAnd: boolean, rules: RuleProps[]): any => ({
+            bool: {
+                [isAnd ? 'must' : 'should']: rules.map((rule) =>
+                    parseRule(rule)
+                ),
+            },
+        }),
+        [parseRule]
+    );
 
     const { project_id } = useParams<{
         project_id: string;
@@ -1177,7 +1203,16 @@ const QueryBuilder = ({
                 query: newState,
             }));
         }
-    }, [isAnd, qbState, rules, searchParams, setSearchParams, setSearchQuery]);
+    }, [
+        getQueryFromParams,
+        isAnd,
+        parseGroup,
+        qbState,
+        rules,
+        searchParams,
+        setSearchParams,
+        setSearchQuery,
+    ]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
