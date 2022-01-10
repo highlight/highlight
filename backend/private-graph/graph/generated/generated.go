@@ -334,6 +334,7 @@ type ComplexityRoot struct {
 		ErrorCommentsForAdmin        func(childComplexity int) int
 		ErrorCommentsForProject      func(childComplexity int, projectID int) int
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
+		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
 		ErrorGroups                  func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput) int
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string) int
@@ -753,6 +754,7 @@ type QueryResolver interface {
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
+	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldName string, query string) ([]string, error)
 	QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model1.Field, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
@@ -2614,6 +2616,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorFieldSuggestion(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
+
+	case "Query.error_fields_opensearch":
+		if e.complexity.Query.ErrorFieldsOpensearch == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_fields_opensearch_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorFieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["field_name"].(string), args["query"].(string)), true
 
 	case "Query.error_group":
 		if e.complexity.Query.ErrorGroup == nil {
@@ -5099,6 +5113,12 @@ type Query {
         project_id: ID!
         count: Int!
         field_type: String!
+        field_name: String!
+        query: String!
+    ): [String!]!
+    error_fields_opensearch(
+        project_id: ID!
+        count: Int!
         field_name: String!
         query: String!
     ): [String!]!
@@ -7868,6 +7888,48 @@ func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.
 		}
 	}
 	args["query"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_fields_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["field_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["field_name"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg3
 	return args, nil
 }
 
@@ -16984,6 +17046,48 @@ func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FieldsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_error_fields_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_error_fields_opensearch_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorFieldsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["field_name"].(string), args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27271,6 +27375,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fields_opensearch(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "error_fields_opensearch":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_fields_opensearch(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -3250,6 +3250,56 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	return values, nil
 }
 
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldName string, query string) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}},
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldName, query)
+	}
+
+	results := []*model.Field{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all unique values from the returned fields
+	valueMap := map[string]bool{}
+	for _, result := range results {
+		valueMap[result.Value] = true
+	}
+	values := []string{}
+	for value := range valueMap {
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
 func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {

@@ -644,6 +644,12 @@ type Query {
         field_name: String!
         query: String!
     ): [String!]!
+    error_fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_name: String!
+        query: String!
+    ): [String!]!
     quickFields_opensearch(
         project_id: ID!
         count: Int!

@@ -1,3 +1,7 @@
+import {
+    useGetFieldsOpensearchQuery,
+    useGetFieldTypesQuery,
+} from '@graph/hooks';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import QueryBuilder, {
     CUSTOM_TYPE,
@@ -5,6 +9,7 @@ import QueryBuilder, {
     DATE_OPERATORS,
     RANGE_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
 const CUSTOM_FIELDS: CustomField[] = [
@@ -63,6 +68,23 @@ const CUSTOM_FIELDS: CustomField[] = [
 
 const SessionsQueryBuilder = () => {
     const { setSearchQuery } = useSearchContext();
-    return <QueryBuilder type="sessions" setSearchQuery={setSearchQuery} />;
+    const { refetch: fetchFields } = useGetFieldsOpensearchQuery({
+        skip: true,
+    });
+    const { project_id } = useParams<{
+        project_id: string;
+    }>();
+
+    const { data: fieldData } = useGetFieldTypesQuery({
+        variables: { project_id },
+    });
+    return (
+        <QueryBuilder
+            setSearchQuery={setSearchQuery}
+            customFields={CUSTOM_FIELDS}
+            fetchFields={fetchFields}
+            fieldData={fieldData}
+        />
+    );
 };
 export default SessionsQueryBuilder;

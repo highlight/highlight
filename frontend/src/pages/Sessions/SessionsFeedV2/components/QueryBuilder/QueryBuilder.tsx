@@ -1,7 +1,12 @@
+import { ApolloQueryResult } from '@apollo/client';
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import { Field } from '@graph/schemas';
+import {
+    GetFieldsOpensearchQuery,
+    GetFieldTypesQuery,
+} from '@graph/operations';
+import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import {
     SearchParams,
@@ -22,11 +27,7 @@ import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
 
-import {
-    useGetAppVersionsQuery,
-    useGetFieldsOpensearchQuery,
-    useGetFieldTypesQuery,
-} from '../../../../../graph/generated/hooks';
+import { useGetAppVersionsQuery } from '../../../../../graph/generated/hooks';
 import styles from './QueryBuilder.module.scss';
 
 export interface RuleProps {
@@ -216,6 +217,7 @@ const getOption = (props: any) => {
                     <div className={styles.optionLabelName}>{nameLabel}</div>
                     {(type === 'session' ||
                         type === CUSTOM_TYPE ||
+                        type === ERROR_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
                             title={TOOLTIP_MESSAGE}
@@ -643,6 +645,7 @@ const LABEL_MAP: { [key: string]: string } = {
     active_length: 'Length',
     app_version: 'App Version',
     browser_name: 'Browser',
+    browser: 'Browser',
     'visited-url': 'Visited URL',
     created_at: 'Date',
     device_id: 'Device ID',
@@ -677,7 +680,7 @@ const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
 export const CUSTOM_TYPE = 'custom';
-const ERROR_TYPE = 'error';
+export const ERROR_TYPE = 'error';
 
 interface FieldOptions {
     operators?: Operator[];
@@ -777,7 +780,7 @@ const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
 const getTypeLabel = (value: string) => {
     const type = getType(value);
     const mapped = type === CUSTOM_TYPE ? 'session' : type;
-    if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
+    if (!!mapped && ['track', 'user', 'session', 'error'].includes(mapped)) {
         return mapped;
     }
     return undefined;
@@ -919,15 +922,29 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 };
 
 interface QueryBuilderProps {
-    type: QueryBuilderType;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
     customFields: CustomField[];
+    fetchFields: (
+        variables?:
+            | Partial<
+                  Exact<{
+                      project_id: string;
+                      count: number;
+                      field_type: string;
+                      field_name: string;
+                      query: string;
+                  }>
+              >
+            | undefined
+    ) => Promise<ApolloQueryResult<GetFieldsOpensearchQuery>>;
+    fieldData: GetFieldTypesQuery | undefined;
 }
 
 const QueryBuilder = ({
-    type,
     setSearchQuery,
     customFields,
+    fetchFields,
+    fieldData,
 }: QueryBuilderProps) => {
     const getCustomFieldOptions = (field: SelectOption | undefined) => {
         if (!field) {
@@ -1072,14 +1089,6 @@ const QueryBuilder = ({
 
     const { searchParams, setSearchParams } = useSearchContext();
 
-    const { data: fieldData } = useGetFieldTypesQuery({
-        variables: { project_id },
-    });
-
-    const { refetch: fetchFields } = useGetFieldsOpensearchQuery({
-        skip: true,
-    });
-
     const { data: appVersionData } = useGetAppVersionsQuery({
         variables: { project_id },
     });
@@ -1115,11 +1124,8 @@ const QueryBuilder = ({
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     const getKeyOptions = async (input: string) => {
-        if (fieldData?.field_types === undefined) {
-            return;
-        }
-
-        const results = CUSTOM_FIELDS.concat(fieldData?.field_types)
+        const results = customFields
+            .concat(fieldData?.field_types ?? [])
             .map((ft) => ({
                 label: ft.name,
                 value: ft.type + '_' + ft.name,

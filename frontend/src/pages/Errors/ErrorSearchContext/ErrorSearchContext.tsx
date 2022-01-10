@@ -11,6 +11,7 @@ export type ErrorSearchParams = {
     state?: ErrorState;
     event?: string;
     type?: string;
+    query?: string;
 };
 
 type ErrorSearchContext = {
