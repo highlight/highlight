@@ -6,7 +6,6 @@ import PersonalNotificationButton from '@components/Header/components/PersonalNo
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
-import { MetricType } from '@graph/schemas';
 import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
@@ -53,14 +52,6 @@ interface AlertConfiguration {
     icon: React.ReactNode;
     supportsExcludeRules: boolean;
 }
-
-type MonitorConfiguration = Pick<
-    AlertConfiguration,
-    'name' | 'canControlThreshold' | 'description'
-> & {
-    metricName: string;
-    metricType: MetricType;
-};
 
 export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
     ERROR_ALERT: {
