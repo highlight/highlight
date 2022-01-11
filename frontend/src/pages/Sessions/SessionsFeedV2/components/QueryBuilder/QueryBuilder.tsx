@@ -270,6 +270,9 @@ const PopoutContent = ({
                         },
                         Option: getOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item ? { kind: 'single', ...item } : undefined
@@ -308,6 +311,9 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -356,6 +362,9 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -738,6 +747,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
     error_state: getStateLabel,
+    error_created_at: getDateLabel,
 };
 
 export const deserializeGroup = (
