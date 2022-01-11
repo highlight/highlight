@@ -147,7 +147,8 @@ const LineChart = ({
                                                                     </span>{' '}
                                                                     {yAxisLabel}
                                                                 </span>
-                                                                {referenceLines
+                                                                {referenceLines?.length ===
+                                                                2
                                                                     ? getScoreIcon(
                                                                           getWebVitalValueScore(
                                                                               entry.value,

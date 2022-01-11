@@ -125,9 +125,14 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                 x1: randomData[0].date,
                                 y1: threshold,
                                 fill: 'var(--color-red-200)',
-                                fillOpacity: 0.8,
-                                label: `Values above "${threshold} ${config.units}" will create an alert.`,
+                                fillOpacity: 0.3,
                             }}
+                            referenceLines={[
+                                {
+                                    value: threshold,
+                                    color: 'var(--color-red-400)',
+                                },
+                            ]}
                             xAxisProps={{
                                 tickLine: {
                                     stroke: 'var(--color-gray-600)',
@@ -228,11 +233,19 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                             <p>
                                 An alert will be created if{' '}
                                 <code>
-                                    <b>
+                                    <b
+                                        style={{
+                                            color: 'var(--color-blue-400)',
+                                        }}
+                                    >
                                         {functionName}({config?.name})
                                     </b>
                                 </code>{' '}
-                                is over <b>{threshold}</b>.
+                                is over{' '}
+                                <b style={{ color: 'var(--color-red-400)' }}>
+                                    {threshold}
+                                </b>
+                                .
                             </p>
                             <Form.Item
                                 shouldUpdate

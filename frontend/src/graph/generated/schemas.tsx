@@ -658,6 +658,7 @@ export type Query = {
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
+    quickFields_opensearch: Array<Maybe<Field>>;
     billingDetailsForProject?: Maybe<BillingDetails>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -850,6 +851,12 @@ export type QueryFields_OpensearchArgs = {
     count: Scalars['Int'];
     field_type: Scalars['String'];
     field_name: Scalars['String'];
+    query: Scalars['String'];
+};
+
+export type QueryQuickFields_OpensearchArgs = {
+    project_id: Scalars['ID'];
+    count: Scalars['Int'];
     query: Scalars['String'];
 };
 
