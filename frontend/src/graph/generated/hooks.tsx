@@ -7371,6 +7371,19 @@ export const GetAlertsPagePayloadDocument = gql`
             Type
             DailyFrequency
         }
+        metric_monitors(project_id: $project_id) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
     }
 `;
 

@@ -2845,6 +2845,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     }
             >
         >;
+        metric_monitors: Array<
+            Types.Maybe<
+                { __typename?: 'MetricMonitor' } & Pick<
+                    Types.MetricMonitor,
+                    | 'id'
+                    | 'updated_at'
+                    | 'name'
+                    | 'function'
+                    | 'metric_to_monitor'
+                    | 'last_admin_to_edit_id'
+                    | 'threshold'
+                > & {
+                        channels_to_notify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >;
     };
 
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{

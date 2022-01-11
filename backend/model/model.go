@@ -136,6 +136,7 @@ var Models = []interface{}{
 	&AlertEvent{},
 	&RegistrationData{},
 	&Metric{},
+	&MetricMonitor{},
 }
 
 func init() {
@@ -597,6 +598,17 @@ type Metric struct {
 	Type      modelInputs.MetricType `gorm:"index;not null;"`
 	Name      string                 `gorm:"index;not null;"`
 	Value     float64
+}
+
+type MetricMonitor struct {
+	Model
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	Function          string
+	Threshold         float64
+	MetricToMonitor   string
+	ChannelsToNotify  *string `gorm:"channels_to_notify"`
+	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
 }
 
 func (m *MessagesObject) Contents() string {

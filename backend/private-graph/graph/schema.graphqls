@@ -566,6 +566,17 @@ type MetricPreview {
     value: Float!
 }
 
+type MetricMonitor {
+    id: ID!
+    updated_at: Timestamp!
+    name: String!
+    channels_to_notify: [SanitizedSlackChannel]!
+    function: String!
+    metric_to_monitor: String!
+    last_admin_to_edit_id: ID!
+    threshold: Float!
+}
+
 scalar Upload
 
 type Query {
@@ -698,6 +709,7 @@ type Query {
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!
+    metric_monitors(project_id: ID!): [MetricMonitor]!
 }
 
 type Mutation {

@@ -207,6 +207,21 @@ func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, e
 	return obj.Type.String(), nil
 }
 
+func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
+	}
+	return sanitizedChannels, nil
+}
+
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 
@@ -4036,7 +4051,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 		aggregateStatement = "AVG(value)"
 	}
 
-	if err := r.DB.Debug().Raw(fmt.Sprintf(`
+	if err := r.DB.Raw(fmt.Sprintf(`
 	SELECT
 		*
 	from
@@ -4062,6 +4077,20 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	}
 
 	return payload, nil
+}
+
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+	metricMonitors := []*model.MetricMonitor{}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return metricMonitors, nil
+	}
+
+	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitors")
+	}
+	return metricMonitors, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
@@ -4358,6 +4387,9 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // Metric returns generated.MetricResolver implementation.
 func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
+// MetricMonitor returns generated.MetricMonitorResolver implementation.
+func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -4387,6 +4419,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
+type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

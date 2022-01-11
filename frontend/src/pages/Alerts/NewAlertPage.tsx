@@ -56,6 +56,10 @@ const NewAlertPage = () => {
                                 configuration.name
                             );
 
+                            if (configuration.name === 'Metric Monitor') {
+                                return null;
+                            }
+
                             return (
                                 <Link
                                     className={styles.cardContent}
