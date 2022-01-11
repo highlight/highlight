@@ -33,11 +33,7 @@ const Card: React.FC<Props> = ({
                             typeof title !== 'string' || noTitleBottomMargin,
                     })}
                 >
-                    {typeof title === 'string' ? (
-                        <h3 className={styles.h3}>{title}</h3>
-                    ) : (
-                        title
-                    )}
+                    {typeof title === 'string' ? <h3>{title}</h3> : title}
                 </div>
             )}
             {children}

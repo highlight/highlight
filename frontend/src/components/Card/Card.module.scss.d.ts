@@ -3,7 +3,6 @@ export const cardForm: string;
 export const cardFormActionsContainer: string;
 export const cardHeader: string;
 export const cardSubHeader: string;
-export const h3: string;
 export const interactable: string;
 export const noPadding: string;
 export const noTitleBottomMargin: string;
