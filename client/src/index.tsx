@@ -753,7 +753,7 @@ export class Highlight {
                         {
                             lengthThreshold: 1000,
                             level: [
-                                // 'assert',
+                                'assert',
                                 'count',
                                 'countReset',
                                 'debug',

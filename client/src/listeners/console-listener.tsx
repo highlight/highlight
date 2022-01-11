@@ -47,7 +47,7 @@ type Logger = {
 };
 
 type LogLevel =
-    //     | 'assert'
+    | 'assert'
     | 'clear'
     | 'count'
     | 'countReset'
