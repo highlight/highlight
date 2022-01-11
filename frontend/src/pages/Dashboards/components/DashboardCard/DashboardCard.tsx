@@ -44,7 +44,7 @@ const DashboardCard = ({ webVitalName }: Props) => {
                                     icon={<SvgAnnouncementIcon />}
                                     onClick={() => {
                                         history.push(
-                                            `/${project_id}/alerts/new/monitor`
+                                            `/${project_id}/alerts/new/monitor?type=${webVitalName}`
                                         );
                                     }}
                                 >

@@ -13,9 +13,10 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form } from 'antd';
 import moment from 'moment';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router-dom';
+import { useSearchParam } from 'react-use';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import alertConfigurationCardStyles from './AlertConfigurationCard/AlertConfigurationCard.module.scss';
@@ -30,12 +31,20 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
+    const newMonitorTypeSearchParam = useSearchParam('type');
+    const defaultWebVital =
+        (newMonitorTypeSearchParam &&
+            newMonitorTypeSearchParam in WEB_VITALS_CONFIGURATION &&
+            newMonitorTypeSearchParam) ||
+        'LCP';
+    console.log({ defaultWebVital });
     const { slackUrl } = useAlertsContext();
     const history = useHistory();
     const [form] = Form.useForm();
     const [config, setConfig] = useState<WebVitalDescriptor>(
-        WEB_VITALS_CONFIGURATION['LCP']
+        WEB_VITALS_CONFIGURATION[defaultWebVital]
     );
+    console.log(config);
     const [functionName, __setFunctionName] = useState<string>('p90');
     const [threshold, __setThreshold] = useState<number>(1000);
     const [searchQuery, setSearchQuery] = useState('');
@@ -74,7 +83,8 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
         const now = new Date();
         return Array.from(new Array(pointsToGenerate)).map((_, index) => {
             const randomValue =
-                Math.random() * (config.maxNeedsImprovementValue * 0.7);
+                Math.random() * (config.maxNeedsImprovementValue * 0.7) +
+                config.maxGoodValue * 0.2;
             return {
                 value: randomValue,
                 date: moment(now)
@@ -82,6 +92,12 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                     .format('h:mm A'),
             };
         });
+    }, [config]);
+
+    useEffect(() => {
+        if (config) {
+            __setThreshold(config.maxGoodValue);
+        }
     }, [config]);
 
     return (
@@ -124,7 +140,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                         form={form}
                         name="newMonitor"
                         initialValues={{
-                            metricToMonitor: 'LCP',
+                            metricToMonitor: defaultWebVital,
                             function: 'p90',
                             threshold: config?.maxGoodValue || 1000,
                         }}
