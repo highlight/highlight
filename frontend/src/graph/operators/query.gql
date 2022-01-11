@@ -350,6 +350,22 @@ query GetFieldsOpensearch(
     )
 }
 
+query GetQuickFieldsOpensearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+) {
+    quickFields_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+    ) {
+        type
+        name
+        value
+    }
+}
+
 query GetErrorFieldsOpensearch(
     $project_id: ID!
     $count: Int!

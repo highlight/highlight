@@ -1,0 +1,39 @@
+.select {
+    width: 100%;
+
+    > div {
+        background-color: var(--color-primary-background);
+    }
+}
+
+.searchIcon {
+    color: var(--color-gray-400);
+    height: var(--size-medium);
+    margin-left: var(--size-small);
+    width: var(--size-medium);
+}
+
+.optionLabelContainer {
+    display: flex;
+    overflow: hidden;
+}
+
+.optionLabelType {
+    background: var(--color-gray-300);
+    border-radius: 3px;
+    margin-right: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.optionLabelName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hideSearchIcon {
+    opacity: 0;
+}
