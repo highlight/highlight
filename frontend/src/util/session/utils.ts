@@ -23,5 +23,7 @@ export const playerTimeToSessionAbsoluteTime = ({
         return relativeTime;
     }
 
-    return moment(new Date(sessionStartTime + relativeTime)).format('h:m:s A');
+    return moment(new Date(sessionStartTime + relativeTime)).format(
+        'h:mm:ss A'
+    );
 };
