@@ -71,11 +71,13 @@ export const Header = () => {
                         </div>
                     )}
 
-                    <HighlightGate>
-                        <div className={styles.quicksearchWrapper}>
-                            <QuickSearch />
-                        </div>
-                    </HighlightGate>
+                    {!!project_id && (
+                        <HighlightGate>
+                            <div className={styles.quicksearchWrapper}>
+                                <QuickSearch />
+                            </div>
+                        </HighlightGate>
+                    )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         <div className={styles.hideableButtonContainer}>
