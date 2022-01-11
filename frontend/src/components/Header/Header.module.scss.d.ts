@@ -8,6 +8,7 @@ export const guest: string;
 export const hamburger: string;
 export const header: string;
 export const headerContent: string;
+export const hideableButtonContainer: string;
 export const homeLink: string;
 export const logoWrapper: string;
 export const productHunt: string;

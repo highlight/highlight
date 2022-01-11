@@ -5,6 +5,7 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -37,6 +38,7 @@ const styleProps: Styles<any, false> = {
         '&:active': {
             backgroundColor: 'var(--color-gray-200)',
         },
+        transition: 'all 0.2s ease-in-out',
     }),
     menuList: (provided) => ({
         ...provided,
@@ -54,10 +56,21 @@ const styleProps: Styles<any, false> = {
         fontSize: '12px',
         background: 'none',
         flexDirection: 'row-reverse',
+        minHeight: '32px',
+        '&:hover': {
+            'border-color': 'var(--color-purple) !important',
+        },
+        transition: 'all 0.2s ease-in-out',
+        '&:focus-within': {
+            'box-shadow':
+                '0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important',
+            'border-color': 'var(--color-purple) !important',
+        },
     }),
     valueContainer: (provided) => ({
         ...provided,
-        padding: '8px 12px',
+        padding: '0 12px',
+        height: '32px',
     }),
     noOptionsMessage: (provided) => ({
         ...provided,
@@ -72,9 +85,14 @@ const styleProps: Styles<any, false> = {
         padding: '0',
         margin: '0 -2px 0 10px',
     }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: 'var(--color-gray-500) !important',
+    }),
 };
 
 const QuickSearch = () => {
+    const history = useHistory();
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -135,20 +153,29 @@ const QuickSearch = () => {
             isLoading={loading}
             isClearable={false}
             value={null}
+            escapeClearsValue={true}
             onChange={(val) => {
                 const field = val as QuickSearchOption;
-                const searchParams = {
-                    ...EmptySessionsSearchParams,
-                    query: JSON.stringify({
-                        isAnd: true,
-                        rules: [[getQueryFieldKey(field), 'is', field.value]],
-                    }),
-                };
-                setExistingParams(searchParams);
-                setSearchParams(searchParams);
+                // Sessions results have a type defined, errors do not
+                if (field.type !== '') {
+                    const searchParams = {
+                        ...EmptySessionsSearchParams,
+                        query: JSON.stringify({
+                            isAnd: true,
+                            rules: [
+                                [getQueryFieldKey(field), 'is', field.value],
+                            ],
+                        }),
+                    };
+                    history.push(`/${project_id}/sessions`);
+                    setExistingParams(searchParams);
+                    setSearchParams(searchParams);
+                }
             }}
             className={styles.select}
-            noOptionsMessage={() => null}
+            noOptionsMessage={({ inputValue }) =>
+                !inputValue ? null : `No results for "${inputValue}"`
+            }
             placeholder="Search for a property..."
             onInputChange={(newValue, actionMeta) => {
                 if (actionMeta?.action === 'input-change') {
