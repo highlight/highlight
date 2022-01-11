@@ -8,3 +8,13 @@
     padding-top: var(--size-medium);
     text-align: center;
 }
+
+.cardHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    > button {
+        margin-bottom: var(--size-medium);
+    }
+}

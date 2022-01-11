@@ -27,7 +27,12 @@ const DotsMenu = ({
     icon = <SvgDotsHorizontalIcon />,
 }: Props) => {
     return (
-        <Dropdown overlay={menu} trigger={['click']} placement={placement}>
+        <Dropdown
+            overlay={menu}
+            trigger={['click']}
+            placement={placement}
+            overlayClassName={styles.dropdown}
+        >
             <button
                 className={styles.button}
                 onClick={() => {

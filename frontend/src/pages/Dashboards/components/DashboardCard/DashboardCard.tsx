@@ -1,15 +1,19 @@
 import Card from '@components/Card/Card';
+import DotsMenu from '@components/DotsMenu/DotsMenu';
 import LineChart from '@components/LineChart/LineChart';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
+import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import {
     WEB_VITALS_CONFIGURATION,
     WebVitalName,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
+import { Menu } from 'antd';
 import moment from 'moment';
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
 
@@ -24,10 +28,35 @@ const DashboardCard = ({ webVitalName }: Props) => {
     });
 
     const webVitalConfig = WEB_VITALS_CONFIGURATION[webVitalName];
+    const history = useHistory();
 
     return (
-        // @ts-expect-error
-        <Card interactable title={WebVitalName[webVitalName]}>
+        <Card
+            interactable
+            title={
+                <div className={styles.cardHeader}>
+                    {/* @ts-expect-error */}
+                    <h3>{WebVitalName[webVitalName]}</h3>
+                    <DotsMenu
+                        menu={
+                            <Menu>
+                                <Menu.Item
+                                    icon={<SvgAnnouncementIcon />}
+                                    onClick={() => {
+                                        history.push(
+                                            `/${project_id}/alerts/new/monitor`
+                                        );
+                                    }}
+                                >
+                                    Create Monitor
+                                </Menu.Item>
+                            </Menu>
+                        }
+                        trackingId="Dashboard"
+                    />
+                </div>
+            }
+        >
             {loading ? (
                 <Skeleton height={235} />
             ) : data === undefined ||
