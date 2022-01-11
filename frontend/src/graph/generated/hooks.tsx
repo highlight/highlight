@@ -4291,6 +4291,76 @@ export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<
     Types.GetFieldsOpensearchQuery,
     Types.GetFieldsOpensearchQueryVariables
 >;
+export const GetErrorFieldsOpensearchDocument = gql`
+    query GetErrorFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $field_type: String!
+        $field_name: String!
+        $query: String!
+    ) {
+        error_fields_opensearch(
+            project_id: $project_id
+            count: $count
+            field_type: $field_type
+            field_name: $field_name
+            query: $query
+        )
+    }
+`;
+
+/**
+ * __useGetErrorFieldsOpensearchQuery__
+ *
+ * To run a query within a React component, call `useGetErrorFieldsOpensearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorFieldsOpensearchQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      field_type: // value for 'field_type'
+ *      field_name: // value for 'field_name'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetErrorFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >(GetErrorFieldsOpensearchDocument, baseOptions);
+}
+export function useGetErrorFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >(GetErrorFieldsOpensearchDocument, baseOptions);
+}
+export type GetErrorFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetErrorFieldsOpensearchQuery
+>;
+export type GetErrorFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetErrorFieldsOpensearchLazyQuery
+>;
+export type GetErrorFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetErrorFieldsOpensearchQuery,
+    Types.GetErrorFieldsOpensearchQueryVariables
+>;
 export const GetSessionsOpenSearchDocument = gql`
     query GetSessionsOpenSearch(
         $project_id: ID!
@@ -4386,6 +4456,95 @@ export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<
 export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
     Types.GetSessionsOpenSearchQuery,
     Types.GetSessionsOpenSearchQueryVariables
+>;
+export const GetErrorGroupsOpenSearchDocument = gql`
+    query GetErrorGroupsOpenSearch(
+        $project_id: ID!
+        $count: Int!
+        $query: String!
+    ) {
+        error_groups_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            error_groups {
+                created_at
+                id
+                secure_id
+                type
+                event
+                state
+                state
+                environments
+                stack_trace
+                structured_stack_trace {
+                    fileName
+                    lineNumber
+                    functionName
+                    columnNumber
+                }
+                metadata_log {
+                    error_id
+                    session_secure_id
+                    timestamp
+                }
+                error_frequency
+            }
+            totalCount
+        }
+    }
+`;
+
+/**
+ * __useGetErrorGroupsOpenSearchQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupsOpenSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupsOpenSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupsOpenSearchQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetErrorGroupsOpenSearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >(GetErrorGroupsOpenSearchDocument, baseOptions);
+}
+export function useGetErrorGroupsOpenSearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >(GetErrorGroupsOpenSearchDocument, baseOptions);
+}
+export type GetErrorGroupsOpenSearchQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsOpenSearchQuery
+>;
+export type GetErrorGroupsOpenSearchLazyQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsOpenSearchLazyQuery
+>;
+export type GetErrorGroupsOpenSearchQueryResult = Apollo.QueryResult<
+    Types.GetErrorGroupsOpenSearchQuery,
+    Types.GetErrorGroupsOpenSearchQueryVariables
 >;
 export const GetSessionsDocument = gql`
     query GetSessions(
@@ -6339,6 +6498,7 @@ export const GetErrorSegmentsDocument = gql`
                 visited_url
                 state
                 event
+                query
             }
         }
     }
