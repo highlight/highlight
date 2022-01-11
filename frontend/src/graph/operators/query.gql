@@ -60,6 +60,23 @@ query GetWebVitalDashboard($project_id: ID!, $web_vital_name: String!) {
     }
 }
 
+query GetMetricPreview(
+    $project_id: ID!
+    $type: MetricType!
+    $name: String!
+    $aggregateFunction: String!
+) {
+    metric_preview(
+        project_id: $project_id
+        type: $type
+        name: $name
+        aggregateFunction: $aggregateFunction
+    ) {
+        value
+        date
+    }
+}
+
 query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
     events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
     errors(session_secure_id: $session_secure_id) {

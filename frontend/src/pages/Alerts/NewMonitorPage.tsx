@@ -3,7 +3,10 @@ import Card from '@components/Card/Card';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
+import { Skeleton } from '@components/Skeleton/Skeleton';
+import { useGetMetricPreviewQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { MetricType } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import {
@@ -32,22 +35,29 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
         project_id: string;
     }>();
     const newMonitorTypeSearchParam = useSearchParam('type');
-    const defaultWebVital =
-        (newMonitorTypeSearchParam &&
-            newMonitorTypeSearchParam in WEB_VITALS_CONFIGURATION &&
-            newMonitorTypeSearchParam) ||
-        'LCP';
-    console.log({ defaultWebVital });
     const { slackUrl } = useAlertsContext();
     const history = useHistory();
     const [form] = Form.useForm();
-    const [config, setConfig] = useState<WebVitalDescriptor>(
-        WEB_VITALS_CONFIGURATION[defaultWebVital]
+    const [metricName, __setMetricName] = useState<string>(
+        (newMonitorTypeSearchParam &&
+            newMonitorTypeSearchParam in WEB_VITALS_CONFIGURATION &&
+            newMonitorTypeSearchParam) ||
+            'LCP'
     );
-    console.log(config);
+    const [config, setConfig] = useState<WebVitalDescriptor>(
+        WEB_VITALS_CONFIGURATION[metricName]
+    );
     const [functionName, __setFunctionName] = useState<string>('p90');
     const [threshold, __setThreshold] = useState<number>(1000);
     const [searchQuery, setSearchQuery] = useState('');
+    const { data, loading } = useGetMetricPreviewQuery({
+        variables: {
+            project_id,
+            aggregateFunction: functionName,
+            name: metricName,
+            type: MetricType.WebVital,
+        },
+    });
 
     const onFinish = (values: any) => {
         console.log('Success:', values);
@@ -78,21 +88,34 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     );
 
     const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
-    const randomData = useMemo(() => {
+    const graphData = useMemo(() => {
+        if (loading) {
+            return [];
+        }
+
         const pointsToGenerate = 100;
         const now = new Date();
-        return Array.from(new Array(pointsToGenerate)).map((_, index) => {
-            const randomValue =
-                Math.random() * (config.maxNeedsImprovementValue * 0.7) +
-                config.maxGoodValue * 0.2;
-            return {
-                value: randomValue,
+        if (!data) {
+            return Array.from(new Array(pointsToGenerate)).map((_, index) => {
+                const randomValue =
+                    Math.random() * (config.maxNeedsImprovementValue * 0.7) +
+                    config.maxGoodValue * 0.2;
+                return {
+                    value: randomValue,
+                    date: moment(now)
+                        .subtract(pointsToGenerate - index, 'minutes')
+                        .format('h:mm A'),
+                };
+            });
+        } else {
+            return data.metric_preview.map((point, index) => ({
+                value: point?.value,
                 date: moment(now)
                     .subtract(pointsToGenerate - index, 'minutes')
                     .format('h:mm A'),
-            };
-        });
-    }, [config]);
+            }));
+        }
+    }, [config.maxGoodValue, config.maxNeedsImprovementValue, data, loading]);
 
     useEffect(() => {
         if (config) {
@@ -112,40 +135,50 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                 </p>
                 <Card>
                     <div className={styles.chartContainer}>
-                        <LineChart
-                            height={235}
-                            data={randomData}
-                            hideLegend
-                            xAxisDataKeyName="date"
-                            lineColorMapping={{
-                                value: 'var(--color-blue-400)',
-                            }}
-                            yAxisLabel={config.units}
-                            referenceAreaProps={{
-                                x1: randomData[0].date,
-                                y1: threshold,
-                                fill: 'var(--color-red-200)',
-                                fillOpacity: 0.3,
-                            }}
-                            referenceLines={[
-                                {
-                                    value: threshold,
-                                    color: 'var(--color-red-400)',
-                                },
-                            ]}
-                            xAxisProps={{
-                                tickLine: {
-                                    stroke: 'var(--color-gray-600)',
-                                },
-                                axisLine: { stroke: 'var(--color-gray-600)' },
-                            }}
-                        />
+                        {loading && graphData.length === 0 ? (
+                            <Skeleton height={231} width={800} />
+                        ) : (
+                            <LineChart
+                                height={235}
+                                data={graphData}
+                                hideLegend
+                                xAxisDataKeyName="date"
+                                lineColorMapping={{
+                                    value: 'var(--color-blue-400)',
+                                }}
+                                yAxisLabel={config.units}
+                                referenceAreaProps={
+                                    graphData.length > 0
+                                        ? {
+                                              x1: graphData[0].date,
+                                              y1: threshold,
+                                              fill: 'var(--color-red-200)',
+                                              fillOpacity: 0.3,
+                                          }
+                                        : undefined
+                                }
+                                referenceLines={[
+                                    {
+                                        value: threshold,
+                                        color: 'var(--color-red-400)',
+                                    },
+                                ]}
+                                xAxisProps={{
+                                    tickLine: {
+                                        stroke: 'var(--color-gray-600)',
+                                    },
+                                    axisLine: {
+                                        stroke: 'var(--color-gray-600)',
+                                    },
+                                }}
+                            />
+                        )}
                     </div>
                     <Form
                         form={form}
                         name="newMonitor"
                         initialValues={{
-                            metricToMonitor: defaultWebVital,
+                            metricToMonitor: metricName,
                             function: 'p90',
                             threshold: config?.maxGoodValue || 1000,
                         }}
@@ -167,6 +200,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                                 ]);
                                 setConfig(webVitalConfig);
                                 __setThreshold(webVitalConfig.maxGoodValue);
+                                __setMetricName(changedValues.metricToMonitor);
                             }
                             if ('function' in changedValues) {
                                 __setFunctionName(changedValues.function);

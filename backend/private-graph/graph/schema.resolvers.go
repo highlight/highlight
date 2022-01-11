@@ -24,7 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4008,6 +4008,55 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 	and project_id=?
 	group by created_at::date, name;
 	`, webVitalName, projectID).Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return payload, nil
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+	payload := []*modelInputs.MetricPreview{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, nil
+	}
+	aggregateStatement := "AVG(value)"
+
+	switch aggregateFunction {
+	case "p50":
+		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
+	case "p75":
+		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
+	case "p90":
+		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
+	case "p99":
+		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
+	case "avg":
+	default:
+		aggregateStatement = "AVG(value)"
+	}
+
+	if err := r.DB.Debug().Raw(fmt.Sprintf(`
+	SELECT
+		*
+	from
+		(
+		SELECT
+			date_trunc('minute', created_at) date,
+			%s as value
+		FROM
+			metrics
+		where
+			name = '%s'
+			and project_id = %d
+			group by 1, name
+		order by
+			1 desc
+		limit 100
+		) as newestPoints
+	order by
+		date asc;
+	`, aggregateStatement, name, projectID)).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

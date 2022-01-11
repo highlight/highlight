@@ -75,8 +75,8 @@ const LineChart = ({
                 height={300}
                 data={data}
                 margin={{
-                    top: 0,
-                    right: 0,
+                    top: 12,
+                    right: 4,
                     left: -18,
                     bottom: 0,
                 }}
@@ -249,9 +249,9 @@ const LineChart = ({
                         }}
                     />
                 )}
-                {referenceLines?.map((referenceLine) => (
+                {referenceLines?.map((referenceLine, index) => (
                     <ReferenceLine
-                        key={referenceLine.label}
+                        key={`${referenceLine.label}-${index}`}
                         y={referenceLine.value}
                         // label={referenceLine.label}
                         stroke={referenceLine.color}

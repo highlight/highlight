@@ -561,6 +561,11 @@ type WebVitalDashboardPayload {
     p99: Float!
 }
 
+type MetricPreview {
+    date: Timestamp!
+    value: Float!
+}
+
 scalar Upload
 
 type Query {
@@ -687,6 +692,12 @@ type Query {
         project_id: ID!
         web_vital_name: String!
     ): [WebVitalDashboardPayload]!
+    metric_preview(
+        project_id: ID!
+        type: MetricType!
+        name: String!
+        aggregateFunction: String!
+    ): [MetricPreview]!
 }
 
 type Mutation {

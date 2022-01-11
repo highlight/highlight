@@ -3300,6 +3300,76 @@ export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<
     Types.GetWebVitalDashboardQuery,
     Types.GetWebVitalDashboardQueryVariables
 >;
+export const GetMetricPreviewDocument = gql`
+    query GetMetricPreview(
+        $project_id: ID!
+        $type: MetricType!
+        $name: String!
+        $aggregateFunction: String!
+    ) {
+        metric_preview(
+            project_id: $project_id
+            type: $type
+            name: $name
+            aggregateFunction: $aggregateFunction
+        ) {
+            value
+            date
+        }
+    }
+`;
+
+/**
+ * __useGetMetricPreviewQuery__
+ *
+ * To run a query within a React component, call `useGetMetricPreviewQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricPreviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricPreviewQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      type: // value for 'type'
+ *      name: // value for 'name'
+ *      aggregateFunction: // value for 'aggregateFunction'
+ *   },
+ * });
+ */
+export function useGetMetricPreviewQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >(GetMetricPreviewDocument, baseOptions);
+}
+export function useGetMetricPreviewLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >(GetMetricPreviewDocument, baseOptions);
+}
+export type GetMetricPreviewQueryHookResult = ReturnType<
+    typeof useGetMetricPreviewQuery
+>;
+export type GetMetricPreviewLazyQueryHookResult = ReturnType<
+    typeof useGetMetricPreviewLazyQuery
+>;
+export type GetMetricPreviewQueryResult = Apollo.QueryResult<
+    Types.GetMetricPreviewQuery,
+    Types.GetMetricPreviewQueryVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(
         $session_secure_id: String!

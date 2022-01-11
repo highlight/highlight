@@ -1167,6 +1167,24 @@ export type GetWebVitalDashboardQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetMetricPreviewQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    type: Types.MetricType;
+    name: Types.Scalars['String'];
+    aggregateFunction: Types.Scalars['String'];
+}>;
+
+export type GetMetricPreviewQuery = { __typename?: 'Query' } & {
+    metric_preview: Array<
+        Types.Maybe<
+            { __typename?: 'MetricPreview' } & Pick<
+                Types.MetricPreview,
+                'value' | 'date'
+            >
+        >
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -2887,6 +2905,7 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
     Query: {
         GetWebVitalDashboard: 'GetWebVitalDashboard' as const,
+        GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
