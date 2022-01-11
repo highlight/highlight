@@ -370,11 +370,11 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-	// 	"state": state,
-	// }); err != nil {
-	// 	return nil, e.Wrap(err, "error updating error group state in OpenSearch")
-	// }
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"state": state,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
+	}
 
 	return errorGroup, nil
 }
@@ -2034,11 +2034,11 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
 	}
-	// if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-	// 	"IsPublic": isPublic,
-	// }); err != nil {
-	// 	return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
-	// }
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"IsPublic": isPublic,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
+	}
 
 	return errorGroup, nil
 }
@@ -2301,6 +2301,40 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return errorResults, nil
+}
+
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.ErrorGroup{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(count),
+		SortField:     ptr.String("updated_at"),
+		SortOrder:     ptr.String("desc"),
+		ReturnCount:   ptr.Bool(true),
+		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+	}
+
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, eg := range results {
+		// Equivalent to what used to be
+		// `stack_trace = coalesce(mapped_stack_trace, stack_trace)`
+		if eg.MappedStackTrace != nil {
+			eg.StackTrace = *eg.MappedStackTrace
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: results,
+		TotalCount:  resultCount,
+	}, nil
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
@@ -3199,6 +3233,56 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 		MaxResults: ptr.Int(count),
 	}
 	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all unique values from the returned fields
+	valueMap := map[string]bool{}
+	for _, result := range results {
+		valueMap[result.Value] = true
+	}
+	values := []string{}
+	for value := range valueMap {
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}},
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldName, query)
+	}
+
+	results := []*model.ErrorField{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}

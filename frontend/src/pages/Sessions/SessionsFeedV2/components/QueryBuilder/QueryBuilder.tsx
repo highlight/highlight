@@ -1,12 +1,9 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import { Field } from '@graph/schemas';
+import { GetFieldTypesQuery } from '@graph/operations';
+import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
-import {
-    SearchParams,
-    useSearchContext,
-} from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -14,7 +11,7 @@ import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import AsyncCreatableSelect from 'react-select/async-creatable';
@@ -22,11 +19,7 @@ import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
 
-import {
-    useGetAppVersionsQuery,
-    useGetFieldsOpensearchQuery,
-    useGetFieldTypesQuery,
-} from '../../../../../graph/generated/hooks';
+import { useGetAppVersionsQuery } from '../../../../../graph/generated/hooks';
 import styles from './QueryBuilder.module.scss';
 
 export interface RuleProps {
@@ -160,6 +153,16 @@ const getProcessedLabel = (value: string): string => {
     }
 };
 
+const getStateLabel = (value: string): string => {
+    if (value === 'RESOLVED') {
+        return 'Resolved';
+    } else if (value === 'IGNORED') {
+        return 'Ignored';
+    } else {
+        return 'Open';
+    }
+};
+
 const getMultiselectOption = (props: any) => {
     const {
         data: { data },
@@ -214,6 +217,8 @@ const getOption = (props: any) => {
                     <div className={styles.optionLabelName}>{nameLabel}</div>
                     {(type === 'session' ||
                         type === CUSTOM_TYPE ||
+                        type === ERROR_TYPE ||
+                        type === ERROR_FIELD_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
                             title={TOOLTIP_MESSAGE}
@@ -265,6 +270,9 @@ const PopoutContent = ({
                         },
                         Option: getOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item ? { kind: 'single', ...item } : undefined
@@ -303,6 +311,9 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -351,6 +362,9 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -631,9 +645,9 @@ const OPERATORS: Operator[] = [
     'not_matches',
 ];
 
-const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
+export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
 
-const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
+export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
 const LABEL_MAP: { [key: string]: string } = {
     referrer: 'Referrer',
@@ -641,7 +655,9 @@ const LABEL_MAP: { [key: string]: string } = {
     active_length: 'Length',
     app_version: 'App Version',
     browser_name: 'Browser',
+    browser: 'Browser',
     'visited-url': 'Visited URL',
+    visited_url: 'Visited URL',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
@@ -653,6 +669,7 @@ const LABEL_MAP: { [key: string]: string } = {
     starred: 'Starred',
     identifier: 'Identifier',
     reload: 'Reloaded',
+    state: 'State',
 };
 
 const getOperator = (
@@ -674,183 +691,19 @@ const getOperator = (
 const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
-const CUSTOM_TYPE = 'custom';
-
-const parseInner = (field: SelectOption, op: Operator, value?: string): any => {
-    if (getType(field.value) === CUSTOM_TYPE) {
-        const name = field.label;
-        const isKeyword = !(getCustomFieldOptions(field)?.type !== 'text');
-        switch (op) {
-            case 'is':
-                return {
-                    term: { [`${name}${isKeyword ? '.keyword' : ''}`]: value },
-                };
-            case 'contains':
-                return {
-                    wildcard: {
-                        [`${name}${isKeyword ? '.keyword' : ''}`]: `*${value}*`,
-                    },
-                };
-            case 'matches':
-                return {
-                    regexp: {
-                        [`${name}${isKeyword ? '.keyword' : ''}`]: value,
-                    },
-                };
-            case 'exists':
-                return { exists: { field: name } };
-            case 'between_date':
-                return {
-                    range: {
-                        [name]: {
-                            gte: value?.split('_')[0],
-                            lte: value?.split('_')[1],
-                        },
-                    },
-                };
-            case 'between':
-                return {
-                    range: {
-                        [name]: {
-                            gte: Number(value?.split('_')[0]) * 60 * 1000,
-                            ...(Number(value?.split('_')[1]) === 60
-                                ? null
-                                : {
-                                      lte:
-                                          Number(value?.split('_')[1]) *
-                                          60 *
-                                          1000,
-                                  }),
-                        },
-                    },
-                };
-        }
-    } else {
-        switch (op) {
-            case 'is':
-                return {
-                    term: { 'fields.KeyValue': `${field.value}_${value}` },
-                };
-            case 'contains':
-                return {
-                    wildcard: {
-                        'fields.KeyValue': `${field.value}_*${value}*`,
-                    },
-                };
-            case 'matches':
-                return {
-                    regexp: {
-                        'fields.KeyValue': `${field.value}_${value}`,
-                    },
-                };
-            case 'exists':
-                return { term: { 'fields.Key': field.value } };
-        }
-    }
-};
-
-const parseRuleImpl = (
-    field: SelectOption,
-    op: Operator,
-    multiValue: MultiselectOption
-): any => {
-    if (isNegative(op)) {
-        return {
-            bool: {
-                must_not: {
-                    ...parseRuleImpl(field, NEGATION_MAP[op], multiValue),
-                },
-            },
-        };
-    } else if (hasArguments(op)) {
-        return {
-            bool: {
-                should: multiValue.options.map(({ value }) =>
-                    parseInner(field, op, value)
-                ),
-            },
-        };
-    } else {
-        return parseInner(field, op);
-    }
-};
-
-const parseRule = (rule: RuleProps): any => {
-    const field = rule.field!;
-    const multiValue = rule.val!;
-    const op = rule.op!;
-
-    return parseRuleImpl(field, op, multiValue);
-};
-
-const parseGroup = (isAnd: boolean, rules: RuleProps[]): any => ({
-    bool: {
-        [isAnd ? 'must' : 'should']: rules.map((rule) => parseRule(rule)),
-    },
-});
+export const CUSTOM_TYPE = 'custom';
+export const ERROR_TYPE = 'error';
+export const ERROR_FIELD_TYPE = 'error-field';
 
 interface FieldOptions {
     operators?: Operator[];
     type?: string;
 }
 
-interface CustomField {
+interface HasOptions {
     options?: FieldOptions;
 }
-
-const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
-    {
-        type: CUSTOM_TYPE,
-        name: 'app_version',
-        options: {
-            type: 'text',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'created_at',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'active_length',
-        options: {
-            operators: RANGE_OPERATORS,
-            type: 'long',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'viewed',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'processed',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'first_time',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'starred',
-        options: {
-            type: 'boolean',
-        },
-    },
-];
+export type CustomField = HasOptions & Pick<Field, 'type' | 'name'>;
 
 export type QueryBuilderRule = string[];
 
@@ -893,6 +746,8 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
+    error_state: getStateLabel,
+    error_created_at: getDateLabel,
 };
 
 export const deserializeGroup = (
@@ -935,9 +790,6 @@ const isComplete = (rule: RuleProps) =>
     (!hasArguments(rule.op) ||
         (rule.val !== undefined && rule.val.options.length !== 0));
 
-const getDefaultOperator = (field: SelectOption | undefined) =>
-    ((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0];
-
 const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
 
 const getTypeLabel = (value: string) => {
@@ -958,20 +810,7 @@ const getName = (value: string) => {
     return rest.join('_');
 };
 
-const getCustomFieldOptions = (field: SelectOption | undefined) => {
-    if (!field) {
-        return undefined;
-    }
-
-    const type = getType(field.value);
-    if (type !== CUSTOM_TYPE) {
-        return undefined;
-    }
-
-    return CUSTOM_FIELDS.find((f) => f.name === field.label)?.options;
-};
-
-const propertiesToRules = (
+export const propertiesToRules = (
     properties: any[],
     type: string,
     op: string
@@ -990,131 +829,207 @@ const propertiesToRules = (
     return rules;
 };
 
-// If there is no query builder param (for segments saved
-// before the query builder was released), create one.
-export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
-    const rules: RuleProps[] = [];
-    if (params.user_properties) {
-        rules.push(...propertiesToRules(params.user_properties, 'user', 'is'));
-    }
-    if (params.excluded_properties) {
-        rules.push(
-            ...propertiesToRules(params.excluded_properties, 'user', 'is_not')
-        );
-    }
-    if (params.track_properties) {
-        rules.push(
-            ...propertiesToRules(params.track_properties, 'track', 'is')
-        );
-    }
-    if (params.excluded_track_properties) {
-        rules.push(
-            ...propertiesToRules(
-                params.excluded_track_properties,
-                'track',
-                'is_not'
-            )
-        );
-    }
-    if (params.date_range) {
-        const start = moment(params.date_range.start_date).toISOString();
-        const end = moment(params.date_range.end_date).toISOString();
-        rules.push(
-            deserializeGroup('custom_created_at', 'between_date', [
-                `${start}_${end}`,
-            ])
-        );
-    }
-    if (params.length_range) {
-        const min = params.length_range.min;
-        const max = params.length_range.max;
-        rules.push(
-            deserializeGroup('custom_active_length', 'between', [
-                `${min}_${max}`,
-            ])
-        );
-    }
-    if (params.browser) {
-        rules.push(
-            deserializeGroup('session_browser_name', 'is', [params.browser])
-        );
-    }
-    if (params.os) {
-        rules.push(deserializeGroup('session_os_name', 'is', [params.os]));
-    }
-    if (params.environments && params.environments.length > 0) {
-        rules.push(
-            deserializeGroup(
-                'session_environment',
-                'is',
-                params.environments.map((env) => env ?? '')
-            )
-        );
-    }
-    if (params.app_versions && params.app_versions.length > 0) {
-        rules.push(
-            deserializeGroup(
-                'custom_app_version',
-                'is',
-                params.app_versions.map((ver) => ver ?? '')
-            )
-        );
-    }
-    if (params.device_id) {
-        rules.push(
-            deserializeGroup('session_device_id', 'is', [params.device_id])
-        );
-    }
-    if (params.visited_url) {
-        rules.push(
-            deserializeGroup('session_visited-url', 'is', [params.visited_url])
-        );
-    }
-    if (params.referrer) {
-        rules.push(
-            deserializeGroup('session_referrer', 'is', [params.referrer])
-        );
-    }
-    if (params.identified) {
-        rules.push(deserializeGroup('user_identifier', 'exists', []));
-    }
-    if (params.hide_viewed) {
-        rules.push(deserializeGroup('custom_viewed', 'is', ['false']));
-    }
-    if (params.first_time) {
-        rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
-    }
-    if (!params.show_live_sessions) {
-        rules.push(deserializeGroup('custom_processed', 'is', ['true']));
-    } else {
-        rules.push(
-            deserializeGroup('custom_processed', 'is', ['true', 'false'])
-        );
-    }
-    return {
-        isAnd: true,
-        rules: serializeRules(rules),
-    };
-};
+export type FetchFieldVariables =
+    | Partial<
+          Exact<{
+              project_id: string;
+              count: number;
+              field_type: string;
+              field_name: string;
+              query: string;
+          }>
+      >
+    | undefined;
 
-const QueryBuilder = () => {
+interface QueryBuilderProps {
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    customFields: CustomField[];
+    fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
+    fieldData?: GetFieldTypesQuery;
+    getQueryFromParams: (params: any) => QueryBuilderState;
+    searchParams: any;
+    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
+}
+
+const QueryBuilder = ({
+    setSearchQuery,
+    customFields,
+    fetchFields,
+    fieldData,
+    getQueryFromParams,
+    searchParams,
+    setSearchParams,
+}: QueryBuilderProps) => {
+    const getCustomFieldOptions = useCallback(
+        (field: SelectOption | undefined) => {
+            if (!field) {
+                return undefined;
+            }
+
+            const type = getType(field.value);
+            if (type !== CUSTOM_TYPE && type !== ERROR_TYPE) {
+                return undefined;
+            }
+
+            return customFields.find((f) => f.name === field.label)?.options;
+        },
+        [customFields]
+    );
+
+    const getDefaultOperator = (field: SelectOption | undefined) =>
+        ((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0];
+
+    const parseInner = useCallback(
+        (field: SelectOption, op: Operator, value?: string): any => {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
+                const name = field.label;
+                const isKeyword = !(
+                    getCustomFieldOptions(field)?.type !== 'text'
+                );
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
+                            },
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: `*${value}*`,
+                            },
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
+                            },
+                        };
+                    case 'exists':
+                        return { exists: { field: name } };
+                    case 'between_date':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: value?.split('_')[0],
+                                    lte: value?.split('_')[1],
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte:
+                                        Number(value?.split('_')[0]) *
+                                        60 *
+                                        1000,
+                                    ...(Number(value?.split('_')[1]) === 60
+                                        ? null
+                                        : {
+                                              lte:
+                                                  Number(value?.split('_')[1]) *
+                                                  60 *
+                                                  1000,
+                                          }),
+                                },
+                            },
+                        };
+                }
+            } else {
+                let key = field.value;
+                if (key.startsWith(ERROR_FIELD_TYPE)) {
+                    key = key.replace(`${ERROR_FIELD_TYPE}_`, '');
+                }
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: { 'fields.KeyValue': `${key}_${value}` },
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                'fields.KeyValue': `${key}_*${value}*`,
+                            },
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                'fields.KeyValue': `${key}_${value}`,
+                            },
+                        };
+                    case 'exists':
+                        return { term: { 'fields.Key': key } };
+                }
+            }
+        },
+        [getCustomFieldOptions]
+    );
+
+    const parseRuleImpl = useCallback(
+        (
+            field: SelectOption,
+            op: Operator,
+            multiValue: MultiselectOption
+        ): any => {
+            if (isNegative(op)) {
+                return {
+                    bool: {
+                        must_not: {
+                            ...parseRuleImpl(
+                                field,
+                                NEGATION_MAP[op],
+                                multiValue
+                            ),
+                        },
+                    },
+                };
+            } else if (hasArguments(op)) {
+                return {
+                    bool: {
+                        should: multiValue.options.map(({ value }) =>
+                            parseInner(field, op, value)
+                        ),
+                    },
+                };
+            } else {
+                return parseInner(field, op);
+            }
+        },
+        [parseInner]
+    );
+
+    const parseRule = useCallback(
+        (rule: RuleProps): any => {
+            const field = rule.field!;
+            const multiValue = rule.val!;
+            const op = rule.op!;
+
+            return parseRuleImpl(field, op, multiValue);
+        },
+        [parseRuleImpl]
+    );
+
+    const parseGroup = useCallback(
+        (isAnd: boolean, rules: RuleProps[]): any => ({
+            bool: {
+                [isAnd ? 'must' : 'should']: rules.map((rule) =>
+                    parseRule(rule)
+                ),
+            },
+        }),
+        [parseRule]
+    );
+
     const { project_id } = useParams<{
         project_id: string;
     }>();
-
-    const {
-        setSearchQuery,
-        searchParams,
-        setSearchParams,
-    } = useSearchContext();
-
-    const { data: fieldData } = useGetFieldTypesQuery({
-        variables: { project_id },
-    });
-
-    const { refetch: fetchFields } = useGetFieldsOpensearchQuery({
-        skip: true,
-    });
 
     const { data: appVersionData } = useGetAppVersionsQuery({
         variables: { project_id },
@@ -1151,11 +1066,8 @@ const QueryBuilder = () => {
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     const getKeyOptions = async (input: string) => {
-        if (fieldData?.field_types === undefined) {
-            return;
-        }
-
-        const results = CUSTOM_FIELDS.concat(fieldData?.field_types)
+        const results = customFields
+            .concat(fieldData?.field_types ?? [])
             .map((ft) => ({
                 label: ft.name,
                 value: ft.type + '_' + ft.name,
@@ -1200,7 +1112,7 @@ const QueryBuilder = () => {
                 return;
             }
 
-            if (getType(field.value) === CUSTOM_TYPE) {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
                 let options: { label: string; value: string }[] = [];
                 if (field.value === 'custom_app_version') {
                     options =
@@ -1211,15 +1123,30 @@ const QueryBuilder = () => {
                                 value: val as string,
                             })) ?? [];
                 } else if (field.value === 'custom_processed') {
+                    options = ['true', 'false'].map((v) => ({
+                        label: getProcessedLabel(v),
+                        value: v,
+                    }));
+                } else if (field.value === 'error_state') {
+                    options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+                        label: getStateLabel(v),
+                        value: v,
+                    }));
+                } else if (field.value === 'error_Type') {
                     options = [
-                        { label: 'Live', value: 'false' },
-                        { label: 'Completed', value: 'true' },
-                    ];
+                        'Backend',
+                        'console.error',
+                        'window.onerror',
+                        'custom',
+                    ].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
                 } else if (getCustomFieldOptions(field)?.type === 'boolean') {
-                    options = [
-                        { label: 'true', value: 'true' },
-                        { label: 'false', value: 'false' },
-                    ];
+                    options = ['true', 'false'].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
                 }
 
                 return options.filter((opt) =>
@@ -1234,7 +1161,7 @@ const QueryBuilder = () => {
                 field_name: field.label,
                 query: input,
             }).then((res) => {
-                return res.data.fields_opensearch.map((val) => ({
+                return res.map((val) => ({
                     label: val,
                     value: val,
                 }));
@@ -1260,7 +1187,7 @@ const QueryBuilder = () => {
         if (searchParams.query === undefined) {
             const newState = getQueryFromParams(searchParams);
             const newQuery = JSON.stringify(newState);
-            setSearchParams((params) => ({
+            setSearchParams((params: any) => ({
                 ...params,
                 query: newQuery,
             }));
@@ -1283,12 +1210,21 @@ const QueryBuilder = () => {
         // Update if the state has changed
         if (newState !== qbState) {
             setQbState(newState);
-            setSearchParams((params) => ({
+            setSearchParams((params: any) => ({
                 ...params,
                 query: newState,
             }));
         }
-    }, [isAnd, qbState, rules, searchParams, setSearchParams, setSearchQuery]);
+    }, [
+        getQueryFromParams,
+        isAnd,
+        parseGroup,
+        qbState,
+        rules,
+        searchParams,
+        setSearchParams,
+        setSearchQuery,
+    ]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined

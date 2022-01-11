@@ -332,6 +332,7 @@ input ErrorSearchParamsInput {
     state: ErrorState
     event: String
     type: String
+    query: String
 }
 
 type ErrorSearchParams {
@@ -341,6 +342,7 @@ type ErrorSearchParams {
     visited_url: String
     state: ErrorState
     event: String
+    query: String
 }
 
 type DateRange {
@@ -576,6 +578,11 @@ type Query {
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
+    error_groups_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
     enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
@@ -633,6 +640,13 @@ type Query {
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_type: String!
+        field_name: String!
+        query: String!
+    ): [String!]!
+    error_fields_opensearch(
         project_id: ID!
         count: Int!
         field_type: String!

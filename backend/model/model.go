@@ -625,6 +625,7 @@ type ErrorSearchParams struct {
 	VisitedURL *string                 `json:"visited_url"`
 	Event      *string                 `json:"event"`
 	State      *modelInputs.ErrorState `json:"state"`
+	Query      *string                 `json:"query"`
 }
 type ErrorSegment struct {
 	Model
@@ -668,7 +669,7 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string        `json:"state" gorm:"default:OPEN"`
-	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
+	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
 	FieldGroup       *string
 	Environments     string
 	IsPublic         bool `gorm:"default:false"`
