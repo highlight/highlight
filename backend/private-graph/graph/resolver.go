@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -174,6 +175,9 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 
 	inviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.New("404: Invite not found")
+		}
 		return nil, e.Wrap(err, "500: error querying for invite Link")
 	}
 
