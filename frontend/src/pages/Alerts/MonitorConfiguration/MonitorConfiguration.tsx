@@ -135,7 +135,7 @@ const MonitorConfiguration = ({
     return (
         <div>
             <div className={styles.chartContainer}>
-                {metricPreviewLoading ? (
+                {metricPreviewLoading || graphData.length === 0 ? (
                     <Skeleton height="231px" />
                 ) : (
                     <LineChart
