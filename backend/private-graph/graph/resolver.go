@@ -45,6 +45,7 @@ var (
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
+	SendGridOutboundEmail                 = "gm@runhighlight.com"
 )
 
 type Resolver struct {
@@ -618,7 +619,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
@@ -849,7 +850,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(SendAdminInviteEmailTemplateID)
 
