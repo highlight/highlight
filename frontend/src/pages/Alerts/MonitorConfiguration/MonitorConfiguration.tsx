@@ -7,7 +7,6 @@ import { useGetMetricPreviewQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { MetricType } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
-import { functionName } from '@pages/Error/components/StackTraceSection/StackTraceSection.module.scss';
 import {
     WEB_VITALS_CONFIGURATION,
     WebVitalDescriptor,
@@ -220,7 +219,7 @@ const MonitorConfiguration = ({
                                     color: 'var(--color-blue-400)',
                                 }}
                             >
-                                {functionName}({config?.name})
+                                {aggregateFunction}({config?.name})
                             </b>
                         </code>{' '}
                         is over{' '}
