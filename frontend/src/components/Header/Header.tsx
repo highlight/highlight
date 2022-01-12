@@ -3,8 +3,10 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -69,19 +71,28 @@ export const Header = () => {
                         </div>
                     )}
 
+                    {!!project_id && (
+                        <HighlightGate>
+                            <div className={styles.quicksearchWrapper}>
+                                <QuickSearch />
+                            </div>
+                        </HighlightGate>
+                    )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        {!isLoggedIn ? (
-                            <ButtonLink
-                                className={styles.upsellButton}
-                                trackingId="DemoProjectSignUp"
-                                to="/?sign_up=1"
-                            >
-                                Try Highlight for Free!
-                            </ButtonLink>
-                        ) : (
-                            <FeedbackButton />
-                        )}
+                        <div className={styles.hideableButtonContainer}>
+                            {!isLoggedIn ? (
+                                <ButtonLink
+                                    className={styles.upsellButton}
+                                    trackingId="DemoProjectSignUp"
+                                    to="/?sign_up=1"
+                                >
+                                    Try Highlight for Free!
+                                </ButtonLink>
+                            ) : (
+                                <FeedbackButton />
+                            )}
+                        </div>
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>

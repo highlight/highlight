@@ -360,6 +360,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 		OS:         params.Os,
 		VisitedURL: params.VisitedURL,
 		Event:      params.Event,
+		Query:      params.Query,
 	}
 	if params.State != nil {
 		modelParams.State = params.State

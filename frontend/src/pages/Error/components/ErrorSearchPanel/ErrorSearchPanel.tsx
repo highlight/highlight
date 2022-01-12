@@ -1,3 +1,5 @@
+import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -11,6 +13,7 @@ import styles from './ErrorSearchPanel.module.scss';
 
 const ErrorSearchPanel = () => {
     const { setShowLeftPanel, showLeftPanel } = useErrorPageConfiguration();
+    const { isQueryBuilder } = useErrorSearchContext();
 
     return (
         <aside
@@ -21,9 +24,18 @@ const ErrorSearchPanel = () => {
             {showLeftPanel && (
                 <>
                     <div className={styles.filtersContainer}>
-                        <ErrorSearch />
-                        <SegmentPickerForErrors />
-                        <ErrorSearchFilters />
+                        {isQueryBuilder ? (
+                            <>
+                                <SegmentPickerForErrors />
+                                <ErrorQueryBuilder />
+                            </>
+                        ) : (
+                            <>
+                                <ErrorSearch />
+                                <SegmentPickerForErrors />
+                                <ErrorSearchFilters />
+                            </>
+                        )}
                     </div>
                     <ErrorFeedV2 />
                 </>

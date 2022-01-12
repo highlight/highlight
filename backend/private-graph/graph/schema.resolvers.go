@@ -2410,6 +2410,40 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	return errorResults, nil
 }
 
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.ErrorGroup{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(count),
+		SortField:     ptr.String("updated_at"),
+		SortOrder:     ptr.String("desc"),
+		ReturnCount:   ptr.Bool(true),
+		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+	}
+
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, eg := range results {
+		// Equivalent to what used to be
+		// `stack_trace = coalesce(mapped_stack_trace, stack_trace)`
+		if eg.MappedStackTrace != nil {
+			eg.StackTrace = *eg.MappedStackTrace
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: results,
+		TotalCount:  resultCount,
+	}, nil
+}
+
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
 	return r.canAdminViewErrorGroup(ctx, secureID, true)
 }
@@ -3323,6 +3357,56 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	return values, nil
 }
 
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}},
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldName, query)
+	}
+
+	results := []*model.ErrorField{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all unique values from the returned fields
+	valueMap := map[string]bool{}
+	for _, result := range results {
+		valueMap[result.Value] = true
+	}
+	values := []string{}
+	for value := range valueMap {
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
 func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
@@ -3347,7 +3431,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		MaxResults: ptr.Int(count),
 	}
 
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields, opensearch.IndexErrorFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}

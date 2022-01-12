@@ -476,6 +476,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		"StackTrace":       newFrameString,
 		"MappedStackTrace": newMappedStackTraceString,
 		"Environments":     environmentsString,
+		"updated_at":       time.Now(),
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}

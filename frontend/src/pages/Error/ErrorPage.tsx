@@ -1,7 +1,11 @@
-import { useAuthContext } from '@authentication/AuthContext';
+import {
+    queryBuilderEnabled,
+    useAuthContext,
+} from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -9,7 +13,7 @@ import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router';
+import { useHistory } from 'react-router';
 import AsyncSelect from 'react-select/async';
 import { useLocalStorage } from 'react-use';
 import {
@@ -61,7 +65,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showBanner } = useGlobalContext();
 
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const {
         data,
         loading,
@@ -122,6 +126,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
+    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
+    const [searchQuery, setSearchQuery] = useState('');
+
     return (
         <ErrorSearchContextProvider
             value={{
@@ -131,6 +138,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                isQueryBuilder,
+                searchQuery,
+                setSearchQuery,
             }}
         >
             <Helmet>

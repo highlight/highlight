@@ -85,10 +85,7 @@ const CreateSegmentModal = ({
                 <form onSubmit={onSubmit}>
                     <p className={styles.modalSubTitle}>
                         Creating a segment allows you to save search queries
-                        that target a specific set of sessions. If you're
-                        searching for a specific type of user, track event or
-                        any other attribute again and again then you should
-                        create a segment.
+                        that target a specific set of sessions.
                     </p>
                     <Input
                         name="name"

@@ -1680,6 +1680,36 @@ export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
     'fields_opensearch'
 >;
 
+export type GetQuickFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetQuickFieldsOpensearchQuery = { __typename?: 'Query' } & {
+    quickFields_opensearch: Array<
+        Types.Maybe<
+            { __typename?: 'Field' } & Pick<
+                Types.Field,
+                'type' | 'name' | 'value'
+            >
+        >
+    >;
+};
+
+export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    field_type: Types.Scalars['String'];
+    field_name: Types.Scalars['String'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'error_fields_opensearch'
+>;
+
 export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -1724,6 +1754,56 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                                         Types.Field,
                                         'name' | 'value' | 'type' | 'id'
                                     >
+                                >
+                            >
+                        >;
+                    }
+            >;
+        };
+};
+
+export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
+    error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
+        Types.ErrorResults,
+        'totalCount'
+    > & {
+            error_groups: Array<
+                { __typename?: 'ErrorGroup' } & Pick<
+                    Types.ErrorGroup,
+                    | 'created_at'
+                    | 'id'
+                    | 'secure_id'
+                    | 'type'
+                    | 'event'
+                    | 'state'
+                    | 'environments'
+                    | 'stack_trace'
+                    | 'error_frequency'
+                > & {
+                        structured_stack_trace: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorTrace' } & Pick<
+                                    Types.ErrorTrace,
+                                    | 'fileName'
+                                    | 'lineNumber'
+                                    | 'functionName'
+                                    | 'columnNumber'
+                                >
+                            >
+                        >;
+                        metadata_log: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorMetadata' } & Pick<
+                                    Types.ErrorMetadata,
+                                    | 'error_id'
+                                    | 'session_secure_id'
+                                    | 'timestamp'
                                 >
                             >
                         >;
@@ -2506,7 +2586,12 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            'os' | 'browser' | 'visited_url' | 'state' | 'event'
+                            | 'os'
+                            | 'browser'
+                            | 'visited_url'
+                            | 'state'
+                            | 'event'
+                            | 'query'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<
@@ -3042,7 +3127,10 @@ export const namedOperations = {
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
+        GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
+        GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+        GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,

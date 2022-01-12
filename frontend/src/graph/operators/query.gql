@@ -367,6 +367,38 @@ query GetFieldsOpensearch(
     )
 }
 
+query GetQuickFieldsOpensearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+) {
+    quickFields_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+    ) {
+        type
+        name
+        value
+    }
+}
+
+query GetErrorFieldsOpensearch(
+    $project_id: ID!
+    $count: Int!
+    $field_type: String!
+    $field_name: String!
+    $query: String!
+) {
+    error_fields_opensearch(
+        project_id: $project_id
+        count: $count
+        field_type: $field_type
+        field_name: $field_name
+        query: $query
+    )
+}
+
 query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
     sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
         sessions {
@@ -398,6 +430,43 @@ query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
             first_time
             user_properties
             event_counts
+        }
+        totalCount
+    }
+}
+
+query GetErrorGroupsOpenSearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+) {
+    error_groups_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+    ) {
+        error_groups {
+            created_at
+            id
+            secure_id
+            type
+            event
+            state
+            state
+            environments
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            metadata_log {
+                error_id
+                session_secure_id
+                timestamp
+            }
+            error_frequency
         }
         totalCount
     }
@@ -894,6 +963,7 @@ query GetErrorSegments($project_id: ID!) {
             visited_url
             state
             event
+            query
         }
     }
 }

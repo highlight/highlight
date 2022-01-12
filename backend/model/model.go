@@ -637,6 +637,7 @@ type ErrorSearchParams struct {
 	VisitedURL *string                 `json:"visited_url"`
 	Event      *string                 `json:"event"`
 	State      *modelInputs.ErrorState `json:"state"`
+	Query      *string                 `json:"query"`
 }
 type ErrorSegment struct {
 	Model
