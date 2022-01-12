@@ -844,7 +844,6 @@ func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *mo
 
 func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName string, inviteLink string, email string) (*string, error) {
 	to := &mail.Email{Address: email}
-
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
