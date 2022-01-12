@@ -4,6 +4,7 @@ import {
 } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -62,6 +63,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         project_id: string;
     }>();
     const history = useHistory();
+    const { queryBuilderInput, setQueryBuilderInput } = useSearchContext();
 
     const { showBanner } = useGlobalContext();
 
@@ -123,6 +125,18 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             history.replace({ search: '' });
         }
     }, [history, dateFromSearchParams, setSearchParams]);
+
+    useEffect(() => {
+        if (queryBuilderInput?.type === 'errors') {
+            const searchParams = {
+                ...EmptyErrorsSearchParams,
+                query: JSON.stringify(queryBuilderInput),
+            };
+            setExistingParams(searchParams);
+            setSearchParams(searchParams);
+            setQueryBuilderInput(undefined);
+        }
+    }, [queryBuilderInput, setQueryBuilderInput]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
