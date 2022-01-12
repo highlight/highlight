@@ -225,7 +225,11 @@ const TABLE_COLUMNS = [
         key: 'configure',
         render: (_: any, record: any) => (
             <Link
-                to={`alerts/${record.id}`}
+                to={
+                    record.type === 'Metric Monitor'
+                        ? `alerts/monitor/${record.id}`
+                        : `alerts/${record.id}`
+                }
                 className={styles.configureButton}
                 onClick={(e) => {
                     e.stopPropagation();
