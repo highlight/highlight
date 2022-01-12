@@ -85,6 +85,7 @@ type Mutation {
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!
+        is_beacon: Boolean
     ): ID
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     addSessionFeedback(

@@ -1284,7 +1284,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
