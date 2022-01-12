@@ -257,6 +257,7 @@ const LineChart = ({
                         stroke={referenceLine.color}
                         strokeDasharray="3 3"
                         isFront
+                        ifOverflow="extendDomain"
                     >
                         {/* <Label
                             position={'insideLeft'}
