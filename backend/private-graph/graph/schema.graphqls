@@ -825,6 +825,23 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
+    createMetricMonitor(
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
+    updateMetricMonitor(
+        metric_monitor_id: ID!
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -847,6 +864,7 @@ type Mutation {
         frequency: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!

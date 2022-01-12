@@ -1,5 +1,9 @@
 import Card from '@components/Card/Card';
-import { GetAlertsPagePayloadQuery } from '@graph/operations';
+import {
+    useDeleteMetricMonitorMutation,
+    useUpdateMetricMonitorMutation,
+} from '@graph/hooks';
+import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
 import {
@@ -37,9 +41,36 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const [functionName, setFunctionName] = useState<string>('p90');
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
+    const [updateMonitor] = useUpdateMetricMonitorMutation({
+        variables: {
+            metric_monitor_id: id,
+            project_id,
+            function: functionName,
+            metric_to_monitor: metricToMonitorName,
+            name: monitorName,
+            slack_channels: slackChannels.map((webhook_channel_id: string) => ({
+                webhook_channel_name: channelSuggestions.find(
+                    (suggestion) =>
+                        suggestion.webhook_channel_id === webhook_channel_id
+                ).webhook_channel,
+                webhook_channel_id,
+            })),
+            threshold,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [deleteMonitor] = useDeleteMetricMonitorMutation({
+        variables: {
+            metric_monitor_id: id,
+            project_id,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
 
     const onFinish = (e: { preventDefault: () => void }) => {
         e.preventDefault();
+        updateMonitor();
+        message.success('Monitor updated!');
     };
 
     useEffect(() => {
@@ -69,11 +100,15 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
             setFunctionName(functionName);
         }
 
-        if (!loading && existingMonitor === undefined) {
+        if (
+            !loading &&
+            existingMonitor === undefined &&
+            alertsPayload !== undefined
+        ) {
             message.error("The monitor you tried viewing doesn't exist");
             history.push(`/${project_id}/alerts`);
         }
-    }, [existingMonitor, history, loading, project_id]);
+    }, [alertsPayload, existingMonitor, history, loading, project_id]);
 
     return (
         <div>
@@ -104,11 +139,13 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                         onFormSubmit={onFinish}
                         isSlackIntegrated={isSlackIntegrated}
                         slackUrl={slackUrl}
-                        onFormCancel={() => {
+                        formSubmitButtonLabel="Save"
+                        onFormDestructiveAction={async () => {
+                            await deleteMonitor();
+                            message.success('Monitor deleted!');
                             history.push(`/${project_id}/alerts`);
                         }}
-                        formCancelButtonLabel="Cancel"
-                        formSubmitButtonLabel="Create"
+                        formDestructiveButtonLabel="Delete"
                     />
                 </Card>
             </>

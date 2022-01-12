@@ -1775,6 +1775,225 @@ export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorAlertMutation,
     Types.CreateErrorAlertMutationVariables
 >;
+export const CreateMetricMonitorDocument = gql`
+    mutation CreateMetricMonitor(
+        $project_id: ID!
+        $name: String!
+        $function: String!
+        $threshold: Float!
+        $metric_to_monitor: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+    ) {
+        createMetricMonitor(
+            project_id: $project_id
+            threshold: $threshold
+            name: $name
+            function: $function
+            metric_to_monitor: $metric_to_monitor
+            slack_channels: $slack_channels
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
+    }
+`;
+export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.CreateMetricMonitorMutation,
+    Types.CreateMetricMonitorMutationVariables
+>;
+
+/**
+ * __useCreateMetricMonitorMutation__
+ *
+ * To run a mutation, you first call `useCreateMetricMonitorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateMetricMonitorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createMetricMonitorMutation, { data, loading, error }] = useCreateMetricMonitorMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      function: // value for 'function'
+ *      threshold: // value for 'threshold'
+ *      metric_to_monitor: // value for 'metric_to_monitor'
+ *      slack_channels: // value for 'slack_channels'
+ *   },
+ * });
+ */
+export function useCreateMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateMetricMonitorMutation,
+        Types.CreateMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateMetricMonitorMutation,
+        Types.CreateMetricMonitorMutationVariables
+    >(CreateMetricMonitorDocument, baseOptions);
+}
+export type CreateMetricMonitorMutationHookResult = ReturnType<
+    typeof useCreateMetricMonitorMutation
+>;
+export type CreateMetricMonitorMutationResult = Apollo.MutationResult<Types.CreateMetricMonitorMutation>;
+export type CreateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateMetricMonitorMutation,
+    Types.CreateMetricMonitorMutationVariables
+>;
+export const UpdateMetricMonitorDocument = gql`
+    mutation UpdateMetricMonitor(
+        $metric_monitor_id: ID!
+        $project_id: ID!
+        $name: String!
+        $function: String!
+        $threshold: Float!
+        $metric_to_monitor: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+    ) {
+        updateMetricMonitor(
+            metric_monitor_id: $metric_monitor_id
+            project_id: $project_id
+            threshold: $threshold
+            name: $name
+            function: $function
+            metric_to_monitor: $metric_to_monitor
+            slack_channels: $slack_channels
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
+    }
+`;
+export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.UpdateMetricMonitorMutation,
+    Types.UpdateMetricMonitorMutationVariables
+>;
+
+/**
+ * __useUpdateMetricMonitorMutation__
+ *
+ * To run a mutation, you first call `useUpdateMetricMonitorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateMetricMonitorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateMetricMonitorMutation, { data, loading, error }] = useUpdateMetricMonitorMutation({
+ *   variables: {
+ *      metric_monitor_id: // value for 'metric_monitor_id'
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      function: // value for 'function'
+ *      threshold: // value for 'threshold'
+ *      metric_to_monitor: // value for 'metric_to_monitor'
+ *      slack_channels: // value for 'slack_channels'
+ *   },
+ * });
+ */
+export function useUpdateMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateMetricMonitorMutation,
+        Types.UpdateMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateMetricMonitorMutation,
+        Types.UpdateMetricMonitorMutationVariables
+    >(UpdateMetricMonitorDocument, baseOptions);
+}
+export type UpdateMetricMonitorMutationHookResult = ReturnType<
+    typeof useUpdateMetricMonitorMutation
+>;
+export type UpdateMetricMonitorMutationResult = Apollo.MutationResult<Types.UpdateMetricMonitorMutation>;
+export type UpdateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateMetricMonitorMutation,
+    Types.UpdateMetricMonitorMutationVariables
+>;
+export const DeleteMetricMonitorDocument = gql`
+    mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
+        deleteMetricMonitor(
+            metric_monitor_id: $metric_monitor_id
+            project_id: $project_id
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
+    }
+`;
+export type DeleteMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.DeleteMetricMonitorMutation,
+    Types.DeleteMetricMonitorMutationVariables
+>;
+
+/**
+ * __useDeleteMetricMonitorMutation__
+ *
+ * To run a mutation, you first call `useDeleteMetricMonitorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteMetricMonitorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteMetricMonitorMutation, { data, loading, error }] = useDeleteMetricMonitorMutation({
+ *   variables: {
+ *      metric_monitor_id: // value for 'metric_monitor_id'
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useDeleteMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteMetricMonitorMutation,
+        Types.DeleteMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteMetricMonitorMutation,
+        Types.DeleteMetricMonitorMutationVariables
+    >(DeleteMetricMonitorDocument, baseOptions);
+}
+export type DeleteMetricMonitorMutationHookResult = ReturnType<
+    typeof useDeleteMetricMonitorMutation
+>;
+export type DeleteMetricMonitorMutationResult = Apollo.MutationResult<Types.DeleteMetricMonitorMutation>;
+export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteMetricMonitorMutation,
+    Types.DeleteMetricMonitorMutationVariables
+>;
 export const UpdateAdminAboutYouDetailsDocument = gql`
     mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
         updateAdminAboutYouDetails(adminDetails: $adminDetails)

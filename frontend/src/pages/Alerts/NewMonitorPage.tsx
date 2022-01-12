@@ -1,4 +1,6 @@
 import Card from '@components/Card/Card';
+import { useCreateMetricMonitorMutation } from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
 import {
@@ -6,6 +8,7 @@ import {
     WebVitalDescriptor,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
+import message from 'antd/lib/message';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router-dom';
@@ -34,13 +37,33 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const [config, setConfig] = useState<WebVitalDescriptor>(
         WEB_VITALS_CONFIGURATION[metricToMonitorName]
     );
-    const [monitorName, setMonitorName] = useState('');
+    const [monitorName, setMonitorName] = useState('New Monitor');
     const [functionName, setFunctionName] = useState<string>('p90');
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
+    const [createMonitor] = useCreateMetricMonitorMutation({
+        variables: {
+            project_id,
+            function: functionName,
+            metric_to_monitor: metricToMonitorName,
+            name: monitorName,
+            slack_channels: slackChannels.map((webhook_channel_id: string) => ({
+                webhook_channel_name: channelSuggestions.find(
+                    (suggestion) =>
+                        suggestion.webhook_channel_id === webhook_channel_id
+                ).webhook_channel,
+                webhook_channel_id,
+            })),
+            threshold,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
 
     const onFinish = (e: { preventDefault: () => void }) => {
         e.preventDefault();
+        createMonitor();
+        message.success(`Created ${monitorName} monitor!`);
+        history.push(`/${project_id}/alerts`);
     };
 
     useEffect(() => {

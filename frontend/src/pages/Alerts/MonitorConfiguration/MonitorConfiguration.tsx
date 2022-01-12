@@ -38,8 +38,10 @@ interface Props {
     isSlackIntegrated: boolean;
     slackUrl: string;
     formSubmitButtonLabel: string;
-    formCancelButtonLabel: string;
-    onFormCancel: () => void;
+    formCancelButtonLabel?: string;
+    formDestructiveButtonLabel?: string;
+    onFormDestructiveAction?: () => void;
+    onFormCancel?: () => void;
 }
 
 const MonitorConfiguration = ({
@@ -63,6 +65,8 @@ const MonitorConfiguration = ({
     onThresholdChange,
     onSlackChannelsChange,
     slackChannels,
+    formDestructiveButtonLabel,
+    onFormDestructiveAction,
 }: Props) => {
     const { project_id } = useParams<{
         project_id: string;
@@ -318,15 +322,29 @@ const MonitorConfiguration = ({
                 </section>
 
                 <div className={styles.formFooter}>
-                    <Button
-                        trackingId="CancelCreateMonitor"
-                        type="default"
-                        onClick={() => {
-                            onFormCancel();
-                        }}
-                    >
-                        {formCancelButtonLabel}
-                    </Button>
+                    {onFormCancel && (
+                        <Button
+                            trackingId="CancelCreateMonitor"
+                            type="default"
+                            onClick={() => {
+                                onFormCancel();
+                            }}
+                        >
+                            {formCancelButtonLabel}
+                        </Button>
+                    )}
+                    {onFormDestructiveAction && (
+                        <Button
+                            trackingId="DestructiveCreateMonitor"
+                            danger
+                            type="default"
+                            onClick={() => {
+                                onFormDestructiveAction();
+                            }}
+                        >
+                            {formDestructiveButtonLabel}
+                        </Button>
+                    )}
                     <Button
                         trackingId="CreateMonitor"
                         htmlType="submit"
