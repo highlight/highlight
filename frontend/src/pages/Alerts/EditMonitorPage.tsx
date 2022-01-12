@@ -105,7 +105,7 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                         isSlackIntegrated={isSlackIntegrated}
                         slackUrl={slackUrl}
                         onFormCancel={() => {
-                            history.push(`/${project_id}/alerts/new`);
+                            history.push(`/${project_id}/alerts`);
                         }}
                         formCancelButtonLabel="Cancel"
                         formSubmitButtonLabel="Create"
