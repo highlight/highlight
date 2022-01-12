@@ -1,3 +1,4 @@
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import React from 'react';
 
 import { createContext } from '../../../util/context/context';
@@ -31,6 +32,11 @@ export type SearchParams = {
     query?: string;
 };
 
+type QueryBuilderType = 'sessions' | 'errors';
+export type QueryBuilderInput =
+    | (QueryBuilderState & { type: QueryBuilderType })
+    | undefined;
+
 interface SearchContext {
     /** Local changes to the segment parameters that might not be persisted to the database. */
     searchParams: SearchParams;
@@ -53,6 +59,10 @@ interface SearchContext {
     ) => void;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    queryBuilderInput: QueryBuilderInput;
+    setQueryBuilderInput: React.Dispatch<
+        React.SetStateAction<QueryBuilderInput>
+    >;
 }
 
 export const [
