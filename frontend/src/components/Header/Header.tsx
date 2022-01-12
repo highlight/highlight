@@ -6,7 +6,6 @@ import {
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
-import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -74,7 +73,7 @@ export const Header = () => {
                     {!!project_id && (
                         <HighlightGate>
                             <div className={styles.quicksearchWrapper}>
-                                <QuickSearch />
+                                {/* <QuickSearch /> */}
                             </div>
                         </HighlightGate>
                     )}

@@ -155,10 +155,12 @@ func main() {
 		log.Fatalf("error creating storage client: %v", err)
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient()
-	if err != nil {
-		log.Fatalf("error creating opensearch client: %v", err)
-	}
+	// opensearchClient, err := opensearch.NewOpensearchClient()
+	// if err != nil {
+	// 	log.Fatalf("error creating opensearch client: %v", err)
+	// }
+
+	opensearchClient := &opensearch.Client{}
 
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
