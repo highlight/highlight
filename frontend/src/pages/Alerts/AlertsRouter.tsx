@@ -6,6 +6,7 @@ import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import AlertsPage from '@pages/Alerts/Alerts';
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
 import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
+import EditMonitorPage from '@pages/Alerts/EditMonitorPage';
 import NewAlertPage from '@pages/Alerts/NewAlertPage';
 import NewMonitorPage from '@pages/Alerts/NewMonitorPage';
 import { useParams } from '@util/react-router/useParams';
@@ -77,7 +78,7 @@ const AlertsRouter = () => {
                         />
                     </Route>
                     <Route exact path={`${path}/monitor/:id`}>
-                        <NewMonitorPage
+                        <EditMonitorPage
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
