@@ -3324,7 +3324,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		MaxResults: ptr.Int(count),
 	}
 
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields, opensearch.IndexErrorFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
