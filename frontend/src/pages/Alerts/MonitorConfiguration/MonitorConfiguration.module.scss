@@ -1,0 +1,13 @@
+.chartContainer {
+    margin-bottom: var(--size-large);
+}
+
+.formFooter {
+    column-gap: var(--size-large);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.select {
+    width: 100%;
+}

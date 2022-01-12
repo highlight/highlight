@@ -470,6 +470,106 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateMetricMonitorMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    function: Types.Scalars['String'];
+    threshold: Types.Scalars['Float'];
+    metric_to_monitor: Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    createMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type UpdateMetricMonitorMutationVariables = Types.Exact<{
+    metric_monitor_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    function: Types.Scalars['String'];
+    threshold: Types.Scalars['Float'];
+    metric_to_monitor: Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    updateMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type DeleteMetricMonitorMutationVariables = Types.Exact<{
+    metric_monitor_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    deleteMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
     adminDetails: Types.AdminAboutYouDetails;
 }>;
@@ -1162,6 +1262,24 @@ export type GetWebVitalDashboardQuery = { __typename?: 'Query' } & {
             { __typename?: 'WebVitalDashboardPayload' } & Pick<
                 Types.WebVitalDashboardPayload,
                 'date' | 'avg' | 'p50' | 'p75' | 'p90' | 'p99'
+            >
+        >
+    >;
+};
+
+export type GetMetricPreviewQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    type: Types.MetricType;
+    name: Types.Scalars['String'];
+    aggregateFunction: Types.Scalars['String'];
+}>;
+
+export type GetMetricPreviewQuery = { __typename?: 'Query' } & {
+    metric_preview: Array<
+        Types.Maybe<
+            { __typename?: 'MetricPreview' } & Pick<
+                Types.MetricPreview,
+                'value' | 'date'
             >
         >
     >;
@@ -2912,6 +3030,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     }
             >
         >;
+        metric_monitors: Array<
+            Types.Maybe<
+                { __typename?: 'MetricMonitor' } & Pick<
+                    Types.MetricMonitor,
+                    | 'id'
+                    | 'updated_at'
+                    | 'name'
+                    | 'function'
+                    | 'metric_to_monitor'
+                    | 'last_admin_to_edit_id'
+                    | 'threshold'
+                > & {
+                        channels_to_notify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >;
     };
 
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
@@ -2972,6 +3113,7 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
     Query: {
         GetWebVitalDashboard: 'GetWebVitalDashboard' as const,
+        GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
@@ -3069,6 +3211,9 @@ export const namedOperations = {
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
         CreateErrorAlert: 'CreateErrorAlert' as const,
+        CreateMetricMonitor: 'CreateMetricMonitor' as const,
+        UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
+        DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
         UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
         CreateRageClickAlert: 'CreateRageClickAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,

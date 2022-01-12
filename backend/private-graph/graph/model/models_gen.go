@@ -79,6 +79,11 @@ type LengthRangeInput struct {
 	Max *float64 `json:"max"`
 }
 
+type MetricPreview struct {
+	Date  time.Time `json:"date"`
+	Value float64   `json:"value"`
+}
+
 type NewUsersCount struct {
 	Count int64 `json:"count"`
 }

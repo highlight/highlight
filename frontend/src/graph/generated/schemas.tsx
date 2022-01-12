@@ -622,6 +622,24 @@ export type WebVitalDashboardPayload = {
     p99: Scalars['Float'];
 };
 
+export type MetricPreview = {
+    __typename?: 'MetricPreview';
+    date: Scalars['Timestamp'];
+    value: Scalars['Float'];
+};
+
+export type MetricMonitor = {
+    __typename?: 'MetricMonitor';
+    id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
+    name: Scalars['String'];
+    channels_to_notify: Array<Maybe<SanitizedSlackChannel>>;
+    function: Scalars['String'];
+    metric_to_monitor: Scalars['String'];
+    last_admin_to_edit_id: Scalars['ID'];
+    threshold: Scalars['Float'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -698,6 +716,8 @@ export type Query = {
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
     web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
+    metric_preview: Array<Maybe<MetricPreview>>;
+    metric_monitors: Array<Maybe<MetricMonitor>>;
 };
 
 export type QuerySessionArgs = {
@@ -1005,6 +1025,17 @@ export type QueryWeb_Vital_DashboardArgs = {
     web_vital_name: Scalars['String'];
 };
 
+export type QueryMetric_PreviewArgs = {
+    project_id: Scalars['ID'];
+    type: MetricType;
+    name: Scalars['String'];
+    aggregateFunction: Scalars['String'];
+};
+
+export type QueryMetric_MonitorsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     updateAdminAboutYouDetails: Scalars['Boolean'];
@@ -1042,9 +1073,12 @@ export type Mutation = {
     syncSlackIntegration: SlackSyncResponse;
     createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
+    createMetricMonitor?: Maybe<MetricMonitor>;
+    updateMetricMonitor?: Maybe<MetricMonitor>;
     createErrorAlert?: Maybe<ErrorAlert>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     deleteErrorAlert?: Maybe<ErrorAlert>;
+    deleteMetricMonitor?: Maybe<MetricMonitor>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     createSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateRageClickAlert?: Maybe<SessionAlert>;
@@ -1262,6 +1296,25 @@ export type MutationCreateRageClickAlertArgs = {
     environments: Array<Maybe<Scalars['String']>>;
 };
 
+export type MutationCreateMetricMonitorArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    function: Scalars['String'];
+    threshold: Scalars['Float'];
+    metric_to_monitor: Scalars['String'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+};
+
+export type MutationUpdateMetricMonitorArgs = {
+    metric_monitor_id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    function: Scalars['String'];
+    threshold: Scalars['Float'];
+    metric_to_monitor: Scalars['String'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+};
+
 export type MutationCreateErrorAlertArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
@@ -1288,6 +1341,11 @@ export type MutationUpdateErrorAlertArgs = {
 export type MutationDeleteErrorAlertArgs = {
     project_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
+};
+
+export type MutationDeleteMetricMonitorArgs = {
+    project_id: Scalars['ID'];
+    metric_monitor_id: Scalars['ID'];
 };
 
 export type MutationUpdateSessionFeedbackAlertArgs = {
