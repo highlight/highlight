@@ -614,7 +614,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", "gm@runhighlight.com")
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
