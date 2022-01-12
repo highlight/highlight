@@ -1,5 +1,6 @@
 import Card from '@components/Card/Card';
 import DotsMenu from '@components/DotsMenu/DotsMenu';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import LineChart from '@components/LineChart/LineChart';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
@@ -37,23 +38,25 @@ const DashboardCard = ({ webVitalName }: Props) => {
                 <div className={styles.cardHeader}>
                     {/* @ts-expect-error */}
                     <h3>{WebVitalName[webVitalName]}</h3>
-                    <DotsMenu
-                        menu={
-                            <Menu>
-                                <Menu.Item
-                                    icon={<SvgAnnouncementIcon />}
-                                    onClick={() => {
-                                        history.push(
-                                            `/${project_id}/alerts/new/monitor?type=${webVitalName}`
-                                        );
-                                    }}
-                                >
-                                    Create Monitor
-                                </Menu.Item>
-                            </Menu>
-                        }
-                        trackingId="Dashboard"
-                    />
+                    <HighlightGate>
+                        <DotsMenu
+                            menu={
+                                <Menu>
+                                    <Menu.Item
+                                        icon={<SvgAnnouncementIcon />}
+                                        onClick={() => {
+                                            history.push(
+                                                `/${project_id}/alerts/new/monitor?type=${webVitalName}`
+                                            );
+                                        }}
+                                    >
+                                        Create Monitor
+                                    </Menu.Item>
+                                </Menu>
+                            }
+                            trackingId="Dashboard"
+                        />
+                    </HighlightGate>
                 </div>
             }
         >
