@@ -13,7 +13,17 @@
     width: var(--size-medium);
 }
 
+.typeIcon {
+    align-self: center;
+    color: var(--color-gray-600);
+    flex-shrink: 0;
+    height: var(--size-medium);
+    margin-right: 6px;
+    width: var(--size-medium);
+}
+
 .optionLabelContainer {
+    align-items: center;
     display: flex;
     overflow: hidden;
 }

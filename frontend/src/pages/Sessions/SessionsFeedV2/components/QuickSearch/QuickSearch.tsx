@@ -1,5 +1,7 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import SvgBugIcon from '@icons/BugIcon';
 import SvgSearchIcon from '@icons/SearchIcon';
+import SvgSessionsIcon from '@icons/SessionsIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
@@ -21,6 +23,9 @@ interface QuickSearchOption {
 
 const getQueryFieldKey = (input: QuickSearchOption) =>
     input.type.toLowerCase() + '_' + input.name.toLowerCase();
+
+const getErrorFieldKey = (input: QuickSearchOption) =>
+    'error-field_' + input.name.toLowerCase();
 
 const styleProps: Styles<any, false> = {
     ...SharedSelectStyleProps,
@@ -97,7 +102,11 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
-    const { setSearchParams, setExistingParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setExistingParams,
+        setQueryBuilderInput,
+    } = useSearchContext();
 
     const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
         variables: {
@@ -110,13 +119,18 @@ const QuickSearch = () => {
 
     const getOption = (props: any) => {
         const {
-            data: { name, value },
+            data: { name, value, type },
         } = props;
 
         return (
             <div>
                 <components.Option {...props}>
                     <div className={styles.optionLabelContainer}>
+                        {type ? (
+                            <SvgSessionsIcon className={styles.typeIcon} />
+                        ) : (
+                            <SvgBugIcon className={styles.typeIcon} />
+                        )}
                         {!!name && (
                             <div>
                                 <div className={styles.optionLabelType}>
@@ -170,6 +184,13 @@ const QuickSearch = () => {
                     history.push(`/${project_id}/sessions`);
                     setExistingParams(searchParams);
                     setSearchParams(searchParams);
+                } else {
+                    setQueryBuilderInput({
+                        type: 'errors',
+                        isAnd: true,
+                        rules: [[getErrorFieldKey(field), 'is', field.value]],
+                    });
+                    history.push(`/${project_id}/errors`);
                 }
             }}
             className={styles.select}

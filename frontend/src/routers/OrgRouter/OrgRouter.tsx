@@ -5,6 +5,7 @@ import {
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
+    QueryBuilderInput,
     SearchContextProvider,
     SearchParams,
 } from '@pages/Sessions/SearchContext/SearchContext';
@@ -131,6 +132,11 @@ export const ProjectRouter = () => {
     );
 
     const [searchQuery, setSearchQuery] = useState('');
+
+    const [
+        queryBuilderInput,
+        setQueryBuilderInput,
+    ] = useState<QueryBuilderInput>(undefined);
 
     const [
         searchParamsToUrlParams,
@@ -268,6 +274,8 @@ export const ProjectRouter = () => {
                         setSelectedSegment,
                         searchQuery,
                         setSearchQuery,
+                        queryBuilderInput,
+                        setQueryBuilderInput,
                     }}
                 >
                     <Header />
