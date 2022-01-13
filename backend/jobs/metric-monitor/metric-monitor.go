@@ -3,6 +3,7 @@ package metric_monitor
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -13,10 +14,13 @@ import (
 
 func WatchMetricMonitors(DB *gorm.DB) {
 	log.Info("Starting to watch Metric Monitors")
-	metricMonitors := getMetricMonitors(DB)
 
-	processMetricMonitors(DB, metricMonitors)
-
+	for range time.Tick(time.Minute * 1) {
+		go func() {
+			metricMonitors := getMetricMonitors(DB)
+			processMetricMonitors(DB, metricMonitors)
+		}()
+	}
 }
 
 func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
