@@ -30,9 +30,10 @@ var (
 			return os.Getenv("DOPPLER_CONFIG")
 		}
 	}()
-	OpensearchDomain   string = os.Getenv("OPENSEARCH_DOMAIN")
-	OpensearchPassword string = os.Getenv("OPENSEARCH_PASSWORD")
-	OpensearchUsername string = os.Getenv("OPENSEARCH_USERNAME")
+	OpensearchDomain     string = os.Getenv("OPENSEARCH_DOMAIN")
+	OpensearchReadDomain string = os.Getenv("OPENSEARCH_DOMAIN_READ")
+	OpensearchPassword   string = os.Getenv("OPENSEARCH_PASSWORD")
+	OpensearchUsername   string = os.Getenv("OPENSEARCH_USERNAME")
 )
 
 type Index string
@@ -50,6 +51,7 @@ func GetIndex(suffix Index) string {
 
 type Client struct {
 	Client        *opensearch.Client
+	ReadClient    *opensearch.Client
 	BulkIndexer   opensearchutil.BulkIndexer
 	isInitialized bool
 }
@@ -75,6 +77,18 @@ func NewOpensearchClient() (*Client, error) {
 		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch client")
 	}
 
+	readClient, err := opensearch.NewClient(opensearch.Config{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+		Addresses: []string{OpensearchReadDomain},
+		Username:  OpensearchUsername,
+		Password:  OpensearchPassword,
+	})
+	if err != nil {
+		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch read replica client")
+	}
+
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		Client:        client,
 		NumWorkers:    4,                // The number of workers. Defaults to runtime.NumCPU().
@@ -90,6 +104,7 @@ func NewOpensearchClient() (*Client, error) {
 
 	return &Client{
 		Client:        client,
+		ReadClient:    readClient,
 		BulkIndexer:   indexer,
 		isInitialized: true,
 	}, nil
@@ -299,7 +314,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		Body:  content,
 	}
 
-	searchResponse, err := search.Do(context.Background(), c.Client)
+	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
 		return 0, e.Wrap(err, "failed to search index")
 	}
