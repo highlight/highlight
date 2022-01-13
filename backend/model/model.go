@@ -1341,6 +1341,71 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(input *SendWelcomeSlackMessage
 	return nil
 }
 
+type SendSlackAlertForMetricMonitorInput struct {
+	Message   string
+	Workspace *Workspace
+}
+
+func (obj *MetricMonitor) SendSlackAlert(input *SendSlackAlertForMetricMonitorInput) error {
+	if obj == nil {
+		return e.New("metric monitor needs to be defined.")
+	}
+	if input.Workspace == nil {
+		return e.New("workspace needs to be defined.")
+	}
+
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to send MetricMonitor Slack Alert")
+	}
+	if len(channels) <= 0 {
+		return nil
+	}
+
+	var slackClient *slack.Client
+	if input.Workspace.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Workspace.SlackAccessToken)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	alertUrl := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, obj.ProjectID, obj.ID)
+
+	log.Info("Sending Slack Alert for Metric Monitor")
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			message := fmt.Sprintf("%s\n<%s|View Monitor>", input.Message, alertUrl)
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
+			// The Highlight Slack bot needs to join the channel before it can send a message.
+			// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+			if slackClient != nil {
+				if strings.Contains(slackChannelName, "#") {
+					_, _, _, err := slackClient.JoinConversation(slackChannelId)
+					if err != nil {
+						log.Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+					}
+				}
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				)
+				if err != nil {
+					log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+				}
+
+			} else {
+				log.Printf("Slack Bot Client was not defined for sending welcome message")
+			}
+		}
+	}
+
+	return nil
+}
+
 type SendSlackAlertInput struct {
 	// Workspace is a required parameter
 	Workspace *Workspace

@@ -23,6 +23,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -4211,21 +4212,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
-	aggregateStatement := "AVG(value)"
-
-	switch aggregateFunction {
-	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
-	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
-	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
-	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
-	case "avg":
-	default:
-		aggregateStatement = "AVG(value)"
-	}
+	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
 
 	if err := r.DB.Raw(fmt.Sprintf(`
 	SELECT
