@@ -2,6 +2,7 @@ package metric_monitor
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 
@@ -60,7 +61,12 @@ func processMetricMonitors(DB *gorm.DB, metricMonitors []*model.MetricMonitor) {
 				return
 			}
 
-			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f` over the threshold.\n(Value: `%f`, Threshold: `%f`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, value, metricMonitor.Threshold)
+			// This is to remove trailing 0
+			// Example: 0.00100 should only display 0.001.
+			valueWithNoTrailingZeroes := strconv.FormatFloat(value, 'f', -1, 64)
+			thresholdWithNoTrailingZeros := strconv.FormatFloat(metricMonitor.Threshold, 'f', -1, 64)
+
+			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f` over the threshold.\n(Value: `%s`, Threshold: `%s`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros)
 
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
