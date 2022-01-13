@@ -278,15 +278,10 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 
 	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
-	type OpenSearchField struct {
-		*model.Field
-		Key      string
-		KeyValue string
-	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
 	for i, field := range fieldsToAppend {
-		openSearchFields[i] = OpenSearchField{
+		openSearchFields[i] = opensearch.OpenSearchField{
 			Field:    field,
 			Key:      field.Type + "_" + field.Name,
 			KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
@@ -430,7 +425,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
 
-		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, newErrorGroup); err != nil {
+		opensearchErrorGroup := &model.ErrorGroup{
+			Model:     newErrorGroup.Model,
+			ProjectID: errorObj.ProjectID,
+			Event:     errorObj.Event,
+			Type:      errorObj.Type,
+			State:     modelInputs.ErrorStateOpen.String(),
+			Fields:    []*model.ErrorField{},
+		}
+		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group in opensearch")
 		}
 
@@ -472,11 +475,16 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		}
 	}
 
+	var filename *string
+	if newMappedStackTraceString != nil {
+		filename = model.GetFirstFilename(*newMappedStackTraceString)
+	} else {
+		filename = model.GetFirstFilename(newFrameString)
+	}
+
 	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
-		"StackTrace":       newFrameString,
-		"MappedStackTrace": newMappedStackTraceString,
-		"Environments":     environmentsString,
-		"updated_at":       time.Now(),
+		"filename":   filename,
+		"updated_at": time.Now(),
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}
@@ -503,15 +511,9 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		}
 	}
 
-	type OpenSearchErrorField struct {
-		*model.ErrorField
-		Key      string
-		KeyValue string
-	}
-
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
 	for i, field := range fieldsToAppend {
-		openSearchFields[i] = OpenSearchErrorField{
+		openSearchFields[i] = opensearch.OpenSearchErrorField{
 			ErrorField: field,
 			Key:        field.Name,
 			KeyValue:   field.Name + "_" + field.Value,
@@ -878,6 +880,10 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
+	}
+	if len(minifiedFileBytes) > 5000000 {
+		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+		return nil, err
 	}
 
 	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))

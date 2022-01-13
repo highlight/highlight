@@ -23,8 +23,9 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -205,6 +206,21 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
 	return obj.Type.String(), nil
+}
+
+func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
+	}
+	return sanitizedChannels, nil
 }
 
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
@@ -1339,6 +1355,74 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	newMetricMonitor := &model.MetricMonitor{
+		ProjectID:         projectID,
+		Name:              name,
+		Function:          function,
+		Threshold:         threshold,
+		MetricToMonitor:   metricToMonitor,
+		ChannelsToNotify:  channelsString,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error creating a new error alert")
+	}
+	if err := newMetricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
+
+	return newMetricMonitor, nil
+}
+
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	metricMonitor := &model.MetricMonitor{}
+	if err := r.DB.Debug().Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}}).Find(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitor")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling slack channels")
+	}
+
+	metricMonitor.ChannelsToNotify = channelsString
+	metricMonitor.Name = name
+	metricMonitor.Function = function
+	metricMonitor.Threshold = threshold
+	metricMonitor.MetricToMonitor = metricToMonitor
+	metricMonitor.LastAdminToEditID = admin.ID
+
+	if err := r.DB.Debug().Save(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error updating metric monitor")
+	}
+
+	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
+	return metricMonitor, nil
+}
+
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
@@ -1461,6 +1545,30 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	return alert, nil
+}
+
+func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	metricMonitor := &model.MetricMonitor{}
+	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}, ProjectID: projectID}).Find(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "this metric monitor does not exist in this project.")
+	}
+
+	if err := r.DB.Delete(metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error trying to delete metric monitor")
+	}
+
+	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.Error(err)
+	}
+
+	return metricMonitor, nil
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
@@ -2309,7 +2417,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, nil
 	}
 
-	results := []model.ErrorGroup{}
+	results := []opensearch.OpenSearchError{}
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
 		SortField:     ptr.String("updated_at"),
@@ -2323,16 +2431,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	for _, eg := range results {
-		// Equivalent to what used to be
-		// `stack_trace = coalesce(mapped_stack_trace, stack_trace)`
-		if eg.MappedStackTrace != nil {
-			eg.StackTrace = *eg.MappedStackTrace
-		}
+	asErrorGroups := []model.ErrorGroup{}
+	for _, result := range results {
+		asErrorGroups = append(asErrorGroups, *result.ToErrorGroup())
 	}
 
 	return &model.ErrorResults{
-		ErrorGroups: results,
+		ErrorGroups: asErrorGroups,
 		TotalCount:  resultCount,
 	}, nil
 }
@@ -2711,7 +2816,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: &model.F}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -4099,6 +4204,55 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 	return payload, nil
 }
 
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+	payload := []*modelInputs.MetricPreview{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, nil
+	}
+	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
+
+	if err := r.DB.Raw(fmt.Sprintf(`
+	SELECT
+		*
+	from
+		(
+		SELECT
+			date_trunc('minute', created_at) date,
+			%s as value
+		FROM
+			metrics
+		where
+			name = '%s'
+			and project_id = %d
+			group by 1, name
+		order by
+			1 desc
+		limit 100
+		) as newestPoints
+	order by
+		date asc;
+	`, aggregateStatement, name, projectID)).Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return payload, nil
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+	metricMonitors := []*model.MetricMonitor{}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return metricMonitors, nil
+	}
+
+	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitors")
+	}
+	return metricMonitors, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -4393,6 +4547,9 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // Metric returns generated.MetricResolver implementation.
 func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
+// MetricMonitor returns generated.MetricMonitorResolver implementation.
+func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -4422,6 +4579,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
+type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

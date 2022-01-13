@@ -191,7 +191,6 @@ export class Highlight {
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
-    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
     state: 'NotRecording' | 'Recording';
     /**
@@ -872,8 +871,13 @@ export class Highlight {
                     clearTimeout(this.pushPayloadTimerId);
                 }
             });
-            this.ready = true;
-            this.state = 'Recording';
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);

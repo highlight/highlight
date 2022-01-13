@@ -44,6 +44,7 @@ type ResolverRoot interface {
 	ErrorObject() ErrorObjectResolver
 	ErrorSegment() ErrorSegmentResolver
 	Metric() MetricResolver
+	MetricMonitor() MetricMonitorResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
@@ -239,6 +240,22 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	MetricMonitor struct {
+		ChannelsToNotify  func(childComplexity int) int
+		Function          func(childComplexity int) int
+		ID                func(childComplexity int) int
+		LastAdminToEditID func(childComplexity int) int
+		MetricToMonitor   func(childComplexity int) int
+		Name              func(childComplexity int) int
+		Threshold         func(childComplexity int) int
+		UpdatedAt         func(childComplexity int) int
+	}
+
+	MetricPreview struct {
+		Date  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
@@ -247,6 +264,7 @@ type ComplexityRoot struct {
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
+		CreateMetricMonitor              func(childComplexity int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
@@ -263,6 +281,7 @@ type ComplexityRoot struct {
 		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
 		DeleteErrorSegment               func(childComplexity int, segmentID int) int
+		DeleteMetricMonitor              func(childComplexity int, projectID int, metricMonitorID int) int
 		DeleteProject                    func(childComplexity int, id int) int
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
@@ -287,6 +306,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
+		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
@@ -350,6 +370,8 @@ type ComplexityRoot struct {
 		IsIntegratedWithSlack        func(childComplexity int, projectID int) int
 		JoinableWorkspaces           func(childComplexity int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
+		MetricMonitors               func(childComplexity int, projectID int) int
+		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -661,6 +683,9 @@ type ErrorSegmentResolver interface {
 type MetricResolver interface {
 	Type(ctx context.Context, obj *model1.Metric) (string, error)
 }
+type MetricMonitorResolver interface {
+	ChannelsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*model.SanitizedSlackChannel, error)
+}
 type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
@@ -697,9 +722,12 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
+	CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput) (*model1.MetricMonitor, error)
+	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput) (*model1.MetricMonitor, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model1.ErrorAlert, error)
 	UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
+	DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model1.MetricMonitor, error)
 	UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
@@ -792,6 +820,8 @@ type QueryResolver interface {
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	WebVitalDashboard(ctx context.Context, projectID int, webVitalName string) ([]*model.WebVitalDashboardPayload, error)
+	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
+	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -1694,6 +1724,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metric.Value(childComplexity), true
 
+	case "MetricMonitor.channels_to_notify":
+		if e.complexity.MetricMonitor.ChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.ChannelsToNotify(childComplexity), true
+
+	case "MetricMonitor.function":
+		if e.complexity.MetricMonitor.Function == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.Function(childComplexity), true
+
+	case "MetricMonitor.id":
+		if e.complexity.MetricMonitor.ID == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.ID(childComplexity), true
+
+	case "MetricMonitor.last_admin_to_edit_id":
+		if e.complexity.MetricMonitor.LastAdminToEditID == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.LastAdminToEditID(childComplexity), true
+
+	case "MetricMonitor.metric_to_monitor":
+		if e.complexity.MetricMonitor.MetricToMonitor == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.MetricToMonitor(childComplexity), true
+
+	case "MetricMonitor.name":
+		if e.complexity.MetricMonitor.Name == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.Name(childComplexity), true
+
+	case "MetricMonitor.threshold":
+		if e.complexity.MetricMonitor.Threshold == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.Threshold(childComplexity), true
+
+	case "MetricMonitor.updated_at":
+		if e.complexity.MetricMonitor.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.UpdatedAt(childComplexity), true
+
+	case "MetricPreview.date":
+		if e.complexity.MetricPreview.Date == nil {
+			break
+		}
+
+		return e.complexity.MetricPreview.Date(childComplexity), true
+
+	case "MetricPreview.value":
+		if e.complexity.MetricPreview.Value == nil {
+			break
+		}
+
+		return e.complexity.MetricPreview.Value(childComplexity), true
+
 	case "Mutation.addAdminToWorkspace":
 		if e.complexity.Mutation.AddAdminToWorkspace == nil {
 			break
@@ -1777,6 +1877,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateErrorSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["params"].(model.ErrorSearchParamsInput)), true
+
+	case "Mutation.createMetricMonitor":
+		if e.complexity.Mutation.CreateMetricMonitor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createMetricMonitor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput)), true
 
 	case "Mutation.createNewSessionAlert":
 		if e.complexity.Mutation.CreateNewSessionAlert == nil {
@@ -1969,6 +2081,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteErrorSegment(childComplexity, args["segment_id"].(int)), true
+
+	case "Mutation.deleteMetricMonitor":
+		if e.complexity.Mutation.DeleteMetricMonitor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteMetricMonitor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteMetricMonitor(childComplexity, args["project_id"].(int), args["metric_monitor_id"].(int)), true
 
 	case "Mutation.deleteProject":
 		if e.complexity.Mutation.DeleteProject == nil {
@@ -2257,6 +2381,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string)), true
+
+	case "Mutation.updateMetricMonitor":
+		if e.complexity.Mutation.UpdateMetricMonitor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateMetricMonitor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput)), true
 
 	case "Mutation.updateNewSessionAlert":
 		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
@@ -2799,6 +2935,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Messages(childComplexity, args["session_secure_id"].(string)), true
+
+	case "Query.metric_monitors":
+		if e.complexity.Query.MetricMonitors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metric_monitors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricMonitors(childComplexity, args["project_id"].(int)), true
+
+	case "Query.metric_preview":
+		if e.complexity.Query.MetricPreview == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metric_preview_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricPreview(childComplexity, args["project_id"].(int), args["type"].(model.MetricType), args["name"].(string), args["aggregateFunction"].(string)), true
 
 	case "Query.new_session_alerts":
 		if e.complexity.Query.NewSessionAlerts == nil {
@@ -5043,6 +5203,22 @@ type WebVitalDashboardPayload {
     p99: Float!
 }
 
+type MetricPreview {
+    date: Timestamp!
+    value: Float!
+}
+
+type MetricMonitor {
+    id: ID!
+    updated_at: Timestamp!
+    name: String!
+    channels_to_notify: [SanitizedSlackChannel]!
+    function: String!
+    metric_to_monitor: String!
+    last_admin_to_edit_id: ID!
+    threshold: Float!
+}
+
 scalar Upload
 
 type Query {
@@ -5181,6 +5357,13 @@ type Query {
         project_id: ID!
         web_vital_name: String!
     ): [WebVitalDashboardPayload]!
+    metric_preview(
+        project_id: ID!
+        type: MetricType!
+        name: String!
+        aggregateFunction: String!
+    ): [MetricPreview]!
+    metric_monitors(project_id: ID!): [MetricMonitor]!
 }
 
 type Mutation {
@@ -5296,6 +5479,23 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
+    createMetricMonitor(
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
+    updateMetricMonitor(
+        metric_monitor_id: ID!
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -5318,6 +5518,7 @@ type Mutation {
         frequency: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!
@@ -5760,6 +5961,66 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 		}
 	}
 	args["params"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createMetricMonitor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["function"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("function"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["function"] = arg2
+	var arg3 float64
+	if tmp, ok := rawArgs["threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+		arg3, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["metric_to_monitor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_to_monitor"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_to_monitor"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["slack_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slack_channels"] = arg5
 	return args, nil
 }
 
@@ -6471,6 +6732,30 @@ func (ec *executionContext) field_Mutation_deleteErrorSegment_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteMetricMonitor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["metric_monitor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_monitor_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_monitor_id"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7134,6 +7419,75 @@ func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx contex
 		}
 	}
 	args["state"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateMetricMonitor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["metric_monitor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_monitor_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_monitor_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["function"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("function"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["function"] = arg3
+	var arg4 float64
+	if tmp, ok := rawArgs["threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+		arg4, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold"] = arg4
+	var arg5 string
+	if tmp, ok := rawArgs["metric_to_monitor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_to_monitor"))
+		arg5, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_to_monitor"] = arg5
+	var arg6 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["slack_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
+		arg6, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slack_channels"] = arg6
 	return args, nil
 }
 
@@ -8235,6 +8589,63 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metric_monitors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metric_preview_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.MetricType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg1, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["aggregateFunction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateFunction"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["aggregateFunction"] = arg3
 	return args, nil
 }
 
@@ -13119,6 +13530,356 @@ func (ec *executionContext) _Metric_value(ctx context.Context, field graphql.Col
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _MetricMonitor_id(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_name(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_channels_to_notify(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MetricMonitor().ChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SanitizedSlackChannel)
+	fc.Result = res
+	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_function(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Function, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_metric_to_monitor(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricToMonitor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_last_admin_to_edit_id(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAdminToEditID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricMonitor_threshold(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Threshold, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricPreview_date(ctx context.Context, field graphql.CollectedField, obj *model.MetricPreview) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricPreview",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricPreview_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricPreview) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricPreview",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateAdminAboutYouDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14499,6 +15260,84 @@ func (ec *executionContext) _Mutation_createRageClickAlert(ctx context.Context, 
 	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createMetricMonitor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createMetricMonitor_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.MetricMonitor)
+	fc.Result = res
+	return ec.marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateMetricMonitor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateMetricMonitor_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.MetricMonitor)
+	fc.Result = res
+	return ec.marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createErrorAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14614,6 +15453,45 @@ func (ec *executionContext) _Mutation_deleteErrorAlert(ctx context.Context, fiel
 	res := resTmp.(*model1.ErrorAlert)
 	fc.Result = res
 	return ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteMetricMonitor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteMetricMonitor_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteMetricMonitor(rctx, args["project_id"].(int), args["metric_monitor_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.MetricMonitor)
+	fc.Result = res
+	return ec.marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateSessionFeedbackAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18580,6 +19458,90 @@ func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, fiel
 	res := resTmp.([]*model.WebVitalDashboardPayload)
 	fc.Result = res
 	return ec.marshalNWebVitalDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_metric_preview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_metric_preview_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MetricPreview(rctx, args["project_id"].(int), args["type"].(model.MetricType), args["name"].(string), args["aggregateFunction"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.MetricPreview)
+	fc.Result = res
+	return ec.marshalNMetricPreview2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_metric_monitors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_metric_monitors_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MetricMonitors(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.MetricMonitor)
+	fc.Result = res
+	return ec.marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -26690,6 +27652,109 @@ func (ec *executionContext) _Metric(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var metricMonitorImplementors = []string{"MetricMonitor"}
+
+func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.SelectionSet, obj *model1.MetricMonitor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricMonitorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricMonitor")
+		case "id":
+			out.Values[i] = ec._MetricMonitor_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+			out.Values[i] = ec._MetricMonitor_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._MetricMonitor_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "channels_to_notify":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MetricMonitor_channels_to_notify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "function":
+			out.Values[i] = ec._MetricMonitor_function(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "metric_to_monitor":
+			out.Values[i] = ec._MetricMonitor_metric_to_monitor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "last_admin_to_edit_id":
+			out.Values[i] = ec._MetricMonitor_last_admin_to_edit_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "threshold":
+			out.Values[i] = ec._MetricMonitor_threshold(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var metricPreviewImplementors = []string{"MetricPreview"}
+
+func (ec *executionContext) _MetricPreview(ctx context.Context, sel ast.SelectionSet, obj *model.MetricPreview) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricPreviewImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricPreview")
+		case "date":
+			out.Values[i] = ec._MetricPreview_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._MetricPreview_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -26790,12 +27855,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createDefaultAlerts(ctx, field)
 		case "createRageClickAlert":
 			out.Values[i] = ec._Mutation_createRageClickAlert(ctx, field)
+		case "createMetricMonitor":
+			out.Values[i] = ec._Mutation_createMetricMonitor(ctx, field)
+		case "updateMetricMonitor":
+			out.Values[i] = ec._Mutation_updateMetricMonitor(ctx, field)
 		case "createErrorAlert":
 			out.Values[i] = ec._Mutation_createErrorAlert(ctx, field)
 		case "updateErrorAlert":
 			out.Values[i] = ec._Mutation_updateErrorAlert(ctx, field)
 		case "deleteErrorAlert":
 			out.Values[i] = ec._Mutation_deleteErrorAlert(ctx, field)
+		case "deleteMetricMonitor":
+			out.Values[i] = ec._Mutation_deleteMetricMonitor(ctx, field)
 		case "updateSessionFeedbackAlert":
 			out.Values[i] = ec._Mutation_updateSessionFeedbackAlert(ctx, field)
 		case "createSessionFeedbackAlert":
@@ -27904,6 +28975,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_web_vital_dashboard(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "metric_preview":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metric_preview(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "metric_monitors":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metric_monitors(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -30152,6 +31251,90 @@ func (ec *executionContext) marshalNMetric2ᚖgithubᚗcomᚋhighlightᚑrunᚋh
 	return ec._Metric(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNMetricPreview2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx context.Context, sel ast.SelectionSet, v []*model.MetricPreview) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (model.MetricType, error) {
+	var res model.MetricType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v model.MetricType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -31959,6 +33142,20 @@ func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlig
 	}
 	res, err := ec.unmarshalInputLengthRangeInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v *model1.MetricMonitor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MetricMonitor(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx context.Context, sel ast.SelectionSet, v *model.MetricPreview) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MetricPreview(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONewUsersCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNewUsersCount(ctx context.Context, sel ast.SelectionSet, v *model.NewUsersCount) graphql.Marshaler {

@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -44,6 +46,7 @@ var (
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
+	SendGridOutboundEmail                 = "gm@runhighlight.com"
 )
 
 type Resolver struct {
@@ -174,6 +177,9 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 
 	inviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.New("404: Invite not found")
+		}
 		return nil, e.Wrap(err, "500: error querying for invite Link")
 	}
 
@@ -614,7 +620,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
@@ -845,7 +851,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(SendAdminInviteEmailTemplateID)
 

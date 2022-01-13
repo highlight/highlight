@@ -563,6 +563,22 @@ type WebVitalDashboardPayload {
     p99: Float!
 }
 
+type MetricPreview {
+    date: Timestamp!
+    value: Float!
+}
+
+type MetricMonitor {
+    id: ID!
+    updated_at: Timestamp!
+    name: String!
+    channels_to_notify: [SanitizedSlackChannel]!
+    function: String!
+    metric_to_monitor: String!
+    last_admin_to_edit_id: ID!
+    threshold: Float!
+}
+
 scalar Upload
 
 type Query {
@@ -701,6 +717,13 @@ type Query {
         project_id: ID!
         web_vital_name: String!
     ): [WebVitalDashboardPayload]!
+    metric_preview(
+        project_id: ID!
+        type: MetricType!
+        name: String!
+        aggregateFunction: String!
+    ): [MetricPreview]!
+    metric_monitors(project_id: ID!): [MetricMonitor]!
 }
 
 type Mutation {
@@ -816,6 +839,23 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
+    createMetricMonitor(
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
+    updateMetricMonitor(
+        metric_monitor_id: ID!
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -838,6 +878,7 @@ type Mutation {
         frequency: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!

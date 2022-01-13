@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -30,9 +31,10 @@ var (
 			return os.Getenv("DOPPLER_CONFIG")
 		}
 	}()
-	OpensearchDomain   string = os.Getenv("OPENSEARCH_DOMAIN")
-	OpensearchPassword string = os.Getenv("OPENSEARCH_PASSWORD")
-	OpensearchUsername string = os.Getenv("OPENSEARCH_USERNAME")
+	OpensearchDomain     string = os.Getenv("OPENSEARCH_DOMAIN")
+	OpensearchReadDomain string = os.Getenv("OPENSEARCH_DOMAIN_READ")
+	OpensearchPassword   string = os.Getenv("OPENSEARCH_PASSWORD")
+	OpensearchUsername   string = os.Getenv("OPENSEARCH_USERNAME")
 )
 
 type Index string
@@ -50,6 +52,7 @@ func GetIndex(suffix Index) string {
 
 type Client struct {
 	Client        *opensearch.Client
+	ReadClient    *opensearch.Client
 	BulkIndexer   opensearchutil.BulkIndexer
 	isInitialized bool
 }
@@ -75,6 +78,18 @@ func NewOpensearchClient() (*Client, error) {
 		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch client")
 	}
 
+	readClient, err := opensearch.NewClient(opensearch.Config{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+		Addresses: []string{OpensearchReadDomain},
+		Username:  OpensearchUsername,
+		Password:  OpensearchPassword,
+	})
+	if err != nil {
+		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch read replica client")
+	}
+
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		Client:        client,
 		NumWorkers:    4,                // The number of workers. Defaults to runtime.NumCPU().
@@ -90,6 +105,7 @@ func NewOpensearchClient() (*Client, error) {
 
 	return &Client{
 		Client:        client,
+		ReadClient:    readClient,
 		BulkIndexer:   indexer,
 		isInitialized: true,
 	}, nil
@@ -299,7 +315,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		Body:  content,
 	}
 
-	searchResponse, err := search.Do(context.Background(), c.Client)
+	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
 		return 0, e.Wrap(err, "failed to search index")
 	}
@@ -382,4 +398,39 @@ func (c *Client) Close() error {
 	}
 
 	return c.BulkIndexer.Close(context.Background())
+}
+
+// Common types for indexing in OpenSearch
+// These can differ slightly from the types they're
+// based on in order to support different query patterns
+// or to omit fields for better performance.
+type OpenSearchSession struct {
+	*model.Session
+	Fields []*OpenSearchField `json:"fields"`
+}
+
+type OpenSearchField struct {
+	*model.Field
+	Key      string
+	KeyValue string
+}
+
+type OpenSearchError struct {
+	*model.ErrorGroup
+	Fields   []*OpenSearchErrorField `json:"fields"`
+	Filename *string                 `json:"filename"`
+}
+
+func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
+	inner := oe.ErrorGroup
+	if oe.Filename != nil {
+		inner.StackTrace = fmt.Sprintf(`[{"fileName":"%s"}]`, *oe.Filename)
+	}
+	return inner
+}
+
+type OpenSearchErrorField struct {
+	*model.ErrorField
+	Key      string
+	KeyValue string
 }

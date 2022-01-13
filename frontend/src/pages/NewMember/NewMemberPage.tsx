@@ -122,6 +122,14 @@ const getAlertMessage = (
         };
     }
 
+    if (message.includes('404')) {
+        return {
+            message: "This invite doesn't exist",
+            description:
+                'Ask the person that shared this link with you to re-invite you. An invite link expires after it is used.',
+        };
+    }
+
     if (message.includes('405')) {
         return {
             message: 'The invite link has expired',
