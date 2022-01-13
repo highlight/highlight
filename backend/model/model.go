@@ -389,6 +389,8 @@ type Session struct {
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
 	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
+	// Set if the last payload was a beacon; cleared on the next non-beacon payload
+	BeaconTime *time.Time `json:"beacon_time"`
 	// Custom properties
 	Viewed                         *bool   `json:"viewed"`
 	Starred                        *bool   `json:"starred"`

@@ -1308,9 +1308,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
+	var beaconTime *time.Time = nil
+	if isBeacon {
+		now := time.Now()
+		beaconTime = &now
+	}
 	g.Go(func() error {
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		var lastUserInteractionTimestamp time.Time
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -1323,7 +1329,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
 
-			var lastUserInteractionTimestamp time.Time
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot {
 					// If we see a snapshot event, attempt to inject CORS stylesheets.
@@ -1361,12 +1366,28 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
-			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
-					return e.Wrap(err, "error updating LastUserInteractionTime")
-				}
-			}
 		}
+
+		sessionMutation := r.DB.Model(&sessionObj)
+		if !lastUserInteractionTimestamp.IsZero() {
+			sessionMutation = sessionMutation.Select("BeaconTime", "LastUserInteractionTime").Updates(
+				map[string]interface{}{
+					"BeaconTime":              beaconTime,
+					"LastUserInteractionTime": lastUserInteractionTimestamp,
+				},
+			)
+		} else {
+			// Don't overwrite last interaction time if there was no interaction in this payload
+			sessionMutation = sessionMutation.Select("BeaconTime").Updates(
+				map[string]interface{}{
+					"BeaconTime": beaconTime,
+				},
+			)
+		}
+		if err := sessionMutation.Error; err != nil {
+			return e.Wrap(err, "error updating BeaconTime and LastUserInteractionTime")
+		}
+
 		parseEventsSpan.Finish()
 		return nil
 	})
