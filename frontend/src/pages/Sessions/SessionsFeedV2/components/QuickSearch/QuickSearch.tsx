@@ -19,12 +19,6 @@ interface QuickSearchOption {
     __typename: string;
 }
 
-interface FieldSuggestion {
-    label: string;
-    tooltip: string | React.ReactNode;
-    options: QuickSearchOption[];
-}
-
 const ERROR_TYPE = 'error-field';
 const RESULT_COUNT = 10;
 
