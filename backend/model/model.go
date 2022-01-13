@@ -1651,3 +1651,24 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	}
 	return nil
 }
+
+// Returns the first filename from a stack trace, or nil if
+// the stack trace cannot be unmarshalled or doesn't have a filename.
+func GetFirstFilename(stackTraceString string) *string {
+	var unmarshalled []*modelInputs.ErrorTrace
+	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
+		// Stack trace may not be able to be unmarshalled as the format may differ,
+		// should not be treated as an error
+		return nil
+	}
+
+	// Return the first non empty frame's filename
+	empty := modelInputs.ErrorTrace{}
+	for _, frame := range unmarshalled {
+		if frame != nil && *frame != empty {
+			return frame.FileName
+		}
+	}
+
+	return nil
+}

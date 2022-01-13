@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -397,4 +398,39 @@ func (c *Client) Close() error {
 	}
 
 	return c.BulkIndexer.Close(context.Background())
+}
+
+// Common types for indexing in OpenSearch
+// These can differ slightly from the types they're
+// based on in order to support different query patterns
+// or to omit fields for better performance.
+type OpenSearchSession struct {
+	*model.Session
+	Fields []*OpenSearchField `json:"fields"`
+}
+
+type OpenSearchField struct {
+	*model.Field
+	Key      string
+	KeyValue string
+}
+
+type OpenSearchError struct {
+	*model.ErrorGroup
+	Fields   []*OpenSearchErrorField `json:"fields"`
+	Filename *string                 `json:"filename"`
+}
+
+func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
+	inner := oe.ErrorGroup
+	if oe.Filename != nil {
+		inner.StackTrace = fmt.Sprintf(`[{"fileName":"%s"}]`, *oe.Filename)
+	}
+	return inner
+}
+
+type OpenSearchErrorField struct {
+	*model.ErrorField
+	Key      string
+	KeyValue string
 }
