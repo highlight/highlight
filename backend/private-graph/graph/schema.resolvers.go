@@ -3411,7 +3411,11 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		return nil, nil
 	}
 
-	var q = fmt.Sprintf(`
+	var q string
+	if query == "" {
+		q = `{"bool":{"must":[]}}`
+	} else {
+		q = fmt.Sprintf(`
 		{"bool":{"must":[
 			{"multi_match": {
 				"query": "%s",
@@ -3423,15 +3427,27 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 				]
 			}}
 		]}}`, query)
+	}
 
-	results := []*model.Field{}
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
 
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields, opensearch.IndexErrorFields}, projectID, q, options, &results)
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
+	}
+
+	errorResults := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, er := range errorResults {
+		er.Type = "error-field"
+		results = append(results, er)
 	}
 
 	return results, nil
