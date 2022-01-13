@@ -68,7 +68,7 @@ jobs:
                 image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
             # Edit and deploy metric monitors
             - name: Replace image label for metric monitors task
-              id: image-worker
+              id: image-metric-monitor
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                 task-definition: deploy/metric-monitor-task.json
