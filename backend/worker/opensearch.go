@@ -22,33 +22,22 @@ func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	}
 }
 
-type OpenSearchSession struct {
-	*model.Session
-	Fields []*OpenSearchField `json:"fields"`
-}
-
-type OpenSearchField struct {
-	*model.Field
-	Key      string
-	KeyValue string
-}
-
 func (w *Worker) IndexSessions() {
 	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, result := range *results {
-			fields := []*OpenSearchField{}
+			fields := []*opensearch.OpenSearchField{}
 			for _, field := range result.Fields {
-				f := OpenSearchField{
+				f := opensearch.OpenSearchField{
 					Field:    field,
 					Key:      field.Type + "_" + field.Name,
 					KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
 				}
 				fields = append(fields, &f)
 			}
-			os := OpenSearchSession{
+			os := opensearch.OpenSearchSession{
 				Session: result,
 				Fields:  fields,
 			}
@@ -63,36 +52,36 @@ func (w *Worker) IndexSessions() {
 	}
 }
 
-type OpenSearchError struct {
-	*model.ErrorGroup
-	Fields []*OpenSearchErrorField `json:"fields"`
-}
-
-type OpenSearchErrorField struct {
-	*model.ErrorField
-	Key      string
-	KeyValue string
-}
-
 func (w *Worker) IndexErrors() {
 	modelProto := &model.ErrorGroup{}
 	results := &[]*model.ErrorGroup{}
 
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, result := range *results {
-			fields := []*OpenSearchErrorField{}
+			fields := []*opensearch.OpenSearchErrorField{}
 			for _, field := range result.Fields {
-				f := OpenSearchErrorField{
+				f := opensearch.OpenSearchErrorField{
 					ErrorField: field,
 					Key:        field.Name,
 					KeyValue:   field.Name + "_" + field.Value,
 				}
 				fields = append(fields, &f)
 			}
+			var filename *string
+			if result.MappedStackTrace != nil {
+				filename = model.GetFirstFilename(*result.MappedStackTrace)
+			} else {
+				filename = model.GetFirstFilename(result.StackTrace)
+			}
+			result.FieldGroup = nil
 			result.Fields = nil
-			os := OpenSearchError{
+			result.Environments = ""
+			result.MappedStackTrace = nil
+			result.StackTrace = ""
+			os := opensearch.OpenSearchError{
 				ErrorGroup: result,
 				Fields:     fields,
+				Filename:   filename,
 			}
 			w.indexItem(opensearch.IndexErrors, &os)
 		}

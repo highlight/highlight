@@ -2416,7 +2416,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, nil
 	}
 
-	results := []model.ErrorGroup{}
+	results := []opensearch.OpenSearchError{}
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
 		SortField:     ptr.String("updated_at"),
@@ -2430,16 +2430,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	for _, eg := range results {
-		// Equivalent to what used to be
-		// `stack_trace = coalesce(mapped_stack_trace, stack_trace)`
-		if eg.MappedStackTrace != nil {
-			eg.StackTrace = *eg.MappedStackTrace
-		}
+	asErrorGroups := []model.ErrorGroup{}
+	for _, result := range results {
+		asErrorGroups = append(asErrorGroups, *result.ToErrorGroup())
 	}
 
 	return &model.ErrorResults{
-		ErrorGroups: results,
+		ErrorGroups: asErrorGroups,
 		TotalCount:  resultCount,
 	}, nil
 }
