@@ -192,7 +192,6 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool) (*int, error) {
-	log.Infof("isBeacon: %t, sessionID: %d", isBeacon != nil && *isBeacon, sessionID)
 	r.PushPayloadWorkerPool.SubmitRecover(func() {
 		r.processPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon)
 	})
