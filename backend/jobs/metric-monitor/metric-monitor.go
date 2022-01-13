@@ -48,7 +48,7 @@ func processMetricMonitors(DB *gorm.DB, metricMonitors []*model.MetricMonitor) {
 	      	WHERE
 			name = '%s'
 			AND project_id = %d
-			AND created_at >= NOW() - INTERVAL '100000 minutes';
+			AND created_at >= NOW() - INTERVAL '1 minutes';
 	`, aggregateStatement, metricMonitor.MetricToMonitor, metricMonitor.ProjectID)).Scan(&value).Error; err != nil {
 			log.Error(err)
 		}
