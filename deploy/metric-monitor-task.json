@@ -67,7 +67,6 @@
         {
             "dnsSearchDomains": null,
             "environmentFiles": null,
-
             "logConfiguration": {
                 "logDriver": "awsfirelens",
                 "secretOptions": [
@@ -84,7 +83,7 @@
                     "TLS": "on",
                     "dd_source": "metric-monitor",
                     "dd_tags": "project:fluentbit",
-                    "Name": ""
+                    "Name": "datadog"
                 }
             },
             "entryPoint": null,
