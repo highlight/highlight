@@ -73,7 +73,7 @@
                 "secretOptions": [
                     {
                         "valueFrom": "DD_API_KEY",
-                        "name": "apiKey"
+                        "Name": "apiKey"
                     }
                 ],
                 "options": {
