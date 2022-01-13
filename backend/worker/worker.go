@@ -22,6 +22,7 @@ import (
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -569,12 +570,18 @@ func (w *Worker) InitializeOpenSearchIndex() {
 	}
 }
 
+func (w *Worker) StartMetricMonitorWatcher() {
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB)
+}
+
 func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
 	case "init-opensearch":
 		return w.InitializeOpenSearchIndex
+	case "metric-monitors":
+		return w.StartMetricMonitorWatcher
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
