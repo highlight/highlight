@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -165,7 +166,14 @@ const getStateLabel = (value: string): string => {
 };
 
 const getMultiselectOption = (props: any) => {
-    const { label, value, isSelected, selectOption } = props;
+    const {
+        label,
+        value,
+        isSelected,
+        selectOption,
+        data: { __isNew__: isNew },
+        selectProps: { inputValue },
+    } = props;
 
     return (
         <div>
@@ -183,7 +191,16 @@ const getMultiselectOption = (props: any) => {
                         }}
                     ></Checkbox>
 
-                    <div className={styles.optionLabelName}>{label}</div>
+                    <div className={styles.optionLabelName}>
+                        {isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
+                            label
+                        ) : (
+                            <TextHighlighter
+                                searchWords={inputValue.split(' ')}
+                                textToHighlight={label}
+                            />
+                        )}
+                    </div>
                 </div>
             </components.Option>
         </div>
@@ -191,11 +208,16 @@ const getMultiselectOption = (props: any) => {
 };
 
 const getOption = (props: any) => {
-    const { label, value } = props;
+    const {
+        label,
+        value,
+        selectProps: { inputValue },
+    } = props;
     const type = getType(value);
     const nameLabel = getNameLabel(label);
     const typeLabel = getTypeLabel(value);
     const tooltipMessage = TOOLTIP_MESSAGES[value];
+    const searchWords = [inputValue];
 
     return (
         <div>
@@ -204,11 +226,19 @@ const getOption = (props: any) => {
                     {!!typeLabel && (
                         <div className={styles.labelTypeContainer}>
                             <div className={styles.optionLabelType}>
-                                {typeLabel}
+                                <TextHighlighter
+                                    searchWords={searchWords}
+                                    textToHighlight={typeLabel}
+                                />
                             </div>
                         </div>
                     )}
-                    <div className={styles.optionLabelName}>{nameLabel}</div>
+                    <div className={styles.optionLabelName}>
+                        <TextHighlighter
+                            searchWords={searchWords}
+                            textToHighlight={nameLabel}
+                        />
+                    </div>
                     {(!!tooltipMessage ||
                         type === 'session' ||
                         type === CUSTOM_TYPE ||
@@ -500,7 +530,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                 <Button
                     trackingId={`SessionsQuerySelect`}
                     className={classNames(styles.ruleItem, {
-                        [styles.invalid]: invalid,
+                        [styles.invalid]: invalid && !visible,
                     })}
                     onClick={() => onSetVisible(true)}
                 >
@@ -1320,13 +1350,13 @@ const QueryBuilder = ({
                                 key={'popover-step-1'}
                                 value={undefined}
                                 setVisible={() => {
-                                    setCurrentStep(2);
+                                    setCurrentStep(undefined);
                                 }}
                                 onChange={(val) => {
                                     const field = val as
                                         | SelectOption
                                         | undefined;
-                                    setCurrentRule({
+                                    addRule({
                                         field: field,
                                         op: undefined,
                                         val: undefined,
