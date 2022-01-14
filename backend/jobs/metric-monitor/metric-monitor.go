@@ -53,6 +53,9 @@ func processMetricMonitors(DB *gorm.DB, metricMonitors []*model.MetricMonitor) {
 			log.Error(err)
 		}
 
+		log.Infof("Processing %s for Project %d. ID: %d", metricMonitor.Name, metricMonitor.ProjectID, metricMonitor.ID)
+		log.Infof("Current value: %f, Threshold: %f", value, metricMonitor.Threshold)
+
 		if value >= metricMonitor.Threshold {
 			var project model.Project
 			if err := DB.Model(&model.Project{}).Where("id = ?", metricMonitor.ProjectID).First(&project).Error; err != nil {

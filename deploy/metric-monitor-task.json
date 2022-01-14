@@ -9,7 +9,7 @@
                 "logDriver": "awslogs",
                 "secretOptions": null,
                 "options": {
-                    "awslogs-group": "/ecs/worker-task",
+                    "awslogs-group": "/ecs/metric-monitor-task",
                     "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -78,10 +78,10 @@
                 "options": {
                     "dd_message_key": "log",
                     "provider": "ecs",
-                    "dd_service": "worker-service",
+                    "dd_service": "worker-service-metric-monitor",
                     "Host": "http-intake.logs.datadoghq.com",
                     "TLS": "on",
-                    "dd_source": "worker",
+                    "dd_source": "metric-monitor",
                     "dd_tags": "project:fluentbit",
                     "Name": "datadog"
                 }
@@ -106,17 +106,9 @@
             "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
-            "ulimits": [
-                { "name": "nofile", "softLimit": 65535, "hardLimit": 65535 }
-            ],
+            "ulimits": null,
             "dnsServers": null,
-            "mountPoints": [
-                {
-                    "readOnly": null,
-                    "containerPath": "/var/lib/data",
-                    "sourceVolume": "worker-volume"
-                }
-            ],
+            "mountPoints": [],
             "workingDirectory": null,
             "secrets": [
                 {
@@ -201,11 +193,11 @@
         }
     ],
     "placementConstraints": [],
-    "memory": "16384",
+    "memory": "4096",
     "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "compatibilities": ["EC2", "FARGATE"],
     "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/worker-task:40",
-    "family": "worker-task",
+    "family": "metric-monitor-task",
     "requiresAttributes": [
         {
             "targetId": null,
@@ -295,27 +287,10 @@
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
-    "cpu": "4096",
+    "cpu": "1024",
     "revision": 40,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
-    "volumes": [
-        {
-            "fsxWindowsFileServerVolumeConfiguration": null,
-            "efsVolumeConfiguration": {
-                "transitEncryptionPort": null,
-                "fileSystemId": "fs-976ab3ec",
-                "authorizationConfig": {
-                    "iam": "DISABLED",
-                    "accessPointId": null
-                },
-                "transitEncryption": "DISABLED",
-                "rootDirectory": "/"
-            },
-            "name": "worker-volume",
-            "host": null,
-            "dockerVolumeConfiguration": null
-        }
-    ]
+    "volumes": []
 }
