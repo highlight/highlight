@@ -362,7 +362,7 @@ const HtmlInstructions = ({
                             copied: 'script',
                         });
                     }}
-                    text={`<script src="https://unpkg.com/highlight.run"></script>
+                    text={`<script src="https://cdn.jsdelivr.net/npm/highlight.run@latest"></script>
 <script>window.H.init('${projectVerboseId}'${
                         isOnPrem
                             ? ', {backendUrl: "' + GetBaseURL() + '/public"}'
