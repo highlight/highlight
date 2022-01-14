@@ -549,12 +549,32 @@ func (w *Worker) ReportStripeUsage() {
 	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
 }
 
+func (w *Worker) UpdateOpenSearchIndex() {
+	w.IndexTable(opensearch.IndexFields, &model.Field{}, true)
+	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, true)
+	w.IndexErrors(true)
+	w.IndexSessions(true)
+
+	// Close the indexer channel and flush remaining items
+	if err := w.Resolver.OpenSearch.Close(); err != nil {
+		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+	}
+
+	// Report the indexer statistics
+	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
+	if stats.NumFailed > 0 {
+		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+	} else {
+		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+	}
+}
+
 func (w *Worker) InitializeOpenSearchIndex() {
 	w.InitIndexMappings()
-	w.IndexTable(opensearch.IndexFields, &model.Field{})
-	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{})
-	w.IndexErrors()
-	w.IndexSessions()
+	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
+	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
+	w.IndexErrors(false)
+	w.IndexSessions(false)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
@@ -580,6 +600,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.ReportStripeUsage
 	case "init-opensearch":
 		return w.InitializeOpenSearchIndex
+	case "update-opensearch":
+		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
 	default:
