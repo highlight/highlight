@@ -6,6 +6,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -525,7 +526,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
             <Tooltip
                 title={tooltipMessage}
                 mouseEnterDelay={1.5}
-                overlayStyle={{ maxWidth: '50vw' }}
+                overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
             >
                 <Button
                     trackingId={`SessionsQuerySelect`}
@@ -1246,10 +1247,10 @@ const QueryBuilder = ({
         if (searchParams.query === undefined) {
             const newState = getQueryFromParams(searchParams);
             const newQuery = JSON.stringify(newState);
-            setSearchParams((params: any) => ({
-                ...params,
+            setSearchParams({
+                ...EmptySessionsSearchParams,
                 query: newQuery,
-            }));
+            });
             return;
         }
 
