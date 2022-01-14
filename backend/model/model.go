@@ -490,6 +490,7 @@ type ResourcesObject struct {
 	Model
 	SessionID int
 	Resources string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 func (r *ResourcesObject) Contents() string {
@@ -591,6 +592,7 @@ type MessagesObject struct {
 	Model
 	SessionID int
 	Messages  string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 type Metric struct {
@@ -621,6 +623,7 @@ type EventsObject struct {
 	Model
 	SessionID int
 	Events    string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 func (m *EventsObject) Contents() string {
@@ -669,6 +672,7 @@ type ErrorObject struct {
 	Payload        *string   `json:"payload"`
 	Environment    string
 	RequestID      *string // From X-Highlight-Request header
+	IsBeacon       bool    `gorm:"default:false"`
 }
 
 type ErrorGroup struct {

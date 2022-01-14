@@ -1357,7 +1357,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
-			obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
+			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
@@ -1380,7 +1380,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
-			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
+			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating messages object")
 			}
@@ -1398,7 +1398,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
 			}
@@ -1484,6 +1484,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
+				IsBeacon:     isBeacon,
 			}
 
 			//create error fields array
