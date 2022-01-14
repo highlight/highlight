@@ -629,6 +629,8 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
         'Filters for results which match the input regex(es). Uses Lucene regex syntax.',
     not_matches:
         'Filters for results which do not match the input regex(es). Uses Lucene regex syntax.',
+    exists: 'Filters for results which have this field.',
+    not_exists: 'Filters for results which do not have this field.',
 };
 
 const NEGATION_MAP: { [K in Operator]: Operator } = {
@@ -696,6 +698,7 @@ const LABEL_MAP: { [key: string]: string } = {
     identifier: 'Identifier',
     reload: 'Reloaded',
     state: 'State',
+    event: 'Event',
 };
 
 const getOperator = (
