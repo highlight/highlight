@@ -1,6 +1,5 @@
 import Alert from '@components/Alert/Alert';
 import Card from '@components/Card/Card';
-import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
@@ -8,6 +7,7 @@ import Steps from '@components/Steps/Steps';
 import { useCreateDefaultAlertsMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import SvgCheck from '@icons/Check';
+import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
@@ -186,6 +186,10 @@ const AlertSetupModal = () => {
                                 configuration.name
                             );
 
+                            if (configuration.name === 'Metric Monitor') {
+                                return null;
+                            }
+
                             if (
                                 configuration.name ===
                                     `${ALERT_NAMES.TRACK_PROPERTIES_ALERT}` ||
@@ -311,15 +315,17 @@ const AlertSetupModal = () => {
                                         styles.notFoundMessage
                                     )}
                                 >
-                                    Can't find the channel or person here?{' '}
-                                    {currentProject?.id !==
-                                        DEMO_WORKSPACE_APPLICATION_ID && (
-                                        <a href={slackUrl}>
-                                            Sync Highlight with your Slack
-                                            Workspace
-                                        </a>
-                                    )}
-                                    .
+                                    <SyncWithSlackButton
+                                        isSlackIntegrated={
+                                            alertsPayload?.is_integrated_with_slack ||
+                                            false
+                                        }
+                                        slackUrl={slackUrl}
+                                        refetchQueries={[
+                                            namedOperations.Query
+                                                .GetAlertsPagePayload,
+                                        ]}
+                                    />
                                 </div>
                             )
                         }
@@ -337,16 +343,17 @@ const AlertSetupModal = () => {
                                             <div
                                                 className={styles.addContainer}
                                             >
-                                                Can't find the channel or person
-                                                here?{' '}
-                                                {currentProject?.id !==
-                                                    DEMO_WORKSPACE_APPLICATION_ID && (
-                                                    <a href={slackUrl}>
-                                                        Sync Highlight with your
-                                                        Slack Workspace
-                                                    </a>
-                                                )}
-                                                .
+                                                <SyncWithSlackButton
+                                                    isSlackIntegrated={
+                                                        alertsPayload?.is_integrated_with_slack ||
+                                                        false
+                                                    }
+                                                    slackUrl={slackUrl}
+                                                    refetchQueries={[
+                                                        namedOperations.Query
+                                                            .GetAlertsPagePayload,
+                                                    ]}
+                                                />
                                             </div>
                                         </>
                                     )}
