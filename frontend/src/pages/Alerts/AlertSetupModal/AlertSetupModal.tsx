@@ -293,7 +293,6 @@ const AlertSetupModal = () => {
                         placeholder={`Select a channel(s) or person(s) to send alerts to.`}
                         onChange={onChannelsChange}
                         defaultValue={selectedChannels}
-                        open
                         notFoundContent={
                             channels?.length === 0 ? (
                                 <div
