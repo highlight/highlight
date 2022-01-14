@@ -293,6 +293,7 @@ const AlertSetupModal = () => {
                         placeholder={`Select a channel(s) or person(s) to send alerts to.`}
                         onChange={onChannelsChange}
                         defaultValue={selectedChannels}
+                        open
                         notFoundContent={
                             channels?.length === 0 ? (
                                 <div
@@ -312,7 +313,8 @@ const AlertSetupModal = () => {
                                 <div
                                     className={classNames(
                                         styles.selectMessage,
-                                        styles.notFoundMessage
+                                        styles.notFoundMessage,
+                                        styles.withSlackButton
                                     )}
                                 >
                                     <SyncWithSlackButton
