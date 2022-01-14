@@ -200,9 +200,12 @@ export const ProjectRouter = () => {
                 }
             });
 
-            setSearchParamsToUrlParams({
-                ...searchParamsToReflectInUrl,
-            });
+            setSearchParamsToUrlParams(
+                {
+                    ...searchParamsToReflectInUrl,
+                },
+                'replace'
+            );
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName]);
 

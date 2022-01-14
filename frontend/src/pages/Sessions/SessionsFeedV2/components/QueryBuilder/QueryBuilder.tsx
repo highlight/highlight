@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
+import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
@@ -14,7 +15,7 @@ import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import AsyncCreatableSelect from 'react-select/async-creatable';
+import Creatable from 'react-select/creatable';
 import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
@@ -164,13 +165,7 @@ const getStateLabel = (value: string): string => {
 };
 
 const getMultiselectOption = (props: any) => {
-    const {
-        data: { data },
-        label,
-        value,
-        isSelected,
-        selectOption,
-    } = props;
+    const { label, value, isSelected, selectOption } = props;
 
     return (
         <div>
@@ -188,9 +183,7 @@ const getMultiselectOption = (props: any) => {
                         }}
                     ></Checkbox>
 
-                    <div className={styles.optionLabelName}>
-                        {data?.nameLabel ? data.nameLabel : label}
-                    </div>
+                    <div className={styles.optionLabelName}>{label}</div>
                 </div>
             </components.Option>
         </div>
@@ -202,6 +195,7 @@ const getOption = (props: any) => {
     const type = getType(value);
     const nameLabel = getNameLabel(label);
     const typeLabel = getTypeLabel(value);
+    const tooltipMessage = TOOLTIP_MESSAGES[value];
 
     return (
         <div>
@@ -215,13 +209,14 @@ const getOption = (props: any) => {
                         </div>
                     )}
                     <div className={styles.optionLabelName}>{nameLabel}</div>
-                    {(type === 'session' ||
+                    {(!!tooltipMessage ||
+                        type === 'session' ||
                         type === CUSTOM_TYPE ||
                         type === ERROR_TYPE ||
                         type === ERROR_FIELD_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
-                            title={TOOLTIP_MESSAGE}
+                            title={tooltipMessage ?? TOOLTIP_MESSAGE}
                             size="medium"
                             hideArrow
                             placement="right"
@@ -284,14 +279,26 @@ const PopoutContent = ({
                 />
             );
         case 'multiselect':
+            const selected =
+                (value?.kind === 'multi' ? value.options : null) ?? [];
             return (
                 <AsyncSelect
                     autoFocus
                     openMenuOnFocus
                     isMulti
-                    value={value?.kind === 'multi' ? value.options : null}
+                    value={selected}
                     styles={styleProps}
-                    loadOptions={loadOptions}
+                    loadOptions={(input, callback) => {
+                        const selectedSet = new Set(
+                            selected.map((s) => s.value)
+                        );
+                        return loadOptions(input, callback).then((results) => [
+                            ...selected,
+                            ...results.filter(
+                                (r: any) => !selectedSet.has(r.value)
+                            ),
+                        ]);
+                    }}
                     defaultOptions
                     menuIsOpen
                     controlShouldRenderValue={false}
@@ -335,19 +342,22 @@ const PopoutContent = ({
                 />
             );
         case 'creatable':
+            const created =
+                (value?.kind === 'multi' ? value.options : null) ?? [];
             return (
-                <AsyncCreatableSelect
+                <Creatable
                     autoFocus
                     openMenuOnFocus
                     isMulti
-                    value={value?.kind === 'multi' ? value.options : null}
+                    value={created}
                     styles={styleProps}
-                    loadOptions={loadOptions}
+                    options={created}
                     defaultOptions
                     menuIsOpen
                     controlShouldRenderValue={false}
                     hideSelectedOptions={false}
                     isClearable={false}
+                    filterOption={() => true}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
@@ -362,9 +372,7 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
-                    noOptionsMessage={({ inputValue }) =>
-                        `No results for "${inputValue}"`
-                    }
+                    noOptionsMessage={() => null}
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -377,9 +385,7 @@ const PopoutContent = ({
                                   }
                                 : undefined
                         );
-                        if (value === undefined) {
-                            setVisible(false);
-                        }
+                        setVisible(false);
                     }}
                     onBlur={() => setVisible(false)}
                     formatCreateLabel={(label) => label}
@@ -464,6 +470,11 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
         value === undefined ||
         (value?.kind === 'multi' && value.options.length === 0);
 
+    const tooltipMessage =
+        (value?.kind === 'multi' &&
+            value.options.map((o) => o.label).join(', ')) ||
+        undefined;
+
     return (
         <Popover
             isList
@@ -481,22 +492,28 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
             visible={visible}
             destroyTooltipOnHide
         >
-            <Button
-                trackingId={`SessionsQuerySelect`}
-                className={classNames(styles.ruleItem, {
-                    [styles.invalid]: invalid,
-                })}
-                onClick={() => onSetVisible(true)}
+            <Tooltip
+                title={tooltipMessage}
+                mouseEnterDelay={1.5}
+                overlayStyle={{ maxWidth: '50vw' }}
             >
-                {invalid && '--'}
-                {value?.kind === 'single' && getNameLabel(value.label)}
-                {value?.kind === 'multi' &&
-                    value.options.length > 1 &&
-                    `${value.options.length} selections`}
-                {value?.kind === 'multi' &&
-                    value.options.length === 1 &&
-                    value.options[0].label}
-            </Button>
+                <Button
+                    trackingId={`SessionsQuerySelect`}
+                    className={classNames(styles.ruleItem, {
+                        [styles.invalid]: invalid,
+                    })}
+                    onClick={() => onSetVisible(true)}
+                >
+                    {invalid && '--'}
+                    {value?.kind === 'single' && getNameLabel(value.label)}
+                    {value?.kind === 'multi' &&
+                        value.options.length > 1 &&
+                        `${value.options.length} selections`}
+                    {value?.kind === 'multi' &&
+                        value.options.length === 1 &&
+                        value.options[0].label}
+                </Button>
+            </Tooltip>
         </Popover>
     );
 };
@@ -603,6 +620,15 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_between_date: 'is not between',
     matches: 'matches any of',
     not_matches: 'does not match any of',
+};
+
+const TOOLTIP_MESSAGES: { [K in string]: string } = {
+    contains: 'Filters for results that contain the input term(s).',
+    not_contains: 'Filters for results that do not contain the input term(s).',
+    matches:
+        'Filters for results which match the input regex(es). Uses Lucene regex syntax.',
+    not_matches:
+        'Filters for results which do not match the input regex(es). Uses Lucene regex syntax.',
 };
 
 const NEGATION_MAP: { [K in Operator]: Operator } = {
