@@ -1308,9 +1308,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
+	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -1375,6 +1379,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
+		}
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 			return e.Wrap(err, "error decoding message data")
@@ -1393,6 +1400,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+		}
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
@@ -1409,6 +1419,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// process errors
 	g.Go(func() error {
+		if hasBeacon {
+			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
+		}
 		// filter out empty errors
 		var filteredErrors []*customModels.ErrorObjectInput
 		for _, errorObject := range errors {
