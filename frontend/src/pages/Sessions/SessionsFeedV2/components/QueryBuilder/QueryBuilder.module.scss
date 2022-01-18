@@ -50,24 +50,41 @@
     background-attachment: scroll;
     background-image: linear-gradient(
         to left,
-        rgba(0, 0, 0, 0.25),
+        rgba(0, 0, 0, 0.1),
         rgba(255, 255, 255, 0)
     );
     background-position: right center;
     background-repeat: no-repeat;
     background-size: 10px 100%;
+    transition: background-image 0.2s ease-in-out;
 }
 
 .shadowLeft {
     background-attachment: scroll;
     background-image: linear-gradient(
         to right,
-        rgba(0, 0, 0, 0.25),
+        rgba(0, 0, 0, 0.1),
         rgba(255, 255, 255, 0)
     );
     background-position: left center;
     background-repeat: no-repeat;
     background-size: 10px 100%;
+    transition: background-image 0.2s ease-in-out;
+}
+
+.shadowBoth {
+    background-attachment: scroll, scroll;
+    // background-color: rgb(255, 255, 255);
+    background-image: linear-gradient(
+            to right,
+            rgba(0, 0, 0, 0.1),
+            rgba(255, 255, 255, 0)
+        ),
+        linear-gradient(to left, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0));
+    background-position: left center, right center;
+    background-repeat: no-repeat;
+    background-size: 10px 100%, 10px 100%;
+    transition: background-image 0.2s ease-in-out;
 }
 
 .optionLabelName {

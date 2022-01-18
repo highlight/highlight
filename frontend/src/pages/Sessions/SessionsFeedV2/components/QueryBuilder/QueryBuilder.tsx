@@ -146,28 +146,28 @@ const OptionLabelName: React.FC = (props) => {
 
     const [className, setClassName] = useState<string>(styles.optionLabelName);
 
+    const setScrollShadow = (target: any) => {
+        const { scrollLeft, offsetWidth, scrollWidth } = target;
+        const showRightShadow = scrollLeft + offsetWidth < scrollWidth;
+        const showLeftShadow = scrollLeft > 0;
+        setClassName(
+            classNames(styles.optionLabelName, {
+                [styles.shadowRight]: showRightShadow && !showLeftShadow,
+                [styles.shadowLeft]: showLeftShadow && !showRightShadow,
+                [styles.shadowBoth]: showLeftShadow && showRightShadow,
+            })
+        );
+    };
+
     useEffect(() => {
         if (!!ref?.current) {
-            const { scrollLeft, offsetWidth, scrollWidth } = ref.current;
-            const showRightShadow = scrollLeft + offsetWidth < scrollWidth;
-            const showLeftShadow = scrollLeft > 0;
-
+            setScrollShadow(ref.current);
             const onScroll = (ev: any) => {
-                console.log(ev);
+                setScrollShadow(ev.target);
             };
-            console.log(scrollLeft, offsetWidth, scrollWidth);
-            // clean up code
             ref.current.removeEventListener('scroll', onScroll);
             ref.current.addEventListener('scroll', onScroll, { passive: true });
             return () => window.removeEventListener('scroll', onScroll);
-
-            // console.log('setting class name!', showRightShadow, showLeftShadow);
-            // setClassName(
-            //     classNames(styles.optionLabelName, {
-            //         [styles.shadowRight]: showRightShadow,
-            //         [styles.shadowLeft]: showLeftShadow,
-            //     })
-            // );
         }
     }, [ref]);
 
