@@ -849,28 +849,30 @@ export class Highlight {
                 );
             }
 
-            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-            // as when switching tabs or apps on mobile. Non-blocking.
-            document.addEventListener('visibilitychange', () => {
-                if (
-                    document.visibilityState === 'hidden' &&
-                    navigator?.sendBeacon
-                ) {
-                    const payload = this._getPayload(true /*is_beacon*/);
-                    let blob = new Blob(
-                        [
-                            JSON.stringify({
-                                query: print(PushPayloadDocument),
-                                variables: payload,
-                            }),
-                        ],
-                        {
-                            type: 'application/json',
-                        }
-                    );
-                    navigator.sendBeacon(`${this._backendUrl}`, blob);
-                }
-            });
+            if (this.isRunningOnHighlight) {
+                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+                // as when switching tabs or apps on mobile. Non-blocking.
+                document.addEventListener('visibilitychange', () => {
+                    if (
+                        document.visibilityState === 'hidden' &&
+                        'sendBeacon' in navigator
+                    ) {
+                        const payload = this._getPayload({ isBeacon: true });
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                    }
+                });
+            }
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
@@ -1008,7 +1010,7 @@ export class Highlight {
                 return;
             }
             try {
-                const payload = this._getPayload(false /*is_beacon*/);
+                const payload = this._getPayload({ isBeacon: false });
                 await this.graphqlSDK.PushPayload(payload);
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
@@ -1057,7 +1059,11 @@ export class Highlight {
         );
     }
 
-    _getPayload(is_beacon: boolean): PushPayloadMutationVariables {
+    _getPayload({
+        isBeacon,
+    }: {
+        isBeacon: boolean;
+    }): PushPayloadMutationVariables {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             // get all resources that don't include 'api.highlight.run'
@@ -1092,7 +1098,7 @@ export class Highlight {
         // SendBeacon is not guaranteed to succeed, so keep the events and re-upload on
         // the next PushPayload if there is one. The backend will remove all existing beacon
         // payloads whenever it receives a new payload.
-        if (!is_beacon) {
+        if (!isBeacon) {
             if (!this.disableNetworkRecording) {
                 this.xhrNetworkContents = [];
                 this.fetchNetworkContents = [];
@@ -1122,7 +1128,7 @@ export class Highlight {
             messages: messagesString,
             resources: resourcesString,
             errors,
-            is_beacon,
+            is_beacon: isBeacon,
         };
     }
 }
