@@ -692,6 +692,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 		if event == nil {
 			continue
 		}
+		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
 		if o.FirstFullSnapshotTimestamp.IsZero() {
 			if event.Type == parse.FullSnapshot {
 				o.FirstFullSnapshotTimestamp = event.Timestamp
