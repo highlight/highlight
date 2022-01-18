@@ -427,6 +427,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 
 		opensearchErrorGroup := &model.ErrorGroup{
 			Model:     newErrorGroup.Model,
+			SecureID:  newErrorGroup.SecureID,
 			ProjectID: errorObj.ProjectID,
 			Event:     errorObj.Event,
 			Type:      errorObj.Type,

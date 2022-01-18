@@ -28,6 +28,21 @@
     overflow: hidden;
 }
 
+.quickSearchSelect {
+    margin-bottom: var(--size-medium);
+    width: 100%;
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+}
+
+.groupHeading {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}
+
 .optionLabelType {
     background: var(--color-gray-300);
     border-radius: 3px;

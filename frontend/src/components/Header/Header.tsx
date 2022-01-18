@@ -3,7 +3,6 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
@@ -20,7 +19,10 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
-import { useAuthContext } from '../../authentication/AuthContext';
+import {
+    queryBuilderEnabled,
+    useAuthContext,
+} from '../../authentication/AuthContext';
 import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
 import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
@@ -37,7 +39,9 @@ export const Header = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
+
     const { showBanner } = useGlobalContext();
 
     return (
@@ -71,12 +75,10 @@ export const Header = () => {
                         </div>
                     )}
 
-                    {!!project_id && (
-                        <HighlightGate>
-                            <div className={styles.quicksearchWrapper}>
-                                <QuickSearch />
-                            </div>
-                        </HighlightGate>
+                    {!!project_id && isQueryBuilder && (
+                        <div className={styles.quicksearchWrapper}>
+                            <QuickSearch />
+                        </div>
                     )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
@@ -157,8 +159,7 @@ const FreePlanBanner = () => {
     }
 
     if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-        toggleShowBanner(false);
-        return null;
+        return <ProductHuntBanner />;
     }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
@@ -306,16 +307,17 @@ const ProductHuntBanner = () => {
 
     const bannerMessage = (
         <span>
-            Highlight is live on Product Hunt 🎉‍{' '}
+            Highlight has been nominated for “Best Developer Tool of the Year”
+            by Product Hunt. Vote for us{' '}
             <a
                 target="_blank"
-                href="https://www.producthunt.com/posts/highlight-5"
+                href="https://www.producthunt.com/golden-kitty-awards-2021/developer-tool"
                 className={styles.trialLink}
                 rel="noreferrer"
             >
-                Support us
-            </a>{' '}
-            and we'll be forever grateful ❤️
+                here
+            </a>
+            !
         </span>
     );
 

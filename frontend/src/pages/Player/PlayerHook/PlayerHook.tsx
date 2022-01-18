@@ -13,7 +13,6 @@ import { timerEnd } from '@util/timer/timer';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -362,17 +361,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         );
                     }
                 }
-                let clientConfig;
-                if (sessionData?.session?.client_config) {
-                    try {
-                        clientConfig = JSON.parse(
-                            sessionData?.session?.client_config
-                        );
-                    } catch (_e) {
-                        const e = _e as Error;
-                        H.consumeError(e, 'Failed to JSON parse client config');
-                    }
-                }
 
                 if (newEvents.length < 2) {
                     if (sessionData?.session?.processed === false) {
@@ -387,13 +375,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     root: playerMountingRoot,
                     triggerFocus: false,
                     mouseTail: showPlayerMouseTail,
-                    // We enable this for Safari users to allow for html2image to access the iframe.
-                    // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
-                    // This access is determined by the iframe's `sandbox="allow-scripts"` property.
-                    UNSAFE_replayCanvas:
-                        isSafari ||
-                        clientConfig?.enableCanvasRecording ||
-                        false,
+                    UNSAFE_replayCanvas: true,
                     liveMode: isLiveMode,
                 });
                 setLoadedEventsIndex(

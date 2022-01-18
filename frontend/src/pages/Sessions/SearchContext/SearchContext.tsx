@@ -65,6 +65,24 @@ interface SearchContext {
     >;
 }
 
+export const showLiveSessions = (searchParams: SearchParams): boolean => {
+    // If query is defined, check if it allows live sessions
+    if (!!searchParams.query) {
+        const query = JSON.parse(searchParams.query) as QueryBuilderState;
+        // If any 'custom_processed' has 'false', assume we're showing live sessions
+        const processedRules = query.rules.filter(
+            (r) => r[0] === 'custom_processed'
+        );
+        return (
+            processedRules.length === 0 ||
+            processedRules.flatMap((i) => i).includes('false')
+        );
+    }
+
+    // Else, default to the show_live_sessions search param
+    return searchParams?.show_live_sessions ?? false;
+};
+
 export const [
     useSearchContext,
     SearchContextProvider,

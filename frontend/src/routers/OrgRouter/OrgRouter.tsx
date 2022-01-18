@@ -200,11 +200,20 @@ export const ProjectRouter = () => {
                 }
             });
 
-            setSearchParamsToUrlParams({
-                ...searchParamsToReflectInUrl,
-            });
+            // Only do this on the session page.
+            // We don't do this on other pages because we use search params to represent state
+            // For example, on the /alerts page we use `code` to store the Slack code when the OAuth redirect.
+            // If we run this, it'll remove the code and the integration will fail.
+            if (sessionsMatch) {
+                setSearchParamsToUrlParams(
+                    {
+                        ...searchParamsToReflectInUrl,
+                    },
+                    'replace'
+                );
+            }
         }
-    }, [setSearchParamsToUrlParams, searchParams, segmentName]);
+    }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
 
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {

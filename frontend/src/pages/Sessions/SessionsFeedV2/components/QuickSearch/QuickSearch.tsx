@@ -1,7 +1,5 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
-import SvgBugIcon from '@icons/BugIcon';
 import SvgSearchIcon from '@icons/SearchIcon';
-import SvgSessionsIcon from '@icons/SessionsIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
@@ -21,11 +19,11 @@ interface QuickSearchOption {
     __typename: string;
 }
 
+const ERROR_TYPE = 'error-field';
+const RESULT_COUNT = 10;
+
 const getQueryFieldKey = (input: QuickSearchOption) =>
     input.type.toLowerCase() + '_' + input.name.toLowerCase();
-
-const getErrorFieldKey = (input: QuickSearchOption) =>
-    'error-field_' + input.name.toLowerCase();
 
 const styleProps: Styles<any, false> = {
     ...SharedSelectStyleProps,
@@ -111,7 +109,7 @@ const QuickSearch = () => {
     const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
         variables: {
             project_id,
-            count: 10,
+            count: RESULT_COUNT,
             query: '',
         },
         notifyOnNetworkStatusChange: true,
@@ -119,18 +117,13 @@ const QuickSearch = () => {
 
     const getOption = (props: any) => {
         const {
-            data: { name, value, type },
+            data: { name, value },
         } = props;
 
         return (
             <div>
                 <components.Option {...props}>
                     <div className={styles.optionLabelContainer}>
-                        {type ? (
-                            <SvgSessionsIcon className={styles.typeIcon} />
-                        ) : (
-                            <SvgBugIcon className={styles.typeIcon} />
-                        )}
                         {!!name && (
                             <div>
                                 <div className={styles.optionLabelType}>
@@ -153,12 +146,76 @@ const QuickSearch = () => {
     const getValueOptions = async (input: string) => {
         return await refetch({
             project_id,
-            count: 10,
+            count: RESULT_COUNT,
             query: input,
         }).then((fetched) => {
-            return fetched.data.quickFields_opensearch;
+            const suggestions: {
+                label: string;
+                tooltip: string | React.ReactNode;
+                options: QuickSearchOption[];
+            }[] = [];
+
+            const sessionOptions: QuickSearchOption[] = [];
+            const errorOptions: QuickSearchOption[] = [];
+            fetched.data.quickFields_opensearch.forEach((item) => {
+                const option = item as QuickSearchOption;
+                if (option.type === ERROR_TYPE) {
+                    errorOptions.push(option);
+                } else {
+                    sessionOptions.push(option);
+                }
+            });
+
+            // Show {RESULT_COUNT} total sessions + errors,
+            // in equal proportion to the number of each returned.
+            const sessionsCount = sessionOptions.length;
+            const errorsCount = errorOptions.length;
+            const totalCount = sessionsCount + errorsCount;
+            const shownSessions = Math.round(
+                (sessionsCount / totalCount) * RESULT_COUNT
+            );
+            const shownErrors = RESULT_COUNT - shownSessions;
+
+            suggestions.push({
+                label: 'Sessions',
+                tooltip: 'Fields recorded for sessions.',
+                options: sessionOptions.slice(0, shownSessions),
+            });
+
+            suggestions.push({
+                label: 'Errors',
+                tooltip: 'Fields recorded for errors.',
+                options: errorOptions.slice(0, shownErrors),
+            });
+
+            return suggestions;
         });
     };
+
+    const onChange = (val: any) => {
+        const field = val as QuickSearchOption;
+        if (field.type === ERROR_TYPE) {
+            setQueryBuilderInput({
+                type: 'errors',
+                isAnd: true,
+                rules: [[getQueryFieldKey(field), 'is', field.value]],
+            });
+            history.push(`/${project_id}/errors`);
+        } else {
+            const searchParams = {
+                ...EmptySessionsSearchParams,
+                query: JSON.stringify({
+                    isAnd: true,
+                    rules: [[getQueryFieldKey(field), 'is', field.value]],
+                }),
+            };
+            history.push(`/${project_id}/sessions`);
+            setExistingParams(searchParams);
+            setSearchParams(searchParams);
+        }
+    };
+
+    // const isLoading = loading && !!query;
 
     return (
         <AsyncSelect
@@ -168,31 +225,7 @@ const QuickSearch = () => {
             isClearable={false}
             value={null}
             escapeClearsValue={true}
-            onChange={(val) => {
-                const field = val as QuickSearchOption;
-                // Sessions results have a type defined, errors do not
-                if (field.type !== '') {
-                    const searchParams = {
-                        ...EmptySessionsSearchParams,
-                        query: JSON.stringify({
-                            isAnd: true,
-                            rules: [
-                                [getQueryFieldKey(field), 'is', field.value],
-                            ],
-                        }),
-                    };
-                    history.push(`/${project_id}/sessions`);
-                    setExistingParams(searchParams);
-                    setSearchParams(searchParams);
-                } else {
-                    setQueryBuilderInput({
-                        type: 'errors',
-                        isAnd: true,
-                        rules: [[getErrorFieldKey(field), 'is', field.value]],
-                    });
-                    history.push(`/${project_id}/errors`);
-                }
-            }}
+            onChange={onChange}
             className={styles.select}
             noOptionsMessage={({ inputValue }) =>
                 !inputValue ? null : `No results for "${inputValue}"`
@@ -214,10 +247,19 @@ const QuickSearch = () => {
                     ),
                 IndicatorSeparator: () => null,
                 Option: getOption,
+                GroupHeading: (props) => {
+                    return (
+                        <components.GroupHeading {...props}>
+                            <span className={styles.groupHeading}>
+                                {props.children}
+                            </span>
+                        </components.GroupHeading>
+                    );
+                },
             }}
             isSearchable
             defaultOptions
-            maxMenuHeight={400}
+            maxMenuHeight={500}
         />
     );
 };

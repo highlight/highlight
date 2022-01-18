@@ -1,5 +1,4 @@
 import Card from '@components/Card/Card';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import SvgMonitorIcon from '@icons/MonitorIcon';
 import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard';
 import {
@@ -99,39 +98,34 @@ const NewAlertPage = () => {
                                 </Link>
                             );
                         })}
-                        <HighlightGate>
-                            <Link
-                                className={styles.cardContent}
-                                to={{
-                                    pathname: `${url}/monitor`,
-                                    state: {
-                                        errorName: `New Monitor`,
-                                    },
-                                }}
-                            >
-                                <Card
-                                    interactable
-                                    className={styles.cardContainer}
-                                >
-                                    <h2 id={styles.title}>
-                                        <span
-                                            className={styles.icon}
-                                            style={{
-                                                backgroundColor:
-                                                    'var(--color-orange-500)',
-                                            }}
-                                        >
-                                            <SvgMonitorIcon />
-                                        </span>
-                                        Metric Monitor
-                                    </h2>
-                                    <p className={styles.description}>
-                                        Get alerted when a metric value is
-                                        larger than a threshold.
-                                    </p>
-                                </Card>
-                            </Link>
-                        </HighlightGate>
+                        <Link
+                            className={styles.cardContent}
+                            to={{
+                                pathname: `${url}/monitor`,
+                                state: {
+                                    errorName: `New Monitor`,
+                                },
+                            }}
+                        >
+                            <Card interactable className={styles.cardContainer}>
+                                <h2 id={styles.title}>
+                                    <span
+                                        className={styles.icon}
+                                        style={{
+                                            backgroundColor:
+                                                'var(--color-orange-500)',
+                                        }}
+                                    >
+                                        <SvgMonitorIcon />
+                                    </span>
+                                    Metric Monitor
+                                </h2>
+                                <p className={styles.description}>
+                                    Get alerted when a metric value is larger
+                                    than a threshold.
+                                </p>
+                            </Card>
+                        </Link>
                     </div>
                 </>
             ) : (

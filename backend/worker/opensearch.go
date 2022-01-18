@@ -22,7 +22,7 @@ func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	}
 }
 
-func (w *Worker) IndexSessions() {
+func (w *Worker) IndexSessions(isUpdate bool) {
 	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
@@ -46,13 +46,18 @@ func (w *Worker) IndexSessions() {
 		return nil
 	}
 
-	if err := w.Resolver.DB.Preload("Fields").Model(modelProto).
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 }
 
-func (w *Worker) IndexErrors() {
+func (w *Worker) IndexErrors(isUpdate bool) {
 	modelProto := &model.ErrorGroup{}
 	results := &[]*model.ErrorGroup{}
 
@@ -88,23 +93,35 @@ func (w *Worker) IndexErrors() {
 		return nil
 	}
 
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
 	// A little hacky, but some of the error groups with low ids have a very high number of fields,
 	// and it causes and error when > 65536 fields are loaded at once
-	if err := w.Resolver.DB.Preload("Fields").Where("id <= 10").Model(modelProto).
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id <= 10").Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 
-	if err := w.Resolver.DB.Preload("Fields").Where("id > 10").Model(modelProto).
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id > 10").Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 }
 
-func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) {
+func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
 	modelProto := modelPrototype
 
-	rows, err := w.Resolver.DB.Model(modelProto).Order("created_at asc").Rows()
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	rows, err := w.Resolver.DB.Model(modelProto).
+		Where(whereClause).
+		Order("created_at asc").Rows()
 	if err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}

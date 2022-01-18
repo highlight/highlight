@@ -636,6 +636,9 @@ export class Highlight {
                 enableStrictPrivacy: this.enableStrictPrivacy,
                 maskAllInputs: this.enableStrictPrivacy,
                 recordCanvas: this.enableCanvasRecording,
+                keepIframeSrcFn: (_src) => {
+                    return true;
+                },
             });
             if (recordStop) {
                 this.listeners.push(recordStop);

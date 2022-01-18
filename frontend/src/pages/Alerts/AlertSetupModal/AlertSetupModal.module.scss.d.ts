@@ -21,3 +21,4 @@ export const stepDescription: string;
 export const stepsTitle: string;
 export const stepsTitleX: string;
 export const title: string;
+export const withSlackButton: string;

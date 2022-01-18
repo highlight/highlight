@@ -23,6 +23,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -3410,7 +3411,11 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		return nil, nil
 	}
 
-	var q = fmt.Sprintf(`
+	var q string
+	if query == "" {
+		q = `{"bool":{"must":[]}}`
+	} else {
+		q = fmt.Sprintf(`
 		{"bool":{"must":[
 			{"multi_match": {
 				"query": "%s",
@@ -3422,15 +3427,27 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 				]
 			}}
 		]}}`, query)
+	}
 
-	results := []*model.Field{}
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
 
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields, opensearch.IndexErrorFields}, projectID, q, options, &results)
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
+	}
+
+	errorResults := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, er := range errorResults {
+		er.Type = "error-field"
+		results = append(results, er)
 	}
 
 	return results, nil
@@ -4208,21 +4225,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
-	aggregateStatement := "AVG(value)"
-
-	switch aggregateFunction {
-	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
-	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
-	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
-	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
-	case "avg":
-	default:
-		aggregateStatement = "AVG(value)"
-	}
+	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
 
 	if err := r.DB.Raw(fmt.Sprintf(`
 	SELECT
