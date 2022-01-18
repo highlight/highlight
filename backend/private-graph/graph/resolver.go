@@ -1147,7 +1147,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID}).Offset(offset).Find(&eventObjs).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()
