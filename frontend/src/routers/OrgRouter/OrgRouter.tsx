@@ -308,6 +308,7 @@ export const ProjectRouter = () => {
                                     'ProjectRouter Error: ' +
                                     JSON.stringify(error)
                                 }
+                                shownWithHeader
                             />
                         ) : (
                             <>
