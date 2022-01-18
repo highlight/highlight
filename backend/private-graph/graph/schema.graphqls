@@ -294,6 +294,7 @@ input SearchParamsInput {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 type SearchParams {
@@ -314,6 +315,7 @@ type SearchParams {
     hide_viewed: Boolean
     first_time: Boolean
     show_live_sessions: Boolean
+    query: String
 }
 
 input AdminAboutYouDetails {
@@ -330,6 +332,7 @@ input ErrorSearchParamsInput {
     state: ErrorState
     event: String
     type: String
+    query: String
 }
 
 type ErrorSearchParams {
@@ -339,6 +342,7 @@ type ErrorSearchParams {
     visited_url: String
     state: ErrorState
     event: String
+    query: String
 }
 
 type DateRange {
@@ -559,6 +563,22 @@ type WebVitalDashboardPayload {
     p99: Float!
 }
 
+type MetricPreview {
+    date: Timestamp!
+    value: Float!
+}
+
+type MetricMonitor {
+    id: ID!
+    updated_at: Timestamp!
+    name: String!
+    channels_to_notify: [SanitizedSlackChannel]!
+    function: String!
+    metric_to_monitor: String!
+    last_admin_to_edit_id: ID!
+    threshold: Float!
+}
+
 scalar Upload
 
 type Query {
@@ -574,6 +594,11 @@ type Query {
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
+    error_groups_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
     enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
@@ -637,6 +662,18 @@ type Query {
         field_name: String!
         query: String!
     ): [String!]!
+    error_fields_opensearch(
+        project_id: ID!
+        count: Int!
+        field_type: String!
+        field_name: String!
+        query: String!
+    ): [String!]!
+    quickFields_opensearch(
+        project_id: ID!
+        count: Int!
+        query: String!
+    ): [Field]!
     billingDetailsForProject(project_id: ID!): BillingDetails
     billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
@@ -680,6 +717,13 @@ type Query {
         project_id: ID!
         web_vital_name: String!
     ): [WebVitalDashboardPayload]!
+    metric_preview(
+        project_id: ID!
+        type: MetricType!
+        name: String!
+        aggregateFunction: String!
+    ): [MetricPreview]!
+    metric_monitors(project_id: ID!): [MetricMonitor]!
 }
 
 type Mutation {
@@ -795,6 +839,23 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
+    createMetricMonitor(
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
+    updateMetricMonitor(
+        metric_monitor_id: ID!
+        project_id: ID!
+        name: String!
+        function: String!
+        threshold: Float!
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+    ): MetricMonitor
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -817,6 +878,7 @@ type Mutation {
         frequency: Int!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!

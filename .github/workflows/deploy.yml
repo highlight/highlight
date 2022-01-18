@@ -72,3 +72,17 @@ jobs:
                 task-definition: ${{ steps.image-worker.outputs.task-definition }}
                 service: worker-service-v2
                 cluster: highlight-production-cluster
+            # Edit and deploy metric monitors
+            - name: Replace image label for metric monitors task
+              id: image-metric-monitor
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/metric-monitor-task.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS metric monitor service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
+                service: metric-monitor
+                cluster: highlight-production-cluster

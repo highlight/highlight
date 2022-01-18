@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -206,6 +208,21 @@ func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, e
 	return obj.Type.String(), nil
 }
 
+func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
+	}
+	return sanitizedChannels, nil
+}
+
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 
@@ -254,7 +271,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, nil
 	}
 
-	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+	trialEnd := time.Now().Add(30 * 24 * time.Hour) // Trial expires 30 days from current day
 
 	workspace := &model.Workspace{
 		Admins:                    []model.Admin{*admin},
@@ -330,6 +347,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
 	return session, nil
 }
 
@@ -343,6 +364,10 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
@@ -359,6 +384,12 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		State: state,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"state": state,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
 
 	return errorGroup, nil
@@ -437,7 +468,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	}
 
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -453,6 +484,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
 	if err != nil {
 		log.Error(err, " failed to add admin to workspace")
+		return adminId, err
 	}
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
@@ -461,11 +493,13 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
+			return adminId, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
+			return adminId, e.New("500")
 		}
 	}
 
@@ -1321,6 +1355,74 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	newMetricMonitor := &model.MetricMonitor{
+		ProjectID:         projectID,
+		Name:              name,
+		Function:          function,
+		Threshold:         threshold,
+		MetricToMonitor:   metricToMonitor,
+		ChannelsToNotify:  channelsString,
+		LastAdminToEditID: admin.ID,
+	}
+
+	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error creating a new error alert")
+	}
+	if err := newMetricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
+
+	return newMetricMonitor, nil
+}
+
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	metricMonitor := &model.MetricMonitor{}
+	if err := r.DB.Debug().Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}}).Find(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitor")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling slack channels")
+	}
+
+	metricMonitor.ChannelsToNotify = channelsString
+	metricMonitor.Name = name
+	metricMonitor.Function = function
+	metricMonitor.Threshold = threshold
+	metricMonitor.MetricToMonitor = metricToMonitor
+	metricMonitor.LastAdminToEditID = admin.ID
+
+	if err := r.DB.Debug().Save(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error updating metric monitor")
+	}
+
+	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
+	return metricMonitor, nil
+}
+
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
@@ -1443,6 +1545,30 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 	}
 
 	return alert, nil
+}
+
+func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model.MetricMonitor, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	metricMonitor := &model.MetricMonitor{}
+	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}, ProjectID: projectID}).Find(&metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "this metric monitor does not exist in this project.")
+	}
+
+	if err := r.DB.Delete(metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error trying to delete metric monitor")
+	}
+
+	if err := metricMonitor.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.Error(err)
+	}
+
+	return metricMonitor, nil
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
@@ -2001,6 +2127,10 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
 	return session, nil
 }
 
@@ -2011,6 +2141,11 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	}
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
+	}
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"IsPublic": isPublic,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
 	}
 
 	return errorGroup, nil
@@ -2055,10 +2190,13 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 		return nil, e.Wrap(err, "error creating registration")
 	}
 
-	if err := r.DB.Model(workspace).Updates(map[string]interface{}{
-		"EligibleForTrialExtension": false,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
+	if workspace.EligibleForTrialExtension {
+		if err := r.DB.Model(workspace).Updates(map[string]interface{}{
+			"EligibleForTrialExtension": false,
+			"TrialEndDate":              workspace.TrialEndDate.Add(30 * 24 * time.Hour), // add 30 days to the current end date
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error clearing EligibleForTrialExtension flag")
+		}
 	}
 
 	return &model.T, nil
@@ -2271,6 +2409,37 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return errorResults, nil
+}
+
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []opensearch.OpenSearchError{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(count),
+		SortField:     ptr.String("updated_at"),
+		SortOrder:     ptr.String("desc"),
+		ReturnCount:   ptr.Bool(true),
+		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+	}
+
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	asErrorGroups := []model.ErrorGroup{}
+	for _, result := range results {
+		asErrorGroups = append(asErrorGroups, *result.ToErrorGroup())
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: asErrorGroups,
+		TotalCount:  resultCount,
+	}, nil
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
@@ -2647,7 +2816,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: &model.F}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -2988,7 +3157,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
-	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND (active_length >= 0 AND active_length < 1000)) OR (active_length IS NULL AND (length >= 0 AND length < 1000))))) "
 	logTags := []string{
 		fmt.Sprintf("project_id:%d", projectID),
 		fmt.Sprintf("filtered:%t", fieldFilters != ""),
@@ -3098,7 +3267,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			%s
 		]
 	}}`, query)
-	resultCount, err := r.OpenSearch.Search(opensearch.IndexSessions, projectID, q, options, &results)
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3168,7 +3337,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search(opensearch.IndexFields, projectID, q, options, &results)
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3184,6 +3353,104 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}}
+		]}}`, fieldName)
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"term":{"Name.keyword":"%s"}},
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, fieldName, query)
+	}
+
+	results := []*model.ErrorField{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all unique values from the returned fields
+	valueMap := map[string]bool{}
+	for _, result := range results {
+		valueMap[result.Value] = true
+	}
+	values := []string{}
+	for value := range valueMap {
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
+func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var q string
+	if query == "" {
+		q = `{"bool":{"must":[]}}`
+	} else {
+		q = fmt.Sprintf(`
+		{"bool":{"must":[
+			{"multi_match": {
+				"query": "%s",
+				"type": "bool_prefix",
+				"fields": [
+					"Value",
+					"Value._2gram",
+					"Value._3gram"
+				]
+			}}
+		]}}`, query)
+	}
+
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(count),
+	}
+
+	results := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	errorResults := []*model.Field{}
+	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, er := range errorResults {
+		er.Type = "error-field"
+		results = append(results, er)
+	}
+
+	return results, nil
 }
 
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
@@ -3682,7 +3949,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	var workspaceInviteLink *model.WorkspaceInviteLink
 	shouldCreateNewInviteLink := false
 
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").First(&workspaceInviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Order("created_at desc").First(&workspaceInviteLink).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			shouldCreateNewInviteLink = true
 		} else {
@@ -3697,8 +3964,17 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 		}
 	}
 
+	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {
+		// Create a new invite link if the current one expires within 7 days.
+		daysRemainingForInvite := int(math.Abs(time.Now().UTC().Sub(*workspaceInviteLink.ExpirationDate).Hours() / 24))
+		if daysRemainingForInvite <= 7 {
+			shouldCreateNewInviteLink = true
+		}
+
+	}
+
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN, true)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
@@ -3942,6 +4218,55 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 	}
 
 	return payload, nil
+}
+
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+	payload := []*modelInputs.MetricPreview{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, nil
+	}
+	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
+
+	if err := r.DB.Raw(fmt.Sprintf(`
+	SELECT
+		*
+	from
+		(
+		SELECT
+			date_trunc('minute', created_at) date,
+			%s as value
+		FROM
+			metrics
+		where
+			name = '%s'
+			and project_id = %d
+			group by 1, name
+		order by
+			1 desc
+		limit 100
+		) as newestPoints
+	order by
+		date asc;
+	`, aggregateStatement, name, projectID)).Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return payload, nil
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+	metricMonitors := []*model.MetricMonitor{}
+
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return metricMonitors, nil
+	}
+
+	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitors")
+	}
+	return metricMonitors, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
@@ -4238,6 +4563,9 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // Metric returns generated.MetricResolver implementation.
 func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
+// MetricMonitor returns generated.MetricMonitorResolver implementation.
+func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -4267,6 +4595,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
+type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

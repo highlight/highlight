@@ -24,6 +24,9 @@ export const findLatestUrl = (
     urlEvents: customEvent<string>[],
     currentTime: number
 ) => {
+    if (urlEvents.length === 0) {
+        return '-';
+    }
     let latestUrl = urlEvents[0].data.payload;
     let i = 0;
 

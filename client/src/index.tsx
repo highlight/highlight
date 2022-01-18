@@ -42,8 +42,8 @@ import {
     FeedbackWidgetOptions,
     initializeFeedbackWidget,
 } from './ui/feedback-widget/feedback-widget';
-import { getPerformanceMethods } from 'utils/performance/performance';
-import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from 'constants/errors';
+import { getPerformanceMethods } from './utils/performance/performance';
+import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from './constants/errors';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -191,7 +191,6 @@ export class Highlight {
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
-    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
     state: 'NotRecording' | 'Recording';
     /**
@@ -637,6 +636,9 @@ export class Highlight {
                 enableStrictPrivacy: this.enableStrictPrivacy,
                 maskAllInputs: this.enableStrictPrivacy,
                 recordCanvas: this.enableCanvasRecording,
+                keepIframeSrcFn: (_src) => {
+                    return true;
+                },
             });
             if (recordStop) {
                 this.listeners.push(recordStop);
@@ -846,25 +848,31 @@ export class Highlight {
                     })
                 );
             }
-            // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
-            // Disable beforeunload to see if it improves performance for safegraph
-            //     window.addEventListener('beforeunload', () => {
-            //         if ('sendBeacon' in navigator) {
-            //             const payload = this._getPayload();
-            //             let blob = new Blob(
-            //                 [
-            //                     JSON.stringify({
-            //                         query: print(PushPayloadDocument),
-            //                         variables: payload,
-            //                     }),
-            //                 ],
-            //                 {
-            //                     type: 'application/json',
-            //                 }
-            //             );
-            //             navigator.sendBeacon(`${this._backendUrl}`, blob);
-            //         }
-            //     });
+
+            if (this.isRunningOnHighlight) {
+                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+                // as when switching tabs or apps on mobile. Non-blocking.
+                document.addEventListener('visibilitychange', () => {
+                    if (
+                        document.visibilityState === 'hidden' &&
+                        'sendBeacon' in navigator
+                    ) {
+                        const payload = this._getPayload({ isBeacon: true });
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                    }
+                });
+            }
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
@@ -872,8 +880,13 @@ export class Highlight {
                     clearTimeout(this.pushPayloadTimerId);
                 }
             });
-            this.ready = true;
-            this.state = 'Recording';
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
@@ -997,7 +1010,7 @@ export class Highlight {
                 return;
             }
             try {
-                const payload = this._getPayload();
+                const payload = this._getPayload({ isBeacon: false });
                 await this.graphqlSDK.PushPayload(payload);
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
@@ -1046,7 +1059,11 @@ export class Highlight {
         );
     }
 
-    _getPayload(): PushPayloadMutationVariables {
+    _getPayload({
+        isBeacon,
+    }: {
+        isBeacon: boolean;
+    }): PushPayloadMutationVariables {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             // get all resources that don't include 'api.highlight.run'
@@ -1071,44 +1088,47 @@ export class Highlight {
                     this.fetchNetworkContents,
                     'fetch'
                 );
-                this.xhrNetworkContents = [];
-                this.fetchNetworkContents = [];
             }
         }
 
-        const resourcesString = JSON.stringify({ resources: resources });
-
         const messages = [...this.messages];
-        this.messages = this.messages.slice(messages.length);
-
-        const messagesString = stringify({ messages: messages });
-        if (!this.disableNetworkRecording) {
-            performance.clearResourceTimings();
-        }
-
-        // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
-        // Originally, we would clear this.events but this could lead to a race condition.
-        // Example Scenario:
-        // 1. Create the events payload from this.events (with N events)
-        // 2. rrweb pushes to this.events (with M events)
-        // 3. Network request made to push payload (Only includes N events)
-        // 4. this.events is cleared (we lose M events)
         const events = [...this.events];
-        this.events = this.events.slice(events.length);
-
         const errors = [...this.errors];
-        this.errors = this.errors.slice(errors.length);
+
+        // SendBeacon is not guaranteed to succeed, so keep the events and re-upload on
+        // the next PushPayload if there is one. The backend will remove all existing beacon
+        // payloads whenever it receives a new payload.
+        if (!isBeacon) {
+            if (!this.disableNetworkRecording) {
+                this.xhrNetworkContents = [];
+                this.fetchNetworkContents = [];
+                performance.clearResourceTimings();
+            }
+            // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+            // Originally, we would clear this.events but this could lead to a race condition.
+            // Example Scenario:
+            // 1. Create the events payload from this.events (with N events)
+            // 2. rrweb pushes to this.events (with M events)
+            // 3. Network request made to push payload (Only includes N events)
+            // 4. this.events is cleared (we lose M events)
+            this.messages = this.messages.slice(messages.length);
+            this.events = this.events.slice(events.length);
+            this.errors = this.errors.slice(errors.length);
+        }
 
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
 
+        const resourcesString = JSON.stringify({ resources: resources });
+        const messagesString = stringify({ messages: messages });
         return {
             session_id: this.sessionData.sessionID.toString(),
             events: { events },
             messages: messagesString,
             resources: resourcesString,
             errors,
+            is_beacon: isBeacon,
         };
     }
 }

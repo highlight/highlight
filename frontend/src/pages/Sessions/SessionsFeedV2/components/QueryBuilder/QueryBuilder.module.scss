@@ -13,6 +13,7 @@
 .optionLabelType {
     background: var(--color-gray-300);
     border-radius: 3px;
+    color: var(--text-primary) !important;
     margin-right: 6px;
     padding-left: 4px;
     padding-right: 4px;
@@ -24,6 +25,7 @@
 }
 
 .optionLabelName {
+    color: var(--text-primary) !important;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -37,6 +39,7 @@
 }
 
 .optionTooltip {
+    color: var(--text-primary) !important;
     margin-left: 4px;
 }
 
@@ -71,15 +74,16 @@
 }
 
 .ruleItem {
-    background-color: var(--color-purple-400) !important;
+    background-color: var(--color-gray-300) !important;
     border: 0 !important;
     border-radius: 0;
-    color: var(--color-primary-background) !important;
+    color: var(--color-gray-800) !important;
     font-size: 12px;
     padding: 3px 6px;
 
     &:hover {
-        background-color: var(--color-purple-600) !important;
+        background-color: var(--color-gray-300) !important;
+        opacity: 0.8;
     }
 
     &:first-child {
@@ -140,7 +144,7 @@
 .contentContainer {
     display: flex;
     flex-direction: column;
-    max-width: 300px;
+    max-width: 50vw;
     min-width: 150px;
     padding-bottom: 0;
     row-gap: var(--size-medium);

@@ -71,7 +71,10 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     // If sessionSecureId is set and equals the current session's (ensures effect is run once)
     // and resources url is defined, fetch using resources url
     useEffect(() => {
-        if (!!session?.messages_url) {
+        if (
+            session_secure_id === session?.secure_id &&
+            !!session?.messages_url
+        ) {
             setLoading(true);
             refetchSession({
                 secure_id: session_secure_id,
@@ -103,7 +106,12 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                 })
                 .finally(() => setLoading(false));
         }
-    }, [session?.messages_url, refetchSession, session_secure_id]);
+    }, [
+        session?.messages_url,
+        session?.secure_id,
+        refetchSession,
+        session_secure_id,
+    ]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
 

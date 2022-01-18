@@ -1,3 +1,4 @@
+import { datadogLogs } from '@datadog/browser-logs';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
@@ -8,10 +9,10 @@ import {
     getAllUrlEvents,
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
+import { timerEnd } from '@util/timer/timer';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -121,6 +122,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         autoPlaySessions,
         showPlayerMouseTail,
         setShowLeftPanel,
+        setShowRightPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -317,8 +319,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         const searchParamsObject = new URLSearchParams(location.search);
         if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
             setShowLeftPanel(false);
+            setShowRightPanel(true);
         }
-    }, [setShowLeftPanel]);
+    }, [setShowLeftPanel, setShowRightPanel]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
@@ -360,28 +363,21 @@ export const usePlayer = (): ReplayerContextInterface => {
                         );
                     }
                 }
-                let clientConfig;
-                if (sessionData?.session?.client_config) {
-                    try {
-                        clientConfig = JSON.parse(
-                            sessionData?.session?.client_config
-                        );
-                    } catch (_e) {
-                        const e = _e as Error;
-                        H.consumeError(e, 'Failed to JSON parse client config');
+
+                if (newEvents.length < 2) {
+                    if (sessionData?.session?.processed === false) {
+                        setState(ReplayerState.NoEventsYet);
+                        return;
+                    } else {
+                        setState(ReplayerState.Error);
+                        return;
                     }
                 }
                 const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                     root: playerMountingRoot,
                     triggerFocus: false,
                     mouseTail: showPlayerMouseTail,
-                    // We enable this for Safari users to allow for html2image to access the iframe.
-                    // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
-                    // This access is determined by the iframe's `sandbox="allow-scripts"` property.
-                    UNSAFE_replayCanvas:
-                        isSafari ||
-                        clientConfig?.enableCanvasRecording ||
-                        false,
+                    UNSAFE_replayCanvas: true,
                     liveMode: isLiveMode,
                 });
                 setLoadedEventsIndex(
@@ -734,6 +730,14 @@ export const usePlayer = (): ReplayerContextInterface => {
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
         replayer?.play(newTime);
+
+        // Log how long it took to move to the new time.
+        const timelineChangeTime = timerEnd('timelineChangeTime');
+        console.log({ timelineChangeTime });
+        datadogLogs.logger.info('Timeline Change Time', {
+            duration: timelineChangeTime,
+            sessionId: session?.secure_id,
+        });
     };
 
     const pause = useCallback(
@@ -744,8 +748,16 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setTime(newTime);
             }
             replayer?.pause(newTime);
+
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
+            });
         },
-        [replayer]
+        [replayer, session?.secure_id]
     );
 
     /**
@@ -821,6 +833,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             : null,
         viewport,
         currentUrl,
+        sessionStartDateTime: events.length > 0 ? events[0].timestamp : 0,
     };
 };
 

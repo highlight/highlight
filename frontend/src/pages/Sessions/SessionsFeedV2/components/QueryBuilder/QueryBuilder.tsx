@@ -1,9 +1,12 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import { Field } from '@graph/schemas';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import Tooltip from '@components/Tooltip/Tooltip';
+import { GetFieldTypesQuery } from '@graph/operations';
+import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -11,22 +14,18 @@ import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import AsyncCreatableSelect from 'react-select/async-creatable';
+import Creatable from 'react-select/creatable';
 import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
 
-import {
-    useGetAppVersionsQuery,
-    useGetFieldsOpensearchQuery,
-    useGetFieldTypesQuery,
-} from '../../../../../graph/generated/hooks';
+import { useGetAppVersionsQuery } from '../../../../../graph/generated/hooks';
 import styles from './QueryBuilder.module.scss';
 
-interface RuleProps {
+export interface RuleProps {
     field: SelectOption | undefined;
     op: Operator | undefined;
     val: MultiselectOption | undefined;
@@ -36,14 +35,12 @@ interface SelectOption {
     kind: 'single';
     label: string;
     value: string;
-    data?: any;
 }
 interface MultiselectOption {
     kind: 'multi';
     options: readonly {
         label: string;
         value: string;
-        data?: any;
     }[];
 }
 
@@ -126,15 +123,57 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         ...provided,
         fontSize: '12px',
     }),
+    loadingMessage: (provided) => ({
+        ...provided,
+        fontSize: '12px',
+    }),
+};
+
+const getDateLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = split[0];
+    const end = split[1];
+    const startStr = moment(start).format('MMM D');
+    const endStr = moment(end).format('MMM D');
+    return `${startStr} and ${endStr}`;
+};
+
+const getLengthLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = Number(split[0]);
+    const end = Number(split[1]);
+    const ints = Number.isInteger(start) && Number.isInteger(end);
+    return ints
+        ? `${start} and ${end} minutes`
+        : `${start * 60} and ${end * 60} seconds`;
+};
+
+const getProcessedLabel = (value: string): string => {
+    if (value === 'false') {
+        return 'Live';
+    } else {
+        return 'Completed';
+    }
+};
+
+const getStateLabel = (value: string): string => {
+    if (value === 'RESOLVED') {
+        return 'Resolved';
+    } else if (value === 'IGNORED') {
+        return 'Ignored';
+    } else {
+        return 'Open';
+    }
 };
 
 const getMultiselectOption = (props: any) => {
     const {
-        data: { data },
         label,
         value,
         isSelected,
         selectOption,
+        data: { __isNew__: isNew },
+        selectProps: { inputValue },
     } = props;
 
     return (
@@ -154,7 +193,14 @@ const getMultiselectOption = (props: any) => {
                     ></Checkbox>
 
                     <div className={styles.optionLabelName}>
-                        {data?.nameLabel ? data.nameLabel : label}
+                        {isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
+                            label
+                        ) : (
+                            <TextHighlighter
+                                searchWords={inputValue.split(' ')}
+                                textToHighlight={label}
+                            />
+                        )}
                     </div>
                 </div>
             </components.Option>
@@ -164,30 +210,44 @@ const getMultiselectOption = (props: any) => {
 
 const getOption = (props: any) => {
     const {
-        data: { data },
         label,
         value,
+        selectProps: { inputValue },
     } = props;
+    const type = getType(value);
+    const nameLabel = getNameLabel(label);
+    const typeLabel = getTypeLabel(value);
+    const tooltipMessage = TOOLTIP_MESSAGES[value];
+    const searchWords = [inputValue];
 
     return (
         <div>
             <components.Option {...props}>
                 <div className={styles.optionLabelContainer}>
-                    {data?.typeLabel && (
+                    {!!typeLabel && (
                         <div className={styles.labelTypeContainer}>
                             <div className={styles.optionLabelType}>
-                                {data.typeLabel}
+                                <TextHighlighter
+                                    searchWords={searchWords}
+                                    textToHighlight={typeLabel}
+                                />
                             </div>
                         </div>
                     )}
                     <div className={styles.optionLabelName}>
-                        {data?.nameLabel ? data.nameLabel : label}
+                        <TextHighlighter
+                            searchWords={searchWords}
+                            textToHighlight={nameLabel}
+                        />
                     </div>
-                    {(data?.type === 'session' ||
-                        data?.type === CUSTOM_TYPE ||
+                    {(!!tooltipMessage ||
+                        type === 'session' ||
+                        type === CUSTOM_TYPE ||
+                        type === ERROR_TYPE ||
+                        type === ERROR_FIELD_TYPE ||
                         value === 'user_identifier') && (
                         <InfoTooltip
-                            title={TOOLTIP_MESSAGE}
+                            title={tooltipMessage ?? TOOLTIP_MESSAGE}
                             size="medium"
                             hideArrow
                             placement="right"
@@ -236,6 +296,9 @@ const PopoutContent = ({
                         },
                         Option: getOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item ? { kind: 'single', ...item } : undefined
@@ -247,14 +310,26 @@ const PopoutContent = ({
                 />
             );
         case 'multiselect':
+            const selected =
+                (value?.kind === 'multi' ? value.options : null) ?? [];
             return (
                 <AsyncSelect
                     autoFocus
                     openMenuOnFocus
                     isMulti
-                    value={value?.kind === 'multi' ? value.options : null}
+                    value={selected}
                     styles={styleProps}
-                    loadOptions={loadOptions}
+                    loadOptions={(input, callback) => {
+                        const selectedSet = new Set(
+                            selected.map((s) => s.value)
+                        );
+                        return loadOptions(input, callback).then((results) => [
+                            ...selected,
+                            ...results.filter(
+                                (r: any) => !selectedSet.has(r.value)
+                            ),
+                        ]);
+                    }}
                     defaultOptions
                     menuIsOpen
                     controlShouldRenderValue={false}
@@ -274,6 +349,9 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={({ inputValue }) =>
+                        `No results for "${inputValue}"`
+                    }
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -295,19 +373,22 @@ const PopoutContent = ({
                 />
             );
         case 'creatable':
+            const created =
+                (value?.kind === 'multi' ? value.options : null) ?? [];
             return (
-                <AsyncCreatableSelect
+                <Creatable
                     autoFocus
                     openMenuOnFocus
                     isMulti
-                    value={value?.kind === 'multi' ? value.options : null}
+                    value={created}
                     styles={styleProps}
-                    loadOptions={loadOptions}
+                    options={created}
                     defaultOptions
                     menuIsOpen
                     controlShouldRenderValue={false}
                     hideSelectedOptions={false}
                     isClearable={false}
+                    filterOption={() => true}
                     components={{
                         DropdownIndicator: () => null,
                         IndicatorSeparator: () => null,
@@ -322,6 +403,7 @@ const PopoutContent = ({
                         },
                         Option: getMultiselectOption,
                     }}
+                    noOptionsMessage={() => null}
                     onChange={(item) => {
                         onChange(
                             !!item
@@ -334,9 +416,7 @@ const PopoutContent = ({
                                   }
                                 : undefined
                         );
-                        if (value === undefined) {
-                            setVisible(false);
-                        }
+                        setVisible(false);
                     }}
                     onBlur={() => setVisible(false)}
                     formatCreateLabel={(label) => label}
@@ -350,24 +430,25 @@ const PopoutContent = ({
                 <DateInput
                     startDate={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.start
+                            ? new Date(value.options[0]?.value.split('_')[0])
                             : undefined
                     }
                     endDate={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.end
+                            ? new Date(value.options[0]?.value.split('_')[1])
                             : undefined
                     }
                     onChange={(start, end) => {
-                        const startStr = moment(start).format('MMM D');
-                        const endStr = moment(end).format('MMM D');
+                        const startIso = moment(start).toISOString();
+                        const endIso = moment(end).toISOString();
+                        const value = `${startIso}_${endIso}`;
+
                         onChange({
                             kind: 'multi',
                             options: [
                                 {
-                                    label: `${startStr} and ${endStr}`,
-                                    value: '',
-                                    data: { start: start, end: end },
+                                    label: getDateLabel(value),
+                                    value: value,
                                 },
                             ],
                         });
@@ -381,28 +462,23 @@ const PopoutContent = ({
                 <LengthInput
                     start={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.start
+                            ? Number(value.options[0]?.value.split('_')[0])
                             : 0
                     }
                     end={
                         value?.kind === 'multi'
-                            ? value.options[0]?.data?.end
+                            ? Number(value.options[0]?.value.split('_')[1])
                             : 60
                     }
                     onChange={(start, end) => {
-                        const ints =
-                            Number.isInteger(start) && Number.isInteger(end);
-                        const label = ints
-                            ? `${start} and ${end} minutes`
-                            : `${start * 60} and ${end * 60} seconds`;
+                        const value = `${start}_${end}`;
 
                         onChange({
                             kind: 'multi',
                             options: [
                                 {
-                                    label: label,
-                                    value: '',
-                                    data: { start: start, end: end },
+                                    label: getLengthLabel(value),
+                                    value,
                                 },
                             ],
                         });
@@ -425,6 +501,11 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
         value === undefined ||
         (value?.kind === 'multi' && value.options.length === 0);
 
+    const tooltipMessage =
+        (value?.kind === 'multi' &&
+            value.options.map((o) => o.label).join(', ')) ||
+        undefined;
+
     return (
         <Popover
             isList
@@ -442,24 +523,28 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
             visible={visible}
             destroyTooltipOnHide
         >
-            <Button
-                type="text"
-                trackingId={`SessionsQuerySelect`}
-                className={classNames(styles.ruleItem, {
-                    [styles.invalid]: invalid,
-                })}
-                onClick={() => onSetVisible(true)}
+            <Tooltip
+                title={tooltipMessage}
+                mouseEnterDelay={1.5}
+                overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
             >
-                {invalid && '--'}
-                {value?.kind === 'single' &&
-                    (value.data?.nameLabel ?? value.label)}
-                {value?.kind === 'multi' &&
-                    value.options.length > 1 &&
-                    `${value.options.length} selections`}
-                {value?.kind === 'multi' &&
-                    value.options.length === 1 &&
-                    value.options[0].label}
-            </Button>
+                <Button
+                    trackingId={`SessionsQuerySelect`}
+                    className={classNames(styles.ruleItem, {
+                        [styles.invalid]: invalid && !visible,
+                    })}
+                    onClick={() => onSetVisible(true)}
+                >
+                    {invalid && '--'}
+                    {value?.kind === 'single' && getNameLabel(value.label)}
+                    {value?.kind === 'multi' &&
+                        value.options.length > 1 &&
+                        `${value.options.length} selections`}
+                    {value?.kind === 'multi' &&
+                        value.options.length === 1 &&
+                        value.options[0].label}
+                </Button>
+            </Tooltip>
         </Popover>
     );
 };
@@ -568,6 +653,17 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_matches: 'does not match any of',
 };
 
+const TOOLTIP_MESSAGES: { [K in string]: string } = {
+    contains: 'Filters for results that contain the input term(s).',
+    not_contains: 'Filters for results that do not contain the input term(s).',
+    matches:
+        'Filters for results which match the input regex(es). Uses Lucene regex syntax.',
+    not_matches:
+        'Filters for results which do not match the input regex(es). Uses Lucene regex syntax.',
+    exists: 'Filters for results which have this field.',
+    not_exists: 'Filters for results which do not have this field.',
+};
+
 const NEGATION_MAP: { [K in Operator]: Operator } = {
     is: 'is_not',
     is_not: 'is',
@@ -608,9 +704,9 @@ const OPERATORS: Operator[] = [
     'not_matches',
 ];
 
-const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
+export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
 
-const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
+export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
 const LABEL_MAP: { [key: string]: string } = {
     referrer: 'Referrer',
@@ -618,7 +714,9 @@ const LABEL_MAP: { [key: string]: string } = {
     active_length: 'Length',
     app_version: 'App Version',
     browser_name: 'Browser',
+    browser: 'Browser',
     'visited-url': 'Visited URL',
+    visited_url: 'Visited URL',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
@@ -630,6 +728,8 @@ const LABEL_MAP: { [key: string]: string } = {
     starred: 'Starred',
     identifier: 'Identifier',
     reload: 'Reloaded',
+    state: 'State',
+    event: 'Event',
 };
 
 const getOperator = (
@@ -640,21 +740,7 @@ const getOperator = (
         return undefined;
     }
 
-    let label: string;
-    if (DATE_OPERATORS.includes(op)) {
-        const dateRange = getDateRange(val);
-        const hasStart = !!dateRange?.start_date;
-        const hasEnd = !!dateRange?.end_date;
-        if (hasStart && !hasEnd) {
-            label = isNegative(op) ? 'is not after' : 'is after';
-        } else if (hasEnd && !hasStart) {
-            label = isNegative(op) ? 'is not before' : 'is before';
-        } else {
-            label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
-        }
-    } else {
-        label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
-    }
+    const label = (isSingle(val) ? LABEL_MAP_SINGLE : LABEL_MAP_MULTI)[op];
     return {
         kind: 'single',
         value: op,
@@ -665,194 +751,98 @@ const getOperator = (
 const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
-const getDateRange = (val: OnChangeInput) => {
-    return val?.kind === 'multi'
-        ? val.options
-              .map((op) => ({
-                  start_date: op.data?.start,
-                  end_date: op.data?.end,
-              }))
-              .find(() => true)
-        : undefined;
-};
-
-const CUSTOM_TYPE = '_custom';
-
-const parseInner = (
-    field: SelectOption,
-    op: Operator,
-    value?: string,
-    data?: any
-): any => {
-    if (field.data?.type === CUSTOM_TYPE) {
-        const name = field.data?.name;
-        const isKeyword = !(field.data?.options.type !== 'text');
-        switch (op) {
-            case 'is':
-                return {
-                    term: { [`${name}${isKeyword ? '.keyword' : ''}`]: value },
-                };
-            case 'contains':
-                return {
-                    wildcard: {
-                        [`${name}${isKeyword ? '.keyword' : ''}`]: `*${value}*`,
-                    },
-                };
-            case 'matches':
-                return {
-                    regexp: {
-                        [`${name}${isKeyword ? '.keyword' : ''}`]: value,
-                    },
-                };
-            case 'exists':
-                return { exists: { field: name } };
-            case 'between_date':
-                return {
-                    range: {
-                        [name]: {
-                            gte: data?.start,
-                            lte: data?.end,
-                        },
-                    },
-                };
-            case 'between':
-                return {
-                    range: {
-                        [name]: {
-                            gte: data?.start * 60 * 1000,
-                            ...(data?.end === 60
-                                ? null
-                                : { lte: data?.end * 60 * 1000 }),
-                        },
-                    },
-                };
-        }
-    } else {
-        switch (op) {
-            case 'is':
-                return {
-                    term: { 'fields.KeyValue': `${field.value}_${value}` },
-                };
-            case 'contains':
-                return {
-                    wildcard: {
-                        'fields.KeyValue': `${field.value}_*${value}*`,
-                    },
-                };
-            case 'matches':
-                return {
-                    regexp: {
-                        'fields.KeyValue': `${field.value}_${value}`,
-                    },
-                };
-            case 'exists':
-                return { term: { 'fields.Key': field.value } };
-        }
-    }
-};
-
-const parseRuleImpl = (
-    field: SelectOption,
-    op: Operator,
-    multiValue: MultiselectOption
-): any => {
-    if (isNegative(op)) {
-        return {
-            bool: {
-                must_not: {
-                    ...parseRuleImpl(field, NEGATION_MAP[op], multiValue),
-                },
-            },
-        };
-    } else if (hasArguments(op)) {
-        return {
-            bool: {
-                should: multiValue.options.map(({ value, data }) =>
-                    parseInner(field, op, value, data)
-                ),
-            },
-        };
-    } else {
-        return parseInner(field, op);
-    }
-};
-
-const parseRule = (rule: RuleProps): any => {
-    const field = rule.field!;
-    const multiValue = rule.val!;
-    const op = rule.op!;
-
-    return parseRuleImpl(field, op, multiValue);
-};
-
-const parseGroup = (isAnd: boolean, rules: RuleProps[]): any => ({
-    bool: {
-        [isAnd ? 'must' : 'should']: rules.map((rule) => parseRule(rule)),
-    },
-});
+export const CUSTOM_TYPE = 'custom';
+export const ERROR_TYPE = 'error';
+export const ERROR_FIELD_TYPE = 'error-field';
 
 interface FieldOptions {
     operators?: Operator[];
     type?: string;
 }
 
-interface CustomField {
+interface HasOptions {
     options?: FieldOptions;
 }
+export type CustomField = HasOptions & Pick<Field, 'type' | 'name'>;
 
-const CUSTOM_FIELDS: (CustomField & Pick<Field, 'type' | 'name'>)[] = [
-    {
-        type: CUSTOM_TYPE,
-        name: 'app_version',
-        options: {
-            type: 'text',
+export type QueryBuilderRule = string[];
+
+export interface QueryBuilderState {
+    isAnd: boolean;
+    rules: QueryBuilderRule[];
+}
+
+export const getDefaultQuery = (): string =>
+    JSON.stringify({
+        isAnd: true,
+        rules: getDefaultRules(),
+    });
+
+const getDefaultRules = (): QueryBuilderRule[] => {
+    return [['custom_processed', 'is', 'true']];
+};
+
+export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
+    const ruleGroups = rules
+        .map((rule) => {
+            if (!rule.field || !rule.op || !rule.val) {
+                return [];
+            }
+
+            return [
+                rule.field.value,
+                rule.op,
+                ...rule.val.options.map((op) => {
+                    return op.value;
+                }),
+            ];
+        })
+        .filter((ruleGroup) => !!ruleGroup && ruleGroup.length > 0);
+
+    return ruleGroups;
+};
+
+const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
+    custom_processed: getProcessedLabel,
+    custom_created_at: getDateLabel,
+    custom_active_length: getLengthLabel,
+    error_state: getStateLabel,
+    error_created_at: getDateLabel,
+};
+
+export const deserializeGroup = (
+    fieldVal: string,
+    opVal: string,
+    vals: string[]
+): RuleProps => {
+    const labelFunc = LABEL_FUNC_MAP[fieldVal];
+    return {
+        field: {
+            kind: 'single',
+            label: getName(fieldVal),
+            value: fieldVal,
         },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'created_at',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
+        op: opVal as Operator,
+        val: {
+            kind: 'multi',
+            options: vals.map((val) => {
+                return {
+                    label: labelFunc ? labelFunc(val) : val,
+                    value: val,
+                };
+            }),
         },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'active_length',
-        options: {
-            operators: RANGE_OPERATORS,
-            type: 'long',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'viewed',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'processed',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'first_time',
-        options: {
-            type: 'boolean',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'starred',
-        options: {
-            type: 'boolean',
-        },
-    },
-];
+    };
+};
+
+const deserializeRules = (ruleGroups: any): RuleProps[] => {
+    const rules = ruleGroups.map((group: any[]) => {
+        const [field, op, ...vals] = group;
+        return deserializeGroup(field, op, vals);
+    });
+
+    return rules;
+};
 
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
@@ -860,23 +850,246 @@ const isComplete = (rule: RuleProps) =>
     (!hasArguments(rule.op) ||
         (rule.val !== undefined && rule.val.options.length !== 0));
 
-const getDefaultOperator = (field: SelectOption | undefined) =>
-    (field?.data?.options?.operators ?? OPERATORS)[0];
+const getNameLabel = (label: string) => LABEL_MAP[label] ?? label;
 
-const QueryBuilder = () => {
+const getTypeLabel = (value: string) => {
+    const type = getType(value);
+    const mapped = type === CUSTOM_TYPE ? 'session' : type;
+    if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
+        return mapped;
+    }
+    return undefined;
+};
+
+const getType = (value: string) => {
+    return value.split('_')[0];
+};
+
+const getName = (value: string) => {
+    const [, ...rest] = value.split('_');
+    return rest.join('_');
+};
+
+export const propertiesToRules = (
+    properties: any[],
+    type: string,
+    op: string
+): RuleProps[] => {
+    const propsMap = new Map<string, any[]>();
+    for (const prop of properties) {
+        if (!propsMap.has(prop.name)) {
+            propsMap.set(prop.name, []);
+        }
+        propsMap.get(prop.name)?.push(prop.value.split(':')[0]);
+    }
+    const rules: RuleProps[] = [];
+    for (const [name, vals] of propsMap) {
+        rules.push(deserializeGroup(`${type}_${name}`, op, vals));
+    }
+    return rules;
+};
+
+export type FetchFieldVariables =
+    | Partial<
+          Exact<{
+              project_id: string;
+              count: number;
+              field_type: string;
+              field_name: string;
+              query: string;
+          }>
+      >
+    | undefined;
+
+interface QueryBuilderProps {
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    customFields: CustomField[];
+    fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
+    fieldData?: GetFieldTypesQuery;
+    getQueryFromParams: (params: any) => QueryBuilderState;
+    searchParams: any;
+    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
+}
+
+const QueryBuilder = ({
+    setSearchQuery,
+    customFields,
+    fetchFields,
+    fieldData,
+    getQueryFromParams,
+    searchParams,
+    setSearchParams,
+}: QueryBuilderProps) => {
+    const getCustomFieldOptions = useCallback(
+        (field: SelectOption | undefined) => {
+            if (!field) {
+                return undefined;
+            }
+
+            const type = getType(field.value);
+            if (type !== CUSTOM_TYPE && type !== ERROR_TYPE) {
+                return undefined;
+            }
+
+            return customFields.find((f) => f.name === field.label)?.options;
+        },
+        [customFields]
+    );
+
+    const getDefaultOperator = (field: SelectOption | undefined) =>
+        ((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0];
+
+    const parseInner = useCallback(
+        (field: SelectOption, op: Operator, value?: string): any => {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
+                const name = field.label;
+                const isKeyword = !(
+                    getCustomFieldOptions(field)?.type !== 'text'
+                );
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
+                            },
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: `*${value}*`,
+                            },
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                [`${name}${
+                                    isKeyword ? '.keyword' : ''
+                                }`]: value,
+                            },
+                        };
+                    case 'exists':
+                        return { exists: { field: name } };
+                    case 'between_date':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: value?.split('_')[0],
+                                    lte: value?.split('_')[1],
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte:
+                                        Number(value?.split('_')[0]) *
+                                        60 *
+                                        1000,
+                                    ...(Number(value?.split('_')[1]) === 60
+                                        ? null
+                                        : {
+                                              lte:
+                                                  Number(value?.split('_')[1]) *
+                                                  60 *
+                                                  1000,
+                                          }),
+                                },
+                            },
+                        };
+                }
+            } else {
+                let key = field.value;
+                if (key.startsWith(ERROR_FIELD_TYPE)) {
+                    key = key.replace(`${ERROR_FIELD_TYPE}_`, '');
+                }
+                switch (op) {
+                    case 'is':
+                        return {
+                            term: { 'fields.KeyValue': `${key}_${value}` },
+                        };
+                    case 'contains':
+                        return {
+                            wildcard: {
+                                'fields.KeyValue': `${key}_*${value}*`,
+                            },
+                        };
+                    case 'matches':
+                        return {
+                            regexp: {
+                                'fields.KeyValue': `${key}_${value}`,
+                            },
+                        };
+                    case 'exists':
+                        return { term: { 'fields.Key': key } };
+                }
+            }
+        },
+        [getCustomFieldOptions]
+    );
+
+    const parseRuleImpl = useCallback(
+        (
+            field: SelectOption,
+            op: Operator,
+            multiValue: MultiselectOption
+        ): any => {
+            if (isNegative(op)) {
+                return {
+                    bool: {
+                        must_not: {
+                            ...parseRuleImpl(
+                                field,
+                                NEGATION_MAP[op],
+                                multiValue
+                            ),
+                        },
+                    },
+                };
+            } else if (hasArguments(op)) {
+                return {
+                    bool: {
+                        should: multiValue.options.map(({ value }) =>
+                            parseInner(field, op, value)
+                        ),
+                    },
+                };
+            } else {
+                return parseInner(field, op);
+            }
+        },
+        [parseInner]
+    );
+
+    const parseRule = useCallback(
+        (rule: RuleProps): any => {
+            const field = rule.field!;
+            const multiValue = rule.val!;
+            const op = rule.op!;
+
+            return parseRuleImpl(field, op, multiValue);
+        },
+        [parseRuleImpl]
+    );
+
+    const parseGroup = useCallback(
+        (isAnd: boolean, rules: RuleProps[]): any => ({
+            bool: {
+                [isAnd ? 'must' : 'should']: rules.map((rule) =>
+                    parseRule(rule)
+                ),
+            },
+        }),
+        [parseRule]
+    );
+
     const { project_id } = useParams<{
         project_id: string;
     }>();
-
-    const { setSearchQuery } = useSearchContext();
-
-    const { data: fieldData } = useGetFieldTypesQuery({
-        variables: { project_id },
-    });
-
-    const { refetch: fetchFields } = useGetFieldsOpensearchQuery({
-        skip: true,
-    });
 
     const { data: appVersionData } = useGetAppVersionsQuery({
         variables: { project_id },
@@ -884,14 +1097,17 @@ const QueryBuilder = () => {
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
 
-    const [rules, setRules] = useState<RuleProps[]>([]);
+    const [rules, setRulesImpl] = useState<RuleProps[]>([]);
+    const setRules = (rules: RuleProps[]) => {
+        setRulesImpl(rules);
+    };
     const newRule = () => {
         setCurrentRule({
             field: undefined,
             op: undefined,
             val: undefined,
         });
-        setStep1Visible(true);
+        setCurrentStep(1);
     };
     const addRule = (rule: RuleProps) => {
         setRules([...rules, rule]);
@@ -910,32 +1126,22 @@ const QueryBuilder = () => {
     const [isAnd, toggleIsAnd] = useToggle(true);
 
     const getKeyOptions = async (input: string) => {
-        if (fieldData?.field_types === undefined) {
-            return;
-        }
-
-        const results = CUSTOM_FIELDS.concat(fieldData?.field_types)
+        const results = customFields
+            .concat(fieldData?.field_types ?? [])
             .map((ft) => ({
-                data: {
-                    type: ft.type,
-                    typeLabel: ft.type === CUSTOM_TYPE ? 'session' : ft.type,
-                    name: ft.name,
-                    nameLabel: LABEL_MAP[ft.name] ?? ft.name,
-                    options: ft.options,
-                },
                 label: ft.name,
                 value: ft.type + '_' + ft.name,
             }))
             .filter((ft) =>
                 (
-                    ft.data.typeLabel?.toLowerCase() +
+                    getTypeLabel(ft.value)?.toLowerCase() +
                     ':' +
-                    ft.data.nameLabel.toLowerCase()
+                    getNameLabel(ft.label).toLowerCase()
                 ).includes(input.toLowerCase())
             )
             .sort((a, b) => {
-                const aLower = a.data.nameLabel.toLowerCase();
-                const bLower = b.data.nameLabel.toLowerCase();
+                const aLower = getNameLabel(a.label).toLowerCase();
+                const bLower = getNameLabel(b.label).toLowerCase();
                 if (aLower < bLower) {
                     return -1;
                 } else if (aLower === bLower) {
@@ -962,13 +1168,13 @@ const QueryBuilder = () => {
 
     const getValueOptionsCallback = (field: SelectOption | undefined) => {
         return async (input: string) => {
-            if (field?.data === undefined) {
+            if (field === undefined) {
                 return;
             }
 
-            if (field.data?.type === CUSTOM_TYPE) {
+            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
                 let options: { label: string; value: string }[] = [];
-                if (field.value === '_custom_app_version') {
+                if (field.value === 'custom_app_version') {
                     options =
                         appVersionData?.app_version_suggestion
                             .filter((val) => !!val)
@@ -976,16 +1182,31 @@ const QueryBuilder = () => {
                                 label: val as string,
                                 value: val as string,
                             })) ?? [];
-                } else if (field.value === '_custom_processed') {
+                } else if (field.value === 'custom_processed') {
+                    options = ['true', 'false'].map((v) => ({
+                        label: getProcessedLabel(v),
+                        value: v,
+                    }));
+                } else if (field.value === 'error_state') {
+                    options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+                        label: getStateLabel(v),
+                        value: v,
+                    }));
+                } else if (field.value === 'error_Type') {
                     options = [
-                        { label: 'Live', value: 'false' },
-                        { label: 'Completed', value: 'true' },
-                    ];
-                } else if (field.data?.options.type === 'boolean') {
-                    options = [
-                        { label: 'true', value: 'true' },
-                        { label: 'false', value: 'false' },
-                    ];
+                        'Backend',
+                        'console.error',
+                        'window.onerror',
+                        'custom',
+                    ].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
+                } else if (getCustomFieldOptions(field)?.type === 'boolean') {
+                    options = ['true', 'false'].map((v) => ({
+                        label: v,
+                        value: v,
+                    }));
                 }
 
                 return options.filter((opt) =>
@@ -996,11 +1217,11 @@ const QueryBuilder = () => {
             return await fetchFields({
                 project_id,
                 count: 10,
-                field_type: field.data.type,
-                field_name: field.data.name,
+                field_type: getType(field.value),
+                field_name: field.label,
                 query: input,
             }).then((res) => {
-                return res.data.fields_opensearch.map((val) => ({
+                return res.map((val) => ({
                     label: val,
                     value: val,
                 }));
@@ -1008,7 +1229,31 @@ const QueryBuilder = () => {
         };
     };
 
+    // Track the current state of the query builder to detect changes
+    const [qbState, setQbState] = useState<string | undefined>(undefined);
+
+    // If the search query is updated externally, set the rules and `isAnd` toggle based on it
     useEffect(() => {
+        if (!!searchParams.query && searchParams.query !== qbState) {
+            const newState = JSON.parse(searchParams.query);
+            toggleIsAnd(newState.isAnd);
+            setRules(deserializeRules(newState.rules));
+        }
+    }, [searchParams.query, toggleIsAnd, qbState]);
+
+    useEffect(() => {
+        // If search params are updated and no query exists,
+        // build it from the other params for backwards compatibility.
+        if (searchParams.query === undefined) {
+            const newState = getQueryFromParams(searchParams);
+            const newQuery = JSON.stringify(newState);
+            setSearchParams({
+                ...EmptySessionsSearchParams,
+                query: newQuery,
+            });
+            return;
+        }
+
         const allComplete = rules.every(isComplete);
 
         if (!allComplete) {
@@ -1017,10 +1262,33 @@ const QueryBuilder = () => {
 
         const query = parseGroup(isAnd, rules);
         setSearchQuery(JSON.stringify(query));
-    }, [isAnd, rules, setSearchQuery]);
+        const newState = JSON.stringify({
+            isAnd,
+            rules: serializeRules(rules),
+        });
 
-    const [step1Visible, setStep1Visible] = useState(false);
-    const [step2Visible, setStep2Visible] = useState(false);
+        // Update if the state has changed
+        if (newState !== qbState) {
+            setQbState(newState);
+            setSearchParams((params: any) => ({
+                ...params,
+                query: newState,
+            }));
+        }
+    }, [
+        getQueryFromParams,
+        isAnd,
+        parseGroup,
+        qbState,
+        rules,
+        searchParams,
+        setSearchParams,
+        setSearchQuery,
+    ]);
+
+    const [currentStep, setCurrentStep] = useState<number | undefined>(
+        undefined
+    );
 
     return (
         <div className={styles.builderContainer}>
@@ -1061,7 +1329,7 @@ const QueryBuilder = () => {
                                 }
                             }}
                             getOperatorOptions={getOperatorOptionsCallback(
-                                rule.field?.data?.options,
+                                getCustomFieldOptions(rule.field),
                                 rule.val
                             )}
                             onChangeValue={(val) => {
@@ -1078,32 +1346,64 @@ const QueryBuilder = () => {
             <div>
                 <Popover
                     content={
-                        currentRule?.field === undefined ||
-                        currentRule?.op === undefined ? (
+                        currentRule?.field === undefined ? (
                             <PopoutContent
                                 key={'popover-step-1'}
                                 value={undefined}
-                                setVisible={setStep1Visible}
+                                setVisible={() => {
+                                    setCurrentStep(undefined);
+                                }}
                                 onChange={(val) => {
                                     const field = val as
                                         | SelectOption
                                         | undefined;
-                                    setCurrentRule({
+                                    addRule({
                                         field: field,
-                                        op: getDefaultOperator(field),
+                                        op: undefined,
                                         val: undefined,
                                     });
-                                    setStep2Visible(true);
                                 }}
                                 loadOptions={getKeyOptions}
                                 type="select"
                                 placeholder="Filter..."
                             />
-                        ) : (
+                        ) : currentRule?.op === undefined ? (
                             <PopoutContent
                                 key={'popover-step-2'}
                                 value={undefined}
-                                setVisible={setStep2Visible}
+                                setVisible={() => {
+                                    setCurrentStep(3);
+                                }}
+                                onChange={(val) => {
+                                    const op = (val as SelectOption)
+                                        .value as Operator;
+                                    if (!hasArguments(op)) {
+                                        setCurrentStep(undefined);
+                                        addRule({
+                                            ...currentRule,
+                                            op,
+                                        });
+                                    } else {
+                                        setCurrentRule({
+                                            ...currentRule,
+                                            op,
+                                        });
+                                    }
+                                }}
+                                loadOptions={getOperatorOptionsCallback(
+                                    getCustomFieldOptions(currentRule.field),
+                                    currentRule.val
+                                )}
+                                type="select"
+                                placeholder="Select..."
+                            />
+                        ) : (
+                            <PopoutContent
+                                key={'popover-step-3'}
+                                value={undefined}
+                                setVisible={() => {
+                                    setCurrentStep(undefined);
+                                }}
                                 onChange={(val) => {
                                     addRule({
                                         ...currentRule,
@@ -1124,7 +1424,11 @@ const QueryBuilder = () => {
                     contentContainerClassName={styles.contentContainer}
                     popoverClassName={styles.popoverContainer}
                     destroyTooltipOnHide
-                    visible={step1Visible || step2Visible}
+                    visible={
+                        currentStep === 1 ||
+                        (currentStep === 2 && !!currentRule?.field) ||
+                        (currentStep === 3 && !!currentRule?.op)
+                    }
                 >
                     <Button
                         className={styles.addFilter}

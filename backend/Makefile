@@ -16,3 +16,9 @@ worker-test:
 		(cd ./worker; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 test-and-coverage:
 		(ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
+init-opensearch:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=init-opensearch)
+update-opensearch:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=update-opensearch)
+start-metric-monitor-watch:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=metric-monitors)

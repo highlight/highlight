@@ -1,5 +1,8 @@
 import SvgXIcon from '@icons/XIcon';
-import { Alert as AntDesignAlert, AlertProps } from 'antd';
+import {
+    Alert as AntDesignAlert,
+    AlertProps as AntDesignAlertProps,
+} from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React from 'react';
@@ -8,12 +11,12 @@ import { useSessionStorage } from 'react-use';
 import SvgInformationIcon from '../../static/InformationIcon';
 import styles from './Alert.module.scss';
 
-type Props = {
+export type AlertProps = {
     trackingId: string;
     closable?: boolean;
     shouldAlwaysShow?: boolean;
 } & Pick<
-    AlertProps,
+    AntDesignAlertProps,
     'description' | 'type' | 'onClose' | 'message' | 'className'
 >;
 
@@ -23,7 +26,7 @@ const Alert = ({
     shouldAlwaysShow = false,
     type = 'info',
     ...props
-}: Props) => {
+}: AlertProps) => {
     const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
         `highlightHideAlert-${trackingId}`,
         false

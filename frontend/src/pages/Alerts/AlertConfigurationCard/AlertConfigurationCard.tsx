@@ -231,9 +231,8 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: lookbackPeriod,
-                                regex_groups: form.getFieldValue(
-                                    'regex_groups'
-                                ),
+                                regex_groups:
+                                    form.getFieldValue('regex_groups') || [],
                                 frequency: frequency,
                             },
                         });

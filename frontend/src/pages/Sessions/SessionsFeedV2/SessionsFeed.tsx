@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
@@ -14,7 +15,13 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { RefObject, useEffect, useMemo, useState } from 'react';
+import React, {
+    RefObject,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
@@ -31,7 +38,10 @@ import {
 import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
-import { useSearchContext } from '../SearchContext/SearchContext';
+import {
+    showLiveSessions,
+    useSearchContext,
+} from '../SearchContext/SearchContext';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
@@ -141,6 +151,31 @@ export const SessionFeed = React.memo(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
+    const enableLiveSessions = useCallback(() => {
+        if (!searchParams.query) {
+            setSearchParams({
+                ...searchParams,
+                show_live_sessions: true,
+            });
+        } else {
+            // Replace any 'custom_processed' values with ['true', 'false']
+            const processedRule = ['custom_processed', 'is', 'true', 'false'];
+            const currentState = JSON.parse(
+                searchParams.query
+            ) as QueryBuilderState;
+            const newRules = currentState.rules.map((rule) =>
+                rule[0] === processedRule[0] ? processedRule : rule
+            );
+            setSearchParams({
+                ...searchParams,
+                query: JSON.stringify({
+                    isAnd: currentState.isAnd,
+                    rules: newRules,
+                }),
+            });
+        }
+    }, [searchParams, setSearchParams]);
+
     useEffect(() => {
         // We're showing live sessions for new users.
         // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
@@ -150,18 +185,19 @@ export const SessionFeed = React.memo(() => {
             integrated &&
             project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
             project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-            !searchParams.show_live_sessions
+            !showLiveSessions(searchParams)
         ) {
             if (
                 billingDetails.billingDetailsForProject.plan.type ===
                     PlanType.Free &&
                 billingDetails.billingDetailsForProject.meter < 15
             ) {
-                setSearchParams({ ...searchParams, show_live_sessions: true });
+                enableLiveSessions();
             }
         }
     }, [
         billingDetails?.billingDetailsForProject,
+        enableLiveSessions,
         integrated,
         project_id,
         searchParams,
@@ -234,7 +270,7 @@ export const SessionFeed = React.memo(() => {
                                 </Tooltip>
                                 {unprocessedSessionsCount?.unprocessedSessionsCount >
                                     0 &&
-                                    !searchParams.show_live_sessions && (
+                                    !showLiveSessions(searchParams) && (
                                         <button
                                             className={
                                                 styles.liveSessionsCountButton
@@ -243,10 +279,7 @@ export const SessionFeed = React.memo(() => {
                                                 message.success(
                                                     'Showing live sessions'
                                                 );
-                                                setSearchParams({
-                                                    ...searchParams,
-                                                    show_live_sessions: !searchParams.show_live_sessions,
-                                                });
+                                                enableLiveSessions();
                                             }}
                                         >
                                             (

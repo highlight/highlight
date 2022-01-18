@@ -1,3 +1,4 @@
+import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import React from 'react';
 
 import { createContext } from '../../../util/context/context';
@@ -28,7 +29,13 @@ export type SearchParams = {
     first_time?: boolean;
     /** Whether to show sessions that have not been processed yet. */
     show_live_sessions?: boolean;
+    query?: string;
 };
+
+type QueryBuilderType = 'sessions' | 'errors';
+export type QueryBuilderInput =
+    | (QueryBuilderState & { type: QueryBuilderType })
+    | undefined;
 
 interface SearchContext {
     /** Local changes to the segment parameters that might not be persisted to the database. */
@@ -52,7 +59,29 @@ interface SearchContext {
     ) => void;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    queryBuilderInput: QueryBuilderInput;
+    setQueryBuilderInput: React.Dispatch<
+        React.SetStateAction<QueryBuilderInput>
+    >;
 }
+
+export const showLiveSessions = (searchParams: SearchParams): boolean => {
+    // If query is defined, check if it allows live sessions
+    if (!!searchParams.query) {
+        const query = JSON.parse(searchParams.query) as QueryBuilderState;
+        // If any 'custom_processed' has 'false', assume we're showing live sessions
+        const processedRules = query.rules.filter(
+            (r) => r[0] === 'custom_processed'
+        );
+        return (
+            processedRules.length === 0 ||
+            processedRules.flatMap((i) => i).includes('false')
+        );
+    }
+
+    // Else, default to the show_live_sessions search param
+    return searchParams?.show_live_sessions ?? false;
+};
 
 export const [
     useSearchContext,

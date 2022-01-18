@@ -9,6 +9,7 @@ import {
     AppLoadingContext,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { datadogLogs } from '@datadog/browser-logs';
 import { ErrorBoundary } from '@highlight-run/react';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
@@ -92,6 +93,16 @@ if (!isOnPrem) {
         alignment: 'right',
         hide_default_launcher: true,
     });
+
+    if (!dev) {
+        datadogLogs.init({
+            clientToken: 'pub4946b807f59c69ede4bae46eb55dd066',
+            site: 'datadoghq.com',
+            forwardErrorsToLogs: true,
+            sampleRate: 100,
+            service: 'frontend',
+        });
+    }
 }
 
 showHiringMessage();

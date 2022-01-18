@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -29,17 +31,19 @@ var (
 			return os.Getenv("DOPPLER_CONFIG")
 		}
 	}()
-	OpensearchDomain   string = os.Getenv("OPENSEARCH_DOMAIN")
-	OpensearchPassword string = os.Getenv("OPENSEARCH_PASSWORD")
-	OpensearchUsername string = os.Getenv("OPENSEARCH_USERNAME")
+	OpensearchDomain     string = os.Getenv("OPENSEARCH_DOMAIN")
+	OpensearchReadDomain string = os.Getenv("OPENSEARCH_DOMAIN_READ")
+	OpensearchPassword   string = os.Getenv("OPENSEARCH_PASSWORD")
+	OpensearchUsername   string = os.Getenv("OPENSEARCH_USERNAME")
 )
 
 type Index string
 
 var (
-	IndexSessions Index = "sessions"
-	IndexFields   Index = "fields"
-	IndexErrors   Index = "errors"
+	IndexSessions    Index = "sessions"
+	IndexFields      Index = "fields"
+	IndexErrors      Index = "errors"
+	IndexErrorFields Index = "error-fields"
 )
 
 func GetIndex(suffix Index) string {
@@ -48,6 +52,7 @@ func GetIndex(suffix Index) string {
 
 type Client struct {
 	Client        *opensearch.Client
+	ReadClient    *opensearch.Client
 	BulkIndexer   opensearchutil.BulkIndexer
 	isInitialized bool
 }
@@ -73,6 +78,18 @@ func NewOpensearchClient() (*Client, error) {
 		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch client")
 	}
 
+	readClient, err := opensearch.NewClient(opensearch.Config{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+		Addresses: []string{OpensearchReadDomain},
+		Username:  OpensearchUsername,
+		Password:  OpensearchPassword,
+	})
+	if err != nil {
+		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch read replica client")
+	}
+
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		Client:        client,
 		NumWorkers:    4,                // The number of workers. Defaults to runtime.NumCPU().
@@ -88,6 +105,7 @@ func NewOpensearchClient() (*Client, error) {
 
 	return &Client{
 		Client:        client,
+		ReadClient:    readClient,
 		BulkIndexer:   indexer,
 		isInitialized: true,
 	}, nil
@@ -109,10 +127,11 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
-		Index:      indexStr,
-		Action:     "update",
-		DocumentID: documentId,
-		Body:       body,
+		Index:           indexStr,
+		Action:          "update",
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
@@ -192,10 +211,11 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
-		Index:      indexStr,
-		Action:     "update",
-		DocumentID: documentId,
-		Body:       body,
+		Index:           indexStr,
+		Action:          "update",
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
@@ -247,7 +267,7 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(index Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, err error) {
+func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
 		return 0, e.Wrap(err, "query is not valid JSON")
 	}
@@ -285,12 +305,17 @@ func (c *Client) Search(index Index, projectID int, query string, options Search
 	content := strings.NewReader(
 		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "query": %s%s, "track_total_hits": %s}`,
 			excludesStr, count, q, sort, trackTotalHits))
+
+	searchIndexes := []string{}
+	for _, index := range indexes {
+		searchIndexes = append(searchIndexes, GetIndex(index))
+	}
 	search := opensearchapi.SearchRequest{
-		Index: []string{GetIndex(index)},
+		Index: searchIndexes,
 		Body:  content,
 	}
 
-	searchResponse, err := search.Do(context.Background(), c.Client)
+	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
 		return 0, e.Wrap(err, "failed to search index")
 	}
@@ -336,10 +361,76 @@ func (c *Client) Search(index Index, projectID int, query string, options Search
 	return response.Hits.Total.Value, nil
 }
 
+func (c *Client) PutMapping(index Index, bodyStr string) error {
+	body := strings.NewReader(bodyStr)
+
+	indexStr := GetIndex(index)
+
+	createRequest := opensearchapi.IndicesCreateRequest{
+		Index: indexStr,
+	}
+
+	createResponse, err := createRequest.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error creating index")
+	}
+
+	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)
+
+	mappingRequest := opensearchapi.IndicesPutMappingRequest{
+		Index: []string{indexStr},
+		Body:  body,
+	}
+
+	mappingResponse, err := mappingRequest.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error creating mapping")
+	}
+
+	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
+
+	return nil
+}
+
 func (c *Client) Close() error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
 
 	return c.BulkIndexer.Close(context.Background())
+}
+
+// Common types for indexing in OpenSearch
+// These can differ slightly from the types they're
+// based on in order to support different query patterns
+// or to omit fields for better performance.
+type OpenSearchSession struct {
+	*model.Session
+	Fields []*OpenSearchField `json:"fields"`
+}
+
+type OpenSearchField struct {
+	*model.Field
+	Key      string
+	KeyValue string
+}
+
+type OpenSearchError struct {
+	*model.ErrorGroup
+	Fields   []*OpenSearchErrorField `json:"fields"`
+	Filename *string                 `json:"filename"`
+}
+
+func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
+	inner := oe.ErrorGroup
+	if oe.Filename != nil {
+		inner.StackTrace = fmt.Sprintf(`[{"fileName":"%s"}]`, *oe.Filename)
+	}
+	return inner
+}
+
+type OpenSearchErrorField struct {
+	*model.ErrorField
+	Key      string
+	KeyValue string
 }

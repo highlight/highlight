@@ -23,3 +23,11 @@
         color: var(--text-primary);
     }
 }
+
+.dropdown {
+    :global(.ant-dropdown-menu-item) {
+        align-items: center;
+        column-gap: var(--size-small);
+        display: flex;
+    }
+}

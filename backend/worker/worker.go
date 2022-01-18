@@ -22,6 +22,7 @@ import (
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
+	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -49,6 +50,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
 	totalPayloadSize, err := w.S3Client.PushFilesToS3(ctx, s.ID, s.ProjectID, storage.S3SessionsPayloadBucketName, payloadManager)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -62,6 +67,14 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"object_storage_enabled":  true,
+		"payload_size":            totalPayloadSize,
+		"direct_download_enabled": true,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Delete all the events_objects in the DB.
@@ -80,7 +93,9 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).
+		Where(&model.EventsObject{SessionID: s.ID}).
+		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects")
 	}
@@ -189,6 +204,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -285,6 +307,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -299,6 +328,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"processed":     true,
+		"length":        sessionTotalLengthInMilliseconds,
+		"active_length": activeDuration.Milliseconds(),
+		"EventCounts":   eventCountsString,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Update session count on dailydb
@@ -514,10 +552,11 @@ func (w *Worker) ReportStripeUsage() {
 	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
 }
 
-func (w *Worker) InitializeOpenSearchIndex() {
-	w.IndexTable(opensearch.IndexFields, &model.Field{})
-	w.IndexTable(opensearch.IndexErrors, &model.ErrorGroup{})
-	w.IndexSessions()
+func (w *Worker) UpdateOpenSearchIndex() {
+	w.IndexTable(opensearch.IndexFields, &model.Field{}, true)
+	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, true)
+	w.IndexErrors(true)
+	w.IndexSessions(true)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
@@ -533,12 +572,41 @@ func (w *Worker) InitializeOpenSearchIndex() {
 	}
 }
 
+func (w *Worker) InitializeOpenSearchIndex() {
+	w.InitIndexMappings()
+	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
+	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
+	w.IndexErrors(false)
+	w.IndexSessions(false)
+
+	// Close the indexer channel and flush remaining items
+	if err := w.Resolver.OpenSearch.Close(); err != nil {
+		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+	}
+
+	// Report the indexer statistics
+	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
+	if stats.NumFailed > 0 {
+		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+	} else {
+		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+	}
+}
+
+func (w *Worker) StartMetricMonitorWatcher() {
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB)
+}
+
 func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
 	case "init-opensearch":
 		return w.InitializeOpenSearchIndex
+	case "update-opensearch":
+		return w.UpdateOpenSearchIndex
+	case "metric-monitors":
+		return w.StartMetricMonitorWatcher
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
