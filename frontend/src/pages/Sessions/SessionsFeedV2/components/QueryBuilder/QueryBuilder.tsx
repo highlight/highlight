@@ -1,7 +1,9 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import TextHighlighter, {
+    TextHighlighterProps,
+} from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -14,7 +16,7 @@ import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import Creatable from 'react-select/creatable';
@@ -87,7 +89,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
-        padding: '8px 12px',
+        padding: '0 0 0 6px',
         fontSize: '12px',
         color: 'var(--color-text-primary)',
         backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
@@ -102,6 +104,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         '&::-webkit-scrollbar': {
             display: 'none',
         },
+        maxHeight: '500px',
     }),
     control: (provided) => ({
         ...provided,
@@ -127,6 +130,90 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         ...provided,
         fontSize: '12px',
     }),
+};
+
+function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
+    const ref = useRef<T>(null);
+    const doScroll = () => {
+        ref?.current?.scrollIntoView({ inline: 'center' });
+    };
+
+    return [doScroll, ref];
+}
+
+const OptionLabelName: React.FC = (props) => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    const [className, setClassName] = useState<string>(styles.optionLabelName);
+
+    useEffect(() => {
+        if (!!ref?.current) {
+            const { scrollLeft, offsetWidth, scrollWidth } = ref.current;
+            const showRightShadow = scrollLeft + offsetWidth < scrollWidth;
+            const showLeftShadow = scrollLeft > 0;
+
+            const onScroll = (ev: any) => {
+                console.log(ev);
+            };
+            console.log(scrollLeft, offsetWidth, scrollWidth);
+            // clean up code
+            ref.current.removeEventListener('scroll', onScroll);
+            ref.current.addEventListener('scroll', onScroll, { passive: true });
+            return () => window.removeEventListener('scroll', onScroll);
+
+            // console.log('setting class name!', showRightShadow, showLeftShadow);
+            // setClassName(
+            //     classNames(styles.optionLabelName, {
+            //         [styles.shadowRight]: showRightShadow,
+            //         [styles.shadowLeft]: showLeftShadow,
+            //     })
+            // );
+        }
+    }, [ref]);
+
+    return (
+        <div className={className} ref={ref}>
+            {props.children}
+        </div>
+    );
+};
+
+const ScrolledTextHighlighter = ({
+    searchWords,
+    textToHighlight,
+}: {
+    searchWords: string[];
+    textToHighlight: string;
+}) => {
+    const [doScroll, ref] = useScroll();
+
+    useEffect(() => {
+        doScroll();
+    }, [doScroll]);
+
+    const ScrolledMark = (props: any) => {
+        if (props.highlightIndex === 0) {
+            // Attach the ref to the first matching instance
+            return (
+                <mark className={styles.highlighterStyles} ref={ref}>
+                    {props.children}
+                </mark>
+            );
+        } else {
+            return (
+                <mark className={styles.highlighterStyles}>
+                    {props.children}
+                </mark>
+            );
+        }
+    };
+
+    const props: TextHighlighterProps = {
+        searchWords,
+        textToHighlight,
+    };
+
+    return <TextHighlighter highlightTag={ScrolledMark} {...props} />;
 };
 
 const getDateLabel = (value: string): string => {
@@ -176,7 +263,7 @@ const getMultiselectOption = (props: any) => {
         selectProps: { inputValue },
     } = props;
 
-    return (
+    const component = (
         <div>
             <components.Option {...props}>
                 <div className={styles.optionLabelContainer}>
@@ -192,20 +279,22 @@ const getMultiselectOption = (props: any) => {
                         }}
                     ></Checkbox>
 
-                    <div className={styles.optionLabelName}>
+                    <OptionLabelName>
                         {isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
                             label
                         ) : (
-                            <TextHighlighter
+                            <ScrolledTextHighlighter
                                 searchWords={inputValue.split(' ')}
                                 textToHighlight={label}
                             />
                         )}
-                    </div>
+                    </OptionLabelName>
                 </div>
             </components.Option>
         </div>
     );
+
+    return component;
 };
 
 const getOption = (props: any) => {
@@ -342,7 +431,7 @@ const PopoutContent = ({
                             return (
                                 <components.MenuList
                                     className={styles.menuListContainer}
-                                    maxHeight={400}
+                                    maxHeight={500}
                                     {...props}
                                 ></components.MenuList>
                             );

@@ -4,9 +4,9 @@ import Highlighter, { HighlighterProps } from 'react-highlight-words';
 
 import styles from './TextHighlighter.module.scss';
 
-type Props = HighlighterProps;
+export type TextHighlighterProps = HighlighterProps;
 
-const TextHighlighter = (props: Props) => {
+const TextHighlighter = (props: TextHighlighterProps) => {
     return (
         <Highlighter
             {...props}

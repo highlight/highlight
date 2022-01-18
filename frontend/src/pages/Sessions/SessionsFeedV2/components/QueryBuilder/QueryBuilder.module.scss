@@ -7,7 +7,7 @@
 }
 
 .optionCheckbox {
-    margin-right: 6px;
+    margin-left: 6px;
 }
 
 .optionLabelType {
@@ -24,10 +24,62 @@
     width: 60px;
 }
 
+.highlighterStyles {
+    background-color: transparent;
+    font-weight: 600 !important;
+    padding: 0;
+}
+
+// .shadowLeft {
+//     background-attachment: local, local, scroll, scroll;
+//     // background-color: rgb(255, 255, 255);
+//     background-image: linear-gradient(
+//             to right,
+//             rgb(255, 255, 255),
+//             rgb(255, 255, 255)
+//         ),
+//         linear-gradient(to right, rgb(255, 255, 255), rgb(255, 255, 255)),
+//         linear-gradient(to right, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0)),
+//         linear-gradient(to left, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0));
+//     background-position: left center, right center, left center, right center;
+//     background-repeat: no-repeat;
+//     background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+// }
+
+.shadowRight {
+    background-attachment: scroll;
+    background-image: linear-gradient(
+        to left,
+        rgba(0, 0, 0, 0.25),
+        rgba(255, 255, 255, 0)
+    );
+    background-position: right center;
+    background-repeat: no-repeat;
+    background-size: 10px 100%;
+}
+
+.shadowLeft {
+    background-attachment: scroll;
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.25),
+        rgba(255, 255, 255, 0)
+    );
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-size: 10px 100%;
+}
+
 .optionLabelName {
     color: var(--text-primary) !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: scroll;
+    padding-bottom: 8px;
+    padding-left: 6px;
+    padding-top: 8px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .nameLabel {
