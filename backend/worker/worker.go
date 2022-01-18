@@ -695,10 +695,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
 		if o.FirstFullSnapshotTimestamp.IsZero() {
 			if event.Type == parse.FullSnapshot {
-				fmt.Printf("Found first snapshot at time %d", event.Timestamp.Unix())
 				o.FirstFullSnapshotTimestamp = event.Timestamp
 			} else if event.Type == parse.IncrementalSnapshot {
-				fmt.Printf("Found incremental snapshot before first snapshot at time %d, first snapshot timestamp is %d", event.Timestamp.Unix(), input.FirstFullSnapshotTimestamp.Unix())
 				o.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
 				return o
 			}
