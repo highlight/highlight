@@ -1,5 +1,7 @@
+export const backdrop: string;
 export const groupHeading: string;
 export const hideSearchIcon: string;
+export const menuIsOpen: string;
 export const optionLabelContainer: string;
 export const optionLabelName: string;
 export const optionLabelType: string;
@@ -7,3 +9,4 @@ export const quickSearchSelect: string;
 export const searchIcon: string;
 export const select: string;
 export const typeIcon: string;
+export const visible: string;

@@ -1,6 +1,10 @@
 .select {
     width: 100%;
 
+    &.menuIsOpen {
+        z-index: 9999999;
+    }
+
     > div {
         background-color: var(--color-primary-background);
     }
@@ -61,4 +65,22 @@
 
 .hideSearchIcon {
     opacity: 0;
+}
+
+.backdrop {
+    //     background: var(--color-background-overlay);
+    background: rgba(0, 0, 0, 0.5);
+    left: calc(-1 * var(--sidebar-width));
+    min-height: 100vh;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    top: calc(-1 * var(--banner-height));
+    transition: opacity 0.1s ease-in;
+    width: 100vw;
+    z-index: 9999;
+
+    &.visible {
+        opacity: 1;
+    }
 }

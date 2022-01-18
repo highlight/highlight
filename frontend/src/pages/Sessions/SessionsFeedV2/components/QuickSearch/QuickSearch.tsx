@@ -4,6 +4,7 @@ import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchPa
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
@@ -100,6 +101,7 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const {
         setSearchParams,
         setExistingParams,
@@ -218,49 +220,64 @@ const QuickSearch = () => {
     // const isLoading = loading && !!query;
 
     return (
-        <AsyncSelect
-            loadOptions={getValueOptions}
-            styles={styleProps}
-            isLoading={loading}
-            isClearable={false}
-            value={null}
-            escapeClearsValue={true}
-            onChange={onChange}
-            className={styles.select}
-            noOptionsMessage={({ inputValue }) =>
-                !inputValue ? null : `No results for "${inputValue}"`
-            }
-            placeholder="Search for a property..."
-            onInputChange={(newValue, actionMeta) => {
-                if (actionMeta?.action === 'input-change') {
-                    setQuery(newValue);
-                } else {
-                    setQuery('');
+        <>
+            <AsyncSelect
+                loadOptions={getValueOptions}
+                styles={styleProps}
+                isLoading={loading}
+                isClearable={false}
+                value={null}
+                escapeClearsValue={true}
+                onChange={onChange}
+                className={classNames(styles.select, {
+                    [styles.menuIsOpen]: isMenuOpen,
+                })}
+                onMenuOpen={() => {
+                    setIsMenuOpen(true);
+                }}
+                onMenuClose={() => {
+                    setIsMenuOpen(false);
+                }}
+                noOptionsMessage={({ inputValue }) =>
+                    !inputValue ? null : `No results for "${inputValue}"`
                 }
-            }}
-            components={{
-                DropdownIndicator: () =>
-                    loading ? (
-                        <></>
-                    ) : (
-                        <SvgSearchIcon className={styles.searchIcon} />
-                    ),
-                IndicatorSeparator: () => null,
-                Option: getOption,
-                GroupHeading: (props) => {
-                    return (
-                        <components.GroupHeading {...props}>
-                            <span className={styles.groupHeading}>
-                                {props.children}
-                            </span>
-                        </components.GroupHeading>
-                    );
-                },
-            }}
-            isSearchable
-            defaultOptions
-            maxMenuHeight={500}
-        />
+                placeholder="Search for a property..."
+                onInputChange={(newValue, actionMeta) => {
+                    if (actionMeta?.action === 'input-change') {
+                        setQuery(newValue);
+                    } else {
+                        setQuery('');
+                    }
+                }}
+                components={{
+                    DropdownIndicator: () =>
+                        loading ? (
+                            <></>
+                        ) : (
+                            <SvgSearchIcon className={styles.searchIcon} />
+                        ),
+                    IndicatorSeparator: () => null,
+                    Option: getOption,
+                    GroupHeading: (props) => {
+                        return (
+                            <components.GroupHeading {...props}>
+                                <span className={styles.groupHeading}>
+                                    {props.children}
+                                </span>
+                            </components.GroupHeading>
+                        );
+                    },
+                }}
+                isSearchable
+                defaultOptions
+                maxMenuHeight={500}
+            />
+            <div
+                className={classNames(styles.backdrop, {
+                    [styles.visible]: isMenuOpen,
+                })}
+            ></div>
+        </>
     );
 };
 
