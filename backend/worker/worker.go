@@ -218,8 +218,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	activeDuration := time.Duration(0)
 	var (
-		firstEventTimestamp time.Time
-		lastEventTimestamp  time.Time
+		firstEventTimestamp        time.Time
+		firstFullSnapshotTimestamp time.Time
+		lastEventTimestamp         time.Time
 	)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
@@ -239,18 +240,20 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
 			o := processEventChunk(&processEventChunkInput{
-				EventsChunk:             &eventsObject,
-				ClickEventQueue:         clickEventQueue,
-				FirstEventTimestamp:     firstEventTimestamp,
-				LastEventTimestamp:      lastEventTimestamp,
-				RageClickSets:           rageClickSets,
-				CurrentlyInRageClickSet: currentlyInRageClickSet,
-				TimestampCounts:         timestamps,
+				EventsChunk:                &eventsObject,
+				ClickEventQueue:            clickEventQueue,
+				FirstEventTimestamp:        firstEventTimestamp,
+				FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
+				LastEventTimestamp:         lastEventTimestamp,
+				RageClickSets:              rageClickSets,
+				CurrentlyInRageClickSet:    currentlyInRageClickSet,
+				TimestampCounts:            timestamps,
 			})
 			if o.Error != nil {
 				return e.Wrap(err, "error processing event chunk")
 			}
 			firstEventTimestamp = o.FirstEventTimestamp
+			firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
 			lastEventTimestamp = o.LastEventTimestamp
 			activeDuration += o.CalculatedDuration
 			rageClickSets = o.RageClickSets
@@ -630,6 +633,8 @@ type processEventChunkInput struct {
 	RageClickSets []*model.RageClickEvent
 	// FirstEventTimestamp represents the timestamp for the first event
 	FirstEventTimestamp time.Time
+	// FirstFullSnapshotTimestamp represents the timestamp for the first full snapshot
+	FirstFullSnapshotTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
 	// TimestampCounts represents a count of all user interaction events per second
@@ -645,6 +650,8 @@ type processEventChunkOutput struct {
 	RageClickSets []*model.RageClickEvent
 	// FirstEventTimestamp represents the timestamp for the first event
 	FirstEventTimestamp time.Time
+	// FirstFullSnapshotTimestamp represents the timestamp for the first full snapshot
+	FirstFullSnapshotTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
 	// CalculatedDuration represents the calculated active duration for the current event chunk
@@ -676,6 +683,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 		return o
 	}
 	o.FirstEventTimestamp = input.FirstEventTimestamp
+	o.FirstFullSnapshotTimestamp = input.FirstFullSnapshotTimestamp
 	o.LastEventTimestamp = input.LastEventTimestamp
 	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
 	o.RageClickSets = input.RageClickSets
@@ -683,6 +691,15 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	for _, event := range events.Events {
 		if event == nil {
 			continue
+		}
+		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
+		if o.FirstFullSnapshotTimestamp.IsZero() {
+			if event.Type == parse.FullSnapshot {
+				o.FirstFullSnapshotTimestamp = event.Timestamp
+			} else if event.Type == parse.IncrementalSnapshot {
+				o.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
+				return o
+			}
 		}
 		if event.Type == parse.IncrementalSnapshot {
 			var diff time.Duration
