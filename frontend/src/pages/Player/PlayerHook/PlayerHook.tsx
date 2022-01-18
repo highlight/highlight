@@ -122,6 +122,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         autoPlaySessions,
         showPlayerMouseTail,
         setShowLeftPanel,
+        setShowRightPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -318,8 +319,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         const searchParamsObject = new URLSearchParams(location.search);
         if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
             setShowLeftPanel(false);
+            setShowRightPanel(true);
         }
-    }, [setShowLeftPanel]);
+    }, [setShowLeftPanel, setShowRightPanel]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {

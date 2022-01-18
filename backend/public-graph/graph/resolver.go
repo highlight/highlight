@@ -1285,7 +1285,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1309,9 +1309,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
+	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -1358,7 +1362,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
-			obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
+			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
@@ -1376,12 +1380,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
+		}
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
-			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
+			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating messages object")
 			}
@@ -1394,12 +1401,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+		}
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
 			}
@@ -1410,6 +1420,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// process errors
 	g.Go(func() error {
+		if hasBeacon {
+			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
+		}
 		// filter out empty errors
 		var filteredErrors []*customModels.ErrorObjectInput
 		for _, errorObject := range errors {
@@ -1485,6 +1498,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
+				IsBeacon:     isBeacon,
 			}
 
 			//create error fields array
@@ -1520,8 +1534,12 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating session payload time"))
+	var beaconTime *time.Time = nil
+	if isBeacon {
+		beaconTime = &now
+	}
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime}).Error; err != nil {
+		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}
 }

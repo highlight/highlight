@@ -126,6 +126,7 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+  is_beacon?: Maybe<Scalars['Boolean']>;
 };
 
 

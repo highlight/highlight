@@ -132,6 +132,7 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+  is_beacon?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -176,6 +177,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   messages: Types.Scalars['String'];
   resources: Types.Scalars['String'];
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
+  is_beacon?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 
@@ -287,13 +289,14 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean) {
   pushPayload(
     session_id: $session_id
     events: $events
     messages: $messages
     resources: $resources
     errors: $errors
+    is_beacon: $is_beacon
   )
 }
     `;
