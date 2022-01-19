@@ -267,6 +267,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
+			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, f); err != nil {
+				return e.Wrap(err, "error indexing new field")
+			}
 
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
@@ -275,6 +278,19 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 
 	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
+
+	openSearchFields := make([]interface{}, len(fieldsToAppend))
+	for i, field := range fieldsToAppend {
+		openSearchFields[i] = opensearch.OpenSearchField{
+			Field:    field,
+			Key:      field.Type + "_" + field.Name,
+			KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
+		}
+	}
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending session fields")
+	}
+
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
@@ -403,9 +419,23 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
 			State:      modelInputs.ErrorStateOpen.String(),
+			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
+		}
+
+		opensearchErrorGroup := &model.ErrorGroup{
+			Model:     newErrorGroup.Model,
+			SecureID:  newErrorGroup.SecureID,
+			ProjectID: errorObj.ProjectID,
+			Event:     errorObj.Event,
+			Type:      errorObj.Type,
+			State:     modelInputs.ErrorStateOpen.String(),
+			Fields:    []*model.ErrorField{},
+		}
+		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, opensearchErrorGroup); err != nil {
+			return nil, e.Wrap(err, "error indexing error group in opensearch")
 		}
 
 		errorGroup = newErrorGroup
@@ -433,8 +463,31 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+	// Don't save errors that come from rrweb at record time.
+	if newMappedStackTraceString != nil && strings.Contains(*newMappedStackTraceString, "rrweb") {
+		var now = time.Now()
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{Model: model.Model{DeletedAt: &now}}).Error; err != nil {
+			return nil, e.Wrap(err, "Error soft deleting rrweb error group.")
+		}
+
+	} else {
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
+			return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+		}
+	}
+
+	var filename *string
+	if newMappedStackTraceString != nil {
+		filename = model.GetFirstFilename(*newMappedStackTraceString)
+	} else {
+		filename = model.GetFirstFilename(newFrameString)
+	}
+
+	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+		"filename":   filename,
+		"updated_at": time.Now(),
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}
 
 	return errorGroup, nil
@@ -450,10 +503,25 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
+			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, f); err != nil {
+				return e.Wrap(err, "error indexing new error field")
+			}
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
 			fieldsToAppend = append(fieldsToAppend, field)
 		}
+	}
+
+	openSearchFields := make([]interface{}, len(fieldsToAppend))
+	for i, field := range fieldsToAppend {
+		openSearchFields[i] = opensearch.OpenSearchErrorField{
+			ErrorField: field,
+			Key:        field.Name,
+			KeyValue:   field.Name + "_" + field.Value,
+		}
+	}
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending error fields")
 	}
 
 	// We append to this session in the join table regardless.
@@ -595,6 +663,10 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
+	}
+
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return nil, e.Wrap(err, "error indexing session in opensearch")
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
@@ -1008,7 +1080,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				WHERE
 					project_id=?
 					AND type=?
-					AND (error_group_id IS NOT NULL 
+					AND (error_group_id IS NOT NULL
 						AND error_group_id=?)
 					AND alert_id=?
 					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
@@ -1213,7 +1285,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1237,9 +1309,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
+	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -1286,7 +1362,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
-			obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
+			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
@@ -1304,12 +1380,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
+		}
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
-			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
+			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating messages object")
 			}
@@ -1322,12 +1401,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	g.Go(func() error {
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		if hasBeacon {
+			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+		}
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
 			}
@@ -1338,6 +1420,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// process errors
 	g.Go(func() error {
+		if hasBeacon {
+			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
+		}
 		// filter out empty errors
 		var filteredErrors []*customModels.ErrorObjectInput
 		for _, errorObject := range errors {
@@ -1413,6 +1498,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
+				IsBeacon:     isBeacon,
 			}
 
 			//create error fields array
@@ -1448,8 +1534,12 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating session payload time"))
+	var beaconTime *time.Time = nil
+	if isBeacon {
+		beaconTime = &now
+	}
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime}).Error; err != nil {
+		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}
 }

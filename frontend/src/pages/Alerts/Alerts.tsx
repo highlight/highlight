@@ -10,6 +10,7 @@ import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import SvgFaceIdIcon from '@icons/FaceIdIcon';
+import SvgMonitorIcon from '@icons/MonitorIcon';
 import SvgQuoteIcon from '@icons/QuoteIcon';
 import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
@@ -32,6 +33,7 @@ export enum ALERT_TYPE {
     SessionFeedbackComment,
     NewSession,
     RageClick,
+    MetricMonitor,
 }
 
 export enum ALERT_NAMES {
@@ -42,9 +44,19 @@ export enum ALERT_NAMES {
     SESSION_FEEDBACK_ALERT = 'Feedback',
     NEW_SESSION_ALERT = 'New Sessions',
     RAGE_CLICK_ALERT = 'Rage Clicks',
+    METRIC_MONITOR = 'Metric Monitor',
 }
 
-export const ALERT_CONFIGURATIONS = {
+interface AlertConfiguration {
+    name: string;
+    canControlThreshold: boolean;
+    type: ALERT_TYPE;
+    description: string | React.ReactNode;
+    icon: React.ReactNode;
+    supportsExcludeRules: boolean;
+}
+
+export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
     ERROR_ALERT: {
         name: ALERT_NAMES['ERROR_ALERT'],
         canControlThreshold: true,
@@ -126,6 +138,14 @@ export const ALERT_CONFIGURATIONS = {
         icon: <SvgSparkles2Icon />,
         supportsExcludeRules: true,
     },
+    METRIC_MONITOR: {
+        name: ALERT_NAMES['METRIC_MONITOR'],
+        canControlThreshold: false,
+        type: ALERT_TYPE.MetricMonitor,
+        description: 'Get alerted when a metric value exceeds a value.',
+        icon: <SvgMonitorIcon />,
+        supportsExcludeRules: true,
+    },
 } as const;
 
 const TABLE_COLUMNS = [
@@ -139,7 +159,10 @@ const TABLE_COLUMNS = [
                     <div className={styles.primary}>{name}</div>
                     <div>
                         <AlertLastEditedBy
-                            adminId={record.LastAdminToEditID}
+                            adminId={
+                                record.LastAdminToEditID ||
+                                record.last_admin_to_edit_id
+                            }
                             lastEditedTimestamp={record.updated_at}
                             allAdmins={record.allAdmins}
                             loading={record.loading}
@@ -172,18 +195,29 @@ const TABLE_COLUMNS = [
         title: 'Frequency',
         dataIndex: 'frequency',
         key: 'frequency',
-        render: (frequency: any, record: any) => (
-            <div className={styles.chart}>
-                <div className={styles.innerChart}>
-                    <BarChart
-                        sharedMaxNum={frequency}
-                        height={30}
-                        data={record.DailyFrequency}
-                        showBase={false}
-                    />
+        render: (frequency: any, record: any) => {
+            const hasData = record?.DailyFrequency?.some(
+                (value: number) => value !== 0
+            );
+            return (
+                <div className={styles.chart}>
+                    <div className={styles.innerChart}>
+                        {hasData ? (
+                            <BarChart
+                                sharedMaxNum={frequency}
+                                height={30}
+                                data={record.DailyFrequency}
+                                showBase={false}
+                            />
+                        ) : (
+                            <p className={styles.frequencyGraphEmptyMessage}>
+                                No Recent Alerts
+                            </p>
+                        )}
+                    </div>
                 </div>
-            </div>
-        ),
+            );
+        },
     },
     {
         title: 'Configure',
@@ -191,7 +225,11 @@ const TABLE_COLUMNS = [
         key: 'configure',
         render: (_: any, record: any) => (
             <Link
-                to={`alerts/${record.id}`}
+                to={
+                    record.type === 'Metric Monitor'
+                        ? `alerts/monitor/${record.id}`
+                        : `alerts/${record.id}`
+                }
                 className={styles.configureButton}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -328,6 +366,18 @@ const AlertsPage = () => {
             allAdmins: alertsPayload?.admins || [],
             loading,
         })),
+        ...(alertsPayload?.metric_monitors || []).map((metricMonitor) => ({
+            ...metricMonitor,
+            configuration: ALERT_CONFIGURATIONS['METRIC_MONITOR'],
+            type: ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
+            Name:
+                metricMonitor?.name ||
+                ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
+            key: metricMonitor?.id,
+            frequency: maxNum,
+            allAdmins: alertsPayload?.admins || [],
+            loading,
+        })),
     ];
 
     return (
@@ -439,7 +489,11 @@ const AlertsPage = () => {
                         }
                         onRow={(record) => ({
                             onClick: () => {
-                                history.push(`alerts/${record.id}`);
+                                if (record.type === 'Metric Monitor') {
+                                    history.push(`alerts/monitor/${record.id}`);
+                                } else {
+                                    history.push(`alerts/${record.id}`);
+                                }
                             },
                         })}
                     />

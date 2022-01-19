@@ -6,11 +6,19 @@ import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import AlertsPage from '@pages/Alerts/Alerts';
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
 import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
+import EditMonitorPage from '@pages/Alerts/EditMonitorPage';
 import NewAlertPage from '@pages/Alerts/NewAlertPage';
+import NewMonitorPage from '@pages/Alerts/NewMonitorPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
+import {
+    Redirect,
+    Route,
+    Switch,
+    useHistory,
+    useRouteMatch,
+} from 'react-router-dom';
 
 const AlertsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -56,6 +64,29 @@ const AlertsRouter = () => {
                     <Route exact path={`${path}/new`}>
                         <NewAlertPage />
                     </Route>
+                    <Route exact path={`${path}/monitor`}>
+                        <Redirect to={`/${project_id}/alerts`} />
+                    </Route>
+                    <Route exact path={`${path}/new/monitor`}>
+                        <NewMonitorPage
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            isSlackIntegrated={
+                                data?.is_integrated_with_slack || false
+                            }
+                        />
+                    </Route>
+                    <Route exact path={`${path}/monitor/:id`}>
+                        <EditMonitorPage
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            isSlackIntegrated={
+                                data?.is_integrated_with_slack || false
+                            }
+                        />
+                    </Route>
                     <Route exact path={`${path}/new/:type`}>
                         <NewAlertPage />
                     </Route>
@@ -76,6 +107,10 @@ const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
             return 'Alerts';
         }
 
+        if (url.endsWith('/monitor')) {
+            return 'Metric Monitor';
+        }
+
         if (url.endsWith('/alerts/new')) {
             return 'Create';
         }
@@ -84,6 +119,6 @@ const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
             return `${suffixes?.errorName}`;
         }
 
-        return `Edit ${suffixes?.errorName}`;
+        return `Edit ${suffixes?.errorName || ''}`;
     };
 };

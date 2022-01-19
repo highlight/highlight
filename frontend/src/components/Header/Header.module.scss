@@ -7,7 +7,7 @@
     margin-left: var(--sidebar-width);
     position: fixed;
     width: calc(100% - var(--sidebar-width));
-    z-index: 100;
+    z-index: 99999999;
 
     &.guest {
         width: 100%;
@@ -123,6 +123,19 @@
     z-index: 100;
 }
 
+.quicksearchWrapper {
+    align-items: center;
+    display: flex;
+    flex: 0 1 468px;
+    margin: auto;
+}
+
+.hideableButtonContainer {
+    @media (max-width: 1000px) {
+        display: none;
+    }
+}
+
 .searchBar {
     align-items: center;
     border: 1px solid var(--color-gray-300);
@@ -172,6 +185,7 @@
 .applicationPickerContainer {
     align-items: center;
     display: flex;
+    margin-right: auto;
 }
 
 .demoWorkspaceContainer {

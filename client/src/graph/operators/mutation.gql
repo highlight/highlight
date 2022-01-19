@@ -4,6 +4,7 @@ mutation PushPayload(
     $messages: String!
     $resources: String!
     $errors: [ErrorObjectInput]!
+    $is_beacon: Boolean
 ) {
     pushPayload(
         session_id: $session_id
@@ -11,6 +12,7 @@ mutation PushPayload(
         messages: $messages
         resources: $resources
         errors: $errors
+        is_beacon: $is_beacon
     )
 }
 

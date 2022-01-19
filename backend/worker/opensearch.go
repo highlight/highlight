@@ -22,33 +22,22 @@ func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	}
 }
 
-type OpenSearchSession struct {
-	*model.Session
-	Fields []*OpenSearchField `json:"fields"`
-}
-
-type OpenSearchField struct {
-	*model.Field
-	Key      string
-	KeyValue string
-}
-
-func (w *Worker) IndexSessions() {
+func (w *Worker) IndexSessions(isUpdate bool) {
 	modelProto := &model.Session{}
 	results := &[]*model.Session{}
 
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, result := range *results {
-			fields := []*OpenSearchField{}
+			fields := []*opensearch.OpenSearchField{}
 			for _, field := range result.Fields {
-				f := OpenSearchField{
+				f := opensearch.OpenSearchField{
 					Field:    field,
 					Key:      field.Type + "_" + field.Name,
 					KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
 				}
 				fields = append(fields, &f)
 			}
-			os := OpenSearchSession{
+			os := opensearch.OpenSearchSession{
 				Session: result,
 				Fields:  fields,
 			}
@@ -57,16 +46,82 @@ func (w *Worker) IndexSessions() {
 		return nil
 	}
 
-	if err := w.Resolver.DB.Preload("Fields").Model(modelProto).
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
 		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
 	}
 }
 
-func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) {
+func (w *Worker) IndexErrors(isUpdate bool) {
+	modelProto := &model.ErrorGroup{}
+	results := &[]*model.ErrorGroup{}
+
+	inner := func(tx *gorm.DB, batch int) error {
+		for _, result := range *results {
+			fields := []*opensearch.OpenSearchErrorField{}
+			for _, field := range result.Fields {
+				f := opensearch.OpenSearchErrorField{
+					ErrorField: field,
+					Key:        field.Name,
+					KeyValue:   field.Name + "_" + field.Value,
+				}
+				fields = append(fields, &f)
+			}
+			var filename *string
+			if result.MappedStackTrace != nil {
+				filename = model.GetFirstFilename(*result.MappedStackTrace)
+			} else {
+				filename = model.GetFirstFilename(result.StackTrace)
+			}
+			result.FieldGroup = nil
+			result.Fields = nil
+			result.Environments = ""
+			result.MappedStackTrace = nil
+			result.StackTrace = ""
+			os := opensearch.OpenSearchError{
+				ErrorGroup: result,
+				Fields:     fields,
+				Filename:   filename,
+			}
+			w.indexItem(opensearch.IndexErrors, &os)
+		}
+		return nil
+	}
+
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	// A little hacky, but some of the error groups with low ids have a very high number of fields,
+	// and it causes and error when > 65536 fields are loaded at once
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id <= 10").Model(modelProto).
+		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+	}
+
+	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id > 10").Model(modelProto).
+		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
+	}
+}
+
+func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
 	modelProto := modelPrototype
 
-	rows, err := w.Resolver.DB.Model(modelProto).Order("created_at asc").Rows()
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	rows, err := w.Resolver.DB.Model(modelProto).
+		Where(whereClause).
+		Order("created_at asc").Rows()
 	if err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
@@ -78,5 +133,47 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}) 
 		}
 
 		w.indexItem(index, modelObj)
+	}
+}
+
+const NESTED_FIELD_MAPPINGS = `
+{
+	"properties": {
+		"fields": {
+			"properties": {
+				"Key": {
+					"type": "keyword",
+					"normalizer": "lowercase"
+				},
+				"KeyValue": {
+					"type": "keyword",
+					"normalizer": "lowercase"
+				}
+			}
+		}
+	}
+}`
+
+const FIELD_MAPPINGS = ` 
+{
+	"properties": {
+		"Value": {
+			"type": "search_as_you_type"
+		}
+	}
+}`
+
+func (w *Worker) InitIndexMappings() {
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, NESTED_FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating session mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating field mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrors, NESTED_FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating error mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
 	}
 }

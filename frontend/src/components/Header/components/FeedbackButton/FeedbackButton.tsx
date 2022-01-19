@@ -1,3 +1,4 @@
+import SvgMailIcon from '@icons/MailIcon';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H } from 'highlight.run';
 import React from 'react';
@@ -40,6 +41,11 @@ const FeedbackButton = () => {
                     displayName: 'Feature Request',
                     icon: <SvgPlusIcon />,
                     link: FEEDBACK_URL,
+                },
+                {
+                    displayName: 'Email Us',
+                    icon: <SvgMailIcon />,
+                    link: 'mailto:support@highlight.run',
                 },
             ]}
             buttonTrackingId="feedbackButton"

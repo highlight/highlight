@@ -3,10 +3,22 @@ import { RequestResponsePair } from './models';
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
 const normalizeUrl = (url: string) => {
-    // Remove trailing forward slashes
-    return url.replace(/\/+$/, "");
+    let urlToMutate = url;
+    /**
+     * Make sure URL includes the protocol and the host.
+     * For Next.js API routes, the URL is only the pathname.
+     * @example There's a Next.js API route called `/api/todo/create` on an app hosted at `https://todos.com`
+     * The URL we get from the XHR/Fetch listener is `/api/todo/create`.
+     * The Performance API's URL is `https://todos.com/api/todo/create`.
+     * Because of this mismatch, we fail to match the request with the headers/payload.
+     */
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+        urlToMutate = `${window.location.origin}${urlToMutate}`;
 }
 
+    // Remove trailing forward slashes
+    return urlToMutate.replace(/\/+$/, '');
+};
 export const matchPerformanceTimingsWithRequestResponsePair = (
     performanceTimings: any[],
     requestResponsePairs: RequestResponsePair[],

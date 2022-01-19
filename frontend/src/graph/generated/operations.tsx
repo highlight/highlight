@@ -470,6 +470,106 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateMetricMonitorMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    function: Types.Scalars['String'];
+    threshold: Types.Scalars['Float'];
+    metric_to_monitor: Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    createMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type UpdateMetricMonitorMutationVariables = Types.Exact<{
+    metric_monitor_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    function: Types.Scalars['String'];
+    threshold: Types.Scalars['Float'];
+    metric_to_monitor: Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    updateMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type DeleteMetricMonitorMutationVariables = Types.Exact<{
+    metric_monitor_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
+    deleteMetricMonitor?: Types.Maybe<
+        { __typename?: 'MetricMonitor' } & Pick<
+            Types.MetricMonitor,
+            | 'id'
+            | 'updated_at'
+            | 'name'
+            | 'function'
+            | 'metric_to_monitor'
+            | 'last_admin_to_edit_id'
+            | 'threshold'
+        > & {
+                channels_to_notify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateAdminAboutYouDetailsMutationVariables = Types.Exact<{
     adminDetails: Types.AdminAboutYouDetails;
 }>;
@@ -1167,6 +1267,24 @@ export type GetWebVitalDashboardQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetMetricPreviewQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    type: Types.MetricType;
+    name: Types.Scalars['String'];
+    aggregateFunction: Types.Scalars['String'];
+}>;
+
+export type GetMetricPreviewQuery = { __typename?: 'Query' } & {
+    metric_preview: Array<
+        Types.Maybe<
+            { __typename?: 'MetricPreview' } & Pick<
+                Types.MetricPreview,
+                'value' | 'date'
+            >
+        >
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -1562,6 +1680,36 @@ export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
     'fields_opensearch'
 >;
 
+export type GetQuickFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetQuickFieldsOpensearchQuery = { __typename?: 'Query' } & {
+    quickFields_opensearch: Array<
+        Types.Maybe<
+            { __typename?: 'Field' } & Pick<
+                Types.Field,
+                'type' | 'name' | 'value'
+            >
+        >
+    >;
+};
+
+export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    field_type: Types.Scalars['String'];
+    field_name: Types.Scalars['String'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'error_fields_opensearch'
+>;
+
 export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -1606,6 +1754,56 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                                         Types.Field,
                                         'name' | 'value' | 'type' | 'id'
                                     >
+                                >
+                            >
+                        >;
+                    }
+            >;
+        };
+};
+
+export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    count: Types.Scalars['Int'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
+    error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
+        Types.ErrorResults,
+        'totalCount'
+    > & {
+            error_groups: Array<
+                { __typename?: 'ErrorGroup' } & Pick<
+                    Types.ErrorGroup,
+                    | 'created_at'
+                    | 'id'
+                    | 'secure_id'
+                    | 'type'
+                    | 'event'
+                    | 'state'
+                    | 'environments'
+                    | 'stack_trace'
+                    | 'error_frequency'
+                > & {
+                        structured_stack_trace: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorTrace' } & Pick<
+                                    Types.ErrorTrace,
+                                    | 'fileName'
+                                    | 'lineNumber'
+                                    | 'functionName'
+                                    | 'columnNumber'
+                                >
+                            >
+                        >;
+                        metadata_log: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorMetadata' } & Pick<
+                                    Types.ErrorMetadata,
+                                    | 'error_id'
+                                    | 'session_secure_id'
+                                    | 'timestamp'
                                 >
                             >
                         >;
@@ -2317,6 +2515,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'environments'
                             | 'device_id'
                             | 'show_live_sessions'
+                            | 'query'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<
@@ -2387,7 +2586,12 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            'os' | 'browser' | 'visited_url' | 'state' | 'event'
+                            | 'os'
+                            | 'browser'
+                            | 'visited_url'
+                            | 'state'
+                            | 'event'
+                            | 'query'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<
@@ -2826,6 +3030,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     }
             >
         >;
+        metric_monitors: Array<
+            Types.Maybe<
+                { __typename?: 'MetricMonitor' } & Pick<
+                    Types.MetricMonitor,
+                    | 'id'
+                    | 'updated_at'
+                    | 'name'
+                    | 'function'
+                    | 'metric_to_monitor'
+                    | 'last_admin_to_edit_id'
+                    | 'threshold'
+                > & {
+                        channels_to_notify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >;
     };
 
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
@@ -2886,6 +3113,7 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
     Query: {
         GetWebVitalDashboard: 'GetWebVitalDashboard' as const,
+        GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
@@ -2899,7 +3127,10 @@ export const namedOperations = {
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
+        GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
+        GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+        GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
@@ -2980,6 +3211,9 @@ export const namedOperations = {
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
         CreateErrorAlert: 'CreateErrorAlert' as const,
+        CreateMetricMonitor: 'CreateMetricMonitor' as const,
+        UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
+        DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
         UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
         CreateRageClickAlert: 'CreateRageClickAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,

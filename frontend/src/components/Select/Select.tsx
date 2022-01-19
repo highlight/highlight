@@ -11,6 +11,14 @@ import styles from './Select.module.scss';
 
 const { Option } = AntDesignSelect;
 
+export interface OptionType {
+    value: string;
+    displayValue: string | React.ReactNode;
+    disabled?: boolean;
+    id: string;
+    dropDownIcon?: React.ReactNode;
+}
+
 type Props = Pick<
     AntDesignSelectProps<any>,
     | 'onChange'
@@ -34,13 +42,7 @@ type Props = Pick<
     | 'tagRender'
     | 'open'
 > & {
-    options?: {
-        value: string;
-        displayValue: string | React.ReactNode;
-        disabled?: boolean;
-        id: string;
-        dropDownIcon?: React.ReactNode;
-    }[];
+    options?: OptionType[];
     hasAccent?: boolean;
 };
 

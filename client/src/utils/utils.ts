@@ -189,6 +189,15 @@ export function stringify(
             return true;
         }
 
+        // if a non-user event with only the `isTrusted` key
+        // We ignore this because some frameworks/library can output these non-stop.
+        // There's no value in recording/showing these to the end user so we ignore.
+        if (_obj instanceof Event && _obj.isTrusted === false) {
+            const eventKeys = Object.keys(_obj);
+
+            return eventKeys.length === 1;
+        }
+
         /**
          * judge object's depth to avoid browser's OOM
          *

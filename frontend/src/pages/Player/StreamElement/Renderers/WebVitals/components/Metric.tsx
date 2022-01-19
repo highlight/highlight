@@ -13,15 +13,15 @@ interface Props {
 }
 
 const SimpleMetric = ({ configuration, value, name }: Props) => {
-    const valueScore = getValueScore(value, configuration);
+    const valueScore = getWebVitalValueScore(value, configuration);
 
     return (
         <div
             className={classNames(styles.simpleMetric, styles.metric, {
-                [styles.goodScore]: valueScore === ValueScore.Good,
+                [styles.goodScore]: valueScore === WebVitalValueScore.Good,
                 [styles.needsImprovementScore]:
-                    valueScore === ValueScore.NeedsImprovement,
-                [styles.poorScore]: valueScore === ValueScore.Poor,
+                    valueScore === WebVitalValueScore.NeedsImprovement,
+                [styles.poorScore]: valueScore === WebVitalValueScore.Poor,
             })}
         >
             <span className={styles.name}>{name}</span>
@@ -30,15 +30,15 @@ const SimpleMetric = ({ configuration, value, name }: Props) => {
 };
 
 export const DetailedMetric = ({ configuration, value, name }: Props) => {
-    const valueScore = getValueScore(value, configuration);
+    const valueScore = getWebVitalValueScore(value, configuration);
 
     return (
         <div
             className={classNames(styles.metric, styles.detailedMetric, {
-                [styles.goodScore]: valueScore === ValueScore.Good,
+                [styles.goodScore]: valueScore === WebVitalValueScore.Good,
                 [styles.needsImprovementScore]:
-                    valueScore === ValueScore.NeedsImprovement,
-                [styles.poorScore]: valueScore === ValueScore.Poor,
+                    valueScore === WebVitalValueScore.NeedsImprovement,
+                [styles.poorScore]: valueScore === WebVitalValueScore.Poor,
             })}
         >
             <span className={styles.name}>
@@ -57,41 +57,44 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
 
 export default SimpleMetric;
 
-enum ValueScore {
+export enum WebVitalValueScore {
     Good,
     NeedsImprovement,
     Poor,
 }
 
-function getValueScore(
+export function getWebVitalValueScore(
     value: number,
-    { maxGoodValue, maxNeedsImprovementValue }: WebVitalDescriptor
-): ValueScore {
+    {
+        maxGoodValue,
+        maxNeedsImprovementValue,
+    }: Pick<WebVitalDescriptor, 'maxGoodValue' | 'maxNeedsImprovementValue'>
+): WebVitalValueScore {
     if (value <= maxGoodValue) {
-        return ValueScore.Good;
+        return WebVitalValueScore.Good;
     }
     if (value <= maxNeedsImprovementValue) {
-        return ValueScore.NeedsImprovement;
+        return WebVitalValueScore.NeedsImprovement;
     }
 
-    return ValueScore.Poor;
+    return WebVitalValueScore.Poor;
 }
 
 function getInfoTooltipText(
     configuration: WebVitalDescriptor,
     value: number
 ): React.ReactNode {
-    const valueScore = getValueScore(value, configuration);
+    const valueScore = getWebVitalValueScore(value, configuration);
 
     let message = '';
     switch (valueScore) {
-        case ValueScore.Poor:
+        case WebVitalValueScore.Poor:
             message = `Looks like you're not doing so hot for ${configuration.name} on this session.`;
             break;
-        case ValueScore.NeedsImprovement:
+        case WebVitalValueScore.NeedsImprovement:
             message = `You're scoring okay for ${configuration.name} on this session. You can do better though!`;
             break;
-        case ValueScore.Good:
+        case WebVitalValueScore.Good:
             message = `You're scoring AMAZINGLY for ${configuration.name} on this session!`;
             break;
     }
@@ -124,15 +127,15 @@ const ScoreVisualization = ({
     configuration,
     value,
 }: ScoreVisualizationProps) => {
-    const valueScore = getValueScore(value, configuration);
+    const valueScore = getWebVitalValueScore(value, configuration);
     const scorePosition = getScorePosition(configuration, value);
     let gapSpacing = 0;
 
     switch (valueScore) {
-        case ValueScore.NeedsImprovement:
+        case WebVitalValueScore.NeedsImprovement:
             gapSpacing = 2 * 1;
             break;
-        case ValueScore.Poor:
+        case WebVitalValueScore.Poor:
             gapSpacing = 2 * 2;
             break;
     }
@@ -152,7 +155,7 @@ const ScoreVisualization = ({
             >
                 <span
                     className={classNames(styles.value, {
-                        [styles.mirror]: valueScore === ValueScore.Poor,
+                        [styles.mirror]: valueScore === WebVitalValueScore.Poor,
                     })}
                 >
                     {value.toFixed(2)}
@@ -161,17 +164,18 @@ const ScoreVisualization = ({
             </motion.div>
             <div
                 className={classNames(styles.good, {
-                    [styles.active]: valueScore === ValueScore.Good,
+                    [styles.active]: valueScore === WebVitalValueScore.Good,
                 })}
             ></div>
             <div
                 className={classNames(styles.needsImprovement, {
-                    [styles.active]: valueScore === ValueScore.NeedsImprovement,
+                    [styles.active]:
+                        valueScore === WebVitalValueScore.NeedsImprovement,
                 })}
             ></div>
             <div
                 className={classNames(styles.poor, {
-                    [styles.active]: valueScore === ValueScore.Poor,
+                    [styles.active]: valueScore === WebVitalValueScore.Poor,
                 })}
             ></div>
         </div>
@@ -179,24 +183,24 @@ const ScoreVisualization = ({
 };
 
 const getScorePosition = (configuration: WebVitalDescriptor, value: number) => {
-    const valueScore = getValueScore(value, configuration);
+    const valueScore = getWebVitalValueScore(value, configuration);
     let offset = 0;
     let min = 0;
     let max = 0;
     const OFFSET_AMOUNT = 0.33;
 
     switch (valueScore) {
-        case ValueScore.Good:
+        case WebVitalValueScore.Good:
             offset = OFFSET_AMOUNT * 0;
             min = 0;
             max = configuration.maxGoodValue;
             break;
-        case ValueScore.NeedsImprovement:
+        case WebVitalValueScore.NeedsImprovement:
             offset = OFFSET_AMOUNT * 1;
             min = configuration.maxGoodValue;
             max = configuration.maxNeedsImprovementValue;
             break;
-        case ValueScore.Poor:
+        case WebVitalValueScore.Poor:
             offset = OFFSET_AMOUNT * 2;
             min = configuration.maxNeedsImprovementValue;
             max = Infinity;

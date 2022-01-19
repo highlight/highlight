@@ -8,18 +8,12 @@ import inputStyles from './InputStyles.module.scss';
 const { RangePicker } = DatePicker;
 
 interface DateInputProps {
-    startDate: Date;
-    endDate: Date;
+    startDate: Date | undefined;
+    endDate: Date | undefined;
     onChange: (startDate: Date | undefined, endDate: Date | undefined) => void;
-    setVisible: (isVisible: boolean) => void;
 }
 
-export const DateInput = ({
-    startDate,
-    endDate,
-    onChange,
-    setVisible,
-}: DateInputProps) => {
+export const DateInput = ({ startDate, endDate, onChange }: DateInputProps) => {
     return (
         <div>
             <RangePicker
@@ -37,10 +31,7 @@ export const DateInput = ({
                         moment().endOf('month'),
                     ],
                 }}
-                value={[
-                    startDate && moment(startDate),
-                    endDate && moment(endDate),
-                ]}
+                value={[moment(startDate), moment(endDate)]}
                 suffixIcon={<SvgCalendarIcon height="16px" width="16px" />}
                 className={inputStyles.datePicker}
                 onChange={(_date: any, dateStrings: [string, string]) => {
@@ -53,7 +44,6 @@ export const DateInput = ({
                         : undefined;
                     onChange(start_date?.toDate(), end_date?.toDate());
                 }}
-                onBlur={() => setVisible(false)}
             />
         </div>
     );

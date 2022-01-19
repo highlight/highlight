@@ -39,6 +39,8 @@ export const getAlertTypeColor = (type: string) => {
             return '#f95d6a';
         case 'Rage Clicks':
             return 'var(--color-red-400)';
+        case 'Metric Monitor':
+            return 'var(--color-orange-500)';
         default:
             return '#bdbdbd';
     }

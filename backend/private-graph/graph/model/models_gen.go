@@ -63,6 +63,7 @@ type ErrorSearchParamsInput struct {
 	State      *ErrorState     `json:"state"`
 	Event      *string         `json:"event"`
 	Type       *string         `json:"type"`
+	Query      *string         `json:"query"`
 }
 
 type ErrorTrace struct {
@@ -76,6 +77,11 @@ type ErrorTrace struct {
 type LengthRangeInput struct {
 	Min *float64 `json:"min"`
 	Max *float64 `json:"max"`
+}
+
+type MetricPreview struct {
+	Date  time.Time `json:"date"`
+	Value float64   `json:"value"`
 }
 
 type NewUsersCount struct {
@@ -143,6 +149,7 @@ type SearchParamsInput struct {
 	HideViewed              *bool                `json:"hide_viewed"`
 	FirstTime               *bool                `json:"first_time"`
 	ShowLiveSessions        *bool                `json:"show_live_sessions"`
+	Query                   *string              `json:"query"`
 }
 
 type SessionCommentTagInput struct {

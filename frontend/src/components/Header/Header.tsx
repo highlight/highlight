@@ -5,6 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -18,7 +19,10 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
-import { useAuthContext } from '../../authentication/AuthContext';
+import {
+    queryBuilderEnabled,
+    useAuthContext,
+} from '../../authentication/AuthContext';
 import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
 import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
@@ -35,7 +39,9 @@ export const Header = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
+
     const { showBanner } = useGlobalContext();
 
     return (
@@ -69,19 +75,26 @@ export const Header = () => {
                         </div>
                     )}
 
+                    {!!project_id && isQueryBuilder && (
+                        <div className={styles.quicksearchWrapper}>
+                            <QuickSearch />
+                        </div>
+                    )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        {!isLoggedIn ? (
-                            <ButtonLink
-                                className={styles.upsellButton}
-                                trackingId="DemoProjectSignUp"
-                                to="/?sign_up=1"
-                            >
-                                Try Highlight for Free!
-                            </ButtonLink>
-                        ) : (
-                            <FeedbackButton />
-                        )}
+                        <div className={styles.hideableButtonContainer}>
+                            {!isLoggedIn ? (
+                                <ButtonLink
+                                    className={styles.upsellButton}
+                                    trackingId="DemoProjectSignUp"
+                                    to="/?sign_up=1"
+                                >
+                                    Try Highlight for Free!
+                                </ButtonLink>
+                            ) : (
+                                <FeedbackButton />
+                            )}
+                        </div>
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
@@ -94,7 +107,7 @@ const getBanner = (project_id: string) => {
     if (isOnPrem) {
         return <OnPremiseBanner />;
     } else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        return <DemoWorkspaceBanner />;
+        return <ProductHuntBanner />;
     } else {
         return <FreePlanBanner />;
     }
@@ -145,10 +158,9 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    // if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
-    //     toggleShowBanner(false);
-    //     return null;
-    // }
+    if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
+        return <ProductHuntBanner />;
+    }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
         toggleShowBanner(false);
@@ -161,27 +173,12 @@ const FreePlanBanner = () => {
     const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
-    const showProductHuntBanner =
-        data?.billingDetailsForProject?.plan.type !== PlanType.Free;
-    if (showProductHuntBanner) {
-        bannerMessage = (
-            <span>
-                Highlight is live on Product Hunt 🎉‍{' '}
-                <a
-                    target="_blank"
-                    href="https://www.producthunt.com/posts/highlight-5"
-                    className={styles.trialLink}
-                    rel="noreferrer"
-                >
-                    Support us
-                </a>{' '}
-                and we'll be forever grateful ❤️
-            </span>
-        );
-    } else if (hasTrial) {
+    if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.workspace_for_project?.trial_end_date
-        ).format('MM/DD/YY')}. `;
+        ).format(
+            'MM/DD/YY'
+        )}. After this trial, you will be on the free tier. `;
 
         if (canExtend) {
             if (integrated) {
@@ -198,7 +195,7 @@ const FreePlanBanner = () => {
                         >
                             Fill this out
                         </Link>{' '}
-                        before your trial ends to extend this by 4 months!
+                        before your trial ends to extend this by 1 month!
                     </>
                 );
             } else {
@@ -215,7 +212,7 @@ const FreePlanBanner = () => {
                         >
                             Integrate
                         </Link>{' '}
-                        before your trial ends to extend this by 4 months!
+                        before your trial ends to extend this by 1 month!
                     </>
                 );
             }
@@ -225,40 +222,34 @@ const FreePlanBanner = () => {
     toggleShowBanner(true);
 
     return (
-        <div
-            className={classNames(styles.trialWrapper, {
-                [styles.productHunt]: showProductHuntBanner,
-            })}
-        >
+        <div className={styles.trialWrapper}>
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
-                {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
-                    !canExtend && (
-                        <>
-                            {' '}
-                            Upgrade{' '}
-                            <Link
-                                className={styles.trialLink}
-                                to={`/w/${data?.workspace_for_project?.id}/billing`}
-                            >
-                                here!
-                            </Link>
-                        </>
-                    )}
-            </div>
-            {data?.billingDetailsForProject?.plan.type === PlanType.Free &&
-                hasTrial && (
-                    <button
-                        onClick={() => {
-                            H.track('TemporarilyHideFreePlanBanner', {
-                                hasTrial,
-                            });
-                            setTemporarilyHideBanner(true);
-                        }}
-                    >
-                        <SvgXIcon />
-                    </button>
+                {!canExtend && (
+                    <>
+                        {' '}
+                        Upgrade{' '}
+                        <Link
+                            className={styles.trialLink}
+                            to={`/w/${data?.workspace_for_project?.id}/billing`}
+                        >
+                            here!
+                        </Link>
+                    </>
                 )}
+            </div>
+            {hasTrial && (
+                <button
+                    onClick={() => {
+                        H.track('TemporarilyHideFreePlanBanner', {
+                            hasTrial,
+                        });
+                        setTemporarilyHideBanner(true);
+                    }}
+                >
+                    <SvgXIcon />
+                </button>
+            )}
         </div>
     );
 };
@@ -282,6 +273,7 @@ const OnPremiseBanner = () => {
     );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DemoWorkspaceBanner = () => {
     const { currentProject, allProjects } = useApplicationContext();
     const { pathname } = useLocation();
@@ -303,6 +295,36 @@ const DemoWorkspaceBanner = () => {
                 <Link className={styles.demoLink} to={redirectLink}>
                     Go back to your project.
                 </Link>
+            </div>
+        </div>
+    );
+};
+
+const ProductHuntBanner = () => {
+    const { toggleShowBanner } = useGlobalContext();
+
+    toggleShowBanner(true);
+
+    const bannerMessage = (
+        <span>
+            Highlight has been nominated for “Best Developer Tool of the Year”
+            by Product Hunt. Vote for us{' '}
+            <a
+                target="_blank"
+                href="https://www.producthunt.com/golden-kitty-awards-2021/developer-tool"
+                className={styles.trialLink}
+                rel="noreferrer"
+            >
+                here
+            </a>
+            !
+        </span>
+    );
+
+    return (
+        <div className={classNames(styles.trialWrapper, styles.productHunt)}>
+            <div className={classNames(styles.trialTimeText)}>
+                {bannerMessage}
             </div>
         </div>
     );

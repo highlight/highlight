@@ -10,4 +10,5 @@ export const EmptyErrorsSearchParams: Complete<ErrorSearchParams> = {
     os: undefined,
     visited_url: undefined,
     type: undefined,
+    query: undefined,
 };

@@ -11,6 +11,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -78,6 +79,14 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 
 	session.FirstTime = firstTime
 	session.Identifier = userIdentifier
+
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, map[string]interface{}{
+		"user_properties": session.UserProperties,
+		"first_time":      session.FirstTime,
+		"identifier":      session.Identifier,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
@@ -182,9 +191,9 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool) (*int, error) {
 	r.PushPayloadWorkerPool.SubmitRecover(func() {
-		r.processPayload(ctx, sessionID, events, messages, resources, errors)
+		r.processPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon)
 	})
 	return &sessionID, nil
 }

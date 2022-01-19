@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -44,6 +46,7 @@ var (
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
+	SendGridOutboundEmail                 = "gm@runhighlight.com"
 )
 
 type Resolver struct {
@@ -165,41 +168,44 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, e.Wrap(err, "500: error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin")
+		return nil, e.New("500: error querying admin")
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for invite Link")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.New("404: Invite not found")
+		}
+		return nil, e.Wrap(err, "500: error querying for invite Link")
 	}
 
 	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
 		if *inviteLink.InviteeEmail != *admin.Email {
-			return nil, e.New("This invite is not valid for the admin.")
+			return nil, e.New("403: This invite is not valid for the admin.")
 		}
 	}
 
 	if r.IsInviteLinkExpired(inviteLink) {
 		if err := r.DB.Delete(inviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while trying to delete expired invite link")
+			return nil, e.Wrap(err, "500: error while trying to delete expired invite link")
 		}
-		return nil, e.New("This invite link has expired.")
+		return nil, e.New("405: This invite link has expired.")
 	}
 
 	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
-		return nil, e.Wrap(err, "error adding admin to association")
+		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
 
 	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
 	// Non-admin specific invites are multi-use and only have an expiration date.
 	if inviteLink.InviteeEmail != nil {
 		if err := r.DB.Delete(inviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while trying to delete used invite link")
+			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
 	return &workspaceId, nil
@@ -349,6 +355,7 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	}
 	modelParams.Environments = append(modelParams.Environments, params.Environments...)
 	modelParams.AppVersions = append(modelParams.AppVersions, params.AppVersions...)
+	modelParams.Query = params.Query
 	return modelParams
 }
 
@@ -359,6 +366,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 		OS:         params.Os,
 		VisitedURL: params.VisitedURL,
 		Event:      params.Event,
+		Query:      params.Query,
 	}
 	if params.State != nil {
 		modelParams.State = params.State
@@ -612,7 +620,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
@@ -843,7 +851,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(SendAdminInviteEmailTemplateID)
 
@@ -1084,10 +1092,11 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 	}
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string, shouldExpire bool) *model.WorkspaceInviteLink {
 	// Unit is days.
-	EXPIRATION_DATE := 7
+	EXPIRATION_DATE := 30
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
+
 	secret, _ := r.GenerateRandomStringURLSafe(16)
 
 	newInviteLink := &model.WorkspaceInviteLink{
@@ -1098,12 +1107,20 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string)
 		Secret:         &secret,
 	}
 
+	if !shouldExpire {
+		newInviteLink.ExpirationDate = nil
+	}
+
 	return newInviteLink
 }
 
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
-	if inviteLink == nil || inviteLink.ExpirationDate == nil {
+	if inviteLink == nil {
 		return true
+	}
+	// Links without an ExpirationDate never expire.
+	if inviteLink.ExpirationDate == nil {
+		return false
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }
@@ -1131,7 +1148,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID}).Offset(offset).Find(&eventObjs).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()

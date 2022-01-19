@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import commonStyles from '../../Common.module.scss';
 import {
     useGetCommentTagsForProjectQuery,
+    useGetProjectAdminsLazyQuery,
     useSendEmailSignupMutation,
 } from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
@@ -15,6 +16,10 @@ export const Buttons = () => {
     if (hasError) {
         throw new Error('got an error');
     }
+    const [getProjectAdmins] = useGetProjectAdminsLazyQuery({
+        variables: { project_id: '1' },
+        fetchPolicy: 'network-only',
+    });
     const [showBadComponent, setShowBadComponent] = useState(false);
     const {} = useGetCommentTagsForProjectQuery({
         variables: { project_id: '1' },
@@ -22,6 +27,10 @@ export const Buttons = () => {
 
     return (
         <div className={styles.buttonBody}>
+            <iframe
+                title="Introducing Superhuman"
+                src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
+            ></iframe>
             <div>
                 <button
                     onClick={() => {
@@ -103,6 +112,14 @@ export const Buttons = () => {
                     }}
                 >
                     Track
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        getProjectAdmins();
+                    }}
+                >
+                    Private Graph Request
                 </button>
             </div>
 

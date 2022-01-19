@@ -4,6 +4,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import { getQueryFromParams } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -65,6 +66,11 @@ const SegmentPickerForErrors = () => {
             const segmentParameters = gqlSanitize({
                 ...currentSegment?.params,
             });
+            if (!segmentParameters.query) {
+                segmentParameters.query = JSON.stringify(
+                    getQueryFromParams(segmentParameters)
+                );
+            }
             setExistingParams(segmentParameters);
             setSearchParams(segmentParameters);
             setSegmentName(currentSegment?.name || null);

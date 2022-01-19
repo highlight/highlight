@@ -13,6 +13,7 @@
 .optionLabelType {
     background: var(--color-gray-300);
     border-radius: 3px;
+    color: var(--text-primary) !important;
     margin-right: 6px;
     padding-left: 4px;
     padding-right: 4px;
@@ -24,6 +25,7 @@
 }
 
 .optionLabelName {
+    color: var(--text-primary) !important;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -37,6 +39,7 @@
 }
 
 .optionTooltip {
+    color: var(--text-primary) !important;
     margin-left: 4px;
 }
 
@@ -65,31 +68,52 @@
     justify-content: center;
     padding: 3px;
     width: 32px;
+
+    &[disabled] {
+        background: none;
+        color: var(--color-gray-800) !important;
+    }
+
     &:hover {
-        background-color: var(--color-purple-100) !important;
+        background: none !important;
+        &:not([disabled]) {
+            background-color: var(--color-purple-100) !important;
+        }
+    }
+}
+
+span:first-child {
+    .ruleItem {
+        border-bottom-left-radius: 3px;
+        border-top-left-radius: 3px;
+    }
+}
+
+span:last-child {
+    .ruleItem {
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
     }
 }
 
 .ruleItem {
-    background-color: var(--color-purple-400) !important;
+    background-color: var(--color-gray-300) !important;
     border: 0 !important;
     border-radius: 0;
-    color: var(--color-primary-background) !important;
+    color: var(--color-gray-800) !important;
     font-size: 12px;
     padding: 3px 6px;
 
+    &[disabled] {
+        background-color: var(--color-gray-300) !important;
+        color: var(--color-gray-800) !important;
+    }
+
     &:hover {
-        background-color: var(--color-purple-600) !important;
-    }
-
-    &:first-child {
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
-    }
-
-    &:last-child {
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
+        background-color: var(--color-gray-300) !important;
+        &:not([disabled]) {
+            opacity: 0.8;
+        }
     }
 
     &.invalid {
@@ -105,6 +129,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.removeRule {
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
 .ruleContainer {
@@ -140,7 +169,7 @@
 .contentContainer {
     display: flex;
     flex-direction: column;
-    max-width: 300px;
+    max-width: 50vw;
     min-width: 150px;
     padding-bottom: 0;
     row-gap: var(--size-medium);

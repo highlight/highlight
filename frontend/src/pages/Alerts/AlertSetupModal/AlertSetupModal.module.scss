@@ -82,11 +82,17 @@
 
 .notFoundMessage {
     padding: var(--size-small) 0;
+
+    &.withSlackButton {
+        padding-bottom: 0;
+        padding-top: 0;
+    }
 }
 
 .addContainer {
     color: var(--color-gray-500);
-    padding: var(--size-small);
+    padding: 0 var(--size-small);
+    padding-bottom: var(--size-xxSmall);
 }
 
 .integrationAlert {
