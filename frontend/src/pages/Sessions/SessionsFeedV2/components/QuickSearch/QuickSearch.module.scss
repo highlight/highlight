@@ -78,7 +78,6 @@
 }
 
 .backdrop {
-    //     background: var(--color-background-overlay);
     background: rgba(0, 0, 0, 0.5);
     left: calc(-1 * var(--sidebar-width));
     min-height: 100vh;
