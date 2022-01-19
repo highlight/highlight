@@ -82,6 +82,20 @@
     }
 }
 
+span:first-child {
+    .ruleItem {
+        border-bottom-left-radius: 3px;
+        border-top-left-radius: 3px;
+    }
+}
+
+span:last-child {
+    .ruleItem {
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+}
+
 .ruleItem {
     background-color: var(--color-gray-300) !important;
     border: 0 !important;
@@ -102,16 +116,6 @@
         }
     }
 
-    &:first-child {
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
-    }
-
-    &:last-child {
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
-    }
-
     &.invalid {
         background-color: var(--color-red-400) !important;
 
@@ -125,6 +129,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.removeRule {
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
 .ruleContainer {

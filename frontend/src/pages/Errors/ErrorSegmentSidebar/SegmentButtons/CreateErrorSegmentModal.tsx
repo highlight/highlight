@@ -1,3 +1,7 @@
+import {
+    queryBuilderEnabled,
+    useAuthContext,
+} from '@authentication/AuthContext';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
@@ -34,6 +38,9 @@ const CreateErrorSegmentModal = ({
         project_id: string;
         segment_id: string;
     }>();
+    const { isHighlightAdmin } = useAuthContext();
+    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
+
     const { searchParams, setExistingParams } = useErrorSearchContext();
     const history = useHistory();
 
@@ -81,9 +88,11 @@ const CreateErrorSegmentModal = ({
                         Creating a segment allows you to save search queries
                         that target a specific set of errors.
                     </p>
-                    <div className={styles.queryBuilderContainer}>
-                        <ErrorQueryBuilder readonly />
-                    </div>
+                    {isQueryBuilder && (
+                        <div className={styles.queryBuilderContainer}>
+                            <ErrorQueryBuilder readonly />
+                        </div>
+                    )}
                     <Input
                         name="name"
                         value={newSegmentName}

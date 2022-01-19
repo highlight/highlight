@@ -533,22 +533,24 @@ const SelectPopout = ({
                 mouseEnterDelay={1.5}
                 overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
             >
-                <Button
-                    trackingId={`SessionsQuerySelect`}
-                    className={classNames(styles.ruleItem, {
-                        [styles.invalid]: invalid && !visible,
-                    })}
-                    disabled={disabled}
-                >
-                    {invalid && '--'}
-                    {value?.kind === 'single' && getNameLabel(value.label)}
-                    {value?.kind === 'multi' &&
-                        value.options.length > 1 &&
-                        `${value.options.length} selections`}
-                    {value?.kind === 'multi' &&
-                        value.options.length === 1 &&
-                        value.options[0].label}
-                </Button>
+                <span>
+                    <Button
+                        trackingId={`SessionsQuerySelect`}
+                        className={classNames(styles.ruleItem, {
+                            [styles.invalid]: invalid && !visible,
+                        })}
+                        disabled={disabled}
+                    >
+                        {invalid && '--'}
+                        {value?.kind === 'single' && getNameLabel(value.label)}
+                        {value?.kind === 'multi' &&
+                            value.options.length > 1 &&
+                            `${value.options.length} selections`}
+                        {value?.kind === 'multi' &&
+                            value.options.length === 1 &&
+                            value.options[0].label}
+                    </Button>
+                </span>
             </Tooltip>
         </Popover>
     );
@@ -609,7 +611,7 @@ const QueryRule = ({
             {!readonly && (
                 <Button
                     trackingId="SessionsQueryRemoveRule"
-                    className={styles.ruleItem}
+                    className={classNames(styles.ruleItem, styles.removeRule)}
                     onClick={() => {
                         onRemove();
                     }}
@@ -1307,6 +1309,11 @@ const QueryBuilder = ({
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
     );
+
+    // Don't render anything if this is a readonly query builder and there are no rules
+    if (readonly && rules.length === 0) {
+        return null;
+    }
 
     return (
         <div className={styles.builderContainer}>
