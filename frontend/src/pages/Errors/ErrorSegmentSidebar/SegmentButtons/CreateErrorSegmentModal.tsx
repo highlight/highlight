@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
+import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -80,6 +81,9 @@ const CreateErrorSegmentModal = ({
                         Creating a segment allows you to save search queries
                         that target a specific set of errors.
                     </p>
+                    <div className={styles.queryBuilderContainer}>
+                        <ErrorQueryBuilder readonly />
+                    </div>
                     <Input
                         name="name"
                         value={newSegmentName}

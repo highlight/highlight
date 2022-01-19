@@ -112,7 +112,7 @@ export const getQueryFromParams = (
     };
 };
 
-const ErrorQueryBuilder = () => {
+const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
     const {
         setSearchQuery,
         searchParams,
@@ -132,6 +132,7 @@ const ErrorQueryBuilder = () => {
             getQueryFromParams={getQueryFromParams}
             searchParams={searchParams}
             setSearchParams={setSearchParams}
+            readonly={readonly}
         />
     );
 };

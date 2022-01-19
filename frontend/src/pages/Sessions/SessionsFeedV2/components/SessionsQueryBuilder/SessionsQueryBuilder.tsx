@@ -183,7 +183,7 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     };
 };
 
-const SessionsQueryBuilder = () => {
+const SessionsQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
     const {
         setSearchQuery,
         searchParams,
@@ -211,6 +211,7 @@ const SessionsQueryBuilder = () => {
             getQueryFromParams={getQueryFromParams}
             searchParams={searchParams}
             setSearchParams={setSearchParams}
+            readonly={readonly}
         />
     );
 };

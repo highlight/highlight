@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
+import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -87,6 +88,9 @@ const CreateSegmentModal = ({
                         Creating a segment allows you to save search queries
                         that target a specific set of sessions.
                     </p>
+                    <div className={styles.queryBuilderContainer}>
+                        <SessionsQueryBuilder readonly />
+                    </div>
                     <Input
                         name="name"
                         value={name}

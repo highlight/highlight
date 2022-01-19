@@ -6,7 +6,6 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -48,7 +47,7 @@ type OnChangeInput = SelectOption | MultiselectOption | undefined;
 type OnChange = (val: OnChangeInput) => void;
 type LoadOptions = (input: string, callback: any) => Promise<any>;
 
-interface RuleFuncs {
+interface RuleSettings {
     onChangeKey: OnChange;
     getKeyOptions: LoadOptions;
     onChangeOperator: OnChange;
@@ -56,6 +55,7 @@ interface RuleFuncs {
     onChangeValue: OnChange;
     getValueOptions: LoadOptions;
     onRemove: () => void;
+    readonly: boolean;
 }
 
 type PopoutType =
@@ -64,11 +64,15 @@ type PopoutType =
     | 'creatable'
     | 'date_range'
     | 'range';
-interface PopoutProps {
+interface PopoutContentProps {
     type: PopoutType;
     value: OnChangeInput;
     onChange: OnChange;
     loadOptions: LoadOptions;
+}
+
+interface PopoutProps {
+    disabled: boolean;
 }
 
 interface SetVisible {
@@ -267,7 +271,7 @@ const PopoutContent = ({
     setVisible,
     type,
     ...props
-}: PopoutProps & SetVisible & OptionTypeBase) => {
+}: PopoutContentProps & SetVisible & OptionTypeBase) => {
     switch (type) {
         case 'select':
             return (
@@ -485,7 +489,11 @@ const PopoutContent = ({
     }
 };
 
-const SelectPopout = ({ value, ...props }: PopoutProps) => {
+const SelectPopout = ({
+    value,
+    disabled,
+    ...props
+}: PopoutProps & PopoutContentProps) => {
     // Visible by default if no value yet
     const [visible, setVisible] = useState(!value);
     const onSetVisible = (val: boolean) => {
@@ -530,6 +538,7 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                     className={classNames(styles.ruleItem, {
                         [styles.invalid]: invalid && !visible,
                     })}
+                    disabled={disabled}
                 >
                     {invalid && '--'}
                     {value?.kind === 'single' && getNameLabel(value.label)}
@@ -570,7 +579,8 @@ const QueryRule = ({
     onChangeValue,
     getValueOptions,
     onRemove,
-}: { rule: RuleProps } & RuleFuncs) => {
+    readonly,
+}: { rule: RuleProps } & RuleSettings) => {
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -578,12 +588,14 @@ const QueryRule = ({
                 onChange={onChangeKey}
                 loadOptions={getKeyOptions}
                 type="select"
+                disabled={readonly}
             />
             <SelectPopout
                 value={getOperator(rule.op, rule.val)}
                 onChange={onChangeOperator}
                 loadOptions={getOperatorOptions}
                 type="select"
+                disabled={readonly}
             />
             {!!rule.op && hasArguments(rule.op) && (
                 <SelectPopout
@@ -591,17 +603,20 @@ const QueryRule = ({
                     onChange={onChangeValue}
                     loadOptions={getValueOptions}
                     type={getPopoutType(rule.op)}
+                    disabled={readonly}
                 />
             )}
-            <Button
-                trackingId="SessionsQueryRemoveRule"
-                className={styles.ruleItem}
-                onClick={() => {
-                    onRemove();
-                }}
-            >
-                <SvgXIcon />
-            </Button>
+            {!readonly && (
+                <Button
+                    trackingId="SessionsQueryRemoveRule"
+                    className={styles.ruleItem}
+                    onClick={() => {
+                        onRemove();
+                    }}
+                >
+                    <SvgXIcon />
+                </Button>
+            )}
         </div>
     );
 };
@@ -905,6 +920,7 @@ interface QueryBuilderProps {
     getQueryFromParams: (params: any) => QueryBuilderState;
     searchParams: any;
     setSearchParams: React.Dispatch<React.SetStateAction<any>>;
+    readonly?: boolean;
 }
 
 const QueryBuilder = ({
@@ -915,6 +931,7 @@ const QueryBuilder = ({
     getQueryFromParams,
     searchParams,
     setSearchParams,
+    readonly,
 }: QueryBuilderProps) => {
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
@@ -1238,13 +1255,17 @@ const QueryBuilder = ({
     }, [searchParams.query, toggleIsAnd, qbState]);
 
     useEffect(() => {
+        // Only update the external state if not readonly
+        if (readonly) {
+            return;
+        }
+
         // If search params are updated and no query exists,
         // build it from the other params for backwards compatibility.
         if (searchParams.query === undefined) {
             const newState = getQueryFromParams(searchParams);
             const newQuery = JSON.stringify(newState);
             setSearchParams({
-                ...EmptySessionsSearchParams,
                 query: newQuery,
             });
             return;
@@ -1280,6 +1301,7 @@ const QueryBuilder = ({
         searchParams,
         setSearchParams,
         setSearchQuery,
+        readonly,
     ]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
@@ -1299,6 +1321,7 @@ const QueryBuilder = ({
                                       onClick={toggleIsAnd}
                                       key={`separator-${index}`}
                                       type="dashed"
+                                      disabled={readonly}
                                   >
                                       {isAnd ? 'and' : 'or'}
                                   </Button>,
@@ -1335,113 +1358,118 @@ const QueryBuilder = ({
                                 rule.field
                             )}
                             onRemove={() => removeRule(index)}
+                            readonly={readonly ?? false}
                         />,
                     ])}
                 </div>
             )}
-            <div>
-                <Popover
-                    trigger="click"
-                    content={
-                        currentRule?.field === undefined ? (
-                            <PopoutContent
-                                key={'popover-step-1'}
-                                value={undefined}
-                                setVisible={() => {
-                                    setCurrentStep(undefined);
-                                }}
-                                onChange={(val) => {
-                                    const field = val as
-                                        | SelectOption
-                                        | undefined;
-                                    addRule({
-                                        field: field,
-                                        op: undefined,
-                                        val: undefined,
-                                    });
-                                }}
-                                loadOptions={getKeyOptions}
-                                type="select"
-                                placeholder="Filter..."
-                            />
-                        ) : currentRule?.op === undefined ? (
-                            <PopoutContent
-                                key={'popover-step-2'}
-                                value={undefined}
-                                setVisible={() => {
-                                    setCurrentStep(3);
-                                }}
-                                onChange={(val) => {
-                                    const op = (val as SelectOption)
-                                        .value as Operator;
-                                    if (!hasArguments(op)) {
+            {!readonly && (
+                <div>
+                    <Popover
+                        trigger="click"
+                        content={
+                            currentRule?.field === undefined ? (
+                                <PopoutContent
+                                    key={'popover-step-1'}
+                                    value={undefined}
+                                    setVisible={() => {
                                         setCurrentStep(undefined);
+                                    }}
+                                    onChange={(val) => {
+                                        const field = val as
+                                            | SelectOption
+                                            | undefined;
+                                        addRule({
+                                            field: field,
+                                            op: undefined,
+                                            val: undefined,
+                                        });
+                                    }}
+                                    loadOptions={getKeyOptions}
+                                    type="select"
+                                    placeholder="Filter..."
+                                />
+                            ) : currentRule?.op === undefined ? (
+                                <PopoutContent
+                                    key={'popover-step-2'}
+                                    value={undefined}
+                                    setVisible={() => {
+                                        setCurrentStep(3);
+                                    }}
+                                    onChange={(val) => {
+                                        const op = (val as SelectOption)
+                                            .value as Operator;
+                                        if (!hasArguments(op)) {
+                                            setCurrentStep(undefined);
+                                            addRule({
+                                                ...currentRule,
+                                                op,
+                                            });
+                                        } else {
+                                            setCurrentRule({
+                                                ...currentRule,
+                                                op,
+                                            });
+                                        }
+                                    }}
+                                    loadOptions={getOperatorOptionsCallback(
+                                        getCustomFieldOptions(
+                                            currentRule.field
+                                        ),
+                                        currentRule.val
+                                    )}
+                                    type="select"
+                                    placeholder="Select..."
+                                />
+                            ) : (
+                                <PopoutContent
+                                    key={'popover-step-3'}
+                                    value={undefined}
+                                    setVisible={() => {
+                                        setCurrentStep(undefined);
+                                    }}
+                                    onChange={(val) => {
                                         addRule({
                                             ...currentRule,
-                                            op,
+                                            val: val as
+                                                | MultiselectOption
+                                                | undefined,
                                         });
-                                    } else {
-                                        setCurrentRule({
-                                            ...currentRule,
-                                            op,
-                                        });
-                                    }
-                                }}
-                                loadOptions={getOperatorOptionsCallback(
-                                    getCustomFieldOptions(currentRule.field),
-                                    currentRule.val
-                                )}
-                                type="select"
-                                placeholder="Select..."
-                            />
-                        ) : (
-                            <PopoutContent
-                                key={'popover-step-3'}
-                                value={undefined}
-                                setVisible={() => {
-                                    setCurrentStep(undefined);
-                                }}
-                                onChange={(val) => {
-                                    addRule({
-                                        ...currentRule,
-                                        val: val as
-                                            | MultiselectOption
-                                            | undefined,
-                                    });
-                                }}
-                                loadOptions={getValueOptionsCallback(
-                                    currentRule.field
-                                )}
-                                type={getPopoutType(currentRule.op)}
-                                placeholder={`Select...`}
-                            />
-                        )
-                    }
-                    placement="bottomLeft"
-                    contentContainerClassName={styles.contentContainer}
-                    popoverClassName={styles.popoverContainer}
-                    destroyTooltipOnHide
-                    onVisibleChange={(isVisible) => {
-                        if (!isVisible) {
-                            setCurrentStep(undefined);
+                                    }}
+                                    loadOptions={getValueOptionsCallback(
+                                        currentRule.field
+                                    )}
+                                    type={getPopoutType(currentRule.op)}
+                                    placeholder={`Select...`}
+                                />
+                            )
                         }
-                    }}
-                    visible={
-                        currentStep === 1 ||
-                        (currentStep === 2 && !!currentRule?.field) ||
-                        (currentStep === 3 && !!currentRule?.op)
-                    }
-                >
-                    <Button
-                        className={styles.addFilter}
-                        trackingId="SessionsQueryAddRule2"
-                        onClick={newRule}
-                        type="dashed"
+                        placement="bottomLeft"
+                        contentContainerClassName={styles.contentContainer}
+                        popoverClassName={styles.popoverContainer}
+                        destroyTooltipOnHide
+                        onVisibleChange={(isVisible) => {
+                            if (!isVisible) {
+                                setCurrentStep(undefined);
+                            }
+                        }}
+                        visible={
+                            currentStep === 1 ||
+                            (currentStep === 2 && !!currentRule?.field) ||
+                            (currentStep === 3 && !!currentRule?.op)
+                        }
                     >
-                        + Filter
-                    </Button>
-                </Popover>
-            </div>
+                        <Button
+                            className={styles.addFilter}
+                            trackingId="SessionsQueryAddRule2"
+                            onClick={newRule}
+                            type="dashed"
+                        >
+                            + Filter
+                        </Button>
+                    </Popover>
+                </div>
+            )}
         </div>
     );
 };
