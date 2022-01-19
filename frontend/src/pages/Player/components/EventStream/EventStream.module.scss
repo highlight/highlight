@@ -72,4 +72,7 @@
     flex-direction: column;
     flex-grow: 1;
     justify-content: center;
+    overflow-wrap: anywhere;
+    padding: 0 var(--size-medium);
+    text-align: center;
 }
