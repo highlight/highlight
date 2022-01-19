@@ -2,6 +2,7 @@ export const antDropdownMenu: string;
 export const antDropdownMenuItem: string;
 export const antDropdownMenuSubmenuTitle: string;
 export const antMessageNoticeContent: string;
+export const antModalMask: string;
 export const antSelectItem: string;
 export const antSelectItemOptionActive: string;
 export const antSelectItemOptionDisabled: string;

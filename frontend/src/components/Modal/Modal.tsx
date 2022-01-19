@@ -50,6 +50,7 @@ const Modal: React.FC<Props> = ({
                 !minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
             }
             className={classNames(styles.modal, className)}
+            wrapClassName={styles.modalWrap}
             closable={!minimal}
             bodyStyle={bodyStyle}
             maskClosable

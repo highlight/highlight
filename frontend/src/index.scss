@@ -413,3 +413,7 @@ strong {
         transform: scale(0.95);
     }
 }
+
+.ant-modal-mask {
+    z-index: 99999999 !important;
+}
