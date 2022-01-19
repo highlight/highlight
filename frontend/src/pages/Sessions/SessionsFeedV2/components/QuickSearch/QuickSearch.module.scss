@@ -94,3 +94,24 @@
         opacity: 1;
     }
 }
+
+.dropdownIndicator {
+    left: 0;
+    position: absolute;
+    top: var(--size-xSmall);
+    z-index: 999999999999;
+
+    &.spinner {
+        top: 6px;
+    }
+}
+
+.container {
+    position: relative;
+    width: 100%;
+}
+
+.dropdownPlaceholder {
+    height: 20px;
+    width: 20px;
+}

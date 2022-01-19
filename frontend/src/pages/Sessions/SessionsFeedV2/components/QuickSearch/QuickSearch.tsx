@@ -7,7 +7,8 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { useParams } from '@util/react-router/useParams';
 import { Spin } from 'antd';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import _ from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -54,6 +55,10 @@ const styleProps: Styles<any, false> = {
             display: 'none',
         },
     }),
+    input: (provided) => ({
+        ...provided,
+        lineHeight: 'normal',
+    }),
     control: (provided) => ({
         ...provided,
         border: '1px solid var(--color-gray-300)',
@@ -94,6 +99,7 @@ const styleProps: Styles<any, false> = {
     placeholder: (provided) => ({
         ...provided,
         color: 'var(--color-gray-500) !important',
+        top: '53%',
     }),
 };
 
@@ -104,6 +110,7 @@ const QuickSearch = () => {
     }>();
     const [query, setQuery] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const {
         setSearchParams,
         setExistingParams,
@@ -147,8 +154,8 @@ const QuickSearch = () => {
         );
     };
 
-    const getValueOptions = async (input: string) => {
-        return await refetch({
+    const getValueOptions = (input: string, callback: any) => {
+        refetch({
             project_id,
             count: RESULT_COUNT,
             query: input,
@@ -192,7 +199,8 @@ const QuickSearch = () => {
                 options: errorOptions.slice(0, shownErrors),
             });
 
-            return suggestions;
+            setIsTyping(false);
+            callback(suggestions);
         });
     };
 
@@ -219,12 +227,19 @@ const QuickSearch = () => {
         }
     };
 
+    // Ignore this so we have a consistent reference so debounce works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 300), []);
+
+    const isLoading = loading || isTyping;
+
     return (
-        <>
+        <div className={styles.container}>
+            <DropdownIndicator isLoading={isLoading} />
             <AsyncSelect
-                loadOptions={getValueOptions}
+                loadOptions={loadOptions}
                 styles={styleProps}
-                isLoading={loading}
+                isLoading={isLoading}
                 isClearable={false}
                 value={null}
                 escapeClearsValue={true}
@@ -248,22 +263,12 @@ const QuickSearch = () => {
                     } else {
                         setQuery('');
                     }
+                    setIsTyping(newValue !== '');
                 }}
                 components={{
-                    DropdownIndicator: () =>
-                        loading ? (
-                            <div className={styles.loadingIconContainer}>
-                                <Spin
-                                    indicator={
-                                        <LoadingOutlined
-                                            className={styles.loadingIcon}
-                                        />
-                                    }
-                                />
-                            </div>
-                        ) : (
-                            <SvgSearchIcon className={styles.searchIcon} />
-                        ),
+                    DropdownIndicator: () => (
+                        <div className={styles.dropdownPlaceholder}></div>
+                    ),
                     IndicatorSeparator: () => null,
                     Option: getOption,
                     GroupHeading: (props) => {
@@ -288,8 +293,35 @@ const QuickSearch = () => {
                     [styles.visible]: isMenuOpen,
                 })}
             ></div>
-        </>
+        </div>
     );
 };
 
 export default QuickSearch;
+
+const DropdownIndicator = React.memo(
+    ({ isLoading }: { isLoading: boolean }) => {
+        return isLoading ? (
+            <div
+                className={classNames(
+                    styles.loadingIconContainer,
+                    styles.dropdownIndicator,
+                    styles.spinner
+                )}
+            >
+                <Spin
+                    indicator={
+                        <LoadingOutlined className={styles.loadingIcon} />
+                    }
+                />
+            </div>
+        ) : (
+            <SvgSearchIcon
+                className={classNames(
+                    styles.searchIcon,
+                    styles.dropdownIndicator
+                )}
+            />
+        );
+    }
+);
