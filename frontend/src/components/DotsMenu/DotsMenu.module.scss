@@ -25,6 +25,7 @@
 }
 
 .dropdown {
+    z-index: 9999999999999 !important;
     :global(.ant-dropdown-menu-item) {
         align-items: center;
         column-gap: var(--size-small);
