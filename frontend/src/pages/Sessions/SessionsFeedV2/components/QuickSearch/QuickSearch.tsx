@@ -1,10 +1,14 @@
+import { LoadingOutlined } from '@ant-design/icons';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
-import React, { useState } from 'react';
+import { Spin } from 'antd';
+import classNames from 'classnames';
+import _ from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -51,6 +55,10 @@ const styleProps: Styles<any, false> = {
             display: 'none',
         },
     }),
+    input: (provided) => ({
+        ...provided,
+        lineHeight: 'normal',
+    }),
     control: (provided) => ({
         ...provided,
         border: '1px solid var(--color-gray-300)',
@@ -91,6 +99,7 @@ const styleProps: Styles<any, false> = {
     placeholder: (provided) => ({
         ...provided,
         color: 'var(--color-gray-500) !important',
+        top: '53%',
     }),
 };
 
@@ -100,6 +109,8 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const {
         setSearchParams,
         setExistingParams,
@@ -143,8 +154,8 @@ const QuickSearch = () => {
         );
     };
 
-    const getValueOptions = async (input: string) => {
-        return await refetch({
+    const getValueOptions = (input: string, callback: any) => {
+        refetch({
             project_id,
             count: RESULT_COUNT,
             query: input,
@@ -188,7 +199,8 @@ const QuickSearch = () => {
                 options: errorOptions.slice(0, shownErrors),
             });
 
-            return suggestions;
+            setIsTyping(false);
+            callback(suggestions);
         });
     };
 
@@ -215,53 +227,101 @@ const QuickSearch = () => {
         }
     };
 
-    // const isLoading = loading && !!query;
+    // Ignore this so we have a consistent reference so debounce works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 300), []);
+
+    const isLoading = loading || isTyping;
 
     return (
-        <AsyncSelect
-            loadOptions={getValueOptions}
-            styles={styleProps}
-            isLoading={loading}
-            isClearable={false}
-            value={null}
-            escapeClearsValue={true}
-            onChange={onChange}
-            className={styles.select}
-            noOptionsMessage={({ inputValue }) =>
-                !inputValue ? null : `No results for "${inputValue}"`
-            }
-            placeholder="Search for a property..."
-            onInputChange={(newValue, actionMeta) => {
-                if (actionMeta?.action === 'input-change') {
-                    setQuery(newValue);
-                } else {
-                    setQuery('');
+        <div className={styles.container}>
+            <DropdownIndicator isLoading={isLoading} />
+            <AsyncSelect
+                loadOptions={loadOptions}
+                styles={styleProps}
+                isLoading={isLoading}
+                isClearable={false}
+                value={null}
+                escapeClearsValue={true}
+                onChange={onChange}
+                className={classNames(styles.select, {
+                    [styles.menuIsOpen]: isMenuOpen,
+                })}
+                onMenuOpen={() => {
+                    setIsMenuOpen(true);
+                }}
+                onMenuClose={() => {
+                    setIsMenuOpen(false);
+                }}
+                noOptionsMessage={({ inputValue }) =>
+                    !inputValue ? null : `No results for "${inputValue}"`
                 }
-            }}
-            components={{
-                DropdownIndicator: () =>
-                    loading ? (
-                        <></>
-                    ) : (
-                        <SvgSearchIcon className={styles.searchIcon} />
+                placeholder="Search for a property..."
+                onInputChange={(newValue, actionMeta) => {
+                    if (actionMeta?.action === 'input-change') {
+                        setQuery(newValue);
+                    } else {
+                        setQuery('');
+                    }
+                    setIsTyping(newValue !== '');
+                }}
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={styles.dropdownPlaceholder}></div>
                     ),
-                IndicatorSeparator: () => null,
-                Option: getOption,
-                GroupHeading: (props) => {
-                    return (
-                        <components.GroupHeading {...props}>
-                            <span className={styles.groupHeading}>
-                                {props.children}
-                            </span>
-                        </components.GroupHeading>
-                    );
-                },
-            }}
-            isSearchable
-            defaultOptions
-            maxMenuHeight={500}
-        />
+                    IndicatorSeparator: () => null,
+                    Option: getOption,
+                    GroupHeading: (props) => {
+                        return (
+                            <components.GroupHeading {...props}>
+                                <span className={styles.groupHeading}>
+                                    {props.children}
+                                </span>
+                            </components.GroupHeading>
+                        );
+                    },
+                    LoadingIndicator: () => {
+                        return <></>;
+                    },
+                }}
+                isSearchable
+                defaultOptions
+                maxMenuHeight={500}
+            />
+            <div
+                className={classNames(styles.backdrop, {
+                    [styles.visible]: isMenuOpen,
+                })}
+            ></div>
+        </div>
     );
 };
 
 export default QuickSearch;
+
+const DropdownIndicator = React.memo(
+    ({ isLoading }: { isLoading: boolean }) => {
+        return isLoading ? (
+            <div
+                className={classNames(
+                    styles.loadingIconContainer,
+                    styles.dropdownIndicator,
+                    styles.spinner
+                )}
+            >
+                <Spin
+                    indicator={
+                        <LoadingOutlined className={styles.loadingIcon} />
+                    }
+                />
+            </div>
+        ) : (
+            <SvgSearchIcon
+                className={classNames(
+                    styles.searchIcon,
+                    styles.dropdownIndicator
+                )}
+            />
+        );
+    }
+);

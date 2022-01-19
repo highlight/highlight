@@ -7,7 +7,7 @@
     margin-left: var(--sidebar-width);
     position: fixed;
     width: calc(100% - var(--sidebar-width));
-    z-index: 100;
+    z-index: 99999999;
 
     &.guest {
         width: 100%;
@@ -126,7 +126,7 @@
 .quicksearchWrapper {
     align-items: center;
     display: flex;
-    flex: 0 1 360px;
+    flex: 0 1 468px;
     margin: auto;
 }
 
