@@ -435,6 +435,8 @@ const getFilteredEvents = (
                             .toLowerCase()
                             .includes(searchToken);
                     });
+                case 'Web Vitals':
+                    return eventTypeFilters.showWebVitals;
                 default:
                     return event.data.tag
                         .toLocaleLowerCase()

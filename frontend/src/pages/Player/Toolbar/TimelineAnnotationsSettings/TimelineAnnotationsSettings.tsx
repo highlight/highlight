@@ -15,7 +15,10 @@ type EventTypesKeys = {
     [key in EventsForTimelineKeys[number]]: string | React.ReactNode;
 };
 
-export const EventTypeDescriptions: Omit<EventTypesKeys, 'Web Vitals'> = {
+export const EventTypeDescriptions: Omit<
+    EventTypesKeys,
+    'Web Vitals' | 'Referrer'
+> = {
     Segment: (
         <span>
             The client-side segment installation fired a track or identify
