@@ -17,6 +17,16 @@
     width: var(--size-medium);
 }
 
+.loadingIcon {
+    color: var(--color-gray-400);
+}
+
+.loadingIconContainer {
+    height: 20px;
+    margin-left: var(--size-xSmall);
+    width: 20px;
+}
+
 .typeIcon {
     align-self: center;
     color: var(--color-gray-600);

@@ -1,9 +1,11 @@
+import { LoadingOutlined } from '@ant-design/icons';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { useParams } from '@util/react-router/useParams';
+import { Spin } from 'antd';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -217,8 +219,6 @@ const QuickSearch = () => {
         }
     };
 
-    // const isLoading = loading && !!query;
-
     return (
         <>
             <AsyncSelect
@@ -252,7 +252,15 @@ const QuickSearch = () => {
                 components={{
                     DropdownIndicator: () =>
                         loading ? (
-                            <></>
+                            <div className={styles.loadingIconContainer}>
+                                <Spin
+                                    indicator={
+                                        <LoadingOutlined
+                                            className={styles.loadingIcon}
+                                        />
+                                    }
+                                />
+                            </div>
                         ) : (
                             <SvgSearchIcon className={styles.searchIcon} />
                         ),
@@ -266,6 +274,9 @@ const QuickSearch = () => {
                                 </span>
                             </components.GroupHeading>
                         );
+                    },
+                    LoadingIndicator: () => {
+                        return <></>;
                     },
                 }}
                 isSearchable
