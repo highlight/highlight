@@ -1,3 +1,4 @@
+import MenuItem from '@components/Menu/MenuItem';
 import { namedOperations } from '@graph/operations';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
@@ -244,7 +245,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
 
     const moreMenu = (
         <Menu>
-            <Menu.Item
+            <MenuItem
                 onClick={() => {
                     deleteSessionComment({
                         variables: {
@@ -254,7 +255,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
                 }}
             >
                 Delete comment
-            </Menu.Item>
+            </MenuItem>
         </Menu>
     );
 

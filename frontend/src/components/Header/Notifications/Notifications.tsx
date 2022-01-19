@@ -1,6 +1,7 @@
 import CheckboxList from '@components/CheckboxList/CheckboxList';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import Input from '@components/Input/Input';
+import MenuItem from '@components/Menu/MenuItem';
 import Tabs from '@components/Tabs/Tabs';
 import SvgFilterIcon from '@icons/FilterIcon';
 import SvgSearchIcon from '@icons/SearchIcon';
@@ -187,7 +188,7 @@ const Notifications = () => {
                                 trackingId="MarkAllNotificationsAsRead"
                                 menu={
                                     <Menu>
-                                        <Menu.Item
+                                        <MenuItem
                                             onClick={() => {
                                                 setReadNotifications([
                                                     ...allNotifications.map(
@@ -198,14 +199,14 @@ const Notifications = () => {
                                             }}
                                         >
                                             Mark all as read
-                                        </Menu.Item>
-                                        <Menu.Item
+                                        </MenuItem>
+                                        <MenuItem
                                             onClick={() => {
                                                 setReadNotifications([]);
                                             }}
                                         >
                                             Mark all as unread
-                                        </Menu.Item>
+                                        </MenuItem>
                                     </Menu>
                                 }
                             />

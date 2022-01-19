@@ -1,6 +1,7 @@
 import Card from '@components/Card/Card';
 import DotsMenu from '@components/DotsMenu/DotsMenu';
 import LineChart from '@components/LineChart/LineChart';
+import MenuItem from '@components/Menu/MenuItem';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -40,7 +41,7 @@ const DashboardCard = ({ webVitalName }: Props) => {
                     <DotsMenu
                         menu={
                             <Menu>
-                                <Menu.Item
+                                <MenuItem
                                     icon={<SvgAnnouncementIcon />}
                                     onClick={() => {
                                         history.push(
@@ -49,7 +50,7 @@ const DashboardCard = ({ webVitalName }: Props) => {
                                     }}
                                 >
                                     Create Monitor
-                                </Menu.Item>
+                                </MenuItem>
                             </Menu>
                         }
                         trackingId="Dashboard"
