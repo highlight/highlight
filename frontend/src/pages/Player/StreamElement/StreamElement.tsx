@@ -222,7 +222,12 @@ export const getEventRenderDetails = (
                 details.displayValue = JSON.parse(payload).user_identifier;
                 break;
             case 'Track':
-                details.displayValue = e.identifier;
+                try {
+                    const json = JSON.parse(payload);
+                    details.displayValue = json.event;
+                } catch {
+                    details.displayValue = e.identifier;
+                }
                 break;
             case 'Viewport':
                 details.displayValue = `${payload.height} x ${payload.width}`;
