@@ -13,15 +13,9 @@ interface LengthInputProps {
     start: number;
     end: number;
     onChange: (start: number, end: number) => void;
-    setVisible: (isVisible: boolean) => void;
 }
 
-export const LengthInput = ({
-    start,
-    end,
-    onChange,
-    setVisible,
-}: LengthInputProps) => {
+export const LengthInput = ({ start, end, onChange }: LengthInputProps) => {
     const [localMin, setLocalMin] = useState(start);
     const [localMax, setLocalMax] = useState(end);
     const [showAdvanced, toggleShowAdvanced] = useToggle(false);
@@ -65,7 +59,6 @@ export const LengthInput = ({
                         setLocalMin(min);
                         setLocalMax(max);
                     }}
-                    setVisible={setVisible}
                 />
             ) : (
                 <Slider
