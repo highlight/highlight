@@ -305,7 +305,6 @@ const PopoutContent = ({
                         );
                         setVisible(false);
                     }}
-                    onBlur={() => setVisible(false)}
                     {...props}
                 />
             );
@@ -368,7 +367,6 @@ const PopoutContent = ({
                             setVisible(false);
                         }
                     }}
-                    onBlur={() => setVisible(false)}
                     {...props}
                 />
             );
@@ -418,7 +416,6 @@ const PopoutContent = ({
                         );
                         setVisible(false);
                     }}
-                    onBlur={() => setVisible(false)}
                     formatCreateLabel={(label) => label}
                     createOptionPosition="first"
                     allowCreateWhileLoading={false}
@@ -454,7 +451,6 @@ const PopoutContent = ({
                         });
                         setVisible(false);
                     }}
-                    setVisible={setVisible}
                 />
             );
         case 'range':
@@ -484,7 +480,6 @@ const PopoutContent = ({
                         });
                         setVisible(false);
                     }}
-                    setVisible={setVisible}
                 />
             );
     }
@@ -508,18 +503,20 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
 
     return (
         <Popover
-            isList
+            trigger="click"
             content={
                 <PopoutContent
                     value={value}
                     setVisible={onSetVisible}
                     {...props}
-                    onBlur={() => onSetVisible(false)}
                 />
             }
             placement="bottomLeft"
             contentContainerClassName={styles.contentContainer}
             popoverClassName={styles.popoverContainer}
+            onVisibleChange={(isVisible) => {
+                setVisible(isVisible);
+            }}
             visible={visible}
             destroyTooltipOnHide
         >
@@ -533,7 +530,6 @@ const SelectPopout = ({ value, ...props }: PopoutProps) => {
                     className={classNames(styles.ruleItem, {
                         [styles.invalid]: invalid && !visible,
                     })}
-                    onClick={() => onSetVisible(true)}
                 >
                     {invalid && '--'}
                     {value?.kind === 'single' && getNameLabel(value.label)}
@@ -1345,6 +1341,7 @@ const QueryBuilder = ({
             )}
             <div>
                 <Popover
+                    trigger="click"
                     content={
                         currentRule?.field === undefined ? (
                             <PopoutContent
@@ -1424,6 +1421,11 @@ const QueryBuilder = ({
                     contentContainerClassName={styles.contentContainer}
                     popoverClassName={styles.popoverContainer}
                     destroyTooltipOnHide
+                    onVisibleChange={(isVisible) => {
+                        if (!isVisible) {
+                            setCurrentStep(undefined);
+                        }
+                    }}
                     visible={
                         currentStep === 1 ||
                         (currentStep === 2 && !!currentRule?.field) ||
