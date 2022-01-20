@@ -5,6 +5,7 @@ import {
 import Tooltip from '@components/Tooltip/Tooltip';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
@@ -84,14 +85,30 @@ export const SessionFeed = React.memo(() => {
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
-    const { data: unprocessedSessionsCount } = useUnprocessedSessionsCountQuery(
-        {
-            variables: {
-                project_id,
-            },
-            pollInterval: 5000,
-        }
-    );
+    const { data: unprocessedSessionsSql } = useUnprocessedSessionsCountQuery({
+        variables: {
+            project_id,
+        },
+        pollInterval: 5000,
+        skip: isQueryBuilder,
+    });
+
+    const {
+        data: unprocessedSessionsOpenSearch,
+    } = useGetSessionsOpenSearchQuery({
+        variables: {
+            project_id,
+            count: 0, // Don't need any results, just the count
+            query: getUnprocessedSessionsQuery(searchQuery),
+        },
+        skip: !isQueryBuilder || !searchQuery,
+        pollInterval: 5000,
+    });
+
+    // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
+    const unprocessedSessionsCount: number | undefined = isQueryBuilder
+        ? unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount
+        : unprocessedSessionsSql?.unprocessedSessionsCount;
 
     const {
         loading: loadingOpenSearch,
@@ -268,8 +285,8 @@ export const SessionFeed = React.memo(() => {
                                     />{' '}
                                     {`sessions `}
                                 </Tooltip>
-                                {unprocessedSessionsCount?.unprocessedSessionsCount >
-                                    0 &&
+                                {!!unprocessedSessionsCount &&
+                                    unprocessedSessionsCount > 0 &&
                                     !showLiveSessions(searchParams) && (
                                         <button
                                             className={
@@ -284,7 +301,7 @@ export const SessionFeed = React.memo(() => {
                                         >
                                             (
                                             {formatCount(
-                                                unprocessedSessionsCount?.unprocessedSessionsCount,
+                                                unprocessedSessionsCount,
                                                 sessionFeedConfiguration.countFormat
                                             )}{' '}
                                             live)
