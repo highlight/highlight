@@ -15,7 +15,7 @@
     inset: 0;
     opacity: 1;
     position: fixed;
-    z-index: 999;
+    z-index: 999999999;
 }
 
 .elevatedCardMotion {
@@ -23,7 +23,7 @@
     position: fixed;
     right: var(--size-medium);
     top: var(--size-medium);
-    z-index: 1000;
+    z-index: 9999999999;
 }
 
 .searchIcon {

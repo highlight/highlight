@@ -1,5 +1,12 @@
+import MenuItem from '@components/Menu/MenuItem';
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
+import SvgBallotBoxIcon from '@icons/BallotBoxIcon';
+import SvgClipboardIcon from '@icons/ClipboardIcon';
+import SvgCopyIcon from '@icons/CopyIcon';
+import SvgFileText2Icon from '@icons/FileText2Icon';
+import SvgReferrer from '@icons/Referrer';
+import SvgTrashIcon from '@icons/TrashIcon';
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
@@ -48,7 +55,8 @@ const SessionCommentHeader = ({
 
     const moreMenu = (
         <Menu>
-            <Menu.Item
+            <MenuItem
+                icon={<SvgCopyIcon />}
                 onClick={() => {
                     const url = getCommentLink();
                     message.success('Copied link!');
@@ -56,10 +64,11 @@ const SessionCommentHeader = ({
                 }}
             >
                 Copy link
-            </Menu.Item>
+            </MenuItem>
             {comment.type === SessionCommentType.Feedback &&
                 comment?.metadata?.email && (
-                    <Menu.Item
+                    <MenuItem
+                        icon={<SvgClipboardIcon />}
                         onClick={() => {
                             message.success(
                                 "Copied the feedback provider's email!"
@@ -70,9 +79,10 @@ const SessionCommentHeader = ({
                         }}
                     >
                         Copy feedback email
-                    </Menu.Item>
+                    </MenuItem>
                 )}
-            <Menu.Item
+            <MenuItem
+                icon={<SvgReferrer />}
                 onClick={() => {
                     const urlSearchParams = new URLSearchParams();
                     urlSearchParams.append(
@@ -108,8 +118,9 @@ const SessionCommentHeader = ({
                 }}
             >
                 Goto
-            </Menu.Item>
-            <Menu.Item
+            </MenuItem>
+            <MenuItem
+                icon={<SvgTrashIcon />}
                 onClick={() => {
                     deleteSessionComment({
                         variables: {
@@ -119,9 +130,10 @@ const SessionCommentHeader = ({
                 }}
             >
                 Delete comment
-            </Menu.Item>
+            </MenuItem>
             {session && (
-                <Menu.Item
+                <MenuItem
+                    icon={<SvgFileText2Icon />}
                     onClick={() => {
                         H.track('Create Linear issue');
                         const url = getCommentLink();
@@ -139,12 +151,12 @@ const SessionCommentHeader = ({
                     }}
                 >
                     Create Linear issue
-                </Menu.Item>
+                </MenuItem>
             )}
             {menuItems?.map((menuItem, index) => (
-                <Menu.Item onClick={menuItem.onClick} key={index}>
+                <MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
                     {menuItem.label}
-                </Menu.Item>
+                </MenuItem>
             ))}
         </Menu>
     );
@@ -152,7 +164,8 @@ const SessionCommentHeader = ({
     const shareMenu = (
         <Menu>
             {session && (
-                <Menu.Item
+                <MenuItem
+                    icon={<SvgFileText2Icon />}
                     onClick={() => {
                         H.track('Create Linear issue');
                         const url = getCommentLink();
@@ -170,9 +183,10 @@ const SessionCommentHeader = ({
                     }}
                 >
                     Create Linear issue
-                </Menu.Item>
+                </MenuItem>
             )}
-            <Menu.Item
+            <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/jira-integration',
@@ -181,8 +195,9 @@ const SessionCommentHeader = ({
                 }}
             >
                 Vote on Jira Integration
-            </Menu.Item>
-            <Menu.Item
+            </MenuItem>
+            <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/clickup-integration',
@@ -191,8 +206,9 @@ const SessionCommentHeader = ({
                 }}
             >
                 Vote on ClickUp Integration
-            </Menu.Item>
-            <Menu.Item
+            </MenuItem>
+            <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
@@ -201,8 +217,9 @@ const SessionCommentHeader = ({
                 }}
             >
                 Vote on Monday Integration
-            </Menu.Item>
-            <Menu.Item
+            </MenuItem>
+            <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/asana-integration',
@@ -211,8 +228,9 @@ const SessionCommentHeader = ({
                 }}
             >
                 Vote on Asana Integration
-            </Menu.Item>
-            <Menu.Item
+            </MenuItem>
+            <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests?',
@@ -221,7 +239,7 @@ const SessionCommentHeader = ({
                 }}
             >
                 Suggest an Integration
-            </Menu.Item>
+            </MenuItem>
         </Menu>
     );
 
