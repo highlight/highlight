@@ -1,6 +1,12 @@
 import MenuItem from '@components/Menu/MenuItem';
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
+import SvgBallotBoxIcon from '@icons/BallotBoxIcon';
+import SvgClipboardIcon from '@icons/ClipboardIcon';
+import SvgCopyIcon from '@icons/CopyIcon';
+import SvgFileText2Icon from '@icons/FileText2Icon';
+import SvgReferrer from '@icons/Referrer';
+import SvgTrashIcon from '@icons/TrashIcon';
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
@@ -50,6 +56,7 @@ const SessionCommentHeader = ({
     const moreMenu = (
         <Menu>
             <MenuItem
+                icon={<SvgCopyIcon />}
                 onClick={() => {
                     const url = getCommentLink();
                     message.success('Copied link!');
@@ -61,6 +68,7 @@ const SessionCommentHeader = ({
             {comment.type === SessionCommentType.Feedback &&
                 comment?.metadata?.email && (
                     <MenuItem
+                        icon={<SvgClipboardIcon />}
                         onClick={() => {
                             message.success(
                                 "Copied the feedback provider's email!"
@@ -74,6 +82,7 @@ const SessionCommentHeader = ({
                     </MenuItem>
                 )}
             <MenuItem
+                icon={<SvgReferrer />}
                 onClick={() => {
                     const urlSearchParams = new URLSearchParams();
                     urlSearchParams.append(
@@ -111,6 +120,7 @@ const SessionCommentHeader = ({
                 Goto
             </MenuItem>
             <MenuItem
+                icon={<SvgTrashIcon />}
                 onClick={() => {
                     deleteSessionComment({
                         variables: {
@@ -123,6 +133,7 @@ const SessionCommentHeader = ({
             </MenuItem>
             {session && (
                 <MenuItem
+                    icon={<SvgFileText2Icon />}
                     onClick={() => {
                         H.track('Create Linear issue');
                         const url = getCommentLink();
@@ -143,7 +154,7 @@ const SessionCommentHeader = ({
                 </MenuItem>
             )}
             {menuItems?.map((menuItem, index) => (
-                <MenuItem onClick={menuItem.onClick} key={index}>
+                <MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
                     {menuItem.label}
                 </MenuItem>
             ))}
@@ -154,6 +165,7 @@ const SessionCommentHeader = ({
         <Menu>
             {session && (
                 <MenuItem
+                    icon={<SvgFileText2Icon />}
                     onClick={() => {
                         H.track('Create Linear issue');
                         const url = getCommentLink();
@@ -174,6 +186,7 @@ const SessionCommentHeader = ({
                 </MenuItem>
             )}
             <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/jira-integration',
@@ -184,6 +197,7 @@ const SessionCommentHeader = ({
                 Vote on Jira Integration
             </MenuItem>
             <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/clickup-integration',
@@ -194,6 +208,7 @@ const SessionCommentHeader = ({
                 Vote on ClickUp Integration
             </MenuItem>
             <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
@@ -204,6 +219,7 @@ const SessionCommentHeader = ({
                 Vote on Monday Integration
             </MenuItem>
             <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests/p/asana-integration',
@@ -214,6 +230,7 @@ const SessionCommentHeader = ({
                 Vote on Asana Integration
             </MenuItem>
             <MenuItem
+                icon={<SvgBallotBoxIcon />}
                 onClick={() => {
                     window.open(
                         'https://highlight.canny.io/feature-requests?',

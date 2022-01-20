@@ -3,6 +3,7 @@ import Switch from '@components/Switch/Switch';
 import ToggleButton from '@components/ToggleButton/ToggleButton';
 import Tooltip from '@components/Tooltip/Tooltip';
 import SvgClockIcon from '@icons/ClockIcon';
+import SvgCloseIcon from '@icons/CloseIcon';
 import SvgDevtoolsIcon from '@icons/DevtoolsIcon';
 import SvgFastForwardIcon from '@icons/FastForwardIcon';
 import SvgMouseIcon from '@icons/MouseIcon';
@@ -81,6 +82,7 @@ const ToolbarItemComponent = React.memo(
                         overlay={
                             <Menu>
                                 <MenuItem
+                                    icon={<SvgCloseIcon />}
                                     onClick={() => {
                                         H.track(
                                             `ToolbarMenuItemPin ${trackingId}`,

@@ -1,5 +1,6 @@
 import MenuItem from '@components/Menu/MenuItem';
 import { namedOperations } from '@graph/operations';
+import SvgTrashIcon from '@icons/TrashIcon';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
@@ -246,6 +247,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
     const moreMenu = (
         <Menu>
             <MenuItem
+                icon={<SvgTrashIcon />}
                 onClick={() => {
                     deleteSessionComment({
                         variables: {

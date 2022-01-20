@@ -3,7 +3,9 @@ import PersonalNotificationButton from '@components/Header/components/PersonalNo
 import Input from '@components/Input/Input';
 import MenuItem from '@components/Menu/MenuItem';
 import Tabs from '@components/Tabs/Tabs';
+import SvgEmailPlusIcon from '@icons/EmailPlusIcon';
 import SvgFilterIcon from '@icons/FilterIcon';
+import SvgMailOpenIcon from '@icons/MailOpenIcon';
 import SvgSearchIcon from '@icons/SearchIcon';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import useLocalStorage from '@rehooks/local-storage';
@@ -189,6 +191,7 @@ const Notifications = () => {
                                 menu={
                                     <Menu>
                                         <MenuItem
+                                            icon={<SvgMailOpenIcon />}
                                             onClick={() => {
                                                 setReadNotifications([
                                                     ...allNotifications.map(
@@ -201,6 +204,7 @@ const Notifications = () => {
                                             Mark all as read
                                         </MenuItem>
                                         <MenuItem
+                                            icon={<SvgEmailPlusIcon />}
                                             onClick={() => {
                                                 setReadNotifications([]);
                                             }}
