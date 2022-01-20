@@ -436,33 +436,32 @@ const Player = ({ integrated }: Props) => {
                                                 )}
                                                 id="player"
                                             />
-                                            {!isPlayerReady && (
-                                                <div
-                                                    className={
-                                                        styles.loadingWrapper
-                                                    }
-                                                >
-                                                    <PlayerSkeleton
-                                                        showingLeftPanel={
-                                                            showLeftPanel
+                                            {!isPlayerReady &&
+                                                (session?.processed === false ||
+                                                replayerState ===
+                                                    ReplayerState.NoEventsYet ? (
+                                                    <LoadingLiveSessionCard />
+                                                ) : (
+                                                    <div
+                                                        className={
+                                                            styles.loadingWrapper
                                                         }
-                                                        showingRightPanel={
-                                                            showRightPanel
-                                                        }
-                                                        width={
-                                                            playerWrapperRef
-                                                                .current
-                                                                ?.clientWidth
-                                                        }
-                                                    />
-                                                    {(session?.processed ===
-                                                        false ||
-                                                        replayerState ===
-                                                            ReplayerState.NoEventsYet) && (
-                                                        <LoadingLiveSessionCard />
-                                                    )}
-                                                </div>
-                                            )}
+                                                    >
+                                                        <PlayerSkeleton
+                                                            showingLeftPanel={
+                                                                showLeftPanel
+                                                            }
+                                                            showingRightPanel={
+                                                                showRightPanel
+                                                            }
+                                                            width={
+                                                                playerWrapperRef
+                                                                    .current
+                                                                    ?.clientWidth
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
                                         </div>
                                         <ResourcesContextProvider
                                             value={resources}
