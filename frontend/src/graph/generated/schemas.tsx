@@ -67,7 +67,6 @@ export type Session = {
     resources_url?: Maybe<Scalars['String']>;
     messages_url?: Maybe<Scalars['String']>;
     deviceMemory?: Maybe<Scalars['Int']>;
-    last_user_interaction_time: Scalars['Timestamp'];
 };
 
 export type RageClickEvent = {

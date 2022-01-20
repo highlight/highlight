@@ -50,7 +50,6 @@ type Session {
     resources_url: String
     messages_url: String
     deviceMemory: Int
-    last_user_interaction_time: Timestamp!
 }
 
 type RageClickEvent {

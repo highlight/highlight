@@ -1412,7 +1412,6 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'resources_url'
             | 'messages_url'
             | 'deviceMemory'
-            | 'last_user_interaction_time'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1747,7 +1746,6 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     | 'first_time'
                     | 'user_properties'
                     | 'event_counts'
-                    | 'last_user_interaction_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -1853,7 +1851,6 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'first_time'
                     | 'user_properties'
                     | 'event_counts'
-                    | 'last_user_interaction_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<

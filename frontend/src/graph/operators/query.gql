@@ -171,7 +171,6 @@ query GetSession($secure_id: String!) {
         resources_url
         messages_url
         deviceMemory
-        last_user_interaction_time
     }
 }
 
@@ -431,7 +430,6 @@ query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
             first_time
             user_properties
             event_counts
-            last_user_interaction_time
         }
         totalCount
     }
@@ -518,7 +516,6 @@ query GetSessions(
             first_time
             user_properties
             event_counts
-            last_user_interaction_time
         }
         totalCount
     }

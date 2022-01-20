@@ -176,11 +176,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         "btw this session is outside of the project's billing quota."
                     );
                 }
-                if (data.session?.last_user_interaction_time) {
-                    lastActiveTimestampRef.current = new Date(
-                        data.session?.last_user_interaction_time
-                    ).getTime();
-                }
                 if (isLoggedIn && session_secure_id !== 'repro') {
                     markSessionAsViewed({
                         variables: {
