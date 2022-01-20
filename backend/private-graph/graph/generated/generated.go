@@ -500,7 +500,6 @@ type ComplexityRoot struct {
 		Identifier                     func(childComplexity int) int
 		IsPublic                       func(childComplexity int) int
 		Language                       func(childComplexity int) int
-		LastUserInteractionTime        func(childComplexity int) int
 		Length                         func(childComplexity int) int
 		MessagesURL                    func(childComplexity int) int
 		OSName                         func(childComplexity int) int
@@ -3874,13 +3873,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Language(childComplexity), true
 
-	case "Session.last_user_interaction_time":
-		if e.complexity.Session.LastUserInteractionTime == nil {
-			break
-		}
-
-		return e.complexity.Session.LastUserInteractionTime(childComplexity), true
-
 	case "Session.length":
 		if e.complexity.Session.Length == nil {
 			break
@@ -4698,7 +4690,6 @@ type Session {
     resources_url: String
     messages_url: String
     deviceMemory: Int
-    last_user_interaction_time: Timestamp!
 }
 
 type RageClickEvent {
@@ -22242,41 +22233,6 @@ func (ec *executionContext) _Session_deviceMemory(ctx context.Context, field gra
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_last_user_interaction_time(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Session",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastUserInteractionTime, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29534,11 +29490,6 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				res = ec._Session_deviceMemory(ctx, field, obj)
 				return res
 			})
-		case "last_user_interaction_time":
-			out.Values[i] = ec._Session_last_user_interaction_time(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

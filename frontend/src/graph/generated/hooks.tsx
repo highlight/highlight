@@ -3788,7 +3788,6 @@ export const GetSessionDocument = gql`
             resources_url
             messages_url
             deviceMemory
-            last_user_interaction_time
         }
     }
 `;
@@ -4759,7 +4758,6 @@ export const GetSessionsOpenSearchDocument = gql`
                 first_time
                 user_properties
                 event_counts
-                last_user_interaction_time
             }
             totalCount
         }
@@ -4950,7 +4948,6 @@ export const GetSessionsDocument = gql`
                 first_time
                 user_properties
                 event_counts
-                last_user_interaction_time
             }
             totalCount
         }
