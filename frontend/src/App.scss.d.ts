@@ -1,5 +1,6 @@
 export const antDropdown: string;
 export const antDropdownMenuItem: string;
+export const antPickerDropdown: string;
 export const antPickerInput: string;
 export const antPickerSuffix: string;
 export const antPopoverInnerContent: string;
