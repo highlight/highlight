@@ -215,7 +215,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         },
                     });
                 }
-                setSessionViewability(SessionViewability.VIEWABLE);
+                setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
                 H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
                 setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
@@ -342,7 +342,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsPayload?.length) {
-            setSessionViewability(SessionViewability.VIEWABLE);
+            setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsPayload
