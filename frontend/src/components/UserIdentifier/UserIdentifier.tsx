@@ -1,5 +1,5 @@
 import Tooltip from '@components/Tooltip/Tooltip';
-import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
+import { getDisplayNameAndField } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -18,7 +18,7 @@ const UserIdentifier = ({ session, className }: Props) => {
     const { setSearchParams } = useSearchContext();
 
     const hasIdentifier = !!session?.identifier;
-    const displayValue = getDisplayName(session);
+    const [displayValue, field] = getDisplayNameAndField(session);
 
     return (
         <Tooltip title={displayValue} mouseEnterDelay={0}>
@@ -29,12 +29,12 @@ const UserIdentifier = ({ session, className }: Props) => {
                 onClick={() => {
                     const newSearchParams = { ...EmptySessionsSearchParams };
 
-                    if (hasIdentifier) {
+                    if (hasIdentifier && field !== null) {
                         newSearchParams.user_properties = [
                             {
-                                id: '-1',
-                                name: 'contains',
-                                value: session.identifier,
+                                id: '0',
+                                name: field,
+                                value: displayValue,
                             },
                         ];
                     } else if (session?.fingerprint) {

@@ -23,7 +23,9 @@ export const getIdentifiedUserProfileImage = (
 };
 
 // Fallback logic for the display name shown for the session card
-export const getDisplayName = (session: Maybe<Session>) => {
+export const getDisplayNameAndField = (
+    session: Maybe<Session>
+): [string, string | null] => {
     let userProperties;
     try {
         if (typeof session?.user_properties === 'string') {
@@ -35,13 +37,20 @@ export const getDisplayName = (session: Maybe<Session>) => {
         }
     }
 
-    return (
-        userProperties?.highlightDisplayName ||
-        userProperties?.email ||
-        (session?.identifier && session.identifier !== 'null'
-            ? session.identifier
-            : null) ||
-        (session?.fingerprint && `#${session?.fingerprint}`) ||
-        'unidentified'
-    );
+    if (userProperties?.highlightDisplayName) {
+        return [userProperties?.highlightDisplayName, 'highlightDisplayName'];
+    } else if (userProperties?.email) {
+        return [userProperties?.email, 'email'];
+    } else if (session?.identifier && session.identifier !== 'null') {
+        return [session.identifier, 'identifier'];
+    } else if (session?.fingerprint) {
+        return [`#${session?.fingerprint}`, 'fingerprint'];
+    } else {
+        return ['unidentified', null];
+    }
+};
+
+// Fallback logic for the display name shown for the session card
+export const getDisplayName = (session: Maybe<Session>): string => {
+    return getDisplayNameAndField(session)[0];
 };
