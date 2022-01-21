@@ -4,6 +4,11 @@
     "description": "Client for interfacing with Highlight in next.js",
     "main": "dist/index.js",
     "scripts": {
+        "build": "run-p build:cjs build:esm",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:dev": "run-s build",
+        "build:es5": "yarn build:cjs # *** backwards compatibility - remove in v7 ***",
+        "build:esm": "tsc -p tsconfig.esm.json",
         "gql": "graphql-codegen --config --watch codegen.yml",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -12,7 +17,8 @@
     "dependencies": {
         "error-stack-parser": "^2.0.6",
         "graphql": "^15",
-        "next": "^12.0.7"
+        "next": "^12.0.7",
+        "npm-run-all": "^4.1.5"
     },
     "devDependencies": {
         "@graphql-codegen/cli": "^2.3.0",
