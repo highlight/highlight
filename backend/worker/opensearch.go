@@ -163,6 +163,17 @@ const FIELD_MAPPINGS = `
 	}
 }`
 
+// Had to write the "source" field as one line, wouldn't accept triple quotes
+// even though it works in the OpenSearch dashboard.
+const FIELD_APPEND_SCRIPT = `
+{
+	"script": {
+		"lang": "painless",
+		"source": "def ids = new ArrayList();for (int i = 0; i < ctx._source[params.fieldName].length; i += 1) {ids.add(ctx._source[params.fieldName].get(i).id);}for (def id : ids) {int len = params.toAppend.length;for (int i = len - 1; i >= 0; i--) {def cur_item_id = params.toAppend.get(i).id;if (id.equals(cur_item_id)) {params.toAppend.remove(i);}}}if (params.toAppend.length > 0) {ctx._source[params.fieldName].addAll(params.toAppend);} else {ctx.op = \"noop\";}"
+	}
+}
+`
+
 func (w *Worker) InitIndexMappings() {
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexSessions, NESTED_FIELD_MAPPINGS); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating session mappings: %+v", err)
@@ -175,5 +186,8 @@ func (w *Worker) InitIndexMappings() {
 	}
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutScript(opensearch.ScriptAppendFields, FIELD_APPEND_SCRIPT); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating field append script: %+v", err)
 	}
 }

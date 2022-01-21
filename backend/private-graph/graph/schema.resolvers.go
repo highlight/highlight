@@ -46,6 +46,10 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 	return obj.GetChannelsToNotify()
 }
 
+func (r *errorAlertResolver) EmailsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	return obj.GetEmailsToNotify()
+}
+
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
 	return obj.GetExcludedEnvironments()
 }
@@ -221,6 +225,21 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
 	}
 	return sanitizedChannels, nil
+}
+
+func (r *metricMonitorResolver) EmailsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for emails to notify")
+	}
+	emailString := "[]"
+	if obj.EmailsToNotify != nil {
+		emailString = *obj.EmailsToNotify
+	}
+	var emailsToNotify []*string
+	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling emails to notify for metric monitors")
+	}
+	return emailsToNotify, nil
 }
 
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
@@ -1263,7 +1282,7 @@ func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID i
 	return &response, nil
 }
 
-func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
+func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1272,6 +1291,11 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 	}
 
 	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	emailsString, err := r.MarshalAlertEmails(emails)
 	if err != nil {
 		return nil, err
 	}
@@ -1286,6 +1310,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 			ThresholdWindow:   util.MakeIntPointer(30),
 			Type:              &alertType,
 			ChannelsToNotify:  channelsString,
+			EmailsToNotify:    emailsString,
 			Name:              &name,
 			LastAdminToEditID: admin.ID,
 		}
@@ -1314,7 +1339,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1332,6 +1357,11 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1340,6 +1370,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 			ThresholdWindow:      &thresholdWindow,
 			Type:                 &model.AlertType.RAGE_CLICK,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 		},
@@ -1355,7 +1386,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1368,6 +1399,11 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:         projectID,
 		Name:              name,
@@ -1375,6 +1411,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		Threshold:         threshold,
 		MetricToMonitor:   metricToMonitor,
 		ChannelsToNotify:  channelsString,
+		EmailsToNotify:    emailsString,
 		LastAdminToEditID: admin.ID,
 	}
 
@@ -1388,7 +1425,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1406,7 +1443,13 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error marshalling slack channels")
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	metricMonitor.ChannelsToNotify = channelsString
+	metricMonitor.EmailsToNotify = emailsString
 	metricMonitor.Name = name
 	metricMonitor.Function = function
 	metricMonitor.Threshold = threshold
@@ -1423,7 +1466,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	return metricMonitor, nil
 }
 
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1447,6 +1490,11 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	}
 	regexGroupsString := string(regexGroupsBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1456,6 +1504,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			ThresholdWindow:      &thresholdWindow,
 			Type:                 &model.AlertType.ERROR,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
@@ -1473,7 +1522,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1501,7 +1550,13 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}
 	regexGroupsString := string(regexGroupsBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert.ChannelsToNotify = channelsString
+	alert.EmailsToNotify = emailsString
 	alert.ExcludedEnvironments = envString
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
@@ -1571,7 +1626,7 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 	return metricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1602,7 +1657,13 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 	}
 	channelsString := string(channelsBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert.ChannelsToNotify = &channelsString
+	alert.EmailsToNotify = emailsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
@@ -1622,7 +1683,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1640,6 +1701,11 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1649,6 +1715,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 			ThresholdWindow:      &thresholdWindow,
 			Type:                 &model.AlertType.SESSION_FEEDBACK,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 		},
@@ -1664,7 +1731,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1687,7 +1754,13 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert.ChannelsToNotify = channelsString
+	alert.EmailsToNotify = emailsString
 	alert.ExcludedEnvironments = envString
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
@@ -1706,7 +1779,7 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1737,7 +1810,13 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 	}
 	channelsString := string(channelsBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert.ChannelsToNotify = &channelsString
+	alert.EmailsToNotify = emailsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	alert.Name = &name
@@ -1755,7 +1834,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1773,6 +1852,11 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1782,6 +1866,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 			CountThreshold:       countThreshold,
 			Type:                 &model.AlertType.NEW_USER,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 		},
@@ -1797,7 +1882,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1829,9 +1914,15 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
+	alert.EmailsToNotify = emailsString
 	alert.TrackProperties = &trackPropertiesString
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
@@ -1848,7 +1939,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1872,6 +1963,11 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1879,6 +1975,7 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 			ExcludedEnvironments: envString,
 			Type:                 &model.AlertType.TRACK_PROPERTIES,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
@@ -1896,7 +1993,7 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1920,6 +2017,11 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1927,6 +2029,7 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 			ExcludedEnvironments: envString,
 			Type:                 &model.AlertType.USER_PROPERTIES,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
@@ -1968,7 +2071,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2000,9 +2103,15 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
+	alert.EmailsToNotify = emailsString
 	alert.UserProperties = &userPropertiesString
 	alert.Name = &name
 	alert.LastAdminToEditID = admin.ID
@@ -2019,7 +2128,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2050,9 +2159,15 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	}
 	channelsString := string(channelsBytes)
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
+	alert.EmailsToNotify = emailsString
 	alert.LastAdminToEditID = admin.ID
 	alert.Name = &name
 	alert.ThresholdWindow = &thresholdWindow
@@ -2070,7 +2185,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2092,6 +2207,11 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 		return nil, err
 	}
 
+	emailsString, err := r.MarshalAlertEmails(emails)
+	if err != nil {
+		return nil, err
+	}
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -2099,6 +2219,7 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 			ExcludedEnvironments: envString,
 			Type:                 &model.AlertType.NEW_SESSION,
 			ChannelsToNotify:     channelsString,
+			EmailsToNotify:       emailsString,
 			Name:                 &name,
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
@@ -2734,30 +2855,6 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 	return errorComments, nil
 }
 
-func (r *queryResolver) ProjectAdmins(ctx context.Context, projectID int) ([]*model.Admin, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-
-	admins := []*model.Admin{}
-	if err := r.DB.Order("created_at ASC").Model(&model.Admin{}).Where(`
-		id IN (
-			SELECT admin_id
-			FROM project_admins
-			WHERE project_id = ?
-			UNION
-			SELECT admin_id
-			FROM workspace_admins
-			where workspace_id = ?
-		)
-	`, projectID, project.WorkspaceID).Scan(&admins).Error; err != nil {
-		return nil, e.Wrap(err, "error getting associated admins")
-	}
-
-	return admins, nil
-}
-
 func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
@@ -2767,6 +2864,21 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 	admins := []*model.Admin{}
 	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
 		return nil, e.Wrap(err, "error getting admins for the workspace")
+	}
+
+	return admins, nil
+}
+
+func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	admins := []*model.Admin{}
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
+		return nil, e.Wrap(err, "error getting admins for the workspace by project id")
 	}
 
 	return admins, nil
@@ -3048,7 +3160,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties, enable_recording_network_contents, language, event_counts"
+	sessionsQueryPreamble := "SELECT *"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
@@ -4350,6 +4462,10 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
+}
+
+func (r *sessionAlertResolver) EmailsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetEmailsToNotify()
 }
 
 func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {

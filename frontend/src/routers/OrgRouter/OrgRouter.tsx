@@ -209,7 +209,7 @@ export const ProjectRouter = () => {
                     {
                         ...searchParamsToReflectInUrl,
                     },
-                    'replace'
+                    'replaceIn'
                 );
             }
         }

@@ -122,6 +122,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         autoPlaySessions,
         showPlayerMouseTail,
         setShowLeftPanel,
+        setShowRightPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -174,6 +175,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                     alert(
                         "btw this session is outside of the project's billing quota."
                     );
+                }
+                if (data.session?.last_user_interaction_time) {
+                    lastActiveTimestampRef.current = new Date(
+                        data.session?.last_user_interaction_time
+                    ).getTime();
                 }
                 if (isLoggedIn && session_secure_id !== 'repro') {
                     markSessionAsViewed({
@@ -318,8 +324,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         const searchParamsObject = new URLSearchParams(location.search);
         if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
             setShowLeftPanel(false);
+            setShowRightPanel(true);
         }
-    }, [setShowLeftPanel]);
+    }, [setShowLeftPanel, setShowRightPanel]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {

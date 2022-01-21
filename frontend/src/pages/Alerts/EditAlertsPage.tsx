@@ -69,7 +69,10 @@ const EditAlertsPage = () => {
                     isSlackIntegrated={
                         alertsPayload?.is_integrated_with_slack || false
                     }
-                    // @ts-expect-error
+                    emailSuggestions={(alertsPayload?.admins || []).map(
+                        (admin) => admin!.email
+                    )}
+                    //     @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
                     onDeleteHandler={(alertId) => {
                         if (!alert) {

@@ -137,8 +137,31 @@
     justify-content: center;
     padding: 3px;
     width: 32px;
+
+    &[disabled] {
+        background: none;
+        color: var(--color-gray-800) !important;
+    }
+
     &:hover {
-        background-color: var(--color-purple-100) !important;
+        background: none !important;
+        &:not([disabled]) {
+            background-color: var(--color-purple-100) !important;
+        }
+    }
+}
+
+span:first-child {
+    .ruleItem {
+        border-bottom-left-radius: 3px;
+        border-top-left-radius: 3px;
+    }
+}
+
+span:last-child {
+    .ruleItem {
+        border-bottom-right-radius: 3px;
+        border-top-right-radius: 3px;
     }
 }
 
@@ -150,19 +173,16 @@
     font-size: 12px;
     padding: 3px 6px;
 
+    &[disabled] {
+        background-color: var(--color-gray-300) !important;
+        color: var(--color-gray-800) !important;
+    }
+
     &:hover {
         background-color: var(--color-gray-300) !important;
-        opacity: 0.8;
-    }
-
-    &:first-child {
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
-    }
-
-    &:last-child {
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
+        &:not([disabled]) {
+            opacity: 0.8;
+        }
     }
 
     &.invalid {
@@ -178,6 +198,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.removeRule {
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
 .ruleContainer {

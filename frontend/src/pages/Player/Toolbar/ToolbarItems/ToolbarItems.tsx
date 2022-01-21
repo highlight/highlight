@@ -1,7 +1,9 @@
+import MenuItem from '@components/Menu/MenuItem';
 import Switch from '@components/Switch/Switch';
 import ToggleButton from '@components/ToggleButton/ToggleButton';
 import Tooltip from '@components/Tooltip/Tooltip';
 import SvgClockIcon from '@icons/ClockIcon';
+import SvgCloseIcon from '@icons/CloseIcon';
 import SvgDevtoolsIcon from '@icons/DevtoolsIcon';
 import SvgFastForwardIcon from '@icons/FastForwardIcon';
 import SvgMouseIcon from '@icons/MouseIcon';
@@ -79,7 +81,8 @@ const ToolbarItemComponent = React.memo(
                     <Dropdown
                         overlay={
                             <Menu>
-                                <Menu.Item
+                                <MenuItem
+                                    icon={<SvgCloseIcon />}
                                     onClick={() => {
                                         H.track(
                                             `ToolbarMenuItemPin ${trackingId}`,
@@ -91,7 +94,7 @@ const ToolbarItemComponent = React.memo(
                                     }}
                                 >
                                     Unpin
-                                </Menu.Item>
+                                </MenuItem>
                             </Menu>
                         }
                         trigger={['contextMenu']}

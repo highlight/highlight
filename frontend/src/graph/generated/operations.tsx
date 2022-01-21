@@ -436,6 +436,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -450,6 +453,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -479,6 +483,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
@@ -488,6 +495,7 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'id'
             | 'updated_at'
             | 'name'
+            | 'emails_to_notify'
             | 'function'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -515,6 +523,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
@@ -524,6 +535,7 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'id'
             | 'updated_at'
             | 'name'
+            | 'emails_to_notify'
             | 'function'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -553,6 +565,7 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'id'
             | 'updated_at'
             | 'name'
+            | 'emails_to_notify'
             | 'function'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -586,6 +599,9 @@ export type CreateRageClickAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -596,6 +612,7 @@ export type CreateRageClickAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -623,6 +640,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -637,6 +657,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
             | 'Name'
+            | 'EmailsToNotify'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
@@ -684,6 +705,7 @@ export type CreateDefaultAlertsMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.SanitizedSlackChannelInput>
         | Types.SanitizedSlackChannelInput;
+    emails: Array<Types.Scalars['String']> | Types.Scalars['String'];
 }>;
 
 export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
@@ -699,6 +721,9 @@ export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -709,6 +734,7 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -736,6 +762,9 @@ export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -746,6 +775,7 @@ export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
@@ -771,6 +801,9 @@ export type CreateNewUserAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -782,6 +815,7 @@ export type CreateNewUserAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -807,6 +841,9 @@ export type CreateNewSessionAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -821,6 +858,7 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -848,6 +886,9 @@ export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -862,6 +903,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -890,6 +932,9 @@ export type UpdateRageClickAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -899,7 +944,10 @@ export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
     updateRageClickAlert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
-            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
+            | 'EmailsToNotify'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -921,6 +969,9 @@ export type UpdateNewUserAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -932,6 +983,7 @@ export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'LastAdminToEditID'
@@ -954,6 +1006,9 @@ export type CreateTrackPropertiesAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -968,6 +1023,7 @@ export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -1001,6 +1057,9 @@ export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -1015,6 +1074,7 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'LastAdminToEditID'
@@ -1046,6 +1106,9 @@ export type CreateUserPropertiesAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -1060,6 +1123,7 @@ export type CreateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'Name'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
@@ -1093,6 +1157,9 @@ export type UpdateUserPropertiesAlertMutationVariables = Types.Exact<{
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
@@ -1107,6 +1174,7 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             | 'id'
+            | 'EmailsToNotify'
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'Name'
@@ -1412,6 +1480,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'resources_url'
             | 'messages_url'
             | 'deviceMemory'
+            | 'last_user_interaction_time'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1427,11 +1496,11 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetProjectAdminsQueryVariables = Types.Exact<{
+export type GetWorkspaceAdminsByProjectIdQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
 
-export type GetProjectAdminsQuery = { __typename?: 'Query' } & {
+export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
     admins: Array<
         Types.Maybe<
             { __typename?: 'Admin' } & Pick<
@@ -1746,6 +1815,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     | 'first_time'
                     | 'user_properties'
                     | 'event_counts'
+                    | 'last_user_interaction_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -1851,6 +1921,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'first_time'
                     | 'user_properties'
                     | 'event_counts'
+                    | 'last_user_interaction_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -2839,6 +2910,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
+                    | 'EmailsToNotify'
                     | 'ExcludedEnvironments'
                     | 'updated_at'
                     | 'CountThreshold'
@@ -2866,6 +2938,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
+                    | 'EmailsToNotify'
                     | 'updated_at'
                     | 'ExcludedEnvironments'
                     | 'CountThreshold'
@@ -2891,6 +2964,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
+                    | 'EmailsToNotify'
                     | 'ExcludedEnvironments'
                     | 'CountThreshold'
                     | 'ThresholdWindow'
@@ -2918,6 +2992,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
                     | 'id'
+                    | 'EmailsToNotify'
                     | 'ExcludedEnvironments'
                     | 'CountThreshold'
                     | 'ThresholdWindow'
@@ -2944,6 +3019,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     { __typename?: 'SessionAlert' } & Pick<
                         Types.SessionAlert,
                         | 'id'
+                        | 'EmailsToNotify'
                         | 'ExcludedEnvironments'
                         | 'CountThreshold'
                         | 'updated_at'
@@ -2971,6 +3047,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
                     | 'id'
+                    | 'EmailsToNotify'
                     | 'ExcludedEnvironments'
                     | 'updated_at'
                     | 'LastAdminToEditID'
@@ -3003,6 +3080,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
                     | 'id'
+                    | 'EmailsToNotify'
                     | 'ExcludedEnvironments'
                     | 'updated_at'
                     | 'LastAdminToEditID'
@@ -3037,6 +3115,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'id'
                     | 'updated_at'
                     | 'name'
+                    | 'emails_to_notify'
                     | 'function'
                     | 'metric_to_monitor'
                     | 'last_admin_to_edit_id'
@@ -3117,7 +3196,7 @@ export const namedOperations = {
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
-        GetProjectAdmins: 'GetProjectAdmins' as const,
+        GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
         GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,

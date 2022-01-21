@@ -1,4 +1,6 @@
+import MenuItem from '@components/Menu/MenuItem';
 import { namedOperations } from '@graph/operations';
+import SvgTrashIcon from '@icons/TrashIcon';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
@@ -17,7 +19,7 @@ import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
     useGetCommentMentionSuggestionsQuery,
-    useGetProjectAdminsQuery,
+    useGetWorkspaceAdminsByProjectIdQuery,
 } from '../../../../graph/generated/hooks';
 import {
     SanitizedAdminInput,
@@ -45,7 +47,7 @@ const ErrorComments = ({ parentRef }: Props) => {
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
-    const { data } = useGetProjectAdminsQuery({
+    const { data } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
@@ -244,7 +246,8 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
 
     const moreMenu = (
         <Menu>
-            <Menu.Item
+            <MenuItem
+                icon={<SvgTrashIcon />}
                 onClick={() => {
                     deleteSessionComment({
                         variables: {
@@ -254,7 +257,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
                 }}
             >
                 Delete comment
-            </Menu.Item>
+            </MenuItem>
         </Menu>
     );
 

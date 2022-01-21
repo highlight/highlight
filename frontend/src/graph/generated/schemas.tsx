@@ -67,6 +67,7 @@ export type Session = {
     resources_url?: Maybe<Scalars['String']>;
     messages_url?: Maybe<Scalars['String']>;
     deviceMemory?: Maybe<Scalars['Int']>;
+    last_user_interaction_time: Scalars['Timestamp'];
 };
 
 export type RageClickEvent = {
@@ -547,6 +548,7 @@ export type ErrorAlert = {
     updated_at: Scalars['Timestamp'];
     Name?: Maybe<Scalars['String']>;
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
+    EmailsToNotify: Array<Maybe<Scalars['String']>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
     ThresholdWindow?: Maybe<Scalars['Int']>;
@@ -576,6 +578,7 @@ export type SessionAlert = {
     updated_at: Scalars['Timestamp'];
     Name?: Maybe<Scalars['String']>;
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
+    EmailsToNotify: Array<Maybe<Scalars['String']>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
@@ -634,6 +637,7 @@ export type MetricMonitor = {
     updated_at: Scalars['Timestamp'];
     name: Scalars['String'];
     channels_to_notify: Array<Maybe<SanitizedSlackChannel>>;
+    emails_to_notify: Array<Maybe<Scalars['String']>>;
     function: Scalars['String'];
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
@@ -661,8 +665,8 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
-    project_admins: Array<Maybe<Admin>>;
     workspace_admins: Array<Maybe<Admin>>;
+    workspace_admins_by_project_id: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -793,12 +797,12 @@ export type QueryError_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryProject_AdminsArgs = {
-    project_id: Scalars['ID'];
-};
-
 export type QueryWorkspace_AdminsArgs = {
     workspace_id: Scalars['ID'];
+};
+
+export type QueryWorkspace_Admins_By_Project_IdArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QueryIsIntegratedArgs = {
@@ -1285,6 +1289,7 @@ export type MutationCreateDefaultAlertsArgs = {
     project_id: Scalars['ID'];
     alert_types: Array<Scalars['String']>;
     slack_channels: Array<SanitizedSlackChannelInput>;
+    emails: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateRageClickAlertArgs = {
@@ -1293,6 +1298,7 @@ export type MutationCreateRageClickAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
 };
 
@@ -1303,6 +1309,7 @@ export type MutationCreateMetricMonitorArgs = {
     threshold: Scalars['Float'];
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateMetricMonitorArgs = {
@@ -1313,6 +1320,7 @@ export type MutationUpdateMetricMonitorArgs = {
     threshold: Scalars['Float'];
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateErrorAlertArgs = {
@@ -1321,6 +1329,7 @@ export type MutationCreateErrorAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
     frequency: Scalars['Int'];
@@ -1333,6 +1342,7 @@ export type MutationUpdateErrorAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
     frequency: Scalars['Int'];
@@ -1355,6 +1365,7 @@ export type MutationUpdateSessionFeedbackAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
 };
 
@@ -1364,6 +1375,7 @@ export type MutationCreateSessionFeedbackAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
 };
 
@@ -1374,6 +1386,7 @@ export type MutationUpdateRageClickAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
 };
 
@@ -1384,6 +1397,7 @@ export type MutationUpdateNewUserAlertArgs = {
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
 };
 
@@ -1392,6 +1406,7 @@ export type MutationCreateNewUserAlertArgs = {
     name: Scalars['String'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
 };
@@ -1401,6 +1416,7 @@ export type MutationUpdateTrackPropertiesAlertArgs = {
     session_alert_id: Scalars['ID'];
     name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     track_properties: Array<Maybe<TrackPropertyInput>>;
     threshold_window: Scalars['Int'];
@@ -1410,6 +1426,7 @@ export type MutationCreateTrackPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     track_properties: Array<Maybe<TrackPropertyInput>>;
     threshold_window: Scalars['Int'];
@@ -1419,6 +1436,7 @@ export type MutationCreateUserPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
     threshold_window: Scalars['Int'];
@@ -1434,6 +1452,7 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     session_alert_id: Scalars['ID'];
     name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
     threshold_window: Scalars['Int'];
@@ -1445,6 +1464,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     name: Scalars['String'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
     exclude_rules: Array<Maybe<Scalars['String']>>;
@@ -1455,6 +1475,7 @@ export type MutationCreateNewSessionAlertArgs = {
     name: Scalars['String'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
     exclude_rules: Array<Maybe<Scalars['String']>>;

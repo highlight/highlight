@@ -1,6 +1,6 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
-import { useGetProjectAdminsQuery } from '@graph/hooks';
+import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
 import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
@@ -12,7 +12,7 @@ import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
-    const { loading, data } = useGetProjectAdminsQuery({
+    const { loading, data } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
     const history = useHistory<{ errorName: string }>();

@@ -86,6 +86,7 @@ const AlertSetupModal = () => {
             project_id: '',
             alert_types: [],
             slack_channels: [],
+            emails: [],
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -394,6 +395,7 @@ const AlertSetupModal = () => {
                                     webhook_channel_name: `${value.displayValue}`,
                                 })),
                             alert_types: selectedAlerts,
+                            emails: [],
                         },
                     }).then(() => {
                         setShouldCloseSetupPersisted(true);

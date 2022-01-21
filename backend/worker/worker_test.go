@@ -139,8 +139,18 @@ func TestGetActiveDuration(t *testing.T) {
 			nil,
 		},
 		"two events, active duration": {
-			[]model.EventsObject{{
-				Events: `
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+				{
+					Events: `
 				{
 					"events": [{
 						"data": {"source": 5},
@@ -164,8 +174,18 @@ func TestGetActiveDuration(t *testing.T) {
 			nil,
 		},
 		"two events, no duration": {
-			[]model.EventsObject{{
-				Events: `
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+				{
+					Events: `
 				{
 					"events": [{
 						"data": {"source": 5},
@@ -189,6 +209,15 @@ func TestGetActiveDuration(t *testing.T) {
 		},
 		"multiple events, active duration": {
 			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
 				{
 					Events: `
 				{
@@ -241,6 +270,15 @@ func TestGetActiveDuration(t *testing.T) {
 		},
 		"multiple events, rage click": {
 			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
 				{
 					Events: `
 					{
@@ -578,29 +616,32 @@ func TestGetActiveDuration(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
 			activeDuration := time.Duration(0)
 			var (
-				firstEventTimestamp     time.Time
-				lastEventTimestamp      time.Time
-				rageClickSets           []*model.RageClickEvent
-				currentlyInRageClickSet bool
-				clickEventQueue         *list.List
+				firstEventTimestamp        time.Time
+				firstFullSnapshotTimestamp time.Time
+				lastEventTimestamp         time.Time
+				rageClickSets              []*model.RageClickEvent
+				currentlyInRageClickSet    bool
+				clickEventQueue            *list.List
 			)
 			timestamps := make(map[time.Time]int)
 			clickEventQueue = list.New()
 			var o processEventChunkOutput
 			for _, event := range tt.events {
 				o = processEventChunk(&processEventChunkInput{
-					EventsChunk:             &event,
-					ClickEventQueue:         clickEventQueue,
-					FirstEventTimestamp:     firstEventTimestamp,
-					LastEventTimestamp:      lastEventTimestamp,
-					RageClickSets:           rageClickSets,
-					CurrentlyInRageClickSet: currentlyInRageClickSet,
-					TimestampCounts:         timestamps,
+					EventsChunk:                &event,
+					ClickEventQueue:            clickEventQueue,
+					FirstEventTimestamp:        firstEventTimestamp,
+					FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
+					LastEventTimestamp:         lastEventTimestamp,
+					RageClickSets:              rageClickSets,
+					CurrentlyInRageClickSet:    currentlyInRageClickSet,
+					TimestampCounts:            timestamps,
 				})
 				if o.Error != nil {
 					t.Logf("error: %v", o.Error)
 				}
 				firstEventTimestamp = o.FirstEventTimestamp
+				firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
 				lastEventTimestamp = o.LastEventTimestamp
 				activeDuration += o.CalculatedDuration
 				rageClickSets = o.RageClickSets
@@ -623,6 +664,135 @@ func TestGetActiveDuration(t *testing.T) {
 			}
 			for _, iii := range o.RageClickSets {
 				t.Logf("rage click set: %+v", iii)
+			}
+		})
+	}
+}
+
+func TestFullSnapshotValidation(t *testing.T) {
+	tables := map[string]struct {
+		events  []model.EventsObject
+		isValid bool
+	}{
+		"one meta event": {
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"data": {"test": 5},
+						"timestamp": 1,
+						"type": 4
+					}]
+				}
+				`}},
+			true,
+		},
+		"no events": {
+			[]model.EventsObject{},
+			true,
+		},
+		"snapshot before incremental": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}
+				`},
+			},
+			true,
+		},
+		"incremental before snapshot": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}`},
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"type": 2
+					}]
+				}
+				`},
+			},
+			false,
+		},
+		"incremental alone": {
+			[]model.EventsObject{
+				{
+					Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 1,
+						"type": 3
+					}]
+				}`},
+			},
+			false,
+		},
+	}
+	for name, tt := range tables {
+		t.Run(name, func(t *testing.T) {
+			log.SetOutput(ioutil.Discard)
+			activeDuration := time.Duration(0)
+			var (
+				firstEventTimestamp        time.Time
+				firstFullSnapshotTimestamp time.Time
+				lastEventTimestamp         time.Time
+				rageClickSets              []*model.RageClickEvent
+				currentlyInRageClickSet    bool
+				clickEventQueue            *list.List
+			)
+			timestamps := make(map[time.Time]int)
+			clickEventQueue = list.New()
+			var o processEventChunkOutput
+			for _, event := range tt.events {
+				o = processEventChunk(&processEventChunkInput{
+					EventsChunk:                &event,
+					ClickEventQueue:            clickEventQueue,
+					FirstEventTimestamp:        firstEventTimestamp,
+					FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
+					LastEventTimestamp:         lastEventTimestamp,
+					RageClickSets:              rageClickSets,
+					CurrentlyInRageClickSet:    currentlyInRageClickSet,
+					TimestampCounts:            timestamps,
+				})
+				if o.Error != nil {
+					break
+				}
+				firstEventTimestamp = o.FirstEventTimestamp
+				firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
+				lastEventTimestamp = o.LastEventTimestamp
+				activeDuration += o.CalculatedDuration
+				rageClickSets = o.RageClickSets
+				currentlyInRageClickSet = o.CurrentlyInRageClickSet
+				timestamps = o.TimestampCounts
+			}
+			succeeded := o.Error == nil
+			if succeeded != tt.isValid {
+				t.Errorf("expected success value: %t, actual success value: %t", tt.isValid, succeeded)
 			}
 		})
 	}

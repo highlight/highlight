@@ -1,4 +1,5 @@
 .tooltipOverlay {
+    z-index: 9999999999999999 !important;
     a {
         color: var(--text-primary-inverted) !important;
         text-decoration: underline;

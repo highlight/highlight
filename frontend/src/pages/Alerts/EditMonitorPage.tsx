@@ -20,10 +20,15 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 
 interface Props {
     channelSuggestions: any[];
+    emailSuggestions: string[];
     isSlackIntegrated: boolean;
 }
 
-const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
+const EditMonitorPage = ({
+    channelSuggestions,
+    isSlackIntegrated,
+    emailSuggestions,
+}: Props) => {
     const { project_id, id } = useParams<{
         project_id: string;
         id: string;
@@ -41,6 +46,7 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const [functionName, setFunctionName] = useState<string>('p90');
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
+    const [emails, setEmails] = useState<string[]>([]);
     const [updateMonitor] = useUpdateMetricMonitorMutation({
         variables: {
             metric_monitor_id: id,
@@ -56,6 +62,7 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                 webhook_channel_id,
             })),
             threshold,
+            emails,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -87,11 +94,13 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                 metric_to_monitor,
                 name,
                 threshold,
+                emails_to_notify,
             } = existingMonitor;
 
             setMetricToMonitorName(metric_to_monitor);
             setMonitorName(name);
             setThreshold(threshold);
+            setEmails((emails_to_notify as string[]) || []);
             setSlackChannels(
                 channels_to_notify?.map(
                     (channel: any) => channel.webhook_channel_id
@@ -146,6 +155,9 @@ const EditMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                             history.push(`/${project_id}/alerts`);
                         }}
                         formDestructiveButtonLabel="Delete"
+                        emailSuggestions={emailSuggestions}
+                        emails={emails}
+                        onEmailsChange={setEmails}
                     />
                 </Card>
             </>

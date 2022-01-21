@@ -242,6 +242,7 @@ const CustomEventsForTimeline = [
     'Viewport',
     'Identify',
     'Web Vitals',
+    'Referrer',
 ] as const;
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 

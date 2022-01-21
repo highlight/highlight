@@ -11,15 +11,9 @@ interface DateInputProps {
     startDate: Date | undefined;
     endDate: Date | undefined;
     onChange: (startDate: Date | undefined, endDate: Date | undefined) => void;
-    setVisible: (isVisible: boolean) => void;
 }
 
-export const DateInput = ({
-    startDate,
-    endDate,
-    onChange,
-    setVisible,
-}: DateInputProps) => {
+export const DateInput = ({ startDate, endDate, onChange }: DateInputProps) => {
     return (
         <div>
             <RangePicker
@@ -50,7 +44,6 @@ export const DateInput = ({
                         : undefined;
                     onChange(start_date?.toDate(), end_date?.toDate());
                 }}
-                onBlur={() => setVisible(false)}
             />
         </div>
     );

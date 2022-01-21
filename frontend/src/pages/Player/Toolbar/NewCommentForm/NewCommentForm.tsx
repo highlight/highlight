@@ -23,7 +23,7 @@ import {
     useCreateSessionCommentMutation,
     useGetCommentMentionSuggestionsQuery,
     useGetCommentTagsForProjectQuery,
-    useGetProjectAdminsQuery,
+    useGetWorkspaceAdminsByProjectIdQuery,
 } from '../../../../graph/generated/hooks';
 import {
     Admin,
@@ -72,7 +72,7 @@ export const NewCommentForm = ({
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-    const { data: adminsInProject } = useGetProjectAdminsQuery({
+    const { data: adminsInWorkspace } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
     const {
@@ -214,7 +214,7 @@ export const NewCommentForm = ({
                         !mention.display.includes('#')
                 )
                 .map((mention) => {
-                    const admin = adminsInProject?.admins?.find((admin) => {
+                    const admin = adminsInWorkspace?.admins?.find((admin) => {
                         return admin?.id === mention.id;
                     });
                     return { id: mention.id, email: admin?.email || '' };

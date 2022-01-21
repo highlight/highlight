@@ -19,6 +19,7 @@ export const EventStreamTypesFilter = () => {
         setShowSegment,
         setShowTrack,
         setShowViewport,
+        setShowReferrer,
         showClick,
         showFocus,
         showIdentify,
@@ -32,15 +33,17 @@ export const EventStreamTypesFilter = () => {
         setShowWebVitals,
     } = useEventTypeFilters();
     const activeFiltersCount = [
-        showIdentify,
-        showTrack,
-        showViewport,
-        showSegment,
+        showClick,
         showFocus,
+        showIdentify,
         showNavigate,
         showReferrer,
-        showClick,
         showReload,
+        showSegment,
+        showTrack,
+        showViewport,
+        showWebVitals,
+        setShowWebVitals,
     ].reduce((acc, curr) => {
         return curr ? acc + 1 : acc;
     }, 0);
@@ -75,6 +78,14 @@ export const EventStreamTypesFilter = () => {
                                 },
                                 label: <Label label="Viewport" />,
                                 key: 'Viewport',
+                            },
+                            {
+                                checked: showReferrer,
+                                onChange: (e) => {
+                                    setShowReferrer(e.target.checked);
+                                },
+                                label: <Label label="Referrer" />,
+                                key: 'Referrer',
                             },
                             {
                                 checked: showWebVitals,

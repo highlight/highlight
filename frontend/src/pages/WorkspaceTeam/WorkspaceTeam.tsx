@@ -6,7 +6,7 @@ import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
 import Table from '@components/Table/Table';
 import { AdminRole } from '@graph/schemas';
-import SvgTrash from '@icons/Trash';
+import SvgTrashIcon from '@icons/TrashIcon';
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useAuthorization } from '@util/authorization/authorization';
@@ -376,7 +376,7 @@ const TABLE_COLUMNS = [
                         disabled={record?.isSameAdmin}
                         iconButton
                     >
-                        <SvgTrash />
+                        <SvgTrashIcon />
                     </Button>
                 </PopConfirm>
             );

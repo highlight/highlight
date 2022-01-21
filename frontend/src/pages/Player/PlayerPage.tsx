@@ -436,33 +436,37 @@ const Player = ({ integrated }: Props) => {
                                                 )}
                                                 id="player"
                                             />
-                                            {!isPlayerReady && (
-                                                <div
-                                                    className={
-                                                        styles.loadingWrapper
-                                                    }
-                                                >
-                                                    <PlayerSkeleton
-                                                        showingLeftPanel={
-                                                            showLeftPanel
-                                                        }
-                                                        showingRightPanel={
-                                                            showRightPanel
-                                                        }
-                                                        width={
-                                                            playerWrapperRef
-                                                                .current
-                                                                ?.clientWidth
-                                                        }
-                                                    />
-                                                    {(session?.processed ===
-                                                        false ||
-                                                        replayerState ===
-                                                            ReplayerState.NoEventsYet) && (
-                                                        <LoadingLiveSessionCard />
-                                                    )}
-                                                </div>
+                                            {replayerState ===
+                                                ReplayerState.NoEventsYet && (
+                                                <LoadingLiveSessionCard />
                                             )}
+                                            {!isPlayerReady &&
+                                                sessionViewability ===
+                                                    SessionViewability.VIEWABLE &&
+                                                (session?.processed ===
+                                                false ? (
+                                                    <LoadingLiveSessionCard />
+                                                ) : (
+                                                    <div
+                                                        className={
+                                                            styles.loadingWrapper
+                                                        }
+                                                    >
+                                                        <PlayerSkeleton
+                                                            showingLeftPanel={
+                                                                showLeftPanel
+                                                            }
+                                                            showingRightPanel={
+                                                                showRightPanel
+                                                            }
+                                                            width={
+                                                                playerWrapperRef
+                                                                    .current
+                                                                    ?.clientWidth
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
                                         </div>
                                         <ResourcesContextProvider
                                             value={resources}

@@ -389,6 +389,8 @@ type Session struct {
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
 	LastUserInteractionTime time.Time  `json:"last_user_interaction_time" gorm:"default:TIMESTAMP 'epoch'"`
+	// Set if the last payload was a beacon; cleared on the next non-beacon payload
+	BeaconTime *time.Time `json:"beacon_time"`
 	// Custom properties
 	Viewed                         *bool   `json:"viewed"`
 	Starred                        *bool   `json:"starred"`
@@ -488,6 +490,7 @@ type ResourcesObject struct {
 	Model
 	SessionID int
 	Resources string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 func (r *ResourcesObject) Contents() string {
@@ -589,6 +592,7 @@ type MessagesObject struct {
 	Model
 	SessionID int
 	Messages  string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 type Metric struct {
@@ -608,6 +612,7 @@ type MetricMonitor struct {
 	Threshold         float64
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
+	EmailsToNotify    *string `gorm:"emails_to_notify"`
 	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
 }
 
@@ -619,6 +624,7 @@ type EventsObject struct {
 	Model
 	SessionID int
 	Events    string
+	IsBeacon  bool `gorm:"default:false"`
 }
 
 func (m *EventsObject) Contents() string {
@@ -667,6 +673,7 @@ type ErrorObject struct {
 	Payload        *string   `json:"payload"`
 	Environment    string
 	RequestID      *string // From X-Highlight-Request header
+	IsBeacon       bool    `gorm:"default:false"`
 }
 
 type ErrorGroup struct {
@@ -976,6 +983,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	EmailsToNotify       *string
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
@@ -1045,6 +1053,21 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
 	}
 	return sanitizedChannels, nil
+}
+
+func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for emails to notify")
+	}
+	emailString := "[]"
+	if obj.EmailsToNotify != nil {
+		emailString = *obj.EmailsToNotify
+	}
+	var emailsToNotify []*string
+	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling emails")
+	}
+	return emailsToNotify, nil
 }
 
 func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {

@@ -20,6 +20,10 @@
     font-weight: 300;
 }
 
+.ant-picker-dropdown {
+    z-index: 9999999999 !important;
+}
+
 .ant-dropdown {
     z-index: 999999 !important;
 }

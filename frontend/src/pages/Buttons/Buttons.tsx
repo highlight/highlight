@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import commonStyles from '../../Common.module.scss';
 import {
     useGetCommentTagsForProjectQuery,
-    useGetProjectAdminsLazyQuery,
+    useGetWorkspaceAdminsByProjectIdLazyQuery,
     useSendEmailSignupMutation,
 } from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
@@ -16,7 +16,7 @@ export const Buttons = () => {
     if (hasError) {
         throw new Error('got an error');
     }
-    const [getProjectAdmins] = useGetProjectAdminsLazyQuery({
+    const [getWorkspaceAdmins] = useGetWorkspaceAdminsByProjectIdLazyQuery({
         variables: { project_id: '1' },
         fetchPolicy: 'network-only',
     });
@@ -116,7 +116,7 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
-                        getProjectAdmins();
+                        getWorkspaceAdmins();
                     }}
                 >
                     Private Graph Request

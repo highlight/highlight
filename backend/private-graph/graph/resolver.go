@@ -898,6 +898,16 @@ func (r *Resolver) MarshalSlackChannelsToSanitizedSlackChannels(slackChannels []
 	return &channelsString, nil
 }
 
+func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
+	emailBytes, err := json.Marshal(emails)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing emails")
+	}
+	channelsString := string(emailBytes)
+
+	return &channelsString, nil
+}
+
 func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
@@ -1148,7 +1158,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID}).Offset(offset).Find(&eventObjs).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()
