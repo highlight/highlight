@@ -19,5 +19,7 @@ export const ruleItem: string;
 export const rulesContainer: string;
 export const separator: string;
 export const shadowBoth: string;
+export const shadowContainer: string;
 export const shadowLeft: string;
+export const shadowParent: string;
 export const shadowRight: string;

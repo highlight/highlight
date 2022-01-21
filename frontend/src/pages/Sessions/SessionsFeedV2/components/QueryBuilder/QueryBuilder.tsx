@@ -14,6 +14,7 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
+import _ from 'lodash';
 import moment from 'moment';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { components } from 'react-select';
@@ -93,7 +94,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
-        padding: '0 0 0 6px',
+        padding: '0 0 0 12px',
         fontSize: '12px',
         color: 'var(--color-text-primary)',
         backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
@@ -138,9 +139,9 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
 
 function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
     const ref = useRef<T>(null);
-    const doScroll = () => {
+    const doScroll = useCallback(() => {
         ref?.current?.scrollIntoView({ inline: 'center' });
-    };
+    }, []);
 
     return [doScroll, ref];
 }
@@ -148,14 +149,14 @@ function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 const OptionLabelName: React.FC = (props) => {
     const ref = useRef<HTMLDivElement>(null);
 
-    const [className, setClassName] = useState<string>(styles.optionLabelName);
+    const [className, setClassName] = useState<string>(styles.shadowContainer);
 
     const setScrollShadow = (target: any) => {
         const { scrollLeft, offsetWidth, scrollWidth } = target;
         const showRightShadow = scrollLeft + offsetWidth < scrollWidth;
         const showLeftShadow = scrollLeft > 0;
         setClassName(
-            classNames(styles.optionLabelName, {
+            classNames(styles.shadowContainer, {
                 [styles.shadowRight]: showRightShadow && !showLeftShadow,
                 [styles.shadowLeft]: showLeftShadow && !showRightShadow,
                 [styles.shadowBoth]: showLeftShadow && showRightShadow,
@@ -176,8 +177,11 @@ const OptionLabelName: React.FC = (props) => {
     }, [ref]);
 
     return (
-        <div className={className} ref={ref}>
-            {props.children}
+        <div className={styles.shadowParent}>
+            <div className={className} />
+            <div className={styles.optionLabelName} ref={ref}>
+                {props.children}
+            </div>
         </div>
     );
 };
@@ -189,11 +193,15 @@ const ScrolledTextHighlighter = ({
     searchWords: string[];
     textToHighlight: string;
 }) => {
+    const [memoText, setMemoText] = useState<string>(textToHighlight);
+    if (!_.isEqual(memoText, textToHighlight)) {
+        setMemoText(textToHighlight);
+    }
     const [doScroll, ref] = useScroll();
 
     useEffect(() => {
         doScroll();
-    }, [doScroll]);
+    }, [doScroll, textToHighlight]);
 
     const ScrolledMark = (props: any) => {
         if (props.highlightIndex === 0) {
@@ -219,7 +227,6 @@ const ScrolledTextHighlighter = ({
 
     return <TextHighlighter highlightTag={ScrolledMark} {...props} />;
 };
-
 const getDateLabel = (value: string): string => {
     const split = value.split('_');
     const start = split[0];
@@ -434,7 +441,7 @@ const PopoutContent = ({
                             return (
                                 <components.MenuList
                                     className={styles.menuListContainer}
-                                    maxHeight={500}
+                                    maxHeight={400}
                                     {...props}
                                 ></components.MenuList>
                             );

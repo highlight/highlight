@@ -2,13 +2,13 @@
     align-items: center;
     display: flex;
     overflow: hidden;
+    position: relative;
     text-overflow: ellipsis;
     width: 100%;
 }
 
 .optionCheckbox {
-    margin-left: 6px;
-    margin-right: 6px;
+    margin-right: 12px;
 }
 
 .optionLabelType {
@@ -31,32 +31,33 @@
     padding: 0;
 }
 
-// .shadowLeft {
-//     background-attachment: local, local, scroll, scroll;
-//     // background-color: rgb(255, 255, 255);
-//     background-image: linear-gradient(
-//             to right,
-//             rgb(255, 255, 255),
-//             rgb(255, 255, 255)
-//         ),
-//         linear-gradient(to right, rgb(255, 255, 255), rgb(255, 255, 255)),
-//         linear-gradient(to right, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0)),
-//         linear-gradient(to left, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0));
-//     background-position: left center, right center, left center, right center;
-//     background-repeat: no-repeat;
-//     background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
-// }
+.shadowParent {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.shadowContainer {
+    height: 100%;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 99999999999999999 !important;
+}
 
 .shadowRight {
     background-attachment: scroll;
     background-image: linear-gradient(
         to left,
-        rgba(121, 38, 255, 0.1),
+        rgba(255, 255, 255, 0.6),
         rgba(255, 255, 255, 0)
     );
     background-position: right center;
     background-repeat: no-repeat;
-    background-size: 10px 100%;
+    background-size: 20px 100%;
     transition: background-image 0.2s ease-in-out;
 }
 
@@ -64,31 +65,30 @@
     background-attachment: scroll;
     background-image: linear-gradient(
         to right,
-        rgba(121, 38, 255, 0.1),
+        rgba(255, 255, 255, 0.6),
         rgba(255, 255, 255, 0)
     );
     background-position: left center;
     background-repeat: no-repeat;
-    background-size: 10px 100%;
+    background-size: 20px 100%;
     transition: background-image 0.2s ease-in-out;
 }
 
 .shadowBoth {
     background-attachment: scroll, scroll;
-    // background-color: rgb(255, 255, 255);
     background-image: linear-gradient(
             to right,
-            rgba(121, 38, 255, 0.1),
+            rgba(255, 255, 255, 0.6),
             rgba(255, 255, 255, 0)
         ),
         linear-gradient(
             to left,
-            rgba(121, 38, 255, 0.1),
+            rgba(255, 255, 255, 0.6),
             rgba(255, 255, 255, 0)
         );
     background-position: left center, right center;
     background-repeat: no-repeat;
-    background-size: 10px 100%, 10px 100%;
+    background-size: 20px 100%, 20px 100%;
     transition: background-image 0.2s ease-in-out;
 }
 
@@ -96,7 +96,6 @@
     color: var(--text-primary) !important;
     overflow-x: scroll;
     padding-bottom: 8px;
-    padding-left: 6px;
     padding-top: 8px;
     scrollbar-width: none;
     &::-webkit-scrollbar {
