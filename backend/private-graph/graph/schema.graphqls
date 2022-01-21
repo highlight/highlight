@@ -495,6 +495,7 @@ type ErrorAlert {
     updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
+    EmailsToNotify: [String]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     ThresholdWindow: Int
@@ -522,6 +523,7 @@ type SessionAlert {
     updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
+    EmailsToNotify: [String]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
@@ -574,6 +576,7 @@ type MetricMonitor {
     updated_at: Timestamp!
     name: String!
     channels_to_notify: [SanitizedSlackChannel]!
+    emails_to_notify: [String]!
     function: String!
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
@@ -831,6 +834,7 @@ type Mutation {
         project_id: ID!
         alert_types: [String!]!
         slack_channels: [SanitizedSlackChannelInput!]!
+        emails: [String]!
     ): Boolean
     createRageClickAlert(
         project_id: ID!
@@ -838,6 +842,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
     ): SessionAlert
     createMetricMonitor(
@@ -847,6 +852,7 @@ type Mutation {
         threshold: Float!
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
     ): MetricMonitor
     updateMetricMonitor(
         metric_monitor_id: ID!
@@ -856,6 +862,7 @@ type Mutation {
         threshold: Float!
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
     ): MetricMonitor
     createErrorAlert(
         project_id: ID!
@@ -863,6 +870,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         regex_groups: [String]!
         frequency: Int!
@@ -874,6 +882,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         regex_groups: [String]!
         frequency: Int!
@@ -887,6 +896,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
     ): SessionAlert
     createSessionFeedbackAlert(
@@ -895,6 +905,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
     ): SessionAlert
     updateRageClickAlert(
@@ -904,6 +915,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
     ): SessionAlert
     updateNewUserAlert(
@@ -913,6 +925,7 @@ type Mutation {
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
     ): SessionAlert
     createNewUserAlert(
@@ -920,6 +933,7 @@ type Mutation {
         name: String!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         threshold_window: Int!
     ): SessionAlert
@@ -928,6 +942,7 @@ type Mutation {
         session_alert_id: ID!
         name: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
         threshold_window: Int!
@@ -936,6 +951,7 @@ type Mutation {
         project_id: ID!
         name: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
         threshold_window: Int!
@@ -944,6 +960,7 @@ type Mutation {
         project_id: ID!
         name: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
         threshold_window: Int!
@@ -954,6 +971,7 @@ type Mutation {
         session_alert_id: ID!
         name: String!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
         threshold_window: Int!
@@ -964,6 +982,7 @@ type Mutation {
         name: String!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         threshold_window: Int!
         exclude_rules: [String]!
@@ -973,6 +992,7 @@ type Mutation {
         name: String!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
         environments: [String]!
         threshold_window: Int!
         exclude_rules: [String]!

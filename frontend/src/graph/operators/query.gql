@@ -1102,6 +1102,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         ExcludedEnvironments
         updated_at
         CountThreshold
@@ -1119,6 +1120,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         updated_at
         ExcludedEnvironments
         CountThreshold
@@ -1134,6 +1136,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
@@ -1151,6 +1154,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
@@ -1166,6 +1170,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         ExcludedEnvironments
         CountThreshold
         updated_at
@@ -1180,6 +1185,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         TrackProperties {
             id
             name
@@ -1199,6 +1205,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        EmailsToNotify
         UserProperties {
             id
             name
@@ -1220,6 +1227,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        emails_to_notify
         function
         metric_to_monitor
         last_admin_to_edit_id

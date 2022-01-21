@@ -4,62 +4,65 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
-  events
-  errors {
-    id
-    error_group_secure_id
-    event
-    type
-    url
-    source
-    stack_trace
-    structured_stack_trace {
-      fileName
-      lineNumber
-      functionName
-      columnNumber
+        events
+        errors {
+            id
+            error_group_secure_id
+            event
+            type
+            url
+            source
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            timestamp
+            payload
+            request_id
+        }
+        rage_clicks {
+            start_timestamp
+            end_timestamp
+            total_clicks
+        }
+        session_comments {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+        }
+        last_user_interaction_time
     }
-    timestamp
-    payload
-    request_id
-  }
-  rage_clicks {
-    start_timestamp
-    end_timestamp
-    total_clicks
-  }
-  session_comments {
-    id
-    timestamp
-    session_id
-    session_secure_id
-    created_at
-    updated_at
-    project_id
-    text
-    author {
-      id
-      name
-      email
-      photo_url
-    }
-    x_coordinate
-    y_coordinate
-    type
-    metadata
-  }
-  last_user_interaction_time
-}
-    `;
+`;
 export const MarkSessionAsViewedDocument = gql`
     mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
-  markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
-    secure_id
-    viewed
-  }
-}
-    `;
-export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<Types.MarkSessionAsViewedMutation, Types.MarkSessionAsViewedMutationVariables>;
+        markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
+            secure_id
+            viewed
+        }
+    }
+`;
+export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<
+    Types.MarkSessionAsViewedMutation,
+    Types.MarkSessionAsViewedMutationVariables
+>;
 
 /**
  * __useMarkSessionAsViewedMutation__
@@ -79,21 +82,37 @@ export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<Types.MarkSe
  *   },
  * });
  */
-export function useMarkSessionAsViewedMutation(baseOptions?: Apollo.MutationHookOptions<Types.MarkSessionAsViewedMutation, Types.MarkSessionAsViewedMutationVariables>) {
-        return Apollo.useMutation<Types.MarkSessionAsViewedMutation, Types.MarkSessionAsViewedMutationVariables>(MarkSessionAsViewedDocument, baseOptions);
-      }
-export type MarkSessionAsViewedMutationHookResult = ReturnType<typeof useMarkSessionAsViewedMutation>;
+export function useMarkSessionAsViewedMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.MarkSessionAsViewedMutation,
+        Types.MarkSessionAsViewedMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.MarkSessionAsViewedMutation,
+        Types.MarkSessionAsViewedMutationVariables
+    >(MarkSessionAsViewedDocument, baseOptions);
+}
+export type MarkSessionAsViewedMutationHookResult = ReturnType<
+    typeof useMarkSessionAsViewedMutation
+>;
 export type MarkSessionAsViewedMutationResult = Apollo.MutationResult<Types.MarkSessionAsViewedMutation>;
-export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<Types.MarkSessionAsViewedMutation, Types.MarkSessionAsViewedMutationVariables>;
+export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkSessionAsViewedMutation,
+    Types.MarkSessionAsViewedMutationVariables
+>;
 export const MarkSessionAsStarredDocument = gql`
     mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-  markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-    secure_id
-    starred
-  }
-}
-    `;
-export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<Types.MarkSessionAsStarredMutation, Types.MarkSessionAsStarredMutationVariables>;
+        markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
+            secure_id
+            starred
+        }
+    }
+`;
+export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<
+    Types.MarkSessionAsStarredMutation,
+    Types.MarkSessionAsStarredMutationVariables
+>;
 
 /**
  * __useMarkSessionAsStarredMutation__
@@ -113,22 +132,42 @@ export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<Types.MarkS
  *   },
  * });
  */
-export function useMarkSessionAsStarredMutation(baseOptions?: Apollo.MutationHookOptions<Types.MarkSessionAsStarredMutation, Types.MarkSessionAsStarredMutationVariables>) {
-        return Apollo.useMutation<Types.MarkSessionAsStarredMutation, Types.MarkSessionAsStarredMutationVariables>(MarkSessionAsStarredDocument, baseOptions);
-      }
-export type MarkSessionAsStarredMutationHookResult = ReturnType<typeof useMarkSessionAsStarredMutation>;
-export type MarkSessionAsStarredMutationResult = Apollo.MutationResult<Types.MarkSessionAsStarredMutation>;
-export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<Types.MarkSessionAsStarredMutation, Types.MarkSessionAsStarredMutationVariables>;
-export const CreateOrUpdateStripeSubscriptionDocument = gql`
-    mutation CreateOrUpdateStripeSubscription($workspace_id: ID!, $plan_type: PlanType!, $interval: SubscriptionInterval!) {
-  createOrUpdateStripeSubscription(
-    workspace_id: $workspace_id
-    plan_type: $plan_type
-    interval: $interval
-  )
+export function useMarkSessionAsStarredMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.MarkSessionAsStarredMutation,
+        Types.MarkSessionAsStarredMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.MarkSessionAsStarredMutation,
+        Types.MarkSessionAsStarredMutationVariables
+    >(MarkSessionAsStarredDocument, baseOptions);
 }
-    `;
-export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction<Types.CreateOrUpdateStripeSubscriptionMutation, Types.CreateOrUpdateStripeSubscriptionMutationVariables>;
+export type MarkSessionAsStarredMutationHookResult = ReturnType<
+    typeof useMarkSessionAsStarredMutation
+>;
+export type MarkSessionAsStarredMutationResult = Apollo.MutationResult<Types.MarkSessionAsStarredMutation>;
+export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkSessionAsStarredMutation,
+    Types.MarkSessionAsStarredMutationVariables
+>;
+export const CreateOrUpdateStripeSubscriptionDocument = gql`
+    mutation CreateOrUpdateStripeSubscription(
+        $workspace_id: ID!
+        $plan_type: PlanType!
+        $interval: SubscriptionInterval!
+    ) {
+        createOrUpdateStripeSubscription(
+            workspace_id: $workspace_id
+            plan_type: $plan_type
+            interval: $interval
+        )
+    }
+`;
+export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction<
+    Types.CreateOrUpdateStripeSubscriptionMutation,
+    Types.CreateOrUpdateStripeSubscriptionMutationVariables
+>;
 
 /**
  * __useCreateOrUpdateStripeSubscriptionMutation__
@@ -149,18 +188,34 @@ export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction
  *   },
  * });
  */
-export function useCreateOrUpdateStripeSubscriptionMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateOrUpdateStripeSubscriptionMutation, Types.CreateOrUpdateStripeSubscriptionMutationVariables>) {
-        return Apollo.useMutation<Types.CreateOrUpdateStripeSubscriptionMutation, Types.CreateOrUpdateStripeSubscriptionMutationVariables>(CreateOrUpdateStripeSubscriptionDocument, baseOptions);
-      }
-export type CreateOrUpdateStripeSubscriptionMutationHookResult = ReturnType<typeof useCreateOrUpdateStripeSubscriptionMutation>;
+export function useCreateOrUpdateStripeSubscriptionMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateOrUpdateStripeSubscriptionMutation,
+        Types.CreateOrUpdateStripeSubscriptionMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateOrUpdateStripeSubscriptionMutation,
+        Types.CreateOrUpdateStripeSubscriptionMutationVariables
+    >(CreateOrUpdateStripeSubscriptionDocument, baseOptions);
+}
+export type CreateOrUpdateStripeSubscriptionMutationHookResult = ReturnType<
+    typeof useCreateOrUpdateStripeSubscriptionMutation
+>;
 export type CreateOrUpdateStripeSubscriptionMutationResult = Apollo.MutationResult<Types.CreateOrUpdateStripeSubscriptionMutation>;
-export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutationOptions<Types.CreateOrUpdateStripeSubscriptionMutation, Types.CreateOrUpdateStripeSubscriptionMutationVariables>;
+export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateOrUpdateStripeSubscriptionMutation,
+    Types.CreateOrUpdateStripeSubscriptionMutationVariables
+>;
 export const UpdateBillingDetailsDocument = gql`
     mutation UpdateBillingDetails($workspace_id: ID!) {
-  updateBillingDetails(workspace_id: $workspace_id)
-}
-    `;
-export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<Types.UpdateBillingDetailsMutation, Types.UpdateBillingDetailsMutationVariables>;
+        updateBillingDetails(workspace_id: $workspace_id)
+    }
+`;
+export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
+    Types.UpdateBillingDetailsMutation,
+    Types.UpdateBillingDetailsMutationVariables
+>;
 
 /**
  * __useUpdateBillingDetailsMutation__
@@ -179,21 +234,37 @@ export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<Types.Updat
  *   },
  * });
  */
-export function useUpdateBillingDetailsMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateBillingDetailsMutation, Types.UpdateBillingDetailsMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateBillingDetailsMutation, Types.UpdateBillingDetailsMutationVariables>(UpdateBillingDetailsDocument, baseOptions);
-      }
-export type UpdateBillingDetailsMutationHookResult = ReturnType<typeof useUpdateBillingDetailsMutation>;
+export function useUpdateBillingDetailsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateBillingDetailsMutation,
+        Types.UpdateBillingDetailsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateBillingDetailsMutation,
+        Types.UpdateBillingDetailsMutationVariables
+    >(UpdateBillingDetailsDocument, baseOptions);
+}
+export type UpdateBillingDetailsMutationHookResult = ReturnType<
+    typeof useUpdateBillingDetailsMutation
+>;
 export type UpdateBillingDetailsMutationResult = Apollo.MutationResult<Types.UpdateBillingDetailsMutation>;
-export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<Types.UpdateBillingDetailsMutation, Types.UpdateBillingDetailsMutationVariables>;
+export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateBillingDetailsMutation,
+    Types.UpdateBillingDetailsMutationVariables
+>;
 export const UpdateErrorGroupStateDocument = gql`
     mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-  updateErrorGroupState(secure_id: $secure_id, state: $state) {
-    secure_id
-    state
-  }
-}
-    `;
-export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<Types.UpdateErrorGroupStateMutation, Types.UpdateErrorGroupStateMutationVariables>;
+        updateErrorGroupState(secure_id: $secure_id, state: $state) {
+            secure_id
+            state
+        }
+    }
+`;
+export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorGroupStateMutation,
+    Types.UpdateErrorGroupStateMutationVariables
+>;
 
 /**
  * __useUpdateErrorGroupStateMutation__
@@ -213,18 +284,34 @@ export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<Types.Upda
  *   },
  * });
  */
-export function useUpdateErrorGroupStateMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateErrorGroupStateMutation, Types.UpdateErrorGroupStateMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateErrorGroupStateMutation, Types.UpdateErrorGroupStateMutationVariables>(UpdateErrorGroupStateDocument, baseOptions);
-      }
-export type UpdateErrorGroupStateMutationHookResult = ReturnType<typeof useUpdateErrorGroupStateMutation>;
+export function useUpdateErrorGroupStateMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorGroupStateMutation,
+        Types.UpdateErrorGroupStateMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorGroupStateMutation,
+        Types.UpdateErrorGroupStateMutationVariables
+    >(UpdateErrorGroupStateDocument, baseOptions);
+}
+export type UpdateErrorGroupStateMutationHookResult = ReturnType<
+    typeof useUpdateErrorGroupStateMutation
+>;
 export type UpdateErrorGroupStateMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupStateMutation>;
-export type UpdateErrorGroupStateMutationOptions = Apollo.BaseMutationOptions<Types.UpdateErrorGroupStateMutation, Types.UpdateErrorGroupStateMutationVariables>;
+export type UpdateErrorGroupStateMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorGroupStateMutation,
+    Types.UpdateErrorGroupStateMutationVariables
+>;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
-  emailSignup(email: $email)
-}
-    `;
-export type SendEmailSignupMutationFn = Apollo.MutationFunction<Types.SendEmailSignupMutation, Types.SendEmailSignupMutationVariables>;
+        emailSignup(email: $email)
+    }
+`;
+export type SendEmailSignupMutationFn = Apollo.MutationFunction<
+    Types.SendEmailSignupMutation,
+    Types.SendEmailSignupMutationVariables
+>;
 
 /**
  * __useSendEmailSignupMutation__
@@ -243,18 +330,34 @@ export type SendEmailSignupMutationFn = Apollo.MutationFunction<Types.SendEmailS
  *   },
  * });
  */
-export function useSendEmailSignupMutation(baseOptions?: Apollo.MutationHookOptions<Types.SendEmailSignupMutation, Types.SendEmailSignupMutationVariables>) {
-        return Apollo.useMutation<Types.SendEmailSignupMutation, Types.SendEmailSignupMutationVariables>(SendEmailSignupDocument, baseOptions);
-      }
-export type SendEmailSignupMutationHookResult = ReturnType<typeof useSendEmailSignupMutation>;
+export function useSendEmailSignupMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SendEmailSignupMutation,
+        Types.SendEmailSignupMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SendEmailSignupMutation,
+        Types.SendEmailSignupMutationVariables
+    >(SendEmailSignupDocument, baseOptions);
+}
+export type SendEmailSignupMutationHookResult = ReturnType<
+    typeof useSendEmailSignupMutation
+>;
 export type SendEmailSignupMutationResult = Apollo.MutationResult<Types.SendEmailSignupMutation>;
-export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<Types.SendEmailSignupMutation, Types.SendEmailSignupMutationVariables>;
+export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
+    Types.SendEmailSignupMutation,
+    Types.SendEmailSignupMutationVariables
+>;
 export const AddAdminToWorkspaceDocument = gql`
     mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
-  addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
-}
-    `;
-export type AddAdminToWorkspaceMutationFn = Apollo.MutationFunction<Types.AddAdminToWorkspaceMutation, Types.AddAdminToWorkspaceMutationVariables>;
+        addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
+    }
+`;
+export type AddAdminToWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.AddAdminToWorkspaceMutation,
+    Types.AddAdminToWorkspaceMutationVariables
+>;
 
 /**
  * __useAddAdminToWorkspaceMutation__
@@ -274,18 +377,34 @@ export type AddAdminToWorkspaceMutationFn = Apollo.MutationFunction<Types.AddAdm
  *   },
  * });
  */
-export function useAddAdminToWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<Types.AddAdminToWorkspaceMutation, Types.AddAdminToWorkspaceMutationVariables>) {
-        return Apollo.useMutation<Types.AddAdminToWorkspaceMutation, Types.AddAdminToWorkspaceMutationVariables>(AddAdminToWorkspaceDocument, baseOptions);
-      }
-export type AddAdminToWorkspaceMutationHookResult = ReturnType<typeof useAddAdminToWorkspaceMutation>;
+export function useAddAdminToWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AddAdminToWorkspaceMutation,
+        Types.AddAdminToWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AddAdminToWorkspaceMutation,
+        Types.AddAdminToWorkspaceMutationVariables
+    >(AddAdminToWorkspaceDocument, baseOptions);
+}
+export type AddAdminToWorkspaceMutationHookResult = ReturnType<
+    typeof useAddAdminToWorkspaceMutation
+>;
 export type AddAdminToWorkspaceMutationResult = Apollo.MutationResult<Types.AddAdminToWorkspaceMutation>;
-export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<Types.AddAdminToWorkspaceMutation, Types.AddAdminToWorkspaceMutationVariables>;
+export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddAdminToWorkspaceMutation,
+    Types.AddAdminToWorkspaceMutationVariables
+>;
 export const JoinWorkspaceDocument = gql`
     mutation JoinWorkspace($workspace_id: ID!) {
-  joinWorkspace(workspace_id: $workspace_id)
-}
-    `;
-export type JoinWorkspaceMutationFn = Apollo.MutationFunction<Types.JoinWorkspaceMutation, Types.JoinWorkspaceMutationVariables>;
+        joinWorkspace(workspace_id: $workspace_id)
+    }
+`;
+export type JoinWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.JoinWorkspaceMutation,
+    Types.JoinWorkspaceMutationVariables
+>;
 
 /**
  * __useJoinWorkspaceMutation__
@@ -304,22 +423,42 @@ export type JoinWorkspaceMutationFn = Apollo.MutationFunction<Types.JoinWorkspac
  *   },
  * });
  */
-export function useJoinWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<Types.JoinWorkspaceMutation, Types.JoinWorkspaceMutationVariables>) {
-        return Apollo.useMutation<Types.JoinWorkspaceMutation, Types.JoinWorkspaceMutationVariables>(JoinWorkspaceDocument, baseOptions);
-      }
-export type JoinWorkspaceMutationHookResult = ReturnType<typeof useJoinWorkspaceMutation>;
-export type JoinWorkspaceMutationResult = Apollo.MutationResult<Types.JoinWorkspaceMutation>;
-export type JoinWorkspaceMutationOptions = Apollo.BaseMutationOptions<Types.JoinWorkspaceMutation, Types.JoinWorkspaceMutationVariables>;
-export const ChangeAdminRoleDocument = gql`
-    mutation ChangeAdminRole($workspace_id: ID!, $admin_id: ID!, $new_role: String!) {
-  changeAdminRole(
-    workspace_id: $workspace_id
-    admin_id: $admin_id
-    new_role: $new_role
-  )
+export function useJoinWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.JoinWorkspaceMutation,
+        Types.JoinWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.JoinWorkspaceMutation,
+        Types.JoinWorkspaceMutationVariables
+    >(JoinWorkspaceDocument, baseOptions);
 }
-    `;
-export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<Types.ChangeAdminRoleMutation, Types.ChangeAdminRoleMutationVariables>;
+export type JoinWorkspaceMutationHookResult = ReturnType<
+    typeof useJoinWorkspaceMutation
+>;
+export type JoinWorkspaceMutationResult = Apollo.MutationResult<Types.JoinWorkspaceMutation>;
+export type JoinWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.JoinWorkspaceMutation,
+    Types.JoinWorkspaceMutationVariables
+>;
+export const ChangeAdminRoleDocument = gql`
+    mutation ChangeAdminRole(
+        $workspace_id: ID!
+        $admin_id: ID!
+        $new_role: String!
+    ) {
+        changeAdminRole(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+            new_role: $new_role
+        )
+    }
+`;
+export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
 
 /**
  * __useChangeAdminRoleMutation__
@@ -340,18 +479,34 @@ export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<Types.ChangeAdmi
  *   },
  * });
  */
-export function useChangeAdminRoleMutation(baseOptions?: Apollo.MutationHookOptions<Types.ChangeAdminRoleMutation, Types.ChangeAdminRoleMutationVariables>) {
-        return Apollo.useMutation<Types.ChangeAdminRoleMutation, Types.ChangeAdminRoleMutationVariables>(ChangeAdminRoleDocument, baseOptions);
-      }
-export type ChangeAdminRoleMutationHookResult = ReturnType<typeof useChangeAdminRoleMutation>;
+export function useChangeAdminRoleMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >(ChangeAdminRoleDocument, baseOptions);
+}
+export type ChangeAdminRoleMutationHookResult = ReturnType<
+    typeof useChangeAdminRoleMutation
+>;
 export type ChangeAdminRoleMutationResult = Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
-export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<Types.ChangeAdminRoleMutation, Types.ChangeAdminRoleMutationVariables>;
+export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
 export const DeleteAdminFromProjectDocument = gql`
     mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-  deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
-}
-    `;
-export type DeleteAdminFromProjectMutationFn = Apollo.MutationFunction<Types.DeleteAdminFromProjectMutation, Types.DeleteAdminFromProjectMutationVariables>;
+        deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
+    }
+`;
+export type DeleteAdminFromProjectMutationFn = Apollo.MutationFunction<
+    Types.DeleteAdminFromProjectMutation,
+    Types.DeleteAdminFromProjectMutationVariables
+>;
 
 /**
  * __useDeleteAdminFromProjectMutation__
@@ -371,18 +526,37 @@ export type DeleteAdminFromProjectMutationFn = Apollo.MutationFunction<Types.Del
  *   },
  * });
  */
-export function useDeleteAdminFromProjectMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteAdminFromProjectMutation, Types.DeleteAdminFromProjectMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteAdminFromProjectMutation, Types.DeleteAdminFromProjectMutationVariables>(DeleteAdminFromProjectDocument, baseOptions);
-      }
-export type DeleteAdminFromProjectMutationHookResult = ReturnType<typeof useDeleteAdminFromProjectMutation>;
+export function useDeleteAdminFromProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteAdminFromProjectMutation,
+        Types.DeleteAdminFromProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteAdminFromProjectMutation,
+        Types.DeleteAdminFromProjectMutationVariables
+    >(DeleteAdminFromProjectDocument, baseOptions);
+}
+export type DeleteAdminFromProjectMutationHookResult = ReturnType<
+    typeof useDeleteAdminFromProjectMutation
+>;
 export type DeleteAdminFromProjectMutationResult = Apollo.MutationResult<Types.DeleteAdminFromProjectMutation>;
-export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<Types.DeleteAdminFromProjectMutation, Types.DeleteAdminFromProjectMutationVariables>;
+export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteAdminFromProjectMutation,
+    Types.DeleteAdminFromProjectMutationVariables
+>;
 export const DeleteAdminFromWorkspaceDocument = gql`
     mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
-  deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
-}
-    `;
-export type DeleteAdminFromWorkspaceMutationFn = Apollo.MutationFunction<Types.DeleteAdminFromWorkspaceMutation, Types.DeleteAdminFromWorkspaceMutationVariables>;
+        deleteAdminFromWorkspace(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+        )
+    }
+`;
+export type DeleteAdminFromWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.DeleteAdminFromWorkspaceMutation,
+    Types.DeleteAdminFromWorkspaceMutationVariables
+>;
 
 /**
  * __useDeleteAdminFromWorkspaceMutation__
@@ -402,22 +576,42 @@ export type DeleteAdminFromWorkspaceMutationFn = Apollo.MutationFunction<Types.D
  *   },
  * });
  */
-export function useDeleteAdminFromWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteAdminFromWorkspaceMutation, Types.DeleteAdminFromWorkspaceMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteAdminFromWorkspaceMutation, Types.DeleteAdminFromWorkspaceMutationVariables>(DeleteAdminFromWorkspaceDocument, baseOptions);
-      }
-export type DeleteAdminFromWorkspaceMutationHookResult = ReturnType<typeof useDeleteAdminFromWorkspaceMutation>;
-export type DeleteAdminFromWorkspaceMutationResult = Apollo.MutationResult<Types.DeleteAdminFromWorkspaceMutation>;
-export type DeleteAdminFromWorkspaceMutationOptions = Apollo.BaseMutationOptions<Types.DeleteAdminFromWorkspaceMutation, Types.DeleteAdminFromWorkspaceMutationVariables>;
-export const OpenSlackConversationDocument = gql`
-    mutation OpenSlackConversation($project_id: ID!, $code: String!, $redirect_path: String!) {
-  openSlackConversation(
-    project_id: $project_id
-    code: $code
-    redirect_path: $redirect_path
-  )
+export function useDeleteAdminFromWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteAdminFromWorkspaceMutation,
+        Types.DeleteAdminFromWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteAdminFromWorkspaceMutation,
+        Types.DeleteAdminFromWorkspaceMutationVariables
+    >(DeleteAdminFromWorkspaceDocument, baseOptions);
 }
-    `;
-export type OpenSlackConversationMutationFn = Apollo.MutationFunction<Types.OpenSlackConversationMutation, Types.OpenSlackConversationMutationVariables>;
+export type DeleteAdminFromWorkspaceMutationHookResult = ReturnType<
+    typeof useDeleteAdminFromWorkspaceMutation
+>;
+export type DeleteAdminFromWorkspaceMutationResult = Apollo.MutationResult<Types.DeleteAdminFromWorkspaceMutation>;
+export type DeleteAdminFromWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteAdminFromWorkspaceMutation,
+    Types.DeleteAdminFromWorkspaceMutationVariables
+>;
+export const OpenSlackConversationDocument = gql`
+    mutation OpenSlackConversation(
+        $project_id: ID!
+        $code: String!
+        $redirect_path: String!
+    ) {
+        openSlackConversation(
+            project_id: $project_id
+            code: $code
+            redirect_path: $redirect_path
+        )
+    }
+`;
+export type OpenSlackConversationMutationFn = Apollo.MutationFunction<
+    Types.OpenSlackConversationMutation,
+    Types.OpenSlackConversationMutationVariables
+>;
 
 /**
  * __useOpenSlackConversationMutation__
@@ -438,22 +632,42 @@ export type OpenSlackConversationMutationFn = Apollo.MutationFunction<Types.Open
  *   },
  * });
  */
-export function useOpenSlackConversationMutation(baseOptions?: Apollo.MutationHookOptions<Types.OpenSlackConversationMutation, Types.OpenSlackConversationMutationVariables>) {
-        return Apollo.useMutation<Types.OpenSlackConversationMutation, Types.OpenSlackConversationMutationVariables>(OpenSlackConversationDocument, baseOptions);
-      }
-export type OpenSlackConversationMutationHookResult = ReturnType<typeof useOpenSlackConversationMutation>;
-export type OpenSlackConversationMutationResult = Apollo.MutationResult<Types.OpenSlackConversationMutation>;
-export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<Types.OpenSlackConversationMutation, Types.OpenSlackConversationMutationVariables>;
-export const AddSlackBotIntegrationToProjectDocument = gql`
-    mutation AddSlackBotIntegrationToProject($project_id: ID!, $code: String!, $redirect_path: String!) {
-  addSlackBotIntegrationToProject(
-    project_id: $project_id
-    code: $code
-    redirect_path: $redirect_path
-  )
+export function useOpenSlackConversationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.OpenSlackConversationMutation,
+        Types.OpenSlackConversationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.OpenSlackConversationMutation,
+        Types.OpenSlackConversationMutationVariables
+    >(OpenSlackConversationDocument, baseOptions);
 }
-    `;
-export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<Types.AddSlackBotIntegrationToProjectMutation, Types.AddSlackBotIntegrationToProjectMutationVariables>;
+export type OpenSlackConversationMutationHookResult = ReturnType<
+    typeof useOpenSlackConversationMutation
+>;
+export type OpenSlackConversationMutationResult = Apollo.MutationResult<Types.OpenSlackConversationMutation>;
+export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
+    Types.OpenSlackConversationMutation,
+    Types.OpenSlackConversationMutationVariables
+>;
+export const AddSlackBotIntegrationToProjectDocument = gql`
+    mutation AddSlackBotIntegrationToProject(
+        $project_id: ID!
+        $code: String!
+        $redirect_path: String!
+    ) {
+        addSlackBotIntegrationToProject(
+            project_id: $project_id
+            code: $code
+            redirect_path: $redirect_path
+        )
+    }
+`;
+export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddSlackBotIntegrationToProjectMutation,
+    Types.AddSlackBotIntegrationToProjectMutationVariables
+>;
 
 /**
  * __useAddSlackBotIntegrationToProjectMutation__
@@ -474,21 +688,40 @@ export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useAddSlackBotIntegrationToProjectMutation(baseOptions?: Apollo.MutationHookOptions<Types.AddSlackBotIntegrationToProjectMutation, Types.AddSlackBotIntegrationToProjectMutationVariables>) {
-        return Apollo.useMutation<Types.AddSlackBotIntegrationToProjectMutation, Types.AddSlackBotIntegrationToProjectMutationVariables>(AddSlackBotIntegrationToProjectDocument, baseOptions);
-      }
-export type AddSlackBotIntegrationToProjectMutationHookResult = ReturnType<typeof useAddSlackBotIntegrationToProjectMutation>;
-export type AddSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToProjectMutation>;
-export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<Types.AddSlackBotIntegrationToProjectMutation, Types.AddSlackBotIntegrationToProjectMutationVariables>;
-export const UpdateAllowedEmailOriginsDocument = gql`
-    mutation UpdateAllowedEmailOrigins($workspace_id: ID!, $allowed_auto_join_email_origins: String!) {
-  updateAllowedEmailOrigins(
-    workspace_id: $workspace_id
-    allowed_auto_join_email_origins: $allowed_auto_join_email_origins
-  )
+export function useAddSlackBotIntegrationToProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AddSlackBotIntegrationToProjectMutation,
+        Types.AddSlackBotIntegrationToProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AddSlackBotIntegrationToProjectMutation,
+        Types.AddSlackBotIntegrationToProjectMutationVariables
+    >(AddSlackBotIntegrationToProjectDocument, baseOptions);
 }
-    `;
-export type UpdateAllowedEmailOriginsMutationFn = Apollo.MutationFunction<Types.UpdateAllowedEmailOriginsMutation, Types.UpdateAllowedEmailOriginsMutationVariables>;
+export type AddSlackBotIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useAddSlackBotIntegrationToProjectMutation
+>;
+export type AddSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToProjectMutation>;
+export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddSlackBotIntegrationToProjectMutation,
+    Types.AddSlackBotIntegrationToProjectMutationVariables
+>;
+export const UpdateAllowedEmailOriginsDocument = gql`
+    mutation UpdateAllowedEmailOrigins(
+        $workspace_id: ID!
+        $allowed_auto_join_email_origins: String!
+    ) {
+        updateAllowedEmailOrigins(
+            workspace_id: $workspace_id
+            allowed_auto_join_email_origins: $allowed_auto_join_email_origins
+        )
+    }
+`;
+export type UpdateAllowedEmailOriginsMutationFn = Apollo.MutationFunction<
+    Types.UpdateAllowedEmailOriginsMutation,
+    Types.UpdateAllowedEmailOriginsMutationVariables
+>;
 
 /**
  * __useUpdateAllowedEmailOriginsMutation__
@@ -508,21 +741,37 @@ export type UpdateAllowedEmailOriginsMutationFn = Apollo.MutationFunction<Types.
  *   },
  * });
  */
-export function useUpdateAllowedEmailOriginsMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateAllowedEmailOriginsMutation, Types.UpdateAllowedEmailOriginsMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateAllowedEmailOriginsMutation, Types.UpdateAllowedEmailOriginsMutationVariables>(UpdateAllowedEmailOriginsDocument, baseOptions);
-      }
-export type UpdateAllowedEmailOriginsMutationHookResult = ReturnType<typeof useUpdateAllowedEmailOriginsMutation>;
+export function useUpdateAllowedEmailOriginsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAllowedEmailOriginsMutation,
+        Types.UpdateAllowedEmailOriginsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAllowedEmailOriginsMutation,
+        Types.UpdateAllowedEmailOriginsMutationVariables
+    >(UpdateAllowedEmailOriginsDocument, baseOptions);
+}
+export type UpdateAllowedEmailOriginsMutationHookResult = ReturnType<
+    typeof useUpdateAllowedEmailOriginsMutation
+>;
 export type UpdateAllowedEmailOriginsMutationResult = Apollo.MutationResult<Types.UpdateAllowedEmailOriginsMutation>;
-export type UpdateAllowedEmailOriginsMutationOptions = Apollo.BaseMutationOptions<Types.UpdateAllowedEmailOriginsMutation, Types.UpdateAllowedEmailOriginsMutationVariables>;
+export type UpdateAllowedEmailOriginsMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAllowedEmailOriginsMutation,
+    Types.UpdateAllowedEmailOriginsMutationVariables
+>;
 export const CreateProjectDocument = gql`
     mutation CreateProject($name: String!, $workspace_id: ID!) {
-  createProject(name: $name, workspace_id: $workspace_id) {
-    id
-    name
-  }
-}
-    `;
-export type CreateProjectMutationFn = Apollo.MutationFunction<Types.CreateProjectMutation, Types.CreateProjectMutationVariables>;
+        createProject(name: $name, workspace_id: $workspace_id) {
+            id
+            name
+        }
+    }
+`;
+export type CreateProjectMutationFn = Apollo.MutationFunction<
+    Types.CreateProjectMutation,
+    Types.CreateProjectMutationVariables
+>;
 
 /**
  * __useCreateProjectMutation__
@@ -542,25 +791,48 @@ export type CreateProjectMutationFn = Apollo.MutationFunction<Types.CreateProjec
  *   },
  * });
  */
-export function useCreateProjectMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateProjectMutation, Types.CreateProjectMutationVariables>) {
-        return Apollo.useMutation<Types.CreateProjectMutation, Types.CreateProjectMutationVariables>(CreateProjectDocument, baseOptions);
-      }
-export type CreateProjectMutationHookResult = ReturnType<typeof useCreateProjectMutation>;
-export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProjectMutation>;
-export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<Types.CreateProjectMutation, Types.CreateProjectMutationVariables>;
-export const SubmitRegistrationFormDocument = gql`
-    mutation SubmitRegistrationForm($workspace_id: ID!, $team_size: String!, $role: String!, $use_case: String!, $heard_about: String!, $pun: String) {
-  submitRegistrationForm(
-    workspace_id: $workspace_id
-    team_size: $team_size
-    role: $role
-    use_case: $use_case
-    heard_about: $heard_about
-    pun: $pun
-  )
+export function useCreateProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateProjectMutation,
+        Types.CreateProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateProjectMutation,
+        Types.CreateProjectMutationVariables
+    >(CreateProjectDocument, baseOptions);
 }
-    `;
-export type SubmitRegistrationFormMutationFn = Apollo.MutationFunction<Types.SubmitRegistrationFormMutation, Types.SubmitRegistrationFormMutationVariables>;
+export type CreateProjectMutationHookResult = ReturnType<
+    typeof useCreateProjectMutation
+>;
+export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProjectMutation>;
+export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateProjectMutation,
+    Types.CreateProjectMutationVariables
+>;
+export const SubmitRegistrationFormDocument = gql`
+    mutation SubmitRegistrationForm(
+        $workspace_id: ID!
+        $team_size: String!
+        $role: String!
+        $use_case: String!
+        $heard_about: String!
+        $pun: String
+    ) {
+        submitRegistrationForm(
+            workspace_id: $workspace_id
+            team_size: $team_size
+            role: $role
+            use_case: $use_case
+            heard_about: $heard_about
+            pun: $pun
+        )
+    }
+`;
+export type SubmitRegistrationFormMutationFn = Apollo.MutationFunction<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
+>;
 
 /**
  * __useSubmitRegistrationFormMutation__
@@ -584,21 +856,37 @@ export type SubmitRegistrationFormMutationFn = Apollo.MutationFunction<Types.Sub
  *   },
  * });
  */
-export function useSubmitRegistrationFormMutation(baseOptions?: Apollo.MutationHookOptions<Types.SubmitRegistrationFormMutation, Types.SubmitRegistrationFormMutationVariables>) {
-        return Apollo.useMutation<Types.SubmitRegistrationFormMutation, Types.SubmitRegistrationFormMutationVariables>(SubmitRegistrationFormDocument, baseOptions);
-      }
-export type SubmitRegistrationFormMutationHookResult = ReturnType<typeof useSubmitRegistrationFormMutation>;
+export function useSubmitRegistrationFormMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SubmitRegistrationFormMutation,
+        Types.SubmitRegistrationFormMutationVariables
+    >(SubmitRegistrationFormDocument, baseOptions);
+}
+export type SubmitRegistrationFormMutationHookResult = ReturnType<
+    typeof useSubmitRegistrationFormMutation
+>;
 export type SubmitRegistrationFormMutationResult = Apollo.MutationResult<Types.SubmitRegistrationFormMutation>;
-export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<Types.SubmitRegistrationFormMutation, Types.SubmitRegistrationFormMutationVariables>;
+export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
+    Types.SubmitRegistrationFormMutation,
+    Types.SubmitRegistrationFormMutationVariables
+>;
 export const CreateWorkspaceDocument = gql`
     mutation CreateWorkspace($name: String!) {
-  createWorkspace(name: $name) {
-    id
-    name
-  }
-}
-    `;
-export type CreateWorkspaceMutationFn = Apollo.MutationFunction<Types.CreateWorkspaceMutation, Types.CreateWorkspaceMutationVariables>;
+        createWorkspace(name: $name) {
+            id
+            name
+        }
+    }
+`;
+export type CreateWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.CreateWorkspaceMutation,
+    Types.CreateWorkspaceMutationVariables
+>;
 
 /**
  * __useCreateWorkspaceMutation__
@@ -617,22 +905,38 @@ export type CreateWorkspaceMutationFn = Apollo.MutationFunction<Types.CreateWork
  *   },
  * });
  */
-export function useCreateWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateWorkspaceMutation, Types.CreateWorkspaceMutationVariables>) {
-        return Apollo.useMutation<Types.CreateWorkspaceMutation, Types.CreateWorkspaceMutationVariables>(CreateWorkspaceDocument, baseOptions);
-      }
-export type CreateWorkspaceMutationHookResult = ReturnType<typeof useCreateWorkspaceMutation>;
+export function useCreateWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateWorkspaceMutation,
+        Types.CreateWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateWorkspaceMutation,
+        Types.CreateWorkspaceMutationVariables
+    >(CreateWorkspaceDocument, baseOptions);
+}
+export type CreateWorkspaceMutationHookResult = ReturnType<
+    typeof useCreateWorkspaceMutation
+>;
 export type CreateWorkspaceMutationResult = Apollo.MutationResult<Types.CreateWorkspaceMutation>;
-export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<Types.CreateWorkspaceMutation, Types.CreateWorkspaceMutationVariables>;
+export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateWorkspaceMutation,
+    Types.CreateWorkspaceMutationVariables
+>;
 export const EditProjectDocument = gql`
     mutation EditProject($id: ID!, $name: String, $billing_email: String) {
-  editProject(id: $id, name: $name, billing_email: $billing_email) {
-    id
-    name
-    billing_email
-  }
-}
-    `;
-export type EditProjectMutationFn = Apollo.MutationFunction<Types.EditProjectMutation, Types.EditProjectMutationVariables>;
+        editProject(id: $id, name: $name, billing_email: $billing_email) {
+            id
+            name
+            billing_email
+        }
+    }
+`;
+export type EditProjectMutationFn = Apollo.MutationFunction<
+    Types.EditProjectMutation,
+    Types.EditProjectMutationVariables
+>;
 
 /**
  * __useEditProjectMutation__
@@ -653,18 +957,34 @@ export type EditProjectMutationFn = Apollo.MutationFunction<Types.EditProjectMut
  *   },
  * });
  */
-export function useEditProjectMutation(baseOptions?: Apollo.MutationHookOptions<Types.EditProjectMutation, Types.EditProjectMutationVariables>) {
-        return Apollo.useMutation<Types.EditProjectMutation, Types.EditProjectMutationVariables>(EditProjectDocument, baseOptions);
-      }
-export type EditProjectMutationHookResult = ReturnType<typeof useEditProjectMutation>;
+export function useEditProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.EditProjectMutation,
+        Types.EditProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.EditProjectMutation,
+        Types.EditProjectMutationVariables
+    >(EditProjectDocument, baseOptions);
+}
+export type EditProjectMutationHookResult = ReturnType<
+    typeof useEditProjectMutation
+>;
 export type EditProjectMutationResult = Apollo.MutationResult<Types.EditProjectMutation>;
-export type EditProjectMutationOptions = Apollo.BaseMutationOptions<Types.EditProjectMutation, Types.EditProjectMutationVariables>;
+export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditProjectMutation,
+    Types.EditProjectMutationVariables
+>;
 export const DeleteProjectDocument = gql`
     mutation DeleteProject($id: ID!) {
-  deleteProject(id: $id)
-}
-    `;
-export type DeleteProjectMutationFn = Apollo.MutationFunction<Types.DeleteProjectMutation, Types.DeleteProjectMutationVariables>;
+        deleteProject(id: $id)
+    }
+`;
+export type DeleteProjectMutationFn = Apollo.MutationFunction<
+    Types.DeleteProjectMutation,
+    Types.DeleteProjectMutationVariables
+>;
 
 /**
  * __useDeleteProjectMutation__
@@ -683,21 +1003,37 @@ export type DeleteProjectMutationFn = Apollo.MutationFunction<Types.DeleteProjec
  *   },
  * });
  */
-export function useDeleteProjectMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteProjectMutation, Types.DeleteProjectMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteProjectMutation, Types.DeleteProjectMutationVariables>(DeleteProjectDocument, baseOptions);
-      }
-export type DeleteProjectMutationHookResult = ReturnType<typeof useDeleteProjectMutation>;
+export function useDeleteProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteProjectMutation,
+        Types.DeleteProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteProjectMutation,
+        Types.DeleteProjectMutationVariables
+    >(DeleteProjectDocument, baseOptions);
+}
+export type DeleteProjectMutationHookResult = ReturnType<
+    typeof useDeleteProjectMutation
+>;
 export type DeleteProjectMutationResult = Apollo.MutationResult<Types.DeleteProjectMutation>;
-export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<Types.DeleteProjectMutation, Types.DeleteProjectMutationVariables>;
+export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteProjectMutation,
+    Types.DeleteProjectMutationVariables
+>;
 export const EditWorkspaceDocument = gql`
     mutation EditWorkspace($id: ID!, $name: String) {
-  editWorkspace(id: $id, name: $name) {
-    id
-    name
-  }
-}
-    `;
-export type EditWorkspaceMutationFn = Apollo.MutationFunction<Types.EditWorkspaceMutation, Types.EditWorkspaceMutationVariables>;
+        editWorkspace(id: $id, name: $name) {
+            id
+            name
+        }
+    }
+`;
+export type EditWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.EditWorkspaceMutation,
+    Types.EditWorkspaceMutationVariables
+>;
 
 /**
  * __useEditWorkspaceMutation__
@@ -717,18 +1053,34 @@ export type EditWorkspaceMutationFn = Apollo.MutationFunction<Types.EditWorkspac
  *   },
  * });
  */
-export function useEditWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<Types.EditWorkspaceMutation, Types.EditWorkspaceMutationVariables>) {
-        return Apollo.useMutation<Types.EditWorkspaceMutation, Types.EditWorkspaceMutationVariables>(EditWorkspaceDocument, baseOptions);
-      }
-export type EditWorkspaceMutationHookResult = ReturnType<typeof useEditWorkspaceMutation>;
+export function useEditWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.EditWorkspaceMutation,
+        Types.EditWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.EditWorkspaceMutation,
+        Types.EditWorkspaceMutationVariables
+    >(EditWorkspaceDocument, baseOptions);
+}
+export type EditWorkspaceMutationHookResult = ReturnType<
+    typeof useEditWorkspaceMutation
+>;
 export type EditWorkspaceMutationResult = Apollo.MutationResult<Types.EditWorkspaceMutation>;
-export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<Types.EditWorkspaceMutation, Types.EditWorkspaceMutationVariables>;
+export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditWorkspaceMutation,
+    Types.EditWorkspaceMutationVariables
+>;
 export const DeleteSegmentDocument = gql`
     mutation DeleteSegment($segment_id: ID!) {
-  deleteSegment(segment_id: $segment_id)
-}
-    `;
-export type DeleteSegmentMutationFn = Apollo.MutationFunction<Types.DeleteSegmentMutation, Types.DeleteSegmentMutationVariables>;
+        deleteSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
 
 /**
  * __useDeleteSegmentMutation__
@@ -747,18 +1099,38 @@ export type DeleteSegmentMutationFn = Apollo.MutationFunction<Types.DeleteSegmen
  *   },
  * });
  */
-export function useDeleteSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteSegmentMutation, Types.DeleteSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteSegmentMutation, Types.DeleteSegmentMutationVariables>(DeleteSegmentDocument, baseOptions);
-      }
-export type DeleteSegmentMutationHookResult = ReturnType<typeof useDeleteSegmentMutation>;
-export type DeleteSegmentMutationResult = Apollo.MutationResult<Types.DeleteSegmentMutation>;
-export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<Types.DeleteSegmentMutation, Types.DeleteSegmentMutationVariables>;
-export const EditSegmentDocument = gql`
-    mutation EditSegment($project_id: ID!, $id: ID!, $params: SearchParamsInput!) {
-  editSegment(project_id: $project_id, id: $id, params: $params)
+export function useDeleteSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >(DeleteSegmentDocument, baseOptions);
 }
-    `;
-export type EditSegmentMutationFn = Apollo.MutationFunction<Types.EditSegmentMutation, Types.EditSegmentMutationVariables>;
+export type DeleteSegmentMutationHookResult = ReturnType<
+    typeof useDeleteSegmentMutation
+>;
+export type DeleteSegmentMutationResult = Apollo.MutationResult<Types.DeleteSegmentMutation>;
+export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
+export const EditSegmentDocument = gql`
+    mutation EditSegment(
+        $project_id: ID!
+        $id: ID!
+        $params: SearchParamsInput!
+    ) {
+        editSegment(project_id: $project_id, id: $id, params: $params)
+    }
+`;
+export type EditSegmentMutationFn = Apollo.MutationFunction<
+    Types.EditSegmentMutation,
+    Types.EditSegmentMutationVariables
+>;
 
 /**
  * __useEditSegmentMutation__
@@ -779,45 +1151,65 @@ export type EditSegmentMutationFn = Apollo.MutationFunction<Types.EditSegmentMut
  *   },
  * });
  */
-export function useEditSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.EditSegmentMutation, Types.EditSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.EditSegmentMutation, Types.EditSegmentMutationVariables>(EditSegmentDocument, baseOptions);
-      }
-export type EditSegmentMutationHookResult = ReturnType<typeof useEditSegmentMutation>;
-export type EditSegmentMutationResult = Apollo.MutationResult<Types.EditSegmentMutation>;
-export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<Types.EditSegmentMutation, Types.EditSegmentMutationVariables>;
-export const CreateSegmentDocument = gql`
-    mutation CreateSegment($project_id: ID!, $name: String!, $params: SearchParamsInput!) {
-  createSegment(project_id: $project_id, name: $name, params: $params) {
-    name
-    id
-    params {
-      user_properties {
-        name
-        value
-      }
-      excluded_properties {
-        name
-        value
-      }
-      date_range {
-        start_date
-        end_date
-      }
-      os
-      browser
-      visited_url
-      referrer
-      identified
-      hide_viewed
-      app_versions
-      environments
-      device_id
-      show_live_sessions
-    }
-  }
+export function useEditSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.EditSegmentMutation,
+        Types.EditSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.EditSegmentMutation,
+        Types.EditSegmentMutationVariables
+    >(EditSegmentDocument, baseOptions);
 }
-    `;
-export type CreateSegmentMutationFn = Apollo.MutationFunction<Types.CreateSegmentMutation, Types.CreateSegmentMutationVariables>;
+export type EditSegmentMutationHookResult = ReturnType<
+    typeof useEditSegmentMutation
+>;
+export type EditSegmentMutationResult = Apollo.MutationResult<Types.EditSegmentMutation>;
+export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditSegmentMutation,
+    Types.EditSegmentMutationVariables
+>;
+export const CreateSegmentDocument = gql`
+    mutation CreateSegment(
+        $project_id: ID!
+        $name: String!
+        $params: SearchParamsInput!
+    ) {
+        createSegment(project_id: $project_id, name: $name, params: $params) {
+            name
+            id
+            params {
+                user_properties {
+                    name
+                    value
+                }
+                excluded_properties {
+                    name
+                    value
+                }
+                date_range {
+                    start_date
+                    end_date
+                }
+                os
+                browser
+                visited_url
+                referrer
+                identified
+                hide_viewed
+                app_versions
+                environments
+                device_id
+                show_live_sessions
+            }
+        }
+    }
+`;
+export type CreateSegmentMutationFn = Apollo.MutationFunction<
+    Types.CreateSegmentMutation,
+    Types.CreateSegmentMutationVariables
+>;
 
 /**
  * __useCreateSegmentMutation__
@@ -838,46 +1230,77 @@ export type CreateSegmentMutationFn = Apollo.MutationFunction<Types.CreateSegmen
  *   },
  * });
  */
-export function useCreateSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateSegmentMutation, Types.CreateSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.CreateSegmentMutation, Types.CreateSegmentMutationVariables>(CreateSegmentDocument, baseOptions);
-      }
-export type CreateSegmentMutationHookResult = ReturnType<typeof useCreateSegmentMutation>;
-export type CreateSegmentMutationResult = Apollo.MutationResult<Types.CreateSegmentMutation>;
-export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<Types.CreateSegmentMutation, Types.CreateSegmentMutationVariables>;
-export const CreateSessionCommentDocument = gql`
-    mutation CreateSessionComment($project_id: ID!, $session_secure_id: String!, $session_timestamp: Int!, $text: String!, $text_for_email: String!, $x_coordinate: Float!, $y_coordinate: Float!, $tagged_admins: [SanitizedAdminInput]!, $tagged_slack_users: [SanitizedSlackChannelInput]!, $session_url: String!, $time: Float!, $author_name: String!, $session_image: String, $tags: [SessionCommentTagInput]!) {
-  createSessionComment(
-    project_id: $project_id
-    session_secure_id: $session_secure_id
-    session_timestamp: $session_timestamp
-    text: $text
-    text_for_email: $text_for_email
-    x_coordinate: $x_coordinate
-    y_coordinate: $y_coordinate
-    tagged_admins: $tagged_admins
-    tagged_slack_users: $tagged_slack_users
-    session_url: $session_url
-    time: $time
-    author_name: $author_name
-    session_image: $session_image
-    tags: $tags
-  ) {
-    id
-    timestamp
-    created_at
-    updated_at
-    author {
-      id
-      name
-      email
-    }
-    text
-    x_coordinate
-    y_coordinate
-  }
+export function useCreateSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateSegmentMutation,
+        Types.CreateSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateSegmentMutation,
+        Types.CreateSegmentMutationVariables
+    >(CreateSegmentDocument, baseOptions);
 }
-    `;
-export type CreateSessionCommentMutationFn = Apollo.MutationFunction<Types.CreateSessionCommentMutation, Types.CreateSessionCommentMutationVariables>;
+export type CreateSegmentMutationHookResult = ReturnType<
+    typeof useCreateSegmentMutation
+>;
+export type CreateSegmentMutationResult = Apollo.MutationResult<Types.CreateSegmentMutation>;
+export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateSegmentMutation,
+    Types.CreateSegmentMutationVariables
+>;
+export const CreateSessionCommentDocument = gql`
+    mutation CreateSessionComment(
+        $project_id: ID!
+        $session_secure_id: String!
+        $session_timestamp: Int!
+        $text: String!
+        $text_for_email: String!
+        $x_coordinate: Float!
+        $y_coordinate: Float!
+        $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
+        $session_url: String!
+        $time: Float!
+        $author_name: String!
+        $session_image: String
+        $tags: [SessionCommentTagInput]!
+    ) {
+        createSessionComment(
+            project_id: $project_id
+            session_secure_id: $session_secure_id
+            session_timestamp: $session_timestamp
+            text: $text
+            text_for_email: $text_for_email
+            x_coordinate: $x_coordinate
+            y_coordinate: $y_coordinate
+            tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
+            session_url: $session_url
+            time: $time
+            author_name: $author_name
+            session_image: $session_image
+            tags: $tags
+        ) {
+            id
+            timestamp
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+            x_coordinate
+            y_coordinate
+        }
+    }
+`;
+export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
 
 /**
  * __useCreateSessionCommentMutation__
@@ -909,18 +1332,34 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<Types.Creat
  *   },
  * });
  */
-export function useCreateSessionCommentMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateSessionCommentMutation, Types.CreateSessionCommentMutationVariables>) {
-        return Apollo.useMutation<Types.CreateSessionCommentMutation, Types.CreateSessionCommentMutationVariables>(CreateSessionCommentDocument, baseOptions);
-      }
-export type CreateSessionCommentMutationHookResult = ReturnType<typeof useCreateSessionCommentMutation>;
+export function useCreateSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >(CreateSessionCommentDocument, baseOptions);
+}
+export type CreateSessionCommentMutationHookResult = ReturnType<
+    typeof useCreateSessionCommentMutation
+>;
 export type CreateSessionCommentMutationResult = Apollo.MutationResult<Types.CreateSessionCommentMutation>;
-export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<Types.CreateSessionCommentMutation, Types.CreateSessionCommentMutationVariables>;
+export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
 export const DeleteSessionCommentDocument = gql`
     mutation DeleteSessionComment($id: ID!) {
-  deleteSessionComment(id: $id)
-}
-    `;
-export type DeleteSessionCommentMutationFn = Apollo.MutationFunction<Types.DeleteSessionCommentMutation, Types.DeleteSessionCommentMutationVariables>;
+        deleteSessionComment(id: $id)
+    }
+`;
+export type DeleteSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.DeleteSessionCommentMutation,
+    Types.DeleteSessionCommentMutationVariables
+>;
 
 /**
  * __useDeleteSessionCommentMutation__
@@ -939,37 +1378,62 @@ export type DeleteSessionCommentMutationFn = Apollo.MutationFunction<Types.Delet
  *   },
  * });
  */
-export function useDeleteSessionCommentMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteSessionCommentMutation, Types.DeleteSessionCommentMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteSessionCommentMutation, Types.DeleteSessionCommentMutationVariables>(DeleteSessionCommentDocument, baseOptions);
-      }
-export type DeleteSessionCommentMutationHookResult = ReturnType<typeof useDeleteSessionCommentMutation>;
-export type DeleteSessionCommentMutationResult = Apollo.MutationResult<Types.DeleteSessionCommentMutation>;
-export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<Types.DeleteSessionCommentMutation, Types.DeleteSessionCommentMutationVariables>;
-export const CreateErrorCommentDocument = gql`
-    mutation CreateErrorComment($project_id: ID!, $error_group_secure_id: String!, $text: String!, $text_for_email: String!, $tagged_admins: [SanitizedAdminInput]!, $tagged_slack_users: [SanitizedSlackChannelInput]!, $error_url: String!, $author_name: String!) {
-  createErrorComment(
-    project_id: $project_id
-    error_group_secure_id: $error_group_secure_id
-    text: $text
-    text_for_email: $text_for_email
-    tagged_admins: $tagged_admins
-    tagged_slack_users: $tagged_slack_users
-    error_url: $error_url
-    author_name: $author_name
-  ) {
-    id
-    created_at
-    updated_at
-    author {
-      id
-      name
-      email
-    }
-    text
-  }
+export function useDeleteSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSessionCommentMutation,
+        Types.DeleteSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSessionCommentMutation,
+        Types.DeleteSessionCommentMutationVariables
+    >(DeleteSessionCommentDocument, baseOptions);
 }
-    `;
-export type CreateErrorCommentMutationFn = Apollo.MutationFunction<Types.CreateErrorCommentMutation, Types.CreateErrorCommentMutationVariables>;
+export type DeleteSessionCommentMutationHookResult = ReturnType<
+    typeof useDeleteSessionCommentMutation
+>;
+export type DeleteSessionCommentMutationResult = Apollo.MutationResult<Types.DeleteSessionCommentMutation>;
+export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSessionCommentMutation,
+    Types.DeleteSessionCommentMutationVariables
+>;
+export const CreateErrorCommentDocument = gql`
+    mutation CreateErrorComment(
+        $project_id: ID!
+        $error_group_secure_id: String!
+        $text: String!
+        $text_for_email: String!
+        $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
+        $error_url: String!
+        $author_name: String!
+    ) {
+        createErrorComment(
+            project_id: $project_id
+            error_group_secure_id: $error_group_secure_id
+            text: $text
+            text_for_email: $text_for_email
+            tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
+            error_url: $error_url
+            author_name: $author_name
+        ) {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+        }
+    }
+`;
+export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorCommentMutation,
+    Types.CreateErrorCommentMutationVariables
+>;
 
 /**
  * __useCreateErrorCommentMutation__
@@ -995,18 +1459,34 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<Types.CreateE
  *   },
  * });
  */
-export function useCreateErrorCommentMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateErrorCommentMutation, Types.CreateErrorCommentMutationVariables>) {
-        return Apollo.useMutation<Types.CreateErrorCommentMutation, Types.CreateErrorCommentMutationVariables>(CreateErrorCommentDocument, baseOptions);
-      }
-export type CreateErrorCommentMutationHookResult = ReturnType<typeof useCreateErrorCommentMutation>;
+export function useCreateErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateErrorCommentMutation,
+        Types.CreateErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateErrorCommentMutation,
+        Types.CreateErrorCommentMutationVariables
+    >(CreateErrorCommentDocument, baseOptions);
+}
+export type CreateErrorCommentMutationHookResult = ReturnType<
+    typeof useCreateErrorCommentMutation
+>;
 export type CreateErrorCommentMutationResult = Apollo.MutationResult<Types.CreateErrorCommentMutation>;
-export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<Types.CreateErrorCommentMutation, Types.CreateErrorCommentMutationVariables>;
+export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorCommentMutation,
+    Types.CreateErrorCommentMutationVariables
+>;
 export const DeleteErrorCommentDocument = gql`
     mutation DeleteErrorComment($id: ID!) {
-  deleteErrorComment(id: $id)
-}
-    `;
-export type DeleteErrorCommentMutationFn = Apollo.MutationFunction<Types.DeleteErrorCommentMutation, Types.DeleteErrorCommentMutationVariables>;
+        deleteErrorComment(id: $id)
+    }
+`;
+export type DeleteErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorCommentMutation,
+    Types.DeleteErrorCommentMutationVariables
+>;
 
 /**
  * __useDeleteErrorCommentMutation__
@@ -1025,18 +1505,34 @@ export type DeleteErrorCommentMutationFn = Apollo.MutationFunction<Types.DeleteE
  *   },
  * });
  */
-export function useDeleteErrorCommentMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteErrorCommentMutation, Types.DeleteErrorCommentMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteErrorCommentMutation, Types.DeleteErrorCommentMutationVariables>(DeleteErrorCommentDocument, baseOptions);
-      }
-export type DeleteErrorCommentMutationHookResult = ReturnType<typeof useDeleteErrorCommentMutation>;
+export function useDeleteErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorCommentMutation,
+        Types.DeleteErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorCommentMutation,
+        Types.DeleteErrorCommentMutationVariables
+    >(DeleteErrorCommentDocument, baseOptions);
+}
+export type DeleteErrorCommentMutationHookResult = ReturnType<
+    typeof useDeleteErrorCommentMutation
+>;
 export type DeleteErrorCommentMutationResult = Apollo.MutationResult<Types.DeleteErrorCommentMutation>;
-export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<Types.DeleteErrorCommentMutation, Types.DeleteErrorCommentMutationVariables>;
+export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorCommentMutation,
+    Types.DeleteErrorCommentMutationVariables
+>;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
-  deleteErrorSegment(segment_id: $segment_id)
-}
-    `;
-export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<Types.DeleteErrorSegmentMutation, Types.DeleteErrorSegmentMutationVariables>;
+        deleteErrorSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
+>;
 
 /**
  * __useDeleteErrorSegmentMutation__
@@ -1055,18 +1551,38 @@ export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<Types.DeleteE
  *   },
  * });
  */
-export function useDeleteErrorSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteErrorSegmentMutation, Types.DeleteErrorSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteErrorSegmentMutation, Types.DeleteErrorSegmentMutationVariables>(DeleteErrorSegmentDocument, baseOptions);
-      }
-export type DeleteErrorSegmentMutationHookResult = ReturnType<typeof useDeleteErrorSegmentMutation>;
-export type DeleteErrorSegmentMutationResult = Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
-export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<Types.DeleteErrorSegmentMutation, Types.DeleteErrorSegmentMutationVariables>;
-export const EditErrorSegmentDocument = gql`
-    mutation EditErrorSegment($project_id: ID!, $id: ID!, $params: ErrorSearchParamsInput!) {
-  editErrorSegment(project_id: $project_id, id: $id, params: $params)
+export function useDeleteErrorSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >(DeleteErrorSegmentDocument, baseOptions);
 }
-    `;
-export type EditErrorSegmentMutationFn = Apollo.MutationFunction<Types.EditErrorSegmentMutation, Types.EditErrorSegmentMutationVariables>;
+export type DeleteErrorSegmentMutationHookResult = ReturnType<
+    typeof useDeleteErrorSegmentMutation
+>;
+export type DeleteErrorSegmentMutationResult = Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
+export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
+>;
+export const EditErrorSegmentDocument = gql`
+    mutation EditErrorSegment(
+        $project_id: ID!
+        $id: ID!
+        $params: ErrorSearchParamsInput!
+    ) {
+        editErrorSegment(project_id: $project_id, id: $id, params: $params)
+    }
+`;
+export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.EditErrorSegmentMutation,
+    Types.EditErrorSegmentMutationVariables
+>;
 
 /**
  * __useEditErrorSegmentMutation__
@@ -1087,31 +1603,55 @@ export type EditErrorSegmentMutationFn = Apollo.MutationFunction<Types.EditError
  *   },
  * });
  */
-export function useEditErrorSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.EditErrorSegmentMutation, Types.EditErrorSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.EditErrorSegmentMutation, Types.EditErrorSegmentMutationVariables>(EditErrorSegmentDocument, baseOptions);
-      }
-export type EditErrorSegmentMutationHookResult = ReturnType<typeof useEditErrorSegmentMutation>;
-export type EditErrorSegmentMutationResult = Apollo.MutationResult<Types.EditErrorSegmentMutation>;
-export type EditErrorSegmentMutationOptions = Apollo.BaseMutationOptions<Types.EditErrorSegmentMutation, Types.EditErrorSegmentMutationVariables>;
-export const CreateErrorSegmentDocument = gql`
-    mutation CreateErrorSegment($project_id: ID!, $name: String!, $params: ErrorSearchParamsInput!) {
-  createErrorSegment(project_id: $project_id, name: $name, params: $params) {
-    name
-    id
-    params {
-      date_range {
-        start_date
-        end_date
-      }
-      os
-      browser
-      visited_url
-      state
-    }
-  }
+export function useEditErrorSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.EditErrorSegmentMutation,
+        Types.EditErrorSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.EditErrorSegmentMutation,
+        Types.EditErrorSegmentMutationVariables
+    >(EditErrorSegmentDocument, baseOptions);
 }
-    `;
-export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<Types.CreateErrorSegmentMutation, Types.CreateErrorSegmentMutationVariables>;
+export type EditErrorSegmentMutationHookResult = ReturnType<
+    typeof useEditErrorSegmentMutation
+>;
+export type EditErrorSegmentMutationResult = Apollo.MutationResult<Types.EditErrorSegmentMutation>;
+export type EditErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditErrorSegmentMutation,
+    Types.EditErrorSegmentMutationVariables
+>;
+export const CreateErrorSegmentDocument = gql`
+    mutation CreateErrorSegment(
+        $project_id: ID!
+        $name: String!
+        $params: ErrorSearchParamsInput!
+    ) {
+        createErrorSegment(
+            project_id: $project_id
+            name: $name
+            params: $params
+        ) {
+            name
+            id
+            params {
+                date_range {
+                    start_date
+                    end_date
+                }
+                os
+                browser
+                visited_url
+                state
+            }
+        }
+    }
+`;
+export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorSegmentMutation,
+    Types.CreateErrorSegmentMutationVariables
+>;
 
 /**
  * __useCreateErrorSegmentMutation__
@@ -1132,40 +1672,68 @@ export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<Types.CreateE
  *   },
  * });
  */
-export function useCreateErrorSegmentMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateErrorSegmentMutation, Types.CreateErrorSegmentMutationVariables>) {
-        return Apollo.useMutation<Types.CreateErrorSegmentMutation, Types.CreateErrorSegmentMutationVariables>(CreateErrorSegmentDocument, baseOptions);
-      }
-export type CreateErrorSegmentMutationHookResult = ReturnType<typeof useCreateErrorSegmentMutation>;
-export type CreateErrorSegmentMutationResult = Apollo.MutationResult<Types.CreateErrorSegmentMutation>;
-export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<Types.CreateErrorSegmentMutation, Types.CreateErrorSegmentMutationVariables>;
-export const CreateErrorAlertDocument = gql`
-    mutation CreateErrorAlert($project_id: ID!, $name: String!, $count_threshold: Int!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $regex_groups: [String]!, $frequency: Int!) {
-  createErrorAlert(
-    project_id: $project_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-    regex_groups: $regex_groups
-    frequency: $frequency
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-    RegexGroups
-    Frequency
-  }
+export function useCreateErrorSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateErrorSegmentMutation,
+        Types.CreateErrorSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateErrorSegmentMutation,
+        Types.CreateErrorSegmentMutationVariables
+    >(CreateErrorSegmentDocument, baseOptions);
 }
-    `;
-export type CreateErrorAlertMutationFn = Apollo.MutationFunction<Types.CreateErrorAlertMutation, Types.CreateErrorAlertMutationVariables>;
+export type CreateErrorSegmentMutationHookResult = ReturnType<
+    typeof useCreateErrorSegmentMutation
+>;
+export type CreateErrorSegmentMutationResult = Apollo.MutationResult<Types.CreateErrorSegmentMutation>;
+export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorSegmentMutation,
+    Types.CreateErrorSegmentMutationVariables
+>;
+export const CreateErrorAlertDocument = gql`
+    mutation CreateErrorAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $regex_groups: [String]!
+        $frequency: Int!
+    ) {
+        createErrorAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+            regex_groups: $regex_groups
+            frequency: $frequency
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+            RegexGroups
+            Frequency
+        }
+    }
+`;
+export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorAlertMutation,
+    Types.CreateErrorAlertMutationVariables
+>;
 
 /**
  * __useCreateErrorAlertMutation__
@@ -1185,43 +1753,70 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<Types.CreateErr
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *   },
  * });
  */
-export function useCreateErrorAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateErrorAlertMutation, Types.CreateErrorAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateErrorAlertMutation, Types.CreateErrorAlertMutationVariables>(CreateErrorAlertDocument, baseOptions);
-      }
-export type CreateErrorAlertMutationHookResult = ReturnType<typeof useCreateErrorAlertMutation>;
-export type CreateErrorAlertMutationResult = Apollo.MutationResult<Types.CreateErrorAlertMutation>;
-export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateErrorAlertMutation, Types.CreateErrorAlertMutationVariables>;
-export const CreateMetricMonitorDocument = gql`
-    mutation CreateMetricMonitor($project_id: ID!, $name: String!, $function: String!, $threshold: Float!, $metric_to_monitor: String!, $slack_channels: [SanitizedSlackChannelInput]!) {
-  createMetricMonitor(
-    project_id: $project_id
-    threshold: $threshold
-    name: $name
-    function: $function
-    metric_to_monitor: $metric_to_monitor
-    slack_channels: $slack_channels
-  ) {
-    id
-    updated_at
-    name
-    channels_to_notify {
-      webhook_channel
-      webhook_channel_id
-    }
-    function
-    metric_to_monitor
-    last_admin_to_edit_id
-    threshold
-  }
+export function useCreateErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateErrorAlertMutation,
+        Types.CreateErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateErrorAlertMutation,
+        Types.CreateErrorAlertMutationVariables
+    >(CreateErrorAlertDocument, baseOptions);
 }
-    `;
-export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<Types.CreateMetricMonitorMutation, Types.CreateMetricMonitorMutationVariables>;
+export type CreateErrorAlertMutationHookResult = ReturnType<
+    typeof useCreateErrorAlertMutation
+>;
+export type CreateErrorAlertMutationResult = Apollo.MutationResult<Types.CreateErrorAlertMutation>;
+export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorAlertMutation,
+    Types.CreateErrorAlertMutationVariables
+>;
+export const CreateMetricMonitorDocument = gql`
+    mutation CreateMetricMonitor(
+        $project_id: ID!
+        $name: String!
+        $function: String!
+        $threshold: Float!
+        $metric_to_monitor: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+    ) {
+        createMetricMonitor(
+            project_id: $project_id
+            threshold: $threshold
+            name: $name
+            function: $function
+            metric_to_monitor: $metric_to_monitor
+            slack_channels: $slack_channels
+            emails: $emails
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            emails_to_notify
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
+    }
+`;
+export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.CreateMetricMonitorMutation,
+    Types.CreateMetricMonitorMutationVariables
+>;
 
 /**
  * __useCreateMetricMonitorMutation__
@@ -1242,41 +1837,69 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<Types.Create
  *      threshold: // value for 'threshold'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
-export function useCreateMetricMonitorMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateMetricMonitorMutation, Types.CreateMetricMonitorMutationVariables>) {
-        return Apollo.useMutation<Types.CreateMetricMonitorMutation, Types.CreateMetricMonitorMutationVariables>(CreateMetricMonitorDocument, baseOptions);
-      }
-export type CreateMetricMonitorMutationHookResult = ReturnType<typeof useCreateMetricMonitorMutation>;
-export type CreateMetricMonitorMutationResult = Apollo.MutationResult<Types.CreateMetricMonitorMutation>;
-export type CreateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<Types.CreateMetricMonitorMutation, Types.CreateMetricMonitorMutationVariables>;
-export const UpdateMetricMonitorDocument = gql`
-    mutation UpdateMetricMonitor($metric_monitor_id: ID!, $project_id: ID!, $name: String!, $function: String!, $threshold: Float!, $metric_to_monitor: String!, $slack_channels: [SanitizedSlackChannelInput]!) {
-  updateMetricMonitor(
-    metric_monitor_id: $metric_monitor_id
-    project_id: $project_id
-    threshold: $threshold
-    name: $name
-    function: $function
-    metric_to_monitor: $metric_to_monitor
-    slack_channels: $slack_channels
-  ) {
-    id
-    updated_at
-    name
-    channels_to_notify {
-      webhook_channel
-      webhook_channel_id
-    }
-    function
-    metric_to_monitor
-    last_admin_to_edit_id
-    threshold
-  }
+export function useCreateMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateMetricMonitorMutation,
+        Types.CreateMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateMetricMonitorMutation,
+        Types.CreateMetricMonitorMutationVariables
+    >(CreateMetricMonitorDocument, baseOptions);
 }
-    `;
-export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<Types.UpdateMetricMonitorMutation, Types.UpdateMetricMonitorMutationVariables>;
+export type CreateMetricMonitorMutationHookResult = ReturnType<
+    typeof useCreateMetricMonitorMutation
+>;
+export type CreateMetricMonitorMutationResult = Apollo.MutationResult<Types.CreateMetricMonitorMutation>;
+export type CreateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateMetricMonitorMutation,
+    Types.CreateMetricMonitorMutationVariables
+>;
+export const UpdateMetricMonitorDocument = gql`
+    mutation UpdateMetricMonitor(
+        $metric_monitor_id: ID!
+        $project_id: ID!
+        $name: String!
+        $function: String!
+        $threshold: Float!
+        $metric_to_monitor: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+    ) {
+        updateMetricMonitor(
+            metric_monitor_id: $metric_monitor_id
+            project_id: $project_id
+            threshold: $threshold
+            name: $name
+            function: $function
+            metric_to_monitor: $metric_to_monitor
+            slack_channels: $slack_channels
+            emails: $emails
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            emails_to_notify
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
+    }
+`;
+export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.UpdateMetricMonitorMutation,
+    Types.UpdateMetricMonitorMutationVariables
+>;
 
 /**
  * __useUpdateMetricMonitorMutation__
@@ -1298,36 +1921,54 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<Types.Update
  *      threshold: // value for 'threshold'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
-export function useUpdateMetricMonitorMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateMetricMonitorMutation, Types.UpdateMetricMonitorMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateMetricMonitorMutation, Types.UpdateMetricMonitorMutationVariables>(UpdateMetricMonitorDocument, baseOptions);
-      }
-export type UpdateMetricMonitorMutationHookResult = ReturnType<typeof useUpdateMetricMonitorMutation>;
+export function useUpdateMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateMetricMonitorMutation,
+        Types.UpdateMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateMetricMonitorMutation,
+        Types.UpdateMetricMonitorMutationVariables
+    >(UpdateMetricMonitorDocument, baseOptions);
+}
+export type UpdateMetricMonitorMutationHookResult = ReturnType<
+    typeof useUpdateMetricMonitorMutation
+>;
 export type UpdateMetricMonitorMutationResult = Apollo.MutationResult<Types.UpdateMetricMonitorMutation>;
-export type UpdateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<Types.UpdateMetricMonitorMutation, Types.UpdateMetricMonitorMutationVariables>;
+export type UpdateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateMetricMonitorMutation,
+    Types.UpdateMetricMonitorMutationVariables
+>;
 export const DeleteMetricMonitorDocument = gql`
     mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
-  deleteMetricMonitor(
-    metric_monitor_id: $metric_monitor_id
-    project_id: $project_id
-  ) {
-    id
-    updated_at
-    name
-    channels_to_notify {
-      webhook_channel
-      webhook_channel_id
+        deleteMetricMonitor(
+            metric_monitor_id: $metric_monitor_id
+            project_id: $project_id
+        ) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            emails_to_notify
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
     }
-    function
-    metric_to_monitor
-    last_admin_to_edit_id
-    threshold
-  }
-}
-    `;
-export type DeleteMetricMonitorMutationFn = Apollo.MutationFunction<Types.DeleteMetricMonitorMutation, Types.DeleteMetricMonitorMutationVariables>;
+`;
+export type DeleteMetricMonitorMutationFn = Apollo.MutationFunction<
+    Types.DeleteMetricMonitorMutation,
+    Types.DeleteMetricMonitorMutationVariables
+>;
 
 /**
  * __useDeleteMetricMonitorMutation__
@@ -1347,18 +1988,34 @@ export type DeleteMetricMonitorMutationFn = Apollo.MutationFunction<Types.Delete
  *   },
  * });
  */
-export function useDeleteMetricMonitorMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteMetricMonitorMutation, Types.DeleteMetricMonitorMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteMetricMonitorMutation, Types.DeleteMetricMonitorMutationVariables>(DeleteMetricMonitorDocument, baseOptions);
-      }
-export type DeleteMetricMonitorMutationHookResult = ReturnType<typeof useDeleteMetricMonitorMutation>;
+export function useDeleteMetricMonitorMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteMetricMonitorMutation,
+        Types.DeleteMetricMonitorMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteMetricMonitorMutation,
+        Types.DeleteMetricMonitorMutationVariables
+    >(DeleteMetricMonitorDocument, baseOptions);
+}
+export type DeleteMetricMonitorMutationHookResult = ReturnType<
+    typeof useDeleteMetricMonitorMutation
+>;
 export type DeleteMetricMonitorMutationResult = Apollo.MutationResult<Types.DeleteMetricMonitorMutation>;
-export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<Types.DeleteMetricMonitorMutation, Types.DeleteMetricMonitorMutationVariables>;
+export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteMetricMonitorMutation,
+    Types.DeleteMetricMonitorMutationVariables
+>;
 export const UpdateAdminAboutYouDetailsDocument = gql`
     mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
-  updateAdminAboutYouDetails(adminDetails: $adminDetails)
-}
-    `;
-export type UpdateAdminAboutYouDetailsMutationFn = Apollo.MutationFunction<Types.UpdateAdminAboutYouDetailsMutation, Types.UpdateAdminAboutYouDetailsMutationVariables>;
+        updateAdminAboutYouDetails(adminDetails: $adminDetails)
+    }
+`;
+export type UpdateAdminAboutYouDetailsMutationFn = Apollo.MutationFunction<
+    Types.UpdateAdminAboutYouDetailsMutation,
+    Types.UpdateAdminAboutYouDetailsMutationVariables
+>;
 
 /**
  * __useUpdateAdminAboutYouDetailsMutation__
@@ -1377,36 +2034,62 @@ export type UpdateAdminAboutYouDetailsMutationFn = Apollo.MutationFunction<Types
  *   },
  * });
  */
-export function useUpdateAdminAboutYouDetailsMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateAdminAboutYouDetailsMutation, Types.UpdateAdminAboutYouDetailsMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateAdminAboutYouDetailsMutation, Types.UpdateAdminAboutYouDetailsMutationVariables>(UpdateAdminAboutYouDetailsDocument, baseOptions);
-      }
-export type UpdateAdminAboutYouDetailsMutationHookResult = ReturnType<typeof useUpdateAdminAboutYouDetailsMutation>;
-export type UpdateAdminAboutYouDetailsMutationResult = Apollo.MutationResult<Types.UpdateAdminAboutYouDetailsMutation>;
-export type UpdateAdminAboutYouDetailsMutationOptions = Apollo.BaseMutationOptions<Types.UpdateAdminAboutYouDetailsMutation, Types.UpdateAdminAboutYouDetailsMutationVariables>;
-export const CreateRageClickAlertDocument = gql`
-    mutation CreateRageClickAlert($project_id: ID!, $name: String!, $count_threshold: Int!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!) {
-  createRageClickAlert(
-    project_id: $project_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-  }
+export function useUpdateAdminAboutYouDetailsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAdminAboutYouDetailsMutation,
+        Types.UpdateAdminAboutYouDetailsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAdminAboutYouDetailsMutation,
+        Types.UpdateAdminAboutYouDetailsMutationVariables
+    >(UpdateAdminAboutYouDetailsDocument, baseOptions);
 }
-    `;
-export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<Types.CreateRageClickAlertMutation, Types.CreateRageClickAlertMutationVariables>;
+export type UpdateAdminAboutYouDetailsMutationHookResult = ReturnType<
+    typeof useUpdateAdminAboutYouDetailsMutation
+>;
+export type UpdateAdminAboutYouDetailsMutationResult = Apollo.MutationResult<Types.UpdateAdminAboutYouDetailsMutation>;
+export type UpdateAdminAboutYouDetailsMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAdminAboutYouDetailsMutation,
+    Types.UpdateAdminAboutYouDetailsMutationVariables
+>;
+export const CreateRageClickAlertDocument = gql`
+    mutation CreateRageClickAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+    ) {
+        createRageClickAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
 
 /**
  * __useCreateRageClickAlertMutation__
@@ -1426,44 +2109,74 @@ export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<Types.Creat
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
  */
-export function useCreateRageClickAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateRageClickAlertMutation, Types.CreateRageClickAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateRageClickAlertMutation, Types.CreateRageClickAlertMutationVariables>(CreateRageClickAlertDocument, baseOptions);
-      }
-export type CreateRageClickAlertMutationHookResult = ReturnType<typeof useCreateRageClickAlertMutation>;
-export type CreateRageClickAlertMutationResult = Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
-export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateRageClickAlertMutation, Types.CreateRageClickAlertMutationVariables>;
-export const UpdateErrorAlertDocument = gql`
-    mutation UpdateErrorAlert($project_id: ID!, $name: String!, $error_alert_id: ID!, $count_threshold: Int!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $regex_groups: [String]!, $frequency: Int!) {
-  updateErrorAlert(
-    project_id: $project_id
-    error_alert_id: $error_alert_id
-    name: $name
-    count_threshold: $count_threshold
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-    regex_groups: $regex_groups
-    frequency: $frequency
-  ) {
-    Name
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-    RegexGroups
-    Frequency
-  }
+export function useCreateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >(CreateRageClickAlertDocument, baseOptions);
 }
-    `;
-export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<Types.UpdateErrorAlertMutation, Types.UpdateErrorAlertMutationVariables>;
+export type CreateRageClickAlertMutationHookResult = ReturnType<
+    typeof useCreateRageClickAlertMutation
+>;
+export type CreateRageClickAlertMutationResult = Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
+export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
+export const UpdateErrorAlertDocument = gql`
+    mutation UpdateErrorAlert(
+        $project_id: ID!
+        $name: String!
+        $error_alert_id: ID!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $regex_groups: [String]!
+        $frequency: Int!
+    ) {
+        updateErrorAlert(
+            project_id: $project_id
+            error_alert_id: $error_alert_id
+            name: $name
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+            regex_groups: $regex_groups
+            frequency: $frequency
+        ) {
+            Name
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+            RegexGroups
+            Frequency
+        }
+    }
+`;
+export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
 
 /**
  * __useUpdateErrorAlertMutation__
@@ -1484,26 +2197,46 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<Types.UpdateErr
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
  *   },
  * });
  */
-export function useUpdateErrorAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateErrorAlertMutation, Types.UpdateErrorAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateErrorAlertMutation, Types.UpdateErrorAlertMutationVariables>(UpdateErrorAlertDocument, baseOptions);
-      }
-export type UpdateErrorAlertMutationHookResult = ReturnType<typeof useUpdateErrorAlertMutation>;
+export function useUpdateErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >(UpdateErrorAlertDocument, baseOptions);
+}
+export type UpdateErrorAlertMutationHookResult = ReturnType<
+    typeof useUpdateErrorAlertMutation
+>;
 export type UpdateErrorAlertMutationResult = Apollo.MutationResult<Types.UpdateErrorAlertMutation>;
-export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateErrorAlertMutation, Types.UpdateErrorAlertMutationVariables>;
+export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
 export const DeleteErrorAlertDocument = gql`
     mutation DeleteErrorAlert($project_id: ID!, $error_alert_id: ID!) {
-  deleteErrorAlert(project_id: $project_id, error_alert_id: $error_alert_id) {
-    id
-  }
-}
-    `;
-export type DeleteErrorAlertMutationFn = Apollo.MutationFunction<Types.DeleteErrorAlertMutation, Types.DeleteErrorAlertMutationVariables>;
+        deleteErrorAlert(
+            project_id: $project_id
+            error_alert_id: $error_alert_id
+        ) {
+            id
+        }
+    }
+`;
+export type DeleteErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorAlertMutation,
+    Types.DeleteErrorAlertMutationVariables
+>;
 
 /**
  * __useDeleteErrorAlertMutation__
@@ -1523,20 +2256,39 @@ export type DeleteErrorAlertMutationFn = Apollo.MutationFunction<Types.DeleteErr
  *   },
  * });
  */
-export function useDeleteErrorAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteErrorAlertMutation, Types.DeleteErrorAlertMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteErrorAlertMutation, Types.DeleteErrorAlertMutationVariables>(DeleteErrorAlertDocument, baseOptions);
-      }
-export type DeleteErrorAlertMutationHookResult = ReturnType<typeof useDeleteErrorAlertMutation>;
+export function useDeleteErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorAlertMutation,
+        Types.DeleteErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorAlertMutation,
+        Types.DeleteErrorAlertMutationVariables
+    >(DeleteErrorAlertDocument, baseOptions);
+}
+export type DeleteErrorAlertMutationHookResult = ReturnType<
+    typeof useDeleteErrorAlertMutation
+>;
 export type DeleteErrorAlertMutationResult = Apollo.MutationResult<Types.DeleteErrorAlertMutation>;
-export type DeleteErrorAlertMutationOptions = Apollo.BaseMutationOptions<Types.DeleteErrorAlertMutation, Types.DeleteErrorAlertMutationVariables>;
+export type DeleteErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorAlertMutation,
+    Types.DeleteErrorAlertMutationVariables
+>;
 export const DeleteSessionAlertDocument = gql`
     mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
-  deleteSessionAlert(project_id: $project_id, session_alert_id: $session_alert_id) {
-    id
-  }
-}
-    `;
-export type DeleteSessionAlertMutationFn = Apollo.MutationFunction<Types.DeleteSessionAlertMutation, Types.DeleteSessionAlertMutationVariables>;
+        deleteSessionAlert(
+            project_id: $project_id
+            session_alert_id: $session_alert_id
+        ) {
+            id
+        }
+    }
+`;
+export type DeleteSessionAlertMutationFn = Apollo.MutationFunction<
+    Types.DeleteSessionAlertMutation,
+    Types.DeleteSessionAlertMutationVariables
+>;
 
 /**
  * __useDeleteSessionAlertMutation__
@@ -1556,22 +2308,44 @@ export type DeleteSessionAlertMutationFn = Apollo.MutationFunction<Types.DeleteS
  *   },
  * });
  */
-export function useDeleteSessionAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.DeleteSessionAlertMutation, Types.DeleteSessionAlertMutationVariables>) {
-        return Apollo.useMutation<Types.DeleteSessionAlertMutation, Types.DeleteSessionAlertMutationVariables>(DeleteSessionAlertDocument, baseOptions);
-      }
-export type DeleteSessionAlertMutationHookResult = ReturnType<typeof useDeleteSessionAlertMutation>;
-export type DeleteSessionAlertMutationResult = Apollo.MutationResult<Types.DeleteSessionAlertMutation>;
-export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<Types.DeleteSessionAlertMutation, Types.DeleteSessionAlertMutationVariables>;
-export const CreateDefaultAlertsDocument = gql`
-    mutation CreateDefaultAlerts($project_id: ID!, $alert_types: [String!]!, $slack_channels: [SanitizedSlackChannelInput!]!) {
-  createDefaultAlerts(
-    project_id: $project_id
-    alert_types: $alert_types
-    slack_channels: $slack_channels
-  )
+export function useDeleteSessionAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSessionAlertMutation,
+        Types.DeleteSessionAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSessionAlertMutation,
+        Types.DeleteSessionAlertMutationVariables
+    >(DeleteSessionAlertDocument, baseOptions);
 }
-    `;
-export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<Types.CreateDefaultAlertsMutation, Types.CreateDefaultAlertsMutationVariables>;
+export type DeleteSessionAlertMutationHookResult = ReturnType<
+    typeof useDeleteSessionAlertMutation
+>;
+export type DeleteSessionAlertMutationResult = Apollo.MutationResult<Types.DeleteSessionAlertMutation>;
+export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSessionAlertMutation,
+    Types.DeleteSessionAlertMutationVariables
+>;
+export const CreateDefaultAlertsDocument = gql`
+    mutation CreateDefaultAlerts(
+        $project_id: ID!
+        $alert_types: [String!]!
+        $slack_channels: [SanitizedSlackChannelInput!]!
+        $emails: [String!]!
+    ) {
+        createDefaultAlerts(
+            project_id: $project_id
+            alert_types: $alert_types
+            slack_channels: $slack_channels
+            emails: $emails
+        )
+    }
+`;
+export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
+>;
 
 /**
  * __useCreateDefaultAlertsMutation__
@@ -1589,39 +2363,66 @@ export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<Types.Create
  *      project_id: // value for 'project_id'
  *      alert_types: // value for 'alert_types'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
-export function useCreateDefaultAlertsMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateDefaultAlertsMutation, Types.CreateDefaultAlertsMutationVariables>) {
-        return Apollo.useMutation<Types.CreateDefaultAlertsMutation, Types.CreateDefaultAlertsMutationVariables>(CreateDefaultAlertsDocument, baseOptions);
-      }
-export type CreateDefaultAlertsMutationHookResult = ReturnType<typeof useCreateDefaultAlertsMutation>;
-export type CreateDefaultAlertsMutationResult = Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
-export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<Types.CreateDefaultAlertsMutation, Types.CreateDefaultAlertsMutationVariables>;
-export const CreateSessionFeedbackAlertDocument = gql`
-    mutation CreateSessionFeedbackAlert($project_id: ID!, $name: String!, $count_threshold: Int!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!) {
-  createSessionFeedbackAlert(
-    project_id: $project_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-  }
+export function useCreateDefaultAlertsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >(CreateDefaultAlertsDocument, baseOptions);
 }
-    `;
-export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<Types.CreateSessionFeedbackAlertMutation, Types.CreateSessionFeedbackAlertMutationVariables>;
+export type CreateDefaultAlertsMutationHookResult = ReturnType<
+    typeof useCreateDefaultAlertsMutation
+>;
+export type CreateDefaultAlertsMutationResult = Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
+export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
+>;
+export const CreateSessionFeedbackAlertDocument = gql`
+    mutation CreateSessionFeedbackAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+    ) {
+        createSessionFeedbackAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateSessionFeedbackAlertMutation,
+    Types.CreateSessionFeedbackAlertMutationVariables
+>;
 
 /**
  * __useCreateSessionFeedbackAlertMutation__
@@ -1641,41 +2442,69 @@ export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<Types
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
  */
-export function useCreateSessionFeedbackAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateSessionFeedbackAlertMutation, Types.CreateSessionFeedbackAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateSessionFeedbackAlertMutation, Types.CreateSessionFeedbackAlertMutationVariables>(CreateSessionFeedbackAlertDocument, baseOptions);
-      }
-export type CreateSessionFeedbackAlertMutationHookResult = ReturnType<typeof useCreateSessionFeedbackAlertMutation>;
-export type CreateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.CreateSessionFeedbackAlertMutation>;
-export type CreateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateSessionFeedbackAlertMutation, Types.CreateSessionFeedbackAlertMutationVariables>;
-export const UpdateSessionFeedbackAlertDocument = gql`
-    mutation UpdateSessionFeedbackAlert($project_id: ID!, $session_feedback_alert_id: ID!, $count_threshold: Int!, $name: String!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!) {
-  updateSessionFeedbackAlert(
-    project_id: $project_id
-    session_feedback_alert_id: $session_feedback_alert_id
-    count_threshold: $count_threshold
-    slack_channels: $slack_channels
-    name: $name
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    Name
-    LastAdminToEditID
-  }
+export function useCreateSessionFeedbackAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateSessionFeedbackAlertMutation,
+        Types.CreateSessionFeedbackAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateSessionFeedbackAlertMutation,
+        Types.CreateSessionFeedbackAlertMutationVariables
+    >(CreateSessionFeedbackAlertDocument, baseOptions);
 }
-    `;
-export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<Types.UpdateSessionFeedbackAlertMutation, Types.UpdateSessionFeedbackAlertMutationVariables>;
+export type CreateSessionFeedbackAlertMutationHookResult = ReturnType<
+    typeof useCreateSessionFeedbackAlertMutation
+>;
+export type CreateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.CreateSessionFeedbackAlertMutation>;
+export type CreateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateSessionFeedbackAlertMutation,
+    Types.CreateSessionFeedbackAlertMutationVariables
+>;
+export const UpdateSessionFeedbackAlertDocument = gql`
+    mutation UpdateSessionFeedbackAlert(
+        $project_id: ID!
+        $session_feedback_alert_id: ID!
+        $count_threshold: Int!
+        $name: String!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+    ) {
+        updateSessionFeedbackAlert(
+            project_id: $project_id
+            session_feedback_alert_id: $session_feedback_alert_id
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            emails: $emails
+            name: $name
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            Name
+            LastAdminToEditID
+        }
+    }
+`;
+export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateSessionFeedbackAlertMutation,
+    Types.UpdateSessionFeedbackAlertMutationVariables
+>;
 
 /**
  * __useUpdateSessionFeedbackAlertMutation__
@@ -1696,40 +2525,67 @@ export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<Types
  *      name: // value for 'name'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
  */
-export function useUpdateSessionFeedbackAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateSessionFeedbackAlertMutation, Types.UpdateSessionFeedbackAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateSessionFeedbackAlertMutation, Types.UpdateSessionFeedbackAlertMutationVariables>(UpdateSessionFeedbackAlertDocument, baseOptions);
-      }
-export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<typeof useUpdateSessionFeedbackAlertMutation>;
-export type UpdateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>;
-export type UpdateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateSessionFeedbackAlertMutation, Types.UpdateSessionFeedbackAlertMutationVariables>;
-export const CreateNewUserAlertDocument = gql`
-    mutation CreateNewUserAlert($project_id: ID!, $name: String!, $count_threshold: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $threshold_window: Int!) {
-  createNewUserAlert(
-    project_id: $project_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-  }
+export function useUpdateSessionFeedbackAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateSessionFeedbackAlertMutation,
+        Types.UpdateSessionFeedbackAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateSessionFeedbackAlertMutation,
+        Types.UpdateSessionFeedbackAlertMutationVariables
+    >(UpdateSessionFeedbackAlertDocument, baseOptions);
 }
-    `;
-export type CreateNewUserAlertMutationFn = Apollo.MutationFunction<Types.CreateNewUserAlertMutation, Types.CreateNewUserAlertMutationVariables>;
+export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<
+    typeof useUpdateSessionFeedbackAlertMutation
+>;
+export type UpdateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>;
+export type UpdateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateSessionFeedbackAlertMutation,
+    Types.UpdateSessionFeedbackAlertMutationVariables
+>;
+export const CreateNewUserAlertDocument = gql`
+    mutation CreateNewUserAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $threshold_window: Int!
+    ) {
+        createNewUserAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateNewUserAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateNewUserAlertMutation,
+    Types.CreateNewUserAlertMutationVariables
+>;
 
 /**
  * __useCreateNewUserAlertMutation__
@@ -1748,43 +2604,71 @@ export type CreateNewUserAlertMutationFn = Apollo.MutationFunction<Types.CreateN
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useCreateNewUserAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateNewUserAlertMutation, Types.CreateNewUserAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateNewUserAlertMutation, Types.CreateNewUserAlertMutationVariables>(CreateNewUserAlertDocument, baseOptions);
-      }
-export type CreateNewUserAlertMutationHookResult = ReturnType<typeof useCreateNewUserAlertMutation>;
-export type CreateNewUserAlertMutationResult = Apollo.MutationResult<Types.CreateNewUserAlertMutation>;
-export type CreateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateNewUserAlertMutation, Types.CreateNewUserAlertMutationVariables>;
-export const CreateNewSessionAlertDocument = gql`
-    mutation CreateNewSessionAlert($project_id: ID!, $name: String!, $count_threshold: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $threshold_window: Int!, $exclude_rules: [String]!) {
-  createNewSessionAlert(
-    project_id: $project_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-    exclude_rules: $exclude_rules
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-    ExcludeRules
-  }
+export function useCreateNewUserAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateNewUserAlertMutation,
+        Types.CreateNewUserAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateNewUserAlertMutation,
+        Types.CreateNewUserAlertMutationVariables
+    >(CreateNewUserAlertDocument, baseOptions);
 }
-    `;
-export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<Types.CreateNewSessionAlertMutation, Types.CreateNewSessionAlertMutationVariables>;
+export type CreateNewUserAlertMutationHookResult = ReturnType<
+    typeof useCreateNewUserAlertMutation
+>;
+export type CreateNewUserAlertMutationResult = Apollo.MutationResult<Types.CreateNewUserAlertMutation>;
+export type CreateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateNewUserAlertMutation,
+    Types.CreateNewUserAlertMutationVariables
+>;
+export const CreateNewSessionAlertDocument = gql`
+    mutation CreateNewSessionAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $threshold_window: Int!
+        $exclude_rules: [String]!
+    ) {
+        createNewSessionAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+            ExcludeRules
+        }
+    }
+`;
+export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateNewSessionAlertMutation,
+    Types.CreateNewSessionAlertMutationVariables
+>;
 
 /**
  * __useCreateNewSessionAlertMutation__
@@ -1803,45 +2687,74 @@ export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<Types.Crea
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
-export function useCreateNewSessionAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateNewSessionAlertMutation, Types.CreateNewSessionAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateNewSessionAlertMutation, Types.CreateNewSessionAlertMutationVariables>(CreateNewSessionAlertDocument, baseOptions);
-      }
-export type CreateNewSessionAlertMutationHookResult = ReturnType<typeof useCreateNewSessionAlertMutation>;
-export type CreateNewSessionAlertMutationResult = Apollo.MutationResult<Types.CreateNewSessionAlertMutation>;
-export type CreateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateNewSessionAlertMutation, Types.CreateNewSessionAlertMutationVariables>;
-export const UpdateNewSessionAlertDocument = gql`
-    mutation UpdateNewSessionAlert($project_id: ID!, $session_alert_id: ID!, $name: String!, $count_threshold: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $threshold_window: Int!, $exclude_rules: [String]!) {
-  updateNewSessionAlert(
-    project_id: $project_id
-    session_alert_id: $session_alert_id
-    name: $name
-    count_threshold: $count_threshold
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-    exclude_rules: $exclude_rules
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-    ExcludeRules
-  }
+export function useCreateNewSessionAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateNewSessionAlertMutation,
+        Types.CreateNewSessionAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateNewSessionAlertMutation,
+        Types.CreateNewSessionAlertMutationVariables
+    >(CreateNewSessionAlertDocument, baseOptions);
 }
-    `;
-export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<Types.UpdateNewSessionAlertMutation, Types.UpdateNewSessionAlertMutationVariables>;
+export type CreateNewSessionAlertMutationHookResult = ReturnType<
+    typeof useCreateNewSessionAlertMutation
+>;
+export type CreateNewSessionAlertMutationResult = Apollo.MutationResult<Types.CreateNewSessionAlertMutation>;
+export type CreateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateNewSessionAlertMutation,
+    Types.CreateNewSessionAlertMutationVariables
+>;
+export const UpdateNewSessionAlertDocument = gql`
+    mutation UpdateNewSessionAlert(
+        $project_id: ID!
+        $session_alert_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $threshold_window: Int!
+        $exclude_rules: [String]!
+    ) {
+        updateNewSessionAlert(
+            project_id: $project_id
+            session_alert_id: $session_alert_id
+            name: $name
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+            ExcludeRules
+        }
+    }
+`;
+export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateNewSessionAlertMutation,
+    Types.UpdateNewSessionAlertMutationVariables
+>;
 
 /**
  * __useUpdateNewSessionAlertMutation__
@@ -1861,40 +2774,68 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<Types.Upda
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
-export function useUpdateNewSessionAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateNewSessionAlertMutation, Types.UpdateNewSessionAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateNewSessionAlertMutation, Types.UpdateNewSessionAlertMutationVariables>(UpdateNewSessionAlertDocument, baseOptions);
-      }
-export type UpdateNewSessionAlertMutationHookResult = ReturnType<typeof useUpdateNewSessionAlertMutation>;
-export type UpdateNewSessionAlertMutationResult = Apollo.MutationResult<Types.UpdateNewSessionAlertMutation>;
-export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateNewSessionAlertMutation, Types.UpdateNewSessionAlertMutationVariables>;
-export const UpdateRageClickAlertDocument = gql`
-    mutation UpdateRageClickAlert($project_id: ID!, $rage_click_alert_id: ID!, $name: String!, $count_threshold: Int!, $threshold_window: Int!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!) {
-  updateRageClickAlert(
-    project_id: $project_id
-    rage_click_alert_id: $rage_click_alert_id
-    name: $name
-    count_threshold: $count_threshold
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-  }
+export function useUpdateNewSessionAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateNewSessionAlertMutation,
+        Types.UpdateNewSessionAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateNewSessionAlertMutation,
+        Types.UpdateNewSessionAlertMutationVariables
+    >(UpdateNewSessionAlertDocument, baseOptions);
 }
-    `;
-export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<Types.UpdateRageClickAlertMutation, Types.UpdateRageClickAlertMutationVariables>;
+export type UpdateNewSessionAlertMutationHookResult = ReturnType<
+    typeof useUpdateNewSessionAlertMutation
+>;
+export type UpdateNewSessionAlertMutationResult = Apollo.MutationResult<Types.UpdateNewSessionAlertMutation>;
+export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateNewSessionAlertMutation,
+    Types.UpdateNewSessionAlertMutationVariables
+>;
+export const UpdateRageClickAlertDocument = gql`
+    mutation UpdateRageClickAlert(
+        $project_id: ID!
+        $rage_click_alert_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+    ) {
+        updateRageClickAlert(
+            project_id: $project_id
+            rage_click_alert_id: $rage_click_alert_id
+            name: $name
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+        }
+    }
+`;
+export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
+>;
 
 /**
  * __useUpdateRageClickAlertMutation__
@@ -1915,39 +2856,67 @@ export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<Types.Updat
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
  */
-export function useUpdateRageClickAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateRageClickAlertMutation, Types.UpdateRageClickAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateRageClickAlertMutation, Types.UpdateRageClickAlertMutationVariables>(UpdateRageClickAlertDocument, baseOptions);
-      }
-export type UpdateRageClickAlertMutationHookResult = ReturnType<typeof useUpdateRageClickAlertMutation>;
-export type UpdateRageClickAlertMutationResult = Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
-export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateRageClickAlertMutation, Types.UpdateRageClickAlertMutationVariables>;
-export const UpdateNewUserAlertDocument = gql`
-    mutation UpdateNewUserAlert($project_id: ID!, $session_alert_id: ID!, $count_threshold: Int!, $name: String!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $threshold_window: Int!) {
-  updateNewUserAlert(
-    project_id: $project_id
-    session_alert_id: $session_alert_id
-    count_threshold: $count_threshold
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    LastAdminToEditID
-  }
+export function useUpdateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >(UpdateRageClickAlertDocument, baseOptions);
 }
-    `;
-export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<Types.UpdateNewUserAlertMutation, Types.UpdateNewUserAlertMutationVariables>;
+export type UpdateRageClickAlertMutationHookResult = ReturnType<
+    typeof useUpdateRageClickAlertMutation
+>;
+export type UpdateRageClickAlertMutationResult = Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
+export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
+>;
+export const UpdateNewUserAlertDocument = gql`
+    mutation UpdateNewUserAlert(
+        $project_id: ID!
+        $session_alert_id: ID!
+        $count_threshold: Int!
+        $name: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $threshold_window: Int!
+    ) {
+        updateNewUserAlert(
+            project_id: $project_id
+            session_alert_id: $session_alert_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            LastAdminToEditID
+        }
+    }
+`;
+export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateNewUserAlertMutation,
+    Types.UpdateNewUserAlertMutationVariables
+>;
 
 /**
  * __useUpdateNewUserAlertMutation__
@@ -1967,46 +2936,73 @@ export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<Types.UpdateN
  *      count_threshold: // value for 'count_threshold'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useUpdateNewUserAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateNewUserAlertMutation, Types.UpdateNewUserAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateNewUserAlertMutation, Types.UpdateNewUserAlertMutationVariables>(UpdateNewUserAlertDocument, baseOptions);
-      }
-export type UpdateNewUserAlertMutationHookResult = ReturnType<typeof useUpdateNewUserAlertMutation>;
-export type UpdateNewUserAlertMutationResult = Apollo.MutationResult<Types.UpdateNewUserAlertMutation>;
-export type UpdateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateNewUserAlertMutation, Types.UpdateNewUserAlertMutationVariables>;
-export const CreateTrackPropertiesAlertDocument = gql`
-    mutation CreateTrackPropertiesAlert($project_id: ID!, $name: String!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $track_properties: [TrackPropertyInput]!, $threshold_window: Int!) {
-  createTrackPropertiesAlert(
-    project_id: $project_id
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    track_properties: $track_properties
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    TrackProperties {
-      id
-      name
-      value
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-  }
+export function useUpdateNewUserAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateNewUserAlertMutation,
+        Types.UpdateNewUserAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateNewUserAlertMutation,
+        Types.UpdateNewUserAlertMutationVariables
+    >(UpdateNewUserAlertDocument, baseOptions);
 }
-    `;
-export type CreateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<Types.CreateTrackPropertiesAlertMutation, Types.CreateTrackPropertiesAlertMutationVariables>;
+export type UpdateNewUserAlertMutationHookResult = ReturnType<
+    typeof useUpdateNewUserAlertMutation
+>;
+export type UpdateNewUserAlertMutationResult = Apollo.MutationResult<Types.UpdateNewUserAlertMutation>;
+export type UpdateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateNewUserAlertMutation,
+    Types.UpdateNewUserAlertMutationVariables
+>;
+export const CreateTrackPropertiesAlertDocument = gql`
+    mutation CreateTrackPropertiesAlert(
+        $project_id: ID!
+        $name: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $track_properties: [TrackPropertyInput]!
+        $threshold_window: Int!
+    ) {
+        createTrackPropertiesAlert(
+            project_id: $project_id
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            track_properties: $track_properties
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            TrackProperties {
+                id
+                name
+                value
+            }
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateTrackPropertiesAlertMutation,
+    Types.CreateTrackPropertiesAlertMutationVariables
+>;
 
 /**
  * __useCreateTrackPropertiesAlertMutation__
@@ -2024,47 +3020,75 @@ export type CreateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<Types
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      track_properties: // value for 'track_properties'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useCreateTrackPropertiesAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateTrackPropertiesAlertMutation, Types.CreateTrackPropertiesAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateTrackPropertiesAlertMutation, Types.CreateTrackPropertiesAlertMutationVariables>(CreateTrackPropertiesAlertDocument, baseOptions);
-      }
-export type CreateTrackPropertiesAlertMutationHookResult = ReturnType<typeof useCreateTrackPropertiesAlertMutation>;
-export type CreateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateTrackPropertiesAlertMutation>;
-export type CreateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateTrackPropertiesAlertMutation, Types.CreateTrackPropertiesAlertMutationVariables>;
-export const UpdateTrackPropertiesAlertDocument = gql`
-    mutation UpdateTrackPropertiesAlert($project_id: ID!, $session_alert_id: ID!, $name: String!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $track_properties: [TrackPropertyInput]!, $threshold_window: Int!) {
-  updateTrackPropertiesAlert(
-    project_id: $project_id
-    session_alert_id: $session_alert_id
-    slack_channels: $slack_channels
-    environments: $environments
-    name: $name
-    track_properties: $track_properties
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    TrackProperties {
-      id
-      name
-      value
-    }
-    ExcludedEnvironments
-    CountThreshold
-    LastAdminToEditID
-    Name
-  }
+export function useCreateTrackPropertiesAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateTrackPropertiesAlertMutation,
+        Types.CreateTrackPropertiesAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateTrackPropertiesAlertMutation,
+        Types.CreateTrackPropertiesAlertMutationVariables
+    >(CreateTrackPropertiesAlertDocument, baseOptions);
 }
-    `;
-export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<Types.UpdateTrackPropertiesAlertMutation, Types.UpdateTrackPropertiesAlertMutationVariables>;
+export type CreateTrackPropertiesAlertMutationHookResult = ReturnType<
+    typeof useCreateTrackPropertiesAlertMutation
+>;
+export type CreateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateTrackPropertiesAlertMutation>;
+export type CreateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateTrackPropertiesAlertMutation,
+    Types.CreateTrackPropertiesAlertMutationVariables
+>;
+export const UpdateTrackPropertiesAlertDocument = gql`
+    mutation UpdateTrackPropertiesAlert(
+        $project_id: ID!
+        $session_alert_id: ID!
+        $name: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $track_properties: [TrackPropertyInput]!
+        $threshold_window: Int!
+    ) {
+        updateTrackPropertiesAlert(
+            project_id: $project_id
+            session_alert_id: $session_alert_id
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            name: $name
+            track_properties: $track_properties
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            TrackProperties {
+                id
+                name
+                value
+            }
+            ExcludedEnvironments
+            CountThreshold
+            LastAdminToEditID
+            Name
+        }
+    }
+`;
+export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateTrackPropertiesAlertMutation,
+    Types.UpdateTrackPropertiesAlertMutationVariables
+>;
 
 /**
  * __useUpdateTrackPropertiesAlertMutation__
@@ -2083,47 +3107,74 @@ export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<Types
  *      session_alert_id: // value for 'session_alert_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      track_properties: // value for 'track_properties'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useUpdateTrackPropertiesAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateTrackPropertiesAlertMutation, Types.UpdateTrackPropertiesAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateTrackPropertiesAlertMutation, Types.UpdateTrackPropertiesAlertMutationVariables>(UpdateTrackPropertiesAlertDocument, baseOptions);
-      }
-export type UpdateTrackPropertiesAlertMutationHookResult = ReturnType<typeof useUpdateTrackPropertiesAlertMutation>;
-export type UpdateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateTrackPropertiesAlertMutation>;
-export type UpdateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateTrackPropertiesAlertMutation, Types.UpdateTrackPropertiesAlertMutationVariables>;
-export const CreateUserPropertiesAlertDocument = gql`
-    mutation CreateUserPropertiesAlert($project_id: ID!, $name: String!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $user_properties: [UserPropertyInput]!, $threshold_window: Int!) {
-  createUserPropertiesAlert(
-    project_id: $project_id
-    name: $name
-    slack_channels: $slack_channels
-    environments: $environments
-    user_properties: $user_properties
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    UserProperties {
-      id
-      name
-      value
-    }
-    Name
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-  }
+export function useUpdateTrackPropertiesAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateTrackPropertiesAlertMutation,
+        Types.UpdateTrackPropertiesAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateTrackPropertiesAlertMutation,
+        Types.UpdateTrackPropertiesAlertMutationVariables
+    >(UpdateTrackPropertiesAlertDocument, baseOptions);
 }
-    `;
-export type CreateUserPropertiesAlertMutationFn = Apollo.MutationFunction<Types.CreateUserPropertiesAlertMutation, Types.CreateUserPropertiesAlertMutationVariables>;
+export type UpdateTrackPropertiesAlertMutationHookResult = ReturnType<
+    typeof useUpdateTrackPropertiesAlertMutation
+>;
+export type UpdateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateTrackPropertiesAlertMutation>;
+export type UpdateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateTrackPropertiesAlertMutation,
+    Types.UpdateTrackPropertiesAlertMutationVariables
+>;
+export const CreateUserPropertiesAlertDocument = gql`
+    mutation CreateUserPropertiesAlert(
+        $project_id: ID!
+        $name: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $user_properties: [UserPropertyInput]!
+        $threshold_window: Int!
+    ) {
+        createUserPropertiesAlert(
+            project_id: $project_id
+            name: $name
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            user_properties: $user_properties
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            UserProperties {
+                id
+                name
+                value
+            }
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateUserPropertiesAlertMutation,
+    Types.CreateUserPropertiesAlertMutationVariables
+>;
 
 /**
  * __useCreateUserPropertiesAlertMutation__
@@ -2141,47 +3192,75 @@ export type CreateUserPropertiesAlertMutationFn = Apollo.MutationFunction<Types.
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      user_properties: // value for 'user_properties'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useCreateUserPropertiesAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.CreateUserPropertiesAlertMutation, Types.CreateUserPropertiesAlertMutationVariables>) {
-        return Apollo.useMutation<Types.CreateUserPropertiesAlertMutation, Types.CreateUserPropertiesAlertMutationVariables>(CreateUserPropertiesAlertDocument, baseOptions);
-      }
-export type CreateUserPropertiesAlertMutationHookResult = ReturnType<typeof useCreateUserPropertiesAlertMutation>;
-export type CreateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateUserPropertiesAlertMutation>;
-export type CreateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<Types.CreateUserPropertiesAlertMutation, Types.CreateUserPropertiesAlertMutationVariables>;
-export const UpdateUserPropertiesAlertDocument = gql`
-    mutation UpdateUserPropertiesAlert($project_id: ID!, $session_alert_id: ID!, $name: String!, $slack_channels: [SanitizedSlackChannelInput]!, $environments: [String]!, $user_properties: [UserPropertyInput]!, $threshold_window: Int!) {
-  updateUserPropertiesAlert(
-    project_id: $project_id
-    session_alert_id: $session_alert_id
-    slack_channels: $slack_channels
-    environments: $environments
-    name: $name
-    user_properties: $user_properties
-    threshold_window: $threshold_window
-  ) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    UserProperties {
-      id
-      name
-      value
-    }
-    ExcludedEnvironments
-    CountThreshold
-    Name
-    LastAdminToEditID
-  }
+export function useCreateUserPropertiesAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateUserPropertiesAlertMutation,
+        Types.CreateUserPropertiesAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateUserPropertiesAlertMutation,
+        Types.CreateUserPropertiesAlertMutationVariables
+    >(CreateUserPropertiesAlertDocument, baseOptions);
 }
-    `;
-export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<Types.UpdateUserPropertiesAlertMutation, Types.UpdateUserPropertiesAlertMutationVariables>;
+export type CreateUserPropertiesAlertMutationHookResult = ReturnType<
+    typeof useCreateUserPropertiesAlertMutation
+>;
+export type CreateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateUserPropertiesAlertMutation>;
+export type CreateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateUserPropertiesAlertMutation,
+    Types.CreateUserPropertiesAlertMutationVariables
+>;
+export const UpdateUserPropertiesAlertDocument = gql`
+    mutation UpdateUserPropertiesAlert(
+        $project_id: ID!
+        $session_alert_id: ID!
+        $name: String!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
+        $environments: [String]!
+        $user_properties: [UserPropertyInput]!
+        $threshold_window: Int!
+    ) {
+        updateUserPropertiesAlert(
+            project_id: $project_id
+            session_alert_id: $session_alert_id
+            slack_channels: $slack_channels
+            emails: $emails
+            environments: $environments
+            name: $name
+            user_properties: $user_properties
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            UserProperties {
+                id
+                name
+                value
+            }
+            ExcludedEnvironments
+            CountThreshold
+            Name
+            LastAdminToEditID
+        }
+    }
+`;
+export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateUserPropertiesAlertMutation,
+    Types.UpdateUserPropertiesAlertMutationVariables
+>;
 
 /**
  * __useUpdateUserPropertiesAlertMutation__
@@ -2200,30 +3279,50 @@ export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<Types.
  *      session_alert_id: // value for 'session_alert_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      user_properties: // value for 'user_properties'
  *      threshold_window: // value for 'threshold_window'
  *   },
  * });
  */
-export function useUpdateUserPropertiesAlertMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateUserPropertiesAlertMutation, Types.UpdateUserPropertiesAlertMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateUserPropertiesAlertMutation, Types.UpdateUserPropertiesAlertMutationVariables>(UpdateUserPropertiesAlertDocument, baseOptions);
-      }
-export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<typeof useUpdateUserPropertiesAlertMutation>;
-export type UpdateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>;
-export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<Types.UpdateUserPropertiesAlertMutation, Types.UpdateUserPropertiesAlertMutationVariables>;
-export const UpdateSessionIsPublicDocument = gql`
-    mutation UpdateSessionIsPublic($session_secure_id: String!, $is_public: Boolean!) {
-  updateSessionIsPublic(
-    session_secure_id: $session_secure_id
-    is_public: $is_public
-  ) {
-    secure_id
-    is_public
-  }
+export function useUpdateUserPropertiesAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateUserPropertiesAlertMutation,
+        Types.UpdateUserPropertiesAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateUserPropertiesAlertMutation,
+        Types.UpdateUserPropertiesAlertMutationVariables
+    >(UpdateUserPropertiesAlertDocument, baseOptions);
 }
-    `;
-export type UpdateSessionIsPublicMutationFn = Apollo.MutationFunction<Types.UpdateSessionIsPublicMutation, Types.UpdateSessionIsPublicMutationVariables>;
+export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<
+    typeof useUpdateUserPropertiesAlertMutation
+>;
+export type UpdateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>;
+export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateUserPropertiesAlertMutation,
+    Types.UpdateUserPropertiesAlertMutationVariables
+>;
+export const UpdateSessionIsPublicDocument = gql`
+    mutation UpdateSessionIsPublic(
+        $session_secure_id: String!
+        $is_public: Boolean!
+    ) {
+        updateSessionIsPublic(
+            session_secure_id: $session_secure_id
+            is_public: $is_public
+        ) {
+            secure_id
+            is_public
+        }
+    }
+`;
+export type UpdateSessionIsPublicMutationFn = Apollo.MutationFunction<
+    Types.UpdateSessionIsPublicMutation,
+    Types.UpdateSessionIsPublicMutationVariables
+>;
 
 /**
  * __useUpdateSessionIsPublicMutation__
@@ -2243,24 +3342,43 @@ export type UpdateSessionIsPublicMutationFn = Apollo.MutationFunction<Types.Upda
  *   },
  * });
  */
-export function useUpdateSessionIsPublicMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateSessionIsPublicMutation, Types.UpdateSessionIsPublicMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateSessionIsPublicMutation, Types.UpdateSessionIsPublicMutationVariables>(UpdateSessionIsPublicDocument, baseOptions);
-      }
-export type UpdateSessionIsPublicMutationHookResult = ReturnType<typeof useUpdateSessionIsPublicMutation>;
-export type UpdateSessionIsPublicMutationResult = Apollo.MutationResult<Types.UpdateSessionIsPublicMutation>;
-export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<Types.UpdateSessionIsPublicMutation, Types.UpdateSessionIsPublicMutationVariables>;
-export const UpdateErrorGroupIsPublicDocument = gql`
-    mutation UpdateErrorGroupIsPublic($error_group_secure_id: String!, $is_public: Boolean!) {
-  updateErrorGroupIsPublic(
-    error_group_secure_id: $error_group_secure_id
-    is_public: $is_public
-  ) {
-    secure_id
-    is_public
-  }
+export function useUpdateSessionIsPublicMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateSessionIsPublicMutation,
+        Types.UpdateSessionIsPublicMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateSessionIsPublicMutation,
+        Types.UpdateSessionIsPublicMutationVariables
+    >(UpdateSessionIsPublicDocument, baseOptions);
 }
-    `;
-export type UpdateErrorGroupIsPublicMutationFn = Apollo.MutationFunction<Types.UpdateErrorGroupIsPublicMutation, Types.UpdateErrorGroupIsPublicMutationVariables>;
+export type UpdateSessionIsPublicMutationHookResult = ReturnType<
+    typeof useUpdateSessionIsPublicMutation
+>;
+export type UpdateSessionIsPublicMutationResult = Apollo.MutationResult<Types.UpdateSessionIsPublicMutation>;
+export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateSessionIsPublicMutation,
+    Types.UpdateSessionIsPublicMutationVariables
+>;
+export const UpdateErrorGroupIsPublicDocument = gql`
+    mutation UpdateErrorGroupIsPublic(
+        $error_group_secure_id: String!
+        $is_public: Boolean!
+    ) {
+        updateErrorGroupIsPublic(
+            error_group_secure_id: $error_group_secure_id
+            is_public: $is_public
+        ) {
+            secure_id
+            is_public
+        }
+    }
+`;
+export type UpdateErrorGroupIsPublicMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorGroupIsPublicMutation,
+    Types.UpdateErrorGroupIsPublicMutationVariables
+>;
 
 /**
  * __useUpdateErrorGroupIsPublicMutation__
@@ -2280,24 +3398,43 @@ export type UpdateErrorGroupIsPublicMutationFn = Apollo.MutationFunction<Types.U
  *   },
  * });
  */
-export function useUpdateErrorGroupIsPublicMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateErrorGroupIsPublicMutation, Types.UpdateErrorGroupIsPublicMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateErrorGroupIsPublicMutation, Types.UpdateErrorGroupIsPublicMutationVariables>(UpdateErrorGroupIsPublicDocument, baseOptions);
-      }
-export type UpdateErrorGroupIsPublicMutationHookResult = ReturnType<typeof useUpdateErrorGroupIsPublicMutation>;
-export type UpdateErrorGroupIsPublicMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupIsPublicMutation>;
-export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions<Types.UpdateErrorGroupIsPublicMutation, Types.UpdateErrorGroupIsPublicMutationVariables>;
-export const UpdateAllowMeterOverageDocument = gql`
-    mutation UpdateAllowMeterOverage($workspace_id: ID!, $allow_meter_overage: Boolean!) {
-  updateAllowMeterOverage(
-    workspace_id: $workspace_id
-    allow_meter_overage: $allow_meter_overage
-  ) {
-    id
-    allow_meter_overage
-  }
+export function useUpdateErrorGroupIsPublicMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorGroupIsPublicMutation,
+        Types.UpdateErrorGroupIsPublicMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorGroupIsPublicMutation,
+        Types.UpdateErrorGroupIsPublicMutationVariables
+    >(UpdateErrorGroupIsPublicDocument, baseOptions);
 }
-    `;
-export type UpdateAllowMeterOverageMutationFn = Apollo.MutationFunction<Types.UpdateAllowMeterOverageMutation, Types.UpdateAllowMeterOverageMutationVariables>;
+export type UpdateErrorGroupIsPublicMutationHookResult = ReturnType<
+    typeof useUpdateErrorGroupIsPublicMutation
+>;
+export type UpdateErrorGroupIsPublicMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupIsPublicMutation>;
+export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorGroupIsPublicMutation,
+    Types.UpdateErrorGroupIsPublicMutationVariables
+>;
+export const UpdateAllowMeterOverageDocument = gql`
+    mutation UpdateAllowMeterOverage(
+        $workspace_id: ID!
+        $allow_meter_overage: Boolean!
+    ) {
+        updateAllowMeterOverage(
+            workspace_id: $workspace_id
+            allow_meter_overage: $allow_meter_overage
+        ) {
+            id
+            allow_meter_overage
+        }
+    }
+`;
+export type UpdateAllowMeterOverageMutationFn = Apollo.MutationFunction<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
 
 /**
  * __useUpdateAllowMeterOverageMutation__
@@ -2317,21 +3454,37 @@ export type UpdateAllowMeterOverageMutationFn = Apollo.MutationFunction<Types.Up
  *   },
  * });
  */
-export function useUpdateAllowMeterOverageMutation(baseOptions?: Apollo.MutationHookOptions<Types.UpdateAllowMeterOverageMutation, Types.UpdateAllowMeterOverageMutationVariables>) {
-        return Apollo.useMutation<Types.UpdateAllowMeterOverageMutation, Types.UpdateAllowMeterOverageMutationVariables>(UpdateAllowMeterOverageDocument, baseOptions);
-      }
-export type UpdateAllowMeterOverageMutationHookResult = ReturnType<typeof useUpdateAllowMeterOverageMutation>;
+export function useUpdateAllowMeterOverageMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >(UpdateAllowMeterOverageDocument, baseOptions);
+}
+export type UpdateAllowMeterOverageMutationHookResult = ReturnType<
+    typeof useUpdateAllowMeterOverageMutation
+>;
 export type UpdateAllowMeterOverageMutationResult = Apollo.MutationResult<Types.UpdateAllowMeterOverageMutation>;
-export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<Types.UpdateAllowMeterOverageMutation, Types.UpdateAllowMeterOverageMutationVariables>;
+export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
 export const SyncSlackIntegrationDocument = gql`
     mutation SyncSlackIntegration($project_id: ID!) {
-  syncSlackIntegration(project_id: $project_id) {
-    success
-    newChannelsAddedCount
-  }
-}
-    `;
-export type SyncSlackIntegrationMutationFn = Apollo.MutationFunction<Types.SyncSlackIntegrationMutation, Types.SyncSlackIntegrationMutationVariables>;
+        syncSlackIntegration(project_id: $project_id) {
+            success
+            newChannelsAddedCount
+        }
+    }
+`;
+export type SyncSlackIntegrationMutationFn = Apollo.MutationFunction<
+    Types.SyncSlackIntegrationMutation,
+    Types.SyncSlackIntegrationMutationVariables
+>;
 
 /**
  * __useSyncSlackIntegrationMutation__
@@ -2350,24 +3503,40 @@ export type SyncSlackIntegrationMutationFn = Apollo.MutationFunction<Types.SyncS
  *   },
  * });
  */
-export function useSyncSlackIntegrationMutation(baseOptions?: Apollo.MutationHookOptions<Types.SyncSlackIntegrationMutation, Types.SyncSlackIntegrationMutationVariables>) {
-        return Apollo.useMutation<Types.SyncSlackIntegrationMutation, Types.SyncSlackIntegrationMutationVariables>(SyncSlackIntegrationDocument, baseOptions);
-      }
-export type SyncSlackIntegrationMutationHookResult = ReturnType<typeof useSyncSlackIntegrationMutation>;
+export function useSyncSlackIntegrationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SyncSlackIntegrationMutation,
+        Types.SyncSlackIntegrationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SyncSlackIntegrationMutation,
+        Types.SyncSlackIntegrationMutationVariables
+    >(SyncSlackIntegrationDocument, baseOptions);
+}
+export type SyncSlackIntegrationMutationHookResult = ReturnType<
+    typeof useSyncSlackIntegrationMutation
+>;
 export type SyncSlackIntegrationMutationResult = Apollo.MutationResult<Types.SyncSlackIntegrationMutation>;
-export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<Types.SyncSlackIntegrationMutation, Types.SyncSlackIntegrationMutationVariables>;
+export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.SyncSlackIntegrationMutation,
+    Types.SyncSlackIntegrationMutationVariables
+>;
 export const GetWebVitalDashboardDocument = gql`
     query GetWebVitalDashboard($project_id: ID!, $web_vital_name: String!) {
-  web_vital_dashboard(project_id: $project_id, web_vital_name: $web_vital_name) {
-    date
-    avg
-    p50
-    p75
-    p90
-    p99
-  }
-}
-    `;
+        web_vital_dashboard(
+            project_id: $project_id
+            web_vital_name: $web_vital_name
+        ) {
+            date
+            avg
+            p50
+            p75
+            p90
+            p99
+        }
+    }
+`;
 
 /**
  * __useGetWebVitalDashboardQuery__
@@ -2386,28 +3555,56 @@ export const GetWebVitalDashboardDocument = gql`
  *   },
  * });
  */
-export function useGetWebVitalDashboardQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWebVitalDashboardQuery, Types.GetWebVitalDashboardQueryVariables>) {
-        return Apollo.useQuery<Types.GetWebVitalDashboardQuery, Types.GetWebVitalDashboardQueryVariables>(GetWebVitalDashboardDocument, baseOptions);
-      }
-export function useGetWebVitalDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWebVitalDashboardQuery, Types.GetWebVitalDashboardQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWebVitalDashboardQuery, Types.GetWebVitalDashboardQueryVariables>(GetWebVitalDashboardDocument, baseOptions);
-        }
-export type GetWebVitalDashboardQueryHookResult = ReturnType<typeof useGetWebVitalDashboardQuery>;
-export type GetWebVitalDashboardLazyQueryHookResult = ReturnType<typeof useGetWebVitalDashboardLazyQuery>;
-export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<Types.GetWebVitalDashboardQuery, Types.GetWebVitalDashboardQueryVariables>;
-export const GetMetricPreviewDocument = gql`
-    query GetMetricPreview($project_id: ID!, $type: MetricType!, $name: String!, $aggregateFunction: String!) {
-  metric_preview(
-    project_id: $project_id
-    type: $type
-    name: $name
-    aggregateFunction: $aggregateFunction
-  ) {
-    value
-    date
-  }
+export function useGetWebVitalDashboardQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
 }
-    `;
+export function useGetWebVitalDashboardLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
+}
+export type GetWebVitalDashboardQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardQuery
+>;
+export type GetWebVitalDashboardLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardLazyQuery
+>;
+export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalDashboardQuery,
+    Types.GetWebVitalDashboardQueryVariables
+>;
+export const GetMetricPreviewDocument = gql`
+    query GetMetricPreview(
+        $project_id: ID!
+        $type: MetricType!
+        $name: String!
+        $aggregateFunction: String!
+    ) {
+        metric_preview(
+            project_id: $project_id
+            type: $type
+            name: $name
+            aggregateFunction: $aggregateFunction
+        ) {
+            value
+            date
+        }
+    }
+`;
 
 /**
  * __useGetMetricPreviewQuery__
@@ -2428,64 +3625,90 @@ export const GetMetricPreviewDocument = gql`
  *   },
  * });
  */
-export function useGetMetricPreviewQuery(baseOptions: Apollo.QueryHookOptions<Types.GetMetricPreviewQuery, Types.GetMetricPreviewQueryVariables>) {
-        return Apollo.useQuery<Types.GetMetricPreviewQuery, Types.GetMetricPreviewQueryVariables>(GetMetricPreviewDocument, baseOptions);
-      }
-export function useGetMetricPreviewLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetMetricPreviewQuery, Types.GetMetricPreviewQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetMetricPreviewQuery, Types.GetMetricPreviewQueryVariables>(GetMetricPreviewDocument, baseOptions);
-        }
-export type GetMetricPreviewQueryHookResult = ReturnType<typeof useGetMetricPreviewQuery>;
-export type GetMetricPreviewLazyQueryHookResult = ReturnType<typeof useGetMetricPreviewLazyQuery>;
-export type GetMetricPreviewQueryResult = Apollo.QueryResult<Types.GetMetricPreviewQuery, Types.GetMetricPreviewQueryVariables>;
-export const GetSessionPayloadDocument = gql`
-    query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
-  events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
-  errors(session_secure_id: $session_secure_id) {
-    id
-    error_group_secure_id
-    event
-    type
-    url
-    source
-    stack_trace
-    structured_stack_trace {
-      fileName
-      lineNumber
-      functionName
-      columnNumber
-    }
-    timestamp
-    payload
-    request_id
-  }
-  rage_clicks(session_secure_id: $session_secure_id) {
-    start_timestamp
-    end_timestamp
-    total_clicks
-  }
-  session_comments(session_secure_id: $session_secure_id) {
-    id
-    timestamp
-    session_id
-    session_secure_id
-    created_at
-    updated_at
-    project_id
-    text
-    author {
-      id
-      name
-      email
-      photo_url
-    }
-    x_coordinate
-    y_coordinate
-    type
-    metadata
-    tags
-  }
+export function useGetMetricPreviewQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >(GetMetricPreviewDocument, baseOptions);
 }
-    `;
+export function useGetMetricPreviewLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricPreviewQuery,
+        Types.GetMetricPreviewQueryVariables
+    >(GetMetricPreviewDocument, baseOptions);
+}
+export type GetMetricPreviewQueryHookResult = ReturnType<
+    typeof useGetMetricPreviewQuery
+>;
+export type GetMetricPreviewLazyQueryHookResult = ReturnType<
+    typeof useGetMetricPreviewLazyQuery
+>;
+export type GetMetricPreviewQueryResult = Apollo.QueryResult<
+    Types.GetMetricPreviewQuery,
+    Types.GetMetricPreviewQueryVariables
+>;
+export const GetSessionPayloadDocument = gql`
+    query GetSessionPayload(
+        $session_secure_id: String!
+        $skip_events: Boolean!
+    ) {
+        events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
+        errors(session_secure_id: $session_secure_id) {
+            id
+            error_group_secure_id
+            event
+            type
+            url
+            source
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            timestamp
+            payload
+            request_id
+        }
+        rage_clicks(session_secure_id: $session_secure_id) {
+            start_timestamp
+            end_timestamp
+            total_clicks
+        }
+        session_comments(session_secure_id: $session_secure_id) {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+            tags
+        }
+    }
+`;
 
 /**
  * __useGetSessionPayloadQuery__
@@ -2504,23 +3727,46 @@ export const GetSessionPayloadDocument = gql`
  *   },
  * });
  */
-export function useGetSessionPayloadQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionPayloadQuery, Types.GetSessionPayloadQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionPayloadQuery, Types.GetSessionPayloadQueryVariables>(GetSessionPayloadDocument, baseOptions);
-      }
-export function useGetSessionPayloadLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionPayloadQuery, Types.GetSessionPayloadQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionPayloadQuery, Types.GetSessionPayloadQueryVariables>(GetSessionPayloadDocument, baseOptions);
-        }
-export type GetSessionPayloadQueryHookResult = ReturnType<typeof useGetSessionPayloadQuery>;
-export type GetSessionPayloadLazyQueryHookResult = ReturnType<typeof useGetSessionPayloadLazyQuery>;
-export type GetSessionPayloadQueryResult = Apollo.QueryResult<Types.GetSessionPayloadQuery, Types.GetSessionPayloadQueryVariables>;
+export function useGetSessionPayloadQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >(GetSessionPayloadDocument, baseOptions);
+}
+export function useGetSessionPayloadLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >(GetSessionPayloadDocument, baseOptions);
+}
+export type GetSessionPayloadQueryHookResult = ReturnType<
+    typeof useGetSessionPayloadQuery
+>;
+export type GetSessionPayloadLazyQueryHookResult = ReturnType<
+    typeof useGetSessionPayloadLazyQuery
+>;
+export type GetSessionPayloadQueryResult = Apollo.QueryResult<
+    Types.GetSessionPayloadQuery,
+    Types.GetSessionPayloadQueryVariables
+>;
 export const GetCommentTagsForProjectDocument = gql`
     query GetCommentTagsForProject($project_id: ID!) {
-  session_comment_tags_for_project(project_id: $project_id) {
-    id
-    name
-  }
-}
-    `;
+        session_comment_tags_for_project(project_id: $project_id) {
+            id
+            name
+        }
+    }
+`;
 
 /**
  * __useGetCommentTagsForProjectQuery__
@@ -2538,59 +3784,82 @@ export const GetCommentTagsForProjectDocument = gql`
  *   },
  * });
  */
-export function useGetCommentTagsForProjectQuery(baseOptions: Apollo.QueryHookOptions<Types.GetCommentTagsForProjectQuery, Types.GetCommentTagsForProjectQueryVariables>) {
-        return Apollo.useQuery<Types.GetCommentTagsForProjectQuery, Types.GetCommentTagsForProjectQueryVariables>(GetCommentTagsForProjectDocument, baseOptions);
-      }
-export function useGetCommentTagsForProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetCommentTagsForProjectQuery, Types.GetCommentTagsForProjectQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetCommentTagsForProjectQuery, Types.GetCommentTagsForProjectQueryVariables>(GetCommentTagsForProjectDocument, baseOptions);
-        }
-export type GetCommentTagsForProjectQueryHookResult = ReturnType<typeof useGetCommentTagsForProjectQuery>;
-export type GetCommentTagsForProjectLazyQueryHookResult = ReturnType<typeof useGetCommentTagsForProjectLazyQuery>;
-export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<Types.GetCommentTagsForProjectQuery, Types.GetCommentTagsForProjectQueryVariables>;
+export function useGetCommentTagsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export function useGetCommentTagsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export type GetCommentTagsForProjectQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectQuery
+>;
+export type GetCommentTagsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectLazyQuery
+>;
+export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetCommentTagsForProjectQuery,
+    Types.GetCommentTagsForProjectQueryVariables
+>;
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
-  session(secure_id: $secure_id) {
-    secure_id
-    os_name
-    os_version
-    browser_name
-    browser_version
-    environment
-    app_version
-    city
-    state
-    postal
-    fingerprint
-    created_at
-    language
-    user_object
-    user_properties
-    identifier
-    starred
-    enable_strict_privacy
-    enable_recording_network_contents
-    field_group
-    fields {
-      name
-      value
-      type
+        session(secure_id: $secure_id) {
+            secure_id
+            os_name
+            os_version
+            browser_name
+            browser_version
+            environment
+            app_version
+            city
+            state
+            postal
+            fingerprint
+            created_at
+            language
+            user_object
+            user_properties
+            identifier
+            starred
+            enable_strict_privacy
+            enable_recording_network_contents
+            field_group
+            fields {
+                name
+                value
+                type
+            }
+            object_storage_enabled
+            payload_size
+            processed
+            within_billing_quota
+            client_version
+            client_config
+            is_public
+            event_counts
+            direct_download_url
+            resources_url
+            messages_url
+            deviceMemory
+            last_user_interaction_time
+        }
     }
-    object_storage_enabled
-    payload_size
-    processed
-    within_billing_quota
-    client_version
-    client_config
-    is_public
-    event_counts
-    direct_download_url
-    resources_url
-    messages_url
-    deviceMemory
-    last_user_interaction_time
-  }
-}
-    `;
+`;
 
 /**
  * __useGetSessionQuery__
@@ -2608,26 +3877,47 @@ export const GetSessionDocument = gql`
  *   },
  * });
  */
-export function useGetSessionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionQuery, Types.GetSessionQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionQuery, Types.GetSessionQueryVariables>(GetSessionDocument, baseOptions);
-      }
-export function useGetSessionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionQuery, Types.GetSessionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionQuery, Types.GetSessionQueryVariables>(GetSessionDocument, baseOptions);
-        }
+export function useGetSessionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >(GetSessionDocument, baseOptions);
+}
+export function useGetSessionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >(GetSessionDocument, baseOptions);
+}
 export type GetSessionQueryHookResult = ReturnType<typeof useGetSessionQuery>;
-export type GetSessionLazyQueryHookResult = ReturnType<typeof useGetSessionLazyQuery>;
-export type GetSessionQueryResult = Apollo.QueryResult<Types.GetSessionQuery, Types.GetSessionQueryVariables>;
+export type GetSessionLazyQueryHookResult = ReturnType<
+    typeof useGetSessionLazyQuery
+>;
+export type GetSessionQueryResult = Apollo.QueryResult<
+    Types.GetSessionQuery,
+    Types.GetSessionQueryVariables
+>;
 export const GetWorkspaceAdminsByProjectIdDocument = gql`
     query GetWorkspaceAdminsByProjectId($project_id: ID!) {
-  admins: workspace_admins_by_project_id(project_id: $project_id) {
-    id
-    name
-    email
-    photo_url
-    role
-  }
-}
-    `;
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
+            id
+            name
+            email
+            photo_url
+            role
+        }
+    }
+`;
 
 /**
  * __useGetWorkspaceAdminsByProjectIdQuery__
@@ -2645,39 +3935,62 @@ export const GetWorkspaceAdminsByProjectIdDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceAdminsByProjectIdQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWorkspaceAdminsByProjectIdQuery, Types.GetWorkspaceAdminsByProjectIdQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspaceAdminsByProjectIdQuery, Types.GetWorkspaceAdminsByProjectIdQueryVariables>(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
-      }
-export function useGetWorkspaceAdminsByProjectIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspaceAdminsByProjectIdQuery, Types.GetWorkspaceAdminsByProjectIdQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspaceAdminsByProjectIdQuery, Types.GetWorkspaceAdminsByProjectIdQueryVariables>(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
-        }
-export type GetWorkspaceAdminsByProjectIdQueryHookResult = ReturnType<typeof useGetWorkspaceAdminsByProjectIdQuery>;
-export type GetWorkspaceAdminsByProjectIdLazyQueryHookResult = ReturnType<typeof useGetWorkspaceAdminsByProjectIdLazyQuery>;
-export type GetWorkspaceAdminsByProjectIdQueryResult = Apollo.QueryResult<Types.GetWorkspaceAdminsByProjectIdQuery, Types.GetWorkspaceAdminsByProjectIdQueryVariables>;
+export function useGetWorkspaceAdminsByProjectIdQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
+}
+export function useGetWorkspaceAdminsByProjectIdLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
+}
+export type GetWorkspaceAdminsByProjectIdQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsByProjectIdQuery
+>;
+export type GetWorkspaceAdminsByProjectIdLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsByProjectIdLazyQuery
+>;
+export type GetWorkspaceAdminsByProjectIdQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceAdminsByProjectIdQuery,
+    Types.GetWorkspaceAdminsByProjectIdQueryVariables
+>;
 export const GetWorkspaceAdminsDocument = gql`
     query GetWorkspaceAdmins($workspace_id: ID!) {
-  admins: workspace_admins(workspace_id: $workspace_id) {
-    id
-    name
-    email
-    photo_url
-    role
-  }
-  workspace(id: $workspace_id) {
-    id
-    name
-    secret
-    allowed_auto_join_email_origins
-  }
-  workspace_invite_links(workspace_id: $workspace_id) {
-    id
-    invitee_email
-    invitee_role
-    expiration_date
-    secret
-  }
-}
-    `;
+        admins: workspace_admins(workspace_id: $workspace_id) {
+            id
+            name
+            email
+            photo_url
+            role
+        }
+        workspace(id: $workspace_id) {
+            id
+            name
+            secret
+            allowed_auto_join_email_origins
+        }
+        workspace_invite_links(workspace_id: $workspace_id) {
+            id
+            invitee_email
+            invitee_role
+            expiration_date
+            secret
+        }
+    }
+`;
 
 /**
  * __useGetWorkspaceAdminsQuery__
@@ -2695,40 +4008,63 @@ export const GetWorkspaceAdminsDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceAdminsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWorkspaceAdminsQuery, Types.GetWorkspaceAdminsQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspaceAdminsQuery, Types.GetWorkspaceAdminsQueryVariables>(GetWorkspaceAdminsDocument, baseOptions);
-      }
-export function useGetWorkspaceAdminsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspaceAdminsQuery, Types.GetWorkspaceAdminsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspaceAdminsQuery, Types.GetWorkspaceAdminsQueryVariables>(GetWorkspaceAdminsDocument, baseOptions);
-        }
-export type GetWorkspaceAdminsQueryHookResult = ReturnType<typeof useGetWorkspaceAdminsQuery>;
-export type GetWorkspaceAdminsLazyQueryHookResult = ReturnType<typeof useGetWorkspaceAdminsLazyQuery>;
-export type GetWorkspaceAdminsQueryResult = Apollo.QueryResult<Types.GetWorkspaceAdminsQuery, Types.GetWorkspaceAdminsQueryVariables>;
+export function useGetWorkspaceAdminsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >(GetWorkspaceAdminsDocument, baseOptions);
+}
+export function useGetWorkspaceAdminsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >(GetWorkspaceAdminsDocument, baseOptions);
+}
+export type GetWorkspaceAdminsQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsQuery
+>;
+export type GetWorkspaceAdminsLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsLazyQuery
+>;
+export type GetWorkspaceAdminsQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceAdminsQuery,
+    Types.GetWorkspaceAdminsQueryVariables
+>;
 export const GetSessionCommentsDocument = gql`
     query GetSessionComments($session_secure_id: String!) {
-  session_comments(session_secure_id: $session_secure_id) {
-    id
-    timestamp
-    session_id
-    session_secure_id
-    created_at
-    updated_at
-    project_id
-    text
-    author {
-      id
-      name
-      email
-      photo_url
+        session_comments(session_secure_id: $session_secure_id) {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+            tags
+        }
     }
-    x_coordinate
-    y_coordinate
-    type
-    metadata
-    tags
-  }
-}
-    `;
+`;
 
 /**
  * __useGetSessionCommentsQuery__
@@ -2746,50 +4082,73 @@ export const GetSessionCommentsDocument = gql`
  *   },
  * });
  */
-export function useGetSessionCommentsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionCommentsQuery, Types.GetSessionCommentsQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionCommentsQuery, Types.GetSessionCommentsQueryVariables>(GetSessionCommentsDocument, baseOptions);
-      }
-export function useGetSessionCommentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionCommentsQuery, Types.GetSessionCommentsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionCommentsQuery, Types.GetSessionCommentsQueryVariables>(GetSessionCommentsDocument, baseOptions);
-        }
-export type GetSessionCommentsQueryHookResult = ReturnType<typeof useGetSessionCommentsQuery>;
-export type GetSessionCommentsLazyQueryHookResult = ReturnType<typeof useGetSessionCommentsLazyQuery>;
-export type GetSessionCommentsQueryResult = Apollo.QueryResult<Types.GetSessionCommentsQuery, Types.GetSessionCommentsQueryVariables>;
+export function useGetSessionCommentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export function useGetSessionCommentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export type GetSessionCommentsQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsQuery
+>;
+export type GetSessionCommentsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsLazyQuery
+>;
+export type GetSessionCommentsQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsQuery,
+    Types.GetSessionCommentsQueryVariables
+>;
 export const GetNotificationsDocument = gql`
     query GetNotifications($project_id: ID!) {
-  session_comments_for_project(project_id: $project_id) {
-    id
-    timestamp
-    updated_at
-    session_id
-    session_secure_id
-    text
-    author {
-      id
-      name
-      email
-      photo_url
+        session_comments_for_project(project_id: $project_id) {
+            id
+            timestamp
+            updated_at
+            session_id
+            session_secure_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            type
+            metadata
+            tags
+        }
+        error_comments_for_project(project_id: $project_id) {
+            id
+            updated_at
+            project_id
+            text
+            error_id
+            error_secure_id
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+        }
     }
-    type
-    metadata
-    tags
-  }
-  error_comments_for_project(project_id: $project_id) {
-    id
-    updated_at
-    project_id
-    text
-    error_id
-    error_secure_id
-    author {
-      id
-      name
-      email
-      photo_url
-    }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetNotificationsQuery__
@@ -2807,33 +4166,56 @@ export const GetNotificationsDocument = gql`
  *   },
  * });
  */
-export function useGetNotificationsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetNotificationsQuery, Types.GetNotificationsQueryVariables>) {
-        return Apollo.useQuery<Types.GetNotificationsQuery, Types.GetNotificationsQueryVariables>(GetNotificationsDocument, baseOptions);
-      }
-export function useGetNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetNotificationsQuery, Types.GetNotificationsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetNotificationsQuery, Types.GetNotificationsQueryVariables>(GetNotificationsDocument, baseOptions);
-        }
-export type GetNotificationsQueryHookResult = ReturnType<typeof useGetNotificationsQuery>;
-export type GetNotificationsLazyQueryHookResult = ReturnType<typeof useGetNotificationsLazyQuery>;
-export type GetNotificationsQueryResult = Apollo.QueryResult<Types.GetNotificationsQuery, Types.GetNotificationsQueryVariables>;
+export function useGetNotificationsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >(GetNotificationsDocument, baseOptions);
+}
+export function useGetNotificationsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >(GetNotificationsDocument, baseOptions);
+}
+export type GetNotificationsQueryHookResult = ReturnType<
+    typeof useGetNotificationsQuery
+>;
+export type GetNotificationsLazyQueryHookResult = ReturnType<
+    typeof useGetNotificationsLazyQuery
+>;
+export type GetNotificationsQueryResult = Apollo.QueryResult<
+    Types.GetNotificationsQuery,
+    Types.GetNotificationsQueryVariables
+>;
 export const GetSessionCommentsForAdminDocument = gql`
     query GetSessionCommentsForAdmin {
-  session_comments_for_admin {
-    id
-    timestamp
-    created_at
-    project_id
-    updated_at
-    text
-    author {
-      id
-      name
-      email
-      photo_url
+        session_comments_for_admin {
+            id
+            timestamp
+            created_at
+            project_id
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetSessionCommentsForAdminQuery__
@@ -2850,32 +4232,55 @@ export const GetSessionCommentsForAdminDocument = gql`
  *   },
  * });
  */
-export function useGetSessionCommentsForAdminQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetSessionCommentsForAdminQuery, Types.GetSessionCommentsForAdminQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionCommentsForAdminQuery, Types.GetSessionCommentsForAdminQueryVariables>(GetSessionCommentsForAdminDocument, baseOptions);
-      }
-export function useGetSessionCommentsForAdminLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionCommentsForAdminQuery, Types.GetSessionCommentsForAdminQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionCommentsForAdminQuery, Types.GetSessionCommentsForAdminQueryVariables>(GetSessionCommentsForAdminDocument, baseOptions);
-        }
-export type GetSessionCommentsForAdminQueryHookResult = ReturnType<typeof useGetSessionCommentsForAdminQuery>;
-export type GetSessionCommentsForAdminLazyQueryHookResult = ReturnType<typeof useGetSessionCommentsForAdminLazyQuery>;
-export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<Types.GetSessionCommentsForAdminQuery, Types.GetSessionCommentsForAdminQueryVariables>;
+export function useGetSessionCommentsForAdminQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export function useGetSessionCommentsForAdminLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export type GetSessionCommentsForAdminQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminQuery
+>;
+export type GetSessionCommentsForAdminLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminLazyQuery
+>;
+export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsForAdminQuery,
+    Types.GetSessionCommentsForAdminQueryVariables
+>;
 export const GetErrorCommentsDocument = gql`
     query GetErrorComments($error_group_secure_id: String!) {
-  error_comments(error_group_secure_id: $error_group_secure_id) {
-    id
-    created_at
-    updated_at
-    text
-    project_id
-    author {
-      id
-      name
-      email
-      photo_url
+        error_comments(error_group_secure_id: $error_group_secure_id) {
+            id
+            created_at
+            updated_at
+            text
+            project_id
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetErrorCommentsQuery__
@@ -2893,30 +4298,53 @@ export const GetErrorCommentsDocument = gql`
  *   },
  * });
  */
-export function useGetErrorCommentsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorCommentsQuery, Types.GetErrorCommentsQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorCommentsQuery, Types.GetErrorCommentsQueryVariables>(GetErrorCommentsDocument, baseOptions);
-      }
-export function useGetErrorCommentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorCommentsQuery, Types.GetErrorCommentsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorCommentsQuery, Types.GetErrorCommentsQueryVariables>(GetErrorCommentsDocument, baseOptions);
-        }
-export type GetErrorCommentsQueryHookResult = ReturnType<typeof useGetErrorCommentsQuery>;
-export type GetErrorCommentsLazyQueryHookResult = ReturnType<typeof useGetErrorCommentsLazyQuery>;
-export type GetErrorCommentsQueryResult = Apollo.QueryResult<Types.GetErrorCommentsQuery, Types.GetErrorCommentsQueryVariables>;
+export function useGetErrorCommentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >(GetErrorCommentsDocument, baseOptions);
+}
+export function useGetErrorCommentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >(GetErrorCommentsDocument, baseOptions);
+}
+export type GetErrorCommentsQueryHookResult = ReturnType<
+    typeof useGetErrorCommentsQuery
+>;
+export type GetErrorCommentsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorCommentsLazyQuery
+>;
+export type GetErrorCommentsQueryResult = Apollo.QueryResult<
+    Types.GetErrorCommentsQuery,
+    Types.GetErrorCommentsQueryVariables
+>;
 export const GetEnhancedUserDetailsDocument = gql`
     query GetEnhancedUserDetails($session_secure_id: String!) {
-  enhanced_user_details(session_secure_id: $session_secure_id) {
-    id
-    name
-    bio
-    avatar
-    email
-    socials {
-      type
-      link
+        enhanced_user_details(session_secure_id: $session_secure_id) {
+            id
+            name
+            bio
+            avatar
+            email
+            socials {
+                type
+                link
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetEnhancedUserDetailsQuery__
@@ -2934,34 +4362,57 @@ export const GetEnhancedUserDetailsDocument = gql`
  *   },
  * });
  */
-export function useGetEnhancedUserDetailsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetEnhancedUserDetailsQuery, Types.GetEnhancedUserDetailsQueryVariables>) {
-        return Apollo.useQuery<Types.GetEnhancedUserDetailsQuery, Types.GetEnhancedUserDetailsQueryVariables>(GetEnhancedUserDetailsDocument, baseOptions);
-      }
-export function useGetEnhancedUserDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetEnhancedUserDetailsQuery, Types.GetEnhancedUserDetailsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetEnhancedUserDetailsQuery, Types.GetEnhancedUserDetailsQueryVariables>(GetEnhancedUserDetailsDocument, baseOptions);
-        }
-export type GetEnhancedUserDetailsQueryHookResult = ReturnType<typeof useGetEnhancedUserDetailsQuery>;
-export type GetEnhancedUserDetailsLazyQueryHookResult = ReturnType<typeof useGetEnhancedUserDetailsLazyQuery>;
-export type GetEnhancedUserDetailsQueryResult = Apollo.QueryResult<Types.GetEnhancedUserDetailsQuery, Types.GetEnhancedUserDetailsQueryVariables>;
+export function useGetEnhancedUserDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export function useGetEnhancedUserDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export type GetEnhancedUserDetailsQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsQuery
+>;
+export type GetEnhancedUserDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsLazyQuery
+>;
+export type GetEnhancedUserDetailsQueryResult = Apollo.QueryResult<
+    Types.GetEnhancedUserDetailsQuery,
+    Types.GetEnhancedUserDetailsQueryVariables
+>;
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-  workspace: workspace_for_project(project_id: $project_id) {
-    id
-    slack_channels
-  }
-  admins: workspace_admins_by_project_id(project_id: $project_id) {
-    id
-  }
-  isIntegrated(project_id: $project_id)
-  adminHasCreatedComment(admin_id: $admin_id)
-  projectHasViewedASession(project_id: $project_id) {
-    secure_id
-  }
-  admin {
-    slack_im_channel_id
-  }
-}
-    `;
+        workspace: workspace_for_project(project_id: $project_id) {
+            id
+            slack_channels
+        }
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
+            id
+        }
+        isIntegrated(project_id: $project_id)
+        adminHasCreatedComment(admin_id: $admin_id)
+        projectHasViewedASession(project_id: $project_id) {
+            secure_id
+        }
+        admin {
+            slack_im_channel_id
+        }
+    }
+`;
 
 /**
  * __useGetOnboardingStepsQuery__
@@ -2980,26 +4431,57 @@ export const GetOnboardingStepsDocument = gql`
  *   },
  * });
  */
-export function useGetOnboardingStepsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetOnboardingStepsQuery, Types.GetOnboardingStepsQueryVariables>) {
-        return Apollo.useQuery<Types.GetOnboardingStepsQuery, Types.GetOnboardingStepsQueryVariables>(GetOnboardingStepsDocument, baseOptions);
-      }
-export function useGetOnboardingStepsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetOnboardingStepsQuery, Types.GetOnboardingStepsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetOnboardingStepsQuery, Types.GetOnboardingStepsQueryVariables>(GetOnboardingStepsDocument, baseOptions);
-        }
-export type GetOnboardingStepsQueryHookResult = ReturnType<typeof useGetOnboardingStepsQuery>;
-export type GetOnboardingStepsLazyQueryHookResult = ReturnType<typeof useGetOnboardingStepsLazyQuery>;
-export type GetOnboardingStepsQueryResult = Apollo.QueryResult<Types.GetOnboardingStepsQuery, Types.GetOnboardingStepsQueryVariables>;
-export const SendAdminWorkspaceInviteDocument = gql`
-    mutation SendAdminWorkspaceInvite($workspace_id: ID!, $email: String!, $base_url: String!, $role: String!) {
-  sendAdminWorkspaceInvite(
-    workspace_id: $workspace_id
-    email: $email
-    base_url: $base_url
-    role: $role
-  )
+export function useGetOnboardingStepsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >(GetOnboardingStepsDocument, baseOptions);
 }
-    `;
-export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<Types.SendAdminWorkspaceInviteMutation, Types.SendAdminWorkspaceInviteMutationVariables>;
+export function useGetOnboardingStepsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >(GetOnboardingStepsDocument, baseOptions);
+}
+export type GetOnboardingStepsQueryHookResult = ReturnType<
+    typeof useGetOnboardingStepsQuery
+>;
+export type GetOnboardingStepsLazyQueryHookResult = ReturnType<
+    typeof useGetOnboardingStepsLazyQuery
+>;
+export type GetOnboardingStepsQueryResult = Apollo.QueryResult<
+    Types.GetOnboardingStepsQuery,
+    Types.GetOnboardingStepsQueryVariables
+>;
+export const SendAdminWorkspaceInviteDocument = gql`
+    mutation SendAdminWorkspaceInvite(
+        $workspace_id: ID!
+        $email: String!
+        $base_url: String!
+        $role: String!
+    ) {
+        sendAdminWorkspaceInvite(
+            workspace_id: $workspace_id
+            email: $email
+            base_url: $base_url
+            role: $role
+        )
+    }
+`;
+export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
+    Types.SendAdminWorkspaceInviteMutation,
+    Types.SendAdminWorkspaceInviteMutationVariables
+>;
 
 /**
  * __useSendAdminWorkspaceInviteMutation__
@@ -3021,20 +4503,33 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<Types.S
  *   },
  * });
  */
-export function useSendAdminWorkspaceInviteMutation(baseOptions?: Apollo.MutationHookOptions<Types.SendAdminWorkspaceInviteMutation, Types.SendAdminWorkspaceInviteMutationVariables>) {
-        return Apollo.useMutation<Types.SendAdminWorkspaceInviteMutation, Types.SendAdminWorkspaceInviteMutationVariables>(SendAdminWorkspaceInviteDocument, baseOptions);
-      }
-export type SendAdminWorkspaceInviteMutationHookResult = ReturnType<typeof useSendAdminWorkspaceInviteMutation>;
+export function useSendAdminWorkspaceInviteMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SendAdminWorkspaceInviteMutation,
+        Types.SendAdminWorkspaceInviteMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SendAdminWorkspaceInviteMutation,
+        Types.SendAdminWorkspaceInviteMutationVariables
+    >(SendAdminWorkspaceInviteDocument, baseOptions);
+}
+export type SendAdminWorkspaceInviteMutationHookResult = ReturnType<
+    typeof useSendAdminWorkspaceInviteMutation
+>;
 export type SendAdminWorkspaceInviteMutationResult = Apollo.MutationResult<Types.SendAdminWorkspaceInviteMutation>;
-export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions<Types.SendAdminWorkspaceInviteMutation, Types.SendAdminWorkspaceInviteMutationVariables>;
+export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions<
+    Types.SendAdminWorkspaceInviteMutation,
+    Types.SendAdminWorkspaceInviteMutationVariables
+>;
 export const GetFieldTypesDocument = gql`
     query GetFieldTypes($project_id: ID!) {
-  field_types(project_id: $project_id) {
-    type
-    name
-  }
-}
-    `;
+        field_types(project_id: $project_id) {
+            type
+            name
+        }
+    }
+`;
 
 /**
  * __useGetFieldTypesQuery__
@@ -3052,26 +4547,55 @@ export const GetFieldTypesDocument = gql`
  *   },
  * });
  */
-export function useGetFieldTypesQuery(baseOptions: Apollo.QueryHookOptions<Types.GetFieldTypesQuery, Types.GetFieldTypesQueryVariables>) {
-        return Apollo.useQuery<Types.GetFieldTypesQuery, Types.GetFieldTypesQueryVariables>(GetFieldTypesDocument, baseOptions);
-      }
-export function useGetFieldTypesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetFieldTypesQuery, Types.GetFieldTypesQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetFieldTypesQuery, Types.GetFieldTypesQueryVariables>(GetFieldTypesDocument, baseOptions);
-        }
-export type GetFieldTypesQueryHookResult = ReturnType<typeof useGetFieldTypesQuery>;
-export type GetFieldTypesLazyQueryHookResult = ReturnType<typeof useGetFieldTypesLazyQuery>;
-export type GetFieldTypesQueryResult = Apollo.QueryResult<Types.GetFieldTypesQuery, Types.GetFieldTypesQueryVariables>;
-export const GetFieldsOpensearchDocument = gql`
-    query GetFieldsOpensearch($project_id: ID!, $count: Int!, $field_type: String!, $field_name: String!, $query: String!) {
-  fields_opensearch(
-    project_id: $project_id
-    count: $count
-    field_type: $field_type
-    field_name: $field_name
-    query: $query
-  )
+export function useGetFieldTypesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >(GetFieldTypesDocument, baseOptions);
 }
-    `;
+export function useGetFieldTypesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldTypesQuery,
+        Types.GetFieldTypesQueryVariables
+    >(GetFieldTypesDocument, baseOptions);
+}
+export type GetFieldTypesQueryHookResult = ReturnType<
+    typeof useGetFieldTypesQuery
+>;
+export type GetFieldTypesLazyQueryHookResult = ReturnType<
+    typeof useGetFieldTypesLazyQuery
+>;
+export type GetFieldTypesQueryResult = Apollo.QueryResult<
+    Types.GetFieldTypesQuery,
+    Types.GetFieldTypesQueryVariables
+>;
+export const GetFieldsOpensearchDocument = gql`
+    query GetFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $field_type: String!
+        $field_name: String!
+        $query: String!
+    ) {
+        fields_opensearch(
+            project_id: $project_id
+            count: $count
+            field_type: $field_type
+            field_name: $field_name
+            query: $query
+        )
+    }
+`;
 
 /**
  * __useGetFieldsOpensearchQuery__
@@ -3093,24 +4617,55 @@ export const GetFieldsOpensearchDocument = gql`
  *   },
  * });
  */
-export function useGetFieldsOpensearchQuery(baseOptions: Apollo.QueryHookOptions<Types.GetFieldsOpensearchQuery, Types.GetFieldsOpensearchQueryVariables>) {
-        return Apollo.useQuery<Types.GetFieldsOpensearchQuery, Types.GetFieldsOpensearchQueryVariables>(GetFieldsOpensearchDocument, baseOptions);
-      }
-export function useGetFieldsOpensearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetFieldsOpensearchQuery, Types.GetFieldsOpensearchQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetFieldsOpensearchQuery, Types.GetFieldsOpensearchQueryVariables>(GetFieldsOpensearchDocument, baseOptions);
-        }
-export type GetFieldsOpensearchQueryHookResult = ReturnType<typeof useGetFieldsOpensearchQuery>;
-export type GetFieldsOpensearchLazyQueryHookResult = ReturnType<typeof useGetFieldsOpensearchLazyQuery>;
-export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<Types.GetFieldsOpensearchQuery, Types.GetFieldsOpensearchQueryVariables>;
-export const GetQuickFieldsOpensearchDocument = gql`
-    query GetQuickFieldsOpensearch($project_id: ID!, $count: Int!, $query: String!) {
-  quickFields_opensearch(project_id: $project_id, count: $count, query: $query) {
-    type
-    name
-    value
-  }
+export function useGetFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
 }
-    `;
+export function useGetFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldsOpensearchQuery,
+        Types.GetFieldsOpensearchQueryVariables
+    >(GetFieldsOpensearchDocument, baseOptions);
+}
+export type GetFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchQuery
+>;
+export type GetFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetFieldsOpensearchLazyQuery
+>;
+export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetFieldsOpensearchQuery,
+    Types.GetFieldsOpensearchQueryVariables
+>;
+export const GetQuickFieldsOpensearchDocument = gql`
+    query GetQuickFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $query: String!
+    ) {
+        quickFields_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            type
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetQuickFieldsOpensearchQuery__
@@ -3130,26 +4685,55 @@ export const GetQuickFieldsOpensearchDocument = gql`
  *   },
  * });
  */
-export function useGetQuickFieldsOpensearchQuery(baseOptions: Apollo.QueryHookOptions<Types.GetQuickFieldsOpensearchQuery, Types.GetQuickFieldsOpensearchQueryVariables>) {
-        return Apollo.useQuery<Types.GetQuickFieldsOpensearchQuery, Types.GetQuickFieldsOpensearchQueryVariables>(GetQuickFieldsOpensearchDocument, baseOptions);
-      }
-export function useGetQuickFieldsOpensearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetQuickFieldsOpensearchQuery, Types.GetQuickFieldsOpensearchQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetQuickFieldsOpensearchQuery, Types.GetQuickFieldsOpensearchQueryVariables>(GetQuickFieldsOpensearchDocument, baseOptions);
-        }
-export type GetQuickFieldsOpensearchQueryHookResult = ReturnType<typeof useGetQuickFieldsOpensearchQuery>;
-export type GetQuickFieldsOpensearchLazyQueryHookResult = ReturnType<typeof useGetQuickFieldsOpensearchLazyQuery>;
-export type GetQuickFieldsOpensearchQueryResult = Apollo.QueryResult<Types.GetQuickFieldsOpensearchQuery, Types.GetQuickFieldsOpensearchQueryVariables>;
-export const GetErrorFieldsOpensearchDocument = gql`
-    query GetErrorFieldsOpensearch($project_id: ID!, $count: Int!, $field_type: String!, $field_name: String!, $query: String!) {
-  error_fields_opensearch(
-    project_id: $project_id
-    count: $count
-    field_type: $field_type
-    field_name: $field_name
-    query: $query
-  )
+export function useGetQuickFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetQuickFieldsOpensearchQuery,
+        Types.GetQuickFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetQuickFieldsOpensearchQuery,
+        Types.GetQuickFieldsOpensearchQueryVariables
+    >(GetQuickFieldsOpensearchDocument, baseOptions);
 }
-    `;
+export function useGetQuickFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetQuickFieldsOpensearchQuery,
+        Types.GetQuickFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetQuickFieldsOpensearchQuery,
+        Types.GetQuickFieldsOpensearchQueryVariables
+    >(GetQuickFieldsOpensearchDocument, baseOptions);
+}
+export type GetQuickFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetQuickFieldsOpensearchQuery
+>;
+export type GetQuickFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetQuickFieldsOpensearchLazyQuery
+>;
+export type GetQuickFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetQuickFieldsOpensearchQuery,
+    Types.GetQuickFieldsOpensearchQueryVariables
+>;
+export const GetErrorFieldsOpensearchDocument = gql`
+    query GetErrorFieldsOpensearch(
+        $project_id: ID!
+        $count: Int!
+        $field_type: String!
+        $field_name: String!
+        $query: String!
+    ) {
+        error_fields_opensearch(
+            project_id: $project_id
+            count: $count
+            field_type: $field_type
+            field_name: $field_name
+            query: $query
+        )
+    }
+`;
 
 /**
  * __useGetErrorFieldsOpensearchQuery__
@@ -3171,53 +4755,84 @@ export const GetErrorFieldsOpensearchDocument = gql`
  *   },
  * });
  */
-export function useGetErrorFieldsOpensearchQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorFieldsOpensearchQuery, Types.GetErrorFieldsOpensearchQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorFieldsOpensearchQuery, Types.GetErrorFieldsOpensearchQueryVariables>(GetErrorFieldsOpensearchDocument, baseOptions);
-      }
-export function useGetErrorFieldsOpensearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorFieldsOpensearchQuery, Types.GetErrorFieldsOpensearchQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorFieldsOpensearchQuery, Types.GetErrorFieldsOpensearchQueryVariables>(GetErrorFieldsOpensearchDocument, baseOptions);
-        }
-export type GetErrorFieldsOpensearchQueryHookResult = ReturnType<typeof useGetErrorFieldsOpensearchQuery>;
-export type GetErrorFieldsOpensearchLazyQueryHookResult = ReturnType<typeof useGetErrorFieldsOpensearchLazyQuery>;
-export type GetErrorFieldsOpensearchQueryResult = Apollo.QueryResult<Types.GetErrorFieldsOpensearchQuery, Types.GetErrorFieldsOpensearchQueryVariables>;
-export const GetSessionsOpenSearchDocument = gql`
-    query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
-  sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
-    sessions {
-      id
-      secure_id
-      fingerprint
-      identifier
-      os_name
-      os_version
-      browser_name
-      browser_version
-      city
-      state
-      postal
-      created_at
-      language
-      length
-      active_length
-      enable_recording_network_contents
-      viewed
-      starred
-      processed
-      fields {
-        name
-        value
-        type
-        id
-      }
-      first_time
-      user_properties
-      event_counts
-      last_user_interaction_time
-    }
-    totalCount
-  }
+export function useGetErrorFieldsOpensearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >(GetErrorFieldsOpensearchDocument, baseOptions);
 }
-    `;
+export function useGetErrorFieldsOpensearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorFieldsOpensearchQuery,
+        Types.GetErrorFieldsOpensearchQueryVariables
+    >(GetErrorFieldsOpensearchDocument, baseOptions);
+}
+export type GetErrorFieldsOpensearchQueryHookResult = ReturnType<
+    typeof useGetErrorFieldsOpensearchQuery
+>;
+export type GetErrorFieldsOpensearchLazyQueryHookResult = ReturnType<
+    typeof useGetErrorFieldsOpensearchLazyQuery
+>;
+export type GetErrorFieldsOpensearchQueryResult = Apollo.QueryResult<
+    Types.GetErrorFieldsOpensearchQuery,
+    Types.GetErrorFieldsOpensearchQueryVariables
+>;
+export const GetSessionsOpenSearchDocument = gql`
+    query GetSessionsOpenSearch(
+        $project_id: ID!
+        $count: Int!
+        $query: String!
+    ) {
+        sessions_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            sessions {
+                id
+                secure_id
+                fingerprint
+                identifier
+                os_name
+                os_version
+                browser_name
+                browser_version
+                city
+                state
+                postal
+                created_at
+                language
+                length
+                active_length
+                enable_recording_network_contents
+                viewed
+                starred
+                processed
+                fields {
+                    name
+                    value
+                    type
+                    id
+                }
+                first_time
+                user_properties
+                event_counts
+                last_user_interaction_time
+            }
+            totalCount
+        }
+    }
+`;
 
 /**
  * __useGetSessionsOpenSearchQuery__
@@ -3237,45 +4852,76 @@ export const GetSessionsOpenSearchDocument = gql`
  *   },
  * });
  */
-export function useGetSessionsOpenSearchQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionsOpenSearchQuery, Types.GetSessionsOpenSearchQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionsOpenSearchQuery, Types.GetSessionsOpenSearchQueryVariables>(GetSessionsOpenSearchDocument, baseOptions);
-      }
-export function useGetSessionsOpenSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionsOpenSearchQuery, Types.GetSessionsOpenSearchQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionsOpenSearchQuery, Types.GetSessionsOpenSearchQueryVariables>(GetSessionsOpenSearchDocument, baseOptions);
-        }
-export type GetSessionsOpenSearchQueryHookResult = ReturnType<typeof useGetSessionsOpenSearchQuery>;
-export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<typeof useGetSessionsOpenSearchLazyQuery>;
-export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<Types.GetSessionsOpenSearchQuery, Types.GetSessionsOpenSearchQueryVariables>;
-export const GetErrorGroupsOpenSearchDocument = gql`
-    query GetErrorGroupsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
-  error_groups_opensearch(project_id: $project_id, count: $count, query: $query) {
-    error_groups {
-      created_at
-      id
-      secure_id
-      type
-      event
-      state
-      state
-      environments
-      stack_trace
-      structured_stack_trace {
-        fileName
-        lineNumber
-        functionName
-        columnNumber
-      }
-      metadata_log {
-        error_id
-        session_secure_id
-        timestamp
-      }
-      error_frequency
-    }
-    totalCount
-  }
+export function useGetSessionsOpenSearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >(GetSessionsOpenSearchDocument, baseOptions);
 }
-    `;
+export function useGetSessionsOpenSearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionsOpenSearchQuery,
+        Types.GetSessionsOpenSearchQueryVariables
+    >(GetSessionsOpenSearchDocument, baseOptions);
+}
+export type GetSessionsOpenSearchQueryHookResult = ReturnType<
+    typeof useGetSessionsOpenSearchQuery
+>;
+export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<
+    typeof useGetSessionsOpenSearchLazyQuery
+>;
+export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
+    Types.GetSessionsOpenSearchQuery,
+    Types.GetSessionsOpenSearchQueryVariables
+>;
+export const GetErrorGroupsOpenSearchDocument = gql`
+    query GetErrorGroupsOpenSearch(
+        $project_id: ID!
+        $count: Int!
+        $query: String!
+    ) {
+        error_groups_opensearch(
+            project_id: $project_id
+            count: $count
+            query: $query
+        ) {
+            error_groups {
+                created_at
+                id
+                secure_id
+                type
+                event
+                state
+                state
+                environments
+                stack_trace
+                structured_stack_trace {
+                    fileName
+                    lineNumber
+                    functionName
+                    columnNumber
+                }
+                metadata_log {
+                    error_id
+                    session_secure_id
+                    timestamp
+                }
+                error_frequency
+            }
+            totalCount
+        }
+    }
+`;
 
 /**
  * __useGetErrorGroupsOpenSearchQuery__
@@ -3295,60 +4941,89 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *   },
  * });
  */
-export function useGetErrorGroupsOpenSearchQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorGroupsOpenSearchQuery, Types.GetErrorGroupsOpenSearchQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorGroupsOpenSearchQuery, Types.GetErrorGroupsOpenSearchQueryVariables>(GetErrorGroupsOpenSearchDocument, baseOptions);
-      }
-export function useGetErrorGroupsOpenSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorGroupsOpenSearchQuery, Types.GetErrorGroupsOpenSearchQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorGroupsOpenSearchQuery, Types.GetErrorGroupsOpenSearchQueryVariables>(GetErrorGroupsOpenSearchDocument, baseOptions);
-        }
-export type GetErrorGroupsOpenSearchQueryHookResult = ReturnType<typeof useGetErrorGroupsOpenSearchQuery>;
-export type GetErrorGroupsOpenSearchLazyQueryHookResult = ReturnType<typeof useGetErrorGroupsOpenSearchLazyQuery>;
-export type GetErrorGroupsOpenSearchQueryResult = Apollo.QueryResult<Types.GetErrorGroupsOpenSearchQuery, Types.GetErrorGroupsOpenSearchQueryVariables>;
-export const GetSessionsDocument = gql`
-    query GetSessions($project_id: ID!, $count: Int!, $lifecycle: SessionLifecycle!, $starred: Boolean!, $params: SearchParamsInput) {
-  sessions(
-    project_id: $project_id
-    count: $count
-    lifecycle: $lifecycle
-    starred: $starred
-    params: $params
-  ) {
-    sessions {
-      id
-      secure_id
-      fingerprint
-      identifier
-      os_name
-      os_version
-      browser_name
-      browser_version
-      city
-      state
-      postal
-      created_at
-      language
-      length
-      active_length
-      enable_recording_network_contents
-      viewed
-      starred
-      processed
-      field_group
-      fields {
-        name
-        value
-        type
-        id
-      }
-      first_time
-      user_properties
-      event_counts
-      last_user_interaction_time
-    }
-    totalCount
-  }
+export function useGetErrorGroupsOpenSearchQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >(GetErrorGroupsOpenSearchDocument, baseOptions);
 }
-    `;
+export function useGetErrorGroupsOpenSearchLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorGroupsOpenSearchQuery,
+        Types.GetErrorGroupsOpenSearchQueryVariables
+    >(GetErrorGroupsOpenSearchDocument, baseOptions);
+}
+export type GetErrorGroupsOpenSearchQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsOpenSearchQuery
+>;
+export type GetErrorGroupsOpenSearchLazyQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsOpenSearchLazyQuery
+>;
+export type GetErrorGroupsOpenSearchQueryResult = Apollo.QueryResult<
+    Types.GetErrorGroupsOpenSearchQuery,
+    Types.GetErrorGroupsOpenSearchQueryVariables
+>;
+export const GetSessionsDocument = gql`
+    query GetSessions(
+        $project_id: ID!
+        $count: Int!
+        $lifecycle: SessionLifecycle!
+        $starred: Boolean!
+        $params: SearchParamsInput
+    ) {
+        sessions(
+            project_id: $project_id
+            count: $count
+            lifecycle: $lifecycle
+            starred: $starred
+            params: $params
+        ) {
+            sessions {
+                id
+                secure_id
+                fingerprint
+                identifier
+                os_name
+                os_version
+                browser_name
+                browser_version
+                city
+                state
+                postal
+                created_at
+                language
+                length
+                active_length
+                enable_recording_network_contents
+                viewed
+                starred
+                processed
+                field_group
+                fields {
+                    name
+                    value
+                    type
+                    id
+                }
+                first_time
+                user_properties
+                event_counts
+                last_user_interaction_time
+            }
+            totalCount
+        }
+    }
+`;
 
 /**
  * __useGetSessionsQuery__
@@ -3370,24 +5045,45 @@ export const GetSessionsDocument = gql`
  *   },
  * });
  */
-export function useGetSessionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionsQuery, Types.GetSessionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionsQuery, Types.GetSessionsQueryVariables>(GetSessionsDocument, baseOptions);
-      }
-export function useGetSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionsQuery, Types.GetSessionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionsQuery, Types.GetSessionsQueryVariables>(GetSessionsDocument, baseOptions);
-        }
+export function useGetSessionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >(GetSessionsDocument, baseOptions);
+}
+export function useGetSessionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >(GetSessionsDocument, baseOptions);
+}
 export type GetSessionsQueryHookResult = ReturnType<typeof useGetSessionsQuery>;
-export type GetSessionsLazyQueryHookResult = ReturnType<typeof useGetSessionsLazyQuery>;
-export type GetSessionsQueryResult = Apollo.QueryResult<Types.GetSessionsQuery, Types.GetSessionsQueryVariables>;
+export type GetSessionsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionsLazyQuery
+>;
+export type GetSessionsQueryResult = Apollo.QueryResult<
+    Types.GetSessionsQuery,
+    Types.GetSessionsQueryVariables
+>;
 export const GetProjectsDocument = gql`
     query GetProjects {
-  projects {
-    id
-    name
-    workspace_id
-  }
-}
-    `;
+        projects {
+            id
+            name
+            workspace_id
+        }
+    }
+`;
 
 /**
  * __useGetProjectsQuery__
@@ -3404,28 +5100,49 @@ export const GetProjectsDocument = gql`
  *   },
  * });
  */
-export function useGetProjectsQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetProjectsQuery, Types.GetProjectsQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectsQuery, Types.GetProjectsQueryVariables>(GetProjectsDocument, baseOptions);
-      }
-export function useGetProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectsQuery, Types.GetProjectsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectsQuery, Types.GetProjectsQueryVariables>(GetProjectsDocument, baseOptions);
-        }
+export function useGetProjectsQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >(GetProjectsDocument, baseOptions);
+}
+export function useGetProjectsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >(GetProjectsDocument, baseOptions);
+}
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
-export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
-export type GetProjectsQueryResult = Apollo.QueryResult<Types.GetProjectsQuery, Types.GetProjectsQueryVariables>;
+export type GetProjectsLazyQueryHookResult = ReturnType<
+    typeof useGetProjectsLazyQuery
+>;
+export type GetProjectsQueryResult = Apollo.QueryResult<
+    Types.GetProjectsQuery,
+    Types.GetProjectsQueryVariables
+>;
 export const GetWorkspaceDocument = gql`
     query GetWorkspace($id: ID!) {
-  workspace(id: $id) {
-    id
-    name
-    secret
-    projects {
-      id
-      name
+        workspace(id: $id) {
+            id
+            name
+            secret
+            projects {
+                id
+                name
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetWorkspaceQuery__
@@ -3443,27 +5160,50 @@ export const GetWorkspaceDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWorkspaceQuery, Types.GetWorkspaceQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspaceQuery, Types.GetWorkspaceQueryVariables>(GetWorkspaceDocument, baseOptions);
-      }
-export function useGetWorkspaceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspaceQuery, Types.GetWorkspaceQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspaceQuery, Types.GetWorkspaceQueryVariables>(GetWorkspaceDocument, baseOptions);
-        }
-export type GetWorkspaceQueryHookResult = ReturnType<typeof useGetWorkspaceQuery>;
-export type GetWorkspaceLazyQueryHookResult = ReturnType<typeof useGetWorkspaceLazyQuery>;
-export type GetWorkspaceQueryResult = Apollo.QueryResult<Types.GetWorkspaceQuery, Types.GetWorkspaceQueryVariables>;
+export function useGetWorkspaceQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceQuery,
+        Types.GetWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceQuery,
+        Types.GetWorkspaceQueryVariables
+    >(GetWorkspaceDocument, baseOptions);
+}
+export function useGetWorkspaceLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceQuery,
+        Types.GetWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceQuery,
+        Types.GetWorkspaceQueryVariables
+    >(GetWorkspaceDocument, baseOptions);
+}
+export type GetWorkspaceQueryHookResult = ReturnType<
+    typeof useGetWorkspaceQuery
+>;
+export type GetWorkspaceLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceLazyQuery
+>;
+export type GetWorkspaceQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceQuery,
+    Types.GetWorkspaceQueryVariables
+>;
 export const GetWorkspacesDocument = gql`
     query GetWorkspaces {
-  workspaces {
-    id
-    name
-  }
-  joinable_workspaces {
-    id
-    name
-  }
-}
-    `;
+        workspaces {
+            id
+            name
+        }
+        joinable_workspaces {
+            id
+            name
+        }
+    }
+`;
 
 /**
  * __useGetWorkspacesQuery__
@@ -3480,20 +5220,43 @@ export const GetWorkspacesDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspacesQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetWorkspacesQuery, Types.GetWorkspacesQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspacesQuery, Types.GetWorkspacesQueryVariables>(GetWorkspacesDocument, baseOptions);
-      }
-export function useGetWorkspacesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspacesQuery, Types.GetWorkspacesQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspacesQuery, Types.GetWorkspacesQueryVariables>(GetWorkspacesDocument, baseOptions);
-        }
-export type GetWorkspacesQueryHookResult = ReturnType<typeof useGetWorkspacesQuery>;
-export type GetWorkspacesLazyQueryHookResult = ReturnType<typeof useGetWorkspacesLazyQuery>;
-export type GetWorkspacesQueryResult = Apollo.QueryResult<Types.GetWorkspacesQuery, Types.GetWorkspacesQueryVariables>;
+export function useGetWorkspacesQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >(GetWorkspacesDocument, baseOptions);
+}
+export function useGetWorkspacesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >(GetWorkspacesDocument, baseOptions);
+}
+export type GetWorkspacesQueryHookResult = ReturnType<
+    typeof useGetWorkspacesQuery
+>;
+export type GetWorkspacesLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspacesLazyQuery
+>;
+export type GetWorkspacesQueryResult = Apollo.QueryResult<
+    Types.GetWorkspacesQuery,
+    Types.GetWorkspacesQueryVariables
+>;
 export const GetWorkspacesCountDocument = gql`
     query GetWorkspacesCount {
-  workspaces_count
-}
-    `;
+        workspaces_count
+    }
+`;
 
 /**
  * __useGetWorkspacesCountQuery__
@@ -3510,27 +5273,50 @@ export const GetWorkspacesCountDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspacesCountQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetWorkspacesCountQuery, Types.GetWorkspacesCountQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspacesCountQuery, Types.GetWorkspacesCountQueryVariables>(GetWorkspacesCountDocument, baseOptions);
-      }
-export function useGetWorkspacesCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspacesCountQuery, Types.GetWorkspacesCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspacesCountQuery, Types.GetWorkspacesCountQueryVariables>(GetWorkspacesCountDocument, baseOptions);
-        }
-export type GetWorkspacesCountQueryHookResult = ReturnType<typeof useGetWorkspacesCountQuery>;
-export type GetWorkspacesCountLazyQueryHookResult = ReturnType<typeof useGetWorkspacesCountLazyQuery>;
-export type GetWorkspacesCountQueryResult = Apollo.QueryResult<Types.GetWorkspacesCountQuery, Types.GetWorkspacesCountQueryVariables>;
+export function useGetWorkspacesCountQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >(GetWorkspacesCountDocument, baseOptions);
+}
+export function useGetWorkspacesCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspacesCountQuery,
+        Types.GetWorkspacesCountQueryVariables
+    >(GetWorkspacesCountDocument, baseOptions);
+}
+export type GetWorkspacesCountQueryHookResult = ReturnType<
+    typeof useGetWorkspacesCountQuery
+>;
+export type GetWorkspacesCountLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspacesCountLazyQuery
+>;
+export type GetWorkspacesCountQueryResult = Apollo.QueryResult<
+    Types.GetWorkspacesCountQuery,
+    Types.GetWorkspacesCountQueryVariables
+>;
 export const GetProjectsAndWorkspacesDocument = gql`
     query GetProjectsAndWorkspaces {
-  projects {
-    id
-    name
-  }
-  workspaces {
-    id
-    name
-  }
-}
-    `;
+        projects {
+            id
+            name
+        }
+        workspaces {
+            id
+            name
+        }
+    }
+`;
 
 /**
  * __useGetProjectsAndWorkspacesQuery__
@@ -3547,28 +5333,55 @@ export const GetProjectsAndWorkspacesDocument = gql`
  *   },
  * });
  */
-export function useGetProjectsAndWorkspacesQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetProjectsAndWorkspacesQuery, Types.GetProjectsAndWorkspacesQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectsAndWorkspacesQuery, Types.GetProjectsAndWorkspacesQueryVariables>(GetProjectsAndWorkspacesDocument, baseOptions);
-      }
-export function useGetProjectsAndWorkspacesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectsAndWorkspacesQuery, Types.GetProjectsAndWorkspacesQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectsAndWorkspacesQuery, Types.GetProjectsAndWorkspacesQueryVariables>(GetProjectsAndWorkspacesDocument, baseOptions);
-        }
-export type GetProjectsAndWorkspacesQueryHookResult = ReturnType<typeof useGetProjectsAndWorkspacesQuery>;
-export type GetProjectsAndWorkspacesLazyQueryHookResult = ReturnType<typeof useGetProjectsAndWorkspacesLazyQuery>;
-export type GetProjectsAndWorkspacesQueryResult = Apollo.QueryResult<Types.GetProjectsAndWorkspacesQuery, Types.GetProjectsAndWorkspacesQueryVariables>;
-export const GetProjectOrWorkspaceDocument = gql`
-    query GetProjectOrWorkspace($project_id: ID!, $workspace_id: ID!, $is_workspace: Boolean!) {
-  project(id: $project_id) @skip(if: $is_workspace) {
-    id
-    name
-    billing_email
-  }
-  workspace(id: $workspace_id) @include(if: $is_workspace) {
-    id
-    name
-  }
+export function useGetProjectsAndWorkspacesQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >(GetProjectsAndWorkspacesDocument, baseOptions);
 }
-    `;
+export function useGetProjectsAndWorkspacesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >(GetProjectsAndWorkspacesDocument, baseOptions);
+}
+export type GetProjectsAndWorkspacesQueryHookResult = ReturnType<
+    typeof useGetProjectsAndWorkspacesQuery
+>;
+export type GetProjectsAndWorkspacesLazyQueryHookResult = ReturnType<
+    typeof useGetProjectsAndWorkspacesLazyQuery
+>;
+export type GetProjectsAndWorkspacesQueryResult = Apollo.QueryResult<
+    Types.GetProjectsAndWorkspacesQuery,
+    Types.GetProjectsAndWorkspacesQueryVariables
+>;
+export const GetProjectOrWorkspaceDocument = gql`
+    query GetProjectOrWorkspace(
+        $project_id: ID!
+        $workspace_id: ID!
+        $is_workspace: Boolean!
+    ) {
+        project(id: $project_id) @skip(if: $is_workspace) {
+            id
+            name
+            billing_email
+        }
+        workspace(id: $workspace_id) @include(if: $is_workspace) {
+            id
+            name
+        }
+    }
+`;
 
 /**
  * __useGetProjectOrWorkspaceQuery__
@@ -3588,39 +5401,62 @@ export const GetProjectOrWorkspaceDocument = gql`
  *   },
  * });
  */
-export function useGetProjectOrWorkspaceQuery(baseOptions: Apollo.QueryHookOptions<Types.GetProjectOrWorkspaceQuery, Types.GetProjectOrWorkspaceQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectOrWorkspaceQuery, Types.GetProjectOrWorkspaceQueryVariables>(GetProjectOrWorkspaceDocument, baseOptions);
-      }
-export function useGetProjectOrWorkspaceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectOrWorkspaceQuery, Types.GetProjectOrWorkspaceQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectOrWorkspaceQuery, Types.GetProjectOrWorkspaceQueryVariables>(GetProjectOrWorkspaceDocument, baseOptions);
-        }
-export type GetProjectOrWorkspaceQueryHookResult = ReturnType<typeof useGetProjectOrWorkspaceQuery>;
-export type GetProjectOrWorkspaceLazyQueryHookResult = ReturnType<typeof useGetProjectOrWorkspaceLazyQuery>;
-export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<Types.GetProjectOrWorkspaceQuery, Types.GetProjectOrWorkspaceQueryVariables>;
+export function useGetProjectOrWorkspaceQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >(GetProjectOrWorkspaceDocument, baseOptions);
+}
+export function useGetProjectOrWorkspaceLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >(GetProjectOrWorkspaceDocument, baseOptions);
+}
+export type GetProjectOrWorkspaceQueryHookResult = ReturnType<
+    typeof useGetProjectOrWorkspaceQuery
+>;
+export type GetProjectOrWorkspaceLazyQueryHookResult = ReturnType<
+    typeof useGetProjectOrWorkspaceLazyQuery
+>;
+export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<
+    Types.GetProjectOrWorkspaceQuery,
+    Types.GetProjectOrWorkspaceQueryVariables
+>;
 export const GetProjectDropdownOptionsDocument = gql`
     query GetProjectDropdownOptions($project_id: ID!) {
-  project(id: $project_id) {
-    id
-    name
-    verbose_id
-    billing_email
-    secret
-    workspace_id
-  }
-  workspace: workspace_for_project(project_id: $project_id) {
-    id
-    name
-    projects {
-      id
-      name
+        project(id: $project_id) {
+            id
+            name
+            verbose_id
+            billing_email
+            secret
+            workspace_id
+        }
+        workspace: workspace_for_project(project_id: $project_id) {
+            id
+            name
+            projects {
+                id
+                name
+            }
+        }
+        workspaces {
+            id
+            name
+        }
     }
-  }
-  workspaces {
-    id
-    name
-  }
-}
-    `;
+`;
 
 /**
  * __useGetProjectDropdownOptionsQuery__
@@ -3638,31 +5474,54 @@ export const GetProjectDropdownOptionsDocument = gql`
  *   },
  * });
  */
-export function useGetProjectDropdownOptionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetProjectDropdownOptionsQuery, Types.GetProjectDropdownOptionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectDropdownOptionsQuery, Types.GetProjectDropdownOptionsQueryVariables>(GetProjectDropdownOptionsDocument, baseOptions);
-      }
-export function useGetProjectDropdownOptionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectDropdownOptionsQuery, Types.GetProjectDropdownOptionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectDropdownOptionsQuery, Types.GetProjectDropdownOptionsQueryVariables>(GetProjectDropdownOptionsDocument, baseOptions);
-        }
-export type GetProjectDropdownOptionsQueryHookResult = ReturnType<typeof useGetProjectDropdownOptionsQuery>;
-export type GetProjectDropdownOptionsLazyQueryHookResult = ReturnType<typeof useGetProjectDropdownOptionsLazyQuery>;
-export type GetProjectDropdownOptionsQueryResult = Apollo.QueryResult<Types.GetProjectDropdownOptionsQuery, Types.GetProjectDropdownOptionsQueryVariables>;
+export function useGetProjectDropdownOptionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >(GetProjectDropdownOptionsDocument, baseOptions);
+}
+export function useGetProjectDropdownOptionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >(GetProjectDropdownOptionsDocument, baseOptions);
+}
+export type GetProjectDropdownOptionsQueryHookResult = ReturnType<
+    typeof useGetProjectDropdownOptionsQuery
+>;
+export type GetProjectDropdownOptionsLazyQueryHookResult = ReturnType<
+    typeof useGetProjectDropdownOptionsLazyQuery
+>;
+export type GetProjectDropdownOptionsQueryResult = Apollo.QueryResult<
+    Types.GetProjectDropdownOptionsQuery,
+    Types.GetProjectDropdownOptionsQueryVariables
+>;
 export const GetWorkspaceDropdownOptionsDocument = gql`
     query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-  workspace(id: $workspace_id) {
-    id
-    name
-    projects {
-      id
-      name
+        workspace(id: $workspace_id) {
+            id
+            name
+            projects {
+                id
+                name
+            }
+        }
+        workspaces {
+            id
+            name
+        }
     }
-  }
-  workspaces {
-    id
-    name
-  }
-}
-    `;
+`;
 
 /**
  * __useGetWorkspaceDropdownOptionsQuery__
@@ -3680,29 +5539,52 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceDropdownOptionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWorkspaceDropdownOptionsQuery, Types.GetWorkspaceDropdownOptionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspaceDropdownOptionsQuery, Types.GetWorkspaceDropdownOptionsQueryVariables>(GetWorkspaceDropdownOptionsDocument, baseOptions);
-      }
-export function useGetWorkspaceDropdownOptionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspaceDropdownOptionsQuery, Types.GetWorkspaceDropdownOptionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspaceDropdownOptionsQuery, Types.GetWorkspaceDropdownOptionsQueryVariables>(GetWorkspaceDropdownOptionsDocument, baseOptions);
-        }
-export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<typeof useGetWorkspaceDropdownOptionsQuery>;
-export type GetWorkspaceDropdownOptionsLazyQueryHookResult = ReturnType<typeof useGetWorkspaceDropdownOptionsLazyQuery>;
-export type GetWorkspaceDropdownOptionsQueryResult = Apollo.QueryResult<Types.GetWorkspaceDropdownOptionsQuery, Types.GetWorkspaceDropdownOptionsQueryVariables>;
+export function useGetWorkspaceDropdownOptionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >(GetWorkspaceDropdownOptionsDocument, baseOptions);
+}
+export function useGetWorkspaceDropdownOptionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >(GetWorkspaceDropdownOptionsDocument, baseOptions);
+}
+export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<
+    typeof useGetWorkspaceDropdownOptionsQuery
+>;
+export type GetWorkspaceDropdownOptionsLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceDropdownOptionsLazyQuery
+>;
+export type GetWorkspaceDropdownOptionsQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceDropdownOptionsQuery,
+    Types.GetWorkspaceDropdownOptionsQueryVariables
+>;
 export const GetAdminDocument = gql`
     query GetAdmin {
-  admin {
-    id
-    uid
-    name
-    email
-    photo_url
-    slack_im_channel_id
-    role
-    email_verified
-  }
-}
-    `;
+        admin {
+            id
+            uid
+            name
+            email
+            photo_url
+            slack_im_channel_id
+            role
+            email_verified
+        }
+    }
+`;
 
 /**
  * __useGetAdminQuery__
@@ -3719,25 +5601,46 @@ export const GetAdminDocument = gql`
  *   },
  * });
  */
-export function useGetAdminQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetAdminQuery, Types.GetAdminQueryVariables>) {
-        return Apollo.useQuery<Types.GetAdminQuery, Types.GetAdminQueryVariables>(GetAdminDocument, baseOptions);
-      }
-export function useGetAdminLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetAdminQuery, Types.GetAdminQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetAdminQuery, Types.GetAdminQueryVariables>(GetAdminDocument, baseOptions);
-        }
+export function useGetAdminQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetAdminQuery,
+        Types.GetAdminQueryVariables
+    >
+) {
+    return Apollo.useQuery<Types.GetAdminQuery, Types.GetAdminQueryVariables>(
+        GetAdminDocument,
+        baseOptions
+    );
+}
+export function useGetAdminLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAdminQuery,
+        Types.GetAdminQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAdminQuery,
+        Types.GetAdminQueryVariables
+    >(GetAdminDocument, baseOptions);
+}
 export type GetAdminQueryHookResult = ReturnType<typeof useGetAdminQuery>;
-export type GetAdminLazyQueryHookResult = ReturnType<typeof useGetAdminLazyQuery>;
-export type GetAdminQueryResult = Apollo.QueryResult<Types.GetAdminQuery, Types.GetAdminQueryVariables>;
+export type GetAdminLazyQueryHookResult = ReturnType<
+    typeof useGetAdminLazyQuery
+>;
+export type GetAdminQueryResult = Apollo.QueryResult<
+    Types.GetAdminQuery,
+    Types.GetAdminQueryVariables
+>;
 export const GetAdminAboutYouDocument = gql`
     query GetAdminAboutYou {
-  admin {
-    id
-    name
-    user_defined_role
-    referral
-  }
-}
-    `;
+        admin {
+            id
+            name
+            user_defined_role
+            referral
+        }
+    }
+`;
 
 /**
  * __useGetAdminAboutYouQuery__
@@ -3754,29 +5657,52 @@ export const GetAdminAboutYouDocument = gql`
  *   },
  * });
  */
-export function useGetAdminAboutYouQuery(baseOptions?: Apollo.QueryHookOptions<Types.GetAdminAboutYouQuery, Types.GetAdminAboutYouQueryVariables>) {
-        return Apollo.useQuery<Types.GetAdminAboutYouQuery, Types.GetAdminAboutYouQueryVariables>(GetAdminAboutYouDocument, baseOptions);
-      }
-export function useGetAdminAboutYouLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetAdminAboutYouQuery, Types.GetAdminAboutYouQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetAdminAboutYouQuery, Types.GetAdminAboutYouQueryVariables>(GetAdminAboutYouDocument, baseOptions);
-        }
-export type GetAdminAboutYouQueryHookResult = ReturnType<typeof useGetAdminAboutYouQuery>;
-export type GetAdminAboutYouLazyQueryHookResult = ReturnType<typeof useGetAdminAboutYouLazyQuery>;
-export type GetAdminAboutYouQueryResult = Apollo.QueryResult<Types.GetAdminAboutYouQuery, Types.GetAdminAboutYouQueryVariables>;
+export function useGetAdminAboutYouQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >(GetAdminAboutYouDocument, baseOptions);
+}
+export function useGetAdminAboutYouLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAdminAboutYouQuery,
+        Types.GetAdminAboutYouQueryVariables
+    >(GetAdminAboutYouDocument, baseOptions);
+}
+export type GetAdminAboutYouQueryHookResult = ReturnType<
+    typeof useGetAdminAboutYouQuery
+>;
+export type GetAdminAboutYouLazyQueryHookResult = ReturnType<
+    typeof useGetAdminAboutYouLazyQuery
+>;
+export type GetAdminAboutYouQueryResult = Apollo.QueryResult<
+    Types.GetAdminAboutYouQuery,
+    Types.GetAdminAboutYouQueryVariables
+>;
 export const GetProjectDocument = gql`
     query GetProject($id: ID!) {
-  project(id: $id) {
-    id
-    name
-    verbose_id
-    billing_email
-  }
-  workspace: workspace_for_project(project_id: $id) {
-    id
-    slack_webhook_channel
-  }
-}
-    `;
+        project(id: $id) {
+            id
+            name
+            verbose_id
+            billing_email
+        }
+        workspace: workspace_for_project(project_id: $id) {
+            id
+            slack_webhook_channel
+        }
+    }
+`;
 
 /**
  * __useGetProjectQuery__
@@ -3794,39 +5720,60 @@ export const GetProjectDocument = gql`
  *   },
  * });
  */
-export function useGetProjectQuery(baseOptions: Apollo.QueryHookOptions<Types.GetProjectQuery, Types.GetProjectQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectQuery, Types.GetProjectQueryVariables>(GetProjectDocument, baseOptions);
-      }
-export function useGetProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectQuery, Types.GetProjectQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectQuery, Types.GetProjectQueryVariables>(GetProjectDocument, baseOptions);
-        }
+export function useGetProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >(GetProjectDocument, baseOptions);
+}
+export function useGetProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >(GetProjectDocument, baseOptions);
+}
 export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
-export type GetProjectLazyQueryHookResult = ReturnType<typeof useGetProjectLazyQuery>;
-export type GetProjectQueryResult = Apollo.QueryResult<Types.GetProjectQuery, Types.GetProjectQueryVariables>;
+export type GetProjectLazyQueryHookResult = ReturnType<
+    typeof useGetProjectLazyQuery
+>;
+export type GetProjectQueryResult = Apollo.QueryResult<
+    Types.GetProjectQuery,
+    Types.GetProjectQueryVariables
+>;
 export const GetBillingDetailsForProjectDocument = gql`
     query GetBillingDetailsForProject($project_id: ID!) {
-  billingDetailsForProject(project_id: $project_id) {
-    plan {
-      type
-      quota
-      interval
-      membersLimit
+        billingDetailsForProject(project_id: $project_id) {
+            plan {
+                type
+                quota
+                interval
+                membersLimit
+            }
+            meter
+            membersMeter
+            sessionsOutOfQuota
+        }
+        workspace_for_project(project_id: $project_id) {
+            id
+            trial_end_date
+            billing_period_end
+            next_invoice_date
+            allow_meter_overage
+            eligible_for_trial_extension
+            trial_extension_enabled
+        }
     }
-    meter
-    membersMeter
-    sessionsOutOfQuota
-  }
-  workspace_for_project(project_id: $project_id) {
-    id
-    trial_end_date
-    billing_period_end
-    next_invoice_date
-    allow_meter_overage
-    eligible_for_trial_extension
-    trial_extension_enabled
-  }
-}
-    `;
+`;
 
 /**
  * __useGetBillingDetailsForProjectQuery__
@@ -3844,38 +5791,61 @@ export const GetBillingDetailsForProjectDocument = gql`
  *   },
  * });
  */
-export function useGetBillingDetailsForProjectQuery(baseOptions: Apollo.QueryHookOptions<Types.GetBillingDetailsForProjectQuery, Types.GetBillingDetailsForProjectQueryVariables>) {
-        return Apollo.useQuery<Types.GetBillingDetailsForProjectQuery, Types.GetBillingDetailsForProjectQueryVariables>(GetBillingDetailsForProjectDocument, baseOptions);
-      }
-export function useGetBillingDetailsForProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetBillingDetailsForProjectQuery, Types.GetBillingDetailsForProjectQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetBillingDetailsForProjectQuery, Types.GetBillingDetailsForProjectQueryVariables>(GetBillingDetailsForProjectDocument, baseOptions);
-        }
-export type GetBillingDetailsForProjectQueryHookResult = ReturnType<typeof useGetBillingDetailsForProjectQuery>;
-export type GetBillingDetailsForProjectLazyQueryHookResult = ReturnType<typeof useGetBillingDetailsForProjectLazyQuery>;
-export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<Types.GetBillingDetailsForProjectQuery, Types.GetBillingDetailsForProjectQueryVariables>;
+export function useGetBillingDetailsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export function useGetBillingDetailsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export type GetBillingDetailsForProjectQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectQuery
+>;
+export type GetBillingDetailsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectLazyQuery
+>;
+export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetBillingDetailsForProjectQuery,
+    Types.GetBillingDetailsForProjectQueryVariables
+>;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($workspace_id: ID!) {
-  billingDetails(workspace_id: $workspace_id) {
-    plan {
-      type
-      quota
-      interval
-      membersLimit
+        billingDetails(workspace_id: $workspace_id) {
+            plan {
+                type
+                quota
+                interval
+                membersLimit
+            }
+            meter
+            membersMeter
+            sessionsOutOfQuota
+        }
+        workspace(id: $workspace_id) {
+            id
+            trial_end_date
+            billing_period_end
+            next_invoice_date
+            allow_meter_overage
+            eligible_for_trial_extension
+        }
     }
-    meter
-    membersMeter
-    sessionsOutOfQuota
-  }
-  workspace(id: $workspace_id) {
-    id
-    trial_end_date
-    billing_period_end
-    next_invoice_date
-    allow_meter_overage
-    eligible_for_trial_extension
-  }
-}
-    `;
+`;
 
 /**
  * __useGetBillingDetailsQuery__
@@ -3893,24 +5863,47 @@ export const GetBillingDetailsDocument = gql`
  *   },
  * });
  */
-export function useGetBillingDetailsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetBillingDetailsQuery, Types.GetBillingDetailsQueryVariables>) {
-        return Apollo.useQuery<Types.GetBillingDetailsQuery, Types.GetBillingDetailsQueryVariables>(GetBillingDetailsDocument, baseOptions);
-      }
-export function useGetBillingDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetBillingDetailsQuery, Types.GetBillingDetailsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetBillingDetailsQuery, Types.GetBillingDetailsQueryVariables>(GetBillingDetailsDocument, baseOptions);
-        }
-export type GetBillingDetailsQueryHookResult = ReturnType<typeof useGetBillingDetailsQuery>;
-export type GetBillingDetailsLazyQueryHookResult = ReturnType<typeof useGetBillingDetailsLazyQuery>;
-export type GetBillingDetailsQueryResult = Apollo.QueryResult<Types.GetBillingDetailsQuery, Types.GetBillingDetailsQueryVariables>;
+export function useGetBillingDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetBillingDetailsQuery,
+        Types.GetBillingDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetBillingDetailsQuery,
+        Types.GetBillingDetailsQueryVariables
+    >(GetBillingDetailsDocument, baseOptions);
+}
+export function useGetBillingDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetBillingDetailsQuery,
+        Types.GetBillingDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetBillingDetailsQuery,
+        Types.GetBillingDetailsQueryVariables
+    >(GetBillingDetailsDocument, baseOptions);
+}
+export type GetBillingDetailsQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsQuery
+>;
+export type GetBillingDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsLazyQuery
+>;
+export type GetBillingDetailsQueryResult = Apollo.QueryResult<
+    Types.GetBillingDetailsQuery,
+    Types.GetBillingDetailsQueryVariables
+>;
 export const GetSubscriptionDetailsDocument = gql`
     query GetSubscriptionDetails($workspace_id: ID!) {
-  subscription_details(workspace_id: $workspace_id) {
-    baseAmount
-    discountAmount
-    discountPercent
-  }
-}
-    `;
+        subscription_details(workspace_id: $workspace_id) {
+            baseAmount
+            discountAmount
+            discountPercent
+        }
+    }
+`;
 
 /**
  * __useGetSubscriptionDetailsQuery__
@@ -3928,55 +5921,78 @@ export const GetSubscriptionDetailsDocument = gql`
  *   },
  * });
  */
-export function useGetSubscriptionDetailsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSubscriptionDetailsQuery, Types.GetSubscriptionDetailsQueryVariables>) {
-        return Apollo.useQuery<Types.GetSubscriptionDetailsQuery, Types.GetSubscriptionDetailsQueryVariables>(GetSubscriptionDetailsDocument, baseOptions);
-      }
-export function useGetSubscriptionDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSubscriptionDetailsQuery, Types.GetSubscriptionDetailsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSubscriptionDetailsQuery, Types.GetSubscriptionDetailsQueryVariables>(GetSubscriptionDetailsDocument, baseOptions);
-        }
-export type GetSubscriptionDetailsQueryHookResult = ReturnType<typeof useGetSubscriptionDetailsQuery>;
-export type GetSubscriptionDetailsLazyQueryHookResult = ReturnType<typeof useGetSubscriptionDetailsLazyQuery>;
-export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<Types.GetSubscriptionDetailsQuery, Types.GetSubscriptionDetailsQueryVariables>;
+export function useGetSubscriptionDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export function useGetSubscriptionDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSubscriptionDetailsQuery,
+        Types.GetSubscriptionDetailsQueryVariables
+    >(GetSubscriptionDetailsDocument, baseOptions);
+}
+export type GetSubscriptionDetailsQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsQuery
+>;
+export type GetSubscriptionDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetSubscriptionDetailsLazyQuery
+>;
+export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
+    Types.GetSubscriptionDetailsQuery,
+    Types.GetSubscriptionDetailsQueryVariables
+>;
 export const GetErrorGroupDocument = gql`
     query GetErrorGroup($secure_id: String!) {
-  error_group(secure_id: $secure_id) {
-    created_at
-    id
-    secure_id
-    type
-    project_id
-    event
-    state
-    structured_stack_trace {
-      fileName
-      lineNumber
-      functionName
-      columnNumber
+        error_group(secure_id: $secure_id) {
+            created_at
+            id
+            secure_id
+            type
+            project_id
+            event
+            state
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            mapped_stack_trace
+            stack_trace
+            metadata_log {
+                error_id
+                session_secure_id
+                environment
+                timestamp
+                os
+                browser
+                visited_url
+                fingerprint
+                identifier
+                user_properties
+                request_id
+            }
+            fields {
+                name
+                value
+            }
+            error_frequency
+            is_public
+        }
     }
-    mapped_stack_trace
-    stack_trace
-    metadata_log {
-      error_id
-      session_secure_id
-      environment
-      timestamp
-      os
-      browser
-      visited_url
-      fingerprint
-      identifier
-      user_properties
-      request_id
-    }
-    fields {
-      name
-      value
-    }
-    error_frequency
-    is_public
-  }
-}
-    `;
+`;
 
 /**
  * __useGetErrorGroupQuery__
@@ -3994,45 +6010,72 @@ export const GetErrorGroupDocument = gql`
  *   },
  * });
  */
-export function useGetErrorGroupQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorGroupQuery, Types.GetErrorGroupQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorGroupQuery, Types.GetErrorGroupQueryVariables>(GetErrorGroupDocument, baseOptions);
-      }
-export function useGetErrorGroupLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorGroupQuery, Types.GetErrorGroupQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorGroupQuery, Types.GetErrorGroupQueryVariables>(GetErrorGroupDocument, baseOptions);
-        }
-export type GetErrorGroupQueryHookResult = ReturnType<typeof useGetErrorGroupQuery>;
-export type GetErrorGroupLazyQueryHookResult = ReturnType<typeof useGetErrorGroupLazyQuery>;
-export type GetErrorGroupQueryResult = Apollo.QueryResult<Types.GetErrorGroupQuery, Types.GetErrorGroupQueryVariables>;
-export const GetErrorGroupsDocument = gql`
-    query GetErrorGroups($project_id: ID!, $count: Int!, $params: ErrorSearchParamsInput) {
-  error_groups(project_id: $project_id, count: $count, params: $params) {
-    error_groups {
-      created_at
-      id
-      secure_id
-      type
-      event
-      state
-      state
-      environments
-      stack_trace
-      structured_stack_trace {
-        fileName
-        lineNumber
-        functionName
-        columnNumber
-      }
-      metadata_log {
-        error_id
-        session_secure_id
-        timestamp
-      }
-      error_frequency
-    }
-    totalCount
-  }
+export function useGetErrorGroupQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >(GetErrorGroupDocument, baseOptions);
 }
-    `;
+export function useGetErrorGroupLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >(GetErrorGroupDocument, baseOptions);
+}
+export type GetErrorGroupQueryHookResult = ReturnType<
+    typeof useGetErrorGroupQuery
+>;
+export type GetErrorGroupLazyQueryHookResult = ReturnType<
+    typeof useGetErrorGroupLazyQuery
+>;
+export type GetErrorGroupQueryResult = Apollo.QueryResult<
+    Types.GetErrorGroupQuery,
+    Types.GetErrorGroupQueryVariables
+>;
+export const GetErrorGroupsDocument = gql`
+    query GetErrorGroups(
+        $project_id: ID!
+        $count: Int!
+        $params: ErrorSearchParamsInput
+    ) {
+        error_groups(project_id: $project_id, count: $count, params: $params) {
+            error_groups {
+                created_at
+                id
+                secure_id
+                type
+                event
+                state
+                state
+                environments
+                stack_trace
+                structured_stack_trace {
+                    fileName
+                    lineNumber
+                    functionName
+                    columnNumber
+                }
+                metadata_log {
+                    error_id
+                    session_secure_id
+                    timestamp
+                }
+                error_frequency
+            }
+            totalCount
+        }
+    }
+`;
 
 /**
  * __useGetErrorGroupsQuery__
@@ -4052,20 +6095,43 @@ export const GetErrorGroupsDocument = gql`
  *   },
  * });
  */
-export function useGetErrorGroupsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorGroupsQuery, Types.GetErrorGroupsQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorGroupsQuery, Types.GetErrorGroupsQueryVariables>(GetErrorGroupsDocument, baseOptions);
-      }
-export function useGetErrorGroupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorGroupsQuery, Types.GetErrorGroupsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorGroupsQuery, Types.GetErrorGroupsQueryVariables>(GetErrorGroupsDocument, baseOptions);
-        }
-export type GetErrorGroupsQueryHookResult = ReturnType<typeof useGetErrorGroupsQuery>;
-export type GetErrorGroupsLazyQueryHookResult = ReturnType<typeof useGetErrorGroupsLazyQuery>;
-export type GetErrorGroupsQueryResult = Apollo.QueryResult<Types.GetErrorGroupsQuery, Types.GetErrorGroupsQueryVariables>;
+export function useGetErrorGroupsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorGroupsQuery,
+        Types.GetErrorGroupsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorGroupsQuery,
+        Types.GetErrorGroupsQueryVariables
+    >(GetErrorGroupsDocument, baseOptions);
+}
+export function useGetErrorGroupsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorGroupsQuery,
+        Types.GetErrorGroupsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorGroupsQuery,
+        Types.GetErrorGroupsQueryVariables
+    >(GetErrorGroupsDocument, baseOptions);
+}
+export type GetErrorGroupsQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsQuery
+>;
+export type GetErrorGroupsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorGroupsLazyQuery
+>;
+export type GetErrorGroupsQueryResult = Apollo.QueryResult<
+    Types.GetErrorGroupsQuery,
+    Types.GetErrorGroupsQueryVariables
+>;
 export const GetMessagesDocument = gql`
     query GetMessages($session_secure_id: String!) {
-  messages(session_secure_id: $session_secure_id)
-}
-    `;
+        messages(session_secure_id: $session_secure_id)
+    }
+`;
 
 /**
  * __useGetMessagesQuery__
@@ -4083,20 +6149,41 @@ export const GetMessagesDocument = gql`
  *   },
  * });
  */
-export function useGetMessagesQuery(baseOptions: Apollo.QueryHookOptions<Types.GetMessagesQuery, Types.GetMessagesQueryVariables>) {
-        return Apollo.useQuery<Types.GetMessagesQuery, Types.GetMessagesQueryVariables>(GetMessagesDocument, baseOptions);
-      }
-export function useGetMessagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetMessagesQuery, Types.GetMessagesQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetMessagesQuery, Types.GetMessagesQueryVariables>(GetMessagesDocument, baseOptions);
-        }
+export function useGetMessagesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMessagesQuery,
+        Types.GetMessagesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMessagesQuery,
+        Types.GetMessagesQueryVariables
+    >(GetMessagesDocument, baseOptions);
+}
+export function useGetMessagesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMessagesQuery,
+        Types.GetMessagesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMessagesQuery,
+        Types.GetMessagesQueryVariables
+    >(GetMessagesDocument, baseOptions);
+}
 export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>;
-export type GetMessagesLazyQueryHookResult = ReturnType<typeof useGetMessagesLazyQuery>;
-export type GetMessagesQueryResult = Apollo.QueryResult<Types.GetMessagesQuery, Types.GetMessagesQueryVariables>;
+export type GetMessagesLazyQueryHookResult = ReturnType<
+    typeof useGetMessagesLazyQuery
+>;
+export type GetMessagesQueryResult = Apollo.QueryResult<
+    Types.GetMessagesQuery,
+    Types.GetMessagesQueryVariables
+>;
 export const GetResourcesDocument = gql`
     query GetResources($session_secure_id: String!) {
-  resources(session_secure_id: $session_secure_id)
-}
-    `;
+        resources(session_secure_id: $session_secure_id)
+    }
+`;
 
 /**
  * __useGetResourcesQuery__
@@ -4114,23 +6201,50 @@ export const GetResourcesDocument = gql`
  *   },
  * });
  */
-export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<Types.GetResourcesQuery, Types.GetResourcesQueryVariables>) {
-        return Apollo.useQuery<Types.GetResourcesQuery, Types.GetResourcesQueryVariables>(GetResourcesDocument, baseOptions);
-      }
-export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetResourcesQuery, Types.GetResourcesQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetResourcesQuery, Types.GetResourcesQueryVariables>(GetResourcesDocument, baseOptions);
-        }
-export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
-export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
-export type GetResourcesQueryResult = Apollo.QueryResult<Types.GetResourcesQuery, Types.GetResourcesQueryVariables>;
-export const GetFieldSuggestionDocument = gql`
-    query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
-  field_suggestion(project_id: $project_id, name: $name, query: $query) {
-    name
-    value
-  }
+export function useGetResourcesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetResourcesQuery,
+        Types.GetResourcesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetResourcesQuery,
+        Types.GetResourcesQueryVariables
+    >(GetResourcesDocument, baseOptions);
 }
-    `;
+export function useGetResourcesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetResourcesQuery,
+        Types.GetResourcesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetResourcesQuery,
+        Types.GetResourcesQueryVariables
+    >(GetResourcesDocument, baseOptions);
+}
+export type GetResourcesQueryHookResult = ReturnType<
+    typeof useGetResourcesQuery
+>;
+export type GetResourcesLazyQueryHookResult = ReturnType<
+    typeof useGetResourcesLazyQuery
+>;
+export type GetResourcesQueryResult = Apollo.QueryResult<
+    Types.GetResourcesQuery,
+    Types.GetResourcesQueryVariables
+>;
+export const GetFieldSuggestionDocument = gql`
+    query GetFieldSuggestion(
+        $project_id: ID!
+        $name: String!
+        $query: String!
+    ) {
+        field_suggestion(project_id: $project_id, name: $name, query: $query) {
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetFieldSuggestionQuery__
@@ -4150,23 +6264,46 @@ export const GetFieldSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetFieldSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetFieldSuggestionQuery, Types.GetFieldSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetFieldSuggestionQuery, Types.GetFieldSuggestionQueryVariables>(GetFieldSuggestionDocument, baseOptions);
-      }
-export function useGetFieldSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetFieldSuggestionQuery, Types.GetFieldSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetFieldSuggestionQuery, Types.GetFieldSuggestionQueryVariables>(GetFieldSuggestionDocument, baseOptions);
-        }
-export type GetFieldSuggestionQueryHookResult = ReturnType<typeof useGetFieldSuggestionQuery>;
-export type GetFieldSuggestionLazyQueryHookResult = ReturnType<typeof useGetFieldSuggestionLazyQuery>;
-export type GetFieldSuggestionQueryResult = Apollo.QueryResult<Types.GetFieldSuggestionQuery, Types.GetFieldSuggestionQueryVariables>;
+export function useGetFieldSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetFieldSuggestionQuery,
+        Types.GetFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetFieldSuggestionQuery,
+        Types.GetFieldSuggestionQueryVariables
+    >(GetFieldSuggestionDocument, baseOptions);
+}
+export function useGetFieldSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetFieldSuggestionQuery,
+        Types.GetFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetFieldSuggestionQuery,
+        Types.GetFieldSuggestionQueryVariables
+    >(GetFieldSuggestionDocument, baseOptions);
+}
+export type GetFieldSuggestionQueryHookResult = ReturnType<
+    typeof useGetFieldSuggestionQuery
+>;
+export type GetFieldSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetFieldSuggestionLazyQuery
+>;
+export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetFieldSuggestionQuery,
+    Types.GetFieldSuggestionQueryVariables
+>;
 export const GetEnvironmentsDocument = gql`
     query GetEnvironments($project_id: ID!) {
-  environment_suggestion(project_id: $project_id) {
-    name
-    value
-  }
-}
-    `;
+        environment_suggestion(project_id: $project_id) {
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetEnvironmentsQuery__
@@ -4184,20 +6321,43 @@ export const GetEnvironmentsDocument = gql`
  *   },
  * });
  */
-export function useGetEnvironmentsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetEnvironmentsQuery, Types.GetEnvironmentsQueryVariables>) {
-        return Apollo.useQuery<Types.GetEnvironmentsQuery, Types.GetEnvironmentsQueryVariables>(GetEnvironmentsDocument, baseOptions);
-      }
-export function useGetEnvironmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetEnvironmentsQuery, Types.GetEnvironmentsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetEnvironmentsQuery, Types.GetEnvironmentsQueryVariables>(GetEnvironmentsDocument, baseOptions);
-        }
-export type GetEnvironmentsQueryHookResult = ReturnType<typeof useGetEnvironmentsQuery>;
-export type GetEnvironmentsLazyQueryHookResult = ReturnType<typeof useGetEnvironmentsLazyQuery>;
-export type GetEnvironmentsQueryResult = Apollo.QueryResult<Types.GetEnvironmentsQuery, Types.GetEnvironmentsQueryVariables>;
+export function useGetEnvironmentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >(GetEnvironmentsDocument, baseOptions);
+}
+export function useGetEnvironmentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >(GetEnvironmentsDocument, baseOptions);
+}
+export type GetEnvironmentsQueryHookResult = ReturnType<
+    typeof useGetEnvironmentsQuery
+>;
+export type GetEnvironmentsLazyQueryHookResult = ReturnType<
+    typeof useGetEnvironmentsLazyQuery
+>;
+export type GetEnvironmentsQueryResult = Apollo.QueryResult<
+    Types.GetEnvironmentsQuery,
+    Types.GetEnvironmentsQueryVariables
+>;
 export const GetAppVersionsDocument = gql`
     query GetAppVersions($project_id: ID!) {
-  app_version_suggestion(project_id: $project_id)
-}
-    `;
+        app_version_suggestion(project_id: $project_id)
+    }
+`;
 
 /**
  * __useGetAppVersionsQuery__
@@ -4215,28 +6375,51 @@ export const GetAppVersionsDocument = gql`
  *   },
  * });
  */
-export function useGetAppVersionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetAppVersionsQuery, Types.GetAppVersionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetAppVersionsQuery, Types.GetAppVersionsQueryVariables>(GetAppVersionsDocument, baseOptions);
-      }
-export function useGetAppVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetAppVersionsQuery, Types.GetAppVersionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetAppVersionsQuery, Types.GetAppVersionsQueryVariables>(GetAppVersionsDocument, baseOptions);
-        }
-export type GetAppVersionsQueryHookResult = ReturnType<typeof useGetAppVersionsQuery>;
-export type GetAppVersionsLazyQueryHookResult = ReturnType<typeof useGetAppVersionsLazyQuery>;
-export type GetAppVersionsQueryResult = Apollo.QueryResult<Types.GetAppVersionsQuery, Types.GetAppVersionsQueryVariables>;
+export function useGetAppVersionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >(GetAppVersionsDocument, baseOptions);
+}
+export function useGetAppVersionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >(GetAppVersionsDocument, baseOptions);
+}
+export type GetAppVersionsQueryHookResult = ReturnType<
+    typeof useGetAppVersionsQuery
+>;
+export type GetAppVersionsLazyQueryHookResult = ReturnType<
+    typeof useGetAppVersionsLazyQuery
+>;
+export type GetAppVersionsQueryResult = Apollo.QueryResult<
+    Types.GetAppVersionsQuery,
+    Types.GetAppVersionsQueryVariables
+>;
 export const GetProjectSuggestionDocument = gql`
     query GetProjectSuggestion($query: String!) {
-  projectSuggestion(query: $query) {
-    id
-    name
-    workspace_id
-  }
-  workspaceSuggestion(query: $query) {
-    id
-    name
-  }
-}
-    `;
+        projectSuggestion(query: $query) {
+            id
+            name
+            workspace_id
+        }
+        workspaceSuggestion(query: $query) {
+            id
+            name
+        }
+    }
+`;
 
 /**
  * __useGetProjectSuggestionQuery__
@@ -4254,23 +6437,54 @@ export const GetProjectSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetProjectSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetProjectSuggestionQuery, Types.GetProjectSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetProjectSuggestionQuery, Types.GetProjectSuggestionQueryVariables>(GetProjectSuggestionDocument, baseOptions);
-      }
-export function useGetProjectSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetProjectSuggestionQuery, Types.GetProjectSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetProjectSuggestionQuery, Types.GetProjectSuggestionQueryVariables>(GetProjectSuggestionDocument, baseOptions);
-        }
-export type GetProjectSuggestionQueryHookResult = ReturnType<typeof useGetProjectSuggestionQuery>;
-export type GetProjectSuggestionLazyQueryHookResult = ReturnType<typeof useGetProjectSuggestionLazyQuery>;
-export type GetProjectSuggestionQueryResult = Apollo.QueryResult<Types.GetProjectSuggestionQuery, Types.GetProjectSuggestionQueryVariables>;
-export const GetErrorFieldSuggestionDocument = gql`
-    query GetErrorFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
-  error_field_suggestion(project_id: $project_id, name: $name, query: $query) {
-    name
-    value
-  }
+export function useGetProjectSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >(GetProjectSuggestionDocument, baseOptions);
 }
-    `;
+export function useGetProjectSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >(GetProjectSuggestionDocument, baseOptions);
+}
+export type GetProjectSuggestionQueryHookResult = ReturnType<
+    typeof useGetProjectSuggestionQuery
+>;
+export type GetProjectSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetProjectSuggestionLazyQuery
+>;
+export type GetProjectSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetProjectSuggestionQuery,
+    Types.GetProjectSuggestionQueryVariables
+>;
+export const GetErrorFieldSuggestionDocument = gql`
+    query GetErrorFieldSuggestion(
+        $project_id: ID!
+        $name: String!
+        $query: String!
+    ) {
+        error_field_suggestion(
+            project_id: $project_id
+            name: $name
+            query: $query
+        ) {
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetErrorFieldSuggestionQuery__
@@ -4290,35 +6504,58 @@ export const GetErrorFieldSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetErrorFieldSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorFieldSuggestionQuery, Types.GetErrorFieldSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorFieldSuggestionQuery, Types.GetErrorFieldSuggestionQueryVariables>(GetErrorFieldSuggestionDocument, baseOptions);
-      }
-export function useGetErrorFieldSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorFieldSuggestionQuery, Types.GetErrorFieldSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorFieldSuggestionQuery, Types.GetErrorFieldSuggestionQueryVariables>(GetErrorFieldSuggestionDocument, baseOptions);
-        }
-export type GetErrorFieldSuggestionQueryHookResult = ReturnType<typeof useGetErrorFieldSuggestionQuery>;
-export type GetErrorFieldSuggestionLazyQueryHookResult = ReturnType<typeof useGetErrorFieldSuggestionLazyQuery>;
-export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<Types.GetErrorFieldSuggestionQuery, Types.GetErrorFieldSuggestionQueryVariables>;
+export function useGetErrorFieldSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >(GetErrorFieldSuggestionDocument, baseOptions);
+}
+export function useGetErrorFieldSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >(GetErrorFieldSuggestionDocument, baseOptions);
+}
+export type GetErrorFieldSuggestionQueryHookResult = ReturnType<
+    typeof useGetErrorFieldSuggestionQuery
+>;
+export type GetErrorFieldSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetErrorFieldSuggestionLazyQuery
+>;
+export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetErrorFieldSuggestionQuery,
+    Types.GetErrorFieldSuggestionQueryVariables
+>;
 export const GetErrorSearchSuggestionsDocument = gql`
     query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-  visitedUrls: error_field_suggestion(
-    project_id: $project_id
-    name: "visited_url"
-    query: $query
-  ) {
-    name
-    value
-  }
-  fields: error_field_suggestion(
-    project_id: $project_id
-    name: "event"
-    query: $query
-  ) {
-    name
-    value
-  }
-}
-    `;
+        visitedUrls: error_field_suggestion(
+            project_id: $project_id
+            name: "visited_url"
+            query: $query
+        ) {
+            name
+            value
+        }
+        fields: error_field_suggestion(
+            project_id: $project_id
+            name: "event"
+            query: $query
+        ) {
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetErrorSearchSuggestionsQuery__
@@ -4337,55 +6574,78 @@ export const GetErrorSearchSuggestionsDocument = gql`
  *   },
  * });
  */
-export function useGetErrorSearchSuggestionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorSearchSuggestionsQuery, Types.GetErrorSearchSuggestionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorSearchSuggestionsQuery, Types.GetErrorSearchSuggestionsQueryVariables>(GetErrorSearchSuggestionsDocument, baseOptions);
-      }
-export function useGetErrorSearchSuggestionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorSearchSuggestionsQuery, Types.GetErrorSearchSuggestionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorSearchSuggestionsQuery, Types.GetErrorSearchSuggestionsQueryVariables>(GetErrorSearchSuggestionsDocument, baseOptions);
-        }
-export type GetErrorSearchSuggestionsQueryHookResult = ReturnType<typeof useGetErrorSearchSuggestionsQuery>;
-export type GetErrorSearchSuggestionsLazyQueryHookResult = ReturnType<typeof useGetErrorSearchSuggestionsLazyQuery>;
-export type GetErrorSearchSuggestionsQueryResult = Apollo.QueryResult<Types.GetErrorSearchSuggestionsQuery, Types.GetErrorSearchSuggestionsQueryVariables>;
+export function useGetErrorSearchSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >(GetErrorSearchSuggestionsDocument, baseOptions);
+}
+export function useGetErrorSearchSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >(GetErrorSearchSuggestionsDocument, baseOptions);
+}
+export type GetErrorSearchSuggestionsQueryHookResult = ReturnType<
+    typeof useGetErrorSearchSuggestionsQuery
+>;
+export type GetErrorSearchSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorSearchSuggestionsLazyQuery
+>;
+export type GetErrorSearchSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetErrorSearchSuggestionsQuery,
+    Types.GetErrorSearchSuggestionsQueryVariables
+>;
 export const GetSessionSearchResultsDocument = gql`
     query GetSessionSearchResults($project_id: ID!, $query: String!) {
-  trackProperties: property_suggestion(
-    project_id: $project_id
-    query: $query
-    type: "track"
-  ) {
-    id
-    name
-    value
-  }
-  userProperties: property_suggestion(
-    project_id: $project_id
-    query: $query
-    type: "user"
-  ) {
-    id
-    name
-    value
-  }
-  visitedUrls: field_suggestion(
-    project_id: $project_id
-    name: "visited-url"
-    query: $query
-  ) {
-    id
-    name
-    value
-  }
-  referrers: field_suggestion(
-    project_id: $project_id
-    name: "referrer"
-    query: $query
-  ) {
-    id
-    name
-    value
-  }
-}
-    `;
+        trackProperties: property_suggestion(
+            project_id: $project_id
+            query: $query
+            type: "track"
+        ) {
+            id
+            name
+            value
+        }
+        userProperties: property_suggestion(
+            project_id: $project_id
+            query: $query
+            type: "user"
+        ) {
+            id
+            name
+            value
+        }
+        visitedUrls: field_suggestion(
+            project_id: $project_id
+            name: "visited-url"
+            query: $query
+        ) {
+            id
+            name
+            value
+        }
+        referrers: field_suggestion(
+            project_id: $project_id
+            name: "referrer"
+            query: $query
+        ) {
+            id
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetSessionSearchResultsQuery__
@@ -4404,24 +6664,51 @@ export const GetSessionSearchResultsDocument = gql`
  *   },
  * });
  */
-export function useGetSessionSearchResultsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSessionSearchResultsQuery, Types.GetSessionSearchResultsQueryVariables>) {
-        return Apollo.useQuery<Types.GetSessionSearchResultsQuery, Types.GetSessionSearchResultsQueryVariables>(GetSessionSearchResultsDocument, baseOptions);
-      }
-export function useGetSessionSearchResultsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSessionSearchResultsQuery, Types.GetSessionSearchResultsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSessionSearchResultsQuery, Types.GetSessionSearchResultsQueryVariables>(GetSessionSearchResultsDocument, baseOptions);
-        }
-export type GetSessionSearchResultsQueryHookResult = ReturnType<typeof useGetSessionSearchResultsQuery>;
-export type GetSessionSearchResultsLazyQueryHookResult = ReturnType<typeof useGetSessionSearchResultsLazyQuery>;
-export type GetSessionSearchResultsQueryResult = Apollo.QueryResult<Types.GetSessionSearchResultsQuery, Types.GetSessionSearchResultsQueryVariables>;
+export function useGetSessionSearchResultsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >(GetSessionSearchResultsDocument, baseOptions);
+}
+export function useGetSessionSearchResultsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >(GetSessionSearchResultsDocument, baseOptions);
+}
+export type GetSessionSearchResultsQueryHookResult = ReturnType<
+    typeof useGetSessionSearchResultsQuery
+>;
+export type GetSessionSearchResultsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionSearchResultsLazyQuery
+>;
+export type GetSessionSearchResultsQueryResult = Apollo.QueryResult<
+    Types.GetSessionSearchResultsQuery,
+    Types.GetSessionSearchResultsQueryVariables
+>;
 export const GetTrackSuggestionDocument = gql`
     query GetTrackSuggestion($project_id: ID!, $query: String!) {
-  property_suggestion(project_id: $project_id, query: $query, type: "track") {
-    id
-    name
-    value
-  }
-}
-    `;
+        property_suggestion(
+            project_id: $project_id
+            query: $query
+            type: "track"
+        ) {
+            id
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetTrackSuggestionQuery__
@@ -4440,24 +6727,51 @@ export const GetTrackSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetTrackSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetTrackSuggestionQuery, Types.GetTrackSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetTrackSuggestionQuery, Types.GetTrackSuggestionQueryVariables>(GetTrackSuggestionDocument, baseOptions);
-      }
-export function useGetTrackSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetTrackSuggestionQuery, Types.GetTrackSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetTrackSuggestionQuery, Types.GetTrackSuggestionQueryVariables>(GetTrackSuggestionDocument, baseOptions);
-        }
-export type GetTrackSuggestionQueryHookResult = ReturnType<typeof useGetTrackSuggestionQuery>;
-export type GetTrackSuggestionLazyQueryHookResult = ReturnType<typeof useGetTrackSuggestionLazyQuery>;
-export type GetTrackSuggestionQueryResult = Apollo.QueryResult<Types.GetTrackSuggestionQuery, Types.GetTrackSuggestionQueryVariables>;
+export function useGetTrackSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >(GetTrackSuggestionDocument, baseOptions);
+}
+export function useGetTrackSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >(GetTrackSuggestionDocument, baseOptions);
+}
+export type GetTrackSuggestionQueryHookResult = ReturnType<
+    typeof useGetTrackSuggestionQuery
+>;
+export type GetTrackSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetTrackSuggestionLazyQuery
+>;
+export type GetTrackSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetTrackSuggestionQuery,
+    Types.GetTrackSuggestionQueryVariables
+>;
 export const GetUserSuggestionDocument = gql`
     query GetUserSuggestion($project_id: ID!, $query: String!) {
-  property_suggestion(project_id: $project_id, query: $query, type: "user") {
-    id
-    name
-    value
-  }
-}
-    `;
+        property_suggestion(
+            project_id: $project_id
+            query: $query
+            type: "user"
+        ) {
+            id
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetUserSuggestionQuery__
@@ -4476,57 +6790,80 @@ export const GetUserSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetUserSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetUserSuggestionQuery, Types.GetUserSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetUserSuggestionQuery, Types.GetUserSuggestionQueryVariables>(GetUserSuggestionDocument, baseOptions);
-      }
-export function useGetUserSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetUserSuggestionQuery, Types.GetUserSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetUserSuggestionQuery, Types.GetUserSuggestionQueryVariables>(GetUserSuggestionDocument, baseOptions);
-        }
-export type GetUserSuggestionQueryHookResult = ReturnType<typeof useGetUserSuggestionQuery>;
-export type GetUserSuggestionLazyQueryHookResult = ReturnType<typeof useGetUserSuggestionLazyQuery>;
-export type GetUserSuggestionQueryResult = Apollo.QueryResult<Types.GetUserSuggestionQuery, Types.GetUserSuggestionQueryVariables>;
+export function useGetUserSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >(GetUserSuggestionDocument, baseOptions);
+}
+export function useGetUserSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >(GetUserSuggestionDocument, baseOptions);
+}
+export type GetUserSuggestionQueryHookResult = ReturnType<
+    typeof useGetUserSuggestionQuery
+>;
+export type GetUserSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetUserSuggestionLazyQuery
+>;
+export type GetUserSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetUserSuggestionQuery,
+    Types.GetUserSuggestionQueryVariables
+>;
 export const GetSegmentsDocument = gql`
     query GetSegments($project_id: ID!) {
-  segments(project_id: $project_id) {
-    id
-    name
-    params {
-      user_properties {
-        name
-        value
-      }
-      excluded_properties {
-        name
-        value
-      }
-      track_properties {
-        name
-        value
-      }
-      date_range {
-        start_date
-        end_date
-      }
-      length_range {
-        min
-        max
-      }
-      os
-      browser
-      visited_url
-      referrer
-      identified
-      hide_viewed
-      first_time
-      app_versions
-      environments
-      device_id
-      show_live_sessions
-      query
+        segments(project_id: $project_id) {
+            id
+            name
+            params {
+                user_properties {
+                    name
+                    value
+                }
+                excluded_properties {
+                    name
+                    value
+                }
+                track_properties {
+                    name
+                    value
+                }
+                date_range {
+                    start_date
+                    end_date
+                }
+                length_range {
+                    min
+                    max
+                }
+                os
+                browser
+                visited_url
+                referrer
+                identified
+                hide_viewed
+                first_time
+                app_versions
+                environments
+                device_id
+                show_live_sessions
+                query
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetSegmentsQuery__
@@ -4544,35 +6881,56 @@ export const GetSegmentsDocument = gql`
  *   },
  * });
  */
-export function useGetSegmentsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSegmentsQuery, Types.GetSegmentsQueryVariables>) {
-        return Apollo.useQuery<Types.GetSegmentsQuery, Types.GetSegmentsQueryVariables>(GetSegmentsDocument, baseOptions);
-      }
-export function useGetSegmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSegmentsQuery, Types.GetSegmentsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSegmentsQuery, Types.GetSegmentsQueryVariables>(GetSegmentsDocument, baseOptions);
-        }
+export function useGetSegmentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSegmentsQuery,
+        Types.GetSegmentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSegmentsQuery,
+        Types.GetSegmentsQueryVariables
+    >(GetSegmentsDocument, baseOptions);
+}
+export function useGetSegmentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSegmentsQuery,
+        Types.GetSegmentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSegmentsQuery,
+        Types.GetSegmentsQueryVariables
+    >(GetSegmentsDocument, baseOptions);
+}
 export type GetSegmentsQueryHookResult = ReturnType<typeof useGetSegmentsQuery>;
-export type GetSegmentsLazyQueryHookResult = ReturnType<typeof useGetSegmentsLazyQuery>;
-export type GetSegmentsQueryResult = Apollo.QueryResult<Types.GetSegmentsQuery, Types.GetSegmentsQueryVariables>;
+export type GetSegmentsLazyQueryHookResult = ReturnType<
+    typeof useGetSegmentsLazyQuery
+>;
+export type GetSegmentsQueryResult = Apollo.QueryResult<
+    Types.GetSegmentsQuery,
+    Types.GetSegmentsQueryVariables
+>;
 export const GetErrorSegmentsDocument = gql`
     query GetErrorSegments($project_id: ID!) {
-  error_segments(project_id: $project_id) {
-    id
-    name
-    params {
-      date_range {
-        start_date
-        end_date
-      }
-      os
-      browser
-      visited_url
-      state
-      event
-      query
+        error_segments(project_id: $project_id) {
+            id
+            name
+            params {
+                date_range {
+                    start_date
+                    end_date
+                }
+                os
+                browser
+                visited_url
+                state
+                event
+                query
+            }
+        }
     }
-  }
-}
-    `;
+`;
 
 /**
  * __useGetErrorSegmentsQuery__
@@ -4590,20 +6948,43 @@ export const GetErrorSegmentsDocument = gql`
  *   },
  * });
  */
-export function useGetErrorSegmentsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetErrorSegmentsQuery, Types.GetErrorSegmentsQueryVariables>) {
-        return Apollo.useQuery<Types.GetErrorSegmentsQuery, Types.GetErrorSegmentsQueryVariables>(GetErrorSegmentsDocument, baseOptions);
-      }
-export function useGetErrorSegmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetErrorSegmentsQuery, Types.GetErrorSegmentsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetErrorSegmentsQuery, Types.GetErrorSegmentsQueryVariables>(GetErrorSegmentsDocument, baseOptions);
-        }
-export type GetErrorSegmentsQueryHookResult = ReturnType<typeof useGetErrorSegmentsQuery>;
-export type GetErrorSegmentsLazyQueryHookResult = ReturnType<typeof useGetErrorSegmentsLazyQuery>;
-export type GetErrorSegmentsQueryResult = Apollo.QueryResult<Types.GetErrorSegmentsQuery, Types.GetErrorSegmentsQueryVariables>;
+export function useGetErrorSegmentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >(GetErrorSegmentsDocument, baseOptions);
+}
+export function useGetErrorSegmentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >(GetErrorSegmentsDocument, baseOptions);
+}
+export type GetErrorSegmentsQueryHookResult = ReturnType<
+    typeof useGetErrorSegmentsQuery
+>;
+export type GetErrorSegmentsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorSegmentsLazyQuery
+>;
+export type GetErrorSegmentsQueryResult = Apollo.QueryResult<
+    Types.GetErrorSegmentsQuery,
+    Types.GetErrorSegmentsQueryVariables
+>;
 export const IsIntegratedDocument = gql`
     query IsIntegrated($project_id: ID!) {
-  isIntegrated(project_id: $project_id)
-}
-    `;
+        isIntegrated(project_id: $project_id)
+    }
+`;
 
 /**
  * __useIsIntegratedQuery__
@@ -4621,20 +7002,43 @@ export const IsIntegratedDocument = gql`
  *   },
  * });
  */
-export function useIsIntegratedQuery(baseOptions: Apollo.QueryHookOptions<Types.IsIntegratedQuery, Types.IsIntegratedQueryVariables>) {
-        return Apollo.useQuery<Types.IsIntegratedQuery, Types.IsIntegratedQueryVariables>(IsIntegratedDocument, baseOptions);
-      }
-export function useIsIntegratedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.IsIntegratedQuery, Types.IsIntegratedQueryVariables>) {
-          return Apollo.useLazyQuery<Types.IsIntegratedQuery, Types.IsIntegratedQueryVariables>(IsIntegratedDocument, baseOptions);
-        }
-export type IsIntegratedQueryHookResult = ReturnType<typeof useIsIntegratedQuery>;
-export type IsIntegratedLazyQueryHookResult = ReturnType<typeof useIsIntegratedLazyQuery>;
-export type IsIntegratedQueryResult = Apollo.QueryResult<Types.IsIntegratedQuery, Types.IsIntegratedQueryVariables>;
+export function useIsIntegratedQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.IsIntegratedQuery,
+        Types.IsIntegratedQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.IsIntegratedQuery,
+        Types.IsIntegratedQueryVariables
+    >(IsIntegratedDocument, baseOptions);
+}
+export function useIsIntegratedLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.IsIntegratedQuery,
+        Types.IsIntegratedQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.IsIntegratedQuery,
+        Types.IsIntegratedQueryVariables
+    >(IsIntegratedDocument, baseOptions);
+}
+export type IsIntegratedQueryHookResult = ReturnType<
+    typeof useIsIntegratedQuery
+>;
+export type IsIntegratedLazyQueryHookResult = ReturnType<
+    typeof useIsIntegratedLazyQuery
+>;
+export type IsIntegratedQueryResult = Apollo.QueryResult<
+    Types.IsIntegratedQuery,
+    Types.IsIntegratedQueryVariables
+>;
 export const UnprocessedSessionsCountDocument = gql`
     query UnprocessedSessionsCount($project_id: ID!) {
-  unprocessedSessionsCount(project_id: $project_id)
-}
-    `;
+        unprocessedSessionsCount(project_id: $project_id)
+    }
+`;
 
 /**
  * __useUnprocessedSessionsCountQuery__
@@ -4652,29 +7056,61 @@ export const UnprocessedSessionsCountDocument = gql`
  *   },
  * });
  */
-export function useUnprocessedSessionsCountQuery(baseOptions: Apollo.QueryHookOptions<Types.UnprocessedSessionsCountQuery, Types.UnprocessedSessionsCountQueryVariables>) {
-        return Apollo.useQuery<Types.UnprocessedSessionsCountQuery, Types.UnprocessedSessionsCountQueryVariables>(UnprocessedSessionsCountDocument, baseOptions);
-      }
-export function useUnprocessedSessionsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.UnprocessedSessionsCountQuery, Types.UnprocessedSessionsCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.UnprocessedSessionsCountQuery, Types.UnprocessedSessionsCountQueryVariables>(UnprocessedSessionsCountDocument, baseOptions);
-        }
-export type UnprocessedSessionsCountQueryHookResult = ReturnType<typeof useUnprocessedSessionsCountQuery>;
-export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<typeof useUnprocessedSessionsCountLazyQuery>;
-export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<Types.UnprocessedSessionsCountQuery, Types.UnprocessedSessionsCountQueryVariables>;
+export function useUnprocessedSessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export function useUnprocessedSessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export type UnprocessedSessionsCountQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountQuery
+>;
+export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountLazyQuery
+>;
+export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
+    Types.UnprocessedSessionsCountQuery,
+    Types.UnprocessedSessionsCountQueryVariables
+>;
 export const GetKeyPerformanceIndicatorsDocument = gql`
     query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
-  unprocessedSessionsCount(project_id: $project_id)
-  newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    count
-  }
-  averageSessionLength(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    length
-  }
-  userFingerprintCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    count
-  }
-}
-    `;
+        unprocessedSessionsCount(project_id: $project_id)
+        newUsersCount(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+        averageSessionLength(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            length
+        }
+        userFingerprintCount(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+    }
+`;
 
 /**
  * __useGetKeyPerformanceIndicatorsQuery__
@@ -4693,24 +7129,47 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
  *   },
  * });
  */
-export function useGetKeyPerformanceIndicatorsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetKeyPerformanceIndicatorsQuery, Types.GetKeyPerformanceIndicatorsQueryVariables>) {
-        return Apollo.useQuery<Types.GetKeyPerformanceIndicatorsQuery, Types.GetKeyPerformanceIndicatorsQueryVariables>(GetKeyPerformanceIndicatorsDocument, baseOptions);
-      }
-export function useGetKeyPerformanceIndicatorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetKeyPerformanceIndicatorsQuery, Types.GetKeyPerformanceIndicatorsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetKeyPerformanceIndicatorsQuery, Types.GetKeyPerformanceIndicatorsQueryVariables>(GetKeyPerformanceIndicatorsDocument, baseOptions);
-        }
-export type GetKeyPerformanceIndicatorsQueryHookResult = ReturnType<typeof useGetKeyPerformanceIndicatorsQuery>;
-export type GetKeyPerformanceIndicatorsLazyQueryHookResult = ReturnType<typeof useGetKeyPerformanceIndicatorsLazyQuery>;
-export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<Types.GetKeyPerformanceIndicatorsQuery, Types.GetKeyPerformanceIndicatorsQueryVariables>;
+export function useGetKeyPerformanceIndicatorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export function useGetKeyPerformanceIndicatorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export type GetKeyPerformanceIndicatorsQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsQuery
+>;
+export type GetKeyPerformanceIndicatorsLazyQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsLazyQuery
+>;
+export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<
+    Types.GetKeyPerformanceIndicatorsQuery,
+    Types.GetKeyPerformanceIndicatorsQueryVariables
+>;
 export const GetReferrersCountDocument = gql`
     query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-  referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    host
-    count
-    percent
-  }
-}
-    `;
+        referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+            host
+            count
+            percent
+        }
+    }
+`;
 
 /**
  * __useGetReferrersCountQuery__
@@ -4729,22 +7188,48 @@ export const GetReferrersCountDocument = gql`
  *   },
  * });
  */
-export function useGetReferrersCountQuery(baseOptions: Apollo.QueryHookOptions<Types.GetReferrersCountQuery, Types.GetReferrersCountQueryVariables>) {
-        return Apollo.useQuery<Types.GetReferrersCountQuery, Types.GetReferrersCountQueryVariables>(GetReferrersCountDocument, baseOptions);
-      }
-export function useGetReferrersCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetReferrersCountQuery, Types.GetReferrersCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetReferrersCountQuery, Types.GetReferrersCountQueryVariables>(GetReferrersCountDocument, baseOptions);
-        }
-export type GetReferrersCountQueryHookResult = ReturnType<typeof useGetReferrersCountQuery>;
-export type GetReferrersCountLazyQueryHookResult = ReturnType<typeof useGetReferrersCountLazyQuery>;
-export type GetReferrersCountQueryResult = Apollo.QueryResult<Types.GetReferrersCountQuery, Types.GetReferrersCountQueryVariables>;
+export function useGetReferrersCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export function useGetReferrersCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export type GetReferrersCountQueryHookResult = ReturnType<
+    typeof useGetReferrersCountQuery
+>;
+export type GetReferrersCountLazyQueryHookResult = ReturnType<
+    typeof useGetReferrersCountLazyQuery
+>;
+export type GetReferrersCountQueryResult = Apollo.QueryResult<
+    Types.GetReferrersCountQuery,
+    Types.GetReferrersCountQueryVariables
+>;
 export const GetNewUsersCountDocument = gql`
     query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-  newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    count
-  }
-}
-    `;
+        newUsersCount(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+    }
+`;
 
 /**
  * __useGetNewUsersCountQuery__
@@ -4763,22 +7248,48 @@ export const GetNewUsersCountDocument = gql`
  *   },
  * });
  */
-export function useGetNewUsersCountQuery(baseOptions: Apollo.QueryHookOptions<Types.GetNewUsersCountQuery, Types.GetNewUsersCountQueryVariables>) {
-        return Apollo.useQuery<Types.GetNewUsersCountQuery, Types.GetNewUsersCountQueryVariables>(GetNewUsersCountDocument, baseOptions);
-      }
-export function useGetNewUsersCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetNewUsersCountQuery, Types.GetNewUsersCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetNewUsersCountQuery, Types.GetNewUsersCountQueryVariables>(GetNewUsersCountDocument, baseOptions);
-        }
-export type GetNewUsersCountQueryHookResult = ReturnType<typeof useGetNewUsersCountQuery>;
-export type GetNewUsersCountLazyQueryHookResult = ReturnType<typeof useGetNewUsersCountLazyQuery>;
-export type GetNewUsersCountQueryResult = Apollo.QueryResult<Types.GetNewUsersCountQuery, Types.GetNewUsersCountQueryVariables>;
+export function useGetNewUsersCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >(GetNewUsersCountDocument, baseOptions);
+}
+export function useGetNewUsersCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >(GetNewUsersCountDocument, baseOptions);
+}
+export type GetNewUsersCountQueryHookResult = ReturnType<
+    typeof useGetNewUsersCountQuery
+>;
+export type GetNewUsersCountLazyQueryHookResult = ReturnType<
+    typeof useGetNewUsersCountLazyQuery
+>;
+export type GetNewUsersCountQueryResult = Apollo.QueryResult<
+    Types.GetNewUsersCountQuery,
+    Types.GetNewUsersCountQueryVariables
+>;
 export const GetAverageSessionLengthDocument = gql`
     query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
-  averageSessionLength(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    length
-  }
-}
-    `;
+        averageSessionLength(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            length
+        }
+    }
+`;
 
 /**
  * __useGetAverageSessionLengthQuery__
@@ -4797,26 +7308,49 @@ export const GetAverageSessionLengthDocument = gql`
  *   },
  * });
  */
-export function useGetAverageSessionLengthQuery(baseOptions: Apollo.QueryHookOptions<Types.GetAverageSessionLengthQuery, Types.GetAverageSessionLengthQueryVariables>) {
-        return Apollo.useQuery<Types.GetAverageSessionLengthQuery, Types.GetAverageSessionLengthQueryVariables>(GetAverageSessionLengthDocument, baseOptions);
-      }
-export function useGetAverageSessionLengthLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetAverageSessionLengthQuery, Types.GetAverageSessionLengthQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetAverageSessionLengthQuery, Types.GetAverageSessionLengthQueryVariables>(GetAverageSessionLengthDocument, baseOptions);
-        }
-export type GetAverageSessionLengthQueryHookResult = ReturnType<typeof useGetAverageSessionLengthQuery>;
-export type GetAverageSessionLengthLazyQueryHookResult = ReturnType<typeof useGetAverageSessionLengthLazyQuery>;
-export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<Types.GetAverageSessionLengthQuery, Types.GetAverageSessionLengthQueryVariables>;
+export function useGetAverageSessionLengthQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >(GetAverageSessionLengthDocument, baseOptions);
+}
+export function useGetAverageSessionLengthLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >(GetAverageSessionLengthDocument, baseOptions);
+}
+export type GetAverageSessionLengthQueryHookResult = ReturnType<
+    typeof useGetAverageSessionLengthQuery
+>;
+export type GetAverageSessionLengthLazyQueryHookResult = ReturnType<
+    typeof useGetAverageSessionLengthLazyQuery
+>;
+export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<
+    Types.GetAverageSessionLengthQuery,
+    Types.GetAverageSessionLengthQueryVariables
+>;
 export const GetTopUsersDocument = gql`
     query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-  topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    identifier
-    total_active_time
-    active_time_percentage
-    id
-    user_properties
-  }
-}
-    `;
+        topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+            identifier
+            total_active_time
+            active_time_percentage
+            id
+            user_properties
+        }
+    }
+`;
 
 /**
  * __useGetTopUsersQuery__
@@ -4835,23 +7369,47 @@ export const GetTopUsersDocument = gql`
  *   },
  * });
  */
-export function useGetTopUsersQuery(baseOptions: Apollo.QueryHookOptions<Types.GetTopUsersQuery, Types.GetTopUsersQueryVariables>) {
-        return Apollo.useQuery<Types.GetTopUsersQuery, Types.GetTopUsersQueryVariables>(GetTopUsersDocument, baseOptions);
-      }
-export function useGetTopUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetTopUsersQuery, Types.GetTopUsersQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetTopUsersQuery, Types.GetTopUsersQueryVariables>(GetTopUsersDocument, baseOptions);
-        }
-export type GetTopUsersQueryHookResult = ReturnType<typeof useGetTopUsersQuery>;
-export type GetTopUsersLazyQueryHookResult = ReturnType<typeof useGetTopUsersLazyQuery>;
-export type GetTopUsersQueryResult = Apollo.QueryResult<Types.GetTopUsersQuery, Types.GetTopUsersQueryVariables>;
-export const GetDailySessionsCountDocument = gql`
-    query GetDailySessionsCount($project_id: ID!, $date_range: DateRangeInput!) {
-  dailySessionsCount(project_id: $project_id, date_range: $date_range) {
-    date
-    count
-  }
+export function useGetTopUsersQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
 }
-    `;
+export function useGetTopUsersLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
+}
+export type GetTopUsersQueryHookResult = ReturnType<typeof useGetTopUsersQuery>;
+export type GetTopUsersLazyQueryHookResult = ReturnType<
+    typeof useGetTopUsersLazyQuery
+>;
+export type GetTopUsersQueryResult = Apollo.QueryResult<
+    Types.GetTopUsersQuery,
+    Types.GetTopUsersQueryVariables
+>;
+export const GetDailySessionsCountDocument = gql`
+    query GetDailySessionsCount(
+        $project_id: ID!
+        $date_range: DateRangeInput!
+    ) {
+        dailySessionsCount(project_id: $project_id, date_range: $date_range) {
+            date
+            count
+        }
+    }
+`;
 
 /**
  * __useGetDailySessionsCountQuery__
@@ -4870,23 +7428,46 @@ export const GetDailySessionsCountDocument = gql`
  *   },
  * });
  */
-export function useGetDailySessionsCountQuery(baseOptions: Apollo.QueryHookOptions<Types.GetDailySessionsCountQuery, Types.GetDailySessionsCountQueryVariables>) {
-        return Apollo.useQuery<Types.GetDailySessionsCountQuery, Types.GetDailySessionsCountQueryVariables>(GetDailySessionsCountDocument, baseOptions);
-      }
-export function useGetDailySessionsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDailySessionsCountQuery, Types.GetDailySessionsCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetDailySessionsCountQuery, Types.GetDailySessionsCountQueryVariables>(GetDailySessionsCountDocument, baseOptions);
-        }
-export type GetDailySessionsCountQueryHookResult = ReturnType<typeof useGetDailySessionsCountQuery>;
-export type GetDailySessionsCountLazyQueryHookResult = ReturnType<typeof useGetDailySessionsCountLazyQuery>;
-export type GetDailySessionsCountQueryResult = Apollo.QueryResult<Types.GetDailySessionsCountQuery, Types.GetDailySessionsCountQueryVariables>;
+export function useGetDailySessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export function useGetDailySessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export type GetDailySessionsCountQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountQuery
+>;
+export type GetDailySessionsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountLazyQuery
+>;
+export type GetDailySessionsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailySessionsCountQuery,
+    Types.GetDailySessionsCountQueryVariables
+>;
 export const GetDailyErrorsCountDocument = gql`
     query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
-  dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
-    date
-    count
-  }
-}
-    `;
+        dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
+            date
+            count
+        }
+    }
+`;
 
 /**
  * __useGetDailyErrorsCountQuery__
@@ -4905,25 +7486,51 @@ export const GetDailyErrorsCountDocument = gql`
  *   },
  * });
  */
-export function useGetDailyErrorsCountQuery(baseOptions: Apollo.QueryHookOptions<Types.GetDailyErrorsCountQuery, Types.GetDailyErrorsCountQueryVariables>) {
-        return Apollo.useQuery<Types.GetDailyErrorsCountQuery, Types.GetDailyErrorsCountQueryVariables>(GetDailyErrorsCountDocument, baseOptions);
-      }
-export function useGetDailyErrorsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDailyErrorsCountQuery, Types.GetDailyErrorsCountQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetDailyErrorsCountQuery, Types.GetDailyErrorsCountQueryVariables>(GetDailyErrorsCountDocument, baseOptions);
-        }
-export type GetDailyErrorsCountQueryHookResult = ReturnType<typeof useGetDailyErrorsCountQuery>;
-export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<typeof useGetDailyErrorsCountLazyQuery>;
-export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<Types.GetDailyErrorsCountQuery, Types.GetDailyErrorsCountQueryVariables>;
+export function useGetDailyErrorsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export function useGetDailyErrorsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export type GetDailyErrorsCountQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountQuery
+>;
+export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountLazyQuery
+>;
+export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailyErrorsCountQuery,
+    Types.GetDailyErrorsCountQueryVariables
+>;
 export const GetRageClicksForProjectDocument = gql`
     query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
-  rageClicksForProject(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-    identifier
-    session_secure_id
-    total_clicks
-    user_properties
-  }
-}
-    `;
+        rageClicksForProject(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            identifier
+            session_secure_id
+            total_clicks
+            user_properties
+        }
+    }
+`;
 
 /**
  * __useGetRageClicksForProjectQuery__
@@ -4942,24 +7549,51 @@ export const GetRageClicksForProjectDocument = gql`
  *   },
  * });
  */
-export function useGetRageClicksForProjectQuery(baseOptions: Apollo.QueryHookOptions<Types.GetRageClicksForProjectQuery, Types.GetRageClicksForProjectQueryVariables>) {
-        return Apollo.useQuery<Types.GetRageClicksForProjectQuery, Types.GetRageClicksForProjectQueryVariables>(GetRageClicksForProjectDocument, baseOptions);
-      }
-export function useGetRageClicksForProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetRageClicksForProjectQuery, Types.GetRageClicksForProjectQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetRageClicksForProjectQuery, Types.GetRageClicksForProjectQueryVariables>(GetRageClicksForProjectDocument, baseOptions);
-        }
-export type GetRageClicksForProjectQueryHookResult = ReturnType<typeof useGetRageClicksForProjectQuery>;
-export type GetRageClicksForProjectLazyQueryHookResult = ReturnType<typeof useGetRageClicksForProjectLazyQuery>;
-export type GetRageClicksForProjectQueryResult = Apollo.QueryResult<Types.GetRageClicksForProjectQuery, Types.GetRageClicksForProjectQueryVariables>;
-export const GetDailyErrorFrequencyDocument = gql`
-    query GetDailyErrorFrequency($project_id: ID!, $error_group_secure_id: String!, $date_offset: Int!) {
-  dailyErrorFrequency(
-    project_id: $project_id
-    error_group_secure_id: $error_group_secure_id
-    date_offset: $date_offset
-  )
+export function useGetRageClicksForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
 }
-    `;
+export function useGetRageClicksForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
+}
+export type GetRageClicksForProjectQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectQuery
+>;
+export type GetRageClicksForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectLazyQuery
+>;
+export type GetRageClicksForProjectQueryResult = Apollo.QueryResult<
+    Types.GetRageClicksForProjectQuery,
+    Types.GetRageClicksForProjectQueryVariables
+>;
+export const GetDailyErrorFrequencyDocument = gql`
+    query GetDailyErrorFrequency(
+        $project_id: ID!
+        $error_group_secure_id: String!
+        $date_offset: Int!
+    ) {
+        dailyErrorFrequency(
+            project_id: $project_id
+            error_group_secure_id: $error_group_secure_id
+            date_offset: $date_offset
+        )
+    }
+`;
 
 /**
  * __useGetDailyErrorFrequencyQuery__
@@ -4979,23 +7613,46 @@ export const GetDailyErrorFrequencyDocument = gql`
  *   },
  * });
  */
-export function useGetDailyErrorFrequencyQuery(baseOptions: Apollo.QueryHookOptions<Types.GetDailyErrorFrequencyQuery, Types.GetDailyErrorFrequencyQueryVariables>) {
-        return Apollo.useQuery<Types.GetDailyErrorFrequencyQuery, Types.GetDailyErrorFrequencyQueryVariables>(GetDailyErrorFrequencyDocument, baseOptions);
-      }
-export function useGetDailyErrorFrequencyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDailyErrorFrequencyQuery, Types.GetDailyErrorFrequencyQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetDailyErrorFrequencyQuery, Types.GetDailyErrorFrequencyQueryVariables>(GetDailyErrorFrequencyDocument, baseOptions);
-        }
-export type GetDailyErrorFrequencyQueryHookResult = ReturnType<typeof useGetDailyErrorFrequencyQuery>;
-export type GetDailyErrorFrequencyLazyQueryHookResult = ReturnType<typeof useGetDailyErrorFrequencyLazyQuery>;
-export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<Types.GetDailyErrorFrequencyQuery, Types.GetDailyErrorFrequencyQueryVariables>;
+export function useGetDailyErrorFrequencyQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >(GetDailyErrorFrequencyDocument, baseOptions);
+}
+export function useGetDailyErrorFrequencyLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >(GetDailyErrorFrequencyDocument, baseOptions);
+}
+export type GetDailyErrorFrequencyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorFrequencyQuery
+>;
+export type GetDailyErrorFrequencyLazyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorFrequencyLazyQuery
+>;
+export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
+    Types.GetDailyErrorFrequencyQuery,
+    Types.GetDailyErrorFrequencyQueryVariables
+>;
 export const GetSlackChannelSuggestionDocument = gql`
     query GetSlackChannelSuggestion($project_id: ID!) {
-  slack_channel_suggestion(project_id: $project_id) {
-    webhook_channel
-    webhook_channel_id
-  }
-}
-    `;
+        slack_channel_suggestion(project_id: $project_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
 
 /**
  * __useGetSlackChannelSuggestionQuery__
@@ -5013,20 +7670,43 @@ export const GetSlackChannelSuggestionDocument = gql`
  *   },
  * });
  */
-export function useGetSlackChannelSuggestionQuery(baseOptions: Apollo.QueryHookOptions<Types.GetSlackChannelSuggestionQuery, Types.GetSlackChannelSuggestionQueryVariables>) {
-        return Apollo.useQuery<Types.GetSlackChannelSuggestionQuery, Types.GetSlackChannelSuggestionQueryVariables>(GetSlackChannelSuggestionDocument, baseOptions);
-      }
-export function useGetSlackChannelSuggestionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSlackChannelSuggestionQuery, Types.GetSlackChannelSuggestionQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetSlackChannelSuggestionQuery, Types.GetSlackChannelSuggestionQueryVariables>(GetSlackChannelSuggestionDocument, baseOptions);
-        }
-export type GetSlackChannelSuggestionQueryHookResult = ReturnType<typeof useGetSlackChannelSuggestionQuery>;
-export type GetSlackChannelSuggestionLazyQueryHookResult = ReturnType<typeof useGetSlackChannelSuggestionLazyQuery>;
-export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<Types.GetSlackChannelSuggestionQuery, Types.GetSlackChannelSuggestionQueryVariables>;
+export function useGetSlackChannelSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export function useGetSlackChannelSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export type GetSlackChannelSuggestionQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionQuery
+>;
+export type GetSlackChannelSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionLazyQuery
+>;
+export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetSlackChannelSuggestionQuery,
+    Types.GetSlackChannelSuggestionQueryVariables
+>;
 export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
     query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-  is_integrated_with_slack(project_id: $project_id)
-}
-    `;
+        is_integrated_with_slack(project_id: $project_id)
+    }
+`;
 
 /**
  * __useGetWorkspaceIsIntegratedWithSlackQuery__
@@ -5044,163 +7724,194 @@ export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceIsIntegratedWithSlackQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWorkspaceIsIntegratedWithSlackQuery, Types.GetWorkspaceIsIntegratedWithSlackQueryVariables>) {
-        return Apollo.useQuery<Types.GetWorkspaceIsIntegratedWithSlackQuery, Types.GetWorkspaceIsIntegratedWithSlackQueryVariables>(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
-      }
-export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWorkspaceIsIntegratedWithSlackQuery, Types.GetWorkspaceIsIntegratedWithSlackQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWorkspaceIsIntegratedWithSlackQuery, Types.GetWorkspaceIsIntegratedWithSlackQueryVariables>(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
-        }
-export type GetWorkspaceIsIntegratedWithSlackQueryHookResult = ReturnType<typeof useGetWorkspaceIsIntegratedWithSlackQuery>;
-export type GetWorkspaceIsIntegratedWithSlackLazyQueryHookResult = ReturnType<typeof useGetWorkspaceIsIntegratedWithSlackLazyQuery>;
-export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<Types.GetWorkspaceIsIntegratedWithSlackQuery, Types.GetWorkspaceIsIntegratedWithSlackQueryVariables>;
+export function useGetWorkspaceIsIntegratedWithSlackQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithSlackQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithSlackQuery,
+    Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
-  is_integrated_with_slack(project_id: $project_id)
-  slack_channel_suggestion(project_id: $project_id) {
-    webhook_channel
-    webhook_channel_id
-  }
-  admins: workspace_admins_by_project_id(project_id: $project_id) {
-    id
-    name
-    email
-    photo_url
-  }
-  environment_suggestion(project_id: $project_id) {
-    name
-    value
-  }
-  identifier_suggestion(project_id: $project_id)
-  error_alerts(project_id: $project_id) {
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
+        is_integrated_with_slack(project_id: $project_id)
+        slack_channel_suggestion(project_id: $project_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
+            id
+            name
+            email
+            photo_url
+        }
+        environment_suggestion(project_id: $project_id) {
+            name
+            value
+        }
+        identifier_suggestion(project_id: $project_id)
+        error_alerts(project_id: $project_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            updated_at
+            CountThreshold
+            LastAdminToEditID
+            ThresholdWindow
+            RegexGroups
+            Frequency
+            id
+            Type
+            Name
+            DailyFrequency
+        }
+        session_feedback_alerts(project_id: $project_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            updated_at
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+            id
+            Name
+            Type
+            DailyFrequency
+        }
+        new_session_alerts(project_id: $project_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            updated_at
+            LastAdminToEditID
+            Name
+            id
+            Type
+            ExcludeRules
+            DailyFrequency
+        }
+        rage_click_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            updated_at
+            LastAdminToEditID
+            Name
+            Type
+            DailyFrequency
+        }
+        new_user_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            ExcludedEnvironments
+            CountThreshold
+            updated_at
+            LastAdminToEditID
+            Name
+            Type
+            DailyFrequency
+        }
+        track_properties_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            TrackProperties {
+                id
+                name
+                value
+            }
+            ExcludedEnvironments
+            updated_at
+            LastAdminToEditID
+            CountThreshold
+            Name
+            Type
+            DailyFrequency
+        }
+        user_properties_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            EmailsToNotify
+            UserProperties {
+                id
+                name
+                value
+            }
+            ExcludedEnvironments
+            updated_at
+            LastAdminToEditID
+            CountThreshold
+            Name
+            Type
+            DailyFrequency
+        }
+        metric_monitors(project_id: $project_id) {
+            id
+            updated_at
+            name
+            channels_to_notify {
+                webhook_channel
+                webhook_channel_id
+            }
+            emails_to_notify
+            function
+            metric_to_monitor
+            last_admin_to_edit_id
+            threshold
+        }
     }
-    ExcludedEnvironments
-    updated_at
-    CountThreshold
-    LastAdminToEditID
-    ThresholdWindow
-    RegexGroups
-    Frequency
-    id
-    Type
-    Name
-    DailyFrequency
-  }
-  session_feedback_alerts(project_id: $project_id) {
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    updated_at
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    LastAdminToEditID
-    id
-    Name
-    Type
-    DailyFrequency
-  }
-  new_session_alerts(project_id: $project_id) {
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    updated_at
-    LastAdminToEditID
-    Name
-    id
-    Type
-    ExcludeRules
-    DailyFrequency
-  }
-  rage_click_alerts(project_id: $project_id) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    ThresholdWindow
-    updated_at
-    LastAdminToEditID
-    Name
-    Type
-    DailyFrequency
-  }
-  new_user_alerts(project_id: $project_id) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    ExcludedEnvironments
-    CountThreshold
-    updated_at
-    LastAdminToEditID
-    Name
-    Type
-    DailyFrequency
-  }
-  track_properties_alerts(project_id: $project_id) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    TrackProperties {
-      id
-      name
-      value
-    }
-    ExcludedEnvironments
-    updated_at
-    LastAdminToEditID
-    CountThreshold
-    Name
-    Type
-    DailyFrequency
-  }
-  user_properties_alerts(project_id: $project_id) {
-    id
-    ChannelsToNotify {
-      webhook_channel
-      webhook_channel_id
-    }
-    UserProperties {
-      id
-      name
-      value
-    }
-    ExcludedEnvironments
-    updated_at
-    LastAdminToEditID
-    CountThreshold
-    Name
-    Type
-    DailyFrequency
-  }
-  metric_monitors(project_id: $project_id) {
-    id
-    updated_at
-    name
-    channels_to_notify {
-      webhook_channel
-      webhook_channel_id
-    }
-    function
-    metric_to_monitor
-    last_admin_to_edit_id
-    threshold
-  }
-}
-    `;
+`;
 
 /**
  * __useGetAlertsPagePayloadQuery__
@@ -5218,29 +7929,52 @@ export const GetAlertsPagePayloadDocument = gql`
  *   },
  * });
  */
-export function useGetAlertsPagePayloadQuery(baseOptions: Apollo.QueryHookOptions<Types.GetAlertsPagePayloadQuery, Types.GetAlertsPagePayloadQueryVariables>) {
-        return Apollo.useQuery<Types.GetAlertsPagePayloadQuery, Types.GetAlertsPagePayloadQueryVariables>(GetAlertsPagePayloadDocument, baseOptions);
-      }
-export function useGetAlertsPagePayloadLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetAlertsPagePayloadQuery, Types.GetAlertsPagePayloadQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetAlertsPagePayloadQuery, Types.GetAlertsPagePayloadQueryVariables>(GetAlertsPagePayloadDocument, baseOptions);
-        }
-export type GetAlertsPagePayloadQueryHookResult = ReturnType<typeof useGetAlertsPagePayloadQuery>;
-export type GetAlertsPagePayloadLazyQueryHookResult = ReturnType<typeof useGetAlertsPagePayloadLazyQuery>;
-export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<Types.GetAlertsPagePayloadQuery, Types.GetAlertsPagePayloadQueryVariables>;
+export function useGetAlertsPagePayloadQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >(GetAlertsPagePayloadDocument, baseOptions);
+}
+export function useGetAlertsPagePayloadLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >(GetAlertsPagePayloadDocument, baseOptions);
+}
+export type GetAlertsPagePayloadQueryHookResult = ReturnType<
+    typeof useGetAlertsPagePayloadQuery
+>;
+export type GetAlertsPagePayloadLazyQueryHookResult = ReturnType<
+    typeof useGetAlertsPagePayloadLazyQuery
+>;
+export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
+    Types.GetAlertsPagePayloadQuery,
+    Types.GetAlertsPagePayloadQueryVariables
+>;
 export const GetCommentMentionSuggestionsDocument = gql`
     query GetCommentMentionSuggestions($project_id: ID!) {
-  admins: workspace_admins_by_project_id(project_id: $project_id) {
-    id
-    name
-    email
-    photo_url
-  }
-  slack_members(project_id: $project_id) {
-    webhook_channel
-    webhook_channel_id
-  }
-}
-    `;
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
+            id
+            name
+            email
+            photo_url
+        }
+        slack_members(project_id: $project_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
 
 /**
  * __useGetCommentMentionSuggestionsQuery__
@@ -5258,20 +7992,43 @@ export const GetCommentMentionSuggestionsDocument = gql`
  *   },
  * });
  */
-export function useGetCommentMentionSuggestionsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetCommentMentionSuggestionsQuery, Types.GetCommentMentionSuggestionsQueryVariables>) {
-        return Apollo.useQuery<Types.GetCommentMentionSuggestionsQuery, Types.GetCommentMentionSuggestionsQueryVariables>(GetCommentMentionSuggestionsDocument, baseOptions);
-      }
-export function useGetCommentMentionSuggestionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetCommentMentionSuggestionsQuery, Types.GetCommentMentionSuggestionsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetCommentMentionSuggestionsQuery, Types.GetCommentMentionSuggestionsQueryVariables>(GetCommentMentionSuggestionsDocument, baseOptions);
-        }
-export type GetCommentMentionSuggestionsQueryHookResult = ReturnType<typeof useGetCommentMentionSuggestionsQuery>;
-export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<typeof useGetCommentMentionSuggestionsLazyQuery>;
-export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<Types.GetCommentMentionSuggestionsQuery, Types.GetCommentMentionSuggestionsQueryVariables>;
+export function useGetCommentMentionSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export function useGetCommentMentionSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export type GetCommentMentionSuggestionsQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsQuery
+>;
+export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsLazyQuery
+>;
+export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetCommentMentionSuggestionsQuery,
+    Types.GetCommentMentionSuggestionsQueryVariables
+>;
 export const GetCustomerPortalUrlDocument = gql`
     query GetCustomerPortalURL($workspace_id: ID!) {
-  customer_portal_url(workspace_id: $workspace_id)
-}
-    `;
+        customer_portal_url(workspace_id: $workspace_id)
+    }
+`;
 
 /**
  * __useGetCustomerPortalUrlQuery__
@@ -5289,25 +8046,52 @@ export const GetCustomerPortalUrlDocument = gql`
  *   },
  * });
  */
-export function useGetCustomerPortalUrlQuery(baseOptions: Apollo.QueryHookOptions<Types.GetCustomerPortalUrlQuery, Types.GetCustomerPortalUrlQueryVariables>) {
-        return Apollo.useQuery<Types.GetCustomerPortalUrlQuery, Types.GetCustomerPortalUrlQueryVariables>(GetCustomerPortalUrlDocument, baseOptions);
-      }
-export function useGetCustomerPortalUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetCustomerPortalUrlQuery, Types.GetCustomerPortalUrlQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetCustomerPortalUrlQuery, Types.GetCustomerPortalUrlQueryVariables>(GetCustomerPortalUrlDocument, baseOptions);
-        }
-export type GetCustomerPortalUrlQueryHookResult = ReturnType<typeof useGetCustomerPortalUrlQuery>;
-export type GetCustomerPortalUrlLazyQueryHookResult = ReturnType<typeof useGetCustomerPortalUrlLazyQuery>;
-export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<Types.GetCustomerPortalUrlQuery, Types.GetCustomerPortalUrlQueryVariables>;
-export const OnSessionPayloadAppendedDocument = gql`
-    subscription OnSessionPayloadAppended($session_secure_id: String!, $initial_events_count: Int!) {
-  session_payload_appended(
-    session_secure_id: $session_secure_id
-    initial_events_count: $initial_events_count
-  ) {
-    ...SessionPayloadFragment
-  }
+export function useGetCustomerPortalUrlQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
 }
-    ${SessionPayloadFragmentFragmentDoc}`;
+export function useGetCustomerPortalUrlLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export type GetCustomerPortalUrlQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlQuery
+>;
+export type GetCustomerPortalUrlLazyQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlLazyQuery
+>;
+export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<
+    Types.GetCustomerPortalUrlQuery,
+    Types.GetCustomerPortalUrlQueryVariables
+>;
+export const OnSessionPayloadAppendedDocument = gql`
+    subscription OnSessionPayloadAppended(
+        $session_secure_id: String!
+        $initial_events_count: Int!
+    ) {
+        session_payload_appended(
+            session_secure_id: $session_secure_id
+            initial_events_count: $initial_events_count
+        ) {
+            ...SessionPayloadFragment
+        }
+    }
+    ${SessionPayloadFragmentFragmentDoc}
+`;
 
 /**
  * __useOnSessionPayloadAppendedSubscription__
@@ -5326,19 +8110,29 @@ export const OnSessionPayloadAppendedDocument = gql`
  *   },
  * });
  */
-export function useOnSessionPayloadAppendedSubscription(baseOptions: Apollo.SubscriptionHookOptions<Types.OnSessionPayloadAppendedSubscription, Types.OnSessionPayloadAppendedSubscriptionVariables>) {
-        return Apollo.useSubscription<Types.OnSessionPayloadAppendedSubscription, Types.OnSessionPayloadAppendedSubscriptionVariables>(OnSessionPayloadAppendedDocument, baseOptions);
-      }
-export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<typeof useOnSessionPayloadAppendedSubscription>;
+export function useOnSessionPayloadAppendedSubscription(
+    baseOptions: Apollo.SubscriptionHookOptions<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >
+) {
+    return Apollo.useSubscription<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >(OnSessionPayloadAppendedDocument, baseOptions);
+}
+export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
+    typeof useOnSessionPayloadAppendedSubscription
+>;
 export type OnSessionPayloadAppendedSubscriptionResult = Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;
 export const GetWebVitalsDocument = gql`
     query GetWebVitals($session_secure_id: String!) {
-  web_vitals(session_secure_id: $session_secure_id) {
-    name
-    value
-  }
-}
-    `;
+        web_vitals(session_secure_id: $session_secure_id) {
+            name
+            value
+        }
+    }
+`;
 
 /**
  * __useGetWebVitalsQuery__
@@ -5356,12 +8150,35 @@ export const GetWebVitalsDocument = gql`
  *   },
  * });
  */
-export function useGetWebVitalsQuery(baseOptions: Apollo.QueryHookOptions<Types.GetWebVitalsQuery, Types.GetWebVitalsQueryVariables>) {
-        return Apollo.useQuery<Types.GetWebVitalsQuery, Types.GetWebVitalsQueryVariables>(GetWebVitalsDocument, baseOptions);
-      }
-export function useGetWebVitalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWebVitalsQuery, Types.GetWebVitalsQueryVariables>) {
-          return Apollo.useLazyQuery<Types.GetWebVitalsQuery, Types.GetWebVitalsQueryVariables>(GetWebVitalsDocument, baseOptions);
-        }
-export type GetWebVitalsQueryHookResult = ReturnType<typeof useGetWebVitalsQuery>;
-export type GetWebVitalsLazyQueryHookResult = ReturnType<typeof useGetWebVitalsLazyQuery>;
-export type GetWebVitalsQueryResult = Apollo.QueryResult<Types.GetWebVitalsQuery, Types.GetWebVitalsQueryVariables>;
+export function useGetWebVitalsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >(GetWebVitalsDocument, baseOptions);
+}
+export function useGetWebVitalsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >(GetWebVitalsDocument, baseOptions);
+}
+export type GetWebVitalsQueryHookResult = ReturnType<
+    typeof useGetWebVitalsQuery
+>;
+export type GetWebVitalsLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalsLazyQuery
+>;
+export type GetWebVitalsQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalsQuery,
+    Types.GetWebVitalsQueryVariables
+>;
