@@ -17,3 +17,4 @@ export const securityLink: string;
 export const securityNav: string;
 export const securityWrapper: string;
 export const subHeader: string;
+export const userDropdownContainer: string;

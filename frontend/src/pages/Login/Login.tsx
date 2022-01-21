@@ -175,7 +175,7 @@ const LoginForm = () => {
         return <AuthAdminRouter />;
     }
 
-    if (formState === LoginFormState.VerifyEmail) {
+    if (isLoggedIn && formState === LoginFormState.VerifyEmail) {
         return (
             <VerifyEmailCard
                 onStartHandler={() => {

@@ -5,6 +5,7 @@ import ReactNiceAvatar, { genConfig } from 'react-nice-avatar';
 import { generateRandomColor } from '../../util/color';
 import {
     userAvatar,
+    userAvatarBorder,
     userAvatarText,
     userAvatarWrapper,
 } from './Avatar.module.scss';
@@ -121,9 +122,11 @@ export const Avatar = ({
 export const AdminAvatar = ({
     adminInfo,
     size,
+    border,
 }: {
     adminInfo?: { name?: string; photo_url?: string | null; email?: string };
     size: number;
+    border?: boolean;
 }) => {
     let isSlackEntity = false;
     let name = adminInfo?.name;
@@ -142,7 +145,11 @@ export const AdminAvatar = ({
         : 'JK';
 
     return (
-        <div className={userAvatarWrapper}>
+        <div
+            className={classNames(userAvatarWrapper, {
+                [userAvatarBorder]: !!border,
+            })}
+        >
             {adminInfo?.photo_url ? (
                 <img
                     className={userAvatar}

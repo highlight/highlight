@@ -8,7 +8,11 @@ import { client } from '../../../util/graph';
 import { AdminAvatar } from '../../Avatar/Avatar';
 import styles from './UserDropdown.module.scss';
 
-export const UserDropdown = () => {
+interface Props {
+    border?: boolean;
+}
+
+export const UserDropdown = ({ border }: Props) => {
     const {
         loading: a_loading,
         error: a_error,
@@ -75,6 +79,7 @@ export const UserDropdown = () => {
                             photo_url: a_data?.admin?.photo_url ?? '',
                         }}
                         size={35}
+                        border={border}
                     />
                 ) : (
                     <p>loading</p>
