@@ -1428,11 +1428,11 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetProjectAdminsQueryVariables = Types.Exact<{
+export type GetWorkspaceAdminsByProjectIdQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
 
-export type GetProjectAdminsQuery = { __typename?: 'Query' } & {
+export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
     admins: Array<
         Types.Maybe<
             { __typename?: 'Admin' } & Pick<
@@ -3120,7 +3120,7 @@ export const namedOperations = {
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
-        GetProjectAdmins: 'GetProjectAdmins' as const,
+        GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
         GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
