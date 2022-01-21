@@ -175,8 +175,8 @@ query GetSession($secure_id: String!) {
     }
 }
 
-query GetProjectAdmins($project_id: ID!) {
-    admins: project_admins(project_id: $project_id) {
+query GetWorkspaceAdminsByProjectId($project_id: ID!) {
+    admins: workspace_admins_by_project_id(project_id: $project_id) {
         id
         name
         email
@@ -318,7 +318,7 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
         id
         slack_channels
     }
-    admins: project_admins(project_id: $project_id) {
+    admins: workspace_admins_by_project_id(project_id: $project_id) {
         id
     }
     isIntegrated(project_id: $project_id)
@@ -1086,7 +1086,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
-    admins: project_admins(project_id: $project_id) {
+    admins: workspace_admins_by_project_id(project_id: $project_id) {
         id
         name
         email
@@ -1228,7 +1228,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 }
 
 query GetCommentMentionSuggestions($project_id: ID!) {
-    admins: project_admins(project_id: $project_id) {
+    admins: workspace_admins_by_project_id(project_id: $project_id) {
         id
         name
         email

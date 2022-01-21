@@ -3,7 +3,7 @@ import Card from '@components/Card/Card';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
-import { useGetProjectAdminsQuery } from '@graph/hooks';
+import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
@@ -15,7 +15,7 @@ import alertStyles from '../../../Alerts/Alerts.module.scss';
 
 const DashboardsHomePage = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { loading } = useGetProjectAdminsQuery({
+    const { loading } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
     const history = useHistory();

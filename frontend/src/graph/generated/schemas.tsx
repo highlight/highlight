@@ -662,8 +662,8 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
-    project_admins: Array<Maybe<Admin>>;
     workspace_admins: Array<Maybe<Admin>>;
+    workspace_admins_by_project_id: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -794,12 +794,12 @@ export type QueryError_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryProject_AdminsArgs = {
-    project_id: Scalars['ID'];
-};
-
 export type QueryWorkspace_AdminsArgs = {
     workspace_id: Scalars['ID'];
+};
+
+export type QueryWorkspace_Admins_By_Project_IdArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QueryIsIntegratedArgs = {

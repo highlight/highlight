@@ -19,7 +19,7 @@ import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
     useGetCommentMentionSuggestionsQuery,
-    useGetProjectAdminsQuery,
+    useGetWorkspaceAdminsByProjectIdQuery,
 } from '../../../../graph/generated/hooks';
 import {
     SanitizedAdminInput,
@@ -47,7 +47,7 @@ const ErrorComments = ({ parentRef }: Props) => {
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
-    const { data } = useGetProjectAdminsQuery({
+    const { data } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<

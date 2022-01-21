@@ -2772,6 +2772,21 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 	return admins, nil
 }
 
+func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	admins := []*model.Admin{}
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
+		return nil, e.Wrap(err, "error getting admins for the workspace by project id")
+	}
+
+	return admins, nil
+}
+
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil

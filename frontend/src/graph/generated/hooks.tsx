@@ -3839,9 +3839,9 @@ export type GetSessionQueryResult = Apollo.QueryResult<
     Types.GetSessionQuery,
     Types.GetSessionQueryVariables
 >;
-export const GetProjectAdminsDocument = gql`
-    query GetProjectAdmins($project_id: ID!) {
-        admins: project_admins(project_id: $project_id) {
+export const GetWorkspaceAdminsByProjectIdDocument = gql`
+    query GetWorkspaceAdminsByProjectId($project_id: ID!) {
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
             id
             name
             email
@@ -3852,52 +3852,52 @@ export const GetProjectAdminsDocument = gql`
 `;
 
 /**
- * __useGetProjectAdminsQuery__
+ * __useGetWorkspaceAdminsByProjectIdQuery__
  *
- * To run a query within a React component, call `useGetProjectAdminsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectAdminsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetWorkspaceAdminsByProjectIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceAdminsByProjectIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetProjectAdminsQuery({
+ * const { data, loading, error } = useGetWorkspaceAdminsByProjectIdQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *   },
  * });
  */
-export function useGetProjectAdminsQuery(
+export function useGetWorkspaceAdminsByProjectIdQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetProjectAdminsQuery,
-        Types.GetProjectAdminsQueryVariables
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetProjectAdminsQuery,
-        Types.GetProjectAdminsQueryVariables
-    >(GetProjectAdminsDocument, baseOptions);
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
 }
-export function useGetProjectAdminsLazyQuery(
+export function useGetWorkspaceAdminsByProjectIdLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetProjectAdminsQuery,
-        Types.GetProjectAdminsQueryVariables
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetProjectAdminsQuery,
-        Types.GetProjectAdminsQueryVariables
-    >(GetProjectAdminsDocument, baseOptions);
+        Types.GetWorkspaceAdminsByProjectIdQuery,
+        Types.GetWorkspaceAdminsByProjectIdQueryVariables
+    >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
 }
-export type GetProjectAdminsQueryHookResult = ReturnType<
-    typeof useGetProjectAdminsQuery
+export type GetWorkspaceAdminsByProjectIdQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsByProjectIdQuery
 >;
-export type GetProjectAdminsLazyQueryHookResult = ReturnType<
-    typeof useGetProjectAdminsLazyQuery
+export type GetWorkspaceAdminsByProjectIdLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsByProjectIdLazyQuery
 >;
-export type GetProjectAdminsQueryResult = Apollo.QueryResult<
-    Types.GetProjectAdminsQuery,
-    Types.GetProjectAdminsQueryVariables
+export type GetWorkspaceAdminsByProjectIdQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceAdminsByProjectIdQuery,
+    Types.GetWorkspaceAdminsByProjectIdQueryVariables
 >;
 export const GetWorkspaceAdminsDocument = gql`
     query GetWorkspaceAdmins($workspace_id: ID!) {
@@ -4332,7 +4332,7 @@ export const GetOnboardingStepsDocument = gql`
             id
             slack_channels
         }
-        admins: project_admins(project_id: $project_id) {
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
             id
         }
         isIntegrated(project_id: $project_id)
@@ -7695,7 +7695,7 @@ export const GetAlertsPagePayloadDocument = gql`
             webhook_channel
             webhook_channel_id
         }
-        admins: project_admins(project_id: $project_id) {
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
             id
             name
             email
@@ -7887,7 +7887,7 @@ export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
 >;
 export const GetCommentMentionSuggestionsDocument = gql`
     query GetCommentMentionSuggestions($project_id: ID!) {
-        admins: project_admins(project_id: $project_id) {
+        admins: workspace_admins_by_project_id(project_id: $project_id) {
             id
             name
             email
