@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -28,6 +29,22 @@ func TestMain(m *testing.M) {
 	}
 	code := m.Run()
 	os.Exit(code)
+}
+
+func validateSessionResult(actual model.Session, expected model.Session) error {
+	if actual.ActiveLength != expected.ActiveLength {
+		return e.New(fmt.Sprintf("Actual ActiveLength %d doesn't match expected ActiveLength %d", actual.ActiveLength, expected.ActiveLength))
+	}
+	if actual.ProjectID != expected.ProjectID {
+		return e.New(fmt.Sprintf("Actual ProjectID %d doesn't match expected ProjectID %d", actual.ProjectID, expected.ProjectID))
+	}
+	if actual.Viewed != expected.Viewed && *actual.Viewed != *expected.Viewed {
+		return e.New(fmt.Sprintf("Actual Viewed %t doesn't match expected Viewed %t", *actual.Viewed, *expected.Viewed))
+	}
+	if actual.FirstTime != expected.FirstTime && *actual.FirstTime != *expected.FirstTime {
+		return e.New(fmt.Sprintf("Actual FirstTime %t doesn't match expected FirstTime %t", *actual.FirstTime, *expected.FirstTime))
+	}
+	return nil
 }
 
 func TestHideViewedSessions(t *testing.T) {
@@ -137,12 +154,9 @@ func TestHideViewedSessions(t *testing.T) {
 				t.Fatal("received session count and expected session count not equal")
 			}
 			for i, s := range sessions.Sessions {
-				isEqual, diff, err := model.AreModelsWeaklyEqual(&s, &tc.expectedSessions[i])
+				err = validateSessionResult(s, tc.expectedSessions[i])
 				if err != nil {
-					t.Fatal(e.Wrap(err, "error comparing two sessions"))
-				}
-				if !isEqual {
-					t.Fatalf("received session not equal to expected session. diff: %+v", diff)
+					t.Fatal(e.Wrap(err, "error matching actual and expected session"))
 				}
 			}
 		})
