@@ -436,10 +436,15 @@ const Player = ({ integrated }: Props) => {
                                                 )}
                                                 id="player"
                                             />
+                                            {replayerState ===
+                                                ReplayerState.NoEventsYet && (
+                                                <LoadingLiveSessionCard />
+                                            )}
                                             {!isPlayerReady &&
-                                                (session?.processed === false ||
-                                                replayerState ===
-                                                    ReplayerState.NoEventsYet ? (
+                                                sessionViewability ===
+                                                    SessionViewability.VIEWABLE &&
+                                                (session?.processed ===
+                                                false ? (
                                                     <LoadingLiveSessionCard />
                                                 ) : (
                                                     <div
