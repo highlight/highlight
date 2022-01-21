@@ -29,6 +29,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -42,12 +43,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID                        = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
-	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
-	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
-	SendGridAlertEmailTemplateID          = "d-efd755d329db413082dbdf1188b6846e"
-	SendGridOutboundEmail                 = "gm@runhighlight.com"
+	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 )
 
 type Resolver struct {
@@ -621,7 +617,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
@@ -852,9 +848,9 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
-	m.SetTemplateID(SendAdminInviteEmailTemplateID)
+	m.SetTemplateID(Email.SendAdminInviteEmailTemplateID)
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
@@ -872,32 +868,6 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 		return nil, e.New(estr)
 	}
 	return &inviteLink, nil
-}
-
-func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
-	to := &mail.Email{Address: email}
-
-	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
-	m.SetFrom(from)
-	m.SetTemplateID(SendGridAlertEmailTemplateID)
-
-	p := mail.NewPersonalization()
-	p.AddTos(to)
-	p.SetDynamicTemplateData("Message", message)
-	p.SetDynamicTemplateData("Alert_Type", alertType)
-	p.SetDynamicTemplateData("Alert_Name", alertName)
-	m.AddPersonalizations(p)
-
-	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-		estr := "error sending sendgrid email for alert -> "
-		estr += fmt.Sprintf("resp-code: %v; ", resp)
-		if sendGridErr != nil {
-			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
-		}
-		return e.New(estr)
-	}
-	return nil
 }
 
 func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {

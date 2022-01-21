@@ -144,12 +144,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 				return
 			}
 
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
-			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", session.ProjectID))
-				return
-			}
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
 		}
 	})
 
@@ -300,17 +295,13 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
-		if err := sessionFeedbackAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{
+		sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
-		}); err != nil {
-			log.WithError(err).WithFields(log.Fields{"project_id": session.ProjectID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))
-			return
-		}
+		})
 	})
 
 	return feedbackComment.ID, nil

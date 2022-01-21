@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	graph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	log "github.com/sirupsen/logrus"
@@ -92,7 +93,7 @@ func processMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client, metricMonit
 
 			for _, email := range emailsToNotify {
 				message = fmt.Sprintf("<b>%s</b> is currently <b>%f</b> over the threshold.<br>(Value: <b>%s</b>, Threshold: <b>%s</b>)<br><br><a href=\"%s\">View Monitor</a>", metricMonitor.Name, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros, monitorURL)
-				if err := graph.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
+				if err := Email.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
 					log.Error(err)
 
 				}
