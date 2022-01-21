@@ -110,6 +110,7 @@
     box-shadow: var(--box-shadow);
     padding-bottom: 0 !important;
     padding-top: 0 !important;
+    z-index: 99999999999999999 !important;
 
     :global(.ant-select-item) {
         color: var(--text-primary) !important;

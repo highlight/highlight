@@ -46,7 +46,6 @@ const AlertSetupModal = () => {
             id: string;
         }[]
     >([]);
-    const [emails, setEmails] = useState<string[]>([]);
 
     useEffect(() => {
         if (!!alertsPayload?.slack_channel_suggestion) {
@@ -396,7 +395,7 @@ const AlertSetupModal = () => {
                                     webhook_channel_name: `${value.displayValue}`,
                                 })),
                             alert_types: selectedAlerts,
-                            emails,
+                            emails: [],
                         },
                     }).then(() => {
                         setShouldCloseSetupPersisted(true);
