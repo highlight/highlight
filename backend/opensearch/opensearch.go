@@ -50,6 +50,16 @@ func GetIndex(suffix Index) string {
 	return OpensearchIndexPrefix + "_" + string(suffix)
 }
 
+type Script string
+
+var (
+	ScriptAppendFields Script = "append_fields"
+)
+
+func GetScript(suffix Script) string {
+	return OpensearchIndexPrefix + "_" + string(suffix)
+}
+
 type Client struct {
 	Client        *opensearch.Client
 	ReadClient    *opensearch.Client
@@ -206,7 +216,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling fields")
 	}
-	body := strings.NewReader(fmt.Sprintf(`{"script" : {"source": "ctx._source.%s.addAll(params.toAppend)","params" : {"toAppend" : %s}}}`, fieldName, string(b)))
+	body := strings.NewReader(fmt.Sprintf(`{"script" : {"id": "%s", "params" : {"toAppend" : %s, "fieldName": "%s"}}}`, GetScript(ScriptAppendFields), string(b), fieldName))
 
 	indexStr := GetIndex(index)
 
@@ -388,6 +398,24 @@ func (c *Client) PutMapping(index Index, bodyStr string) error {
 	}
 
 	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
+
+	return nil
+}
+
+func (c *Client) PutScript(script Script, bodyStr string) error {
+	body := strings.NewReader(bodyStr)
+
+	putRequest := opensearchapi.PutScriptRequest{
+		ScriptID: GetScript(script),
+		Body:     body,
+	}
+
+	createResponse, err := putRequest.Do(context.Background(), c.Client)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error upserting script")
+	}
+
+	log.Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", script, createResponse.StatusCode)
 
 	return nil
 }

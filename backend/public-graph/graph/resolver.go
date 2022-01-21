@@ -520,9 +520,9 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			KeyValue:   field.Name + "_" + field.Value,
 		}
 	}
-	// if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
-	// 	return e.Wrap(err, "error appending error fields")
-	// }
+	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
+		return e.Wrap(err, "error appending error fields")
+	}
 
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
