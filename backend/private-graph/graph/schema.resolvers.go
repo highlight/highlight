@@ -23,7 +23,6 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
-	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -4337,7 +4336,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
-	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
+	aggregateStatement := GetAggregateSQLStatement(aggregateFunction)
 
 	if err := r.DB.Raw(fmt.Sprintf(`
 	SELECT

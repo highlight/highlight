@@ -594,7 +594,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
 func (w *Worker) GetHandler(handlerFlag string) func() {

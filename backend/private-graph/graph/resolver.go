@@ -46,6 +46,7 @@ var (
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
+	SendGridAlertEmailTemplateID          = "d-efd755d329db413082dbdf1188b6846e"
 	SendGridOutboundEmail                 = "gm@runhighlight.com"
 )
 
@@ -873,6 +874,32 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	return &inviteLink, nil
 }
 
+func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
+	to := &mail.Email{Address: email}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(SendGridAlertEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Message", message)
+	p.SetDynamicTemplateData("Alert_Type", alertType)
+	p.SetDynamicTemplateData("Alert_Name", alertName)
+	m.AddPersonalizations(p)
+
+	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email for alert -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return e.New(estr)
+	}
+	return nil
+}
+
 func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
@@ -1268,4 +1295,25 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	existingChannels = append(existingChannels, filteredNewChannels...)
 
 	return &existingChannels, newChannelsCount, nil
+}
+
+func GetAggregateSQLStatement(aggregateFunctionName string) string {
+	aggregateStatement := "AVG(value)"
+
+	switch aggregateFunctionName {
+	case "p50":
+		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
+	case "p75":
+		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
+	case "p90":
+		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
+	case "p99":
+		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
+	case "avg":
+	default:
+		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
+		aggregateStatement = "AVG(value)"
+	}
+
+	return aggregateStatement
 }

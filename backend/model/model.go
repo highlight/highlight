@@ -1059,15 +1059,23 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for emails to notify")
 	}
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+
+	return emailsToNotify, err
+}
+
+func GetEmailsToNotify(emails *string) ([]*string, error) {
 	emailString := "[]"
-	if obj.EmailsToNotify != nil {
-		emailString = *obj.EmailsToNotify
+	if emails != nil {
+		emailString = *emails
 	}
 	var emailsToNotify []*string
 	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
 		return nil, e.Wrap(err, "error unmarshalling emails")
 	}
 	return emailsToNotify, nil
+
 }
 
 func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
