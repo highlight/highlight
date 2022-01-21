@@ -8,6 +8,7 @@
 
 .optionCheckbox {
     margin-left: 6px;
+    margin-right: 6px;
 }
 
 .optionLabelType {
@@ -50,7 +51,7 @@
     background-attachment: scroll;
     background-image: linear-gradient(
         to left,
-        rgba(0, 0, 0, 0.1),
+        rgba(121, 38, 255, 0.1),
         rgba(255, 255, 255, 0)
     );
     background-position: right center;
@@ -63,7 +64,7 @@
     background-attachment: scroll;
     background-image: linear-gradient(
         to right,
-        rgba(0, 0, 0, 0.1),
+        rgba(121, 38, 255, 0.1),
         rgba(255, 255, 255, 0)
     );
     background-position: left center;
@@ -77,10 +78,14 @@
     // background-color: rgb(255, 255, 255);
     background-image: linear-gradient(
             to right,
-            rgba(0, 0, 0, 0.1),
+            rgba(121, 38, 255, 0.1),
             rgba(255, 255, 255, 0)
         ),
-        linear-gradient(to left, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0));
+        linear-gradient(
+            to left,
+            rgba(121, 38, 255, 0.1),
+            rgba(255, 255, 255, 0)
+        );
     background-position: left center, right center;
     background-repeat: no-repeat;
     background-size: 10px 100%, 10px 100%;
