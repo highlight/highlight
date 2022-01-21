@@ -616,6 +616,7 @@ type MetricMonitor struct {
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
 	EmailsToNotify    *string `gorm:"emails_to_notify"`
 	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
+	Disabled          *bool   `gorm:"default:false"`
 }
 
 func (m *MessagesObject) Contents() string {
@@ -990,6 +991,7 @@ type Alert struct {
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
+	Disabled             *bool   `gorm:"default:false"`
 }
 
 type ErrorAlert struct {
