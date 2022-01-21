@@ -17,6 +17,7 @@ import (
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -43,6 +44,7 @@ type Resolver struct {
 	PushPayloadWorkerPool *workerpool.WorkerPool
 	AlertWorkerPool       *workerpool.WorkerPool
 	DB                    *gorm.DB
+	MailClient            *sendgrid.Client
 	StorageClient         *storage.StorageClient
 	OpenSearch            *opensearch.Client
 }
@@ -172,13 +174,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
-			if err != nil {
-				log.Error(e.Wrap(err, "error sending track properties alert slack message"))
-				return
-			}
-
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
 		}
 	})
 
@@ -245,12 +241,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
-			if err != nil {
-				log.Error(e.Wrapf(err, "error sending user properties alert slack message"))
-				return
-			}
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
 		}
 	})
 
@@ -734,13 +725,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 				return
 			}
 
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserObject: session.UserObject})
-			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID))
-				return
-			}
-
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserObject: session.UserObject})
 		}
 	})
 
@@ -1104,11 +1089,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(err)
 			}
 
-			err = errorAlert.SendSlackAlert(r.DB, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
-			if err != nil {
-				log.Error(e.Wrap(err, "error sending slack error message"))
-				return
-			}
+			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
 	})
 }

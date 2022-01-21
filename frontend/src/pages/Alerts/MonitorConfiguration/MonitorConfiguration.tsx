@@ -1,5 +1,4 @@
 import Button from '@components/Button/Button/Button';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
@@ -337,46 +336,38 @@ const MonitorConfiguration = ({
                     />
                 </section>
 
-                <HighlightGate>
-                    <section>
-                        <h3>Emails to Notify</h3>
-                        <p>
-                            Pick email addresses to email when an alert is
-                            created. These are email addresses for people in
-                            your workspace.
-                        </p>
-                        <Select
-                            className={
-                                alertConfigurationCardStyles.channelSelect
-                            }
-                            options={emailOptions}
-                            value={emails}
-                            mode="multiple"
-                            filterOption={(searchValue, option) => {
-                                return option?.children
-                                    .toLowerCase()
-                                    .includes(searchValue.toLowerCase());
-                            }}
-                            placeholder={`Select email addresses to send the alert to.`}
-                            onChange={onEmailsChange}
-                            notFoundContent={
-                                <div
-                                    className={
-                                        alertConfigurationCardStyles.notFoundContentEmail
-                                    }
-                                >
-                                    No matching email address found. Do you want
-                                    to{' '}
-                                    <Link
-                                        to={`/w/${currentWorkspace?.id}/team`}
-                                    >
-                                        invite someone to the workspace?
-                                    </Link>
-                                </div>
-                            }
-                        />
-                    </section>
-                </HighlightGate>
+                <section>
+                    <h3>Emails to Notify</h3>
+                    <p>
+                        Pick email addresses to email when an alert is created.
+                        These are email addresses for people in your workspace.
+                    </p>
+                    <Select
+                        className={alertConfigurationCardStyles.channelSelect}
+                        options={emailOptions}
+                        value={emails}
+                        mode="multiple"
+                        filterOption={(searchValue, option) => {
+                            return option?.children
+                                .toLowerCase()
+                                .includes(searchValue.toLowerCase());
+                        }}
+                        placeholder={`Select email addresses to send the alert to.`}
+                        onChange={onEmailsChange}
+                        notFoundContent={
+                            <div
+                                className={
+                                    alertConfigurationCardStyles.notFoundContentEmail
+                                }
+                            >
+                                No matching email address found. Do you want to{' '}
+                                <Link to={`/w/${currentWorkspace?.id}/team`}>
+                                    invite someone to the workspace?
+                                </Link>
+                            </div>
+                        }
+                    />
+                </section>
 
                 <div className={styles.formFooter}>
                     {onFormCancel && (

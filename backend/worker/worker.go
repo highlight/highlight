@@ -417,14 +417,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				return nil
 			}
 
-			// send Slack message
 			count64 := int64(count)
-			err = sessionAlert.SendSlackAlert(w.Resolver.DB, &model.SendSlackAlertInput{Workspace: workspace,
+			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &model.SendSlackAlertInput{Workspace: workspace,
 				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
 				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
-			if err != nil {
-				return e.Wrapf(err, "error sending rage click alert slack message")
-			}
 		}
 		return nil
 	})
@@ -594,7 +590,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
 func (w *Worker) GetHandler(handlerFlag string) func() {

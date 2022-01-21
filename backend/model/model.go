@@ -15,8 +15,10 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
+	"github.com/sendgrid/sendgrid-go"
 	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
 
@@ -996,8 +998,26 @@ type ErrorAlert struct {
 	RegexGroups *string
 }
 
-func (obj *ErrorAlert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
-	return obj.sendSlackAlert(db, obj.ID, input)
+func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(db, obj.ID, input); err != nil {
+		log.Error(err)
+	}
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+	if err != nil {
+		log.Error(err)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+
+	for _, email := range emailsToNotify {
+		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
+		if err := Email.SendAlertEmail(mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
+			log.Error(err)
+
+		}
+	}
 }
 
 func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {
@@ -1021,8 +1041,74 @@ type SessionAlert struct {
 	ExcludeRules    *string
 }
 
-func (obj *SessionAlert) SendSlackAlert(db *gorm.DB, input *SendSlackAlertInput) error {
-	return obj.sendSlackAlert(db, obj.ID, input)
+func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(db, obj.ID, input); err != nil {
+		log.Error(err)
+	}
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+	if err != nil {
+		log.Error(err)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+	alertType := ""
+	message := ""
+	subjectLine := ""
+	identifier := input.UserIdentifier
+	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if val, ok := input.UserObject["highlightDisplayName"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if identifier == "" {
+		identifier = "Someone"
+	}
+
+	switch *obj.Type {
+	case AlertType.NEW_SESSION:
+		alertType = "New Session"
+		message = fmt.Sprintf("<b>%s</b> just started a new session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		subjectLine = fmt.Sprintf("%s just started a new session", identifier)
+	case AlertType.NEW_USER:
+		alertType = "New User"
+		message = fmt.Sprintf("<b>%s</b> just started their first session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		subjectLine = fmt.Sprintf("%s just started their first session", identifier)
+	case AlertType.RAGE_CLICK:
+		alertType = "Rage Click"
+		message = fmt.Sprintf("<b>%s</b> has been rage clicking in a session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
+	case AlertType.SESSION_FEEDBACK:
+		alertType = "Session Feedback"
+		message = fmt.Sprintf("<b>%s</b> just left feedback.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		subjectLine = fmt.Sprintf("%s just left feedback.", identifier)
+	case AlertType.TRACK_PROPERTIES:
+		alertType = "Track Property"
+		message = fmt.Sprintf("The following track events have been created by <b>%s</b>", identifier)
+		for _, addr := range input.MatchedFields {
+			message = fmt.Sprintf("%s<br>%s", message, fmt.Sprintf("{name: <b>%s</b>, value: <b>%s</b>}", addr.Name, addr.Value))
+		}
+		message = fmt.Sprintf("%s<br><br><a href=\"%s\">View Session</a>", message, sessionURL)
+		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
+	case AlertType.USER_PROPERTIES:
+		alertType = "User Property"
+		message = fmt.Sprintf("The following user properties have been created by <b>%s</b>", identifier)
+		for _, addr := range input.MatchedFields {
+			message = fmt.Sprintf("%s<br>%s", message, fmt.Sprintf("{name: <b>%s</b>, value: <b>%s</b>}", addr.Name, addr.Value))
+		}
+		message = fmt.Sprintf("%s<br><br><a href=\"%s\">View Session</a>", message, sessionURL)
+	default:
+		return
+	}
+
+	for _, email := range emailsToNotify {
+		if err := Email.SendAlertEmail(mailClient, *email, message, alertType, subjectLine); err != nil {
+			log.Error(err)
+
+		}
+	}
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -1059,15 +1145,23 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for emails to notify")
 	}
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+
+	return emailsToNotify, err
+}
+
+func GetEmailsToNotify(emails *string) ([]*string, error) {
 	emailString := "[]"
-	if obj.EmailsToNotify != nil {
-		emailString = *obj.EmailsToNotify
+	if emails != nil {
+		emailString = *emails
 	}
 	var emailsToNotify []*string
 	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
 		return nil, e.Wrap(err, "error unmarshalling emails")
 	}
 	return emailsToNotify, nil
+
 }
 
 func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {

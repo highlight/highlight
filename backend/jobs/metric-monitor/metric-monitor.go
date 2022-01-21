@@ -2,23 +2,27 @@ package metric_monitor
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
 
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
+	graph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func WatchMetricMonitors(DB *gorm.DB) {
+func WatchMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client) {
 	log.Info("Starting to watch Metric Monitors")
 
 	for range time.Tick(time.Minute * 1) {
 		go func() {
 			metricMonitors := getMetricMonitors(DB)
-			processMetricMonitors(DB, metricMonitors)
+			processMetricMonitors(DB, MailClient, metricMonitors)
 		}()
 	}
 }
@@ -34,10 +38,10 @@ func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	return metricMonitors
 }
 
-func processMetricMonitors(DB *gorm.DB, metricMonitors []*model.MetricMonitor) {
+func processMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor) {
 	log.Info("Number of Metric Monitors to Process: ", len(metricMonitors))
 	for _, metricMonitor := range metricMonitors {
-		aggregateStatement := GetAggregateSQLStatement(metricMonitor.Function)
+		aggregateStatement := graph.GetAggregateSQLStatement(metricMonitor.Function)
 		var value float64
 
 		if err := DB.Raw(fmt.Sprintf(`
@@ -78,27 +82,22 @@ func processMetricMonitors(DB *gorm.DB, metricMonitors []*model.MetricMonitor) {
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
 			}
+
+			emailsToNotify, err := model.GetEmailsToNotify(metricMonitor.EmailsToNotify)
+			if err != nil {
+				log.Error(err)
+			}
+
+			frontendURL := os.Getenv("FRONTEND_URI")
+			monitorURL := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
+
+			for _, email := range emailsToNotify {
+				message = fmt.Sprintf("<b>%s</b> is currently <b>%f</b> over the threshold.<br>(Value: <b>%s</b>, Threshold: <b>%s</b>)<br><br><a href=\"%s\">View Monitor</a>", metricMonitor.Name, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros, monitorURL)
+				if err := Email.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
+					log.Error(err)
+
+				}
+			}
 		}
 	}
-}
-
-func GetAggregateSQLStatement(aggregateFunctionName string) string {
-	aggregateStatement := "AVG(value)"
-
-	switch aggregateFunctionName {
-	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
-	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
-	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
-	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
-	case "avg":
-	default:
-		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
-		aggregateStatement = "AVG(value)"
-	}
-
-	return aggregateStatement
 }

@@ -267,6 +267,7 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
+						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
 						AlertWorkerPool:       alertWorkerpool,

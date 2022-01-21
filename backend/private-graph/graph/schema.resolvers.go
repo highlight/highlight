@@ -22,8 +22,8 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
-	metricMonitors "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -982,7 +982,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
@@ -1088,7 +1088,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, Email.SendGridErrorCommentEmailTemplateId, nil)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
@@ -4337,7 +4337,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
-	aggregateStatement := metricMonitors.GetAggregateSQLStatement(aggregateFunction)
+	aggregateStatement := GetAggregateSQLStatement(aggregateFunction)
 
 	if err := r.DB.Raw(fmt.Sprintf(`
 	SELECT

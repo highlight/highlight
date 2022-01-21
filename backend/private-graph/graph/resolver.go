@@ -29,6 +29,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
+	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -42,11 +43,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID                        = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
-	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
-	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
-	SendGridOutboundEmail                 = "gm@runhighlight.com"
+	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 )
 
 type Resolver struct {
@@ -620,7 +617,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(templateID)
 
@@ -851,9 +848,9 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
-	m.SetTemplateID(SendAdminInviteEmailTemplateID)
+	m.SetTemplateID(Email.SendAdminInviteEmailTemplateID)
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
@@ -1268,4 +1265,25 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	existingChannels = append(existingChannels, filteredNewChannels...)
 
 	return &existingChannels, newChannelsCount, nil
+}
+
+func GetAggregateSQLStatement(aggregateFunctionName string) string {
+	aggregateStatement := "AVG(value)"
+
+	switch aggregateFunctionName {
+	case "p50":
+		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
+	case "p75":
+		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
+	case "p90":
+		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
+	case "p99":
+		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
+	case "avg":
+	default:
+		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
+		aggregateStatement = "AVG(value)"
+	}
+
+	return aggregateStatement
 }
