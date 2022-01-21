@@ -1,6 +1,5 @@
 import Card from '@components/Card/Card';
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
@@ -807,56 +806,51 @@ export const AlertConfigurationCard = ({
                             </Form.Item>
                         </section>
 
-                        <HighlightGate>
-                            <section>
-                                <h3>Emails to Notify</h3>
-                                <p>
-                                    Pick email addresses to email when an alert
-                                    is created. These are email addresses for
-                                    people in your workspace.
-                                </p>
-                                <Form.Item shouldUpdate>
-                                    {() => (
-                                        <Select
-                                            className={styles.channelSelect}
-                                            options={emails}
-                                            mode="multiple"
-                                            filterOption={(
-                                                searchValue,
-                                                option
-                                            ) => {
-                                                return option?.children
-                                                    .toLowerCase()
-                                                    .includes(
-                                                        searchValue.toLowerCase()
-                                                    );
-                                            }}
-                                            placeholder={`Select a email address to send ${defaultName} to.`}
-                                            onChange={onEmailsChange}
-                                            notFoundContent={
-                                                <div
-                                                    className={
-                                                        styles.notFoundContentEmail
-                                                    }
+                        <section>
+                            <h3>Emails to Notify</h3>
+                            <p>
+                                Pick email addresses to email when an alert is
+                                created. These are email addresses for people in
+                                your workspace.
+                            </p>
+                            <Form.Item shouldUpdate>
+                                {() => (
+                                    <Select
+                                        className={styles.channelSelect}
+                                        options={emails}
+                                        mode="multiple"
+                                        filterOption={(searchValue, option) => {
+                                            return option?.children
+                                                .toLowerCase()
+                                                .includes(
+                                                    searchValue.toLowerCase()
+                                                );
+                                        }}
+                                        placeholder={`Select a email address to send ${defaultName} to.`}
+                                        onChange={onEmailsChange}
+                                        notFoundContent={
+                                            <div
+                                                className={
+                                                    styles.notFoundContentEmail
+                                                }
+                                            >
+                                                No matching email address found.
+                                                Do you want to{' '}
+                                                <Link
+                                                    to={`/w/${currentWorkspace?.id}/team`}
                                                 >
-                                                    No matching email address
-                                                    found. Do you want to{' '}
-                                                    <Link
-                                                        to={`/w/${currentWorkspace?.id}/team`}
-                                                    >
-                                                        invite someone to the
-                                                        workspace?
-                                                    </Link>
-                                                </div>
-                                            }
-                                            defaultValue={
-                                                alert?.EmailsToNotify || []
-                                            }
-                                        />
-                                    )}
-                                </Form.Item>
-                            </section>
-                        </HighlightGate>
+                                                    invite someone to the
+                                                    workspace?
+                                                </Link>
+                                            </div>
+                                        }
+                                        defaultValue={
+                                            alert?.EmailsToNotify || []
+                                        }
+                                    />
+                                )}
+                            </Form.Item>
+                        </section>
 
                         <section>
                             <h3>Excluded Environments</h3>
