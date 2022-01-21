@@ -316,6 +316,10 @@ a {
     background-color: var(--color-purple);
 }
 
+.ant-message {
+    z-index: 99999999999 !important;
+}
+
 .ant-message-notice-content {
     background: #1f1f1f;
     border-radius: 8px;

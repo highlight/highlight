@@ -75,6 +75,9 @@ const AlertsRouter = () => {
                             isSlackIntegrated={
                                 data?.is_integrated_with_slack || false
                             }
+                            emailSuggestions={(data?.admins || []).map(
+                                (admin) => admin!.email
+                            )}
                         />
                     </Route>
                     <Route exact path={`${path}/monitor/:id`}>
@@ -85,6 +88,9 @@ const AlertsRouter = () => {
                             isSlackIntegrated={
                                 data?.is_integrated_with_slack || false
                             }
+                            emailSuggestions={(data?.admins || []).map(
+                                (admin) => admin!.email
+                            )}
                         />
                     </Route>
                     <Route exact path={`${path}/new/:type`}>

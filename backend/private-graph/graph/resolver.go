@@ -898,6 +898,16 @@ func (r *Resolver) MarshalSlackChannelsToSanitizedSlackChannels(slackChannels []
 	return &channelsString, nil
 }
 
+func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
+	emailBytes, err := json.Marshal(emails)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing emails")
+	}
+	channelsString := string(emailBytes)
+
+	return &channelsString, nil
+}
+
 func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {

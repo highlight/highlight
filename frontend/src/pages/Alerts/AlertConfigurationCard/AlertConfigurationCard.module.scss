@@ -69,3 +69,8 @@
     column-gap: var(--size-large);
     display: flex;
 }
+
+.notFoundContentEmail {
+    color: var(--color-gray-500);
+    padding: var(--size-medium) 0;
+}

@@ -1698,6 +1698,7 @@ export const CreateErrorAlertDocument = gql`
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $regex_groups: [String]!
         $frequency: Int!
@@ -1707,6 +1708,7 @@ export const CreateErrorAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
             regex_groups: $regex_groups
@@ -1717,6 +1719,7 @@ export const CreateErrorAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -1750,6 +1753,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
@@ -1783,6 +1787,7 @@ export const CreateMetricMonitorDocument = gql`
         $threshold: Float!
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
     ) {
         createMetricMonitor(
             project_id: $project_id
@@ -1791,6 +1796,7 @@ export const CreateMetricMonitorDocument = gql`
             function: $function
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
+            emails: $emails
         ) {
             id
             updated_at
@@ -1799,6 +1805,7 @@ export const CreateMetricMonitorDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            emails_to_notify
             function
             metric_to_monitor
             last_admin_to_edit_id
@@ -1830,6 +1837,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      threshold: // value for 'threshold'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
@@ -1861,6 +1869,7 @@ export const UpdateMetricMonitorDocument = gql`
         $threshold: Float!
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
     ) {
         updateMetricMonitor(
             metric_monitor_id: $metric_monitor_id
@@ -1870,6 +1879,7 @@ export const UpdateMetricMonitorDocument = gql`
             function: $function
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
+            emails: $emails
         ) {
             id
             updated_at
@@ -1878,6 +1888,7 @@ export const UpdateMetricMonitorDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            emails_to_notify
             function
             metric_to_monitor
             last_admin_to_edit_id
@@ -1910,6 +1921,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      threshold: // value for 'threshold'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
@@ -1945,6 +1957,7 @@ export const DeleteMetricMonitorDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            emails_to_notify
             function
             metric_to_monitor
             last_admin_to_edit_id
@@ -2047,6 +2060,7 @@ export const CreateRageClickAlertDocument = gql`
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
     ) {
         createRageClickAlert(
@@ -2054,6 +2068,7 @@ export const CreateRageClickAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
         ) {
@@ -2062,6 +2077,7 @@ export const CreateRageClickAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2093,6 +2109,7 @@ export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
@@ -2124,6 +2141,7 @@ export const UpdateErrorAlertDocument = gql`
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $regex_groups: [String]!
         $frequency: Int!
@@ -2134,6 +2152,7 @@ export const UpdateErrorAlertDocument = gql`
             name: $name
             count_threshold: $count_threshold
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
             regex_groups: $regex_groups
@@ -2144,6 +2163,7 @@ export const UpdateErrorAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
@@ -2177,6 +2197,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
@@ -2311,11 +2332,13 @@ export const CreateDefaultAlertsDocument = gql`
         $project_id: ID!
         $alert_types: [String!]!
         $slack_channels: [SanitizedSlackChannelInput!]!
+        $emails: [String!]!
     ) {
         createDefaultAlerts(
             project_id: $project_id
             alert_types: $alert_types
             slack_channels: $slack_channels
+            emails: $emails
         )
     }
 `;
@@ -2340,6 +2363,7 @@ export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      alert_types: // value for 'alert_types'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *   },
  * });
  */
@@ -2369,6 +2393,7 @@ export const CreateSessionFeedbackAlertDocument = gql`
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
     ) {
         createSessionFeedbackAlert(
@@ -2376,6 +2401,7 @@ export const CreateSessionFeedbackAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
         ) {
@@ -2384,6 +2410,7 @@ export const CreateSessionFeedbackAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2415,6 +2442,7 @@ export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
@@ -2446,6 +2474,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
         $name: String!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
     ) {
         updateSessionFeedbackAlert(
@@ -2453,6 +2482,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
             session_feedback_alert_id: $session_feedback_alert_id
             count_threshold: $count_threshold
             slack_channels: $slack_channels
+            emails: $emails
             name: $name
             environments: $environments
             threshold_window: $threshold_window
@@ -2462,6 +2492,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
@@ -2494,6 +2525,7 @@ export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
@@ -2523,6 +2555,7 @@ export const CreateNewUserAlertDocument = gql`
         $name: String!
         $count_threshold: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $threshold_window: Int!
     ) {
@@ -2531,6 +2564,7 @@ export const CreateNewUserAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
         ) {
@@ -2539,6 +2573,7 @@ export const CreateNewUserAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2569,6 +2604,7 @@ export type CreateNewUserAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *   },
@@ -2599,6 +2635,7 @@ export const CreateNewSessionAlertDocument = gql`
         $name: String!
         $count_threshold: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $threshold_window: Int!
         $exclude_rules: [String]!
@@ -2608,6 +2645,7 @@ export const CreateNewSessionAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
             exclude_rules: $exclude_rules
@@ -2617,6 +2655,7 @@ export const CreateNewSessionAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2648,6 +2687,7 @@ export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *      exclude_rules: // value for 'exclude_rules'
@@ -2680,6 +2720,7 @@ export const UpdateNewSessionAlertDocument = gql`
         $name: String!
         $count_threshold: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $threshold_window: Int!
         $exclude_rules: [String]!
@@ -2690,6 +2731,7 @@ export const UpdateNewSessionAlertDocument = gql`
             name: $name
             count_threshold: $count_threshold
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
             exclude_rules: $exclude_rules
@@ -2699,6 +2741,7 @@ export const UpdateNewSessionAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2731,6 +2774,7 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *      exclude_rules: // value for 'exclude_rules'
@@ -2764,6 +2808,7 @@ export const UpdateRageClickAlertDocument = gql`
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
     ) {
         updateRageClickAlert(
@@ -2772,6 +2817,7 @@ export const UpdateRageClickAlertDocument = gql`
             name: $name
             count_threshold: $count_threshold
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
         ) {
@@ -2779,6 +2825,7 @@ export const UpdateRageClickAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
@@ -2809,6 +2856,7 @@ export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *   },
  * });
@@ -2839,6 +2887,7 @@ export const UpdateNewUserAlertDocument = gql`
         $count_threshold: Int!
         $name: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $threshold_window: Int!
     ) {
@@ -2848,6 +2897,7 @@ export const UpdateNewUserAlertDocument = gql`
             count_threshold: $count_threshold
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             threshold_window: $threshold_window
         ) {
@@ -2856,6 +2906,7 @@ export const UpdateNewUserAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             LastAdminToEditID
@@ -2885,6 +2936,7 @@ export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *   },
@@ -2914,6 +2966,7 @@ export const CreateTrackPropertiesAlertDocument = gql`
         $project_id: ID!
         $name: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $track_properties: [TrackPropertyInput]!
         $threshold_window: Int!
@@ -2922,6 +2975,7 @@ export const CreateTrackPropertiesAlertDocument = gql`
             project_id: $project_id
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             track_properties: $track_properties
             threshold_window: $threshold_window
@@ -2931,6 +2985,7 @@ export const CreateTrackPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             TrackProperties {
                 id
                 name
@@ -2965,6 +3020,7 @@ export type CreateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      track_properties: // value for 'track_properties'
  *      threshold_window: // value for 'threshold_window'
@@ -2996,6 +3052,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
         $session_alert_id: ID!
         $name: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $track_properties: [TrackPropertyInput]!
         $threshold_window: Int!
@@ -3004,6 +3061,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
             project_id: $project_id
             session_alert_id: $session_alert_id
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             name: $name
             track_properties: $track_properties
@@ -3014,6 +3072,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             TrackProperties {
                 id
                 name
@@ -3048,6 +3107,7 @@ export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      session_alert_id: // value for 'session_alert_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      track_properties: // value for 'track_properties'
  *      threshold_window: // value for 'threshold_window'
@@ -3078,6 +3138,7 @@ export const CreateUserPropertiesAlertDocument = gql`
         $project_id: ID!
         $name: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $user_properties: [UserPropertyInput]!
         $threshold_window: Int!
@@ -3086,6 +3147,7 @@ export const CreateUserPropertiesAlertDocument = gql`
             project_id: $project_id
             name: $name
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             user_properties: $user_properties
             threshold_window: $threshold_window
@@ -3095,6 +3157,7 @@ export const CreateUserPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             UserProperties {
                 id
                 name
@@ -3129,6 +3192,7 @@ export type CreateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      user_properties: // value for 'user_properties'
  *      threshold_window: // value for 'threshold_window'
@@ -3160,6 +3224,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
         $session_alert_id: ID!
         $name: String!
         $slack_channels: [SanitizedSlackChannelInput]!
+        $emails: [String]!
         $environments: [String]!
         $user_properties: [UserPropertyInput]!
         $threshold_window: Int!
@@ -3168,6 +3233,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
             project_id: $project_id
             session_alert_id: $session_alert_id
             slack_channels: $slack_channels
+            emails: $emails
             environments: $environments
             name: $name
             user_properties: $user_properties
@@ -3178,6 +3244,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             UserProperties {
                 id
                 name
@@ -3212,6 +3279,7 @@ export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      session_alert_id: // value for 'session_alert_id'
  *      name: // value for 'name'
  *      slack_channels: // value for 'slack_channels'
+ *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      user_properties: // value for 'user_properties'
  *      threshold_window: // value for 'threshold_window'
@@ -7711,6 +7779,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             updated_at
             CountThreshold
@@ -7728,6 +7797,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             updated_at
             ExcludedEnvironments
             CountThreshold
@@ -7743,6 +7813,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
@@ -7760,6 +7831,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
@@ -7775,6 +7847,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             ExcludedEnvironments
             CountThreshold
             updated_at
@@ -7789,6 +7862,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             TrackProperties {
                 id
                 name
@@ -7808,6 +7882,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            EmailsToNotify
             UserProperties {
                 id
                 name
@@ -7829,6 +7904,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            emails_to_notify
             function
             metric_to_monitor
             last_admin_to_edit_id

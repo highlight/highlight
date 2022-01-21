@@ -18,10 +18,15 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 
 interface Props {
     channelSuggestions: any[];
+    emailSuggestions: string[];
     isSlackIntegrated: boolean;
 }
 
-const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
+const NewMonitorPage = ({
+    channelSuggestions,
+    isSlackIntegrated,
+    emailSuggestions,
+}: Props) => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -41,6 +46,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
     const [functionName, setFunctionName] = useState<string>('p90');
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
+    const [emails, setEmails] = useState<string[]>([]);
     const [createMonitor] = useCreateMetricMonitorMutation({
         variables: {
             project_id,
@@ -55,6 +61,7 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                 webhook_channel_id,
             })),
             threshold,
+            emails,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -106,6 +113,9 @@ const NewMonitorPage = ({ channelSuggestions, isSlackIntegrated }: Props) => {
                         }}
                         formCancelButtonLabel="Cancel"
                         formSubmitButtonLabel="Create"
+                        emailSuggestions={emailSuggestions}
+                        emails={emails}
+                        onEmailsChange={setEmails}
                     />
                 </Card>
             </>

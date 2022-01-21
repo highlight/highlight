@@ -3,12 +3,14 @@ import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router';
+import { Link } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
@@ -55,6 +57,7 @@ interface Props {
     onDeleteHandler?: (alertId: string) => void;
     isCreatingNewAlert?: boolean;
     isSlackIntegrated: boolean;
+    emailSuggestions: string[];
 }
 
 export const AlertConfigurationCard = ({
@@ -73,6 +76,7 @@ export const AlertConfigurationCard = ({
     isCreatingNewAlert = false,
     identifierOptions,
     isSlackIntegrated,
+    emailSuggestions,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -80,6 +84,8 @@ export const AlertConfigurationCard = ({
     const [frequency, setFrequency] = useState(
         getFrequencyOption(alert?.Frequency).value
     );
+    const [emailsToNotify, setEmailsToNotify] = useState<string[]>([]);
+    const { currentWorkspace } = useApplicationContext();
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
@@ -101,6 +107,7 @@ export const AlertConfigurationCard = ({
             name: 'Error',
             regex_groups: [],
             frequency: 15,
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -115,6 +122,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             threshold_window: 30,
             name: 'Session Feedback',
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -126,6 +134,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             name: 'New User',
             threshold_window: 1,
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -137,6 +146,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             name: 'Rage Click',
             threshold_window: 30,
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -149,6 +159,7 @@ export const AlertConfigurationCard = ({
             name: 'New Session',
             threshold_window: 1,
             exclude_rules: [],
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -163,6 +174,7 @@ export const AlertConfigurationCard = ({
             name: 'Track',
             track_properties: [],
             threshold_window: 1,
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -177,6 +189,7 @@ export const AlertConfigurationCard = ({
             name: 'User',
             user_properties: [],
             threshold_window: 1,
+            emails: emailsToNotify,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -234,6 +247,7 @@ export const AlertConfigurationCard = ({
                                 regex_groups:
                                     form.getFieldValue('regex_groups') || [],
                                 frequency: frequency,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -243,6 +257,7 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -256,6 +271,7 @@ export const AlertConfigurationCard = ({
                                     form.getFieldValue(
                                         excludedIdentifiersFormName
                                     ) || [],
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -265,6 +281,7 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: lookbackPeriod,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -274,6 +291,7 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -283,6 +301,7 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                                 track_properties: form
                                     .getFieldValue('trackProperties')
                                     .map((trackProperty: any) => {
@@ -320,6 +339,7 @@ export const AlertConfigurationCard = ({
                                             name,
                                         };
                                     }),
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -339,10 +359,10 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 error_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
-                                regex_groups: form.getFieldValue(
-                                    'regex_groups'
-                                ),
+                                regex_groups:
+                                    form.getFieldValue('regex_groups') || [],
                                 frequency: frequency,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -353,6 +373,7 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -377,6 +398,7 @@ export const AlertConfigurationCard = ({
                                     }),
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -401,6 +423,7 @@ export const AlertConfigurationCard = ({
                                     }),
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -411,6 +434,7 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_feedback_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -421,6 +445,7 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                                emails: emailsToNotify,
                                 exclude_rules:
                                     form.getFieldValue(
                                         excludedIdentifiersFormName
@@ -435,6 +460,7 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 rage_click_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
+                                emails: emailsToNotify,
                             },
                         });
                         break;
@@ -482,6 +508,12 @@ export const AlertConfigurationCard = ({
         })
     );
 
+    const emails = emailSuggestions.map((email) => ({
+        displayValue: email,
+        value: email,
+        id: email,
+    }));
+
     const environments = [
         ...dedupeEnvironments(environmentOptions).map(
             (environmentSuggestion) => ({
@@ -521,6 +553,12 @@ export const AlertConfigurationCard = ({
 
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
+        setFormTouched(true);
+    };
+
+    const onEmailsChange = (emails: string[]) => {
+        form.setFieldsValue({ emails });
+        setEmailsToNotify(emails);
         setFormTouched(true);
     };
 
@@ -618,6 +656,7 @@ export const AlertConfigurationCard = ({
                                 alert.ChannelsToNotify?.map(
                                     (channel: any) => channel.webhook_channel_id
                                 ) || [],
+                            emails: alert.EmailsToNotify || [],
                             [excludedEnvironmentsFormName]:
                                 alert.ExcludedEnvironments,
                             lookbackPeriod: [lookbackPeriod],
@@ -762,6 +801,52 @@ export const AlertConfigurationCard = ({
                                                     )}
                                             </div>
                                         )}
+                                    />
+                                )}
+                            </Form.Item>
+                        </section>
+
+                        <section>
+                            <h3>Emails to Notify</h3>
+                            <p>
+                                Pick email addresses to email when an alert is
+                                created. These are email addresses for people in
+                                your workspace.
+                            </p>
+                            <Form.Item shouldUpdate>
+                                {() => (
+                                    <Select
+                                        className={styles.channelSelect}
+                                        options={emails}
+                                        mode="multiple"
+                                        filterOption={(searchValue, option) => {
+                                            return option?.children
+                                                .toLowerCase()
+                                                .includes(
+                                                    searchValue.toLowerCase()
+                                                );
+                                        }}
+                                        placeholder={`Select a email address to send ${defaultName} to.`}
+                                        onChange={onEmailsChange}
+                                        notFoundContent={
+                                            <div
+                                                className={
+                                                    styles.notFoundContentEmail
+                                                }
+                                            >
+                                                No matching email address found.
+                                                Do you want to{' '}
+                                                <Link
+                                                    to={`/w/${currentWorkspace?.id}/team`}
+                                                >
+                                                    invite someone to the
+                                                    workspace?
+                                                </Link>
+                                            </div>
+                                        }
+                                        defaultValue={
+                                            alert?.EmailsToNotify || []
+                                        }
                                     />
                                 )}
                             </Form.Item>

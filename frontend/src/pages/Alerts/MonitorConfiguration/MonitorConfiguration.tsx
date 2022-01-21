@@ -11,10 +11,12 @@ import {
     WEB_VITALS_CONFIGURATION,
     WebVitalDescriptor,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { Divider } from 'antd';
 import moment from 'moment';
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss';
 import styles from './MonitorConfiguration.module.scss';
@@ -31,10 +33,13 @@ interface Props {
     onThresholdChange: (newThreshold: number) => void;
     slackChannels: string[];
     onSlackChannelsChange: (newChannels: string[]) => void;
+    emails: string[];
+    onEmailsChange: (newEmails: string[]) => void;
     config: WebVitalDescriptor;
     onConfigChange: (newConfig: WebVitalDescriptor) => void;
     onFormSubmit: (values: any) => void;
     channelSuggestions: any[];
+    emailSuggestions: string[];
     isSlackIntegrated: boolean;
     slackUrl: string;
     formSubmitButtonLabel: string;
@@ -50,10 +55,13 @@ const MonitorConfiguration = ({
     metricToMonitorName,
     monitorName,
     config,
+    emails,
+    onEmailsChange,
     threshold,
     onFormSubmit,
     onConfigChange,
     channelSuggestions,
+    emailSuggestions,
     isSlackIntegrated,
     slackUrl,
     formSubmitButtonLabel,
@@ -71,6 +79,7 @@ const MonitorConfiguration = ({
     const { project_id } = useParams<{
         project_id: string;
     }>();
+    const { currentWorkspace } = useApplicationContext();
     const [searchQuery, setSearchQuery] = useState('');
     const { data, loading: metricPreviewLoading } = useGetMetricPreviewQuery({
         variables: {
@@ -131,6 +140,12 @@ const MonitorConfiguration = ({
             id: webhook_channel_id,
         })
     );
+
+    const emailOptions = emailSuggestions.map((email) => ({
+        displayValue: email,
+        value: email,
+        id: email,
+    }));
 
     return (
         <div>
@@ -318,6 +333,39 @@ const MonitorConfiguration = ({
                                     )}
                             </div>
                         )}
+                    />
+                </section>
+
+                <section>
+                    <h3>Emails to Notify</h3>
+                    <p>
+                        Pick email addresses to email when an alert is created.
+                        These are email addresses for people in your workspace.
+                    </p>
+                    <Select
+                        className={alertConfigurationCardStyles.channelSelect}
+                        options={emailOptions}
+                        value={emails}
+                        mode="multiple"
+                        filterOption={(searchValue, option) => {
+                            return option?.children
+                                .toLowerCase()
+                                .includes(searchValue.toLowerCase());
+                        }}
+                        placeholder={`Select email addresses to send the alert to.`}
+                        onChange={onEmailsChange}
+                        notFoundContent={
+                            <div
+                                className={
+                                    alertConfigurationCardStyles.notFoundContentEmail
+                                }
+                            >
+                                No matching email address found. Do you want to{' '}
+                                <Link to={`/w/${currentWorkspace?.id}/team`}>
+                                    invite someone to the workspace?
+                                </Link>
+                            </div>
+                        }
                     />
                 </section>
 

@@ -612,6 +612,7 @@ type MetricMonitor struct {
 	Threshold         float64
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
+	EmailsToNotify    *string `gorm:"emails_to_notify"`
 	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
 }
 
@@ -982,6 +983,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	EmailsToNotify       *string
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
@@ -1051,6 +1053,21 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
 	}
 	return sanitizedChannels, nil
+}
+
+func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for emails to notify")
+	}
+	emailString := "[]"
+	if obj.EmailsToNotify != nil {
+		emailString = *obj.EmailsToNotify
+	}
+	var emailsToNotify []*string
+	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling emails")
+	}
+	return emailsToNotify, nil
 }
 
 func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
