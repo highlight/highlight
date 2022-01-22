@@ -461,6 +461,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'LastAdminToEditID'
             | 'RegexGroups'
             | 'Frequency'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -526,6 +527,7 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     emails:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
@@ -618,6 +620,7 @@ export type CreateRageClickAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -650,6 +653,7 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     frequency: Types.Scalars['Int'];
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -664,6 +668,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'LastAdminToEditID'
             | 'RegexGroups'
             | 'Frequency'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -740,6 +745,7 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -768,6 +774,7 @@ export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
@@ -781,6 +788,7 @@ export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
             | 'ThresholdWindow'
             | 'Name'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -821,6 +829,7 @@ export type CreateNewUserAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -865,6 +874,7 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
             | 'ExcludeRules'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -896,6 +906,7 @@ export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
     exclude_rules:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -910,6 +921,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
             | 'ExcludeRules'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -938,6 +950,7 @@ export type UpdateRageClickAlertMutationVariables = Types.Exact<{
     environments:
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
@@ -948,6 +961,7 @@ export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -976,6 +990,7 @@ export type UpdateNewUserAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     threshold_window: Types.Scalars['Int'];
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
@@ -987,6 +1002,7 @@ export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1029,6 +1045,7 @@ export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1067,6 +1084,7 @@ export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.TrackPropertyInput>>
         | Types.Maybe<Types.TrackPropertyInput>;
     threshold_window: Types.Scalars['Int'];
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
@@ -1079,6 +1097,7 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'LastAdminToEditID'
             | 'Name'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1129,6 +1148,7 @@ export type CreateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1167,6 +1187,7 @@ export type UpdateUserPropertiesAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.UserPropertyInput>>
         | Types.Maybe<Types.UserPropertyInput>;
     threshold_window: Types.Scalars['Int'];
+    disabled: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
@@ -1179,6 +1200,7 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'Name'
             | 'LastAdminToEditID'
+            | 'disabled'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -2922,6 +2944,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Type'
                     | 'Name'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2948,6 +2971,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'Type'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2975,6 +2999,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Type'
                     | 'ExcludeRules'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -3001,6 +3026,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'Type'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -3027,6 +3053,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'Name'
                         | 'Type'
                         | 'DailyFrequency'
+                        | 'disabled'
                     > & {
                             ChannelsToNotify: Array<
                                 Types.Maybe<
@@ -3055,6 +3082,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'Type'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -3088,6 +3116,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'Type'
                     | 'DailyFrequency'
+                    | 'disabled'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -3120,6 +3149,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'metric_to_monitor'
                     | 'last_admin_to_edit_id'
                     | 'threshold'
+                    | 'disabled'
                 > & {
                         channels_to_notify: Array<
                             Types.Maybe<

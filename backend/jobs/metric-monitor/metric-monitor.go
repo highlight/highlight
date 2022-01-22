@@ -29,7 +29,7 @@ func WatchMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client) {
 
 func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	metricMonitors := []*model.MetricMonitor{}
-	if err := DB.Model(&model.MetricMonitor{}).Where("channels_to_notify != ?", "[]").Find(&metricMonitors).Error; err != nil {
+	if err := DB.Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("Error querying for metric monitors")
 		}

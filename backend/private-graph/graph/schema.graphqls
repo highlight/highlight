@@ -504,6 +504,7 @@ type ErrorAlert {
     RegexGroups: [String]!
     Frequency: Int!
     DailyFrequency: [Int64]!
+    disabled: Boolean!
 }
 
 type TrackProperty {
@@ -533,6 +534,7 @@ type SessionAlert {
     Type: String!
     ExcludeRules: [String]!
     DailyFrequency: [Int64]!
+    disabled: Boolean!
 }
 
 type WorkspaceInviteLink {
@@ -581,6 +583,7 @@ type MetricMonitor {
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
+    disabled: Boolean!
 }
 
 scalar Upload
@@ -863,6 +866,7 @@ type Mutation {
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
+        disabled: Boolean!
     ): MetricMonitor
     createErrorAlert(
         project_id: ID!
@@ -886,6 +890,7 @@ type Mutation {
         environments: [String]!
         regex_groups: [String]!
         frequency: Int!
+        disabled: Boolean!
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
@@ -898,6 +903,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
         environments: [String]!
+        disabled: Boolean!
     ): SessionAlert
     createSessionFeedbackAlert(
         project_id: ID!
@@ -917,6 +923,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
         environments: [String]!
+        disabled: Boolean!
     ): SessionAlert
     updateNewUserAlert(
         project_id: ID!
@@ -927,6 +934,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
         environments: [String]!
+        disabled: Boolean!
     ): SessionAlert
     createNewUserAlert(
         project_id: ID!
@@ -946,6 +954,7 @@ type Mutation {
         environments: [String]!
         track_properties: [TrackPropertyInput]!
         threshold_window: Int!
+        disabled: Boolean!
     ): SessionAlert
     createTrackPropertiesAlert(
         project_id: ID!
@@ -975,6 +984,7 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
         threshold_window: Int!
+        disabled: Boolean!
     ): SessionAlert
     updateNewSessionAlert(
         project_id: ID!
@@ -986,6 +996,7 @@ type Mutation {
         environments: [String]!
         threshold_window: Int!
         exclude_rules: [String]!
+        disabled: Boolean!
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!

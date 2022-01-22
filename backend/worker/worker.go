@@ -370,7 +370,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		// Sending Rage Click Alert
 		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
 		}
 

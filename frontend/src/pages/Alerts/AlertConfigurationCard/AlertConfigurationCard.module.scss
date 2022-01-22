@@ -68,6 +68,11 @@
 .actionsContainer {
     column-gap: var(--size-large);
     display: flex;
+    margin-left: auto;
+}
+
+.footer {
+    display: flex;
 }
 
 .notFoundContentEmail {

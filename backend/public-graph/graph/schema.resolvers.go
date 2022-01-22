@@ -102,7 +102,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 			return
 		}
 		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
 			return
 		}
@@ -228,6 +228,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			FROM session_alerts
 			WHERE project_id = ?
 				AND type = ?
+				AND disabled = false
 		`, session.ProjectID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": sessionID, "comment_id": feedbackComment.ID}).

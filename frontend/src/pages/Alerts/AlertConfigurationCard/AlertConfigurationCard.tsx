@@ -1,6 +1,7 @@
 import Card from '@components/Card/Card';
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import Input from '@components/Input/Input';
+import Switch from '@components/Switch/Switch';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -84,6 +85,7 @@ export const AlertConfigurationCard = ({
     const [frequency, setFrequency] = useState(
         getFrequencyOption(alert?.Frequency).value
     );
+    const [isDisabled, setIsDisabled] = useState(alert?.disabled || false);
     const [emailsToNotify, setEmailsToNotify] = useState<string[]>([]);
     const { currentWorkspace } = useApplicationContext();
     /** lookbackPeriod units is minutes. */
@@ -363,6 +365,7 @@ export const AlertConfigurationCard = ({
                                     form.getFieldValue('regex_groups') || [],
                                 frequency: frequency,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -374,6 +377,7 @@ export const AlertConfigurationCard = ({
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -399,6 +403,7 @@ export const AlertConfigurationCard = ({
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -424,6 +429,7 @@ export const AlertConfigurationCard = ({
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -435,6 +441,7 @@ export const AlertConfigurationCard = ({
                                 session_feedback_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -450,6 +457,7 @@ export const AlertConfigurationCard = ({
                                     form.getFieldValue(
                                         excludedIdentifiersFormName
                                     ) || [],
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -461,6 +469,7 @@ export const AlertConfigurationCard = ({
                                 rage_click_alert_id: alert.id,
                                 threshold_window: lookbackPeriod,
                                 emails: emailsToNotify,
+                                disabled: isDisabled,
                             },
                         });
                         break;
@@ -1021,42 +1030,63 @@ export const AlertConfigurationCard = ({
 
                         <Form.Item shouldUpdate>
                             {() => (
-                                <div className={styles.actionsContainer}>
-                                    {onDeleteHandler && (
-                                        <ConfirmModal
-                                            buttonProps={{
-                                                trackingId:
-                                                    'DeleteAlertConfiguration',
-                                                type: 'default',
-                                                danger: true,
-                                                className: styles.saveButton,
-                                                htmlType: 'button',
-                                                loading: loading,
-                                            }}
-                                            onCancelHandler={() => {}}
-                                            onConfirmHandler={() => {
-                                                if (alert.id) {
-                                                    onDeleteHandler(alert.id);
-                                                }
-                                            }}
-                                            trackingId="DeleteAlert"
-                                            modalTitleText={`Delete '${alert.Name}' Alert?`}
-                                            description="Deleting an alert is irreversible. You can always create a new alert if you want to get alerted for this again."
-                                            confirmText="Delete Alert"
-                                            cancelText="Don't Delete Alert"
-                                            buttonText="Delete"
-                                        />
+                                <div className={styles.footer}>
+                                    {!isCreatingNewAlert && (
+                                        <div>
+                                            <Switch
+                                                label="Enable"
+                                                trackingId="MonitorEnable"
+                                                checked={!isDisabled}
+                                                size="default"
+                                                onChange={(e) => {
+                                                    setFormTouched(true);
+                                                    setIsDisabled(!e);
+                                                }}
+                                            />
+                                        </div>
                                     )}
-                                    <Button
-                                        trackingId="SaveAlertConfiguration"
-                                        type="primary"
-                                        className={styles.saveButton}
-                                        htmlType="submit"
-                                        disabled={!formTouched}
-                                        loading={loading}
-                                    >
-                                        {isCreatingNewAlert ? 'Create' : 'Save'}
-                                    </Button>
+                                    <div className={styles.actionsContainer}>
+                                        {onDeleteHandler && (
+                                            <ConfirmModal
+                                                buttonProps={{
+                                                    trackingId:
+                                                        'DeleteAlertConfiguration',
+                                                    type: 'default',
+                                                    danger: true,
+                                                    className:
+                                                        styles.saveButton,
+                                                    htmlType: 'button',
+                                                    loading: loading,
+                                                }}
+                                                onCancelHandler={() => {}}
+                                                onConfirmHandler={() => {
+                                                    if (alert.id) {
+                                                        onDeleteHandler(
+                                                            alert.id
+                                                        );
+                                                    }
+                                                }}
+                                                trackingId="DeleteAlert"
+                                                modalTitleText={`Delete '${alert.Name}' Alert?`}
+                                                description="Deleting an alert is irreversible. You can always create a new alert if you want to get alerted for this again."
+                                                confirmText="Delete Alert"
+                                                cancelText="Don't Delete Alert"
+                                                buttonText="Delete"
+                                            />
+                                        )}
+                                        <Button
+                                            trackingId="SaveAlertConfiguration"
+                                            type="primary"
+                                            className={styles.saveButton}
+                                            htmlType="submit"
+                                            disabled={!formTouched}
+                                            loading={loading}
+                                        >
+                                            {isCreatingNewAlert
+                                                ? 'Create'
+                                                : 'Save'}
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </Form.Item>

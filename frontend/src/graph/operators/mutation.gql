@@ -350,6 +350,7 @@ mutation CreateErrorAlert(
         LastAdminToEditID
         RegexGroups
         Frequency
+        disabled
     }
 }
 
@@ -395,6 +396,7 @@ mutation UpdateMetricMonitor(
     $metric_to_monitor: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $emails: [String]!
+    $disabled: Boolean!
 ) {
     updateMetricMonitor(
         metric_monitor_id: $metric_monitor_id
@@ -405,6 +407,7 @@ mutation UpdateMetricMonitor(
         metric_to_monitor: $metric_to_monitor
         slack_channels: $slack_channels
         emails: $emails
+        disabled: $disabled
     ) {
         id
         updated_at
@@ -474,6 +477,7 @@ mutation CreateRageClickAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -488,6 +492,7 @@ mutation UpdateErrorAlert(
     $environments: [String]!
     $regex_groups: [String]!
     $frequency: Int!
+    $disabled: Boolean!
 ) {
     updateErrorAlert(
         project_id: $project_id
@@ -500,6 +505,7 @@ mutation UpdateErrorAlert(
         threshold_window: $threshold_window
         regex_groups: $regex_groups
         frequency: $frequency
+        disabled: $disabled
     ) {
         Name
         ChannelsToNotify {
@@ -513,6 +519,7 @@ mutation UpdateErrorAlert(
         LastAdminToEditID
         RegexGroups
         Frequency
+        disabled
     }
 }
 
@@ -573,6 +580,7 @@ mutation CreateSessionFeedbackAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -585,6 +593,7 @@ mutation UpdateSessionFeedbackAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $emails: [String]!
     $environments: [String]!
+    $disabled: Boolean!
 ) {
     updateSessionFeedbackAlert(
         project_id: $project_id
@@ -595,6 +604,7 @@ mutation UpdateSessionFeedbackAlert(
         name: $name
         environments: $environments
         threshold_window: $threshold_window
+        disabled: $disabled
     ) {
         id
         ChannelsToNotify {
@@ -607,6 +617,7 @@ mutation UpdateSessionFeedbackAlert(
         ThresholdWindow
         Name
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -639,6 +650,7 @@ mutation CreateNewUserAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -674,6 +686,7 @@ mutation CreateNewSessionAlert(
         ThresholdWindow
         LastAdminToEditID
         ExcludeRules
+        disabled
     }
 }
 
@@ -687,6 +700,7 @@ mutation UpdateNewSessionAlert(
     $environments: [String]!
     $threshold_window: Int!
     $exclude_rules: [String]!
+    $disabled: Boolean!
 ) {
     updateNewSessionAlert(
         project_id: $project_id
@@ -698,6 +712,7 @@ mutation UpdateNewSessionAlert(
         environments: $environments
         threshold_window: $threshold_window
         exclude_rules: $exclude_rules
+        disabled: $disabled
     ) {
         id
         ChannelsToNotify {
@@ -711,6 +726,7 @@ mutation UpdateNewSessionAlert(
         ThresholdWindow
         LastAdminToEditID
         ExcludeRules
+        disabled
     }
 }
 
@@ -723,6 +739,7 @@ mutation UpdateRageClickAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $emails: [String]!
     $environments: [String]!
+    $disabled: Boolean!
 ) {
     updateRageClickAlert(
         project_id: $project_id
@@ -733,6 +750,7 @@ mutation UpdateRageClickAlert(
         emails: $emails
         environments: $environments
         threshold_window: $threshold_window
+        disabled: $disabled
     ) {
         ChannelsToNotify {
             webhook_channel
@@ -742,6 +760,7 @@ mutation UpdateRageClickAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        disabled
     }
 }
 
@@ -754,6 +773,7 @@ mutation UpdateNewUserAlert(
     $emails: [String]!
     $environments: [String]!
     $threshold_window: Int!
+    $disabled: Boolean!
 ) {
     updateNewUserAlert(
         project_id: $project_id
@@ -764,6 +784,7 @@ mutation UpdateNewUserAlert(
         emails: $emails
         environments: $environments
         threshold_window: $threshold_window
+        disabled: $disabled
     ) {
         id
         ChannelsToNotify {
@@ -774,6 +795,7 @@ mutation UpdateNewUserAlert(
         ExcludedEnvironments
         CountThreshold
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -811,6 +833,7 @@ mutation CreateTrackPropertiesAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        disabled
     }
 }
 mutation UpdateTrackPropertiesAlert(
@@ -822,6 +845,7 @@ mutation UpdateTrackPropertiesAlert(
     $environments: [String]!
     $track_properties: [TrackPropertyInput]!
     $threshold_window: Int!
+    $disabled: Boolean!
 ) {
     updateTrackPropertiesAlert(
         project_id: $project_id
@@ -832,6 +856,7 @@ mutation UpdateTrackPropertiesAlert(
         name: $name
         track_properties: $track_properties
         threshold_window: $threshold_window
+        disabled: $disabled
     ) {
         id
         ChannelsToNotify {
@@ -848,6 +873,7 @@ mutation UpdateTrackPropertiesAlert(
         CountThreshold
         LastAdminToEditID
         Name
+        disabled
     }
 }
 
@@ -885,6 +911,7 @@ mutation CreateUserPropertiesAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        disabled
     }
 }
 
@@ -897,6 +924,7 @@ mutation UpdateUserPropertiesAlert(
     $environments: [String]!
     $user_properties: [UserPropertyInput]!
     $threshold_window: Int!
+    $disabled: Boolean!
 ) {
     updateUserPropertiesAlert(
         project_id: $project_id
@@ -907,6 +935,7 @@ mutation UpdateUserPropertiesAlert(
         name: $name
         user_properties: $user_properties
         threshold_window: $threshold_window
+        disabled: $disabled
     ) {
         id
         ChannelsToNotify {
@@ -923,6 +952,7 @@ mutation UpdateUserPropertiesAlert(
         CountThreshold
         Name
         LastAdminToEditID
+        disabled
     }
 }
 
