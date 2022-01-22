@@ -639,7 +639,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
-        if (state === ReplayerState.Playing || isLiveMode) {
+        if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
