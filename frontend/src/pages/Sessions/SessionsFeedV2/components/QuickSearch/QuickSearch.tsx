@@ -47,6 +47,12 @@ const styleProps: Styles<any, false> = {
         },
         transition: 'all 0.2s ease-in-out',
     }),
+    menu: (provided) => ({
+        ...provided,
+        borderRadius: 'var(--border-radius)',
+        boxShadow: 'var(--box-shadow)',
+        border: '1px solid var(--color-gray-300)',
+    }),
     menuList: (provided) => ({
         ...provided,
         scrollbarWidth: 'none',
@@ -82,6 +88,7 @@ const styleProps: Styles<any, false> = {
         ...provided,
         padding: '0 12px',
         height: '32px',
+        cursor: 'text',
     }),
     noOptionsMessage: (provided) => ({
         ...provided,
@@ -100,6 +107,7 @@ const styleProps: Styles<any, false> = {
         ...provided,
         color: 'var(--color-gray-500) !important',
         top: '53%',
+        cursor: 'text',
     }),
 };
 
