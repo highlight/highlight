@@ -1434,7 +1434,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	}
 
 	metricMonitor := &model.MetricMonitor{}
-	if err := r.DB.Debug().Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}}).Find(&metricMonitor).Error; err != nil {
+	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}}).Find(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
