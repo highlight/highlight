@@ -662,6 +662,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             };
 
             setTimerId(requestAnimationFrame(frameAction));
+        } else {
+            updateLastActiveString(Date.now());
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, replayer]);
