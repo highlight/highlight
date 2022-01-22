@@ -46,13 +46,16 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.New("[IdentifySession] error converting userObject interface type")
 	}
 
-	userProperties := map[string]string{
-		"identifier": userIdentifier,
+	userProperties := map[string]string{}
+	if userIdentifier != "" {
+		userProperties["identifier"] = userIdentifier
 	}
 	userObj := make(map[string]string)
 	for k, v := range obj {
-		userProperties[k] = fmt.Sprintf("%v", v)
-		userObj[k] = fmt.Sprintf("%v", v)
+		if v != "" {
+			userProperties[k] = fmt.Sprintf("%v", v)
+			userObj[k] = fmt.Sprintf("%v", v)
+		}
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
@@ -78,13 +81,18 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	}
 
 	session.FirstTime = firstTime
-	session.Identifier = userIdentifier
+	if userIdentifier != "" {
+		session.Identifier = userIdentifier
+	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, map[string]interface{}{
+	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,
-		"identifier":      session.Identifier,
-	}); err != nil {
+	}
+	if session.Identifier != "" {
+		openSearchProperties["identifier"] = session.Identifier
+	}
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
