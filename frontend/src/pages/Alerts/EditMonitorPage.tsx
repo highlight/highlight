@@ -46,6 +46,7 @@ const EditMonitorPage = ({
     const [functionName, setFunctionName] = useState<string>('p90');
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
+    const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [emails, setEmails] = useState<string[]>([]);
     const [updateMonitor] = useUpdateMetricMonitorMutation({
         variables: {
@@ -63,6 +64,7 @@ const EditMonitorPage = ({
             })),
             threshold,
             emails,
+            disabled: isDisabled,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -95,6 +97,7 @@ const EditMonitorPage = ({
                 name,
                 threshold,
                 emails_to_notify,
+                disabled,
             } = existingMonitor;
 
             setMetricToMonitorName(metric_to_monitor);
@@ -107,6 +110,7 @@ const EditMonitorPage = ({
                 ) || []
             );
             setFunctionName(functionName);
+            setIsDisabled(disabled);
         }
 
         if (
@@ -158,6 +162,8 @@ const EditMonitorPage = ({
                         emailSuggestions={emailSuggestions}
                         emails={emails}
                         onEmailsChange={setEmails}
+                        disabled={isDisabled}
+                        setIsDisabled={setIsDisabled}
                     />
                 </Card>
             </>

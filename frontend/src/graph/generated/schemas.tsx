@@ -557,6 +557,7 @@ export type ErrorAlert = {
     RegexGroups: Array<Maybe<Scalars['String']>>;
     Frequency: Scalars['Int'];
     DailyFrequency: Array<Maybe<Scalars['Int64']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type TrackProperty = {
@@ -588,6 +589,7 @@ export type SessionAlert = {
     Type: Scalars['String'];
     ExcludeRules: Array<Maybe<Scalars['String']>>;
     DailyFrequency: Array<Maybe<Scalars['Int64']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type WorkspaceInviteLink = {
@@ -642,6 +644,7 @@ export type MetricMonitor = {
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
     threshold: Scalars['Float'];
+    disabled: Scalars['Boolean'];
 };
 
 export type Query = {
@@ -1321,6 +1324,7 @@ export type MutationUpdateMetricMonitorArgs = {
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationCreateErrorAlertArgs = {
@@ -1346,6 +1350,7 @@ export type MutationUpdateErrorAlertArgs = {
     environments: Array<Maybe<Scalars['String']>>;
     regex_groups: Array<Maybe<Scalars['String']>>;
     frequency: Scalars['Int'];
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationDeleteErrorAlertArgs = {
@@ -1367,6 +1372,7 @@ export type MutationUpdateSessionFeedbackAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationCreateSessionFeedbackAlertArgs = {
@@ -1388,6 +1394,7 @@ export type MutationUpdateRageClickAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationUpdateNewUserAlertArgs = {
@@ -1399,6 +1406,7 @@ export type MutationUpdateNewUserAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
     environments: Array<Maybe<Scalars['String']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationCreateNewUserAlertArgs = {
@@ -1420,6 +1428,7 @@ export type MutationUpdateTrackPropertiesAlertArgs = {
     environments: Array<Maybe<Scalars['String']>>;
     track_properties: Array<Maybe<TrackPropertyInput>>;
     threshold_window: Scalars['Int'];
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationCreateTrackPropertiesAlertArgs = {
@@ -1456,6 +1465,7 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
     threshold_window: Scalars['Int'];
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationUpdateNewSessionAlertArgs = {
@@ -1468,6 +1478,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
     exclude_rules: Array<Maybe<Scalars['String']>>;
+    disabled: Scalars['Boolean'];
 };
 
 export type MutationCreateNewSessionAlertArgs = {

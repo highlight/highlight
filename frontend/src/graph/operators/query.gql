@@ -1114,6 +1114,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Type
         Name
         DailyFrequency
+        disabled
     }
     session_feedback_alerts(project_id: $project_id) {
         ChannelsToNotify {
@@ -1130,6 +1131,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         Type
         DailyFrequency
+        disabled
     }
     new_session_alerts(project_id: $project_id) {
         ChannelsToNotify {
@@ -1147,6 +1149,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Type
         ExcludeRules
         DailyFrequency
+        disabled
     }
     rage_click_alerts(project_id: $project_id) {
         id
@@ -1163,6 +1166,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         Type
         DailyFrequency
+        disabled
     }
     new_user_alerts(project_id: $project_id) {
         id
@@ -1178,6 +1182,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         Type
         DailyFrequency
+        disabled
     }
     track_properties_alerts(project_id: $project_id) {
         id
@@ -1198,6 +1203,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         Type
         DailyFrequency
+        disabled
     }
     user_properties_alerts(project_id: $project_id) {
         id
@@ -1218,6 +1224,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         Type
         DailyFrequency
+        disabled
     }
     metric_monitors(project_id: $project_id) {
         id
@@ -1232,6 +1239,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         metric_to_monitor
         last_admin_to_edit_id
         threshold
+        disabled
     }
 }
 

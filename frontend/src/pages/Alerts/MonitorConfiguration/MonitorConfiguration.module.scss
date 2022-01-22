@@ -3,9 +3,15 @@
 }
 
 .formFooter {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--size-large);
+}
+
+.actionsContainer {
     column-gap: var(--size-large);
     display: flex;
-    justify-content: flex-end;
+    margin-left: auto;
 }
 
 .select {

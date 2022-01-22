@@ -3,6 +3,7 @@ import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import Switch from '@components/Switch/Switch';
 import { useGetMetricPreviewQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { MetricType } from '@graph/schemas';
@@ -47,6 +48,8 @@ interface Props {
     formDestructiveButtonLabel?: string;
     onFormDestructiveAction?: () => void;
     onFormCancel?: () => void;
+    disabled?: boolean;
+    setIsDisabled?: (newValue: boolean) => void;
 }
 
 const MonitorConfiguration = ({
@@ -75,6 +78,8 @@ const MonitorConfiguration = ({
     slackChannels,
     formDestructiveButtonLabel,
     onFormDestructiveAction,
+    disabled,
+    setIsDisabled,
 }: Props) => {
     const { project_id } = useParams<{
         project_id: string;
@@ -370,36 +375,56 @@ const MonitorConfiguration = ({
                 </section>
 
                 <div className={styles.formFooter}>
-                    {onFormCancel && (
-                        <Button
-                            trackingId="CancelCreateMonitor"
-                            type="default"
-                            onClick={() => {
-                                onFormCancel();
+                    {setIsDisabled !== undefined && (
+                        <Switch
+                            label="Enable"
+                            trackingId="MonitorEnable"
+                            checked={!disabled}
+                            size="default"
+                            onChange={(e) => {
+                                setIsDisabled(!e);
                             }}
-                        >
-                            {formCancelButtonLabel}
-                        </Button>
+                        />
                     )}
-                    {onFormDestructiveAction && (
+                    <div className={styles.actionsContainer}>
+                        {onFormCancel && (
+                            <Button
+                                trackingId="CancelCreateMonitor"
+                                type="default"
+                                className={
+                                    alertConfigurationCardStyles.saveButton
+                                }
+                                onClick={() => {
+                                    onFormCancel();
+                                }}
+                            >
+                                {formCancelButtonLabel}
+                            </Button>
+                        )}
+                        {onFormDestructiveAction && (
+                            <Button
+                                trackingId="DestructiveCreateMonitor"
+                                danger
+                                type="default"
+                                className={
+                                    alertConfigurationCardStyles.saveButton
+                                }
+                                onClick={() => {
+                                    onFormDestructiveAction();
+                                }}
+                            >
+                                {formDestructiveButtonLabel}
+                            </Button>
+                        )}
                         <Button
-                            trackingId="DestructiveCreateMonitor"
-                            danger
-                            type="default"
-                            onClick={() => {
-                                onFormDestructiveAction();
-                            }}
+                            trackingId="CreateMonitor"
+                            htmlType="submit"
+                            className={alertConfigurationCardStyles.saveButton}
+                            type="primary"
                         >
-                            {formDestructiveButtonLabel}
+                            {formSubmitButtonLabel}
                         </Button>
-                    )}
-                    <Button
-                        trackingId="CreateMonitor"
-                        htmlType="submit"
-                        type="primary"
-                    >
-                        {formSubmitButtonLabel}
-                    </Button>
+                    </div>
                 </div>
             </form>
         </div>

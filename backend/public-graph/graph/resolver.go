@@ -118,7 +118,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 			return
 		}
 		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID))
 			return
 		}
@@ -184,7 +184,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 			return
 		}
 		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID))
 			return
 		}
@@ -678,7 +678,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	r.AlertWorkerPool.SubmitRecover(func() {
 		// Sending session init alert
 		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
 			Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
 			return
@@ -979,7 +979,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {
 	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
-		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
+		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
 			return
 		}

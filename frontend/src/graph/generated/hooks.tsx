@@ -1727,6 +1727,7 @@ export const CreateErrorAlertDocument = gql`
             LastAdminToEditID
             RegexGroups
             Frequency
+            disabled
         }
     }
 `;
@@ -1870,6 +1871,7 @@ export const UpdateMetricMonitorDocument = gql`
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
         $emails: [String]!
+        $disabled: Boolean!
     ) {
         updateMetricMonitor(
             metric_monitor_id: $metric_monitor_id
@@ -1880,6 +1882,7 @@ export const UpdateMetricMonitorDocument = gql`
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
             emails: $emails
+            disabled: $disabled
         ) {
             id
             updated_at
@@ -1922,6 +1925,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
  *      emails: // value for 'emails'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2083,6 +2087,7 @@ export const CreateRageClickAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -2145,6 +2150,7 @@ export const UpdateErrorAlertDocument = gql`
         $environments: [String]!
         $regex_groups: [String]!
         $frequency: Int!
+        $disabled: Boolean!
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -2157,6 +2163,7 @@ export const UpdateErrorAlertDocument = gql`
             threshold_window: $threshold_window
             regex_groups: $regex_groups
             frequency: $frequency
+            disabled: $disabled
         ) {
             Name
             ChannelsToNotify {
@@ -2170,6 +2177,7 @@ export const UpdateErrorAlertDocument = gql`
             LastAdminToEditID
             RegexGroups
             Frequency
+            disabled
         }
     }
 `;
@@ -2201,6 +2209,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2416,6 +2425,7 @@ export const CreateSessionFeedbackAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -2476,6 +2486,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $emails: [String]!
         $environments: [String]!
+        $disabled: Boolean!
     ) {
         updateSessionFeedbackAlert(
             project_id: $project_id
@@ -2486,6 +2497,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
             name: $name
             environments: $environments
             threshold_window: $threshold_window
+            disabled: $disabled
         ) {
             id
             ChannelsToNotify {
@@ -2498,6 +2510,7 @@ export const UpdateSessionFeedbackAlertDocument = gql`
             ThresholdWindow
             Name
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -2527,6 +2540,7 @@ export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2579,6 +2593,7 @@ export const CreateNewUserAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -2662,6 +2677,7 @@ export const CreateNewSessionAlertDocument = gql`
             ThresholdWindow
             LastAdminToEditID
             ExcludeRules
+            disabled
         }
     }
 `;
@@ -2724,6 +2740,7 @@ export const UpdateNewSessionAlertDocument = gql`
         $environments: [String]!
         $threshold_window: Int!
         $exclude_rules: [String]!
+        $disabled: Boolean!
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -2735,6 +2752,7 @@ export const UpdateNewSessionAlertDocument = gql`
             environments: $environments
             threshold_window: $threshold_window
             exclude_rules: $exclude_rules
+            disabled: $disabled
         ) {
             id
             ChannelsToNotify {
@@ -2748,6 +2766,7 @@ export const UpdateNewSessionAlertDocument = gql`
             ThresholdWindow
             LastAdminToEditID
             ExcludeRules
+            disabled
         }
     }
 `;
@@ -2778,6 +2797,7 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
  *      exclude_rules: // value for 'exclude_rules'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2810,6 +2830,7 @@ export const UpdateRageClickAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $emails: [String]!
         $environments: [String]!
+        $disabled: Boolean!
     ) {
         updateRageClickAlert(
             project_id: $project_id
@@ -2820,6 +2841,7 @@ export const UpdateRageClickAlertDocument = gql`
             emails: $emails
             environments: $environments
             threshold_window: $threshold_window
+            disabled: $disabled
         ) {
             ChannelsToNotify {
                 webhook_channel
@@ -2829,6 +2851,7 @@ export const UpdateRageClickAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            disabled
         }
     }
 `;
@@ -2858,6 +2881,7 @@ export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2890,6 +2914,7 @@ export const UpdateNewUserAlertDocument = gql`
         $emails: [String]!
         $environments: [String]!
         $threshold_window: Int!
+        $disabled: Boolean!
     ) {
         updateNewUserAlert(
             project_id: $project_id
@@ -2900,6 +2925,7 @@ export const UpdateNewUserAlertDocument = gql`
             emails: $emails
             environments: $environments
             threshold_window: $threshold_window
+            disabled: $disabled
         ) {
             id
             ChannelsToNotify {
@@ -2910,6 +2936,7 @@ export const UpdateNewUserAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -2939,6 +2966,7 @@ export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -2996,6 +3024,7 @@ export const CreateTrackPropertiesAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -3056,6 +3085,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
         $environments: [String]!
         $track_properties: [TrackPropertyInput]!
         $threshold_window: Int!
+        $disabled: Boolean!
     ) {
         updateTrackPropertiesAlert(
             project_id: $project_id
@@ -3066,6 +3096,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
             name: $name
             track_properties: $track_properties
             threshold_window: $threshold_window
+            disabled: $disabled
         ) {
             id
             ChannelsToNotify {
@@ -3082,6 +3113,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
             CountThreshold
             LastAdminToEditID
             Name
+            disabled
         }
     }
 `;
@@ -3111,6 +3143,7 @@ export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      track_properties: // value for 'track_properties'
  *      threshold_window: // value for 'threshold_window'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -3168,6 +3201,7 @@ export const CreateUserPropertiesAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -3228,6 +3262,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
         $environments: [String]!
         $user_properties: [UserPropertyInput]!
         $threshold_window: Int!
+        $disabled: Boolean!
     ) {
         updateUserPropertiesAlert(
             project_id: $project_id
@@ -3238,6 +3273,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
             name: $name
             user_properties: $user_properties
             threshold_window: $threshold_window
+            disabled: $disabled
         ) {
             id
             ChannelsToNotify {
@@ -3254,6 +3290,7 @@ export const UpdateUserPropertiesAlertDocument = gql`
             CountThreshold
             Name
             LastAdminToEditID
+            disabled
         }
     }
 `;
@@ -3283,6 +3320,7 @@ export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      user_properties: // value for 'user_properties'
  *      threshold_window: // value for 'threshold_window'
+ *      disabled: // value for 'disabled'
  *   },
  * });
  */
@@ -7791,6 +7829,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Type
             Name
             DailyFrequency
+            disabled
         }
         session_feedback_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7807,6 +7846,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             Type
             DailyFrequency
+            disabled
         }
         new_session_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -7824,6 +7864,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Type
             ExcludeRules
             DailyFrequency
+            disabled
         }
         rage_click_alerts(project_id: $project_id) {
             id
@@ -7840,6 +7881,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             Type
             DailyFrequency
+            disabled
         }
         new_user_alerts(project_id: $project_id) {
             id
@@ -7855,6 +7897,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             Type
             DailyFrequency
+            disabled
         }
         track_properties_alerts(project_id: $project_id) {
             id
@@ -7875,6 +7918,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             Type
             DailyFrequency
+            disabled
         }
         user_properties_alerts(project_id: $project_id) {
             id
@@ -7895,6 +7939,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             Type
             DailyFrequency
+            disabled
         }
         metric_monitors(project_id: $project_id) {
             id
@@ -7909,6 +7954,7 @@ export const GetAlertsPagePayloadDocument = gql`
             metric_to_monitor
             last_admin_to_edit_id
             threshold
+            disabled
         }
     }
 `;
