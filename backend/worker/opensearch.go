@@ -5,6 +5,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	id := int(val.FieldByName("ID").Int())
 
 	// Add an item to the indexer
-	if err := w.Resolver.OpenSearch.Index(index, id, item); err != nil {
+	if err := w.Resolver.OpenSearch.Index(index, id, nil, item); err != nil {
 		log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding field to the indexer"))
 	}
 }
@@ -111,6 +112,78 @@ func (w *Worker) IndexErrors(isUpdate bool) {
 	}
 }
 
+func (w *Worker) IndexErrorGroups(isUpdate bool) {
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	rows, err := w.Resolver.DB.Model(&model.ErrorGroup{}).
+		Where(whereClause).
+		Order("created_at asc").Rows()
+	if err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+	}
+
+	for rows.Next() {
+		eg := model.ErrorGroup{}
+		if err := w.Resolver.DB.ScanRows(rows, &eg); err != nil {
+			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+		}
+		var filename *string
+		if eg.MappedStackTrace != nil {
+			filename = model.GetFirstFilename(*eg.MappedStackTrace)
+		} else {
+			filename = model.GetFirstFilename(eg.StackTrace)
+		}
+		eg.FieldGroup = nil
+		eg.Fields = nil
+		eg.Environments = ""
+		eg.MappedStackTrace = nil
+		eg.StackTrace = ""
+		os := opensearch.OpenSearchError{
+			ErrorGroup: &eg,
+			Fields:     nil,
+			Filename:   filename,
+		}
+		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eg.ID, pointy.Int(0), os); err != nil {
+			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
+		}
+	}
+}
+
+func (w *Worker) IndexErrorObjects(isUpdate bool) {
+	whereClause := "True"
+	if isUpdate {
+		whereClause = "updated_at > NOW() - interval '1 day'"
+	}
+
+	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+		Where(whereClause).
+		Order("created_at asc").Rows()
+	if err != nil {
+		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
+	}
+
+	for rows.Next() {
+		eo := model.ErrorObject{}
+		if err := w.Resolver.DB.ScanRows(rows, &eo); err != nil {
+			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
+		}
+
+		os := opensearch.OpenSearchErrorObject{
+			Url:       eo.URL,
+			Os:        eo.OS,
+			Browser:   eo.Browser,
+			Timestamp: eo.Timestamp,
+		}
+
+		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eo.ID, pointy.Int(eo.ErrorGroupID), os); err != nil {
+			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
+		}
+	}
+}
+
 func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, isUpdate bool) {
 	modelProto := modelPrototype
 
@@ -135,6 +208,18 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, 
 		w.indexItem(index, modelObj)
 	}
 }
+
+const JOIN_MAPPINGS = `
+{
+	"properties": {
+		"join_type": { 
+			"type": "join",
+			"relations": {
+				"parent": "child" 
+			}
+		}
+	}
+}`
 
 const NESTED_FIELD_MAPPINGS = `
 {
@@ -186,6 +271,9 @@ func (w *Worker) InitIndexMappings() {
 	}
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
+	}
+	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorsCombined, JOIN_MAPPINGS); err != nil {
+		log.Warnf("OPENSEARCH_ERROR error creating errors combined mappings: %+v", err)
 	}
 	if err := w.Resolver.OpenSearch.PutScript(opensearch.ScriptAppendFields, FIELD_APPEND_SCRIPT); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating field append script: %+v", err)

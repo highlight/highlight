@@ -40,10 +40,11 @@ var (
 type Index string
 
 var (
-	IndexSessions    Index = "sessions"
-	IndexFields      Index = "fields"
-	IndexErrors      Index = "errors"
-	IndexErrorFields Index = "error-fields"
+	IndexSessions       Index = "sessions"
+	IndexFields         Index = "fields"
+	IndexErrors         Index = "errors"
+	IndexErrorFields    Index = "error-fields"
+	IndexErrorsCombined Index = "errors-combined"
 )
 
 func GetIndex(suffix Index) string {
@@ -161,18 +162,37 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
-func (c *Client) Index(index Index, id int, obj interface{}) error {
+func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
 
-	documentId := strconv.Itoa(id)
+	documentId := ""
+	joinClause := ""
+	routing := ""
+	if parentId != nil {
+		if *parentId > 0 {
+			// Parent/child document ids could collide - prepend child document ids with 'child_'
+			documentId += "child_"
+			joinClause = fmt.Sprintf(`,"join_type":{"name":"child","parent":"%d"},"routing":"%d"`, *parentId, *parentId)
+			routing = strconv.Itoa(*parentId)
+		} else {
+			joinClause = `,"join_type": {"name": "parent"}`
+		}
+	}
+	documentId += strconv.Itoa(id)
 
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
 	}
-	body := strings.NewReader(string(b))
+	bodyStr := string(b)
+
+	// If there's a join clause, splice it into the end of the body
+	if joinClause != "" {
+		bodyStr = fmt.Sprintf("%s%s}", bodyStr[:len(bodyStr)-1], joinClause)
+	}
+	body := strings.NewReader(bodyStr)
 
 	indexStr := GetIndex(index)
 
@@ -181,6 +201,7 @@ func (c *Client) Index(index Index, id int, obj interface{}) error {
 		Action:     "index",
 		DocumentID: documentId,
 		Body:       body,
+		Routing:    routing,
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
@@ -447,6 +468,13 @@ type OpenSearchError struct {
 	*model.ErrorGroup
 	Fields   []*OpenSearchErrorField `json:"fields"`
 	Filename *string                 `json:"filename"`
+}
+
+type OpenSearchErrorObject struct {
+	Url       string    `json:"visited_url"`
+	Os        string    `json:"os_name"`
+	Browser   string    `json:"browser"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {

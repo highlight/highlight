@@ -2,6 +2,8 @@ module github.com/highlight-run/highlight/backend
 
 go 1.14
 
+replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/opensearch-go v1.0.1
+
 require (
 	cloud.google.com/go/firestore v1.3.0 // indirect
 	cloud.google.com/go/storage v1.11.0 // indirect
@@ -43,7 +45,6 @@ require (
 	github.com/stripe/stripe-go/v72 v72.73.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164 // indirect
