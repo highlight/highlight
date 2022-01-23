@@ -95,6 +95,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         direction: 'ltr',
         textAlign: 'left',
         padding: '0 0 0 12px',
+        marginRight: '12px',
         fontSize: '12px',
         color: 'var(--color-text-primary)',
         backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
@@ -109,7 +110,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         '&::-webkit-scrollbar': {
             display: 'none',
         },
-        maxHeight: '500px',
+        maxHeight: '400px',
     }),
     control: (provided) => ({
         ...provided,
