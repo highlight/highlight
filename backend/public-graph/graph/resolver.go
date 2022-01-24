@@ -1274,7 +1274,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1527,7 +1527,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}

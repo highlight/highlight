@@ -377,6 +377,8 @@ type Session struct {
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
 	Language       string `json:"language"`
+	// Tells us if 'beforeunload' was fired on the client - note this is not necessarily fired on every session end
+	HasUnloaded bool `gorm:"default:false"`
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
