@@ -821,7 +821,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
     error_state: getStateLabel,
-    error_created_at: getDateLabel,
+    'error-field_timestamp': getDateLabel,
 };
 
 export const deserializeGroup = (
