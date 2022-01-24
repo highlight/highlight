@@ -212,6 +212,15 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, 
 const JOIN_MAPPINGS = `
 {
 	"properties": {
+		"Event": {
+			"type" : "text",
+			"fields" : {
+				"keyword" : {
+					"type" : "keyword",
+					"ignore_above" : 30000
+				}
+			}
+		},
 		"join_type": { 
 			"type": "join",
 			"relations": {
@@ -232,7 +241,8 @@ const NESTED_FIELD_MAPPINGS = `
 				},
 				"KeyValue": {
 					"type": "keyword",
-					"normalizer": "lowercase"
+					"normalizer": "lowercase",
+					"ignore_above": 30000
 				}
 			}
 		}
