@@ -16,6 +16,7 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
@@ -258,7 +259,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
-			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, f); err != nil {
+			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
 
@@ -428,12 +429,25 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group in opensearch")
 		}
+		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
+			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
+		}
 
 		errorGroup = newErrorGroup
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
+	}
+
+	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
+		Url:       errorObj.URL,
+		Os:        errorObj.OS,
+		Browser:   errorObj.Browser,
+		Timestamp: errorObj.Timestamp,
+	}
+	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
+		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
 	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
@@ -494,7 +508,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, f); err != nil {
+			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)

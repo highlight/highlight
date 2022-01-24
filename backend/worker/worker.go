@@ -552,6 +552,8 @@ func (w *Worker) UpdateOpenSearchIndex() {
 	w.IndexTable(opensearch.IndexFields, &model.Field{}, true)
 	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, true)
 	w.IndexErrors(true)
+	w.IndexErrorGroups(true)
+	w.IndexErrorObjects(true)
 	w.IndexSessions(true)
 
 	// Close the indexer channel and flush remaining items
@@ -570,10 +572,12 @@ func (w *Worker) UpdateOpenSearchIndex() {
 
 func (w *Worker) InitializeOpenSearchIndex() {
 	w.InitIndexMappings()
-	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
-	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
-	w.IndexErrors(false)
-	w.IndexSessions(false)
+	// w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
+	// w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
+	// w.IndexErrors(false)
+	w.IndexErrorGroups(false)
+	w.IndexErrorObjects(false)
+	// w.IndexSessions(false)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
