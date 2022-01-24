@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { PlanType } from '../../../graph/generated/schemas';
 
 /**
@@ -23,4 +25,10 @@ export const didUpgradePlan = (
         case PlanType.Enterprise:
             return true;
     }
+};
+
+export const getTrialEndDateMessage = (trialEndDate: any): string => {
+    return `You have unlimited sessions until ${moment(trialEndDate).format(
+        'MM/DD/YY'
+    )}. After this trial, you will be on the free tier.`;
 };

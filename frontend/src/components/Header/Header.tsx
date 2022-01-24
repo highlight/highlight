@@ -5,6 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -174,11 +175,9 @@ const FreePlanBanner = () => {
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
     if (hasTrial) {
-        bannerMessage = `You have unlimited sessions until ${moment(
+        bannerMessage = getTrialEndDateMessage(
             data?.workspace_for_project?.trial_end_date
-        ).format(
-            'MM/DD/YY'
-        )}. After this trial, you will be on the free tier. `;
+        );
 
         if (canExtend) {
             if (integrated) {

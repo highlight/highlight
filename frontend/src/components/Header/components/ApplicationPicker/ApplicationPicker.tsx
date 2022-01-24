@@ -162,13 +162,25 @@ const ApplicationPicker = () => {
                             }))}
                             buttonTrackingId="ApplicationPickerSettings"
                             buttonContentsOverride={
-                                <Button
-                                    trackingId="ApplicationPickerSettings"
-                                    type="text"
-                                    iconButton
-                                >
-                                    <SvgSwitch2Icon />
-                                </Button>
+                                isWorkspaceLevel ? (
+                                    <Button
+                                        trackingId="ApplicationPickerSettings"
+                                        type="text"
+                                        iconButton
+                                        className={styles.backToProjectButton}
+                                    >
+                                        <SvgSwitch2Icon />
+                                        <span>Back to Project</span>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        trackingId="ApplicationPickerSettings"
+                                        type="text"
+                                        iconButton
+                                    >
+                                        <SvgSwitch2Icon />
+                                    </Button>
+                                )
                             }
                         />
                     </div>
