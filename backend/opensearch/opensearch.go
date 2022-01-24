@@ -42,7 +42,6 @@ type Index string
 var (
 	IndexSessions       Index = "sessions"
 	IndexFields         Index = "fields"
-	IndexErrors         Index = "errors"
 	IndexErrorFields    Index = "error-fields"
 	IndexErrorsCombined Index = "errors-combined"
 )

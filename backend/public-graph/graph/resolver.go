@@ -426,9 +426,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			State:     modelInputs.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.IndexSynchronous(opensearch.IndexErrors, newErrorGroup.ID, opensearchErrorGroup); err != nil {
-			return nil, e.Wrap(err, "error indexing error group in opensearch")
-		}
 		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
@@ -488,7 +485,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		filename = model.GetFirstFilename(newFrameString)
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrors, errorGroup.ID, map[string]interface{}{
+	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"filename":   filename,
 		"updated_at": time.Now(),
 	}); err != nil {
@@ -524,9 +521,6 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			Key:        field.Name,
 			KeyValue:   field.Name + "_" + field.Value,
 		}
-	}
-	if err := r.OpenSearch.AppendToField(opensearch.IndexErrors, errorGroup.ID, "fields", openSearchFields); err != nil {
-		return e.Wrap(err, "error appending error fields")
 	}
 
 	// We append to this session in the join table regardless.

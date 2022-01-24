@@ -58,60 +58,6 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 	}
 }
 
-func (w *Worker) IndexErrors(isUpdate bool) {
-	modelProto := &model.ErrorGroup{}
-	results := &[]*model.ErrorGroup{}
-
-	inner := func(tx *gorm.DB, batch int) error {
-		for _, result := range *results {
-			fields := []*opensearch.OpenSearchErrorField{}
-			for _, field := range result.Fields {
-				f := opensearch.OpenSearchErrorField{
-					ErrorField: field,
-					Key:        field.Name,
-					KeyValue:   field.Name + "_" + field.Value,
-				}
-				fields = append(fields, &f)
-			}
-			var filename *string
-			if result.MappedStackTrace != nil {
-				filename = model.GetFirstFilename(*result.MappedStackTrace)
-			} else {
-				filename = model.GetFirstFilename(result.StackTrace)
-			}
-			result.FieldGroup = nil
-			result.Fields = nil
-			result.Environments = ""
-			result.MappedStackTrace = nil
-			result.StackTrace = ""
-			os := opensearch.OpenSearchError{
-				ErrorGroup: result,
-				Fields:     fields,
-				Filename:   filename,
-			}
-			w.indexItem(opensearch.IndexErrors, &os)
-		}
-		return nil
-	}
-
-	whereClause := "True"
-	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
-	}
-
-	// A little hacky, but some of the error groups with low ids have a very high number of fields,
-	// and it causes and error when > 65536 fields are loaded at once
-	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id <= 10").Model(modelProto).
-		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
-	}
-
-	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Where("id > 10").Model(modelProto).
-		FindInBatches(results, BATCH_SIZE, inner).Error; err != nil {
-		log.Fatalf("OPENSEARCH_ERROR error querying objects: %+v", err)
-	}
-}
-
 func (w *Worker) IndexErrorGroups(isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
@@ -275,9 +221,6 @@ func (w *Worker) InitIndexMappings() {
 	}
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexFields, FIELD_MAPPINGS); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating field mappings: %+v", err)
-	}
-	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrors, NESTED_FIELD_MAPPINGS); err != nil {
-		log.Warnf("OPENSEARCH_ERROR error creating error mappings: %+v", err)
 	}
 	if err := w.Resolver.OpenSearch.PutMapping(opensearch.IndexErrorFields, FIELD_MAPPINGS); err != nil {
 		log.Warnf("OPENSEARCH_ERROR error creating error field mappings: %+v", err)
