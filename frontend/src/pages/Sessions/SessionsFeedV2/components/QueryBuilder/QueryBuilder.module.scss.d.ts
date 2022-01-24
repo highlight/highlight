@@ -1,6 +1,7 @@
 export const addFilter: string;
 export const builderContainer: string;
 export const contentContainer: string;
+export const highlighterStyles: string;
 export const invalid: string;
 export const label: string;
 export const labelTypeContainer: string;
@@ -17,3 +18,8 @@ export const ruleContainer: string;
 export const ruleItem: string;
 export const rulesContainer: string;
 export const separator: string;
+export const shadowBoth: string;
+export const shadowContainer: string;
+export const shadowLeft: string;
+export const shadowParent: string;
+export const shadowRight: string;
