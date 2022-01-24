@@ -551,7 +551,6 @@ func (w *Worker) ReportStripeUsage() {
 func (w *Worker) UpdateOpenSearchIndex() {
 	w.IndexTable(opensearch.IndexFields, &model.Field{}, true)
 	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, true)
-	w.IndexErrors(true)
 	w.IndexErrorGroups(true)
 	w.IndexErrorObjects(true)
 	w.IndexSessions(true)
@@ -574,7 +573,6 @@ func (w *Worker) InitializeOpenSearchIndex() {
 	w.InitIndexMappings()
 	w.IndexTable(opensearch.IndexFields, &model.Field{}, false)
 	w.IndexTable(opensearch.IndexErrorFields, &model.ErrorField{}, false)
-	w.IndexErrors(false)
 	w.IndexErrorGroups(false)
 	w.IndexErrorObjects(false)
 	w.IndexSessions(false)
