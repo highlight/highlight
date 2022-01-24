@@ -1,9 +1,7 @@
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
-import TextHighlighter, {
-    TextHighlighterProps,
-} from '@components/TextHighlighter/TextHighlighter';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -221,12 +219,13 @@ const ScrolledTextHighlighter = ({
         }
     };
 
-    const props: TextHighlighterProps = {
-        searchWords,
-        textToHighlight,
-    };
-
-    return <TextHighlighter highlightTag={ScrolledMark} {...props} />;
+    return (
+        <TextHighlighter
+            highlightTag={ScrolledMark}
+            searchWords={searchWords}
+            textToHighlight={textToHighlight}
+        />
+    );
 };
 const getDateLabel = (value: string): string => {
     const split = value.split('_');
@@ -275,7 +274,7 @@ const getMultiselectOption = (props: any) => {
         selectProps: { inputValue },
     } = props;
 
-    const component = (
+    return (
         <div>
             <components.Option {...props}>
                 <div className={styles.optionLabelContainer}>
@@ -305,8 +304,6 @@ const getMultiselectOption = (props: any) => {
             </components.Option>
         </div>
     );
-
-    return component;
 };
 
 const getOption = (props: any) => {
