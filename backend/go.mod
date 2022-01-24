@@ -24,6 +24,7 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.4.2
+	github.com/hasura/go-graphql-client v0.3.0 // indirect
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kr/pretty v0.2.0 // indirect
@@ -51,6 +52,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.31.0
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
+	google.golang.org/grpc v1.40.0 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gopkg.in/yaml.v2 v2.3.0 // indirect
