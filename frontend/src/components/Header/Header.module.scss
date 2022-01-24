@@ -36,6 +36,7 @@
 }
 
 .headerContent {
+    column-gap: var(--size-large);
     display: flex;
     flex-grow: 1;
     padding-left: 20px;
@@ -126,8 +127,9 @@
 .quicksearchWrapper {
     align-items: center;
     display: flex;
-    flex: 0 1 468px;
-    margin: auto;
+    flex-grow: 1;
+    margin-left: var(--size-medium);
+    max-width: 900px;
 }
 
 .hideableButtonContainer {
@@ -178,14 +180,13 @@
     align-items: center;
     column-gap: var(--size-medium);
     display: flex;
-    margin-left: auto;
     z-index: 200;
 }
 
 .applicationPickerContainer {
     align-items: center;
     display: flex;
-    margin-right: auto;
+    flex-grow: 1;
 }
 
 .demoWorkspaceContainer {
