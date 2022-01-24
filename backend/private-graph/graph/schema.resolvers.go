@@ -2555,7 +2555,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
 	}
 
-	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrors}, projectID, query, options, &results)
+	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}

@@ -27,10 +27,9 @@ const CUSTOM_FIELDS: CustomField[] = [
     },
     {
         type: ERROR_TYPE,
-        name: 'created_at',
+        name: 'Event',
         options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
+            type: 'text',
         },
     },
     {
@@ -49,9 +48,10 @@ const CUSTOM_FIELDS: CustomField[] = [
     },
     {
         type: ERROR_FIELD_TYPE,
-        name: 'event',
+        name: 'timestamp',
         options: {
-            type: 'text',
+            operators: DATE_OPERATORS,
+            type: 'date',
         },
     },
     {
@@ -80,13 +80,13 @@ export const getQueryFromParams = (
         const start = moment(params.date_range.start_date).toISOString();
         const end = moment(params.date_range.end_date).toISOString();
         rules.push(
-            deserializeGroup('error_created_at', 'between_date', [
+            deserializeGroup('error-field_timestamp', 'between_date', [
                 `${start}_${end}`,
             ])
         );
     }
     if (params.event) {
-        rules.push(deserializeGroup('error-field_event', 'is', [params.event]));
+        rules.push(deserializeGroup('error_Event', 'is', [params.event]));
     }
     if (params.os) {
         rules.push(deserializeGroup('error-field_os_name', 'is', [params.os]));
