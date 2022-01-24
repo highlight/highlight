@@ -743,6 +743,7 @@ const LABEL_MAP: { [key: string]: string } = {
     reload: 'Reloaded',
     state: 'State',
     event: 'Event',
+    timestamp: 'Date',
 };
 
 const getOperator = (
@@ -820,7 +821,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
     error_state: getStateLabel,
-    error_created_at: getDateLabel,
+    'error-field_timestamp': getDateLabel,
 };
 
 export const deserializeGroup = (
@@ -942,7 +943,7 @@ const QueryBuilder = ({
             }
 
             const type = getType(field.value);
-            if (type !== CUSTOM_TYPE && type !== ERROR_TYPE) {
+            if (![CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(type)) {
                 return undefined;
             }
 
@@ -956,7 +957,11 @@ const QueryBuilder = ({
 
     const parseInner = useCallback(
         (field: SelectOption, op: Operator, value?: string): any => {
-            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
+            if (
+                [CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
+                    getType(field.value)
+                )
+            ) {
                 const name = field.label;
                 const isKeyword = !(
                     getCustomFieldOptions(field)?.type !== 'text'
@@ -1018,10 +1023,7 @@ const QueryBuilder = ({
                         };
                 }
             } else {
-                let key = field.value;
-                if (key.startsWith(ERROR_FIELD_TYPE)) {
-                    key = key.replace(`${ERROR_FIELD_TYPE}_`, '');
-                }
+                const key = field.value;
                 switch (op) {
                     case 'is':
                         return {
@@ -1092,13 +1094,53 @@ const QueryBuilder = ({
     );
 
     const parseGroup = useCallback(
-        (isAnd: boolean, rules: RuleProps[]): any => ({
-            bool: {
-                [isAnd ? 'must' : 'should']: rules.map((rule) =>
-                    parseRule(rule)
-                ),
-            },
-        }),
+        (isAnd: boolean, rules: RuleProps[]): any => {
+            const errorObjectRules = rules.filter(
+                (r) => getType(r.field!.value) === ERROR_FIELD_TYPE
+            );
+            if (errorObjectRules.length === 0) {
+                return {
+                    bool: {
+                        [isAnd ? 'must' : 'should']: rules.map((rule) =>
+                            parseRule(rule)
+                        ),
+                    },
+                };
+            } else {
+                const standardRules = rules.filter(
+                    (r) => getType(r.field!.value) !== ERROR_FIELD_TYPE
+                );
+                return {
+                    bool: {
+                        [isAnd ? 'must' : 'should']: [
+                            {
+                                bool: {
+                                    [isAnd
+                                        ? 'must'
+                                        : 'should']: standardRules.map((rule) =>
+                                        parseRule(rule)
+                                    ),
+                                },
+                            },
+                            {
+                                has_child: {
+                                    type: 'child',
+                                    query: {
+                                        bool: {
+                                            [isAnd
+                                                ? 'must'
+                                                : 'should']: errorObjectRules.map(
+                                                (rule) => parseRule(rule)
+                                            ),
+                                        },
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                };
+            }
+        },
         [parseRule]
     );
 
@@ -1187,53 +1229,58 @@ const QueryBuilder = ({
                 return;
             }
 
-            if ([CUSTOM_TYPE, ERROR_TYPE].includes(getType(field.value))) {
-                let options: { label: string; value: string }[] = [];
-                if (field.value === 'custom_app_version') {
-                    options =
-                        appVersionData?.app_version_suggestion
-                            .filter((val) => !!val)
-                            .map((val) => ({
-                                label: val as string,
-                                value: val as string,
-                            })) ?? [];
-                } else if (field.value === 'custom_processed') {
-                    options = ['true', 'false'].map((v) => ({
-                        label: getProcessedLabel(v),
-                        value: v,
-                    }));
-                } else if (field.value === 'error_state') {
-                    options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
-                        label: getStateLabel(v),
-                        value: v,
-                    }));
-                } else if (field.value === 'error_Type') {
-                    options = [
-                        'Backend',
-                        'console.error',
-                        'window.onerror',
-                        'custom',
-                    ].map((v) => ({
-                        label: v,
-                        value: v,
-                    }));
-                } else if (getCustomFieldOptions(field)?.type === 'boolean') {
-                    options = ['true', 'false'].map((v) => ({
-                        label: v,
-                        value: v,
-                    }));
-                }
+            let options: { label: string; value: string }[] = [];
+            if (field.value === 'custom_app_version') {
+                options =
+                    appVersionData?.app_version_suggestion
+                        .filter((val) => !!val)
+                        .map((val) => ({
+                            label: val as string,
+                            value: val as string,
+                        })) ?? [];
+            } else if (field.value === 'custom_processed') {
+                options = ['true', 'false'].map((v) => ({
+                    label: getProcessedLabel(v),
+                    value: v,
+                }));
+            } else if (field.value === 'error_state') {
+                options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+                    label: getStateLabel(v),
+                    value: v,
+                }));
+            } else if (field.value === 'error_Type') {
+                options = [
+                    'Backend',
+                    'console.error',
+                    'window.onerror',
+                    'custom',
+                ].map((v) => ({
+                    label: v,
+                    value: v,
+                }));
+            } else if (getCustomFieldOptions(field)?.type === 'boolean') {
+                options = ['true', 'false'].map((v) => ({
+                    label: v,
+                    value: v,
+                }));
+            }
 
+            if (options.length > 0) {
                 return options.filter((opt) =>
                     opt.label?.toLowerCase().includes(input.toLowerCase())
                 );
+            }
+
+            let label = field.label;
+            if (field.value === 'error_Event') {
+                label = 'event';
             }
 
             return await fetchFields({
                 project_id,
                 count: 10,
                 field_type: getType(field.value),
-                field_name: field.label,
+                field_name: label,
                 query: input,
             }).then((res) => {
                 return res.map((val) => ({
