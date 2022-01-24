@@ -218,6 +218,7 @@ export class Highlight {
     _onToggleFeedbackFormVisibility: () => void;
     pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions: FeedbackWidgetOptions;
+    hasSessionUnloaded: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -342,6 +343,7 @@ export class Highlight {
         this.events = [];
         this.errors = [];
         this.messages = [];
+        this.hasSessionUnloaded = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -850,6 +852,9 @@ export class Highlight {
             }
 
             if (this.isRunningOnHighlight) {
+                window.addEventListener('beforeunload', () => {
+                    this.hasSessionUnloaded = true;
+                });
                 // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
                 // as when switching tabs or apps on mobile. Non-blocking.
                 document.addEventListener('visibilitychange', () => {
@@ -1129,6 +1134,7 @@ export class Highlight {
             resources: resourcesString,
             errors,
             is_beacon: isBeacon,
+            has_session_unloaded: this.hasSessionUnloaded,
         };
     }
 }
