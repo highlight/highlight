@@ -140,7 +140,7 @@ export const BillingStatusCard = ({
             <div className={styles.sectionContents}>
                 {loading ? (
                     <Skeleton count={2} />
-                ) : !!trialEndDate ? (
+                ) : !!trialEndDate && new Date(trialEndDate) >= new Date() ? (
                     <>
                         <span className={styles.subText}>
                             {getTrialEndDateMessage(trialEndDate)}
