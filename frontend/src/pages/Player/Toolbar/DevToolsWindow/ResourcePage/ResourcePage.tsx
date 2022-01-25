@@ -338,6 +338,10 @@ export const ResourcePage = React.memo(
                                                         );
                                                     }}
                                                     hasError={!!error}
+                                                    networkRequestAndResponseRecordingEnabled={
+                                                        session.enable_recording_network_contents ||
+                                                        false
+                                                    }
                                                 />
                                             );
                                         }}
@@ -405,6 +409,7 @@ const ResourceRow = ({
     searchTerm,
     onClickHandler,
     hasError,
+    networkRequestAndResponseRecordingEnabled,
 }: {
     resource: NetworkResource;
     networkRange: number;
@@ -412,6 +417,7 @@ const ResourceRow = ({
     searchTerm: string;
     onClickHandler: () => void;
     hasError?: boolean;
+    networkRequestAndResponseRecordingEnabled: boolean;
 }) => {
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
@@ -442,7 +448,16 @@ const ResourceRow = ({
                     <div className={styles.currentIndicator} />
                 )}
                 <div className={styles.typeSection}>
-                    {resource.requestResponsePairs?.response.status ?? 200}
+                    {resource.initiatorType === 'xmlhttprequest' ||
+                    resource.initiatorType === 'fetch'
+                        ? resource.requestResponsePairs?.response.status ?? (
+                              <UnknownRequestStatusCode
+                                  networkRequestAndResponseRecordingEnabled={
+                                      networkRequestAndResponseRecordingEnabled
+                                  }
+                              />
+                          )
+                        : '200'}
                 </div>
                 <div className={styles.typeSection}>
                     {getNetworkResourcesDisplayName(resource.initiatorType)}
@@ -532,4 +547,35 @@ export const findResourceWithMatchingHighlightHeader = (
 export const getHighlightRequestId = (resource: NetworkResource) => {
     // @ts-expect-error
     return resource.requestResponsePairs?.request?.id;
+};
+
+export const UnknownRequestStatusCode = ({
+    networkRequestAndResponseRecordingEnabled,
+}: {
+    networkRequestAndResponseRecordingEnabled: boolean;
+}) => {
+    return (
+        <Tooltip
+            title={
+                !networkRequestAndResponseRecordingEnabled ? (
+                    <>
+                        To enable recording status codes for XHR/Fetch requests,
+                        you need to enable{' '}
+                        <a
+                            href="https://docs.highlight.run/recording-network-requests-and-responses"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            recording network requests and responses
+                        </a>
+                        .
+                    </>
+                ) : (
+                    "Highlight wasn't able to get the status code for this request."
+                )
+            }
+        >
+            ???
+        </Tooltip>
+    );
 };
