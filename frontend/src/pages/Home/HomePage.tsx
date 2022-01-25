@@ -4,6 +4,7 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -97,10 +98,15 @@ const HomePage = () => {
                                     : 'Welcome to Highlight'}
                             </h2>
                             {integrated && (
-                                <p className={styles.subTitle}>
-                                    Here’s an overview of your team’s sessions
-                                    and errors.
-                                </p>
+                                <>
+                                    <p className={styles.subTitle}>
+                                        Here’s an overview of your team’s
+                                        sessions and errors.
+                                    </p>
+                                    <HighlightGate>
+                                        <p>Hello World</p>
+                                    </HighlightGate>
+                                </>
                             )}
                         </div>
                         <div className={styles.filtersContainer}>
