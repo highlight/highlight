@@ -851,36 +851,32 @@ export class Highlight {
                 );
             }
 
-            if (this.isRunningOnHighlight) {
-                window.addEventListener('beforeunload', () => {
-                    this.hasSessionUnloaded = true;
-                });
-                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-                // as when switching tabs or apps on mobile. Non-blocking.
-                document.addEventListener('visibilitychange', () => {
-                    if (
-                        document.visibilityState === 'hidden' &&
-                        'sendBeacon' in navigator
-                    ) {
-                        const payload = this._getPayload({ isBeacon: true });
-                        let blob = new Blob(
-                            [
-                                JSON.stringify({
-                                    query: print(PushPayloadDocument),
-                                    variables: payload,
-                                }),
-                            ],
-                            {
-                                type: 'application/json',
-                            }
-                        );
-                        navigator.sendBeacon(`${this._backendUrl}`, blob);
-                    }
-                });
-            }
+            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+            // as when switching tabs or apps on mobile. Non-blocking.
+            document.addEventListener('visibilitychange', () => {
+                if (
+                    document.visibilityState === 'hidden' &&
+                    'sendBeacon' in navigator
+                ) {
+                    const payload = this._getPayload({ isBeacon: true });
+                    let blob = new Blob(
+                        [
+                            JSON.stringify({
+                                query: print(PushPayloadDocument),
+                                variables: payload,
+                            }),
+                        ],
+                        {
+                            type: 'application/json',
+                        }
+                    );
+                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                }
+            });
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
+                this.hasSessionUnloaded = true;
                 if (this.pushPayloadTimerId) {
                     clearTimeout(this.pushPayloadTimerId);
                 }
