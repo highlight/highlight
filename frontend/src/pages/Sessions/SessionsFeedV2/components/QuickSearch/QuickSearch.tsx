@@ -105,7 +105,7 @@ const styleProps: Styles<any, false> = {
     }),
     placeholder: (provided) => ({
         ...provided,
-        color: 'var(--color-gray-500) !important',
+        color: 'var(--color-gray-600) !important',
         top: '53%',
         cursor: 'text',
     }),

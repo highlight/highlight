@@ -6,19 +6,19 @@
     }
 
     > div {
-        background-color: var(--color-primary-background);
+        background-color: var(--color-gray-200);
     }
 }
 
 .searchIcon {
-    color: var(--color-gray-400);
+    color: var(--color-gray-600);
     height: var(--size-medium);
     margin-left: var(--size-small);
     width: var(--size-medium);
 }
 
 .loadingIcon {
-    color: var(--color-gray-400);
+    color: var(--color-gray-600);
 }
 
 .loadingIconContainer {
