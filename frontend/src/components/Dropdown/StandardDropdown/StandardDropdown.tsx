@@ -14,11 +14,13 @@ export const StandardDropdown = ({
     onSelect,
     defaultValue,
     disabled,
+    className,
 }: {
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
     defaultValue?: Option;
     disabled?: boolean;
+    className?: string;
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
@@ -48,6 +50,7 @@ export const StandardDropdown = ({
             onVisibleChange={(v) => setVisible(v)}
             trigger={['click']}
             disabled={disabled}
+            className={className}
         >
             <div
                 className={styles.dropdownHandler}

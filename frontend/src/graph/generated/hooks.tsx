@@ -3561,10 +3561,15 @@ export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
     Types.SyncSlackIntegrationMutationVariables
 >;
 export const GetWebVitalDashboardDocument = gql`
-    query GetWebVitalDashboard($project_id: ID!, $web_vital_name: String!) {
+    query GetWebVitalDashboard(
+        $project_id: ID!
+        $web_vital_name: String!
+        $params: WebVitalDashboardParamsInput!
+    ) {
         web_vital_dashboard(
             project_id: $project_id
             web_vital_name: $web_vital_name
+            params: $params
         ) {
             date
             avg
@@ -3590,6 +3595,7 @@ export const GetWebVitalDashboardDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      web_vital_name: // value for 'web_vital_name'
+ *      params: // value for 'params'
  *   },
  * });
  */

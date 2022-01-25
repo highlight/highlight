@@ -4,3 +4,13 @@
     grid-template-columns: repeat(auto-fit, minmax(640px, 1fr));
     padding-top: var(--size-large);
 }
+
+.dateRangePicker {
+    width: fit-content;
+}
+
+.dateRangePickerContainer {
+    position: absolute;
+    right: 80px;
+    top: 118px;
+}
