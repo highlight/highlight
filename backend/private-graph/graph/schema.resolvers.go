@@ -4327,7 +4327,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}, nil
 }
 
-func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string) ([]*modelInputs.WebVitalDashboardPayload, error) {
+func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
 	payload := []*modelInputs.WebVitalDashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -4342,10 +4342,12 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
 		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
 	FROM metrics
-	where name=?
-	and project_id=?
-	group by created_at::date, name;
-	`, webVitalName, projectID).Scan(&payload).Error; err != nil {
+	WHERE name=?
+	AND project_id=?
+	AND created_at >= ?
+	AND created_at <= ?
+	GROUP BY created_at::date, name;
+	`, webVitalName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

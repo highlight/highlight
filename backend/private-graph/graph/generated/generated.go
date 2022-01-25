@@ -407,7 +407,7 @@ type ComplexityRoot struct {
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
 		UserPropertiesAlerts         func(childComplexity int, projectID int) int
-		WebVitalDashboard            func(childComplexity int, projectID int, webVitalName string) int
+		WebVitalDashboard            func(childComplexity int, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) int
 		WebVitals                    func(childComplexity int, sessionSecureID string) int
 		Workspace                    func(childComplexity int, id int) int
 		WorkspaceAdmins              func(childComplexity int, workspaceID int) int
@@ -828,7 +828,7 @@ type QueryResolver interface {
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
-	WebVitalDashboard(ctx context.Context, projectID int, webVitalName string) ([]*model.WebVitalDashboardPayload, error)
+	WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) ([]*model.WebVitalDashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
 }
@@ -3370,7 +3370,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WebVitalDashboard(childComplexity, args["project_id"].(int), args["web_vital_name"].(string)), true
+		return e.complexity.Query.WebVitalDashboard(childComplexity, args["project_id"].(int), args["web_vital_name"].(string), args["params"].(model.WebVitalDashboardParamsInput)), true
 
 	case "Query.web_vitals":
 		if e.complexity.Query.WebVitals == nil {
@@ -4997,6 +4997,10 @@ input SearchParamsInput {
     query: String
 }
 
+input WebVitalDashboardParamsInput {
+    date_range: DateRangeInput
+}
+
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
@@ -5422,6 +5426,7 @@ type Query {
     web_vital_dashboard(
         project_id: ID!
         web_vital_name: String!
+        params: WebVitalDashboardParamsInput!
     ): [WebVitalDashboardPayload]!
     metric_preview(
         project_id: ID!
@@ -9556,6 +9561,15 @@ func (ec *executionContext) field_Query_web_vital_dashboard_args(ctx context.Con
 		}
 	}
 	args["web_vital_name"] = arg1
+	var arg2 model.WebVitalDashboardParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNWebVitalDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -19899,7 +19913,7 @@ func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WebVitalDashboard(rctx, args["project_id"].(int), args["web_vital_name"].(string))
+		return ec.resolvers.Query().WebVitalDashboard(rctx, args["project_id"].(int), args["web_vital_name"].(string), args["params"].(model.WebVitalDashboardParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27170,6 +27184,26 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWebVitalDashboardParamsInput(ctx context.Context, obj interface{}) (model.WebVitalDashboardParamsInput, error) {
+	var it model.WebVitalDashboardParamsInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -32968,6 +33002,11 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalNWebVitalDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardParamsInput(ctx context.Context, v interface{}) (model.WebVitalDashboardParamsInput, error) {
+	res, err := ec.unmarshalInputWebVitalDashboardParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNWebVitalDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx context.Context, sel ast.SelectionSet, v []*model.WebVitalDashboardPayload) graphql.Marshaler {
