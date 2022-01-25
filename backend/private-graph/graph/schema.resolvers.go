@@ -3553,16 +3553,29 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		MaxResults: ptr.Int(count),
 	}
 
+	var g errgroup.Group
 	results := []*model.Field{}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
 	errorResults := []*model.Field{}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
-	if err != nil {
-		return nil, err
+
+	g.Go(func() error {
+		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session or error fields")
 	}
 
 	for _, er := range errorResults {
