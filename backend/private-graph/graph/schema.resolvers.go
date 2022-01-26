@@ -3363,6 +3363,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			{"bool": {
 				"must_not":[
 					{"term":{"excluded":"true"}},
+					{"term":{"within_billing_quota":false}},
 					{"bool": {
 						"must":[
 							{"term":{"processed":"true"}},
