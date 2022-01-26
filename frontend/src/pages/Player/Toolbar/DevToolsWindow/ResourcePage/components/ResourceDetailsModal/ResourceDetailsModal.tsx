@@ -8,7 +8,11 @@ import KeyValueTable, {
 import Space from '../../../../../../../components/Space/Space';
 import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
-import { formatSize, NetworkResource } from '../../ResourcePage';
+import {
+    formatSize,
+    NetworkResource,
+    UnknownRequestStatusCode,
+} from '../../ResourcePage';
 import styles from './ResourceDetailsModal.module.scss';
 
 interface Props {
@@ -35,9 +39,14 @@ const ResourceDetailsModal = ({
         },
         {
             keyDisplayValue: 'Status',
-            valueDisplayValue:
-                selectedNetworkResource?.requestResponsePairs?.response
-                    .status ?? '200',
+            valueDisplayValue: selectedNetworkResource?.requestResponsePairs
+                ?.response.status ?? (
+                <UnknownRequestStatusCode
+                    networkRequestAndResponseRecordingEnabled={
+                        networkRecordingEnabledForSession
+                    }
+                />
+            ),
             valueInfoTooltipMessage:
                 selectedNetworkResource?.requestResponsePairs?.response
                     .status === 0 &&

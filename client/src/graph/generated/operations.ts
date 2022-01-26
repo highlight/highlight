@@ -133,6 +133,7 @@ export type MutationPushPayloadArgs = {
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
   is_beacon?: Maybe<Scalars['Boolean']>;
+  has_session_unloaded?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -178,6 +179,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   resources: Types.Scalars['String'];
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
   is_beacon?: Types.Maybe<Types.Scalars['Boolean']>;
+  has_session_unloaded?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 
@@ -289,7 +291,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean, $has_session_unloaded: Boolean) {
   pushPayload(
     session_id: $session_id
     events: $events
@@ -297,6 +299,7 @@ export const PushPayloadDocument = gql`
     resources: $resources
     errors: $errors
     is_beacon: $is_beacon
+    has_session_unloaded: $has_session_unloaded
   )
 }
     `;

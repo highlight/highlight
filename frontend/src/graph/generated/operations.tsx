@@ -1352,6 +1352,7 @@ export type SessionPayloadFragmentFragment = {
 export type GetWebVitalDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     web_vital_name: Types.Scalars['String'];
+    params: Types.WebVitalDashboardParamsInput;
 }>;
 
 export type GetWebVitalDashboardQuery = { __typename?: 'Query' } & {

@@ -1,5 +1,6 @@
 import { LoadingOutlined } from '@ant-design/icons';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import AsyncSelect from '@highlight-run/react-select/async';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
@@ -11,7 +12,6 @@ import _ from 'lodash';
 import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
-import AsyncSelect from 'react-select/async';
 
 import { useGetQuickFieldsOpensearchQuery } from '../../../../../graph/generated/hooks';
 import styles from './QuickSearch.module.scss';
@@ -46,6 +46,12 @@ const styleProps: Styles<any, false> = {
             backgroundColor: 'var(--color-gray-200)',
         },
         transition: 'all 0.2s ease-in-out',
+    }),
+    menu: (provided) => ({
+        ...provided,
+        borderRadius: 'var(--border-radius)',
+        boxShadow: 'var(--box-shadow)',
+        border: '1px solid var(--color-gray-300)',
     }),
     menuList: (provided) => ({
         ...provided,
@@ -82,6 +88,7 @@ const styleProps: Styles<any, false> = {
         ...provided,
         padding: '0 12px',
         height: '32px',
+        cursor: 'text',
     }),
     noOptionsMessage: (provided) => ({
         ...provided,
@@ -98,8 +105,9 @@ const styleProps: Styles<any, false> = {
     }),
     placeholder: (provided) => ({
         ...provided,
-        color: 'var(--color-gray-500) !important',
+        color: 'var(--color-gray-600) !important',
         top: '53%',
+        cursor: 'text',
     }),
 };
 
@@ -238,6 +246,7 @@ const QuickSearch = () => {
             <DropdownIndicator isLoading={isLoading} />
             <AsyncSelect
                 loadOptions={loadOptions}
+                // @ts-expect-error
                 styles={styleProps}
                 isLoading={isLoading}
                 isClearable={false}

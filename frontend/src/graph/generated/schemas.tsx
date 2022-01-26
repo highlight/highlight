@@ -334,6 +334,10 @@ export type SearchParamsInput = {
     query?: Maybe<Scalars['String']>;
 };
 
+export type WebVitalDashboardParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+};
+
 export type SearchParams = {
     __typename?: 'SearchParams';
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
@@ -1030,6 +1034,7 @@ export type QuerySubscription_DetailsArgs = {
 export type QueryWeb_Vital_DashboardArgs = {
     project_id: Scalars['ID'];
     web_vital_name: Scalars['String'];
+    params: WebVitalDashboardParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {

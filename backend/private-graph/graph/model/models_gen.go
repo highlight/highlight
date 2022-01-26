@@ -201,6 +201,10 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type WebVitalDashboardParamsInput struct {
+	DateRange *DateRangeInput `json:"date_range"`
+}
+
 type WebVitalDashboardPayload struct {
 	Date string  `json:"date"`
 	Avg  float64 `json:"avg"`

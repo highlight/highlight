@@ -20,12 +20,25 @@ import styles from './DashboardCard.module.scss';
 
 interface Props {
     webVitalName: string;
+    dateRange: {
+        startDate: string;
+        endDate: string;
+    };
 }
 
-const DashboardCard = ({ webVitalName }: Props) => {
+const DashboardCard = ({ webVitalName, dateRange }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetWebVitalDashboardQuery({
-        variables: { project_id, web_vital_name: webVitalName },
+        variables: {
+            project_id,
+            web_vital_name: webVitalName,
+            params: {
+                date_range: {
+                    end_date: dateRange.endDate,
+                    start_date: dateRange.startDate,
+                },
+            },
+        },
     });
 
     const webVitalConfig = WEB_VITALS_CONFIGURATION[webVitalName];

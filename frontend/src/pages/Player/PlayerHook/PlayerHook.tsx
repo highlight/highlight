@@ -114,6 +114,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         viewportResizeDimension | undefined
     >(undefined);
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
+    // Play sessions at a 7s delay to give time for events to be buffered in advance of playback.
+    const LIVE_MODE_DELAY = 7000;
 
     const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
@@ -637,7 +639,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
-        if (state === ReplayerState.Playing) {
+        if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
@@ -654,9 +656,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     }
                     // Compute the string rather than number here, so that dependencies don't
                     // have to re-render on every tick
-                    updateLastActiveString(
-                        events[0].timestamp + replayer.getCurrentTime()
-                    );
+                    updateLastActiveString(Date.now() - LIVE_MODE_DELAY);
                 }
                 setTimerId(requestAnimationFrame(frameAction));
             };
@@ -664,14 +664,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             setTimerId(requestAnimationFrame(frameAction));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state, replayer]);
+    }, [state, replayer, isLiveMode]);
 
     useEffect(() => {
-        if (state !== ReplayerState.Playing && timerId) {
+        if (state !== ReplayerState.Playing && !isLiveMode && timerId) {
             cancelAnimationFrame(timerId);
             setTimerId(null);
         }
-    }, [state, timerId]);
+    }, [state, timerId, isLiveMode]);
 
     useEffect(() => {
         setPlayerTimeToPersistance(time);
@@ -717,8 +717,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const play = (newTime?: number) => {
         if (isLiveMode) {
-            // Aim to always be playing events from 7s ago, to give time for events to be buffered in advance of playback.
-            const desiredTime = Date.now() - 7000 - events[0].timestamp;
+            const desiredTime =
+                Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
             // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
             // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
             // the last UI the user idled in is displayed.

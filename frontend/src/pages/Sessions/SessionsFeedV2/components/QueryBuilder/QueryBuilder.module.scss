@@ -2,12 +2,13 @@
     align-items: center;
     display: flex;
     overflow: hidden;
+    position: relative;
     text-overflow: ellipsis;
     width: 100%;
 }
 
 .optionCheckbox {
-    margin-right: 6px;
+    margin-right: 12px;
 }
 
 .optionLabelType {
@@ -24,10 +25,82 @@
     width: 60px;
 }
 
+.highlighterStyles {
+    background-color: transparent;
+    font-weight: 600 !important;
+    padding: 0;
+}
+
+.shadowParent {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.shadowContainer {
+    height: 100%;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 99999999999999999 !important;
+}
+
+.shadowRight {
+    background-attachment: scroll;
+    background-image: linear-gradient(
+        to left,
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0)
+    );
+    background-position: right center;
+    background-repeat: no-repeat;
+    background-size: 20px 100%;
+    transition: background-image 0.2s ease-in-out;
+}
+
+.shadowLeft {
+    background-attachment: scroll;
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0)
+    );
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-size: 20px 100%;
+    transition: background-image 0.2s ease-in-out;
+}
+
+.shadowBoth {
+    background-attachment: scroll, scroll;
+    background-image: linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0.6),
+            rgba(255, 255, 255, 0)
+        ),
+        linear-gradient(
+            to left,
+            rgba(255, 255, 255, 0.6),
+            rgba(255, 255, 255, 0)
+        );
+    background-position: left center, right center;
+    background-repeat: no-repeat;
+    background-size: 20px 100%, 20px 100%;
+    transition: background-image 0.2s ease-in-out;
+}
+
 .optionLabelName {
     color: var(--text-primary) !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: scroll;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .nameLabel {
