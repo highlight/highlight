@@ -998,7 +998,7 @@ export const propertiesToRules = (
                 rules.push(
                     deserializeGroup(`user_identifier`, 'not_contains', vals)
                 );
-            } else if (op === 'is') {
+            } else {
                 rules.push(
                     deserializeGroup(`user_identifier`, 'contains', vals)
                 );
