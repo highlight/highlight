@@ -3,7 +3,6 @@ import classNames from 'classnames/bind';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { DangerForm } from './DangerForm/DangerForm';
 import { FieldsForm } from './FieldsForm/FieldsForm';
@@ -20,25 +19,23 @@ const ProjectSettings = () => {
             <Helmet>
                 <title>{pageTypeCaps} Settings</title>
             </Helmet>
-            <LeadAlignLayout>
-                <h2>{`${pageTypeCaps} Settings`}</h2>
-                <p className={layoutStyles.subTitle}>
-                    {`Manage your ${pageType} details.`}
-                </p>
+            <h2>{`${pageTypeCaps} Settings`}</h2>
+            <p className={layoutStyles.subTitle}>
+                {`Manage your ${pageType} details.`}
+            </p>
+            <div className={styles.fieldsBox}>
+                <h3>{`${pageTypeCaps} Fields`}</h3>
+                <FieldsForm />
+            </div>
+            {/* Show delete for project-level settings only */}
+            {!workspace_id && (
                 <div className={styles.fieldsBox}>
-                    <h3>{`${pageTypeCaps} Fields`}</h3>
-                    <FieldsForm />
+                    <h3 className={classNames(styles.dangerTitle)}>
+                        Danger Zone
+                    </h3>
+                    <DangerForm />
                 </div>
-                {/* Show delete for project-level settings only */}
-                {!workspace_id && (
-                    <div className={styles.fieldsBox}>
-                        <h3 className={classNames(styles.dangerTitle)}>
-                            Danger Zone
-                        </h3>
-                        <DangerForm />
-                    </div>
-                )}
-            </LeadAlignLayout>
+            )}
         </>
     );
 };

@@ -24,7 +24,6 @@ import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
@@ -97,7 +96,7 @@ const WorkspaceTeam = () => {
     }
 
     return (
-        <LeadAlignLayout>
+        <>
             <Helmet>
                 <title>Workspace Team</title>
             </Helmet>
@@ -286,7 +285,7 @@ const WorkspaceTeam = () => {
                     rowHasPadding
                 />
             </Card>
-        </LeadAlignLayout>
+        </>
     );
 };
 

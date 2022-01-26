@@ -16,6 +16,11 @@
     &.bannerShown {
         animation: accomodate-banner 0.5s forwards;
     }
+
+    &.sidebarHidden {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
 .hamburger {
