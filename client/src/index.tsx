@@ -218,6 +218,7 @@ export class Highlight {
     _onToggleFeedbackFormVisibility: () => void;
     pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions: FeedbackWidgetOptions;
+    hasSessionUnloaded: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -342,6 +343,7 @@ export class Highlight {
         this.events = [];
         this.errors = [];
         this.messages = [];
+        this.hasSessionUnloaded = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -849,33 +851,32 @@ export class Highlight {
                 );
             }
 
-            if (this.isRunningOnHighlight) {
-                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-                // as when switching tabs or apps on mobile. Non-blocking.
-                document.addEventListener('visibilitychange', () => {
-                    if (
-                        document.visibilityState === 'hidden' &&
-                        'sendBeacon' in navigator
-                    ) {
-                        const payload = this._getPayload({ isBeacon: true });
-                        let blob = new Blob(
-                            [
-                                JSON.stringify({
-                                    query: print(PushPayloadDocument),
-                                    variables: payload,
-                                }),
-                            ],
-                            {
-                                type: 'application/json',
-                            }
-                        );
-                        navigator.sendBeacon(`${this._backendUrl}`, blob);
-                    }
-                });
-            }
+            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+            // as when switching tabs or apps on mobile. Non-blocking.
+            document.addEventListener('visibilitychange', () => {
+                if (
+                    document.visibilityState === 'hidden' &&
+                    'sendBeacon' in navigator
+                ) {
+                    const payload = this._getPayload({ isBeacon: true });
+                    let blob = new Blob(
+                        [
+                            JSON.stringify({
+                                query: print(PushPayloadDocument),
+                                variables: payload,
+                            }),
+                        ],
+                        {
+                            type: 'application/json',
+                        }
+                    );
+                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                }
+            });
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
+                this.hasSessionUnloaded = true;
                 if (this.pushPayloadTimerId) {
                     clearTimeout(this.pushPayloadTimerId);
                 }
@@ -1129,6 +1130,7 @@ export class Highlight {
             resources: resourcesString,
             errors,
             is_beacon: isBeacon,
+            has_session_unloaded: this.hasSessionUnloaded,
         };
     }
 }

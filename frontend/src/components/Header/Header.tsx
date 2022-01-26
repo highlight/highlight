@@ -69,6 +69,12 @@ export const Header = () => {
                         DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
                         <div className={styles.applicationPickerContainer}>
                             <ApplicationPicker />
+
+                            {!!project_id && isQueryBuilder && (
+                                <div className={styles.quicksearchWrapper}>
+                                    <QuickSearch />
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className={styles.logoWrapper}>
@@ -81,11 +87,6 @@ export const Header = () => {
                         </div>
                     )}
 
-                    {!!project_id && isQueryBuilder && (
-                        <div className={styles.quicksearchWrapper}>
-                            <QuickSearch />
-                        </div>
-                    )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         <div className={styles.hideableButtonContainer}>

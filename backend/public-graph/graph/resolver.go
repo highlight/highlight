@@ -1274,7 +1274,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1291,7 +1291,14 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
-	if sessionObj.PayloadUpdatedAt != nil && time.Since(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
+	// If the session is processing or processed, drop the payload
+	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
+		if sessionObj.ResumedAfterProcessedTime == nil {
+			now := time.Now()
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
+			}
+		}
 		return
 	}
 
@@ -1527,7 +1534,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}

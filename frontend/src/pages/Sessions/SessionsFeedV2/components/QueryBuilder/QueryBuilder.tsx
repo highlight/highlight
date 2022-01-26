@@ -12,8 +12,9 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
+import _ from 'lodash';
 import moment from 'moment';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import Creatable from 'react-select/creatable';
@@ -91,7 +92,8 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         textOverflow: 'ellipsis',
         direction: 'ltr',
         textAlign: 'left',
-        padding: '8px 12px',
+        padding: '0 0 0 12px',
+        marginRight: '12px',
         fontSize: '12px',
         color: 'var(--color-text-primary)',
         backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
@@ -106,6 +108,7 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
         '&::-webkit-scrollbar': {
             display: 'none',
         },
+        maxHeight: '400px',
     }),
     control: (provided) => ({
         ...provided,
@@ -133,6 +136,97 @@ const styleProps: Styles<{ label: string; value: string }, false> = {
     }),
 };
 
+function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
+    const ref = useRef<T>(null);
+    const doScroll = useCallback(() => {
+        ref?.current?.scrollIntoView({ inline: 'center' });
+    }, []);
+
+    return [doScroll, ref];
+}
+
+const OptionLabelName: React.FC = (props) => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    const [className, setClassName] = useState<string>(styles.shadowContainer);
+
+    const setScrollShadow = (target: any) => {
+        const { scrollLeft, offsetWidth, scrollWidth } = target;
+        const showRightShadow = scrollLeft + offsetWidth < scrollWidth;
+        const showLeftShadow = scrollLeft > 0;
+        setClassName(
+            classNames(styles.shadowContainer, {
+                [styles.shadowRight]: showRightShadow && !showLeftShadow,
+                [styles.shadowLeft]: showLeftShadow && !showRightShadow,
+                [styles.shadowBoth]: showLeftShadow && showRightShadow,
+            })
+        );
+    };
+
+    useEffect(() => {
+        if (!!ref?.current) {
+            setScrollShadow(ref.current);
+            const onScroll = (ev: any) => {
+                setScrollShadow(ev.target);
+            };
+            ref.current.removeEventListener('scroll', onScroll);
+            ref.current.addEventListener('scroll', onScroll, { passive: true });
+            return () => window.removeEventListener('scroll', onScroll);
+        }
+    }, [ref]);
+
+    return (
+        <div className={styles.shadowParent}>
+            <div className={className} />
+            <div className={styles.optionLabelName} ref={ref}>
+                {props.children}
+            </div>
+        </div>
+    );
+};
+
+const ScrolledTextHighlighter = ({
+    searchWords,
+    textToHighlight,
+}: {
+    searchWords: string[];
+    textToHighlight: string;
+}) => {
+    const [memoText, setMemoText] = useState<string>(textToHighlight);
+    if (!_.isEqual(memoText, textToHighlight)) {
+        setMemoText(textToHighlight);
+    }
+    const [doScroll, ref] = useScroll();
+
+    useEffect(() => {
+        doScroll();
+    }, [doScroll, textToHighlight]);
+
+    const ScrolledMark = (props: any) => {
+        if (props.highlightIndex === 0) {
+            // Attach the ref to the first matching instance
+            return (
+                <mark className={styles.highlighterStyles} ref={ref}>
+                    {props.children}
+                </mark>
+            );
+        } else {
+            return (
+                <mark className={styles.highlighterStyles}>
+                    {props.children}
+                </mark>
+            );
+        }
+    };
+
+    return (
+        <TextHighlighter
+            highlightTag={ScrolledMark}
+            searchWords={searchWords}
+            textToHighlight={textToHighlight}
+        />
+    );
+};
 const getDateLabel = (value: string): string => {
     const split = value.split('_');
     const start = split[0];
@@ -196,16 +290,16 @@ const getMultiselectOption = (props: any) => {
                         }}
                     ></Checkbox>
 
-                    <div className={styles.optionLabelName}>
+                    <OptionLabelName>
                         {isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
                             label
                         ) : (
-                            <TextHighlighter
+                            <ScrolledTextHighlighter
                                 searchWords={inputValue.split(' ')}
                                 textToHighlight={label}
                             />
                         )}
-                    </div>
+                    </OptionLabelName>
                 </div>
             </components.Option>
         </div>

@@ -3363,6 +3363,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			{"bool": {
 				"must_not":[
 					{"term":{"excluded":"true"}},
+					{"term":{"within_billing_quota":false}},
 					{"bool": {
 						"must":[
 							{"term":{"processed":"true"}},
@@ -3553,16 +3554,29 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 		MaxResults: ptr.Int(count),
 	}
 
+	var g errgroup.Group
 	results := []*model.Field{}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
 	errorResults := []*model.Field{}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
-	if err != nil {
-		return nil, err
+
+	g.Go(func() error {
+		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session or error fields")
 	}
 
 	for _, er := range errorResults {
@@ -4314,7 +4328,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}, nil
 }
 
-func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string) ([]*modelInputs.WebVitalDashboardPayload, error) {
+func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
 	payload := []*modelInputs.WebVitalDashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -4329,10 +4343,12 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
 		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
 	FROM metrics
-	where name=?
-	and project_id=?
-	group by created_at::date, name;
-	`, webVitalName, projectID).Scan(&payload).Error; err != nil {
+	WHERE name=?
+	AND project_id=?
+	AND created_at >= ?
+	AND created_at <= ?
+	GROUP BY created_at::date, name;
+	`, webVitalName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

@@ -377,8 +377,12 @@ type Session struct {
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
 	Language       string `json:"language"`
+	// Tells us if 'beforeunload' was fired on the client - note this is not necessarily fired on every session end
+	HasUnloaded bool `gorm:"default:false"`
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
+	// The timestamp of the first payload received after the session got processed (if applicable)
+	ResumedAfterProcessedTime *time.Time `json:"resumed_after_processed_time"`
 	// The length of a session.
 	Length         int64    `json:"length"`
 	ActiveLength   int64    `json:"active_length"`
