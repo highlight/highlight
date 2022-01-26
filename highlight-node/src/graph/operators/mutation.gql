@@ -1,0 +1,3 @@
+mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
+    pushBackendPayload(errors: $errors)
+}

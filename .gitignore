@@ -2,6 +2,7 @@ node_modules
 tmp
 **/.DS_Store
 dist
+esm
 out
 build
 
