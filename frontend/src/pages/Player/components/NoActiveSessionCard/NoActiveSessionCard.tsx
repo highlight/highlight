@@ -1,15 +1,15 @@
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import React, { useEffect } from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import ElevatedCard from '../../../../components/ElevatedCard/ElevatedCard';
 import SvgSearchIcon from '../../../../static/SearchIcon';
-import { usePlayerUIContext } from '../../context/PlayerUIContext';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './NoActiveSessionCard.module.scss';
 
 const NoActiveSessionCard = () => {
     const { setShowLeftPanel } = usePlayerConfiguration();
-    const { searchBarRef } = usePlayerUIContext();
+    const { setIsQuickSearchOpen } = useSearchContext();
 
     useEffect(() => {
         setShowLeftPanel(true);
@@ -25,9 +25,7 @@ const NoActiveSessionCard = () => {
                     type="primary"
                     className={styles.buttonWrapper}
                     onClick={() => {
-                        if (searchBarRef) {
-                            searchBarRef.focus();
-                        }
+                        setIsQuickSearchOpen(true);
                     }}
                 >
                     <SvgSearchIcon />

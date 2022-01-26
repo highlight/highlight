@@ -15,7 +15,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router';
-import AsyncSelect from 'react-select/async';
 import { useLocalStorage } from 'react-use';
 import {
     Bar,
@@ -49,11 +48,9 @@ import { parseErrorDescriptionList } from './components/ErrorDescription/utils/u
 import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers';
 import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
-import { ErrorSearchOption } from './components/ErrorSearch/ErrorSearch';
 import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
-import { ErrorPageUIContextProvider } from './context/ErrorPageUIContext';
 import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
@@ -90,9 +87,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         cachedParams || EmptyErrorsSearchParams
     );
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
-    const [searchBarRef, setSearchBarRef] = useState<
-        AsyncSelect<ErrorSearchOption, true> | undefined
-    >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const dateFromSearchParams = new URLSearchParams(location.search).get(
         SessionPageSearchParams.date
@@ -160,189 +154,183 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             <Helmet>
                 <title>Errors</title>
             </Helmet>
-            <ErrorPageUIContextProvider
-                value={{ searchBarRef, setSearchBarRef }}
+            {!integrated && <IntegrationCard />}
+            <div
+                className={classNames(styles.errorPage, {
+                    [styles.withoutLeftPanel]: !showLeftPanel,
+                    [styles.empty]: !error_secure_id || errorQueryingErrorGroup,
+                    [styles.withErrorState]: errorQueryingErrorGroup,
+                })}
             >
-                {!integrated && <IntegrationCard />}
                 <div
-                    className={classNames(styles.errorPage, {
-                        [styles.withoutLeftPanel]: !showLeftPanel,
-                        [styles.empty]:
-                            !error_secure_id || errorQueryingErrorGroup,
-                        [styles.withErrorState]: errorQueryingErrorGroup,
+                    className={classNames(styles.errorPageLeftColumn, {
+                        [styles.hidden]: !showLeftPanel,
                     })}
                 >
-                    <div
-                        className={classNames(styles.errorPageLeftColumn, {
-                            [styles.hidden]: !showLeftPanel,
-                        })}
-                    >
-                        <ErrorSearchPanel />
-                    </div>
-                    {error_secure_id && !errorQueryingErrorGroup ? (
-                        <>
-                            <Helmet>
-                                <title>
-                                    Errors:{' '}
-                                    {getHeaderFromError(
-                                        data?.error_group?.event ?? []
-                                    )}
-                                </title>
-                            </Helmet>
-                            <div
-                                className={classNames(
-                                    styles.errorPageCenterColumn,
-                                    {
-                                        [styles.hidden]: !showLeftPanel,
-                                        [styles.bannerShown]: showBanner,
-                                    }
+                    <ErrorSearchPanel />
+                </div>
+                {error_secure_id && !errorQueryingErrorGroup ? (
+                    <>
+                        <Helmet>
+                            <title>
+                                Errors:{' '}
+                                {getHeaderFromError(
+                                    data?.error_group?.event ?? []
                                 )}
-                            >
-                                <div className={styles.titleContainer}>
-                                    {loading ? (
-                                        <Skeleton
-                                            count={1}
-                                            style={{ width: 300, height: 37 }}
-                                        />
-                                    ) : (
-                                        <ErrorTitle
-                                            errorGroup={data?.error_group}
-                                        />
-                                    )}
-                                </div>
-                                <div className={styles.eventText}>
-                                    {loading ? (
-                                        <Skeleton
-                                            count={1}
-                                            style={{
-                                                height: '2ch',
-                                                marginBottom: 0,
-                                            }}
-                                        />
-                                    ) : (
-                                        <ErrorDescription
-                                            errorGroup={data?.error_group}
-                                        />
-                                    )}
-                                </div>
-                                <h3 className={styles.titleWithAction}>
-                                    Stack Trace
-                                    <Tooltip title="Download the stack trace">
-                                        <Button
-                                            trackingId="DownloadErrorStackTrace"
-                                            iconButton
-                                            type="text"
-                                            disabled={loading}
-                                            onClick={() => {
-                                                if (data?.error_group) {
-                                                    let stackTraceStr =
-                                                        data.error_group
-                                                            .stack_trace || '';
-                                                    let isJson = true;
+                            </title>
+                        </Helmet>
+                        <div
+                            className={classNames(
+                                styles.errorPageCenterColumn,
+                                {
+                                    [styles.hidden]: !showLeftPanel,
+                                    [styles.bannerShown]: showBanner,
+                                }
+                            )}
+                        >
+                            <div className={styles.titleContainer}>
+                                {loading ? (
+                                    <Skeleton
+                                        count={1}
+                                        style={{ width: 300, height: 37 }}
+                                    />
+                                ) : (
+                                    <ErrorTitle
+                                        errorGroup={data?.error_group}
+                                    />
+                                )}
+                            </div>
+                            <div className={styles.eventText}>
+                                {loading ? (
+                                    <Skeleton
+                                        count={1}
+                                        style={{
+                                            height: '2ch',
+                                            marginBottom: 0,
+                                        }}
+                                    />
+                                ) : (
+                                    <ErrorDescription
+                                        errorGroup={data?.error_group}
+                                    />
+                                )}
+                            </div>
+                            <h3 className={styles.titleWithAction}>
+                                Stack Trace
+                                <Tooltip title="Download the stack trace">
+                                    <Button
+                                        trackingId="DownloadErrorStackTrace"
+                                        iconButton
+                                        type="text"
+                                        disabled={loading}
+                                        onClick={() => {
+                                            if (data?.error_group) {
+                                                let stackTraceStr =
+                                                    data.error_group
+                                                        .stack_trace || '';
+                                                let isJson = true;
 
-                                                    if (
-                                                        data.error_group
-                                                            .structured_stack_trace
-                                                            ?.length > 0
-                                                    ) {
-                                                        const traceLines = data.error_group.structured_stack_trace.map(
-                                                            (stack_trace) => {
-                                                                return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
-                                                            }
-                                                        );
-                                                        stackTraceStr = JSON.stringify(
-                                                            traceLines,
-                                                            undefined,
-                                                            2
-                                                        );
-                                                    } else {
-                                                        try {
-                                                            JSON.parse(
-                                                                stackTraceStr
-                                                            );
-                                                        } catch {
-                                                            isJson = false;
+                                                if (
+                                                    data.error_group
+                                                        .structured_stack_trace
+                                                        ?.length > 0
+                                                ) {
+                                                    const traceLines = data.error_group.structured_stack_trace.map(
+                                                        (stack_trace) => {
+                                                            return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
                                                         }
+                                                    );
+                                                    stackTraceStr = JSON.stringify(
+                                                        traceLines,
+                                                        undefined,
+                                                        2
+                                                    );
+                                                } else {
+                                                    try {
+                                                        JSON.parse(
+                                                            stackTraceStr
+                                                        );
+                                                    } catch {
+                                                        isJson = false;
                                                     }
-
-                                                    const a = document.createElement(
-                                                        'a'
-                                                    );
-                                                    const file = new Blob(
-                                                        [stackTraceStr],
-                                                        {
-                                                            type: isJson
-                                                                ? 'application/json'
-                                                                : 'text/plain',
-                                                        }
-                                                    );
-
-                                                    a.href = URL.createObjectURL(
-                                                        file
-                                                    );
-                                                    a.download = `stack-trace-for-error-${error_secure_id}.${
-                                                        isJson ? 'json' : 'txt'
-                                                    }`;
-                                                    a.click();
-
-                                                    URL.revokeObjectURL(a.href);
                                                 }
-                                            }}
-                                        >
-                                            <SvgDownloadIcon />
-                                        </Button>
-                                    </Tooltip>
+
+                                                const a = document.createElement(
+                                                    'a'
+                                                );
+                                                const file = new Blob(
+                                                    [stackTraceStr],
+                                                    {
+                                                        type: isJson
+                                                            ? 'application/json'
+                                                            : 'text/plain',
+                                                    }
+                                                );
+
+                                                a.href = URL.createObjectURL(
+                                                    file
+                                                );
+                                                a.download = `stack-trace-for-error-${error_secure_id}.${
+                                                    isJson ? 'json' : 'txt'
+                                                }`;
+                                                a.click();
+
+                                                URL.revokeObjectURL(a.href);
+                                            }
+                                        }}
+                                    >
+                                        <SvgDownloadIcon />
+                                    </Button>
+                                </Tooltip>
+                            </h3>
+                            <div className={styles.fieldWrapper}>
+                                <StackTraceSection
+                                    loading={loading}
+                                    errorGroup={data?.error_group}
+                                />
+                            </div>
+                            {loading && (
+                                <h3>
+                                    <Skeleton
+                                        duration={1}
+                                        count={1}
+                                        style={{ width: 300 }}
+                                    />
                                 </h3>
+                            )}
+                            {!loading && data?.error_group?.project_id && (
                                 <div className={styles.fieldWrapper}>
-                                    <StackTraceSection
-                                        loading={loading}
+                                    <ErrorFrequencyGraph
                                         errorGroup={data?.error_group}
                                     />
                                 </div>
-                                {loading && (
-                                    <h3>
-                                        <Skeleton
-                                            duration={1}
-                                            count={1}
-                                            style={{ width: 300 }}
-                                        />
-                                    </h3>
-                                )}
-                                {!loading && data?.error_group?.project_id && (
-                                    <div className={styles.fieldWrapper}>
-                                        <ErrorFrequencyGraph
-                                            errorGroup={data?.error_group}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.errorPageRightColumn,
-                                    { [styles.bannerShown]: showBanner }
-                                )}
-                                ref={newCommentModalRef}
-                            >
-                                <ErrorAffectedUsers
-                                    errorGroup={data}
-                                    loading={loading}
-                                />
-                                <ErrorRightPanel
-                                    errorGroup={data}
-                                    parentRef={newCommentModalRef}
-                                />
-                            </div>
-                        </>
-                    ) : errorQueryingErrorGroup ? (
-                        <ErrorState
-                            shownWithHeader
-                            message="This error does not exist or has not been made public."
-                        />
-                    ) : (
-                        <NoActiveErrorCard />
-                    )}
-                </div>
-            </ErrorPageUIContextProvider>
+                            )}
+                        </div>
+                        <div
+                            className={classNames(styles.errorPageRightColumn, {
+                                [styles.bannerShown]: showBanner,
+                            })}
+                            ref={newCommentModalRef}
+                        >
+                            <ErrorAffectedUsers
+                                errorGroup={data}
+                                loading={loading}
+                            />
+                            <ErrorRightPanel
+                                errorGroup={data}
+                                parentRef={newCommentModalRef}
+                            />
+                        </div>
+                    </>
+                ) : errorQueryingErrorGroup ? (
+                    <ErrorState
+                        shownWithHeader
+                        message="This error does not exist or has not been made public."
+                    />
+                ) : (
+                    <NoActiveErrorCard />
+                )}
+            </div>
         </ErrorSearchContextProvider>
     );
 };
