@@ -63,6 +63,8 @@ interface SearchContext {
     setQueryBuilderInput: React.Dispatch<
         React.SetStateAction<QueryBuilderInput>
     >;
+    isQuickSearchOpen: boolean;
+    setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const showLiveSessions = (searchParams: SearchParams): boolean => {
