@@ -683,59 +683,93 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
-	r.AlertWorkerPool.SubmitRecover(func() {
-		// Sending session init alert
-		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
-			Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
-			return
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID))
+	go func() {
+		defer util.Recover()
+		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
+		// want to wait for the H.identify call to be able to create a better Slack message.
+		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
+		// A 25 second delay here gives this 5 seconds to complete in case this session
+		// is created right before the task is replaced.
+		time.Sleep(25 * time.Second)
+		r.AlertWorkerPool.SubmitRecover(func() {
+			// Sending session init alert
+			var sessionAlerts []*model.SessionAlert
+			if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
+				Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
 				return
 			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == session.Environment {
-					isExcludedEnvironment = true
-					break
+
+			sessionObj := &model.Session{}
+			if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&sessionObj).Error; err != nil {
+				retErr := e.Wrapf(err, "error reading from session %v", session.ID)
+				log.Error(retErr)
+				return
+			}
+
+			for _, sessionAlert := range sessionAlerts {
+				// check if session was produced from an excluded environment
+				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+				if err != nil {
+					log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID))
+					return
 				}
-			}
-			if isExcludedEnvironment {
-				return
-			}
 
-			// check if session was created by a should-ignore identifier
-			excludedIdentifiers, err := sessionAlert.GetExcludeRules()
-			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID))
-				return
-			}
-			isSessionByExcludedIdentifier := false
-			for _, identifier := range excludedIdentifiers {
-				if identifier != nil && *identifier == session.Identifier {
-					isSessionByExcludedIdentifier = true
-					break
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == sessionObj.Environment {
+						isExcludedEnvironment = true
+						break
+					}
 				}
-			}
-			if isSessionByExcludedIdentifier {
-				return
-			}
+				if isExcludedEnvironment {
+					return
+				}
 
-			workspace, err := r.getWorkspace(project.WorkspaceID)
-			if err != nil {
-				log.Error(e.Wrap(err, "error querying workspace"))
-				return
-			}
+				// check if session was created by a should-ignore identifier
+				excludedIdentifiers, err := sessionAlert.GetExcludeRules()
+				if err != nil {
+					log.Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID))
+					return
+				}
+				isSessionByExcludedIdentifier := false
+				for _, identifier := range excludedIdentifiers {
+					if identifier != nil && *identifier == sessionObj.Identifier {
+						isSessionByExcludedIdentifier = true
+						break
+					}
+				}
+				if isSessionByExcludedIdentifier {
+					return
+				}
 
-			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserObject: session.UserObject})
-		}
-	})
+				workspace, err := r.getWorkspace(project.WorkspaceID)
+				if err != nil {
+					log.Error(e.Wrap(err, "error querying workspace"))
+					return
+				}
+
+				var userProperties map[string]string
+				if sessionObj.UserProperties != "" {
+					userProperties, err = sessionObj.GetUserProperties()
+					if err != nil {
+						log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", sessionObj.ProjectID))
+						return
+					}
+				}
+
+				var visitedUrl *string
+				for _, field := range sessionObj.Fields {
+					if field.Type == "session" && field.Name == "visited-url" {
+						visitedUrl = &field.Value
+						break
+					}
+				}
+
+				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+			}
+		})
+	}()
 
 	return session, nil
 }
