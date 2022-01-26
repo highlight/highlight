@@ -153,7 +153,9 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     }
     if (params.visited_url) {
         rules.push(
-            deserializeGroup('session_visited-url', 'is', [params.visited_url])
+            deserializeGroup('session_visited-url', 'contains', [
+                params.visited_url,
+            ])
         );
     }
     if (params.referrer) {
