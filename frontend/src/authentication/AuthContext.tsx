@@ -27,7 +27,10 @@ export const queryBuilderEnabled = (
     project_id: string
 ) => {
     // Projects can be enabled on a one-off basis by adding to the list below:
-    return ['1', '162', '120', '493', '158'].includes(project_id);
+    return (
+        isHighlightAdmin ||
+        ['1', '162', '120', '493', '158'].includes(project_id)
+    );
 };
 
 export const [useAuthContext, AuthContextProvider] = createContext<{
