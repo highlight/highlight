@@ -1,11 +1,11 @@
-name: Firstload
+name: highlight-run/node
 on:
     push:
         paths:
             - 'highlight-node/**'
             - '.github/workflows/highlight-node.yml'
 jobs:
-    firstload:
+    highlight-node:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
