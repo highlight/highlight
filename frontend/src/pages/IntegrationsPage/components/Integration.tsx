@@ -1,9 +1,8 @@
-import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import Modal from '@components/Modal/Modal';
 import Switch from '@components/Switch/Switch';
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styles from './Integration.module.scss';
 
@@ -12,10 +11,22 @@ interface Props {
 }
 
 const Integration = ({
-    integration: { icon, name, description, configurationPage },
+    integration: {
+        icon,
+        name,
+        description,
+        configurationPage,
+        deleteConfirmationPage,
+        defaultEnable,
+    },
 }: Props) => {
     const [showConfiguration, setShowConfiguration] = useState(false);
-    const [integrationEnabled, setIntegrationEnabled] = useState(false);
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable);
+
+    useEffect(() => {
+        setIntegrationEnabled(defaultEnable);
+    }, [defaultEnable, setIntegrationEnabled]);
 
     return (
         <>
@@ -29,12 +40,17 @@ const Integration = ({
                                 ? 'Connected'
                                 : 'Connect'
                         }
-                        loading={showConfiguration && integrationEnabled}
+                        loading={
+                            (showConfiguration && integrationEnabled) ||
+                            (showDeleteConfirmation && !integrationEnabled)
+                        }
                         size="default"
                         checked={integrationEnabled}
                         onChange={(newValue) => {
                             if (newValue) {
                                 setShowConfiguration(true);
+                            } else if (deleteConfirmationPage) {
+                                setShowDeleteConfirmation(true);
                             }
                             setIntegrationEnabled(newValue);
                         }}
@@ -47,36 +63,31 @@ const Integration = ({
             </Card>
 
             <Modal
-                visible={showConfiguration}
+                visible={showConfiguration || showDeleteConfirmation}
                 onCancel={() => {
-                    setShowConfiguration(false);
-                    setIntegrationEnabled(false);
+                    if (showConfiguration) {
+                        setShowConfiguration(false);
+                        setIntegrationEnabled(false);
+                    } else {
+                        setShowDeleteConfirmation(false);
+                        setIntegrationEnabled(true);
+                    }
                 }}
                 title={`Configuring ${name} Integration`}
                 destroyOnClose
                 className={styles.modal}
             >
-                {configurationPage}
-                <footer>
-                    <Button
-                        trackingId={`IntegrationConfigurationCancel-${name}`}
-                        onClick={() => {
-                            setShowConfiguration(false);
-                            setIntegrationEnabled(false);
-                        }}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        trackingId={`IntegrationConfigurationSave-${name}`}
-                        type="primary"
-                        onClick={() => {
-                            setShowConfiguration(false);
-                        }}
-                    >
-                        Save
-                    </Button>
-                </footer>
+                {showConfiguration &&
+                    configurationPage(
+                        setShowConfiguration,
+                        setIntegrationEnabled
+                    )}
+                {showDeleteConfirmation &&
+                    deleteConfirmationPage &&
+                    deleteConfirmationPage(
+                        setShowDeleteConfirmation,
+                        setIntegrationEnabled
+                    )}
             </Modal>
         </>
     );

@@ -1,4 +1,3 @@
-import { useGetWorkspaceIsIntegratedWithSlackQuery } from '@graph/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -29,17 +28,16 @@ const PersonalNotificationButton = ({
         `${project_id}-${type}-personalNotifications`,
         false
     );
-    const { data } = useGetWorkspaceIsIntegratedWithSlackQuery({
-        variables: {
-            project_id,
-        },
-    });
+
     const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
         'Highlight-slackBotSetupType',
         ''
     );
 
-    const { slackUrl: slackBotUrl } = useSlackBot({ type, watch: true });
+    const { slackUrl: slackBotUrl, isSlackConnectedToWorkspace } = useSlackBot({
+        type,
+        watch: true,
+    });
 
     useEffect(() => {
         // personal notifications are already setup
@@ -50,18 +48,10 @@ const PersonalNotificationButton = ({
                 setIsIntegratedWithSlack(false);
             }
         }
+    }, [admin, setIsIntegratedWithSlack, type]);
 
-        if (data && type === 'Organization') {
-            // slack workspace has already been integrated
-            if (data.is_integrated_with_slack) {
-                setIsIntegratedWithSlack(true);
-            } else {
-                setIsIntegratedWithSlack(false);
-            }
-        }
-    }, [admin, data, setIsIntegratedWithSlack, type]);
-
-    if (!isLoggedIn || isIntegratedWithSlack) return null;
+    if (!isLoggedIn || isIntegratedWithSlack || isSlackConnectedToWorkspace)
+        return null;
 
     return (
         <Button

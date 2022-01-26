@@ -261,63 +261,64 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
-		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
-		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
-		CreateDefaultAlerts              func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
-		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) int
-		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
-		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
-		CreateMetricMonitor              func(childComplexity int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
-		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
-		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
-		CreateProject                    func(childComplexity int, name string, workspaceID int) int
-		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
-		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput) int
-		CreateSessionFeedbackAlert       func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
-		CreateTrackPropertiesAlert       func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
-		CreateUserPropertiesAlert        func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
-		CreateWorkspace                  func(childComplexity int, name string) int
-		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
-		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
-		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
-		DeleteErrorComment               func(childComplexity int, id int) int
-		DeleteErrorSegment               func(childComplexity int, segmentID int) int
-		DeleteMetricMonitor              func(childComplexity int, projectID int, metricMonitorID int) int
-		DeleteProject                    func(childComplexity int, id int) int
-		DeleteSegment                    func(childComplexity int, segmentID int) int
-		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
-		DeleteSessionComment             func(childComplexity int, id int) int
-		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
-		EditWorkspace                    func(childComplexity int, id int, name *string) int
-		EmailSignup                      func(childComplexity int, email string) int
-		JoinWorkspace                    func(childComplexity int, workspaceID int) int
-		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
-		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
-		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
-		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
-		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
-		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
-		SyncSlackIntegration             func(childComplexity int, projectID int) int
-		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
-		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
-		UpdateAllowedEmailOrigins        func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
-		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
-		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int, disabled bool) int
-		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
-		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
-		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled bool) int
-		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string, disabled bool) int
-		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
-		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
-		UpdateSessionFeedbackAlert       func(childComplexity int, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
-		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
-		UpdateTrackPropertiesAlert       func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int, disabled bool) int
-		UpdateUserPropertiesAlert        func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int, disabled bool) int
+		AddAdminToWorkspace                func(childComplexity int, workspaceID int, inviteID string) int
+		AddSlackBotIntegrationToProject    func(childComplexity int, projectID int, code string, redirectPath string) int
+		ChangeAdminRole                    func(childComplexity int, workspaceID int, adminID int, newRole string) int
+		CreateDefaultAlerts                func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
+		CreateErrorAlert                   func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) int
+		CreateErrorComment                 func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
+		CreateErrorSegment                 func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
+		CreateMetricMonitor                func(childComplexity int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
+		CreateNewSessionAlert              func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
+		CreateNewUserAlert                 func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) int
+		CreateOrUpdateStripeSubscription   func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
+		CreateProject                      func(childComplexity int, name string, workspaceID int) int
+		CreateRageClickAlert               func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
+		CreateSegment                      func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
+		CreateSessionComment               func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput) int
+		CreateSessionFeedbackAlert         func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
+		CreateTrackPropertiesAlert         func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
+		CreateUserPropertiesAlert          func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
+		CreateWorkspace                    func(childComplexity int, name string) int
+		DeleteAdminFromProject             func(childComplexity int, projectID int, adminID int) int
+		DeleteAdminFromWorkspace           func(childComplexity int, workspaceID int, adminID int) int
+		DeleteErrorAlert                   func(childComplexity int, projectID int, errorAlertID int) int
+		DeleteErrorComment                 func(childComplexity int, id int) int
+		DeleteErrorSegment                 func(childComplexity int, segmentID int) int
+		DeleteMetricMonitor                func(childComplexity int, projectID int, metricMonitorID int) int
+		DeleteProject                      func(childComplexity int, id int) int
+		DeleteSegment                      func(childComplexity int, segmentID int) int
+		DeleteSessionAlert                 func(childComplexity int, projectID int, sessionAlertID int) int
+		DeleteSessionComment               func(childComplexity int, id int) int
+		EditErrorSegment                   func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
+		EditProject                        func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditSegment                        func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
+		EditWorkspace                      func(childComplexity int, id int, name *string) int
+		EmailSignup                        func(childComplexity int, email string) int
+		JoinWorkspace                      func(childComplexity int, workspaceID int) int
+		MarkSessionAsStarred               func(childComplexity int, secureID string, starred *bool) int
+		MarkSessionAsViewed                func(childComplexity int, secureID string, viewed *bool) int
+		OpenSlackConversation              func(childComplexity int, projectID int, code string, redirectPath string) int
+		RemoveSlackBotIntegrationToProject func(childComplexity int, projectID int) int
+		SendAdminProjectInvite             func(childComplexity int, projectID int, email string, baseURL string) int
+		SendAdminWorkspaceInvite           func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
+		SubmitRegistrationForm             func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
+		SyncSlackIntegration               func(childComplexity int, projectID int) int
+		UpdateAdminAboutYouDetails         func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
+		UpdateAllowMeterOverage            func(childComplexity int, workspaceID int, allowMeterOverage bool) int
+		UpdateAllowedEmailOrigins          func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
+		UpdateBillingDetails               func(childComplexity int, workspaceID int) int
+		UpdateErrorAlert                   func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int, disabled bool) int
+		UpdateErrorGroupIsPublic           func(childComplexity int, errorGroupSecureID string, isPublic bool) int
+		UpdateErrorGroupState              func(childComplexity int, secureID string, state string) int
+		UpdateMetricMonitor                func(childComplexity int, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled bool) int
+		UpdateNewSessionAlert              func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string, disabled bool) int
+		UpdateNewUserAlert                 func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
+		UpdateRageClickAlert               func(childComplexity int, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
+		UpdateSessionFeedbackAlert         func(childComplexity int, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) int
+		UpdateSessionIsPublic              func(childComplexity int, sessionSecureID string, isPublic bool) int
+		UpdateTrackPropertiesAlert         func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int, disabled bool) int
+		UpdateUserPropertiesAlert          func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int, disabled bool) int
 	}
 
 	NewUsersCount struct {
@@ -728,6 +729,7 @@ type MutationResolver interface {
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error)
+	RemoveSlackBotIntegrationToProject(ctx context.Context, projectID int) (bool, error)
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model1.SessionAlert, error)
@@ -2287,6 +2289,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
+
+	case "Mutation.removeSlackBotIntegrationToProject":
+		if e.complexity.Mutation.RemoveSlackBotIntegrationToProject == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeSlackBotIntegrationToProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveSlackBotIntegrationToProject(childComplexity, args["project_id"].(int)), true
 
 	case "Mutation.sendAdminProjectInvite":
 		if e.complexity.Mutation.SendAdminProjectInvite == nil {
@@ -5531,6 +5545,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    removeSlackBotIntegrationToProject(project_id: ID!): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
         project_id: ID!
@@ -7228,6 +7243,21 @@ func (ec *executionContext) field_Mutation_openSlackConversation_args(ctx contex
 		}
 	}
 	args["redirect_path"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeSlackBotIntegrationToProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -15580,6 +15610,48 @@ func (ec *executionContext) _Mutation_addSlackBotIntegrationToProject(ctx contex
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddSlackBotIntegrationToProject(rctx, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeSlackBotIntegrationToProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeSlackBotIntegrationToProject_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveSlackBotIntegrationToProject(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28442,6 +28514,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
 		case "addSlackBotIntegrationToProject":
 			out.Values[i] = ec._Mutation_addSlackBotIntegrationToProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeSlackBotIntegrationToProject":
+			out.Values[i] = ec._Mutation_removeSlackBotIntegrationToProject(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -1077,6 +1077,7 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    removeSlackBotIntegrationToProject: Scalars['Boolean'];
     syncSlackIntegration: SlackSyncResponse;
     createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
@@ -1282,6 +1283,10 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
+};
+
+export type MutationRemoveSlackBotIntegrationToProjectArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type MutationSyncSlackIntegrationArgs = {

@@ -1246,6 +1246,31 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	return true, nil
 }
 
+func (r *mutationResolver) RemoveSlackBotIntegrationToProject(ctx context.Context, projectID int) (bool, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	// remove slack integration from workspace
+	if err := r.DB.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
+		return false, e.Wrap(err, "error removing slack access token and channels in workspace")
+	}
+
+	// set existing alerts to have empty slack channels to notify
+	empty := "[]"
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Updates(model.SessionAlert{Alert: model.Alert{ChannelsToNotify: &empty}}).Error; err != nil {
+		return false, e.Wrap(err, "error removing slack channels from created SessionAlerts")
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) SyncSlackIntegration(ctx context.Context, projectID int) (*modelInputs.SlackSyncResponse, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	response := modelInputs.SlackSyncResponse{
