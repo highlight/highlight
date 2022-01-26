@@ -26,8 +26,14 @@ interface QuickSearchOption {
 const ERROR_TYPE = 'error-field';
 const RESULT_COUNT = 10;
 
-const getQueryFieldKey = (input: QuickSearchOption) =>
-    input.type.toLowerCase() + '_' + input.name.toLowerCase();
+const getQueryFieldKey = (input: QuickSearchOption) => {
+    // Event is a special case because we query it on the error group
+    // instead of the error object
+    if (input.type === ERROR_TYPE && input.name === 'event') {
+        return 'error_Event';
+    }
+    return input.type.toLowerCase() + '_' + input.name.toLowerCase();
+};
 
 const styleProps: Styles<any, false> = {
     ...SharedSelectStyleProps,
