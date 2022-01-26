@@ -1,3 +1,3 @@
-export interface NodeOptions {
-    sessionId?: string;
-}
+import { HighlightOptions } from 'highlight.run';
+
+export interface NodeOptions extends HighlightOptions {}

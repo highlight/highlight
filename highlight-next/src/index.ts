@@ -1,12 +1,7 @@
-import ErrorStackParser from 'error-stack-parser';
-import {
-    getSdk,
-    Sdk,
-    PushBackendPayloadMutationVariables,
-} from './graph/generated/operations';
-import { GraphQLClient } from 'graphql-request';
+import { Highlight, NodeOptions } from '@highlight-run/node';
 
 export interface HighlightInterface {
+    init: (options: NodeOptions) => void;
     consumeError: (
         error: Error,
         secureSessionId: string,
@@ -16,13 +11,19 @@ export interface HighlightInterface {
 
 var highlight_obj: Highlight;
 export const H: HighlightInterface = {
+    init: (options: NodeOptions) => {
+        try {
+            highlight_obj = new Highlight(options);
+        } catch (e) {
+            console.log('highlight-next init error: ', e);
+        }
+    },
     consumeError: (
         error: Error,
         secureSessionId: string,
         requestId: string
     ) => {
         try {
-            highlight_obj = new Highlight();
             highlight_obj.consumeCustomError(error, secureSessionId, requestId);
         } catch (e) {
             console.log('highlight-next error: ', e);
@@ -30,44 +31,4 @@ export const H: HighlightInterface = {
     },
 };
 
-export class Highlight {
-    _graphqlSdk: Sdk;
-
-    constructor() {
-        // Change to http://localhost:8082/public for development
-        const client = new GraphQLClient('https://pub.highlight.run', {
-            headers: {},
-        });
-        this._graphqlSdk = getSdk(client);
-    }
-
-    consumeCustomError(
-        error: Error,
-        secureSessionId: string,
-        requestId: string
-    ) {
-        let res: ErrorStackParser.StackFrame[] = [];
-        try {
-            res = ErrorStackParser.parse(error);
-        } catch {}
-        const variables: PushBackendPayloadMutationVariables = {
-            errors: [
-                {
-                    event: error.message
-                        ? `${error.name}: ${error.message}`
-                        : `${error.name}`,
-                    request_id: requestId,
-                    session_secure_id: secureSessionId,
-                    source: '',
-                    stackTrace: JSON.stringify(res),
-                    timestamp: new Date().toISOString(),
-                    type: 'BACKEND',
-                    url: '',
-                },
-            ],
-        };
-        this._graphqlSdk.PushBackendPayload(variables);
-    }
-}
-
-export { withHighlight } from './util/withHighlight';
+export { Highlight } from './util/withHighlight';

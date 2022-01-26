@@ -1,6 +1,6 @@
 {
     "name": "@highlight-run/next",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Client for interfacing with Highlight in next.js",
     "main": "dist/index.js",
     "scripts": {
@@ -15,19 +15,8 @@
     "license": "ISC",
     "dependencies": {
         "@highlight-run/node": "^1.0.3",
-        "error-stack-parser": "^2.0.6",
-        "graphql": "^15",
-        "graphql-request": "^3.7.0",
-        "graphql-tag": "^2.12.6",
         "next": "^12.0.7",
         "npm-run-all": "^4.1.5",
         "typescript": "^4.5.5"
-    },
-    "devDependencies": {
-        "@graphql-codegen/cli": "^2.3.0",
-        "@graphql-codegen/import-types-preset": "^2.1.8",
-        "@graphql-codegen/typescript": "^2.4.1",
-        "@graphql-codegen/typescript-graphql-request": "^4.3.2",
-        "@graphql-codegen/typescript-operations": "^2.2.1"
     }
 }

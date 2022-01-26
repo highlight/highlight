@@ -124,6 +124,7 @@ export type MutationPushBackendPayloadArgs = {
 export type MutationPushPayloadArgs = {
   errors: Array<InputMaybe<ErrorObjectInput>>;
   events: ReplayEventsInput;
+  is_beacon?: InputMaybe<Scalars['Boolean']>;
   messages: Scalars['String'];
   resources: Scalars['String'];
   session_id: Scalars['ID'];
