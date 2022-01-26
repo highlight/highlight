@@ -22,7 +22,7 @@ export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
-const denyList: string[] = [];
+const denyList: string[] = ['396'];
 
 export const queryBuilderEnabled = (
     isHighlightAdmin: boolean,
