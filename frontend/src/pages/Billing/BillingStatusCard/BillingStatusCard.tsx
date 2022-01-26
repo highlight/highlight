@@ -3,11 +3,13 @@ import Progress from '@components/Progress/Progress';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { USD } from '@dinero.js/currencies';
 import {
+    Maybe,
     PlanType,
     SubscriptionDetails,
     SubscriptionInterval,
 } from '@graph/schemas';
 import { BILLING_PLANS } from '@pages/Billing/BillingPlanCard/BillingConfig';
+import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
 import { Divider } from 'antd';
 import {
     add,
@@ -40,6 +42,7 @@ export const BillingStatusCard = ({
     billingPeriodEnd,
     nextInvoiceDate,
     subscriptionDetails: subscription_details,
+    trialEndDate,
 }: {
     planType: PlanType;
     sessionCount: number;
@@ -52,6 +55,7 @@ export const BillingStatusCard = ({
     billingPeriodEnd: Date;
     nextInvoiceDate: Date;
     subscriptionDetails: SubscriptionDetails | undefined;
+    trialEndDate: Maybe<Date>;
 }) => {
     const { isHighlightAdmin } = useAuthContext();
 
@@ -136,6 +140,12 @@ export const BillingStatusCard = ({
             <div className={styles.sectionContents}>
                 {loading ? (
                     <Skeleton count={2} />
+                ) : !!trialEndDate && new Date(trialEndDate) >= new Date() ? (
+                    <>
+                        <span className={styles.subText}>
+                            {getTrialEndDateMessage(trialEndDate)}
+                        </span>
+                    </>
                 ) : (
                     <>
                         <span className={styles.subText}>

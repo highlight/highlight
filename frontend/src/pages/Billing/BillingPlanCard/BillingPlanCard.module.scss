@@ -53,10 +53,10 @@
     column-gap: var(--size-xSmall);
     display: flex;
     margin: 0;
+}
 
-    svg {
-        color: var(--color-green-400);
-    }
+.featureCheckIcon {
+    color: var(--color-green-400);
 }
 
 .button {

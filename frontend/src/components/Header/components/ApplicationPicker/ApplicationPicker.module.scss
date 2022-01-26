@@ -57,3 +57,12 @@
     min-width: var(--size);
     width: var(--size);
 }
+
+.backToProjectButton {
+    border-radius: 18px !important;
+    padding: 0 6px !important;
+    width: 100% !important;
+    span {
+        margin-left: 8px;
+    }
+}

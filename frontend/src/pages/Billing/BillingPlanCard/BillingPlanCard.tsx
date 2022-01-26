@@ -1,3 +1,4 @@
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { formatNumberWithDelimiters } from '@util/numbers';
@@ -87,13 +88,27 @@ export const BillingPlanCard = ({
                 )}
             </div>
             <ul className={styles.advertisedFeaturesWrapper}>
-                {billingPlan.advertisedFeatures.map((featureString) => (
+                {billingPlan.advertisedFeatures.map((feature) => (
                     <li
                         className={styles.advertisedFeature}
-                        key={featureString}
+                        key={
+                            typeof feature === 'string' ? feature : feature.text
+                        }
                     >
-                        <SvgVerifyCheckIcon />
-                        {featureString}
+                        <SvgVerifyCheckIcon
+                            className={styles.featureCheckIcon}
+                        />
+                        {typeof feature === 'string' ? (
+                            feature
+                        ) : (
+                            <span>
+                                {feature.text}
+                                <InfoTooltip
+                                    title={feature.tooltip}
+                                    size="medium"
+                                />
+                            </span>
+                        )}
                     </li>
                 ))}
             </ul>

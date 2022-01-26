@@ -279,6 +279,7 @@ const BillingPage = () => {
                     allowOverage={allowOverage}
                     loading={billingLoading || subscriptionLoading}
                     subscriptionDetails={subscriptionData?.subscription_details}
+                    trialEndDate={billingData?.workspace?.trial_end_date}
                 />
                 <Authorization allowedRoles={[AdminRole.Admin]}>
                     <div className={styles.annualToggleBox}>
