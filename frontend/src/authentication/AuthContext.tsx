@@ -29,7 +29,7 @@ export const queryBuilderEnabled = (
     project_id: string
 ) => {
     // Projects can be disabled on a one-off basis by adding to the denyList
-    return !denyList.includes(project_id);
+    return isHighlightAdmin || !denyList.includes(project_id);
 };
 
 export const [useAuthContext, AuthContextProvider] = createContext<{
