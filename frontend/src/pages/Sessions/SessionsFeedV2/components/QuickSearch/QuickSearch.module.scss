@@ -95,7 +95,7 @@
     position: fixed;
     top: calc(-1 * var(--banner-height));
     transition: opacity 0.2s ease-in;
-    width: 100vw;
+    width: 150vw;
     z-index: 9999;
 
     &.visible {
