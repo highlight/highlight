@@ -72,10 +72,10 @@ const StackedAreaChart = ({
                     height={400}
                     data={data}
                     margin={{
-                        top: 0,
+                        top: 8,
                         right: 32,
                         left: 0,
-                        bottom: 0,
+                        bottom: 8,
                     }}
                     onClick={onClickHandler}
                     syncId={syncId}
