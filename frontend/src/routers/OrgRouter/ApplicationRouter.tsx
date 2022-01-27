@@ -12,7 +12,7 @@ import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
 import SetupPage from '../../pages/Setup/SetupPage';
-import ProjectSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
+import ProjectSettings from '../../pages/WorkspaceSettings/ProjectSettings';
 
 interface Props {
     integrated: boolean;
