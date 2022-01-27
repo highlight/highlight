@@ -1,6 +1,9 @@
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 
-import { HighlightEvent } from '../../HighlightEvent';
+import {
+    HighlightEvent,
+    HighlightPerformancePayload,
+} from '../../HighlightEvent';
 
 /**
  * Finds the first event of a type.
@@ -56,4 +59,22 @@ export const getAllUrlEvents = (events: HighlightEvent[]) => {
     });
 
     return urlEvents as customEvent<string>[];
+};
+
+export const getAllPerformanceEvents = (
+    events: HighlightEvent[]
+): HighlightPerformancePayload[] => {
+    const performanceEvents = events.filter((event) => {
+        if (event.type !== 5) {
+            return false;
+        }
+
+        if (event.data.tag === 'Performance') {
+            return true;
+        }
+    });
+
+    return performanceEvents.map((event) =>
+        JSON.parse((event.data as any).payload)
+    );
 };

@@ -1,0 +1,13 @@
+.tooltipContentContainer {
+    p {
+        align-items: center;
+        column-gap: var(--size-xSmall);
+        display: flex;
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .label {
+        color: var(--color-gray-500);
+    }
+}
