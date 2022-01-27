@@ -992,7 +992,20 @@ export const propertiesToRules = (
     }
     const rules: RuleProps[] = [];
     for (const [name, vals] of propsMap) {
-        rules.push(deserializeGroup(`${type}_${name}`, op, vals));
+        const key = `${type}_${name}`;
+        if (key === 'user_contains') {
+            if (op === 'is_not') {
+                rules.push(
+                    deserializeGroup(`user_identifier`, 'not_contains', vals)
+                );
+            } else {
+                rules.push(
+                    deserializeGroup(`user_identifier`, 'contains', vals)
+                );
+            }
+        } else {
+            rules.push(deserializeGroup(`${type}_${name}`, op, vals));
+        }
     }
     return rules;
 };

@@ -42,7 +42,6 @@ import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
-import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -53,7 +52,6 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
-import AsyncSelect from 'react-select/async';
 
 import WaitingAnimation from '../../lottie/waiting.json';
 import styles from './PlayerPage.module.scss';
@@ -71,9 +69,6 @@ const Player = ({ integrated }: Props) => {
     }>();
     const [resizeListener, sizes] = useResizeAware();
 
-    const [searchBarRef, setSearchBarRef] = useState<
-        AsyncSelect<SessionSearchOption, true> | undefined
-    >(undefined);
     const player = usePlayer();
     const {
         state: replayerState,
@@ -194,8 +189,6 @@ const Player = ({ integrated }: Props) => {
     return (
         <PlayerUIContextProvider
             value={{
-                searchBarRef,
-                setSearchBarRef,
                 isPlayerFullscreen,
                 setIsPlayerFullscreen,
                 playerCenterPanelRef,

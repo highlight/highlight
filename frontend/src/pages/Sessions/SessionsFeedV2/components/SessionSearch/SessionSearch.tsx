@@ -11,7 +11,6 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
-import { usePlayerUIContext } from '../../../../Player/context/PlayerUIContext';
 import {
     UserProperty,
     useSearchContext,
@@ -28,7 +27,6 @@ const SessionSearch = () => {
         SessionSearchOption[]
     >([]);
     const { searchParams, setSearchParams } = useSearchContext();
-    const { setSearchBarRef } = usePlayerUIContext();
     const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
@@ -159,13 +157,6 @@ const SessionSearch = () => {
 
     return (
         <AsyncSelect
-            ref={(ref) => {
-                if (ref) {
-                    setSearchBarRef(ref);
-                } else {
-                    setSearchBarRef(undefined);
-                }
-            }}
             isMulti
             loadOptions={debouncedGenerateOptions}
             isLoading={loading}
