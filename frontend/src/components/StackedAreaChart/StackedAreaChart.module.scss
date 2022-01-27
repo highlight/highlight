@@ -11,3 +11,20 @@
         color: var(--color-gray-500);
     }
 }
+
+.chartLabelContainer {
+    left: 62px;
+    position: absolute;
+    top: var(--size-xxSmall);
+
+    p {
+        border-radius: var(--size-xxSmall);
+        font-size: 12px;
+        margin: 0 !important;
+    }
+}
+
+.chartContainer {
+    position: relative;
+    width: 100%;
+}

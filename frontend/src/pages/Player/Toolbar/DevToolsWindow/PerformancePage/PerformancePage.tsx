@@ -51,6 +51,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                         fillColor: 'var(--color-green-400)',
                         yAxisLabel: 'Frames per Second',
                         tooltipIcon: <SvgTimerIcon />,
+                        chartLabel: 'Frames Per Second',
                     },
                     {
                         key: 'memoryUsagePercent',
@@ -60,6 +61,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                             `${(tickItem * 100).toFixed(0)}%`,
                         yAxisLabel: 'Memory Used',
                         tooltipIcon: <SvgCarDashboardIcon />,
+                        chartLabel: 'Device Memory',
                     },
                 ].map(
                     ({
@@ -69,6 +71,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                         yAxisTickFormatter,
                         yAxisLabel,
                         tooltipIcon,
+                        chartLabel,
                     }) => {
                         const timestamps = graphData.map((d) => d.timestamp);
                         const closestTimestamp = findClosestTimestamp(
@@ -107,6 +110,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                                 }}
                                 yAxisLabel={yAxisLabel}
                                 tooltipIcon={tooltipIcon}
+                                chartLabel={chartLabel}
                             />
                         );
                     }
