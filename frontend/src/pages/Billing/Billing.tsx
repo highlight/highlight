@@ -17,6 +17,7 @@ import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
 
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
@@ -205,29 +206,12 @@ const BillingPage = () => {
         <>
             {rainConfetti && <Confetti recycle={false} />}
             <div className={styles.titleContainer}>
-                <BillingStatusCard
-                    planType={
-                        billingData?.billingDetails.plan.type ?? PlanType.Free
-                    }
-                    sessionCount={billingData?.billingDetails.meter ?? 0}
-                    sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
-                    memberCount={billingData?.billingDetails.membersMeter ?? 0}
-                    memberLimit={
-                        billingData?.billingDetails.plan.membersLimit ?? 0
-                    }
-                    subscriptionInterval={
-                        billingData?.billingDetails.plan.interval ??
-                        SubscriptionInterval.Monthly
-                    }
-                    billingPeriodEnd={
-                        billingData?.workspace?.billing_period_end
-                    }
-                    nextInvoiceDate={billingData?.workspace?.next_invoice_date}
-                    allowOverage={allowOverage}
-                    loading={billingLoading || subscriptionLoading}
-                    subscriptionDetails={subscriptionData?.subscription_details}
-                    trialEndDate={billingData?.workspace?.trial_end_date}
-                />
+                <div>
+                    <h3>Billing</h3>
+                    <p className={layoutStyles.subTitle}>
+                        Upgrade or edit your workspace's billing settings.
+                    </p>
+                </div>
                 <Authorization allowedRoles={[AdminRole.Admin]}>
                     <div className={styles.portalButtonContainer}>
                         <Button
@@ -264,6 +248,25 @@ const BillingPage = () => {
                     </div>
                 </Authorization>
             </div>
+            <BillingStatusCard
+                planType={
+                    billingData?.billingDetails.plan.type ?? PlanType.Free
+                }
+                sessionCount={billingData?.billingDetails.meter ?? 0}
+                sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
+                memberCount={billingData?.billingDetails.membersMeter ?? 0}
+                memberLimit={billingData?.billingDetails.plan.membersLimit ?? 0}
+                subscriptionInterval={
+                    billingData?.billingDetails.plan.interval ??
+                    SubscriptionInterval.Monthly
+                }
+                billingPeriodEnd={billingData?.workspace?.billing_period_end}
+                nextInvoiceDate={billingData?.workspace?.next_invoice_date}
+                allowOverage={allowOverage}
+                loading={billingLoading || subscriptionLoading}
+                subscriptionDetails={subscriptionData?.subscription_details}
+                trialEndDate={billingData?.workspace?.trial_end_date}
+            />
 
             <Authorization allowedRoles={[AdminRole.Admin]}>
                 <div className={styles.annualToggleBox}>

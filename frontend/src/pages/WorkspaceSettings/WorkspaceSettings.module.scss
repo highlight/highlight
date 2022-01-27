@@ -7,7 +7,7 @@
     border-radius: 8px;
     margin-top: var(--size-large);
     padding: 30px;
-    width: 600px;
+    width: 700px;
 
     h3 {
         font-size: 18px;
@@ -17,4 +17,9 @@
 
 .dangerTitle {
     color: var(--color-red-400);
+}
+
+.titleContainer {
+    margin-bottom: var(--size-xxLarge);
+    margin-top: var(--size-xxLarge);
 }

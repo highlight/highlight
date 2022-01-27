@@ -7,7 +7,6 @@ import React, { Suspense } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router-dom';
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './WorkspaceTabs.module.scss';
 
 const BillingPage = React.lazy(() => import('../Billing/Billing'));
@@ -42,14 +41,12 @@ export const WorkspaceTabs = () => {
             </Helmet>
             <LeadAlignLayout fullWidth>
                 <div>
-                    <h2>Workspace Settings</h2>
-                    <p className={layoutStyles.subTitle}>
-                        Manage your workspace's team, properties, and much more!
-                    </p>
+                    <h2 className={styles.header}>Workspace Settings</h2>
                 </div>
                 <Tabs
                     className={styles.workspaceTabs}
                     noPadding
+                    noHeaderPadding
                     activeKeyOverride={page_id}
                     onChange={(activeKey) =>
                         history.push(`/w/${workspace_id}/${activeKey}`)

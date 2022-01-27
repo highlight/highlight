@@ -23,6 +23,7 @@ import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
@@ -94,7 +95,135 @@ const WorkspaceTeam = () => {
     }
 
     return (
-        <div className={styles.titleContainer}>
+        <>
+            <div className={styles.titleContainer}>
+                <div>
+                    <h3>Invite A Member</h3>
+                    <p className={layoutStyles.subTitle}>
+                        Invite your team to your workspace.
+                    </p>
+                </div>
+                <Modal
+                    destroyOnClose
+                    centered
+                    title="Invite Member"
+                    visible={showModal}
+                    width={600}
+                    onCancel={toggleShowModal}
+                >
+                    <form onSubmit={onSubmit}>
+                        <p className={styles.boxSubTitle}>
+                            Invite a team member to '
+                            {`${data?.workspace?.name}`}' by entering an email
+                            below.
+                        </p>
+                        <div className={styles.buttonRow}>
+                            <Input
+                                className={styles.emailInput}
+                                placeholder={'Email'}
+                                type="email"
+                                name="email"
+                                autoFocus
+                                value={email}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                }}
+                                addonAfter={
+                                    <Select
+                                        bordered={false}
+                                        value={newAdminRole}
+                                        options={(Object.keys(
+                                            AdminRole
+                                        ) as (keyof typeof AdminRole)[]).map(
+                                            (key) => {
+                                                const role = AdminRole[key];
+
+                                                return {
+                                                    displayValue: titleCaseString(
+                                                        role
+                                                    ),
+                                                    id: role,
+                                                    value: role,
+                                                };
+                                            }
+                                        )}
+                                        onChange={setNewAdminRole}
+                                    />
+                                }
+                            />
+                            <Button
+                                trackingId="WorkspaceInviteMember"
+                                type="primary"
+                                className={classNames(
+                                    commonStyles.submitButton,
+                                    styles.inviteButton
+                                )}
+                                htmlType="submit"
+                            >
+                                {sendLoading ? (
+                                    <CircularSpinner
+                                        style={{
+                                            fontSize: 18,
+                                            color:
+                                                'var(--text-primary-inverted)',
+                                        }}
+                                    />
+                                ) : (
+                                    'Invite'
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                    {sendInviteEmailData?.sendAdminWorkspaceInvite && (
+                        <Alert
+                            shouldAlwaysShow
+                            trackingId="InviteAdminToWorkspaceConfirmation"
+                            message={`An invite email has been sent!`}
+                            type="success"
+                            description={
+                                <>
+                                    You can also share with them this link:{' '}
+                                    <span>
+                                        <CopyText
+                                            text={
+                                                sendInviteEmailData.sendAdminWorkspaceInvite
+                                            }
+                                            inline
+                                        />
+                                    </span>
+                                </>
+                            }
+                        />
+                    )}
+                    <hr className={styles.hr} />
+                    <p className={styles.boxSubTitle}>
+                        Or share this link with them (this link expires{' '}
+                        {moment(
+                            data?.workspace_invite_links.expiration_date
+                        ).fromNow()}
+                        ).
+                    </p>
+                    <CopyText
+                        text={getWorkspaceInvitationLink(
+                            data?.workspace_invite_links.secret || '',
+                            workspace_id
+                        )}
+                    />
+                    <hr className={styles.hr} />
+                    <p className={styles.boxSubTitle}>
+                        Or you can enable auto join to allow anyone with an
+                        approved email origin join.
+                    </p>
+                    <AutoJoinForm />
+                </Modal>
+                <Button
+                    trackingId="WorkspaceTeamInviteMember"
+                    type="primary"
+                    onClick={toggleShowModal}
+                >
+                    Invite Member
+                </Button>
+            </div>
             <div className={styles.memberCardWrapper}>
                 <Card noPadding>
                     <Table
@@ -155,126 +284,7 @@ const WorkspaceTeam = () => {
                     />
                 </Card>
             </div>
-
-            <Modal
-                destroyOnClose
-                centered
-                title="Invite Member"
-                visible={showModal}
-                width={600}
-                onCancel={toggleShowModal}
-            >
-                <form onSubmit={onSubmit}>
-                    <p className={styles.boxSubTitle}>
-                        Invite a team member to '{`${data?.workspace?.name}`}'
-                        by entering an email below.
-                    </p>
-                    <div className={styles.buttonRow}>
-                        <Input
-                            className={styles.emailInput}
-                            placeholder={'Email'}
-                            type="email"
-                            name="email"
-                            autoFocus
-                            value={email}
-                            onChange={(e) => {
-                                setEmail(e.target.value);
-                            }}
-                            addonAfter={
-                                <Select
-                                    bordered={false}
-                                    value={newAdminRole}
-                                    options={(Object.keys(
-                                        AdminRole
-                                    ) as (keyof typeof AdminRole)[]).map(
-                                        (key) => {
-                                            const role = AdminRole[key];
-
-                                            return {
-                                                displayValue: titleCaseString(
-                                                    role
-                                                ),
-                                                id: role,
-                                                value: role,
-                                            };
-                                        }
-                                    )}
-                                    onChange={setNewAdminRole}
-                                />
-                            }
-                        />
-                        <Button
-                            trackingId="WorkspaceInviteMember"
-                            type="primary"
-                            className={classNames(
-                                commonStyles.submitButton,
-                                styles.inviteButton
-                            )}
-                            htmlType="submit"
-                        >
-                            {sendLoading ? (
-                                <CircularSpinner
-                                    style={{
-                                        fontSize: 18,
-                                        color: 'var(--text-primary-inverted)',
-                                    }}
-                                />
-                            ) : (
-                                'Invite'
-                            )}
-                        </Button>
-                    </div>
-                </form>
-                {sendInviteEmailData?.sendAdminWorkspaceInvite && (
-                    <Alert
-                        shouldAlwaysShow
-                        trackingId="InviteAdminToWorkspaceConfirmation"
-                        message={`An invite email has been sent!`}
-                        type="success"
-                        description={
-                            <>
-                                You can also share with them this link:{' '}
-                                <span>
-                                    <CopyText
-                                        text={
-                                            sendInviteEmailData.sendAdminWorkspaceInvite
-                                        }
-                                        inline
-                                    />
-                                </span>
-                            </>
-                        }
-                    />
-                )}
-                <hr className={styles.hr} />
-                <p className={styles.boxSubTitle}>
-                    Or share this link with them (this link expires{' '}
-                    {moment(
-                        data?.workspace_invite_links.expiration_date
-                    ).fromNow()}
-                    ).
-                </p>
-                <CopyText
-                    text={getWorkspaceInvitationLink(
-                        data?.workspace_invite_links.secret || '',
-                        workspace_id
-                    )}
-                />
-                <hr className={styles.hr} />
-                <p className={styles.boxSubTitle}>
-                    Or you can enable auto join to allow anyone with an approved
-                    email origin join.
-                </p>
-                <AutoJoinForm />
-            </Modal>
-            <Button
-                trackingId="WorkspaceTeamInviteMember"
-                type="primary"
-                onClick={toggleShowModal}
-            >
-                Invite Member
-            </Button>
-        </div>
+        </>
     );
 };
 

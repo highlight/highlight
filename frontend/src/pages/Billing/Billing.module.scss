@@ -49,8 +49,10 @@
 .titleContainer {
     align-items: flex-start;
     display: flex;
-    margin-top: var(--size-large);
-    max-width: 1172px;
+    justify-content: space-between;
+    margin-bottom: var(--size-medium);
+    margin-top: var(--size-xxLarge);
+    max-width: 700px;
 }
 
 .infoTooltip {

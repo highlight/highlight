@@ -11,7 +11,7 @@
 
 .memberCardWrapper {
     margin-right: var(--size-xxLarge) !important;
-    max-width: 600px;
+    max-width: 700px;
     width: 100%;
 }
 
@@ -77,8 +77,10 @@
 .titleContainer {
     align-items: flex-start;
     display: flex;
-    margin-bottom: var(--size-xLarge) !important;
-    margin-top: var(--size-large) !important;
+    justify-content: space-between;
+    margin-bottom: var(--size-medium) !important;
+    margin-top: var(--size-xxLarge) !important;
+    max-width: 700px;
 
     #subTitle {
         margin-bottom: 0 !important;
