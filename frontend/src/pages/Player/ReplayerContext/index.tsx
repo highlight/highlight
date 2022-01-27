@@ -12,7 +12,7 @@ import {
     SessionResults,
 } from '../../../graph/generated/schemas';
 import { createContext } from '../../../util/context/context';
-import { HighlightEvent } from '../HighlightEvent';
+import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
 
 export enum ReplayerState {
     /** There is no active session. */
@@ -77,6 +77,7 @@ export interface ReplayerContextInterface {
     pause: (time?: number) => void;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
+    performancePayloads: HighlightPerformancePayload[];
     errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
     sessionComments: SessionComment[];
