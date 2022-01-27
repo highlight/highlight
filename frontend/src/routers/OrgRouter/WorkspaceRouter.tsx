@@ -16,8 +16,6 @@ import { Header } from '../../components/Header/Header';
 import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { ApplicationContextProvider } from './ApplicationContext';
 
-const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
-
 export const WorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
     const [

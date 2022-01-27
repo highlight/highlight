@@ -12,6 +12,7 @@
     }
 
     &.sidebarHidden {
+        overflow-y: auto;
         padding-left: 0;
     }
 }

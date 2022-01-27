@@ -9,6 +9,12 @@
     flex-direction: row;
 }
 
+.memberCardWrapper {
+    margin-right: var(--size-xxLarge) !important;
+    max-width: 600px;
+    width: 100%;
+}
+
 .userDetails {
     display: flex;
     flex-direction: column;
@@ -71,8 +77,8 @@
 .titleContainer {
     align-items: flex-start;
     display: flex;
-    justify-content: space-between;
     margin-bottom: var(--size-xLarge) !important;
+    margin-top: var(--size-large) !important;
 
     #subTitle {
         margin-bottom: 0 !important;

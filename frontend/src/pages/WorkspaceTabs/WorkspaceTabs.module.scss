@@ -1,3 +1,5 @@
 .workspaceTabs {
-    width: 100%;
+    > :global(.ant-tabs-nav) {
+        width: fit-content;
+    }
 }
