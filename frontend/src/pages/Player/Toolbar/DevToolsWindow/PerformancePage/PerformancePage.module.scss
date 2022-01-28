@@ -20,3 +20,15 @@
         }
     }
 }
+
+.noDataContainer {
+    align-items: center;
+    display: flex;
+    height: 50%;
+    justify-content: center;
+
+    p {
+        color: var(--color-gray-500) !important;
+        margin: 0 !important;
+    }
+}
