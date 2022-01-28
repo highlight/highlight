@@ -129,7 +129,6 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    resetSession?: () => void;
 };
 
 /**
