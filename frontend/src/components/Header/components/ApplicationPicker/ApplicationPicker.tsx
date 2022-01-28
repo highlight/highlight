@@ -75,7 +75,7 @@ const ApplicationPicker = () => {
     ];
 
     const headerDisplayValue = isWorkspaceLevel
-        ? 'Workspace Settings'
+        ? 'Workspace'
         : !isLoggedIn &&
           projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
         ? DEMO_PROJECT_NAME

@@ -17,14 +17,12 @@ import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
 import React, { useRef, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useToggle } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
@@ -97,15 +95,12 @@ const WorkspaceTeam = () => {
     }
 
     return (
-        <LeadAlignLayout>
-            <Helmet>
-                <title>Workspace Team</title>
-            </Helmet>
+        <>
             <div className={styles.titleContainer}>
                 <div>
-                    <h2>Invite A Member</h2>
-                    <p className={layoutStyles.subTitle} id={styles.subTitle}>
-                        Invite your team to your Workspace.
+                    <h3>Invite A Member</h3>
+                    <p className={layoutStyles.subTitle}>
+                        Invite your team to your workspace.
                     </p>
                 </div>
                 <Modal
@@ -229,64 +224,67 @@ const WorkspaceTeam = () => {
                     Invite Member
                 </Button>
             </div>
+            <div className={styles.memberCardWrapper}>
+                <Card noPadding>
+                    <Table
+                        columns={
+                            checkPolicyAccess({
+                                policyName: POLICY_NAMES.RolesUpdate,
+                            })
+                                ? TABLE_COLUMNS
+                                : TABLE_COLUMNS.slice(0, 2)
+                        }
+                        loading={loading}
+                        dataSource={data?.admins?.map((member) => ({
+                            name: member?.name,
+                            email: member?.email,
+                            role: member?.role,
+                            photoUrl: member?.photo_url,
+                            id: member?.id,
+                            isSameAdmin: member?.id === admin?.id,
+                            onDeleteHandler: () =>
+                                deleteAdminFromWorkspace({
+                                    variables: {
+                                        admin_id: member!.id,
+                                        workspace_id,
+                                    },
+                                }),
+                            onUpdateRoleHandler: (new_role: string) => {
+                                changeAdminRole({
+                                    variables: {
+                                        admin_id: member!.id,
+                                        workspace_id,
+                                        new_role,
+                                    },
+                                });
 
-            <Card noPadding>
-                <Table
-                    columns={
-                        checkPolicyAccess({
-                            policyName: POLICY_NAMES.RolesUpdate,
-                        })
-                            ? TABLE_COLUMNS
-                            : TABLE_COLUMNS.slice(0, 2)
-                    }
-                    loading={loading}
-                    dataSource={data?.admins?.map((member) => ({
-                        name: member?.name,
-                        email: member?.email,
-                        role: member?.role,
-                        photoUrl: member?.photo_url,
-                        id: member?.id,
-                        isSameAdmin: member?.id === admin?.id,
-                        onDeleteHandler: () =>
-                            deleteAdminFromWorkspace({
-                                variables: {
-                                    admin_id: member!.id,
-                                    workspace_id,
-                                },
+                                let messageText = '';
+                                const displayName =
+                                    member?.name ||
+                                    getDisplayNameFromEmail(
+                                        member?.email || ''
+                                    );
+                                switch (new_role) {
+                                    case AdminRole.Admin:
+                                        messageText = `${displayName} has been granted Admin powers 🧙`;
+                                        break;
+                                    case AdminRole.Member:
+                                        messageText = `${displayName} will no longer have access to billing`;
+                                        break;
+                                }
+                                message.success(messageText);
+                            },
+                            canUpdateAdminRole: checkPolicyAccess({
+                                policyName: POLICY_NAMES.RolesUpdate,
                             }),
-                        onUpdateRoleHandler: (new_role: string) => {
-                            changeAdminRole({
-                                variables: {
-                                    admin_id: member!.id,
-                                    workspace_id,
-                                    new_role,
-                                },
-                            });
-
-                            let messageText = '';
-                            const displayName =
-                                member?.name ||
-                                getDisplayNameFromEmail(member?.email || '');
-                            switch (new_role) {
-                                case AdminRole.Admin:
-                                    messageText = `${displayName} has been granted Admin powers 🧙`;
-                                    break;
-                                case AdminRole.Member:
-                                    messageText = `${displayName} will no longer have access to billing`;
-                                    break;
-                            }
-                            message.success(messageText);
-                        },
-                        canUpdateAdminRole: checkPolicyAccess({
-                            policyName: POLICY_NAMES.RolesUpdate,
-                        }),
-                    }))}
-                    pagination={false}
-                    showHeader={false}
-                    rowHasPadding
-                />
-            </Card>
-        </LeadAlignLayout>
+                        }))}
+                        pagination={false}
+                        showHeader={false}
+                        rowHasPadding
+                    />
+                </Card>
+            </div>
+        </>
     );
 };
 
