@@ -30,6 +30,8 @@ interface Props {
     yAxisLabel: string;
     tooltipIcon?: React.ReactNode;
     chartLabel?: string;
+    /** This is used to align multiple charts. */
+    syncId?: string;
 }
 
 const StackedAreaChart = ({
@@ -46,6 +48,7 @@ const StackedAreaChart = ({
     yAxisLabel,
     tooltipIcon,
     chartLabel,
+    syncId,
 }: Props) => {
     return (
         <div
@@ -69,12 +72,13 @@ const StackedAreaChart = ({
                     height={400}
                     data={data}
                     margin={{
-                        top: 0,
+                        top: 32,
                         right: 32,
                         left: 0,
-                        bottom: 0,
+                        bottom: 8,
                     }}
                     onClick={onClickHandler}
+                    syncId={syncId}
                 >
                     <XAxis
                         dataKey={xAxisKey}

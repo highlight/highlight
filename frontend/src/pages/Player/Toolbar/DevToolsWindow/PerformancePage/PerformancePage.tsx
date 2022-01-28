@@ -14,7 +14,12 @@ type Props = {
 };
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-    const { performancePayloads, pause, events } = useReplayerContext();
+    const {
+        performancePayloads,
+        pause,
+        events,
+        session,
+    } = useReplayerContext();
 
     const graphData = performancePayloads.map((payload) => {
         return {
@@ -78,19 +83,34 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                             timestamps,
                             currentTime - startTime
                         );
+                        const data = graphData.map((d) => ({
+                            timestamp: d.timestamp,
+                            // @ts-expect-error
+                            [key]: d[key],
+                        }));
+
+                        if (data.length === 0) {
+                            return (
+                                <div className={styles.noDataContainer}>
+                                    <p>
+                                        {session?.browser_name}{' '}
+                                        {session?.browser_version} does not
+                                        support recording {chartLabel}.
+                                    </p>
+                                </div>
+                            );
+                        }
+
                         return (
                             <StackedAreaChart
                                 key={key}
-                                data={graphData.map((d) => ({
-                                    timestamp: d.timestamp,
-                                    // @ts-expect-error
-                                    [key]: d[key],
-                                }))}
+                                data={data}
                                 xAxisKey="timestamp"
                                 showXAxis={key !== 'fps'}
                                 heightPercent="50%"
                                 fillColor={fillColor}
                                 strokeColor={strokeColor}
+                                syncId="PerformancePageDevTools"
                                 xAxisTickFormatter={(tickItem) => {
                                     return MillisToMinutesAndSeconds(tickItem);
                                 }}
