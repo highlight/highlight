@@ -236,10 +236,13 @@ export class Highlight {
     }
 
     // Start a new session
-    _reset() {
+    async _reset() {
         this.stopRecording();
         if (this.pushPayloadTimerId) {
             clearTimeout(this.pushPayloadTimerId);
+        }
+        for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
+            window.sessionStorage.removeItem(storageKeyName);
         }
         this._initMembers(this.options);
         this.initialize(this.organizationID);
@@ -410,11 +413,11 @@ export class Highlight {
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         window.sessionStorage.setItem(
-            'highlightIdentifier',
+            SESSION_STORAGE_KEYS.USER_IDENTIFIER,
             user_identifier.toString()
         );
         window.sessionStorage.setItem(
-            'highlightUserObject',
+            SESSION_STORAGE_KEYS.USER_OBJECT,
             JSON.stringify(user_object)
         );
         try {
@@ -556,17 +559,19 @@ export class Highlight {
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
             let storedSessionData = JSON.parse(
-                window.sessionStorage.getItem('sessionData') || '{}'
+                window.sessionStorage.getItem(
+                    SESSION_STORAGE_KEYS.SESSION_DATA
+                ) || '{}'
             );
             let reloaded = false;
 
             const recordingStartTime = window.sessionStorage.getItem(
-                'highlightRecordingStartTime'
+                SESSION_STORAGE_KEYS.RECORDING_START_TIME
             );
             if (!recordingStartTime) {
                 this._recordingStartTime = new Date().getTime();
                 window.sessionStorage.setItem(
-                    'highlightRecordingStartTime',
+                    SESSION_STORAGE_KEYS.RECORDING_START_TIME,
                     this._recordingStartTime.toString()
                 );
             } else {
@@ -574,7 +579,7 @@ export class Highlight {
             }
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
-            window.sessionStorage.removeItem('sessionData');
+            window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
             if (
                 storedSessionData &&
                 storedSessionData.sessionID &&
@@ -934,7 +939,7 @@ export class Highlight {
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
-                'sessionData',
+                SESSION_STORAGE_KEYS.SESSION_DATA,
                 JSON.stringify(this.sessionData)
             );
         });
@@ -947,7 +952,7 @@ export class Highlight {
             window.addEventListener('pagehide', () => {
                 addCustomEvent('Page Unload', '');
                 window.sessionStorage.setItem(
-                    'sessionData',
+                    SESSION_STORAGE_KEYS.SESSION_DATA,
                     JSON.stringify(this.sessionData)
                 );
             });

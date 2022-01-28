@@ -1,3 +1,5 @@
+import { SESSION_STORAGE_KEYS } from "utils/sessionStorage/sessionStorageKeys";
+
 const CONTAINER_ID = 'highlight-feedback-container';
 const FORM_CONTAINER_ID = 'highlight-form-container';
 
@@ -305,7 +307,7 @@ const getUserDataFromIdentify = () => {
     let userEmail = '';
 
     const identifierFromSessionStorage = window.sessionStorage.getItem(
-        'highlightIdentifier'
+        SESSION_STORAGE_KEYS.USER_IDENTIFIER,
     );
 
     if (
@@ -316,7 +318,7 @@ const getUserDataFromIdentify = () => {
     }
 
     const userObjectFromSessionStorage = window.sessionStorage.getItem(
-        'highlightUserObject'
+        SESSION_STORAGE_KEYS.USER_OBJECT,
     );
     if (userObjectFromSessionStorage) {
         try {

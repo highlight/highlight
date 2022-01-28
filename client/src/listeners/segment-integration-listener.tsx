@@ -1,3 +1,5 @@
+import { SESSION_STORAGE_KEYS } from 'utils/sessionStorage/sessionStorageKeys';
+
 enum SEGMENT_LOCAL_STORAGE_KEYS {
     USER_ID = 'ajs_user_id',
     USER_TRAITS = 'ajs_user_traits',
@@ -126,7 +128,6 @@ const monkeyPatchLocalStorage = (
     };
 };
 
-const SEGMENT_LAST_SENT_HASH_KEY = 'HIGHLIGHT_SEGMENT_LAST_SENT_HASH_KEY';
 /**
  * Whether or not to send a Segment event.
  * We need to do this so we don't send duplicate events.
@@ -144,16 +145,22 @@ const shouldSend = (payload: any) => {
     const hashDigest = hashCode(hashMessage);
 
     const lastSentHash = window.sessionStorage.getItem(
-        SEGMENT_LAST_SENT_HASH_KEY
+        SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY
     );
 
     if (lastSentHash === undefined) {
-        window.sessionStorage.setItem(SEGMENT_LAST_SENT_HASH_KEY, hashDigest);
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY,
+            hashDigest
+        );
         return true;
     }
 
     if (hashDigest !== lastSentHash) {
-        window.sessionStorage.setItem(SEGMENT_LAST_SENT_HASH_KEY, hashDigest);
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY,
+            hashDigest
+        );
         return true;
     }
 
