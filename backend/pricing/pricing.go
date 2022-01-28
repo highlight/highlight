@@ -384,12 +384,14 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update members invoice item")
 			}
 		} else {
-			if _, err := stripeClient.InvoiceItems.New(&stripe.InvoiceItemParams{
+			params := &stripe.InvoiceItemParams{
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
 				Quantity:     stripe.Int64(overage),
-			}); err != nil {
+			}
+			params.SetIdempotencyKey(c.ID + ":" + subscription.ID + ":" + newPrice.ID)
+			if _, err := stripeClient.InvoiceItems.New(params); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add members invoice item")
 			}
 		}
@@ -421,12 +423,14 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
 			}
 		} else {
-			if _, err := stripeClient.InvoiceItems.New(&stripe.InvoiceItemParams{
+			params := &stripe.InvoiceItemParams{
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
 				Quantity:     stripe.Int64(overage),
-			}); err != nil {
+			}
+			params.SetIdempotencyKey(c.ID + ":" + subscription.ID + ":" + newPrice.ID)
+			if _, err := stripeClient.InvoiceItems.New(params); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add sessions invoice item")
 			}
 		}
