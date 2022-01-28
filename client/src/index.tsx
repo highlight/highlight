@@ -241,11 +241,28 @@ export class Highlight {
         if (this.pushPayloadTimerId) {
             clearTimeout(this.pushPayloadTimerId);
         }
+
+        let user_identifier, user_object;
+        try {
+            user_identifier = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_IDENTIFIER
+            );
+            const user_object_string = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_OBJECT
+            );
+            if (user_object_string) {
+                user_object = JSON.parse(user_object_string);
+            }
+        } catch (err) {}
         for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
             window.sessionStorage.removeItem(storageKeyName);
         }
+
         this._initMembers(this.options);
-        this.initialize(this.organizationID);
+        await this.initialize(this.organizationID);
+        if (user_identifier && user_object) {
+            await this.identify(user_identifier, user_object);
+        }
     }
 
     _initMembers(options: HighlightClassOptions) {

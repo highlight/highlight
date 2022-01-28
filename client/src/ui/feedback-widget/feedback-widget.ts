@@ -1,4 +1,4 @@
-import { SESSION_STORAGE_KEYS } from "utils/sessionStorage/sessionStorageKeys";
+import { SESSION_STORAGE_KEYS } from "../../utils/sessionStorage/sessionStorageKeys";
 
 const CONTAINER_ID = 'highlight-feedback-container';
 const FORM_CONTAINER_ID = 'highlight-form-container';

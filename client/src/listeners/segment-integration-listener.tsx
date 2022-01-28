@@ -1,4 +1,4 @@
-import { SESSION_STORAGE_KEYS } from 'utils/sessionStorage/sessionStorageKeys';
+import { SESSION_STORAGE_KEYS } from '../utils/sessionStorage/sessionStorageKeys';
 
 enum SEGMENT_LOCAL_STORAGE_KEYS {
     USER_ID = 'ajs_user_id',
