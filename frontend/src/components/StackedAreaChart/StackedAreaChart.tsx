@@ -72,7 +72,7 @@ const StackedAreaChart = ({
                     height={400}
                     data={data}
                     margin={{
-                        top: 8,
+                        top: 32,
                         right: 32,
                         left: 0,
                         bottom: 8,
