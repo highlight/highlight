@@ -1085,8 +1085,7 @@ export class Highlight {
                     Date.now() - this.sessionData.sessionStartTime >
                         MAX_SESSION_LENGTH
                 ) {
-                    this.sessionData.sessionStartTime = Date.now();
-                    this.stopRecording();
+                    await this._reset();
                     return;
                 }
             } catch (e) {
