@@ -242,6 +242,7 @@ export class Highlight {
             clearTimeout(this.pushPayloadTimerId);
         }
         this._initMembers(this.options);
+        this.initialize(this.organizationID);
     }
 
     _initMembers(options: HighlightClassOptions) {
