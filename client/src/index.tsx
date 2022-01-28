@@ -237,6 +237,10 @@ export class Highlight {
 
     // Start a new session
     _reset() {
+        this.stopRecording();
+        if (this.pushPayloadTimerId) {
+            clearTimeout(this.pushPayloadTimerId);
+        }
         this._initMembers(this.options);
     }
 
