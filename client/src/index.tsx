@@ -129,6 +129,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
+    resetSession?: () => void;
 };
 
 /**
@@ -181,54 +182,75 @@ const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 const HIGHLIGHT_URL = 'app.highlight.run';
 
 export class Highlight {
+    options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
-    isRunningOnHighlight: boolean;
+    isRunningOnHighlight!: boolean;
     /** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
-    organizationID: string;
-    graphqlSDK: Sdk;
-    events: eventWithTime[];
-    errors: ErrorMessage[];
-    messages: ConsoleMessage[];
-    xhrNetworkContents: RequestResponsePair[] = [];
-    fetchNetworkContents: RequestResponsePair[] = [];
-    tracingOrigins: boolean | (string | RegExp)[] = [];
-    networkHeadersToRedact: string[] = [];
-    urlBlocklist: string[] = [];
-    sessionData: SessionData;
-    ready: boolean;
-    state: 'NotRecording' | 'Recording';
+    organizationID!: string;
+    graphqlSDK!: Sdk;
+    events!: eventWithTime[];
+    errors!: ErrorMessage[];
+    messages!: ConsoleMessage[];
+    xhrNetworkContents!: RequestResponsePair[];
+    fetchNetworkContents!: RequestResponsePair[];
+    tracingOrigins!: boolean | (string | RegExp)[];
+    networkHeadersToRedact!: string[];
+    urlBlocklist!: string[];
+    sessionData!: SessionData;
+    ready!: boolean;
+    state!: 'NotRecording' | 'Recording';
     /**
      * The number of requests to public graph that have failed in a row.
      */
-    numberOfFailedRequests = 0;
-    logger: Logger;
-    disableNetworkRecording: boolean | undefined;
-    enableRecordingNetworkContents: boolean;
-    disableConsoleRecording: boolean | undefined;
-    enableSegmentIntegration: boolean | undefined;
-    enableStrictPrivacy: boolean;
-    enableCanvasRecording: boolean;
-    debugOptions: DebugOptions;
-    listeners: listenerHandler[];
-    firstloadVersion: string;
-    environment: string;
-    sessionShortcut: SessionShortcutOptions = false;
+    numberOfFailedRequests!: number;
+    logger!: Logger;
+    disableNetworkRecording!: boolean;
+    enableRecordingNetworkContents!: boolean;
+    disableConsoleRecording!: boolean;
+    enableSegmentIntegration!: boolean;
+    enableStrictPrivacy!: boolean;
+    enableCanvasRecording!: boolean;
+    debugOptions!: DebugOptions;
+    listeners!: listenerHandler[];
+    firstloadVersion!: string;
+    environment!: string;
+    sessionShortcut!: SessionShortcutOptions;
     /** The end-user's app version. This isn't Highlight's version. */
-    appVersion: string | undefined;
-    _optionsInternal: HighlightClassOptionsInternal;
-    _backendUrl: string;
-    _recordingStartTime: number = 0;
-    _isOnLocalHost: boolean = false;
-    _onToggleFeedbackFormVisibility: () => void;
-    pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
-    feedbackWidgetOptions: FeedbackWidgetOptions;
-    hasSessionUnloaded: boolean;
+    appVersion!: string | undefined;
+    _optionsInternal!: HighlightClassOptionsInternal;
+    _backendUrl!: string;
+    _recordingStartTime!: number;
+    _isOnLocalHost!: boolean;
+    _onToggleFeedbackFormVisibility!: () => void;
+    pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
+    feedbackWidgetOptions!: FeedbackWidgetOptions;
+    hasSessionUnloaded!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
     }
 
     constructor(options: HighlightClassOptions) {
+        this.options = options;
+        this._initMembers(this.options);
+    }
+
+    // Start a new session
+    _reset() {
+        this._initMembers(this.options);
+    }
+
+    _initMembers(options: HighlightClassOptions) {
+        this.xhrNetworkContents = [];
+        this.fetchNetworkContents = [];
+        this.tracingOrigins = [];
+        this.networkHeadersToRedact = [];
+        this.urlBlocklist = [];
+        this.numberOfFailedRequests = 0;
+        this.sessionShortcut = false;
+        this._recordingStartTime = 0;
+        this._isOnLocalHost = false;
+
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
                 ? { clientInteractions: true }
@@ -277,8 +299,8 @@ export class Highlight {
             // Disable recording the console on localhost.
             // We're doing this because on some development builds, the console ends up in an infinite loop.
             window.location.hostname === 'localhost' ||
-            options.disableConsoleRecording;
-        this.enableSegmentIntegration = options.enableSegmentIntegration;
+            !!options.disableConsoleRecording;
+        this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
