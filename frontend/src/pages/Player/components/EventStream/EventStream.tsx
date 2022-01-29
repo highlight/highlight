@@ -437,6 +437,8 @@ const getFilteredEvents = (
                     });
                 case 'Web Vitals':
                     return eventTypeFilters.showWebVitals;
+                case 'Performance':
+                    return false;
                 default:
                     return event.data.tag
                         .toLocaleLowerCase()

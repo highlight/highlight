@@ -5,6 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
+import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -34,7 +35,10 @@ import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { project_id, workspace_id } = useParams<{
+        project_id: string;
+        workspace_id: string;
+    }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -43,6 +47,7 @@ export const Header = () => {
     const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     const { showBanner } = useGlobalContext();
+    const isWorkspaceLevel = workspace_id !== undefined;
 
     return (
         <>
@@ -54,6 +59,7 @@ export const Header = () => {
                         projectIdRemapped !==
                             DEMO_WORKSPACE_PROXY_APPLICATION_ID,
                     [styles.bannerShown]: showBanner,
+                    [styles.sidebarHidden]: isWorkspaceLevel,
                 })}
             >
                 {!!project_id && getBanner(project_id)}
@@ -175,11 +181,9 @@ const FreePlanBanner = () => {
     const canExtend = data?.workspace_for_project?.eligible_for_trial_extension;
 
     if (hasTrial) {
-        bannerMessage = `You have unlimited sessions until ${moment(
+        bannerMessage = getTrialEndDateMessage(
             data?.workspace_for_project?.trial_end_date
-        ).format(
-            'MM/DD/YY'
-        )}. After this trial, you will be on the free tier. `;
+        );
 
         if (canExtend) {
             if (integrated) {

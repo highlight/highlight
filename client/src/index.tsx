@@ -44,6 +44,10 @@ import {
 } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from './constants/errors';
+import {
+    PerformanceListener,
+    PerformancePayload,
+} from './listeners/performance-listener/performance-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -850,6 +854,12 @@ export class Highlight {
                     })
                 );
             }
+
+            this.listeners.push(
+                PerformanceListener((payload: PerformancePayload) => {
+                    addCustomEvent('Performance', stringify(payload));
+                }, this._recordingStartTime)
+            );
 
             // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
             // as when switching tabs or apps on mobile. Non-blocking.

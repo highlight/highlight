@@ -1,20 +1,35 @@
 import { PlanType } from '../../../graph/generated/schemas';
 
+type FeatureWithTooltip = {
+    text: string;
+    tooltip?: string;
+};
+
 export type BillingPlan = {
     name: string;
     monthlyPrice: number;
     annualPrice: number;
     type: PlanType;
-    advertisedFeatures: string[];
+    advertisedFeatures: (FeatureWithTooltip | string)[];
     membersIncluded?: number;
 };
+
+const SESSIONS_AFTER_LIMIT_TOOLTIP =
+    'After this monthly limit is reached, extra sessions will be charged $5 per 1000 sessions.';
 
 const freePlan: BillingPlan = {
     name: 'Free',
     type: PlanType.Free,
     monthlyPrice: 0,
     annualPrice: 0,
-    advertisedFeatures: ['500 sessions /month', 'Unlimited dev tools access'],
+    advertisedFeatures: [
+        {
+            text: '500 sessions / month',
+            tooltip:
+                'After this monthly limit is reached, sessions will be recorded but will not be visible until your plan is upgraded.',
+        },
+        'Unlimited dev tools access',
+    ],
 };
 
 const basicPlan: BillingPlan = {
@@ -23,7 +38,10 @@ const basicPlan: BillingPlan = {
     monthlyPrice: 100,
     annualPrice: 80,
     advertisedFeatures: [
-        '10,000 sessions /month',
+        {
+            text: '10,000 free sessions / mo',
+            tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+        },
         '2 members included',
         'Unlimited dev tools access',
         'Unlimited retention',
@@ -37,7 +55,10 @@ const startupPlan: BillingPlan = {
     monthlyPrice: 250,
     annualPrice: 200,
     advertisedFeatures: [
-        '80,000 sessions /month',
+        {
+            text: '80,000 free sessions / mo',
+            tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+        },
         '8 members included',
         'Unlimited dev tools access',
         'Unlimited retention',

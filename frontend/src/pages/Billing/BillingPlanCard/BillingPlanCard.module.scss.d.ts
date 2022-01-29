@@ -9,3 +9,4 @@ export const currentPlan: string;
 export const extraMembers: string;
 export const extraMembersBreakdown: string;
 export const extraMembersCost: string;
+export const featureCheckIcon: string;

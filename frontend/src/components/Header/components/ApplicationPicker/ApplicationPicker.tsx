@@ -75,7 +75,7 @@ const ApplicationPicker = () => {
     ];
 
     const headerDisplayValue = isWorkspaceLevel
-        ? 'Workspace Settings'
+        ? 'Workspace'
         : !isLoggedIn &&
           projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
         ? DEMO_PROJECT_NAME
@@ -162,13 +162,25 @@ const ApplicationPicker = () => {
                             }))}
                             buttonTrackingId="ApplicationPickerSettings"
                             buttonContentsOverride={
-                                <Button
-                                    trackingId="ApplicationPickerSettings"
-                                    type="text"
-                                    iconButton
-                                >
-                                    <SvgSwitch2Icon />
-                                </Button>
+                                isWorkspaceLevel ? (
+                                    <Button
+                                        trackingId="ApplicationPickerSettings"
+                                        type="text"
+                                        iconButton
+                                        className={styles.backToProjectButton}
+                                    >
+                                        <SvgSwitch2Icon />
+                                        <span>Back to Project</span>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        trackingId="ApplicationPickerSettings"
+                                        type="text"
+                                        iconButton
+                                    >
+                                        <SvgSwitch2Icon />
+                                    </Button>
+                                )
                             }
                         />
                     </div>

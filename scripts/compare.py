@@ -4,7 +4,9 @@ import sys, getopt
 services = {
     # services is a map of {service name}:{npm package name}
     "firstload": "highlight.run",
-    "sourcemap-uploader": "@highlight-run/sourcemap-uploader"
+    "sourcemap-uploader": "@highlight-run/sourcemap-uploader",
+    "highlight-next": "@highlight-run/next",
+    "highlight-node": "@highlight-run/node"
 }
 
 def main(argv):

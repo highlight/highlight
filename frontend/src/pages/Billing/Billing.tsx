@@ -14,11 +14,9 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
-import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
 
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
@@ -206,165 +204,147 @@ const BillingPage = () => {
 
     return (
         <>
-            <Helmet>
-                <title>Workspace Billing</title>
-            </Helmet>
-            <LeadAlignLayout fullWidth>
-                {rainConfetti && <Confetti recycle={false} />}
-                <div className={styles.titleContainer}>
-                    <div>
-                        <h2>Billing</h2>
-                        <p className={layoutStyles.subTitle}>
-                            Manage your billing information.
-                        </p>
-                    </div>
-                    <Authorization allowedRoles={[AdminRole.Admin]}>
-                        <div className={styles.portalButtonContainer}>
-                            <Button
-                                trackingId="RedirectToCustomerPortal"
-                                type="primary"
-                                onClick={() => {
-                                    setIsCancel(false);
-                                    getCustomerPortalUrl({
-                                        variables: { workspace_id },
-                                    });
-                                }}
-                                loading={loadingCustomerPortal && !isCancel}
-                                className={styles.portalButton}
-                            >
-                                <SvgLogInIcon
-                                    className={styles.portalButtonIcon}
-                                />{' '}
-                                Payment Settings
-                            </Button>
-                            <Button
-                                trackingId="CancelRedirectToCustomerPortal"
-                                type="primary"
-                                danger
-                                onClick={() => {
-                                    setIsCancel(true);
-                                    getCustomerPortalUrl({
-                                        variables: { workspace_id },
-                                    });
-                                }}
-                                loading={loadingCustomerPortal && isCancel}
-                                className={styles.portalButton}
-                            >
-                                <SvgLogInIcon
-                                    className={styles.portalButtonIcon}
-                                />{' '}
-                                Cancel Subscription
-                            </Button>
-                        </div>
-                    </Authorization>
+            {rainConfetti && <Confetti recycle={false} />}
+            <div className={styles.titleContainer}>
+                <div>
+                    <h3>Billing</h3>
+                    <p className={layoutStyles.subTitle}>
+                        Upgrade or edit your workspace's billing settings.
+                    </p>
                 </div>
-                <BillingStatusCard
-                    planType={
-                        billingData?.billingDetails.plan.type ?? PlanType.Free
-                    }
-                    sessionCount={billingData?.billingDetails.meter ?? 0}
-                    sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
-                    memberCount={billingData?.billingDetails.membersMeter ?? 0}
-                    memberLimit={
-                        billingData?.billingDetails.plan.membersLimit ?? 0
-                    }
-                    subscriptionInterval={
-                        billingData?.billingDetails.plan.interval ??
-                        SubscriptionInterval.Monthly
-                    }
-                    billingPeriodEnd={
-                        billingData?.workspace?.billing_period_end
-                    }
-                    nextInvoiceDate={billingData?.workspace?.next_invoice_date}
-                    allowOverage={allowOverage}
-                    loading={billingLoading || subscriptionLoading}
-                    subscriptionDetails={subscriptionData?.subscription_details}
-                />
                 <Authorization allowedRoles={[AdminRole.Admin]}>
-                    <div className={styles.annualToggleBox}>
-                        <Switch
-                            loading={billingLoading}
-                            label={
-                                <span className={styles.annualToggleText}>
-                                    Annual Plan{' '}
-                                    <span
-                                        className={styles.annualToggleAltText}
-                                    >
-                                        (20% off)
-                                    </span>
-                                </span>
-                            }
-                            size="default"
-                            labelFirst
-                            justifySpaceBetween
-                            noMarginAroundSwitch
-                            checked={
-                                subscriptionInterval ===
-                                SubscriptionInterval.Annual
-                            }
-                            onChange={(isAnnual) => {
-                                setSubscriptionInterval(
-                                    isAnnual
-                                        ? SubscriptionInterval.Annual
-                                        : SubscriptionInterval.Monthly
-                                );
+                    <div className={styles.portalButtonContainer}>
+                        <Button
+                            trackingId="RedirectToCustomerPortal"
+                            type="primary"
+                            onClick={() => {
+                                setIsCancel(false);
+                                getCustomerPortalUrl({
+                                    variables: { workspace_id },
+                                });
                             }}
-                            trackingId="BillingInterval"
-                        />
+                            loading={loadingCustomerPortal && !isCancel}
+                            className={styles.portalButton}
+                        >
+                            <SvgLogInIcon className={styles.portalButtonIcon} />{' '}
+                            Payment Settings
+                        </Button>
+                        <Button
+                            trackingId="CancelRedirectToCustomerPortal"
+                            type="primary"
+                            danger
+                            onClick={() => {
+                                setIsCancel(true);
+                                getCustomerPortalUrl({
+                                    variables: { workspace_id },
+                                });
+                            }}
+                            loading={loadingCustomerPortal && isCancel}
+                            className={styles.portalButton}
+                        >
+                            <SvgLogInIcon className={styles.portalButtonIcon} />{' '}
+                            Cancel Subscription
+                        </Button>
                     </div>
                 </Authorization>
-                <div className={styles.billingPlanCardWrapper}>
-                    <Authorization
-                        allowedRoles={[AdminRole.Admin]}
-                        forbiddenFallback={
-                            <Alert
-                                trackingId="AdminNoAccessToBilling"
-                                type="info"
-                                message="You don't have access to billing."
-                                description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
-                            />
+            </div>
+            <BillingStatusCard
+                planType={
+                    billingData?.billingDetails.plan.type ?? PlanType.Free
+                }
+                sessionCount={billingData?.billingDetails.meter ?? 0}
+                sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
+                memberCount={billingData?.billingDetails.membersMeter ?? 0}
+                memberLimit={billingData?.billingDetails.plan.membersLimit ?? 0}
+                subscriptionInterval={
+                    billingData?.billingDetails.plan.interval ??
+                    SubscriptionInterval.Monthly
+                }
+                billingPeriodEnd={billingData?.workspace?.billing_period_end}
+                nextInvoiceDate={billingData?.workspace?.next_invoice_date}
+                allowOverage={allowOverage}
+                loading={billingLoading || subscriptionLoading}
+                subscriptionDetails={subscriptionData?.subscription_details}
+                trialEndDate={billingData?.workspace?.trial_end_date}
+            />
+
+            <Authorization allowedRoles={[AdminRole.Admin]}>
+                <div className={styles.annualToggleBox}>
+                    <Switch
+                        loading={billingLoading}
+                        label={
+                            <span className={styles.annualToggleText}>
+                                Annual Plan{' '}
+                                <span className={styles.annualToggleAltText}>
+                                    (20% off)
+                                </span>
+                            </span>
                         }
-                    >
-                        {BILLING_PLANS.map((billingPlan) =>
-                            billingLoading ? (
-                                <Skeleton
-                                    style={{ borderRadius: 8 }}
-                                    count={1}
-                                    height={325}
-                                    width={275}
-                                />
-                            ) : (
-                                <BillingPlanCard
-                                    disabled={
-                                        !checkPolicyAccess({
-                                            policyName:
-                                                POLICY_NAMES.BillingUpdate,
-                                        })
-                                    }
-                                    key={billingPlan.type}
-                                    current={
-                                        billingData?.billingDetails.plan
-                                            .type === billingPlan.name &&
-                                        (billingPlan.type === PlanType.Free ||
-                                            billingData?.billingDetails.plan
-                                                .interval ===
-                                                subscriptionInterval)
-                                    }
-                                    billingPlan={billingPlan}
-                                    onSelect={createOnSelect(billingPlan.type)}
-                                    loading={
-                                        loadingPlanType === billingPlan.type
-                                    }
-                                    subscriptionInterval={subscriptionInterval}
-                                    memberCount={
-                                        billingData?.billingDetails.membersMeter
-                                    }
-                                />
-                            )
-                        )}
-                    </Authorization>
+                        size="default"
+                        labelFirst
+                        justifySpaceBetween
+                        noMarginAroundSwitch
+                        checked={
+                            subscriptionInterval === SubscriptionInterval.Annual
+                        }
+                        onChange={(isAnnual) => {
+                            setSubscriptionInterval(
+                                isAnnual
+                                    ? SubscriptionInterval.Annual
+                                    : SubscriptionInterval.Monthly
+                            );
+                        }}
+                        trackingId="BillingInterval"
+                    />
                 </div>
-            </LeadAlignLayout>
+            </Authorization>
+            <div className={styles.billingPlanCardWrapper}>
+                <Authorization
+                    allowedRoles={[AdminRole.Admin]}
+                    forbiddenFallback={
+                        <Alert
+                            trackingId="AdminNoAccessToBilling"
+                            type="info"
+                            message="You don't have access to billing."
+                            description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
+                        />
+                    }
+                >
+                    {BILLING_PLANS.map((billingPlan) =>
+                        billingLoading ? (
+                            <Skeleton
+                                style={{ borderRadius: 8 }}
+                                count={1}
+                                height={325}
+                                width={275}
+                            />
+                        ) : (
+                            <BillingPlanCard
+                                disabled={
+                                    !checkPolicyAccess({
+                                        policyName: POLICY_NAMES.BillingUpdate,
+                                    })
+                                }
+                                key={billingPlan.type}
+                                current={
+                                    billingData?.billingDetails.plan.type ===
+                                        billingPlan.name &&
+                                    (billingPlan.type === PlanType.Free ||
+                                        billingData?.billingDetails.plan
+                                            .interval === subscriptionInterval)
+                                }
+                                billingPlan={billingPlan}
+                                onSelect={createOnSelect(billingPlan.type)}
+                                loading={loadingPlanType === billingPlan.type}
+                                subscriptionInterval={subscriptionInterval}
+                                memberCount={
+                                    billingData?.billingDetails.membersMeter
+                                }
+                            />
+                        )
+                    )}
+                </Authorization>
+            </div>
         </>
     );
 };

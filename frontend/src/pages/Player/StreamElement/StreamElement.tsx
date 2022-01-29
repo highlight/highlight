@@ -249,6 +249,9 @@ export const getEventRenderDetails = (
                 );
                 details.isReactNode = true;
                 break;
+            case 'Page Unload':
+                details.displayValue = 'Page Unload';
+                break;
             default:
                 details.displayValue = payload;
                 break;

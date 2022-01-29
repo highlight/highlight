@@ -10,6 +10,11 @@
         height: calc(100% - var(--banner-height));
         overflow-x: hidden;
     }
+
+    &.sidebarHidden {
+        overflow-x: hidden;
+        padding-left: 0;
+    }
 }
 
 @keyframes accomodate-banner {
