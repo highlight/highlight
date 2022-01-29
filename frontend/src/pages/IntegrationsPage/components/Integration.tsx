@@ -6,19 +6,18 @@ import React, { useEffect, useState } from 'react';
 
 import styles from './Integration.module.scss';
 
+export interface IntegrationConfigProps {
+    setModelOpen: (newVal: boolean) => void;
+    setIntegrationEnabled: (newVal: boolean) => void;
+    integrationEnabled: boolean;
+}
+
 interface Props {
     integration: IntegrationType;
 }
 
 const Integration = ({
-    integration: {
-        icon,
-        name,
-        description,
-        configurationPage,
-        deleteConfirmationPage,
-        defaultEnable,
-    },
+    integration: { icon, name, description, configurationPage, defaultEnable },
 }: Props) => {
     const [showConfiguration, setShowConfiguration] = useState(false);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -49,7 +48,7 @@ const Integration = ({
                         onChange={(newValue) => {
                             if (newValue) {
                                 setShowConfiguration(true);
-                            } else if (deleteConfirmationPage) {
+                            } else {
                                 setShowDeleteConfirmation(true);
                             }
                             setIntegrationEnabled(newValue);
@@ -73,21 +72,26 @@ const Integration = ({
                         setIntegrationEnabled(true);
                     }
                 }}
-                title={`Configuring ${name} Integration`}
+                title={
+                    showConfiguration
+                        ? `Configuring ${name} Integration`
+                        : 'Are you sure?'
+                }
                 destroyOnClose
                 className={styles.modal}
             >
                 {showConfiguration &&
-                    configurationPage(
-                        setShowConfiguration,
-                        setIntegrationEnabled
-                    )}
+                    configurationPage({
+                        setModelOpen: setShowConfiguration,
+                        setIntegrationEnabled,
+                        integrationEnabled: false, // show the modal to enable slack integration
+                    })}
                 {showDeleteConfirmation &&
-                    deleteConfirmationPage &&
-                    deleteConfirmationPage(
-                        setShowDeleteConfirmation,
-                        setIntegrationEnabled
-                    )}
+                    configurationPage({
+                        setModelOpen: setShowDeleteConfirmation,
+                        setIntegrationEnabled,
+                        integrationEnabled: true, // show the modal to disable slack integration
+                    })}
             </Modal>
         </>
     );

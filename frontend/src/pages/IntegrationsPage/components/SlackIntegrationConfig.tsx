@@ -1,0 +1,98 @@
+import Button from '@components/Button/Button/Button';
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import { useRemoveSlackBotIntegrationToProjectMutation } from '@graph/hooks';
+import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
+import { useParams } from '@util/react-router/useParams';
+import React from 'react';
+
+import styles from './SlackIntegrationConfig.module.scss';
+
+const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
+    setModelOpen,
+    setIntegrationEnabled,
+    integrationEnabled,
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+
+    console.log('integrationEnabled', integrationEnabled);
+
+    const [
+        removeSlackBotIntegrationToProjectMutation,
+    ] = useRemoveSlackBotIntegrationToProjectMutation();
+
+    const { slackUrl, refetch } = useSlackBot({
+        type: 'Organization',
+        watch: false,
+    });
+
+    if (integrationEnabled) {
+        return (
+            <>
+                <p>
+                    Disconnecting your Slack workspace from Highlight will
+                    require you to reconfigure any alerts you have made!
+                </p>
+                <footer>
+                    <Button
+                        trackingId={`IntegrationDisconnectCancel-Slack`}
+                        className={styles.modalBtn}
+                        onClick={() => {
+                            setModelOpen(false);
+                            setIntegrationEnabled(true);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        trackingId={`IntegrationDisconnectSave-Slack`}
+                        className={styles.modalBtn}
+                        type="primary"
+                        danger
+                        onClick={() => {
+                            setModelOpen(false);
+                            setIntegrationEnabled(false);
+                            removeSlackBotIntegrationToProjectMutation({
+                                variables: {
+                                    project_id: project_id,
+                                },
+                            }).then(() => refetch());
+                        }}
+                    >
+                        Disconnect Slack
+                    </Button>
+                </footer>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <p>
+                Connect Slack to your Highlight workspace to setup alerts and
+                tag teammates in comments
+            </p>
+            <footer>
+                <Button
+                    trackingId={`IntegrationConfigurationCancel-Slack`}
+                    className={styles.modalBtn}
+                    onClick={() => {
+                        setModelOpen(false);
+                        setIntegrationEnabled(false);
+                    }}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    trackingId={`IntegrationConfigurationSave-Slack`}
+                    className={styles.modalBtn}
+                    type="primary"
+                    href={slackUrl}
+                >
+                    Connect Highlight with Slack
+                </Button>
+            </footer>
+        </>
+    );
+};
+
+export default SlackIntegrationConfig;

@@ -58,17 +58,13 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     });
 
     useEffect(() => {
-        console.log(
-            '[gt] use effect from backend setIsSlackConnectedToWorkspace',
-            slackIntegResponse
-        );
         if (!slackIntegResponse) return;
         setIsSlackConnectedToWorkspace(
             slackIntegResponse.is_integrated_with_slack || false
         );
     }, [slackIntegResponse, setIsSlackConnectedToWorkspace]);
 
-    const slackUrl = getSlackUrl(type, project_id, redirectPath);
+    const slackUrl = getSlackUrl(type, project_id);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -98,9 +94,6 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                             redirect_path: redirectPath,
                         },
                     });
-                    console.log(
-                        '[gt] add slack bot successful setIsSlackConnectedToWorkspace'
-                    );
                     setIsSlackConnectedToWorkspace(true);
                     message.success('Highlight is now synced with Slack!', 5);
                 }
@@ -126,10 +119,6 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         setIsSlackConnectedToWorkspace,
     ]);
 
-    useEffect(() => {
-        console.log('[gt]', { isSlackConnectedToWorkspace });
-    }, [isSlackConnectedToWorkspace]);
-
     return {
         loading: loading || slackIntegLoading,
         slackUrl,
@@ -140,16 +129,13 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
 
 export const getSlackUrl = (
     type: 'Personal' | 'Organization',
-    projectId: string,
-    redirectPage?: string
+    projectId: string
 ) => {
     const slackScopes =
         type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
-    const redirectUri =
-        `${GetBaseURL()}/${projectId}` +
-        (redirectPage ? `/${redirectPage}` : '');
+    const redirectUriOrigin = `${GetBaseURL()}/${projectId}`;
 
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUri}`;
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/alerts`;
 
     return slackUrl;
 };

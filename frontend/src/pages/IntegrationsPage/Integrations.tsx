@@ -1,3 +1,5 @@
+import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
+import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegrationConfig';
 import React from 'react';
 
 export interface Integration {
@@ -11,14 +13,7 @@ export interface Integration {
     /**
      * The page to configure the integration. This can be rendered in a modal or on a different page.
      */
-    configurationPage: (
-        setModalOpen: (newVal: boolean) => void,
-        setIntegrationEnabled: (newVal: boolean) => void
-    ) => React.ReactNode;
-    deleteConfirmationPage?: (
-        setModalOpen: (newVal: boolean) => void,
-        setIntegrationEnabled: (newVal: boolean) => void
-    ) => React.ReactNode;
+    configurationPage: (opts: IntegrationConfigProps) => React.ReactNode;
 }
 
 const INTEGRATIONS: Integration[] = [
@@ -29,11 +24,7 @@ const INTEGRATIONS: Integration[] = [
         description:
             'Bring your Highlight comments and alerts to slack as messages.',
         icon: 'https://img.stackshare.io/service/675/RNiSRYOF_400x400.jpg',
-        configurationPage: () => (
-            <>
-                <h2>Boba</h2>
-            </>
-        ),
+        configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
     },
     {
         key: 'linear2',

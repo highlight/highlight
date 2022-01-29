@@ -24,10 +24,10 @@ const PersonalNotificationButton = ({
 }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { admin, isLoggedIn } = useAuthContext();
-    const [isIntegratedWithSlack, setIsIntegratedWithSlack] = useLocalStorage(
-        `${project_id}-${type}-personalNotifications`,
-        false
-    );
+    const [
+        isPersonalNotificationsSetup,
+        setIsPersonalNotificationsSetup,
+    ] = useLocalStorage(`${project_id}-${type}-personalNotifications`, false);
 
     const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
         'Highlight-slackBotSetupType',
@@ -43,14 +43,18 @@ const PersonalNotificationButton = ({
         // personal notifications are already setup
         if (admin && type === 'Personal') {
             if (!!admin.slack_im_channel_id) {
-                setIsIntegratedWithSlack(true);
+                setIsPersonalNotificationsSetup(true);
             } else {
-                setIsIntegratedWithSlack(false);
+                setIsPersonalNotificationsSetup(false);
             }
         }
-    }, [admin, setIsIntegratedWithSlack, type]);
+    }, [admin, setIsPersonalNotificationsSetup, type]);
 
-    if (!isLoggedIn || isIntegratedWithSlack || isSlackConnectedToWorkspace)
+    if (
+        !isLoggedIn ||
+        isPersonalNotificationsSetup ||
+        isSlackConnectedToWorkspace
+    )
         return null;
 
     return (
