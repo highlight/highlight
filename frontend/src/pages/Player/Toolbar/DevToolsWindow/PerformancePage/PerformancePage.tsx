@@ -89,7 +89,10 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                             [key]: d[key],
                         }));
 
-                        if (data.length === 0) {
+                        const hasData = data.some(
+                            (data) => data[key] !== undefined
+                        );
+                        if (data.length === 0 || !hasData) {
                             return (
                                 <div className={styles.noDataContainer}>
                                     <p>
