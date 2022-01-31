@@ -181,54 +181,100 @@ const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 const HIGHLIGHT_URL = 'app.highlight.run';
 
 export class Highlight {
+    options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
-    isRunningOnHighlight: boolean;
+    isRunningOnHighlight!: boolean;
     /** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
-    organizationID: string;
-    graphqlSDK: Sdk;
-    events: eventWithTime[];
-    errors: ErrorMessage[];
-    messages: ConsoleMessage[];
-    xhrNetworkContents: RequestResponsePair[] = [];
-    fetchNetworkContents: RequestResponsePair[] = [];
-    tracingOrigins: boolean | (string | RegExp)[] = [];
-    networkHeadersToRedact: string[] = [];
-    urlBlocklist: string[] = [];
-    sessionData: SessionData;
-    ready: boolean;
-    state: 'NotRecording' | 'Recording';
+    organizationID!: string;
+    graphqlSDK!: Sdk;
+    events!: eventWithTime[];
+    errors!: ErrorMessage[];
+    messages!: ConsoleMessage[];
+    xhrNetworkContents!: RequestResponsePair[];
+    fetchNetworkContents!: RequestResponsePair[];
+    tracingOrigins!: boolean | (string | RegExp)[];
+    networkHeadersToRedact!: string[];
+    urlBlocklist!: string[];
+    sessionData!: SessionData;
+    ready!: boolean;
+    state!: 'NotRecording' | 'Recording';
     /**
      * The number of requests to public graph that have failed in a row.
      */
-    numberOfFailedRequests = 0;
-    logger: Logger;
-    disableNetworkRecording: boolean | undefined;
-    enableRecordingNetworkContents: boolean;
-    disableConsoleRecording: boolean | undefined;
-    enableSegmentIntegration: boolean | undefined;
-    enableStrictPrivacy: boolean;
-    enableCanvasRecording: boolean;
-    debugOptions: DebugOptions;
-    listeners: listenerHandler[];
-    firstloadVersion: string;
-    environment: string;
-    sessionShortcut: SessionShortcutOptions = false;
+    numberOfFailedRequests!: number;
+    logger!: Logger;
+    disableNetworkRecording!: boolean;
+    enableRecordingNetworkContents!: boolean;
+    disableConsoleRecording!: boolean;
+    enableSegmentIntegration!: boolean;
+    enableStrictPrivacy!: boolean;
+    enableCanvasRecording!: boolean;
+    debugOptions!: DebugOptions;
+    listeners!: listenerHandler[];
+    firstloadVersion!: string;
+    environment!: string;
+    sessionShortcut!: SessionShortcutOptions;
     /** The end-user's app version. This isn't Highlight's version. */
-    appVersion: string | undefined;
-    _optionsInternal: HighlightClassOptionsInternal;
-    _backendUrl: string;
-    _recordingStartTime: number = 0;
-    _isOnLocalHost: boolean = false;
-    _onToggleFeedbackFormVisibility: () => void;
-    pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
-    feedbackWidgetOptions: FeedbackWidgetOptions;
-    hasSessionUnloaded: boolean;
+    appVersion!: string | undefined;
+    _optionsInternal!: HighlightClassOptionsInternal;
+    _backendUrl!: string;
+    _recordingStartTime!: number;
+    _isOnLocalHost!: boolean;
+    _onToggleFeedbackFormVisibility!: () => void;
+    pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
+    feedbackWidgetOptions!: FeedbackWidgetOptions;
+    hasSessionUnloaded!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
     }
 
     constructor(options: HighlightClassOptions) {
+        this.options = options;
+        this._initMembers(this.options);
+    }
+
+    // Start a new session
+    async _reset() {
+        this.stopRecording();
+        if (this.pushPayloadTimerId) {
+            clearTimeout(this.pushPayloadTimerId);
+        }
+
+        let user_identifier, user_object;
+        try {
+            user_identifier = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_IDENTIFIER
+            );
+            const user_object_string = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_OBJECT
+            );
+            if (user_object_string) {
+                user_object = JSON.parse(user_object_string);
+            }
+        } catch (err) {}
+        for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
+            window.sessionStorage.removeItem(storageKeyName);
+        }
+
+        this._initMembers(this.options);
+        await this.initialize(this.organizationID);
+        if (user_identifier && user_object) {
+            await this.identify(user_identifier, user_object);
+        }
+    }
+
+    _initMembers(options: HighlightClassOptions) {
+        this.xhrNetworkContents = [];
+        this.fetchNetworkContents = [];
+        this.tracingOrigins = [];
+        this.networkHeadersToRedact = [];
+        this.urlBlocklist = [];
+        this.numberOfFailedRequests = 0;
+        this.sessionShortcut = false;
+        this._recordingStartTime = 0;
+        this._isOnLocalHost = false;
+
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
                 ? { clientInteractions: true }
@@ -277,8 +323,8 @@ export class Highlight {
             // Disable recording the console on localhost.
             // We're doing this because on some development builds, the console ends up in an infinite loop.
             window.location.hostname === 'localhost' ||
-            options.disableConsoleRecording;
-        this.enableSegmentIntegration = options.enableSegmentIntegration;
+            !!options.disableConsoleRecording;
+        this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
@@ -383,11 +429,11 @@ export class Highlight {
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         window.sessionStorage.setItem(
-            'highlightIdentifier',
+            SESSION_STORAGE_KEYS.USER_IDENTIFIER,
             user_identifier.toString()
         );
         window.sessionStorage.setItem(
-            'highlightUserObject',
+            SESSION_STORAGE_KEYS.USER_OBJECT,
             JSON.stringify(user_object)
         );
         try {
@@ -529,17 +575,19 @@ export class Highlight {
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
             let storedSessionData = JSON.parse(
-                window.sessionStorage.getItem('sessionData') || '{}'
+                window.sessionStorage.getItem(
+                    SESSION_STORAGE_KEYS.SESSION_DATA
+                ) || '{}'
             );
             let reloaded = false;
 
             const recordingStartTime = window.sessionStorage.getItem(
-                'highlightRecordingStartTime'
+                SESSION_STORAGE_KEYS.RECORDING_START_TIME
             );
             if (!recordingStartTime) {
                 this._recordingStartTime = new Date().getTime();
                 window.sessionStorage.setItem(
-                    'highlightRecordingStartTime',
+                    SESSION_STORAGE_KEYS.RECORDING_START_TIME,
                     this._recordingStartTime.toString()
                 );
             } else {
@@ -547,7 +595,7 @@ export class Highlight {
             }
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
-            window.sessionStorage.removeItem('sessionData');
+            window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
             if (
                 storedSessionData &&
                 storedSessionData.sessionID &&
@@ -907,7 +955,7 @@ export class Highlight {
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
-                'sessionData',
+                SESSION_STORAGE_KEYS.SESSION_DATA,
                 JSON.stringify(this.sessionData)
             );
         });
@@ -920,7 +968,7 @@ export class Highlight {
             window.addEventListener('pagehide', () => {
                 addCustomEvent('Page Unload', '');
                 window.sessionStorage.setItem(
-                    'sessionData',
+                    SESSION_STORAGE_KEYS.SESSION_DATA,
                     JSON.stringify(this.sessionData)
                 );
             });
@@ -1036,8 +1084,7 @@ export class Highlight {
                     Date.now() - this.sessionData.sessionStartTime >
                         MAX_SESSION_LENGTH
                 ) {
-                    this.sessionData.sessionStartTime = Date.now();
-                    this.stopRecording();
+                    await this._reset();
                     return;
                 }
             } catch (e) {
