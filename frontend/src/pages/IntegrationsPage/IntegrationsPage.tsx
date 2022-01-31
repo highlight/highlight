@@ -30,7 +30,7 @@ const IntegrationsPage = () => {
             <LeadAlignLayout>
                 <h2>Integrations</h2>
                 <p className={layoutStyles.subTitle}>
-                    Supercharge your workflows and connect Highlight with the
+                    Supercharge your workflows and attach Highlight with the
                     tools you use everyday.
                 </p>
                 {loading ? (
