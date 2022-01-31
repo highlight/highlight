@@ -53,7 +53,7 @@
         "clientjs": "^0.2.1",
         "error-stack-parser": "^2.0.6",
         "graphql": "^15.4.0",
-        "graphql-request": "^3.4.0",
+        "graphql-request": "^3.7.0",
         "json-stringify-safe": "^5.0.1",
         "stacktrace-js": "^2.0.2"
     }
