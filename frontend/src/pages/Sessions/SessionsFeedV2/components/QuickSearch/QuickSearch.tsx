@@ -81,13 +81,13 @@ const styleProps: Styles<any, false> = {
         flexDirection: 'row-reverse',
         minHeight: '32px',
         '&:hover': {
-            'border-color': 'var(--color-purple) !important',
+            borderColor: 'var(--color-purple) !important',
         },
         transition: 'all 0.2s ease-in-out',
         '&:focus-within': {
-            'box-shadow':
+            boxShadow:
                 '0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important',
-            'border-color': 'var(--color-purple) !important',
+            borderColor: 'var(--color-purple) !important',
         },
     }),
     valueContainer: (provided) => ({

@@ -102,6 +102,7 @@ export const Toolbar = React.memo(() => {
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
     const disableControls = state === ReplayerState.Loading || !canViewSession;
+    const draggableRef = React.useRef(null);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused = ReplayerPausedStates.includes(state);
@@ -305,6 +306,7 @@ export const Toolbar = React.memo(() => {
                         <div className={styles.sliderRail}></div>
 
                         <Draggable
+                            nodeRef={draggableRef}
                             axis="x"
                             bounds="parent"
                             onStop={endLogger}
@@ -319,7 +321,10 @@ export const Toolbar = React.memo(() => {
                                 y: 0,
                             }}
                         >
-                            <div className={styles.indicatorParent}>
+                            <div
+                                className={styles.indicatorParent}
+                                ref={draggableRef}
+                            >
                                 <div className={styles.indicator} />
                             </div>
                         </Draggable>
