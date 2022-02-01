@@ -1138,6 +1138,8 @@ export class Highlight {
                 }
             };
             intervalId = setTimeout(worker, 500);
+        } else if (this.state === 'Recording' && this.events.length > 0) {
+            rrwebAddCustomEvent(tag, payload);
         }
     }
 
