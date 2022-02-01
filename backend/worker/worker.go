@@ -179,7 +179,8 @@ func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
 				WHERE o.session_id = s.id
 				AND s.object_storage_enabled = True
 				AND s.payload_updated_at < s.lock
-				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')`
+				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
+				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
 			for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
 				deleteSpan, _ := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
