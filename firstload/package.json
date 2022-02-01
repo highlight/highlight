@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "scripts": {
         "build": "webpack --mode=production --config=./webpack.config.js",
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
