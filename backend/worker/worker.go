@@ -250,7 +250,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				TimestampCounts:            timestamps,
 			})
 			if o.Error != nil {
-				return e.Wrap(err, "error processing event chunk")
+				return e.Wrap(o.Error, "error processing event chunk")
 			}
 			firstEventTimestamp = o.FirstEventTimestamp
 			firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
