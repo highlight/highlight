@@ -16,6 +16,7 @@ import {
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
+import HighlightSegmentMiddleware from './integrations/segment';
 
 initializeFetchListener();
 
@@ -444,3 +445,5 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage();
+
+export { HighlightSegmentMiddleware };
