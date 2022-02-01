@@ -431,6 +431,8 @@ type Session struct {
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
 	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
 	Lock sql.NullTime
+
+	RetryCount int
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
