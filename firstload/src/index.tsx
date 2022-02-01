@@ -228,7 +228,7 @@ export const H: HighlightPublicInterface = {
                     feedbackWidget: options?.feedbackWidget,
                 });
                 if (!options?.manualStart) {
-                    highlight_obj.initialize(projectID);
+                    highlight_obj.initialize();
                 }
             });
 

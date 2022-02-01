@@ -261,7 +261,7 @@ export class Highlight {
         }
 
         this._initMembers(this.options);
-        await this.initialize(this.organizationID);
+        await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
         }
@@ -557,20 +557,8 @@ export class Highlight {
             }
         }
     }
-    // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-    async initialize(organization_id?: number | string) {
-        var org_id = '';
-        if (typeof organization_id === 'number') {
-            org_id = organization_id.toString();
-        } else if (typeof organization_id === 'string') {
-            org_id = organization_id;
-        } else {
-            org_id = '0';
-        }
+    async initialize() {
         try {
-            if (organization_id) {
-                this.organizationID = org_id;
-            }
             if (this.feedbackWidgetOptions.enabled) {
                 const {
                     onToggleFeedbackFormVisibility,
