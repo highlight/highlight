@@ -6,12 +6,13 @@ import styles from './TextHighlighter.module.scss';
 
 type Props = HighlighterProps;
 
-const TextHighlighter = (props: Props) => {
+const TextHighlighter = ({ textToHighlight = '', ...props }: Props) => {
     return (
         <Highlighter
             {...props}
             highlightClassName={styles.highlighterStyles}
             autoEscape={true}
+            textToHighlight={textToHighlight}
         />
     );
 };

@@ -6,7 +6,7 @@
     "author": "Highlight",
     "license": "MIT",
     "dependencies": {
-        "concurrently": "^6.2.0"
+        "concurrently": "^6.5.1"
     },
     "scripts": {
         "frontend:start": "concurrently 'cd frontend && yarn start' 'cd frontend && yarn gql' 'cd frontend && yarn styles' 'cd client && yarn dev' 'cd client && yarn gql' 'cd firstload && yarn dev'",

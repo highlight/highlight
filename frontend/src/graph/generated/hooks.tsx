@@ -3947,6 +3947,8 @@ export const GetSessionDocument = gql`
             messages_url
             deviceMemory
             last_user_interaction_time
+            length
+            active_length
         }
     }
 `;

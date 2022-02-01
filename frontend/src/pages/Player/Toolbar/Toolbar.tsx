@@ -73,6 +73,7 @@ export const Toolbar = React.memo(() => {
         lastActiveString,
         sessionResults,
         session,
+        sessionStartDateTime,
     } = useReplayerContext();
     usePlayerKeyboardShortcuts();
     const {
@@ -87,6 +88,7 @@ export const Toolbar = React.memo(() => {
         autoPlaySessions,
         setAutoPlayVideo,
         enableInspectElement,
+        showPlayerAbsoluteTime,
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
@@ -102,6 +104,7 @@ export const Toolbar = React.memo(() => {
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
     const disableControls = state === ReplayerState.Loading || !canViewSession;
+    const draggableRef = React.useRef(null);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused = ReplayerPausedStates.includes(state);
@@ -305,6 +308,7 @@ export const Toolbar = React.memo(() => {
                         <div className={styles.sliderRail}></div>
 
                         <Draggable
+                            nodeRef={draggableRef}
                             axis="x"
                             bounds="parent"
                             onStop={endLogger}
@@ -319,7 +323,10 @@ export const Toolbar = React.memo(() => {
                                 y: 0,
                             }}
                         >
-                            <div className={styles.indicatorParent}>
+                            <div
+                                className={styles.indicatorParent}
+                                ref={draggableRef}
+                            >
                                 <div className={styles.indicator} />
                             </div>
                         </Draggable>
@@ -450,6 +457,18 @@ export const Toolbar = React.memo(() => {
                         <div className={styles.timeSection}>
                             {disableControls ? (
                                 <Skeleton count={1} width="60.13px" />
+                            ) : showPlayerAbsoluteTime ? (
+                                <>
+                                    {playerTimeToSessionAbsoluteTime({
+                                        sessionStartTime: sessionStartDateTime,
+                                        relativeTime: time,
+                                    })}
+                                    &nbsp;/&nbsp;
+                                    {playerTimeToSessionAbsoluteTime({
+                                        sessionStartTime: sessionStartDateTime,
+                                        relativeTime: max,
+                                    })}
+                                </>
                             ) : (
                                 <>
                                     {MillisToMinutesAndSeconds(
