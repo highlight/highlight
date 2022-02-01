@@ -837,6 +837,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    removeSlackBotIntegrationToProject(project_id: ID!): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
         project_id: ID!

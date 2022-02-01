@@ -707,6 +707,52 @@ export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutation
     Types.AddSlackBotIntegrationToProjectMutation,
     Types.AddSlackBotIntegrationToProjectMutationVariables
 >;
+export const RemoveSlackBotIntegrationToProjectDocument = gql`
+    mutation RemoveSlackBotIntegrationToProject($project_id: ID!) {
+        removeSlackBotIntegrationToProject(project_id: $project_id)
+    }
+`;
+export type RemoveSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.RemoveSlackBotIntegrationToProjectMutation,
+    Types.RemoveSlackBotIntegrationToProjectMutationVariables
+>;
+
+/**
+ * __useRemoveSlackBotIntegrationToProjectMutation__
+ *
+ * To run a mutation, you first call `useRemoveSlackBotIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveSlackBotIntegrationToProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeSlackBotIntegrationToProjectMutation, { data, loading, error }] = useRemoveSlackBotIntegrationToProjectMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useRemoveSlackBotIntegrationToProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.RemoveSlackBotIntegrationToProjectMutation,
+        Types.RemoveSlackBotIntegrationToProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.RemoveSlackBotIntegrationToProjectMutation,
+        Types.RemoveSlackBotIntegrationToProjectMutationVariables
+    >(RemoveSlackBotIntegrationToProjectDocument, baseOptions);
+}
+export type RemoveSlackBotIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useRemoveSlackBotIntegrationToProjectMutation
+>;
+export type RemoveSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.RemoveSlackBotIntegrationToProjectMutation>;
+export type RemoveSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.RemoveSlackBotIntegrationToProjectMutation,
+    Types.RemoveSlackBotIntegrationToProjectMutationVariables
+>;
 export const UpdateAllowedEmailOriginsDocument = gql`
     mutation UpdateAllowedEmailOrigins(
         $workspace_id: ID!
