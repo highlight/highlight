@@ -163,7 +163,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-// Every 5 minutes, delete data for any sessions created
+// Every 5 minutes, delete data for any sessions created > 4 hours ago
 // if all session data has been written to s3
 func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
 	lookbackPeriod := 4 * 60 // 4 hours
