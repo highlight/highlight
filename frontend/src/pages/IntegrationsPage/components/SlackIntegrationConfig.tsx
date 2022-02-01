@@ -16,8 +16,6 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
 
-    console.log('integrationEnabled', integrationEnabled);
-
     const [
         removeSlackBotIntegrationToProjectMutation,
     ] = useRemoveSlackBotIntegrationToProjectMutation();
