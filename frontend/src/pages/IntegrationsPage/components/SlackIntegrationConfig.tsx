@@ -1,6 +1,8 @@
 import Button from '@components/Button/Button/Button';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { useRemoveSlackBotIntegrationToProjectMutation } from '@graph/hooks';
+import AppsIcon from '@icons/AppsIcon';
+import PlugIcon from '@icons/PlugIcon';
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -28,7 +30,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     if (integrationEnabled) {
         return (
             <>
-                <p>
+                <p className={styles.modalSubTitle}>
                     Disconnecting your Slack workspace from Highlight will
                     require you to reconfigure any alerts you have made!
                 </p>
@@ -58,6 +60,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                             }).then(() => refetch());
                         }}
                     >
+                        <PlugIcon className={styles.modalBtnIcon} />
                         Disconnect Slack
                     </Button>
                 </footer>
@@ -67,7 +70,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 
     return (
         <>
-            <p>
+            <p className={styles.modalSubTitle}>
                 Connect Slack to your Highlight workspace to setup alerts and
                 tag teammates in comments
             </p>
@@ -88,7 +91,8 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                     type="primary"
                     href={slackUrl}
                 >
-                    Connect Highlight with Slack
+                    <AppsIcon className={styles.modalBtnIcon} /> Connect
+                    Highlight with Slack
                 </Button>
             </footer>
         </>
