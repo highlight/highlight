@@ -36,6 +36,9 @@ import (
 // Worker is a job runner that parses sessions
 const MIN_INACTIVE_DURATION = 10
 
+// Stop trying to reprocess a session if its retry count exceeds this
+const MAX_RETRIES = 5
+
 type Worker struct {
 	Resolver *mgraph.Resolver
 	S3Client *storage.StorageClient
@@ -175,7 +178,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
 	payloadManager, err := payload.NewPayloadManager(sessionIdString)
@@ -476,13 +478,14 @@ func (w *Worker) Start() {
 								WHERE (processed = ?)
 									AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
 									AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+									AND (COALESCE(retry_count, 0) < ?)
 								LIMIT ?
 								FOR UPDATE SKIP LOCKED
 							)
 							RETURNING *
 						)
 						SELECT * FROM t;
-					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					`, false, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
 					Find(&sessions).Debug().Error; err != nil {
 					errs <- err
 					return
@@ -532,6 +535,12 @@ func (w *Worker) Start() {
 			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
+					if err := w.Resolver.DB.Model(&model.Session{}).
+						Where(&model.Session{Model: model.Model{ID: session.ID}}).
+						Updates(&model.Session{RetryCount: session.RetryCount + 1}).Error; err != nil {
+						log.WithField("session_id", session.ID).Error(e.Wrap(err, "error incrementing retry count"))
+					}
+
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
