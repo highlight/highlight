@@ -1504,6 +1504,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'messages_url'
             | 'deviceMemory'
             | 'last_user_interaction_time'
+            | 'length'
+            | 'active_length'
         > & {
                 fields?: Types.Maybe<
                     Array<
