@@ -12,7 +12,11 @@
         "declarationDir": "dist",
         "moduleResolution": "node",
         "resolveJsonModule": true,
-        "jsx": "react"
+        "jsx": "react",
+        "typeRoots": [
+            "./node_modules/@types"
+          ],
+          "types": ["node"]
     },
     "include": ["src"]
 }
