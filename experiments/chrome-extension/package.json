@@ -10,7 +10,7 @@
         "@types/node": "^12.0.0",
         "@types/react": "^17.0.0",
         "@types/react-dom": "^17.0.0",
-        "antd": "^4.16.1",
+        "antd": "^4.18.3",
         "react": "^17.0.2",
         "react-code-blocks": "^0.0.8",
         "react-dom": "^17.0.2",
