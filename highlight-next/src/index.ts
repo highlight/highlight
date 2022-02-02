@@ -2,6 +2,7 @@ import { Highlight, NodeOptions } from '@highlight-run/node';
 
 export interface HighlightInterface {
     init: (options: NodeOptions) => void;
+    isInitialized: () => boolean;
     consumeError: (
         error: Error,
         secureSessionId: string,
@@ -18,6 +19,7 @@ export const H: HighlightInterface = {
             console.log('highlight-next init error: ', e);
         }
     },
+    isInitialized: () => (highlight_obj ? true : false),
     consumeError: (
         error: Error,
         secureSessionId: string,
