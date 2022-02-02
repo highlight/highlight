@@ -1,6 +1,6 @@
 {
     "name": "@highlight-run/node",
-    "version": "1.0.5",
+    "version": "1.0.9",
     "license": "MIT",
     "main": "dist/index.js",
     "module": "esm/index.js",
@@ -32,6 +32,7 @@
         "@graphql-codegen/import-types-preset": "^2.1.8",
         "@graphql-codegen/typescript": "^2.4.1",
         "@graphql-codegen/typescript-graphql-request": "^4.3.2",
-        "@graphql-codegen/typescript-operations": "^2.2.1"
+        "@graphql-codegen/typescript-operations": "^2.2.1",
+        "@types/node": "^17.0.13"
     }
 }
