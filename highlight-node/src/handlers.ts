@@ -27,20 +27,15 @@ export function errorHandler(
 ) => void {
     return async (
         error: MiddlewareError,
-        _req: http.IncomingMessage,
+        req: http.IncomingMessage,
         res: http.ServerResponse,
         next: (error: MiddlewareError) => void
     ) => {
         try {
-            if (_req.headers && _req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-                const vals = `${_req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split(
-                    '/'
-                );
-                var secureSessionId = '';
-                var requestId = '';
-                if (vals.length == 2) {
-                    secureSessionId = vals[0];
-                    requestId = vals[1];
+            if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
+                const [secureSessionId, requestId] =
+                    `${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/');
+                if (secureSessionId && requestId) {
                     if (error instanceof Error) {
                         if (!H.isInitialized()) {
                             H.init(options);
@@ -50,7 +45,9 @@ export function errorHandler(
                 }
             }
             next(error);
-        } catch {}
+        } catch {
+            next(error);
+        }
     };
 }
 

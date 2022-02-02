@@ -18,13 +18,9 @@ export const Highlight =
                 return await origHandler(req, res);
             } catch (e) {
                 if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-                    const vals =
+                    const [secureSessionId, requestId] =
                         `${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/');
-                    var secureSessionId = '';
-                    var requestId = '';
-                    if (vals.length == 2) {
-                        secureSessionId = vals[0];
-                        requestId = vals[1];
+                    if (secureSessionId && requestId) {
                         if (e instanceof Error) {
                             if (!H.isInitialized()) {
                                 H.init(options);
