@@ -75,7 +75,7 @@ const LineChart = ({
                 height={300}
                 data={data}
                 margin={{
-                    top: 12,
+                    top: 42,
                     right: 4,
                     left: -18,
                     bottom: 0,
@@ -105,6 +105,7 @@ const LineChart = ({
                 />
 
                 <Tooltip
+                    position={{ y: 0 }}
                     content={
                         <RechartTooltip
                             render={(payload: any) => {

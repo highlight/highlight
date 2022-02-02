@@ -412,6 +412,7 @@ const DailyChart = ({
                     dx={-5}
                 />
                 <RechartsTooltip
+                    position={{ y: 0 }}
                     contentStyle={{
                         paddingBottom: '16px',
                     }}
