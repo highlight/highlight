@@ -831,9 +831,10 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 			WHERE
 				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
 				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND (COALESCE(retry_count, 0) < ?)
 				AND NOT processed
 				AND NOT excluded;
-			`, lookbackPeriod, lockPeriod).Scan(&count).Error; err != nil {
+			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
 			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
 		}
