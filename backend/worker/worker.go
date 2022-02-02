@@ -44,7 +44,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
+func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -80,17 +80,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	// Delete all the events_objects in the DB.
-	log.Warnf("deleting all events associated with session (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-		return errors.Wrapf(err, "error deleting all event records")
-	}
-	if err := w.Resolver.DB.Unscoped().Where(&model.ResourcesObject{SessionID: s.ID}).Delete(&model.ResourcesObject{}).Error; err != nil {
-		return errors.Wrap(err, "error deleting all network resource records")
-	}
-	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
-		return errors.Wrap(err, "error deleting all messages")
-	}
 	return nil
 }
 
@@ -175,6 +164,39 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		return errors.Wrap(err, "error closing compressed messages writer")
 	}
 	return nil
+}
+
+// Every 5 minutes, delete data for any sessions created > 4 hours ago
+// if all session data has been written to s3
+func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
+	lookbackPeriod := 4 * 60 // 4 hours
+
+	for {
+		func() {
+			defer util.Recover()
+
+			baseQuery := `
+				DELETE 
+				FROM %s o  
+				USING sessions s
+				WHERE o.session_id = s.id
+				AND s.object_storage_enabled = True
+				AND s.payload_updated_at < s.lock
+				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
+				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
+
+			for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
+				deleteSpan, _ := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
+					tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
+				if err := db.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
+					log.Error(e.Wrapf(err, "error deleting expired objects from %s", table))
+				}
+				deleteSpan.Finish()
+			}
+
+			time.Sleep(5 * time.Minute)
+		}()
+	}
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
@@ -435,7 +457,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, payloadManager); err != nil {
+		if err := w.pushToObjectStorage(ctx, s, &state, payloadManager); err != nil {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
@@ -453,6 +475,7 @@ func (w *Worker) Start() {
 		lockPeriod = 1
 	}
 
+	go deleteCompletedSessions(ctx, w.Resolver.DB)
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
