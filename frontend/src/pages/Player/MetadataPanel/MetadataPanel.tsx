@@ -1,3 +1,4 @@
+import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import { bytesToPrettyString } from '@util/string';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -128,6 +129,21 @@ const MetadataPanel = () => {
             ),
         },
     ];
+
+    if (session?.length) {
+        sessionData.push({
+            keyDisplayValue: 'Duration',
+            valueDisplayValue: formatShortTime(session.length / 1000),
+            renderType: 'string',
+        });
+    }
+    if (session?.active_length) {
+        sessionData.push({
+            keyDisplayValue: 'Active Duration',
+            valueDisplayValue: formatShortTime(session.active_length / 1000),
+            renderType: 'string',
+        });
+    }
 
     // Data exposed to Highlight employees.
     if (isHighlightAdmin) {

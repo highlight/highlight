@@ -50,7 +50,9 @@
     align-items: flex-start;
     display: flex;
     justify-content: space-between;
-    max-width: 1172px;
+    margin-bottom: var(--size-medium);
+    margin-top: var(--size-xxLarge);
+    max-width: 700px;
 }
 
 .infoTooltip {

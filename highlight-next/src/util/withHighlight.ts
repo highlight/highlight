@@ -1,6 +1,8 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
 import { NodeOptions, H, HIGHLIGHT_REQUEST_HEADER } from '@highlight-run/node';
 
+const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request';
+
 // This is the same as the `NextApiHandler` type, except instead of having a return type of `void | Promise<void>`, it's
 // only `Promise<void>`, because wrapped handlers are always async
 export type WrappedNextApiHandler = (

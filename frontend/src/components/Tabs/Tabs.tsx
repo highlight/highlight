@@ -28,6 +28,7 @@ type Props = Pick<
     tabsHtmlId?: string;
     className?: string;
     tabBarExtraContentClassName?: string;
+    activeKeyOverride?: string;
 };
 
 const Tabs = ({
@@ -39,6 +40,7 @@ const Tabs = ({
     tabsHtmlId,
     className,
     tabBarExtraContentClassName,
+    activeKeyOverride,
     ...props
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
@@ -62,11 +64,14 @@ const Tabs = ({
         }
     }, [activeTab, setActiveTab, tabs]);
 
+    const activeKey =
+        activeKeyOverride !== undefined ? activeKeyOverride : activeTab;
+
     return (
         <AntDesignTabs
             {...props}
-            activeKey={activeTab}
-            defaultActiveKey={activeTab}
+            activeKey={activeKey}
+            defaultActiveKey={activeKey}
             onChange={(activeKey) => {
                 if (props.onChange) {
                     props.onChange(activeKey);

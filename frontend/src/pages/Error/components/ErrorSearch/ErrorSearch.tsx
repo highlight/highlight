@@ -9,7 +9,6 @@ import TextHighlighter from '../../../../components/TextHighlighter/TextHighligh
 import { useGetErrorSearchSuggestionsQuery } from '../../../../graph/generated/hooks';
 import SvgSearchIcon from '../../../../static/SearchIcon';
 import { useErrorSearchContext } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
-import { useErrorPageUIContext } from '../../context/ErrorPageUIContext';
 import styles from './ErrorSearch.module.scss';
 
 const ErrorSearch = () => {
@@ -21,7 +20,6 @@ const ErrorSearch = () => {
         ErrorSearchOption[]
     >([]);
     const { setSearchParams } = useErrorSearchContext();
-    const { setSearchBarRef } = useErrorPageUIContext();
 
     const handleChange = (_selectedProperties: any) => {
         const selectedProperties = transformSelectedProperties(
@@ -86,13 +84,6 @@ const ErrorSearch = () => {
 
     return (
         <AsyncSelect
-            ref={(ref) => {
-                if (ref) {
-                    setSearchBarRef(ref);
-                } else {
-                    setSearchBarRef(undefined);
-                }
-            }}
             isMulti
             loadOptions={debouncedGenerateOptions}
             isLoading={loading}

@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"reflect"
 	"regexp"
@@ -430,6 +431,8 @@ type Session struct {
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
 	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
 	Lock sql.NullTime
+
+	RetryCount int
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
@@ -1562,6 +1565,38 @@ type SendSlackAlertInput struct {
 	Timestamp *time.Time
 }
 
+func getUserPropertiesBlock(identifier string, userProperties map[string]string) ([]*slack.TextBlockObject, *slack.Accessory) {
+	messageBlock := []*slack.TextBlockObject{}
+	if identifier != "" {
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
+	} else {
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n_unidentified_", false, false))
+	}
+	var accessory *slack.Accessory
+	for k, v := range userProperties {
+		if k == "" {
+			continue
+		}
+		if v == "" {
+			v = "_empty_"
+		}
+		key := strings.Title(strings.ToLower(k))
+		if key == "Avatar" {
+			_, err := url.ParseRequestURI(v)
+			if err != nil {
+				// If not a valid URL, append to the body like any other property
+				messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", key, v), false, false))
+			} else {
+				// If it is valid, create an accessory from the image
+				accessory = slack.NewAccessory(slack.NewImageBlockElement(v, "avatar"))
+			}
+		} else {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", key, v), false, false))
+		}
+	}
+	return messageBlock, accessory
+}
+
 func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
@@ -1684,19 +1719,9 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 		// construct Slack message
 		previewText = "Highlight: New User Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
-		if identifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
-		}
-		for k, v := range input.UserProperties {
-			if k == "" {
-				continue
-			}
-			if v == "" {
-				v = "_empty_"
-			}
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", strings.Title(strings.ToLower(k)), v), false, false))
-		}
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		userPropertiesBlock, accessory := getUserPropertiesBlock(identifier, input.UserProperties)
+		messageBlock = append(messageBlock, userPropertiesBlock...)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, accessory))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.TRACK_PROPERTIES:
@@ -1749,7 +1774,12 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	case AlertType.NEW_SESSION:
 		previewText = "Highlight: New Session Created"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*New Session Created:*\n\n", false, false)
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		userPropertiesBlock, accessory := getUserPropertiesBlock(identifier, input.UserProperties)
+		messageBlock = append(messageBlock, userPropertiesBlock...)
+		if input.URL != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Visited URL:*\n%s", *input.URL), false, false))
+		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, accessory))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}

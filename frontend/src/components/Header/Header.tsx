@@ -35,7 +35,10 @@ import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { project_id, workspace_id } = useParams<{
+        project_id: string;
+        workspace_id: string;
+    }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -44,6 +47,7 @@ export const Header = () => {
     const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     const { showBanner } = useGlobalContext();
+    const isWorkspaceLevel = workspace_id !== undefined;
 
     return (
         <>
@@ -55,6 +59,7 @@ export const Header = () => {
                         projectIdRemapped !==
                             DEMO_WORKSPACE_PROXY_APPLICATION_ID,
                     [styles.bannerShown]: showBanner,
+                    [styles.sidebarHidden]: isWorkspaceLevel,
                 })}
             >
                 {!!project_id && getBanner(project_id)}

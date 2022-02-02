@@ -1,4 +1,7 @@
-import { addCustomEvent, record } from '@highlight-run/rrweb';
+import {
+    addCustomEvent as rrwebAddCustomEvent,
+    record,
+} from '@highlight-run/rrweb';
 import {
     eventWithTime,
     listenerHandler,
@@ -44,6 +47,10 @@ import {
 } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from './constants/errors';
+import {
+    PerformanceListener,
+    PerformancePayload,
+} from './listeners/performance-listener/performance-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -177,54 +184,100 @@ const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 const HIGHLIGHT_URL = 'app.highlight.run';
 
 export class Highlight {
+    options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
-    isRunningOnHighlight: boolean;
+    isRunningOnHighlight!: boolean;
     /** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
-    organizationID: string;
-    graphqlSDK: Sdk;
-    events: eventWithTime[];
-    errors: ErrorMessage[];
-    messages: ConsoleMessage[];
-    xhrNetworkContents: RequestResponsePair[] = [];
-    fetchNetworkContents: RequestResponsePair[] = [];
-    tracingOrigins: boolean | (string | RegExp)[] = [];
-    networkHeadersToRedact: string[] = [];
-    urlBlocklist: string[] = [];
-    sessionData: SessionData;
-    ready: boolean;
-    state: 'NotRecording' | 'Recording';
+    organizationID!: string;
+    graphqlSDK!: Sdk;
+    events!: eventWithTime[];
+    errors!: ErrorMessage[];
+    messages!: ConsoleMessage[];
+    xhrNetworkContents!: RequestResponsePair[];
+    fetchNetworkContents!: RequestResponsePair[];
+    tracingOrigins!: boolean | (string | RegExp)[];
+    networkHeadersToRedact!: string[];
+    urlBlocklist!: string[];
+    sessionData!: SessionData;
+    ready!: boolean;
+    state!: 'NotRecording' | 'Recording';
     /**
      * The number of requests to public graph that have failed in a row.
      */
-    numberOfFailedRequests = 0;
-    logger: Logger;
-    disableNetworkRecording: boolean | undefined;
-    enableRecordingNetworkContents: boolean;
-    disableConsoleRecording: boolean | undefined;
-    enableSegmentIntegration: boolean | undefined;
-    enableStrictPrivacy: boolean;
-    enableCanvasRecording: boolean;
-    debugOptions: DebugOptions;
-    listeners: listenerHandler[];
-    firstloadVersion: string;
-    environment: string;
-    sessionShortcut: SessionShortcutOptions = false;
+    numberOfFailedRequests!: number;
+    logger!: Logger;
+    disableNetworkRecording!: boolean;
+    enableRecordingNetworkContents!: boolean;
+    disableConsoleRecording!: boolean;
+    enableSegmentIntegration!: boolean;
+    enableStrictPrivacy!: boolean;
+    enableCanvasRecording!: boolean;
+    debugOptions!: DebugOptions;
+    listeners!: listenerHandler[];
+    firstloadVersion!: string;
+    environment!: string;
+    sessionShortcut!: SessionShortcutOptions;
     /** The end-user's app version. This isn't Highlight's version. */
-    appVersion: string | undefined;
-    _optionsInternal: HighlightClassOptionsInternal;
-    _backendUrl: string;
-    _recordingStartTime: number = 0;
-    _isOnLocalHost: boolean = false;
-    _onToggleFeedbackFormVisibility: () => void;
-    pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
-    feedbackWidgetOptions: FeedbackWidgetOptions;
-    hasSessionUnloaded: boolean;
+    appVersion!: string | undefined;
+    _optionsInternal!: HighlightClassOptionsInternal;
+    _backendUrl!: string;
+    _recordingStartTime!: number;
+    _isOnLocalHost!: boolean;
+    _onToggleFeedbackFormVisibility!: () => void;
+    pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
+    feedbackWidgetOptions!: FeedbackWidgetOptions;
+    hasSessionUnloaded!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
     }
 
     constructor(options: HighlightClassOptions) {
+        this.options = options;
+        this._initMembers(this.options);
+    }
+
+    // Start a new session
+    async _reset() {
+        this.stopRecording();
+        if (this.pushPayloadTimerId) {
+            clearTimeout(this.pushPayloadTimerId);
+        }
+
+        let user_identifier, user_object;
+        try {
+            user_identifier = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_IDENTIFIER
+            );
+            const user_object_string = window.sessionStorage.getItem(
+                SESSION_STORAGE_KEYS.USER_OBJECT
+            );
+            if (user_object_string) {
+                user_object = JSON.parse(user_object_string);
+            }
+        } catch (err) {}
+        for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
+            window.sessionStorage.removeItem(storageKeyName);
+        }
+
+        this._initMembers(this.options);
+        await this.initialize(this.organizationID);
+        if (user_identifier && user_object) {
+            await this.identify(user_identifier, user_object);
+        }
+    }
+
+    _initMembers(options: HighlightClassOptions) {
+        this.xhrNetworkContents = [];
+        this.fetchNetworkContents = [];
+        this.tracingOrigins = [];
+        this.networkHeadersToRedact = [];
+        this.urlBlocklist = [];
+        this.numberOfFailedRequests = 0;
+        this.sessionShortcut = false;
+        this._recordingStartTime = 0;
+        this._isOnLocalHost = false;
+
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
                 ? { clientInteractions: true }
@@ -273,8 +326,8 @@ export class Highlight {
             // Disable recording the console on localhost.
             // We're doing this because on some development builds, the console ends up in an infinite loop.
             window.location.hostname === 'localhost' ||
-            options.disableConsoleRecording;
-        this.enableSegmentIntegration = options.enableSegmentIntegration;
+            !!options.disableConsoleRecording;
+        this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
@@ -366,12 +419,12 @@ export class Highlight {
             return;
         }
         if (source === 'segment') {
-            addCustomEvent(
+            this.addCustomEvent(
                 'Segment Identify',
                 stringify({ user_identifier, ...user_object })
             );
         } else {
-            addCustomEvent(
+            this.addCustomEvent(
                 'Identify',
                 stringify({ user_identifier, ...user_object })
             );
@@ -379,11 +432,11 @@ export class Highlight {
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         window.sessionStorage.setItem(
-            'highlightIdentifier',
+            SESSION_STORAGE_KEYS.USER_IDENTIFIER,
             user_identifier.toString()
         );
         window.sessionStorage.setItem(
-            'highlightUserObject',
+            SESSION_STORAGE_KEYS.USER_OBJECT,
             JSON.stringify(user_object)
         );
         try {
@@ -474,12 +527,12 @@ export class Highlight {
         // Track properties are properties that users define; rn, either through segment or manually.
         else {
             if (typeArg?.source === 'segment') {
-                addCustomEvent<string>(
+                this.addCustomEvent<string>(
                     'Segment Track',
                     stringify(properties_obj)
                 );
             } else {
-                addCustomEvent<string>('Track', stringify(properties_obj));
+                this.addCustomEvent<string>('Track', stringify(properties_obj));
             }
             try {
                 await this.graphqlSDK.addTrackProperties({
@@ -525,17 +578,19 @@ export class Highlight {
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
             let storedSessionData = JSON.parse(
-                window.sessionStorage.getItem('sessionData') || '{}'
+                window.sessionStorage.getItem(
+                    SESSION_STORAGE_KEYS.SESSION_DATA
+                ) || '{}'
             );
             let reloaded = false;
 
             const recordingStartTime = window.sessionStorage.getItem(
-                'highlightRecordingStartTime'
+                SESSION_STORAGE_KEYS.RECORDING_START_TIME
             );
             if (!recordingStartTime) {
                 this._recordingStartTime = new Date().getTime();
                 window.sessionStorage.setItem(
-                    'highlightRecordingStartTime',
+                    SESSION_STORAGE_KEYS.RECORDING_START_TIME,
                     this._recordingStartTime.toString()
                 );
             } else {
@@ -543,7 +598,7 @@ export class Highlight {
             }
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
-            window.sessionStorage.removeItem('sessionData');
+            window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
             if (
                 storedSessionData &&
                 storedSessionData.sessionID &&
@@ -631,24 +686,26 @@ export class Highlight {
                 this.events.push(event);
             };
             emit.bind(this);
-            const recordStop = record({
-                ignoreClass: 'highlight-ignore',
-                blockClass: 'highlight-block',
-                emit,
-                enableStrictPrivacy: this.enableStrictPrivacy,
-                maskAllInputs: this.enableStrictPrivacy,
-                recordCanvas: this.enableCanvasRecording,
-                keepIframeSrcFn: (_src) => {
-                    return true;
-                },
-            });
-            if (recordStop) {
-                this.listeners.push(recordStop);
-            }
-            addCustomEvent('Viewport', {
-                height: window.innerHeight,
-                width: window.innerWidth,
-            });
+            setTimeout(() => {
+                const recordStop = record({
+                    ignoreClass: 'highlight-ignore',
+                    blockClass: 'highlight-block',
+                    emit,
+                    enableStrictPrivacy: this.enableStrictPrivacy,
+                    maskAllInputs: this.enableStrictPrivacy,
+                    recordCanvas: this.enableCanvasRecording,
+                    keepIframeSrcFn: (_src) => {
+                        return true;
+                    },
+                });
+                if (recordStop) {
+                    this.listeners.push(recordStop);
+                }
+                this.addCustomEvent('Viewport', {
+                    height: window.innerHeight,
+                    width: window.innerWidth,
+                });
+            }, 2000);
 
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
@@ -691,7 +748,7 @@ export class Highlight {
                         document.referrer.includes(window.location.origin)
                     )
                 ) {
-                    addCustomEvent<string>('Referrer', document.referrer);
+                    this.addCustomEvent<string>('Referrer', document.referrer);
                     highlightThis.addProperties(
                         { referrer: document.referrer },
                         { type: 'session' }
@@ -701,14 +758,14 @@ export class Highlight {
             this.listeners.push(
                 PathListener((url: string) => {
                     if (reloaded) {
-                        addCustomEvent<string>('Reload', url);
+                        this.addCustomEvent<string>('Reload', url);
                         reloaded = false;
                         highlightThis.addProperties(
                             { reload: true },
                             { type: 'session' }
                         );
                     } else {
-                        addCustomEvent<string>('Navigate', url);
+                        this.addCustomEvent<string>('Navigate', url);
                     }
                     highlightThis.addProperties(
                         { 'visited-url': url },
@@ -791,20 +848,20 @@ export class Highlight {
             );
             this.listeners.push(
                 ViewportResizeListener((viewport) => {
-                    addCustomEvent('Viewport', viewport);
+                    this.addCustomEvent('Viewport', viewport);
                 })
             );
             this.listeners.push(
                 ClickListener((clickTarget) => {
                     if (clickTarget) {
-                        addCustomEvent('Click', clickTarget);
+                        this.addCustomEvent('Click', clickTarget);
                     }
                 })
             );
             this.listeners.push(
                 FocusListener((focusTarget) => {
                     if (focusTarget) {
-                        addCustomEvent('Focus', focusTarget);
+                        this.addCustomEvent('Focus', focusTarget);
                     }
                 })
             );
@@ -851,6 +908,12 @@ export class Highlight {
                 );
             }
 
+            this.listeners.push(
+                PerformanceListener((payload: PerformancePayload) => {
+                    this.addCustomEvent('Performance', stringify(payload));
+                }, this._recordingStartTime)
+            );
+
             // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
             // as when switching tabs or apps on mobile. Non-blocking.
             document.addEventListener('visibilitychange', () => {
@@ -895,9 +958,9 @@ export class Highlight {
             }
         }
         window.addEventListener('beforeunload', () => {
-            addCustomEvent('Page Unload', '');
+            this.addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
-                'sessionData',
+                SESSION_STORAGE_KEYS.SESSION_DATA,
                 JSON.stringify(this.sessionData)
             );
         });
@@ -908,9 +971,9 @@ export class Highlight {
             navigator.userAgent.match(/iPhone/i);
         if (isOnIOS) {
             window.addEventListener('pagehide', () => {
-                addCustomEvent('Page Unload', '');
+                this.addCustomEvent('Page Unload', '');
                 window.sessionStorage.setItem(
-                    'sessionData',
+                    SESSION_STORAGE_KEYS.SESSION_DATA,
                     JSON.stringify(this.sessionData)
                 );
             });
@@ -923,7 +986,7 @@ export class Highlight {
      */
     stopRecording(manual?: boolean) {
         if (manual) {
-            addCustomEvent(
+            this.addCustomEvent(
                 'Stop',
                 'H.stop() was called which stops Highlight from recording.'
             );
@@ -1026,8 +1089,7 @@ export class Highlight {
                     Date.now() - this.sessionData.sessionStartTime >
                         MAX_SESSION_LENGTH
                 ) {
-                    this.sessionData.sessionStartTime = Date.now();
-                    this.stopRecording();
+                    await this._reset();
                     return;
                 }
             } catch (e) {
@@ -1058,6 +1120,27 @@ export class Highlight {
             this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
             this.sessionData.sessionID !== 0
         );
+    }
+
+    /**
+     * This proxy should be used instead of rrweb's native addCustomEvent.
+     * The proxy makes sure recording has started before emitting a custom event.
+     */
+    addCustomEvent<T>(tag: string, payload: T): void {
+        if (this.state === 'NotRecording') {
+            let intervalId: ReturnType<typeof setInterval>;
+            const worker = () => {
+                clearInterval(intervalId);
+                if (this.state === 'Recording' && this.events.length > 0) {
+                    rrwebAddCustomEvent(tag, payload);
+                } else {
+                    intervalId = setTimeout(worker, 500);
+                }
+            };
+            intervalId = setTimeout(worker, 500);
+        } else if (this.state === 'Recording' && this.events.length > 0) {
+            rrwebAddCustomEvent(tag, payload);
+        }
     }
 
     _getPayload({

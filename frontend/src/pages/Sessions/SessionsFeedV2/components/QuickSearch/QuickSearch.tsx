@@ -9,7 +9,7 @@ import { useParams } from '@util/react-router/useParams';
 import { Spin } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 
@@ -81,13 +81,13 @@ const styleProps: Styles<any, false> = {
         flexDirection: 'row-reverse',
         minHeight: '32px',
         '&:hover': {
-            'border-color': 'var(--color-purple) !important',
+            borderColor: 'var(--color-purple) !important',
         },
         transition: 'all 0.2s ease-in-out',
         '&:focus-within': {
-            'box-shadow':
+            boxShadow:
                 '0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important',
-            'border-color': 'var(--color-purple) !important',
+            borderColor: 'var(--color-purple) !important',
         },
     }),
     valueContainer: (provided) => ({
@@ -123,12 +123,16 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const {
         setSearchParams,
         setExistingParams,
         setQueryBuilderInput,
+    } = useSearchContext();
+    const selectRef = useRef<any>(null);
+    const {
+        isQuickSearchOpen: isMenuOpen,
+        setIsQuickSearchOpen: setIsMenuOpen,
     } = useSearchContext();
 
     const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
@@ -247,10 +251,19 @@ const QuickSearch = () => {
 
     const isLoading = loading || isTyping;
 
+    useEffect(() => {
+        if (isMenuOpen) {
+            selectRef?.current?.focus();
+        } else {
+            selectRef?.current?.blur();
+        }
+    }, [isMenuOpen]);
+
     return (
         <div className={styles.container}>
             <DropdownIndicator isLoading={isLoading} />
             <AsyncSelect
+                ref={selectRef}
                 loadOptions={loadOptions}
                 // @ts-expect-error
                 styles={styleProps}
@@ -302,6 +315,7 @@ const QuickSearch = () => {
                 isSearchable
                 defaultOptions
                 maxMenuHeight={500}
+                menuIsOpen={isMenuOpen === true ? true : undefined}
             />
             <div
                 className={classNames(styles.backdrop, {

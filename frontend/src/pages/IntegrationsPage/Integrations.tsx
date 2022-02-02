@@ -1,3 +1,5 @@
+import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
+import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegrationConfig';
 import React from 'react';
 
 export interface Integration {
@@ -6,25 +8,23 @@ export interface Integration {
     externalLink?: string;
     configurationPath: string;
     description: string;
+    defaultEnable?: boolean;
     icon: string;
     /**
      * The page to configure the integration. This can be rendered in a modal or on a different page.
      */
-    configurationPage: React.ReactNode;
+    configurationPage: (opts: IntegrationConfigProps) => React.ReactNode;
 }
 
 const INTEGRATIONS: Integration[] = [
     {
-        key: 'linear',
-        name: 'Linear',
-        configurationPath: 'linear',
-        description: 'Bring your Highlight comments to Linear as issues.',
-        icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
-            <>
-                <h2>Boba</h2>
-            </>
-        ),
+        key: 'slack',
+        name: 'Slack',
+        configurationPath: 'slack',
+        description:
+            'Bring your Highlight comments and alerts to slack as messages.',
+        icon: 'https://img.stackshare.io/service/675/RNiSRYOF_400x400.jpg',
+        configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
     },
     {
         key: 'linear2',
@@ -32,7 +32,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
         icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
+        configurationPage: () => (
             <>
                 <h2>Boba</h2>
             </>
@@ -44,7 +44,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
         icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
+        configurationPage: () => (
             <>
                 <h2>Boba</h2>
             </>
@@ -56,7 +56,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
         icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
+        configurationPage: () => (
             <>
                 <h2>Boba</h2>
             </>
@@ -68,7 +68,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
         icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
+        configurationPage: () => (
             <>
                 <h2>Boba</h2>
             </>
@@ -80,7 +80,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
         icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
-        configurationPage: (
+        configurationPage: () => (
             <>
                 <h2>Boba</h2>
             </>

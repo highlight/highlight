@@ -1,3 +1,4 @@
+import PerformancePage from '@pages/Player/Toolbar/DevToolsWindow/PerformancePage/PerformancePage';
 import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
@@ -33,6 +34,12 @@ export const DevToolsWindow = React.memo(
                 key: 'Network',
                 panelContent: (
                     <ResourcePage startTime={startTime} time={time} />
+                ),
+            },
+            {
+                key: 'Performance',
+                panelContent: (
+                    <PerformancePage currentTime={time} startTime={startTime} />
                 ),
             },
         ];

@@ -2,7 +2,9 @@ import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
 import SvgActivityIcon from '@icons/ActivityIcon';
 import SegmentIcon from '@icons/SegmentIcon';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender';
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -55,6 +57,7 @@ export const StreamElement = ({
     const details = getEventRenderDetails(e);
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
+    const { showPlayerAbsoluteTime } = usePlayerConfiguration();
 
     const showExpandedView = searchQuery.length > 0 || showDetails || selected;
     const shouldShowTimestamp =
@@ -112,7 +115,12 @@ export const StreamElement = ({
                     </div>
                     {shouldShowTimestamp && (
                         <div className={classNames(styles.eventTime)}>
-                            {MillisToMinutesAndSeconds(timeSinceStart)}
+                            {showPlayerAbsoluteTime
+                                ? playerTimeToSessionAbsoluteTime({
+                                      sessionStartTime: start,
+                                      relativeTime: timeSinceStart,
+                                  })
+                                : MillisToMinutesAndSeconds(timeSinceStart)}
                         </div>
                     )}
                     {showExpandedView && (
@@ -248,6 +256,9 @@ export const getEventRenderDetails = (
                     <WebVitalSimpleRenderer vitals={payload.vitals} />
                 );
                 details.isReactNode = true;
+                break;
+            case 'Page Unload':
+                details.displayValue = 'Page Unload';
                 break;
             default:
                 details.displayValue = payload;

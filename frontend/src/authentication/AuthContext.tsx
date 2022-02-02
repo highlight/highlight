@@ -22,15 +22,14 @@ export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
+const denyList: string[] = ['396'];
+
 export const queryBuilderEnabled = (
     isHighlightAdmin: boolean,
     project_id: string
 ) => {
-    // Projects can be enabled on a one-off basis by adding to the list below:
-    return (
-        isHighlightAdmin ||
-        ['1', '162', '120', '493', '158'].includes(project_id)
-    );
+    // Projects can be disabled on a one-off basis by adding to the denyList
+    return isHighlightAdmin || !denyList.includes(project_id);
 };
 
 export const [useAuthContext, AuthContextProvider] = createContext<{

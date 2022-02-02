@@ -16,6 +16,11 @@
     &.bannerShown {
         animation: accomodate-banner 0.5s forwards;
     }
+
+    &.sidebarHidden {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
 .hamburger {
@@ -129,7 +134,7 @@
     display: flex;
     flex-grow: 1;
     margin-left: var(--size-medium);
-    max-width: 400px;
+    max-width: 550px;
 }
 
 .hideableButtonContainer {

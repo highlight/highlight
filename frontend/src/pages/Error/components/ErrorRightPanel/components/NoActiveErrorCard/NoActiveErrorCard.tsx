@@ -1,15 +1,15 @@
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import React, { useEffect } from 'react';
 
 import Button from '../../../../../../components/Button/Button/Button';
 import ElevatedCard from '../../../../../../components/ElevatedCard/ElevatedCard';
 import SvgSearchIcon from '../../../../../../static/SearchIcon';
-import { useErrorPageUIContext } from '../../../../context/ErrorPageUIContext';
 import useErrorPageConfiguration from '../../../../utils/ErrorPageUIConfiguration';
 import styles from './NoActiveErrorCard.module.scss';
 
 const NoActiveErrorCard = () => {
     const { setShowLeftPanel } = useErrorPageConfiguration();
-    const { searchBarRef } = useErrorPageUIContext();
+    const { setIsQuickSearchOpen } = useSearchContext();
 
     useEffect(() => {
         setShowLeftPanel(true);
@@ -25,9 +25,7 @@ const NoActiveErrorCard = () => {
                     type="primary"
                     className={styles.buttonWrapper}
                     onClick={() => {
-                        if (searchBarRef) {
-                            searchBarRef.focus();
-                        }
+                        setIsQuickSearchOpen(true);
                     }}
                 >
                     <SvgSearchIcon />

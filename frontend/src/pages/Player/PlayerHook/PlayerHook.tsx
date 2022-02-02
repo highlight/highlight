@@ -6,6 +6,7 @@ import {
 } from '@highlight-run/rrweb/dist/types';
 import {
     findLatestUrl,
+    getAllPerformanceEvents,
     getAllUrlEvents,
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
@@ -29,7 +30,7 @@ import {
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
-import { HighlightEvent } from '../HighlightEvent';
+import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
     ParsedSessionInterval,
@@ -76,6 +77,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [performancePayloads, setPerformancePayloads] = useState<
+        Array<HighlightPerformancePayload>
+    >([]);
     const [sessionComments, setSessionComments] = useState<SessionComment[]>(
         []
     );
@@ -411,6 +415,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 if (onlyUrlEvents.length >= 1) {
                     setCurrentUrl(onlyUrlEvents[0].data.payload);
                 }
+                setPerformancePayloads(getAllPerformanceEvents(newEvents));
                 r.on('resize', (_e) => {
                     const e = _e as viewportResizeDimension;
                     setViewport(e);
@@ -815,6 +820,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         state,
         rageClicks,
         events,
+        performancePayloads,
         play,
         pause,
         errors,

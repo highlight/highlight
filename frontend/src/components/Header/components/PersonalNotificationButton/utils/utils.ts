@@ -8,6 +8,7 @@ import { useHistory } from 'react-router';
 
 import {
     useAddSlackBotIntegrationToProjectMutation,
+    useGetWorkspaceIsIntegratedWithSlackQuery,
     useOpenSlackConversationMutation,
 } from '../../../../../graph/generated/hooks';
 
@@ -43,6 +44,25 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
     const [loading, setLoading] = useState<boolean>(false);
+    const [
+        isSlackConnectedToWorkspace,
+        setIsSlackConnectedToWorkspace,
+    ] = useState<boolean>(false);
+
+    const {
+        data: slackIntegResponse,
+        loading: slackIntegLoading,
+        refetch,
+    } = useGetWorkspaceIsIntegratedWithSlackQuery({
+        variables: { project_id },
+    });
+
+    useEffect(() => {
+        if (!slackIntegResponse) return;
+        setIsSlackConnectedToWorkspace(
+            slackIntegResponse.is_integrated_with_slack || false
+        );
+    }, [slackIntegResponse, setIsSlackConnectedToWorkspace]);
 
     const slackUrl = getSlackUrl(type, project_id);
 
@@ -74,6 +94,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                             redirect_path: redirectPath,
                         },
                     });
+                    setIsSlackConnectedToWorkspace(true);
                     message.success('Highlight is now synced with Slack!', 5);
                 }
             } catch (e) {}
@@ -95,11 +116,14 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         watch,
         setupType,
         called,
+        setIsSlackConnectedToWorkspace,
     ]);
 
     return {
-        loading,
+        loading: loading || slackIntegLoading,
         slackUrl,
+        isSlackConnectedToWorkspace,
+        refetch,
     };
 };
 

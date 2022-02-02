@@ -91,6 +91,10 @@ mutation AddSlackBotIntegrationToProject(
     )
 }
 
+mutation RemoveSlackBotIntegrationToProject($project_id: ID!) {
+    removeSlackBotIntegrationToProject(project_id: $project_id)
+}
+
 mutation UpdateAllowedEmailOrigins(
     $workspace_id: ID!
     $allowed_auto_join_email_origins: String!

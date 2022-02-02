@@ -1,4 +1,3 @@
-import { useGetWorkspaceIsIntegratedWithSlackQuery } from '@graph/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -25,43 +24,38 @@ const PersonalNotificationButton = ({
 }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { admin, isLoggedIn } = useAuthContext();
-    const [isIntegratedWithSlack, setIsIntegratedWithSlack] = useLocalStorage(
-        `${project_id}-${type}-personalNotifications`,
-        false
-    );
-    const { data } = useGetWorkspaceIsIntegratedWithSlackQuery({
-        variables: {
-            project_id,
-        },
-    });
+    const [
+        isPersonalNotificationsSetup,
+        setIsPersonalNotificationsSetup,
+    ] = useLocalStorage(`${project_id}-${type}-personalNotifications`, false);
+
     const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
         'Highlight-slackBotSetupType',
         ''
     );
 
-    const { slackUrl: slackBotUrl } = useSlackBot({ type, watch: true });
+    const { slackUrl: slackBotUrl, isSlackConnectedToWorkspace } = useSlackBot({
+        type,
+        watch: true,
+    });
 
     useEffect(() => {
         // personal notifications are already setup
         if (admin && type === 'Personal') {
             if (!!admin.slack_im_channel_id) {
-                setIsIntegratedWithSlack(true);
+                setIsPersonalNotificationsSetup(true);
             } else {
-                setIsIntegratedWithSlack(false);
+                setIsPersonalNotificationsSetup(false);
             }
         }
+    }, [admin, setIsPersonalNotificationsSetup, type]);
 
-        if (data && type === 'Organization') {
-            // slack workspace has already been integrated
-            if (data.is_integrated_with_slack) {
-                setIsIntegratedWithSlack(true);
-            } else {
-                setIsIntegratedWithSlack(false);
-            }
-        }
-    }, [admin, data, setIsIntegratedWithSlack, type]);
-
-    if (!isLoggedIn || isIntegratedWithSlack) return null;
+    if (
+        !isLoggedIn ||
+        isPersonalNotificationsSetup ||
+        isSlackConnectedToWorkspace
+    )
+        return null;
 
     return (
         <Button
