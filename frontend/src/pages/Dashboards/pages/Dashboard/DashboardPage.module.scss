@@ -1,5 +1,10 @@
 .gridContainer {
     padding-top: var(--size-large);
+
+    :global(.react-grid-item.react-grid-placeholder) {
+        background-color: var(--color-gray-400);
+        border-radius: var(--border-radius);
+    }
 }
 
 .dateRangePicker {

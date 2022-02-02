@@ -108,7 +108,7 @@ const DEFAULT_WEB_VITALS_LAYOUT = {
             x: 0,
             y: 0,
             i: '0',
-            minW: 2,
+            minW: 3,
             static: false,
         },
         {
@@ -117,7 +117,7 @@ const DEFAULT_WEB_VITALS_LAYOUT = {
             x: 6,
             y: 0,
             i: '1',
-            minW: 2,
+            minW: 3,
             static: false,
         },
         {
@@ -126,7 +126,7 @@ const DEFAULT_WEB_VITALS_LAYOUT = {
             x: 0,
             y: 2,
             i: '2',
-            minW: 2,
+            minW: 3,
             static: false,
         },
         {
@@ -135,7 +135,7 @@ const DEFAULT_WEB_VITALS_LAYOUT = {
             x: 6,
             y: 2,
             i: '3',
-            minW: 2,
+            minW: 3,
             static: false,
         },
         {
@@ -144,7 +144,7 @@ const DEFAULT_WEB_VITALS_LAYOUT = {
             x: 0,
             y: 4,
             i: '4',
-            minW: 2,
+            minW: 3,
             static: false,
         },
     ],
