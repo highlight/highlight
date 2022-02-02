@@ -254,6 +254,14 @@ type RegistrationData struct {
 	Pun         *string
 }
 
+type Dashboard struct {
+	Model
+	ProjectID         int
+	Layout            *string
+	Name              *string
+	LastAdminToEditID int
+}
+
 type SlackChannel struct {
 	WebhookAccessToken string
 	WebhookURL         string
