@@ -2,6 +2,8 @@ import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
 import { H } from '..';
 import { NodeOptions } from '@highlight-run/node';
 
+const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request';
+
 // This is the same as the `NextApiHandler` type, except instead of having a return type of `void | Promise<void>`, it's
 // only `Promise<void>`, because wrapped handlers are always async
 export type WrappedNextApiHandler = (
@@ -18,17 +20,18 @@ export const Highlight =
             try {
                 return await origHandler(req, res);
             } catch (e) {
-                if (req.headers && req.headers['x-highlight-request']) {
-                    const vals = `${req.headers['x-highlight-request']}`.split(
-                        '/'
-                    );
+                if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
+                    const vals =
+                        `${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/');
                     var secureSessionId = '';
                     var requestId = '';
                     if (vals.length == 2) {
                         secureSessionId = vals[0];
                         requestId = vals[1];
                         if (e instanceof Error) {
-                            H.init(options);
+                            if (!H.isInitialized()) {
+                                H.init(options);
+                            }
                             H.consumeError(e, secureSessionId, requestId);
                         }
                     }
