@@ -114,6 +114,10 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
+const _startRecording = (highlight_obj: Highlight) => {
+    highlight_obj.initialize();
+};
+
 export interface HighlightPublicInterface {
     init: (projectID?: string | number, debug?: HighlightOptions) => void;
     /**
@@ -228,7 +232,7 @@ export const H: HighlightPublicInterface = {
                     feedbackWidget: options?.feedbackWidget,
                 });
                 if (!options?.manualStart) {
-                    highlight_obj.initialize();
+                    _startRecording(highlight_obj);
                 }
             });
 

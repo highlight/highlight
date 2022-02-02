@@ -375,6 +375,7 @@ export class Highlight {
             this.organizationID === '1' || this.organizationID === '1jdkoe52';
         this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
+        console.log('Firstload version: ', this.firstloadVersion);
         this.sessionShortcut = options.sessionShortcut || false;
         this.feedbackWidgetOptions = {
             enabled: options.feedbackWidget?.enabled || false,
