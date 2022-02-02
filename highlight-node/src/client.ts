@@ -58,11 +58,10 @@ export class Highlight {
         const variables: PushBackendPayloadMutationVariables = {
             errors: this.errors,
         };
+        this.errors = [];
         this._graphqlSdk
             .PushBackendPayload(variables)
-            .then(() => {
-                this.errors = [];
-            })
+            .then(() => {})
             .catch((e) => {
                 console.log('highlight-node error: ', e);
             });
