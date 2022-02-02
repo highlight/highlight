@@ -558,10 +558,23 @@ func (w *Worker) Start() {
 			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
+					nextCount := session.RetryCount + 1
+					var excluded *bool
+					if nextCount >= MAX_RETRIES {
+						excluded = &model.T
+					}
+
 					if err := w.Resolver.DB.Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
-						Updates(&model.Session{RetryCount: session.RetryCount + 1}).Error; err != nil {
+						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
 						log.WithField("session_id", session.ID).Error(e.Wrap(err, "error incrementing retry count"))
+					}
+
+					if excluded != nil && *excluded {
+						log.WithField("session_id", session.ID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"excluded": true}); err != nil {
+							log.WithField("session_id", session.ID).Error(e.Wrap(err, "error updating session in opensearch"))
+						}
 					}
 
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
