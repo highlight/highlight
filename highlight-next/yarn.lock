@@ -70,8 +70,10 @@
   resolved "https://registry.yarnpkg.com/@hapi/hoek/-/hoek-9.2.1.tgz#9551142a1980503752536b5050fd99f4a7f13b17"
   integrity sha512-gfta+H8aziZsm8pZa0vj04KO6biEiisppNgA1kbJvFrrWu9Vm7eaUEy76DIxsuTaWvti5fkJVhllWc6ZTE+Mdw==
 
-"@highlight-run/node@file:.yalc/@highlight-run/node":
-  version "1.0.4"
+"@highlight-run/node@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@highlight-run/node/-/node-1.0.8.tgz#b10e4cb0c42dbfb268252fc29f3b0a143b157fa0"
+  integrity sha512-mhPqTkm1k5+wEF8oCfVBEfRVO+VrDBKQWAVZqP4Thg6k3swbalGJHbQgO7BvKi4+u9RojszGUPUUv12TpOnjzQ==
   dependencies:
     error-stack-parser "^2.0.6"
     graphql "15"
