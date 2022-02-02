@@ -1325,7 +1325,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
-	// If the session is processing or processed, drop the payload
+	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
 		if sessionObj.ResumedAfterProcessedTime == nil {
 			now := time.Now()
@@ -1333,7 +1333,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				log.Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
 			}
 		}
-		return
 	}
 
 	var g errgroup.Group
@@ -1568,8 +1567,21 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded").Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled").
+		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
+	}
+
+	// If the session was previously marked as processed, clear this
+	// in OpenSearch so that it's treated as a live session again.
+	if sessionObj.Processed != nil && *sessionObj.Processed {
+		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+			"processed": false,
+		}); err != nil {
+			log.Error(e.Wrap(err, "error updating session in opensearch"))
+			return
+		}
 	}
 }
