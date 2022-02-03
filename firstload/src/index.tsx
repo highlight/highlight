@@ -114,8 +114,198 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
-const _startRecording = (highlight_obj: Highlight) => {
-    highlight_obj.initialize();
+const _startListening = (options?: HighlightOptions) => {
+    if (options?.enableSegmentIntegration) {
+        this.listeners.push(
+            SegmentIntegrationListener((obj: any) => {
+                if (obj.type === 'track') {
+                    const properties: { [key: string]: string } = {};
+                    properties['segment-event'] = obj.event;
+                    highlightThis.addProperties(properties, {
+                        type: 'track',
+                        source: 'segment',
+                    });
+                } else if (obj.type === 'identify') {
+                    // Removes the starting and end quotes
+                    // Example: "boba" -> boba
+                    const trimmedUserId = obj.userId.replace(/^"(.*)"$/, '$1');
+
+                    highlightThis.identify(
+                        trimmedUserId,
+                        obj.traits,
+                        'segment'
+                    );
+                }
+            })
+        );
+    }
+
+    if (document.referrer) {
+        // Don't record the referrer if it's the same origin.
+        // Non-single page apps might have the referrer set to the same origin.
+        // If we record this then the referrer data will not be useful.
+        // Most users will want to see referrers outside of their website/app.
+        // This will be a configuration set in `H.init()` later.
+        if (!(window && document.referrer.includes(window.location.origin))) {
+            this.addCustomEvent<string>('Referrer', document.referrer);
+            highlightThis.addProperties(
+                { referrer: document.referrer },
+                { type: 'session' }
+            );
+        }
+    }
+    this.listeners.push(
+        PathListener((url: string) => {
+            if (reloaded) {
+                this.addCustomEvent<string>('Reload', url);
+                reloaded = false;
+                highlightThis.addProperties(
+                    { reload: true },
+                    { type: 'session' }
+                );
+            } else {
+                this.addCustomEvent<string>('Navigate', url);
+            }
+            highlightThis.addProperties(
+                { 'visited-url': url },
+                { type: 'session' }
+            );
+        })
+    );
+    if (!this.disableConsoleRecording) {
+        this.listeners.push(
+            ConsoleListener(
+                (c: ConsoleMessage) => {
+                    if (
+                        (c.type === 'Error' || c.type === 'error') &&
+                        c.value &&
+                        c.trace
+                    ) {
+                        const errorValue = stringify(c.value);
+                        if (
+                            ERRORS_TO_IGNORE.includes(errorValue) ||
+                            ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
+                                errorValue.includes(pattern)
+                            )
+                        ) {
+                            return;
+                        }
+                        highlightThis.errors.push({
+                            event: errorValue,
+                            type: 'console.error',
+                            url: window.location.href,
+                            source: c.trace[0]?.fileName
+                                ? c.trace[0].fileName
+                                : '',
+                            lineNumber: c.trace[0]?.lineNumber
+                                ? c.trace[0].lineNumber
+                                : 0,
+                            columnNumber: c.trace[0]?.columnNumber
+                                ? c.trace[0].columnNumber
+                                : 0,
+                            stackTrace: c.trace,
+                            timestamp: new Date().toISOString(),
+                        });
+                    } else {
+                        highlightThis.messages.push(c);
+                    }
+                },
+                {
+                    lengthThreshold: 1000,
+                    level: [
+                        'assert',
+                        'count',
+                        'countReset',
+                        'debug',
+                        'dir',
+                        'dirxml',
+                        'error',
+                        'group',
+                        'groupCollapsed',
+                        'groupEnd',
+                        'info',
+                        'log',
+                        'table',
+                        'time',
+                        'timeEnd',
+                        'timeLog',
+                        'trace',
+                        'warn',
+                    ],
+                    logger: 'console',
+                    stringifyOptions: {
+                        depthOfLimit: 10,
+                        numOfKeysLimit: 100,
+                        stringLengthLimit: 1000,
+                    },
+                }
+            )
+        );
+    }
+    this.listeners.push(
+        ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+    );
+    this.listeners.push(
+        ViewportResizeListener((viewport) => {
+            this.addCustomEvent('Viewport', viewport);
+        })
+    );
+    this.listeners.push(
+        ClickListener((clickTarget) => {
+            if (clickTarget) {
+                this.addCustomEvent('Click', clickTarget);
+            }
+        })
+    );
+    this.listeners.push(
+        FocusListener((focusTarget) => {
+            if (focusTarget) {
+                this.addCustomEvent('Focus', focusTarget);
+            }
+        })
+    );
+
+    this.listeners.push(
+        WebVitalsListener((data) => {
+            const { name, value } = data;
+            try {
+                this.graphqlSDK.addWebVitals({
+                    session_id: this.sessionData.sessionID.toString(),
+                    metric: { name, value },
+                });
+            } catch {}
+        })
+    );
+
+    if (this.sessionShortcut) {
+        SessionShortcutListener(this.sessionShortcut, () => {
+            window.open(this.getCurrentSessionURLWithTimestamp(), '_blank');
+        });
+    }
+
+    if (!this.disableNetworkRecording && this.enableRecordingNetworkContents) {
+        this.listeners.push(
+            NetworkListener({
+                xhrCallback: (requestResponsePair) => {
+                    this.xhrNetworkContents.push(requestResponsePair);
+                },
+                fetchCallback: (requestResponsePair) => {
+                    this.fetchNetworkContents.push(requestResponsePair);
+                },
+                headersToRedact: this.networkHeadersToRedact,
+                backendUrl: this._backendUrl,
+                tracingOrigins: this.tracingOrigins,
+                urlBlocklist: this.urlBlocklist,
+                sessionData: this.sessionData,
+            })
+        );
+    }
+
+    this.listeners.push(
+        PerformanceListener((payload: PerformancePayload) => {
+            this.addCustomEvent('Performance', stringify(payload));
+        }, this._recordingStartTime)
+    );
 };
 
 export interface HighlightPublicInterface {
@@ -232,7 +422,7 @@ export const H: HighlightPublicInterface = {
                     feedbackWidget: options?.feedbackWidget,
                 });
                 if (!options?.manualStart) {
-                    _startRecording(highlight_obj);
+                    highlight_obj.initialize();
                 }
             });
 
