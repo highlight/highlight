@@ -16,6 +16,7 @@
         "@babel/preset-typescript": "^7.14.5",
         "@types/chrome": "^0.0.144",
         "@types/jest": "^26.0.24",
+        "@types/json-stringify-safe": "^5.0.0",
         "jest": "^27.0.6",
         "jest-fail-on-console": "^2.0.4",
         "prettier": "^2.2.1",
@@ -26,7 +27,10 @@
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
     },
-    "dependencies": {},
+    "dependencies": {
+        "error-stack-parser": "^2.0.6",
+        "json-stringify-safe": "^5.0.1"
+    },
     "setupFiles": [
         "./tests/jest.overrides.js"
     ]
