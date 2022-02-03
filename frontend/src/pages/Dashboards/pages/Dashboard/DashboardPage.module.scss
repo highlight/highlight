@@ -12,15 +12,15 @@
     }
 
     :global(.react-resizable-handle) {
-        background: var(--color-gray-300);
+        background: var(--color-gray-400);
         background-image: none;
         border-radius: var(--size-small);
         height: var(--size-xLarge);
         opacity: 0;
-        right: calc(var(--size-xSmall) + 1px) !important;
+        right: calc(var(--size-small)) !important;
         transform: unset !important;
         transition: opacity 0.2s ease-in-out;
-        width: var(--size-xSmall);
+        width: var(--size-xxSmall);
 
         &::after {
             content: none;
