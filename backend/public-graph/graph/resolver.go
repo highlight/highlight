@@ -319,12 +319,36 @@ func (r *Resolver) getFingerprint(mappedStackTrace []modelInputs.ErrorTrace) str
 		return ""
 	}
 
-	firstLine := mappedStackTrace[0]
-
-	stackFramesToUse = 5
-	for i := 0; i < 5; i++ {
-
+	fingerprint := ""
+	if mappedStackTrace[0].LineContent != nil {
+		fingerprint += *mappedStackTrace[0].LineContent
 	}
+
+	stackFramesToUse := 5
+	if len(mappedStackTrace) < stackFramesToUse {
+		stackFramesToUse = len(mappedStackTrace)
+	}
+	for i := 0; i < 5; i++ {
+		if mappedStackTrace[i].FunctionName != nil {
+			fingerprint += "|" + *mappedStackTrace[i].FunctionName
+		} else {
+			fingerprint += "|"
+		}
+	}
+
+	return fingerprint
+}
+
+func (r *Resolver) GetStackTraceString(errorObj *model.ErrorObject) (*string, string, error) {
+	if errorObj.StackTrace != nil {
+		var inputs []*model2.StackFrameInput
+		if err := json.Unmarshal([]byte(*errorObj.StackTrace), inputs); err != nil {
+			return nil, "", e.Wrap(err, "error unmarshalling stack trace from error object")
+		}
+
+		return r.getMappedStackTraceString(inputs, errorObj.ProjectID, errorObj)
+	}
+	return nil, "", e.New("error has a nil stack trace")
 }
 
 func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, string, error) {
@@ -415,11 +439,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	var newMappedStackTraceString *string
 	fingerprint := ""
 	if stackTrace != nil {
-		mappedStackTraceString, fingerprint, err := r.getMappedStackTraceString(stackTrace, projectID, errorObj)
+		var err error
+		newMappedStackTraceString, fingerprint, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
 		}
-		newMappedStackTraceString = mappedStackTraceString
 	}
 
 	errorGroup := &model.ErrorGroup{}
@@ -427,16 +451,18 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
 	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID: errorObj.ProjectID,
-		Type:      errorObj.Type,
+		ProjectID:   errorObj.ProjectID,
+		Fingerprint: fingerprint,
+		Type:        errorObj.Type,
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: stackTraceString,
-			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
-			Fields:     []*model.ErrorField{},
+			ProjectID:   errorObj.ProjectID,
+			Event:       errorObj.Event,
+			StackTrace:  stackTraceString,
+			Type:        errorObj.Type,
+			State:       modelInputs.ErrorStateOpen.String(),
+			Fields:      []*model.ErrorField{},
+			Fingerprint: fingerprint,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")

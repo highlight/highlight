@@ -29,6 +29,8 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	pgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
+	pmodel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 )
@@ -40,8 +42,9 @@ const MIN_INACTIVE_DURATION = 10
 const MAX_RETRIES = 5
 
 type Worker struct {
-	Resolver *mgraph.Resolver
-	S3Client *storage.StorageClient
+	Resolver       *mgraph.Resolver
+	PublicResolver *pgraph.Resolver
+	S3Client       *storage.StorageClient
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -653,7 +656,24 @@ func (w *Worker) RegroupErrors() {
 		if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
 			log.Fatalf("error scanning rows: %+v", err)
 		}
-		log.Infof("retrieved error: %d", modelObj.ID)
+
+		if modelObj.StackTrace != nil {
+			var inputs []*pmodel.StackFrameInput
+			if err := json.Unmarshal([]byte(*modelObj.StackTrace), inputs); err != nil {
+
+			} else {
+				w.PublicResolver.GetStackTrace(modelObj)
+			}
+		}
+		// functionName
+		// args
+		// fileName
+		// lineNumber
+		// columnNumber
+		// isEval
+		// isNative
+		// source
+
 	}
 }
 

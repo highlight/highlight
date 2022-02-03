@@ -175,6 +175,18 @@ func main() {
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
 	}
+	pushPayloadWorkerPool := workerpool.New(80)
+	pushPayloadWorkerPool.SetPanicHandler(util.Recover)
+	alertWorkerpool := workerpool.New(40)
+	alertWorkerpool.SetPanicHandler(util.Recover)
+	publicResolver := &public.Resolver{
+		DB:                    db,
+		MailClient:            sendgrid.NewSendClient(sendgridKey),
+		StorageClient:         storage,
+		PushPayloadWorkerPool: pushPayloadWorkerPool,
+		AlertWorkerPool:       alertWorkerpool,
+		OpenSearch:            opensearchClient,
+	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	// r.Use(handlers.CompressHandler)
@@ -258,21 +270,10 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-			pushPayloadWorkerPool := workerpool.New(80)
-			pushPayloadWorkerPool.SetPanicHandler(util.Recover)
-			alertWorkerpool := workerpool.New(40)
-			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
-					Resolvers: &public.Resolver{
-						DB:                    db,
-						MailClient:            sendgrid.NewSendClient(sendgridKey),
-						StorageClient:         storage,
-						PushPayloadWorkerPool: pushPayloadWorkerPool,
-						AlertWorkerPool:       alertWorkerpool,
-						OpenSearch:            opensearchClient,
-					},
+					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
@@ -341,7 +342,7 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if handlerFlag != nil && *handlerFlag != "" {
 			w.GetHandler(*handlerFlag)()
 		} else {
@@ -351,7 +352,7 @@ func main() {
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
 	} else if runtimeParsed == util.All {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()
