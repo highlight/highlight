@@ -5,6 +5,7 @@ import MenuItem from '@components/Menu/MenuItem';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetWebVitalDashboardQuery } from '@graph/hooks';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
+import SvgDragIcon from '@icons/DragIcon';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import {
     WEB_VITALS_CONFIGURATION,
@@ -24,9 +25,10 @@ interface Props {
         startDate: string;
         endDate: string;
     };
+    isEditing?: boolean;
 }
 
-const DashboardCard = ({ webVitalName, dateRange }: Props) => {
+const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetWebVitalDashboardQuery({
         variables: {
@@ -51,23 +53,31 @@ const DashboardCard = ({ webVitalName, dateRange }: Props) => {
                 <div className={styles.cardHeader}>
                     {/* @ts-expect-error */}
                     <h3>{WebVitalName[webVitalName]}</h3>
-                    <DotsMenu
-                        menu={
-                            <Menu>
-                                <MenuItem
-                                    icon={<SvgAnnouncementIcon />}
-                                    onClick={() => {
-                                        history.push(
-                                            `/${project_id}/alerts/new/monitor?type=${webVitalName}`
-                                        );
-                                    }}
-                                >
-                                    Create Monitor
-                                </MenuItem>
-                            </Menu>
-                        }
-                        trackingId="Dashboard"
-                    />
+                    <div className={styles.headerActions}>
+                        {isEditing ? (
+                            <div className={styles.draggable}>
+                                <SvgDragIcon />
+                            </div>
+                        ) : (
+                            <DotsMenu
+                                menu={
+                                    <Menu>
+                                        <MenuItem
+                                            icon={<SvgAnnouncementIcon />}
+                                            onClick={() => {
+                                                history.push(
+                                                    `/${project_id}/alerts/new/monitor?type=${webVitalName}`
+                                                );
+                                            }}
+                                        >
+                                            Create Monitor
+                                        </MenuItem>
+                                    </Menu>
+                                }
+                                trackingId="Dashboard"
+                            />
+                        )}
+                    </div>
                 </div>
             }
         >

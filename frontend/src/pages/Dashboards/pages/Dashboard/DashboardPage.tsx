@@ -1,10 +1,13 @@
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+import Button from '@components/Button/Button/Button';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
@@ -32,6 +35,7 @@ const DashboardPage = () => {
         timeFilter[2].value
     );
     const [layout, setLayout] = useState<Layouts>(DEFAULT_WEB_VITALS_LAYOUT);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         const dashboard = dashboards.find((d) => d.id === parseInt(id, 10));
@@ -43,6 +47,17 @@ const DashboardPage = () => {
     return (
         <>
             <div className={styles.dateRangePickerContainer}>
+                <HighlightGate>
+                    <Button
+                        trackingId="DashboardEditLayout"
+                        type="ghost"
+                        onClick={() => {
+                            setIsEditing((prev) => !prev);
+                        }}
+                    >
+                        {isEditing ? 'Done' : 'Edit'}
+                    </Button>
+                </HighlightGate>
                 <StandardDropdown
                     data={timeFilter}
                     defaultValue={timeFilter[2]}
@@ -50,7 +65,7 @@ const DashboardPage = () => {
                     className={styles.dateRangePicker}
                 />
             </div>
-            <div className={styles.gridContainer}>
+            <div className={classNames(styles.gridContainer, styles.isEditing)}>
                 <ResponsiveGridLayout
                     layouts={layout}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
@@ -61,6 +76,8 @@ const DashboardPage = () => {
                         xs: 480,
                         xxs: 0,
                     }}
+                    isDraggable={isEditing}
+                    isResizable={isEditing}
                     containerPadding={[0, 0]}
                     rowHeight={155}
                     resizeHandles={['e']}
@@ -78,6 +95,7 @@ const DashboardPage = () => {
                     {SUPPORTED_WEB_VITALS.map((webVital, index) => (
                         <div key={index.toString()}>
                             <DashboardCard
+                                isEditing={isEditing}
                                 webVitalName={webVital}
                                 key={webVital}
                                 dateRange={{

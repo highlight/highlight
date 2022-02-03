@@ -9,6 +9,16 @@
     text-align: center;
 }
 
+.headerActions {
+    height: 21px;
+    margin-bottom: var(--size-medium);
+}
+
+.draggable {
+    color: var(--color-gray-500);
+    cursor: move;
+}
+
 .cardHeader {
     align-items: center;
     display: flex;
