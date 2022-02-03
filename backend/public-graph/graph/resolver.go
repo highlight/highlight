@@ -342,7 +342,7 @@ func (r *Resolver) getFingerprint(mappedStackTrace []modelInputs.ErrorTrace) str
 func (r *Resolver) GetStackTraceString(errorObj *model.ErrorObject) (*string, string, error) {
 	if errorObj.StackTrace != nil {
 		var inputs []*model2.StackFrameInput
-		if err := json.Unmarshal([]byte(*errorObj.StackTrace), inputs); err != nil {
+		if err := json.Unmarshal([]byte(*errorObj.StackTrace), &inputs); err != nil {
 			return nil, "", e.Wrap(err, "error unmarshalling stack trace from error object")
 		}
 

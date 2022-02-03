@@ -30,7 +30,6 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	pgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
-	pmodel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 )
@@ -646,7 +645,7 @@ func (w *Worker) StartMetricMonitorWatcher() {
 func (w *Worker) RegroupErrors() {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
 		Where("project_id = 1").
-		Order("id asc").Rows()
+		Order("id desc").Rows()
 	if err != nil {
 		log.Fatalf("error retrieving objects: %+v", err)
 	}
@@ -657,23 +656,10 @@ func (w *Worker) RegroupErrors() {
 			log.Fatalf("error scanning rows: %+v", err)
 		}
 
-		if modelObj.StackTrace != nil {
-			var inputs []*pmodel.StackFrameInput
-			if err := json.Unmarshal([]byte(*modelObj.StackTrace), inputs); err != nil {
-
-			} else {
-				w.PublicResolver.GetStackTrace(modelObj)
-			}
+		if (modelObj.Type == "console.error" || modelObj.Type == "window.onerror") && modelObj.StackTrace != nil {
+			_, fingerprint, _ := w.PublicResolver.GetStackTraceString(modelObj)
+			log.Infof("%d: %s", modelObj.ID, fingerprint)
 		}
-		// functionName
-		// args
-		// fileName
-		// lineNumber
-		// columnNumber
-		// isEval
-		// isNative
-		// source
-
 	}
 }
 
