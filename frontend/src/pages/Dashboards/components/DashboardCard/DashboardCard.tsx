@@ -13,6 +13,7 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
+import classNames from 'classnames';
 import moment from 'moment';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -53,7 +54,11 @@ const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
                 <div className={styles.cardHeader}>
                     {/* @ts-expect-error */}
                     <h3>{WebVitalName[webVitalName]}</h3>
-                    <div className={styles.headerActions}>
+                    <div
+                        className={classNames(styles.headerActions, {
+                            [styles.isEditing]: isEditing,
+                        })}
+                    >
                         {isEditing ? (
                             <div className={styles.draggable}>
                                 <SvgDragIcon />
