@@ -221,6 +221,7 @@ type ComplexityRoot struct {
 		Error        func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
+		LineContent  func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
 	}
 
@@ -1679,6 +1680,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.FunctionName(childComplexity), true
+
+	case "ErrorTrace.lineContent":
+		if e.complexity.ErrorTrace.LineContent == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LineContent(childComplexity), true
 
 	case "ErrorTrace.lineNumber":
 		if e.complexity.ErrorTrace.LineNumber == nil {
@@ -4960,6 +4968,7 @@ type ErrorTrace {
     functionName: String
     columnNumber: Int
     error: String
+    lineContent: String
 }
 
 type ReferrerTablePayload {
@@ -13641,6 +13650,38 @@ func (ec *executionContext) _ErrorTrace_error(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_lineContent(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LineContent, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28216,6 +28257,8 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_columnNumber(ctx, field, obj)
 		case "error":
 			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
+		case "lineContent":
+			out.Values[i] = ec._ErrorTrace_lineContent(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

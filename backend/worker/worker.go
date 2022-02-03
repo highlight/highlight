@@ -640,6 +640,23 @@ func (w *Worker) StartMetricMonitorWatcher() {
 	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
+func (w *Worker) RegroupErrors() {
+	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+		Where("project_id = 1").
+		Order("id asc").Rows()
+	if err != nil {
+		log.Fatalf("error retrieving objects: %+v", err)
+	}
+
+	for rows.Next() {
+		modelObj := &model.ErrorObject{}
+		if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
+			log.Fatalf("error scanning rows: %+v", err)
+		}
+		log.Infof("retrieved error: %d", modelObj.ID)
+	}
+}
+
 func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
@@ -650,6 +667,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
+	case "regroup-errors":
+		return w.RegroupErrors
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

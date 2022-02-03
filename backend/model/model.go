@@ -702,6 +702,7 @@ type ErrorGroup struct {
 	FieldGroup       *string
 	Environments     string
 	IsPublic         bool `gorm:"default:false"`
+	Fingerprint      string
 }
 
 type ErrorField struct {
@@ -1598,6 +1599,7 @@ func getUserPropertiesBlock(identifier string, userProperties map[string]string)
 }
 
 func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
+	return nil
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")

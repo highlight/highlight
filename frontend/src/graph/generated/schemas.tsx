@@ -280,6 +280,7 @@ export type ErrorTrace = {
     functionName?: Maybe<Scalars['String']>;
     columnNumber?: Maybe<Scalars['Int']>;
     error?: Maybe<Scalars['String']>;
+    lineContent?: Maybe<Scalars['String']>;
 };
 
 export type ReferrerTablePayload = {

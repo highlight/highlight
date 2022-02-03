@@ -22,3 +22,5 @@ update-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=update-opensearch)
 start-metric-monitor-watch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=metric-monitors)
+regroup-errors:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=regroup-errors)
