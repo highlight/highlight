@@ -2,7 +2,6 @@ import * as Types from './schemas';
 
 import { GraphQLClient } from 'graphql-request';
 import * as Dom from 'graphql-request/dist/types.dom';
-import { print } from 'graphql';
 import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -16,30 +15,26 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
-  Timestamp: any;
   Int64: any;
+  Timestamp: any;
 };
 
 
-
-
-export type Session = {
-  __typename?: 'Session';
-  id: Scalars['ID'];
-  secure_id: Scalars['String'];
-  organization_id: Scalars['ID'];
-  project_id: Scalars['ID'];
+export type BackendErrorObjectInput = {
+  session_secure_id: Scalars['String'];
+  request_id: Scalars['String'];
+  event: Scalars['String'];
+  type: Scalars['String'];
+  url: Scalars['String'];
+  source: Scalars['String'];
+  stackTrace: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  payload?: Maybe<Scalars['String']>;
 };
 
-export type StackFrameInput = {
-  functionName?: Maybe<Scalars['String']>;
-  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
-  fileName?: Maybe<Scalars['String']>;
-  lineNumber?: Maybe<Scalars['Int']>;
-  columnNumber?: Maybe<Scalars['Int']>;
-  isEval?: Maybe<Scalars['Boolean']>;
-  isNative?: Maybe<Scalars['Boolean']>;
-  source?: Maybe<Scalars['String']>;
+export type DeviceMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type ErrorObjectInput = {
@@ -54,31 +49,6 @@ export type ErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
-export type BackendErrorObjectInput = {
-  session_secure_id: Scalars['String'];
-  request_id: Scalars['String'];
-  event: Scalars['String'];
-  type: Scalars['String'];
-  url: Scalars['String'];
-  source: Scalars['String'];
-  stackTrace: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-  payload?: Maybe<Scalars['String']>;
-};
-
-export type WebVitalMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
-};
-
-export type DeviceMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
-};
-
-export type ReplayEventsInput = {
-  events: Array<Maybe<Scalars['Any']>>;
-};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -170,6 +140,35 @@ export type Query = {
 
 export type QueryIgnoreArgs = {
   id: Scalars['ID'];
+};
+
+export type ReplayEventsInput = {
+  events: Array<Maybe<Scalars['Any']>>;
+};
+
+export type Session = {
+  __typename?: 'Session';
+  id: Scalars['ID'];
+  secure_id: Scalars['String'];
+  organization_id: Scalars['ID'];
+  project_id: Scalars['ID'];
+};
+
+export type StackFrameInput = {
+  functionName?: Maybe<Scalars['String']>;
+  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
+  fileName?: Maybe<Scalars['String']>;
+  lineNumber?: Maybe<Scalars['Int']>;
+  columnNumber?: Maybe<Scalars['Int']>;
+  isEval?: Maybe<Scalars['Boolean']>;
+  isNative?: Maybe<Scalars['Boolean']>;
+  source?: Maybe<Scalars['String']>;
+};
+
+
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type PushPayloadMutationVariables = Types.Exact<{
@@ -375,38 +374,39 @@ export const IgnoreDocument = gql`
 }
     `;
 
-export type SdkFunctionWrapper = <T>(action: () => Promise<T>) => Promise<T>;
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string) => Promise<T>;
 
 
-const defaultWrapper: SdkFunctionWrapper = sdkFunction => sdkFunction();
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName) => action();
+
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
     PushPayload(variables: PushPayloadMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushPayloadMutation> {
-      return withWrapper(() => client.request<PushPayloadMutation>(print(PushPayloadDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<PushPayloadMutation>(PushPayloadDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'PushPayload');
     },
     identifySession(variables: IdentifySessionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<IdentifySessionMutation> {
-      return withWrapper(() => client.request<IdentifySessionMutation>(print(IdentifySessionDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<IdentifySessionMutation>(IdentifySessionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'identifySession');
     },
     addSessionProperties(variables: AddSessionPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddSessionPropertiesMutation> {
-      return withWrapper(() => client.request<AddSessionPropertiesMutation>(print(AddSessionPropertiesDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<AddSessionPropertiesMutation>(AddSessionPropertiesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addSessionProperties');
     },
     addWebVitals(variables: AddWebVitalsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddWebVitalsMutation> {
-      return withWrapper(() => client.request<AddWebVitalsMutation>(print(AddWebVitalsDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<AddWebVitalsMutation>(AddWebVitalsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addWebVitals');
     },
     addDeviceMetric(variables: AddDeviceMetricMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddDeviceMetricMutation> {
-      return withWrapper(() => client.request<AddDeviceMetricMutation>(print(AddDeviceMetricDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<AddDeviceMetricMutation>(AddDeviceMetricDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addDeviceMetric');
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
-      return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<AddTrackPropertiesMutation>(AddTrackPropertiesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addTrackProperties');
     },
     addSessionFeedback(variables: AddSessionFeedbackMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddSessionFeedbackMutation> {
-      return withWrapper(() => client.request<AddSessionFeedbackMutation>(print(AddSessionFeedbackDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<AddSessionFeedbackMutation>(AddSessionFeedbackDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addSessionFeedback');
     },
     initializeSession(variables: InitializeSessionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InitializeSessionMutation> {
-      return withWrapper(() => client.request<InitializeSessionMutation>(print(InitializeSessionDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<InitializeSessionMutation>(InitializeSessionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'initializeSession');
     },
     Ignore(variables: IgnoreQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<IgnoreQuery> {
-      return withWrapper(() => client.request<IgnoreQuery>(print(IgnoreDocument), variables, requestHeaders));
+      return withWrapper((wrappedRequestHeaders) => client.request<IgnoreQuery>(IgnoreDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Ignore');
     }
   };
 }

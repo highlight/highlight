@@ -10,30 +10,26 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
-  Timestamp: any;
   Int64: any;
+  Timestamp: any;
 };
 
 
-
-
-export type Session = {
-  __typename?: 'Session';
-  id: Scalars['ID'];
-  secure_id: Scalars['String'];
-  organization_id: Scalars['ID'];
-  project_id: Scalars['ID'];
+export type BackendErrorObjectInput = {
+  session_secure_id: Scalars['String'];
+  request_id: Scalars['String'];
+  event: Scalars['String'];
+  type: Scalars['String'];
+  url: Scalars['String'];
+  source: Scalars['String'];
+  stackTrace: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  payload?: Maybe<Scalars['String']>;
 };
 
-export type StackFrameInput = {
-  functionName?: Maybe<Scalars['String']>;
-  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
-  fileName?: Maybe<Scalars['String']>;
-  lineNumber?: Maybe<Scalars['Int']>;
-  columnNumber?: Maybe<Scalars['Int']>;
-  isEval?: Maybe<Scalars['Boolean']>;
-  isNative?: Maybe<Scalars['Boolean']>;
-  source?: Maybe<Scalars['String']>;
+export type DeviceMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type ErrorObjectInput = {
@@ -48,31 +44,6 @@ export type ErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
-export type BackendErrorObjectInput = {
-  session_secure_id: Scalars['String'];
-  request_id: Scalars['String'];
-  event: Scalars['String'];
-  type: Scalars['String'];
-  url: Scalars['String'];
-  source: Scalars['String'];
-  stackTrace: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-  payload?: Maybe<Scalars['String']>;
-};
-
-export type WebVitalMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
-};
-
-export type DeviceMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
-};
-
-export type ReplayEventsInput = {
-  events: Array<Maybe<Scalars['Any']>>;
-};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -164,4 +135,33 @@ export type Query = {
 
 export type QueryIgnoreArgs = {
   id: Scalars['ID'];
+};
+
+export type ReplayEventsInput = {
+  events: Array<Maybe<Scalars['Any']>>;
+};
+
+export type Session = {
+  __typename?: 'Session';
+  id: Scalars['ID'];
+  secure_id: Scalars['String'];
+  organization_id: Scalars['ID'];
+  project_id: Scalars['ID'];
+};
+
+export type StackFrameInput = {
+  functionName?: Maybe<Scalars['String']>;
+  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
+  fileName?: Maybe<Scalars['String']>;
+  lineNumber?: Maybe<Scalars['Int']>;
+  columnNumber?: Maybe<Scalars['Int']>;
+  isEval?: Maybe<Scalars['Boolean']>;
+  isNative?: Maybe<Scalars['Boolean']>;
+  source?: Maybe<Scalars['String']>;
+};
+
+
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
