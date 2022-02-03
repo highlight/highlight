@@ -185,36 +185,38 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     };
 };
 
-const SessionsQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
-    const {
-        setSearchQuery,
-        searchParams,
-        setSearchParams,
-    } = useSearchContext();
-    const { refetch } = useGetFieldsOpensearchQuery({
-        skip: true,
-    });
-    const fetchFields = (variables: FetchFieldVariables) =>
-        refetch(variables).then((r) => r.data.fields_opensearch);
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+const SessionsQueryBuilder = React.memo(
+    ({ readonly }: { readonly?: boolean }) => {
+        const {
+            setSearchQuery,
+            searchParams,
+            setSearchParams,
+        } = useSearchContext();
+        const { refetch } = useGetFieldsOpensearchQuery({
+            skip: true,
+        });
+        const fetchFields = (variables: FetchFieldVariables) =>
+            refetch(variables).then((r) => r.data.fields_opensearch);
+        const { project_id } = useParams<{
+            project_id: string;
+        }>();
 
-    const { data: fieldData } = useGetFieldTypesQuery({
-        variables: { project_id },
-    });
+        const { data: fieldData } = useGetFieldTypesQuery({
+            variables: { project_id },
+        });
 
-    return (
-        <QueryBuilder
-            setSearchQuery={setSearchQuery}
-            customFields={CUSTOM_FIELDS}
-            fetchFields={fetchFields}
-            fieldData={fieldData}
-            getQueryFromParams={getQueryFromParams}
-            searchParams={searchParams}
-            setSearchParams={setSearchParams}
-            readonly={readonly}
-        />
-    );
-};
+        return (
+            <QueryBuilder
+                setSearchQuery={setSearchQuery}
+                customFields={CUSTOM_FIELDS}
+                fetchFields={fetchFields}
+                fieldData={fieldData}
+                getQueryFromParams={getQueryFromParams}
+                searchParams={searchParams}
+                setSearchParams={setSearchParams}
+                readonly={readonly}
+            />
+        );
+    }
+);
 export default SessionsQueryBuilder;
