@@ -1,4 +1,3 @@
-import { SessionData } from '../../index';
 import { FetchListener } from './utils/fetch-listener';
 import { RequestResponsePair } from './utils/models';
 import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer';
@@ -15,7 +14,6 @@ interface NetworkListenerArguments {
     backendUrl: string;
     tracingOrigins: boolean | (string | RegExp)[];
     urlBlocklist: string[];
-    sessionData: SessionData;
 }
 
 export const NetworkListener = ({
@@ -25,7 +23,6 @@ export const NetworkListener = ({
     backendUrl,
     tracingOrigins,
     urlBlocklist,
-    sessionData,
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener(
         (requestResponsePair) => {
@@ -39,7 +36,6 @@ export const NetworkListener = ({
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionData,
     );
     const removeFetchListener = FetchListener(
         (requestResponsePair) => {
@@ -53,7 +49,6 @@ export const NetworkListener = ({
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionData,
     );
 
     return () => {

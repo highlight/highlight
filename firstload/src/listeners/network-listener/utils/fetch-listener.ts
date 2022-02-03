@@ -1,4 +1,3 @@
-import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import {
     RequestResponsePair,
@@ -36,7 +35,6 @@ export const FetchListener = (
     backendUrl: string,
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
-    sessionData: SessionData
 ) => {
     const originalFetch = window._originalFetch || window.fetch;
 
@@ -47,19 +45,6 @@ export const FetchListener = (
         }
 
         const requestId = createNetworkRequestId();
-        if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
-            init = init || {};
-            // Pre-existing headers could be one of three different formats; this reads all of them.
-            let headers = new Headers(init.headers);
-            headers.set(
-                HIGHLIGHT_REQUEST_HEADER,
-                getHighlightRequestHeader(
-                    sessionData.sessionSecureID,
-                    requestId
-                )
-            );
-            init.headers = Object.fromEntries(headers.entries());
-        }
 
         const request: HighlightRequest = {
             id: requestId,
