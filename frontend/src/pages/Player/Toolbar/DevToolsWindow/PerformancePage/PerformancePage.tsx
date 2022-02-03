@@ -111,7 +111,6 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                                 heightPercent="50%"
                                 fillColor={fillColor}
                                 strokeColor={strokeColor}
-                                syncId="PerformancePageDevTools"
                                 xAxisTickFormatter={(tickItem) => {
                                     return MillisToMinutesAndSeconds(tickItem);
                                 }}
