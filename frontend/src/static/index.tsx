@@ -37,6 +37,7 @@ export { default as DotsHorizontalIcon } from './DotsHorizontalIcon';
 export { default as DotsVerticalIcon } from './DotsVerticalIcon';
 export { default as Down } from './Down';
 export { default as DownloadIcon } from './DownloadIcon';
+export { default as DragIcon } from './DragIcon';
 export { default as EditIcon } from './EditIcon';
 export { default as EmailPlusIcon } from './EmailPlusIcon';
 export { default as EmptyState } from './EmptyState';
