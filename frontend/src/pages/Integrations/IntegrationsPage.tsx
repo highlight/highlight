@@ -1,8 +1,8 @@
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { LoadingBar } from '@components/Loading/Loading';
-import Integration from '@pages/IntegrationsPage/components/Integration';
-import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
+import Integration from '@pages/Integrations/components/Integration';
+import INTEGRATIONS from '@pages/Integrations/Integrations';
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 
@@ -12,7 +12,6 @@ import styles from './IntegrationsPage.module.scss';
 const IntegrationsPage = () => {
     const { isSlackConnectedToWorkspace, loading } = useSlackBot({
         type: 'Organization',
-        watch: true,
     });
 
     const integrations = useMemo(() => {

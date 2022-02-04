@@ -1,9 +1,10 @@
 import Button from '@components/Button/Button/Button';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { useRemoveSlackBotIntegrationToProjectMutation } from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
 import AppsIcon from '@icons/AppsIcon';
 import PlugIcon from '@icons/PlugIcon';
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
+import { IntegrationConfigProps } from '@pages/Integrations/components/Integration';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
@@ -18,11 +19,14 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 
     const [
         removeSlackBotIntegrationToProjectMutation,
-    ] = useRemoveSlackBotIntegrationToProjectMutation();
+    ] = useRemoveSlackBotIntegrationToProjectMutation({
+        refetchQueries: [
+            namedOperations.Query.GetWorkspaceIsIntegratedWithSlack,
+        ],
+    });
 
-    const { slackUrl, refetch } = useSlackBot({
+    const { slackUrl } = useSlackBot({
         type: 'Organization',
-        watch: false,
     });
 
     if (integrationEnabled) {
@@ -55,7 +59,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                                 variables: {
                                     project_id: project_id,
                                 },
-                            }).then(() => refetch());
+                            });
                         }}
                     >
                         <PlugIcon className={styles.modalBtnIcon} />
