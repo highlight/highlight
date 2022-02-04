@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -282,6 +283,10 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
 		return e.Wrap(err, "error appending session fields")
 	}
+
+	sort.Slice(fieldsToAppend, func(i, j int) bool {
+		return fieldsToAppend[i].ID < fieldsToAppend[j].ID
+	})
 
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
