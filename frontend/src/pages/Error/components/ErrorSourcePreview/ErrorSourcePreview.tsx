@@ -59,19 +59,31 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
     }
 
     return (
-        <CodeBlock
-            className={styles.codeBlock}
-            text={text.join('\n')}
-            language={'javascript'}
-            showLineNumbers
-            startingLineNumber={(lineNumber ?? 1) - before.length}
-            lineProps={(ln) => {
-                if (ln === lineNumber) {
-                    return { style: { backgroundColor: '#ffecec' } };
-                }
-                return {};
-            }}
-        />
+        <span className={styles.codeBlockWrapper}>
+            <CodeBlock
+                className={styles.codeBlock}
+                text={text.join('\n')}
+                language={'javascript'}
+                showLineNumbers
+                startingLineNumber={(lineNumber ?? 1) - before.length}
+                lineProps={(ln) => {
+                    if (ln === lineNumber) {
+                        return {
+                            style: {
+                                backgroundColor: 'var(--color-purple-200)',
+                                display: 'block',
+                            },
+                        };
+                    }
+                    return { style: { display: 'block' } };
+                }}
+                lineNumberStyle={{
+                    color: 'var(--color-editor-secondary-text)',
+                    paddingRight: '16px',
+                }}
+                wrapLines
+            />
+        </span>
     );
 };
 

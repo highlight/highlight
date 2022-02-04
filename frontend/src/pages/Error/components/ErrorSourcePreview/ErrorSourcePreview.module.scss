@@ -1,3 +1,10 @@
 .codeBlock {
     border-radius: 0 !important;
+    margin-bottom: 0;
+    min-width: 100%;
+    width: fit-content;
+}
+
+.codeBlockWrapper {
+    overflow-x: auto;
 }

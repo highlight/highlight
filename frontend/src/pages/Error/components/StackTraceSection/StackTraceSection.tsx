@@ -132,6 +132,7 @@ const StackSection: React.FC<StackSectionProps> = ({
             <div className={ErrorPageStyles.snippetHeadingTwo}>
                 <span className={ErrorPageStyles.stackTraceErrorTitle}>
                     {truncateFileName(fileName || '')}
+                    {functionName ? ` in ${functionName}` : ''}
                     {lineNumber ? ` at line ${lineNumber}` : ''}
                 </span>
             </div>
