@@ -165,6 +165,22 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
+			// relatedFields is the list of fields not inside of matchedFields.
+			var relatedFields []*model.Field
+			for k, fv := range properties {
+				isAMatchedField := false
+
+				for _, matchedField := range matchedFields {
+					if matchedField.Name == k && matchedField.Value == fv {
+						isAMatchedField = true
+					}
+				}
+
+				if !isAMatchedField {
+					relatedFields = append(relatedFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
+				}
+			}
+
 			project := &model.Project{}
 			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
 				log.Error(e.Wrap(err, "error querying project"))
@@ -176,7 +192,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
-			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
 		}
 	})
 
