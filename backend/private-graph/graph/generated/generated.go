@@ -223,6 +223,8 @@ type ComplexityRoot struct {
 		FunctionName func(childComplexity int) int
 		LineContent  func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
+		LinesAfter   func(childComplexity int) int
+		LinesBefore  func(childComplexity int) int
 	}
 
 	Field struct {
@@ -1694,6 +1696,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.LineNumber(childComplexity), true
+
+	case "ErrorTrace.linesAfter":
+		if e.complexity.ErrorTrace.LinesAfter == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LinesAfter(childComplexity), true
+
+	case "ErrorTrace.linesBefore":
+		if e.complexity.ErrorTrace.LinesBefore == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
 
 	case "Field.id":
 		if e.complexity.Field.ID == nil {
@@ -4969,6 +4985,8 @@ type ErrorTrace {
     columnNumber: Int
     error: String
     lineContent: String
+    linesBefore: String
+    linesAfter: String
 }
 
 type ReferrerTablePayload {
@@ -13682,6 +13700,70 @@ func (ec *executionContext) _ErrorTrace_lineContent(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.LineContent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_linesBefore(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinesBefore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_linesAfter(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinesAfter, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28259,6 +28341,10 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
 		case "lineContent":
 			out.Values[i] = ec._ErrorTrace_lineContent(ctx, field, obj)
+		case "linesBefore":
+			out.Values[i] = ec._ErrorTrace_linesBefore(ctx, field, obj)
+		case "linesAfter":
+			out.Values[i] = ec._ErrorTrace_linesAfter(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -644,7 +644,7 @@ func (w *Worker) StartMetricMonitorWatcher() {
 
 func (w *Worker) RegroupErrors() {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
-		Where("project_id = 1").
+		Where("project_id = 1 AND type != 'backend' AND stack_trace is not null AND event ilike '%highlight%'").
 		Order("id desc").Rows()
 	if err != nil {
 		log.Fatalf("error retrieving objects: %+v", err)
@@ -656,10 +656,24 @@ func (w *Worker) RegroupErrors() {
 			log.Fatalf("error scanning rows: %+v", err)
 		}
 
-		if (modelObj.Type == "console.error" || modelObj.Type == "window.onerror") && modelObj.StackTrace != nil {
-			_, fingerprint, _ := w.PublicResolver.GetStackTraceString(modelObj)
-			log.Infof("%d: %s", modelObj.ID, fingerprint)
+		mappedStackTrace, err := w.PublicResolver.GetStackTraceString(modelObj)
+		if err != nil {
+			log.Errorf("error getting stack trace string: %+v", err)
+			continue
 		}
+
+		if mappedStackTrace == nil {
+			log.Error("mappedStackTrace is nil, continuing")
+			continue
+		}
+
+		if err := w.Resolver.DB.Model(&model.ErrorGroup{}).
+			Where("id = ?", modelObj.ErrorGroupID).
+			Updates(&model.ErrorGroup{MappedStackTrace: mappedStackTrace}).Error; err != nil {
+			log.Errorf("error getting stack trace string: %+v", err)
+		}
+
+		log.Infof("%d: %s", modelObj.ID, *mappedStackTrace)
 	}
 }
 

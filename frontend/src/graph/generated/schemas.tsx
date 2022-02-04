@@ -281,6 +281,8 @@ export type ErrorTrace = {
     columnNumber?: Maybe<Scalars['Int']>;
     error?: Maybe<Scalars['String']>;
     lineContent?: Maybe<Scalars['String']>;
+    linesBefore?: Maybe<Scalars['String']>;
+    linesAfter?: Maybe<Scalars['String']>;
 };
 
 export type ReferrerTablePayload = {

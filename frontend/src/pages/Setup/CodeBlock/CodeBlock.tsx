@@ -3,7 +3,9 @@ import { message } from 'antd';
 import React, { useEffect } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { FaCopy } from 'react-icons/fa';
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import SyntaxHighlighter, {
+    SyntaxHighlighterProps,
+} from 'react-syntax-highlighter';
 import {
     atomOneDark,
     atomOneLight,
@@ -11,15 +13,13 @@ import {
 
 import styles from './CodeBlock.module.scss';
 
-export const CodeBlock = ({
-    text,
-    onCopy,
-    language,
-}: {
+type Props = SyntaxHighlighterProps & {
     text: string;
     onCopy?: () => void;
     language: string;
-}) => {
+};
+
+export const CodeBlock = ({ text, onCopy, language, ...props }: Props) => {
     const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
         'highlightTheme',
         'light'
@@ -64,6 +64,7 @@ export const CodeBlock = ({
             <SyntaxHighlighter
                 language={language}
                 style={theme === 'light' ? atomOneLight : atomOneDark}
+                {...props}
             >
                 {text}
             </SyntaxHighlighter>

@@ -248,6 +248,8 @@ type ErrorTrace {
     columnNumber: Int
     error: String
     lineContent: String
+    linesBefore: String
+    linesAfter: String
 }
 
 type ReferrerTablePayload {

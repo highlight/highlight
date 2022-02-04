@@ -1,4 +1,4 @@
-import Tooltip from '@components/Tooltip/Tooltip';
+import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -90,6 +90,9 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                         longestLineNumberCharacterLength={
                             longestLineNumberCharacterLength
                         }
+                        lineContent={e?.lineContent ?? undefined}
+                        linesBefore={e?.linesBefore ?? undefined}
+                        linesAfter={e?.linesAfter ?? undefined}
                     />
                 ))
             ) : (
@@ -111,37 +114,34 @@ type StackSectionProps = {
     lineNumber?: number;
     columnNumber?: number;
     longestLineNumberCharacterLength?: number;
+    lineContent?: string;
+    linesBefore?: string;
+    linesAfter?: string;
 };
 
 const StackSection: React.FC<StackSectionProps> = ({
     fileName,
     functionName,
     lineNumber,
-    longestLineNumberCharacterLength = 5,
+    lineContent,
+    linesBefore,
+    linesAfter,
 }) => {
     const trigger = (
         <div className={ErrorPageStyles.triggerWrapper}>
             <div className={ErrorPageStyles.snippetHeadingTwo}>
                 <span className={ErrorPageStyles.stackTraceErrorTitle}>
                     {truncateFileName(fileName || '')}
+                    {lineNumber ? ` at line ${lineNumber}` : ''}
                 </span>
             </div>
             <hr />
-            <div className={styles.editor}>
-                <span
-                    className={styles.lineNumber}
-                    style={
-                        {
-                            '--longest-character-length': longestLineNumberCharacterLength,
-                        } as React.CSSProperties
-                    }
-                >
-                    {lineNumber}
-                </span>
-                <Tooltip mouseEnterDelay={0.1} title={functionName}>
-                    <span className={styles.functionName}>{functionName}</span>
-                </Tooltip>
-            </div>
+            <ErrorSourcePreview
+                lineNumber={lineNumber}
+                lineContent={lineContent ?? functionName}
+                linesBefore={linesBefore}
+                linesAfter={linesAfter}
+            />
         </div>
     );
     return (

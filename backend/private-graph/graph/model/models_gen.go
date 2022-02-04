@@ -73,6 +73,8 @@ type ErrorTrace struct {
 	ColumnNumber *int    `json:"columnNumber"`
 	Error        *string `json:"error"`
 	LineContent  *string `json:"lineContent"`
+	LinesBefore  *string `json:"linesBefore"`
+	LinesAfter   *string `json:"linesAfter"`
 }
 
 type LengthRangeInput struct {

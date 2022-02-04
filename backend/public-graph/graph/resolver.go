@@ -94,6 +94,9 @@ type FieldData struct {
 	Value string
 }
 
+const ERROR_CONTEXT_LINES = 5
+const ERROR_CONTEXT_MAX_LENGTH = 1000
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -321,37 +324,36 @@ func (r *Resolver) getFingerprint(mappedStackTrace []modelInputs.ErrorTrace) str
 
 	fingerprint := ""
 	if mappedStackTrace[0].LineContent != nil {
-		fingerprint += *mappedStackTrace[0].LineContent
+		fingerprint += *mappedStackTrace[0].LineContent + "||"
 	}
 
 	stackFramesToUse := 5
 	if len(mappedStackTrace) < stackFramesToUse {
 		stackFramesToUse = len(mappedStackTrace)
 	}
-	for i := 0; i < 5; i++ {
+	for i := 0; i < stackFramesToUse; i++ {
+		fingerprint += ";"
 		if mappedStackTrace[i].FunctionName != nil {
-			fingerprint += "|" + *mappedStackTrace[i].FunctionName
-		} else {
-			fingerprint += "|"
+			fingerprint += *mappedStackTrace[i].FunctionName
 		}
 	}
 
 	return fingerprint
 }
 
-func (r *Resolver) GetStackTraceString(errorObj *model.ErrorObject) (*string, string, error) {
+func (r *Resolver) GetStackTraceString(errorObj *model.ErrorObject) (*string, error) {
 	if errorObj.StackTrace != nil {
 		var inputs []*model2.StackFrameInput
 		if err := json.Unmarshal([]byte(*errorObj.StackTrace), &inputs); err != nil {
-			return nil, "", e.Wrap(err, "error unmarshalling stack trace from error object")
+			return nil, e.Wrap(err, "error unmarshalling stack trace from error object")
 		}
 
 		return r.getMappedStackTraceString(inputs, errorObj.ProjectID, errorObj)
 	}
-	return nil, "", e.New("error has a nil stack trace")
+	return nil, e.New("error has a nil stack trace")
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, string, error) {
+func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, error) {
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
 	if err != nil {
@@ -359,13 +361,12 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	} else {
 		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 		if err != nil {
-			return nil, "", e.Wrap(err, "error marshalling mapped stack trace")
+			return nil, e.Wrap(err, "error marshalling mapped stack trace")
 		}
 		mappedStackTraceString := string(mappedStackTraceBytes)
 		newMappedStackTraceString = &mappedStackTraceString
 	}
-	fingerprint := r.getFingerprint(mappedStackTrace)
-	return newMappedStackTraceString, fingerprint, nil
+	return newMappedStackTraceString, nil
 }
 
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
@@ -437,10 +438,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
 	newFrameString := stackTraceString
 	var newMappedStackTraceString *string
-	fingerprint := ""
 	if stackTrace != nil {
 		var err error
-		newMappedStackTraceString, fingerprint, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
+		newMappedStackTraceString, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
 		}
@@ -451,18 +451,17 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
 	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID:   errorObj.ProjectID,
-		Fingerprint: fingerprint,
-		Type:        errorObj.Type,
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
-			ProjectID:   errorObj.ProjectID,
-			Event:       errorObj.Event,
-			StackTrace:  stackTraceString,
-			Type:        errorObj.Type,
-			State:       modelInputs.ErrorStateOpen.String(),
-			Fields:      []*model.ErrorField{},
-			Fingerprint: fingerprint,
+			ProjectID:  errorObj.ProjectID,
+			Event:      errorObj.Event,
+			StackTrace: stackTraceString,
+			Type:       errorObj.Type,
+			State:      modelInputs.ErrorStateOpen.String(),
+			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -1001,27 +1000,54 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
 		return nil, err
 	}
+
+	// Get the content +/- ERROR_CONTEXT_LINES around the error line
 	content := smap.SourceContent(sourceFileName)
-	line_idx := line - 1
-	var sb strings.Builder
+	lineIdx := line - 1
+	var beforeSb strings.Builder
+	var lineSb strings.Builder
+	var afterSb strings.Builder
 	for _, c := range content {
-		if line_idx < 0 {
+		if lineIdx < -ERROR_CONTEXT_LINES {
 			break
 		}
-		if line_idx == 0 && c != '\n' {
-			sb.WriteRune(c)
+		if lineIdx <= ERROR_CONTEXT_LINES {
+			if lineIdx > 0 {
+				beforeSb.WriteRune(c)
+			} else if lineIdx == 0 {
+				lineSb.WriteRune(c)
+			} else {
+				afterSb.WriteRune(c)
+			}
 		}
 		if c == '\n' {
-			line_idx -= 1
+			lineIdx -= 1
 		}
 	}
-	lineContent := sb.String()
+
+	lineContent := lineSb.String()
+	if len(lineContent) > ERROR_CONTEXT_MAX_LENGTH {
+		lineContent = "" + lineContent[:ERROR_CONTEXT_MAX_LENGTH]
+	}
+
+	linesBefore := beforeSb.String()
+	if len(linesBefore) > ERROR_CONTEXT_MAX_LENGTH {
+		linesBefore = "" + linesBefore[len(linesBefore)-ERROR_CONTEXT_MAX_LENGTH:]
+	}
+
+	linesAfter := afterSb.String()
+	if len(linesAfter) > ERROR_CONTEXT_MAX_LENGTH {
+		linesAfter = "" + linesAfter[:ERROR_CONTEXT_MAX_LENGTH]
+	}
+
 	mappedStackFrame := &modelInputs.ErrorTrace{
 		FileName:     &sourceFileName,
 		LineNumber:   &line,
 		FunctionName: &fn,
 		ColumnNumber: &col,
 		LineContent:  &lineContent,
+		LinesBefore:  &linesBefore,
+		LinesAfter:   &linesAfter,
 	}
 	return mappedStackFrame, nil
 }

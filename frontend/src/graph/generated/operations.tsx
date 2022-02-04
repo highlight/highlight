@@ -2299,6 +2299,9 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'lineNumber'
                             | 'functionName'
                             | 'columnNumber'
+                            | 'lineContent'
+                            | 'linesBefore'
+                            | 'linesAfter'
                         >
                     >
                 >;
