@@ -189,14 +189,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                 }
                 // Show the authorization form for Highlight staff if they're trying to access a customer session.
-                if (isHighlightAdmin) {
-                    if (
-                        !allProjects?.some(
-                            (project) => project?.id === project_id
-                        )
-                    ) {
-                        setViewingUnauthorizedSession(true);
-                    }
+                if (isHighlightAdmin && project_id !== '1') {
+                    setViewingUnauthorizedSession(true);
                 }
                 if (data.session?.last_user_interaction_time) {
                     lastActiveTimestampRef.current = new Date(
