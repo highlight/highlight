@@ -14,6 +14,7 @@ import { Replayer } from '@highlight-run/rrweb';
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
+import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm';
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
 import PlayerCommentCanvas, {
     Coordinates2D,
@@ -264,6 +265,7 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
+                    <UnauthorizedViewingForm />
                     {sessionViewability === SessionViewability.ERROR ? (
                         <ErrorState
                             shownWithHeader
