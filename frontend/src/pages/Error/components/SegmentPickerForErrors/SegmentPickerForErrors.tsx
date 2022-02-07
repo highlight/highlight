@@ -124,6 +124,7 @@ const SegmentPickerForErrors = () => {
                 }}
                 className={styles.segmentSelect}
                 placeholder="Choose Segment"
+                dropdownMatchSelectWidth={410}
                 allowClear
                 loading={loading}
                 hasAccent
