@@ -94,6 +94,9 @@ type FieldData struct {
 	Value string
 }
 
+const ERROR_CONTEXT_LINES = 5
+const ERROR_CONTEXT_MAX_LENGTH = 1000
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -314,11 +317,11 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 	return environmentsString
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) (*string, error) {
+func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, error) {
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
 	if err != nil {
-		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
+		log.Error(e.Wrapf(err, "error object: %+v", errorObj))
 	} else {
 		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 		if err != nil {
@@ -396,6 +399,17 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
+	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
+	newFrameString := stackTraceString
+	var newMappedStackTraceString *string
+	if stackTrace != nil {
+		var err error
+		newMappedStackTraceString, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
+		if err != nil {
+			return nil, e.Wrap(err, "Error mapping stack trace string")
+		}
+	}
+
 	errorGroup := &model.ErrorGroup{}
 
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
@@ -445,17 +459,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-	}
-
-	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
-	newFrameString := stackTraceString
-	var newMappedStackTraceString *string
-	if stackTrace != nil {
-		mappedStackTraceString, err := r.getMappedStackTraceString(stackTrace, projectID, errorGroup, errorObj)
-		if err != nil {
-			return nil, e.Wrap(err, "Error mapping stack trace string")
-		}
-		newMappedStackTraceString = mappedStackTraceString
 	}
 
 	environmentsString := r.getIncrementedEnvironmentCount(errorGroup, errorObj)
@@ -961,11 +964,54 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
 		return nil, err
 	}
+
+	// Get the content +/- ERROR_CONTEXT_LINES around the error line
+	content := smap.SourceContent(sourceFileName)
+	lineIdx := line - 1
+	var beforeSb strings.Builder
+	var lineSb strings.Builder
+	var afterSb strings.Builder
+	for _, c := range content {
+		if lineIdx < -ERROR_CONTEXT_LINES {
+			break
+		}
+		if lineIdx <= ERROR_CONTEXT_LINES {
+			if lineIdx > 0 {
+				beforeSb.WriteRune(c)
+			} else if lineIdx == 0 {
+				lineSb.WriteRune(c)
+			} else {
+				afterSb.WriteRune(c)
+			}
+		}
+		if c == '\n' {
+			lineIdx -= 1
+		}
+	}
+
+	// If any of the strings are longer than ERROR_CONTEXT_MAX_LENGTH, trim them
+	// to avoid excessively long strings, especially for minified files.
+	lineContent := lineSb.String()
+	if len(lineContent) > ERROR_CONTEXT_MAX_LENGTH {
+		lineContent = strings.Repeat(lineContent[:ERROR_CONTEXT_MAX_LENGTH], 1)
+	}
+	linesBefore := beforeSb.String()
+	if len(linesBefore) > ERROR_CONTEXT_MAX_LENGTH {
+		linesBefore = strings.Repeat(linesBefore[len(linesBefore)-ERROR_CONTEXT_MAX_LENGTH:], 1)
+	}
+	linesAfter := afterSb.String()
+	if len(linesAfter) > ERROR_CONTEXT_MAX_LENGTH {
+		linesAfter = strings.Repeat(linesAfter[:ERROR_CONTEXT_MAX_LENGTH], 1)
+	}
+
 	mappedStackFrame := &modelInputs.ErrorTrace{
 		FileName:     &sourceFileName,
 		LineNumber:   &line,
 		FunctionName: &fn,
 		ColumnNumber: &col,
+		LineContent:  &lineContent,
+		LinesBefore:  &linesBefore,
+		LinesAfter:   &linesAfter,
 	}
 	return mappedStackFrame, nil
 }
