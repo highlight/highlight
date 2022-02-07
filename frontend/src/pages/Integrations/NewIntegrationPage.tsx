@@ -1,10 +1,11 @@
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
-import { LoadingPage } from '@components/Loading/Loading';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useParams } from '@util/react-router/useParams';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-
-import styles from './NewIntegrationPage.module.scss';
 
 const NewIntegrationPage = () => {
     const { integrationName, project_id } = useParams<{
@@ -12,12 +13,14 @@ const NewIntegrationPage = () => {
         project_id: string;
     }>();
     const history = useHistory();
+    const { setLoadingState } = useAppLoadingContext();
 
     const { addSlackToWorkspace } = useSlackBot({
         type: 'Organization',
     });
 
     useEffect(() => {
+        setLoadingState(AppLoadingState.EXTENDED_LOADING);
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const next = urlParams.get('next');
@@ -38,15 +41,18 @@ const NewIntegrationPage = () => {
             } catch (e) {
                 console.error(e);
             }
+            setLoadingState(AppLoadingState.LOADED);
             history.push(`/${project_id}/${next}`);
         })();
-    }, [addSlackToWorkspace, integrationName, history, project_id]);
+    }, [
+        addSlackToWorkspace,
+        integrationName,
+        history,
+        project_id,
+        setLoadingState,
+    ]);
 
-    return (
-        <div className={styles.loadingContainer}>
-            <LoadingPage show />
-        </div>
-    );
+    return null;
 };
 
 export default NewIntegrationPage;

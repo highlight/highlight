@@ -111,11 +111,15 @@ export const ProjectRouter = () => {
 
     useEffect(() => {
         if (!error) {
-            setLoadingState(
-                loading || integratedLoading
-                    ? AppLoadingState.LOADING
-                    : AppLoadingState.LOADED
-            );
+            setLoadingState((previousLoadingState) => {
+                if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
+                    return loading || integratedLoading
+                        ? AppLoadingState.LOADING
+                        : AppLoadingState.LOADED;
+                }
+
+                return AppLoadingState.EXTENDED_LOADING;
+            });
         } else {
             setLoadingState(AppLoadingState.LOADED);
         }
