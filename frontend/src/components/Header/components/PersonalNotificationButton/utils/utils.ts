@@ -53,10 +53,6 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
 
     useEffect(() => {
         if (!slackIntegResponse) return;
-        console.log(
-            '[gt] setIsSlackConnectedToWorkspace after slackIntegResponse',
-            slackIntegResponse
-        );
         setIsSlackConnectedToWorkspace(
             slackIntegResponse.is_integrated_with_slack || false
         );
