@@ -965,49 +965,59 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		return nil, err
 	}
 
+	var lineContentPtr *string
+	var linesBeforePtr *string
+	var linesAfterPtr *string
+
 	// Get the content +/- ERROR_CONTEXT_LINES around the error line
 	content := smap.SourceContent(sourceFileName)
-	lineIdx := line - 1
-	var beforeSb strings.Builder
-	var lineSb strings.Builder
-	var afterSb strings.Builder
-	var curSb *strings.Builder
-	if lineIdx > 0 {
-		curSb = &beforeSb
-	} else if lineIdx == 0 {
-		curSb = &lineSb
-	} else {
-		curSb = &afterSb
-	}
-	for _, c := range content {
-		curSb.WriteRune(c)
-		if c == '\n' {
-			lineIdx -= 1
-			if lineIdx < -ERROR_CONTEXT_LINES {
-				break
-			} else if lineIdx > 0 {
-				curSb = &beforeSb
-			} else if lineIdx == 0 {
-				curSb = &lineSb
-			} else {
-				curSb = &afterSb
+	if content != "" {
+		lineIdx := line - 1
+		var beforeSb strings.Builder
+		var lineSb strings.Builder
+		var afterSb strings.Builder
+		var curSb *strings.Builder
+		if lineIdx > 0 {
+			curSb = &beforeSb
+		} else if lineIdx == 0 {
+			curSb = &lineSb
+		} else {
+			curSb = &afterSb
+		}
+		for _, c := range content {
+			curSb.WriteRune(c)
+			if c == '\n' {
+				lineIdx -= 1
+				if lineIdx < -ERROR_CONTEXT_LINES {
+					break
+				} else if lineIdx > 0 {
+					curSb = &beforeSb
+				} else if lineIdx == 0 {
+					curSb = &lineSb
+				} else {
+					curSb = &afterSb
+				}
 			}
 		}
-	}
 
-	// If any of the strings are longer than ERROR_CONTEXT_MAX_LENGTH, trim them
-	// to avoid excessively long strings, especially for minified files.
-	lineContent := lineSb.String()
-	if len(lineContent) > ERROR_CONTEXT_MAX_LENGTH {
-		lineContent = strings.Repeat(lineContent[:ERROR_CONTEXT_MAX_LENGTH], 1)
-	}
-	linesBefore := beforeSb.String()
-	if len(linesBefore) > ERROR_CONTEXT_MAX_LENGTH {
-		linesBefore = strings.Repeat(linesBefore[len(linesBefore)-ERROR_CONTEXT_MAX_LENGTH:], 1)
-	}
-	linesAfter := afterSb.String()
-	if len(linesAfter) > ERROR_CONTEXT_MAX_LENGTH {
-		linesAfter = strings.Repeat(linesAfter[:ERROR_CONTEXT_MAX_LENGTH], 1)
+		// If any of the strings are longer than ERROR_CONTEXT_MAX_LENGTH, trim them
+		// to avoid excessively long strings, especially for minified files.
+		lineContent := lineSb.String()
+		if len(lineContent) > ERROR_CONTEXT_MAX_LENGTH {
+			lineContent = strings.Repeat(lineContent[:ERROR_CONTEXT_MAX_LENGTH], 1)
+		}
+		linesBefore := beforeSb.String()
+		if len(linesBefore) > ERROR_CONTEXT_MAX_LENGTH {
+			linesBefore = strings.Repeat(linesBefore[len(linesBefore)-ERROR_CONTEXT_MAX_LENGTH:], 1)
+		}
+		linesAfter := afterSb.String()
+		if len(linesAfter) > ERROR_CONTEXT_MAX_LENGTH {
+			linesAfter = strings.Repeat(linesAfter[:ERROR_CONTEXT_MAX_LENGTH], 1)
+		}
+
+		lineContentPtr = &lineContent
+		linesBeforePtr = &linesBefore
+		linesAfterPtr = &linesAfter
 	}
 
 	mappedStackFrame := &modelInputs.ErrorTrace{
@@ -1015,9 +1025,9 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		LineNumber:   &line,
 		FunctionName: &fn,
 		ColumnNumber: &col,
-		LineContent:  &lineContent,
-		LinesBefore:  &linesBefore,
-		LinesAfter:   &linesAfter,
+		LineContent:  lineContentPtr,
+		LinesBefore:  linesBeforePtr,
+		LinesAfter:   linesAfterPtr,
 	}
 	return mappedStackFrame, nil
 }
