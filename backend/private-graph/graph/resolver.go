@@ -615,7 +615,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 	return sqlFilters
 }
 
-func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
+func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
@@ -623,6 +623,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 
 	p := mail.NewPersonalization()
 	p.AddTos(tos...)
+	p.AddCCs(ccs...)
 	p.SetDynamicTemplateData("Author_Name", authorName)
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)

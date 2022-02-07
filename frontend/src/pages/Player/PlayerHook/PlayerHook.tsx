@@ -9,7 +9,6 @@ import {
     getAllPerformanceEvents,
     getAllUrlEvents,
 } from '@pages/Player/SessionLevelBar/utils/utils';
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { timerEnd } from '@util/timer/timer';
 import { H } from 'highlight.run';
@@ -77,7 +76,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
-    const { allProjects } = useApplicationContext();
     const [
         viewingUnauthorizedSession,
         setViewingUnauthorizedSession,
