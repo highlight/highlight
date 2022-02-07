@@ -971,21 +971,27 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	var beforeSb strings.Builder
 	var lineSb strings.Builder
 	var afterSb strings.Builder
+	var curSb *strings.Builder
+	if lineIdx > 0 {
+		curSb = &beforeSb
+	} else if lineIdx == 0 {
+		curSb = &lineSb
+	} else {
+		curSb = &afterSb
+	}
 	for _, c := range content {
-		if lineIdx < -ERROR_CONTEXT_LINES {
-			break
-		}
-		if lineIdx <= ERROR_CONTEXT_LINES {
-			if lineIdx > 0 {
-				beforeSb.WriteRune(c)
-			} else if lineIdx == 0 {
-				lineSb.WriteRune(c)
-			} else {
-				afterSb.WriteRune(c)
-			}
-		}
+		curSb.WriteRune(c)
 		if c == '\n' {
 			lineIdx -= 1
+			if lineIdx < -ERROR_CONTEXT_LINES {
+				break
+			} else if lineIdx > 0 {
+				curSb = &beforeSb
+			} else if lineIdx == 0 {
+				curSb = &lineSb
+			} else {
+				curSb = &afterSb
+			}
 		}
 	}
 
