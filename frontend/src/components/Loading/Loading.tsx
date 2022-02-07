@@ -1,5 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import SvgHighlightLogoWithNoBackground from '@icons/HighlightLogoWithNoBackground';
 import { Spin } from 'antd';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -38,12 +41,16 @@ export const LoadingBar = ({ width }: { width?: string | number }) => {
 };
 
 export const LoadingPage = React.memo<{ show?: boolean }>(({ show }) => {
-    const { isLoading: appLoading } = useAppLoadingContext();
+    const { loadingState } = useAppLoadingContext();
     const speedFactor = 0.1;
 
     return (
         <AnimatePresence>
-            {(show || appLoading) && (
+            {(show ||
+                [
+                    AppLoadingState.LOADING,
+                    AppLoadingState.EXTENDED_LOADING,
+                ].includes(loadingState)) && (
                 <motion.div
                     key="loadingWrapper"
                     className={styles.loadingWrapper}
