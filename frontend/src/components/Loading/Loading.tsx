@@ -37,13 +37,13 @@ export const LoadingBar = ({ width }: { width?: string | number }) => {
     );
 };
 
-export const LoadingPage = React.memo(() => {
-    const { isLoading } = useAppLoadingContext();
+export const LoadingPage = React.memo<{ show?: boolean }>(({ show }) => {
+    const { isLoading: appLoading } = useAppLoadingContext();
     const speedFactor = 0.1;
 
     return (
         <AnimatePresence>
-            {isLoading && (
+            {(show || appLoading) && (
                 <motion.div
                     key="loadingWrapper"
                     className={styles.loadingWrapper}

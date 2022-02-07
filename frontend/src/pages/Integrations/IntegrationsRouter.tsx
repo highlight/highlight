@@ -11,9 +11,6 @@ const IntegrationsRouter = () => {
             <Route exact path={path}>
                 <IntegrationsPage />
             </Route>
-            <Route exact path={path}>
-                <IntegrationsPage />
-            </Route>
             <Route exact path={`${path}/:integrationName`}>
                 <NewIntegrationPage />
             </Route>

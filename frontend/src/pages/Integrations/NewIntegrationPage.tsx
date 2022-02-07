@@ -1,10 +1,10 @@
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
-import LeadAlignLayout from '@components/layout/LeadAlignLayout';
-import { LoadingBar } from '@components/Loading/Loading';
+import { LoadingPage } from '@components/Loading/Loading';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router-dom';
+
+import styles from './NewIntegrationPage.module.scss';
 
 const NewIntegrationPage = () => {
     const { integrationName, project_id } = useParams<{
@@ -36,21 +36,16 @@ const NewIntegrationPage = () => {
                     await addSlackToWorkspace(code, redirectUri);
                 }
             } catch (e) {
-                console.error('[gt]', e);
+                console.error(e);
             }
             history.push(`/${project_id}/${next}`);
         })();
     }, [addSlackToWorkspace, integrationName, history, project_id]);
 
     return (
-        <>
-            <Helmet>
-                <title>⏳</title>
-            </Helmet>
-            <LeadAlignLayout>
-                <LoadingBar />
-            </LeadAlignLayout>
-        </>
+        <div className={styles.loadingContainer}>
+            <LoadingPage show />
+        </div>
     );
 };
 
