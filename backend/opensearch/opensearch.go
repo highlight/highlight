@@ -2,7 +2,6 @@ package opensearch
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -77,9 +76,7 @@ type SearchOptions struct {
 
 func NewOpensearchClient() (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
+		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchDomain},
 		Username:  OpensearchUsername,
 		Password:  OpensearchPassword,
@@ -89,9 +86,7 @@ func NewOpensearchClient() (*Client, error) {
 	}
 
 	readClient, err := opensearch.NewClient(opensearch.Config{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
+		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchReadDomain},
 		Username:  OpensearchUsername,
 		Password:  OpensearchPassword,
