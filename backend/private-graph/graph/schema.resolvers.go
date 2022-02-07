@@ -3406,7 +3406,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		"must":[
 			{"bool": {
 				"must_not":[
-					{"term":{"excluded":"true"}},
+					{"term":{"Excluded":true}},
 					{"term":{"within_billing_quota":false}},
 					{"bool": {
 						"must":[
