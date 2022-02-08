@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Tooltip from '@components/Tooltip/Tooltip';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
@@ -130,6 +131,7 @@ const StackSection: React.FC<StackSectionProps> = ({
     linesBefore,
     linesAfter,
 }) => {
+    const { isHighlightAdmin } = useAuthContext();
     const trigger = (
         <div className={ErrorPageStyles.triggerWrapper}>
             <div className={ErrorPageStyles.snippetHeadingTwo}>
@@ -141,7 +143,7 @@ const StackSection: React.FC<StackSectionProps> = ({
                 </span>
             </div>
             <hr />
-            {!!lineContent ? (
+            {!!lineContent && isHighlightAdmin ? (
                 <ErrorSourcePreview
                     fileName={fileName}
                     lineNumber={lineNumber}
