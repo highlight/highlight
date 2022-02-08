@@ -429,6 +429,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
 		}
+		errorObj.MappedStackTrace = newMappedStackTraceString
 	}
 
 	errorGroup := &model.ErrorGroup{}

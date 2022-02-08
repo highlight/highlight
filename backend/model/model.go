@@ -673,25 +673,26 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	SessionID      int
-	ErrorGroupID   int
-	Event          string
-	Type           string
-	URL            string
-	Source         string
-	LineNumber     int
-	ColumnNumber   int
-	OS             string
-	Browser        string
-	Trace          *string   `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
-	StackTrace     *string   `json:"stack_trace"`
-	Timestamp      time.Time `json:"timestamp"`
-	Payload        *string   `json:"payload"`
-	Environment    string
-	RequestID      *string // From X-Highlight-Request header
-	IsBeacon       bool    `gorm:"default:false"`
+	OrganizationID   int
+	ProjectID        int `json:"project_id"`
+	SessionID        int
+	ErrorGroupID     int
+	Event            string
+	Type             string
+	URL              string
+	Source           string
+	LineNumber       int
+	ColumnNumber     int
+	OS               string
+	Browser          string
+	Trace            *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
+	StackTrace       *string `json:"stack_trace"`
+	MappedStackTrace *string
+	Timestamp        time.Time `json:"timestamp"`
+	Payload          *string   `json:"payload"`
+	Environment      string
+	RequestID        *string // From X-Highlight-Request header
+	IsBeacon         bool    `gorm:"default:false"`
 }
 
 type ErrorGroup struct {
