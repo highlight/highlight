@@ -1006,7 +1006,9 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 			curSb = &afterSb
 		}
 		for _, c := range content {
-			curSb.WriteRune(c)
+			if lineIdx <= ERROR_CONTEXT_LINES {
+				curSb.WriteRune(c)
+			}
 			if c == '\n' {
 				lineIdx -= 1
 				if lineIdx < -ERROR_CONTEXT_LINES {
