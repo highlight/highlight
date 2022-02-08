@@ -356,7 +356,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(30),
 					FunctionName: util.MakeStringPointer(""),
 					LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
-					LinesBefore:  util.MakeStringPointer("import { H } from 'highlight.run';\nimport React from 'react';\n\nimport commonStyles from '../../Common.module.scss';\nimport styles from './Buttons.module.scss';\nexport const Buttons = () => {\n    return (\n        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+					LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
 					LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
 				},
 			},
