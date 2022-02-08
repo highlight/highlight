@@ -9,7 +9,9 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
@@ -1049,6 +1052,161 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	})
 
 	return nil
+}
+
+func getWorkspaceIdFromUrl(parsedUrl *url.URL) (int, error) {
+	pathParts := strings.Split(parsedUrl.Path, "/")
+	if len(pathParts) < 2 {
+		return -1, e.New("invalid url")
+	}
+	workspaceId, err := strconv.Atoi(pathParts[1])
+	if err != nil {
+		return -1, e.Wrap(err, "couldn't parse out workspace id")
+	}
+
+	return workspaceId, nil
+}
+
+func getSessionIdFromUrl(parsedUrl *url.URL) (string, error) {
+	pathParts := strings.Split(parsedUrl.Path, "/")
+	if len(pathParts) < 4 {
+		return "", e.New("invalid url")
+	}
+	if pathParts[2] != "sessions" || len(pathParts[3]) <= 0 {
+		return "", e.New("url isn't for sessions pages")
+	}
+
+	return pathParts[3], nil
+}
+
+func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// verify request is from slack
+		sv, err := slack.NewSecretsVerifier(req.Header, signingSecret)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if _, err := sv.Write(body); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if err := sv.Ensure(); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		// parse events payload
+		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if eventsAPIEvent.Type == slackevents.URLVerification {
+			var r *slackevents.ChallengeResponse
+			err := json.Unmarshal([]byte(body), &r)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text")
+			if _, err := w.Write([]byte(r.Challenge)); err != nil {
+				return
+			}
+		}
+
+		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
+			go (func() {
+				ev := eventsAPIEvent.InnerEvent.Data.(*slackevents.LinkSharedEvent)
+
+				workspaceIdToSlackTeamMap := map[int]*slack.TeamInfo{}
+				workspaceIdToWorkspaceMap := map[int]*model.Workspace{}
+				urlToSlackAttachment := map[string]slack.Attachment{}
+				var senderSlackClient *slack.Client
+
+				for _, link := range ev.Links {
+					u, err := url.Parse(link.URL)
+					if err != nil {
+						continue
+					}
+
+					workspaceId, err := getWorkspaceIdFromUrl(u)
+					if err != nil {
+						continue
+					}
+
+					if workspaceIdToWorkspaceMap[workspaceId] == nil {
+						ws, err := r.GetWorkspace(workspaceId)
+						if err != nil {
+							continue
+						}
+						workspaceIdToWorkspaceMap[workspaceId] = ws
+					}
+
+					workspace := workspaceIdToWorkspaceMap[workspaceId]
+
+					slackAccessToken := workspace.SlackAccessToken
+
+					if len(*slackAccessToken) <= 0 {
+						continue
+					}
+
+					slackClient := slack.New(*slackAccessToken)
+
+					if workspaceIdToSlackTeamMap[workspaceId] == nil {
+						teamInfo, err := slackClient.GetTeamInfo()
+						if err != nil {
+							log.Error(err)
+							continue
+						}
+
+						workspaceIdToSlackTeamMap[workspaceId] = teamInfo
+					}
+
+					if workspaceIdToSlackTeamMap[workspaceId].ID != eventsAPIEvent.TeamID {
+						continue
+					} else {
+						senderSlackClient = slackClient
+					}
+
+					sessionId, err := getSessionIdFromUrl(u)
+					if err != nil {
+						continue
+					}
+
+					session := model.Session{SecureID: sessionId}
+					if err := r.DB.Where(&session).First(&session).Error; err != nil {
+						continue
+					}
+
+					attachment := slack.Attachment{}
+					err = session.GetSlackAttachment(&attachment)
+					if err != nil {
+						continue
+					}
+					log.Debug(link.URL)
+					urlToSlackAttachment[link.URL] = attachment
+				}
+
+				if len(urlToSlackAttachment) <= 0 {
+					return
+				}
+
+				_, _, _, err := senderSlackClient.UnfurlMessage(ev.Channel, string(ev.MessageTimeStamp), urlToSlackAttachment)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+			})()
+		}
+	}
 }
 
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {

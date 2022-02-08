@@ -52,6 +52,7 @@ var (
 	sendgridKey         = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
+	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
@@ -203,6 +204,7 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
+		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(slackSigningSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)

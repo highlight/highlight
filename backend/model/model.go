@@ -978,6 +978,76 @@ func (s *Session) SetUserProperties(userProperties map[string]string) error {
 	return nil
 }
 
+func formatDuration(d time.Duration) string {
+	ret := ""
+
+	h := d / time.Hour
+	d -= h * time.Hour
+
+	m := d / time.Minute
+	d -= m * time.Minute
+
+	s := d / time.Second
+
+	if h > 0 {
+		ret += fmt.Sprintf("%dh ", h)
+	}
+	if m > 0 || len(ret) > 0 {
+		ret += fmt.Sprintf("%dm ", m)
+	}
+
+	ret += fmt.Sprintf("%ds", s)
+
+	return ret
+}
+
+func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
+	sessionTitle := s.Identifier
+	if len(sessionTitle) <= 0 {
+		sessionTitle = fmt.Sprintf("#%d", s.Fingerprint)
+	}
+	sessionActiveDuration := formatDuration(time.Duration(s.ActiveLength * 10e5).Round(time.Second))
+	sessionTotalDuration := formatDuration(time.Duration(s.Length * 10e5).Round(time.Second))
+	sessionDateStr := fmt.Sprintf("<!date^%d^{date} {time}|%s>", s.CreatedAt.Unix(), s.CreatedAt.Format(time.RFC1123))
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, s.ProjectID, s.SecureID)
+	sessionImg := ""
+	userProps, err := s.GetUserProperties()
+	if err == nil && len(userProps["avatar"]) > 0 {
+		sessionImg = userProps["avatar"]
+	}
+
+	fields := []*slack.TextBlockObject{
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*User:*\n%s", sessionTitle), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Created:*\n%s", sessionDateStr), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Active Duration:*\n%s", sessionActiveDuration), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Total Duration:*\n%s", sessionTotalDuration), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Browser:*\n%s", s.BrowserName), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*OS:*\n%s", s.OSName), false, false),
+	}
+
+	var sideImg *slack.ImageBlockElement
+	if len(sessionImg) > 0 {
+		sideImg = slack.NewImageBlockElement(sessionImg, "user avatar")
+	}
+
+	var mainSection *slack.SectionBlock
+	if sideImg != nil {
+		mainSection = slack.NewSectionBlock(nil, fields, slack.NewAccessory(sideImg))
+	} else {
+		mainSection = slack.NewSectionBlock(nil, fields, nil)
+	}
+
+	openBtn := slack.NewButtonBlockElement("view_session", "", slack.NewTextBlockObject("plain_text", "Open in Highlight", false, false))
+	openBtn.URL = sessionURL
+	actionBtns := slack.NewActionBlock("action_block", openBtn)
+
+	attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, mainSection, actionBtns)
+
+	return nil
+}
+
 func (s *Session) GetUserProperties() (map[string]string, error) {
 	var userProperties map[string]string
 	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
