@@ -2,7 +2,10 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CardForm, CardFormActionsContainer } from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import Input from '@components/Input/Input';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
@@ -38,7 +41,7 @@ const NewProjectPage = () => {
             error: workspaceError,
         },
     ] = useCreateWorkspaceMutation();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     useEffect(() => {
         if (projectError || workspaceError) {
@@ -47,8 +50,8 @@ const NewProjectPage = () => {
     }, [setError, projectError, workspaceError]);
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     const { data, loading } = useGetWorkspacesCountQuery();
 
