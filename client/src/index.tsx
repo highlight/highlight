@@ -330,7 +330,10 @@ export class Highlight {
         firstLoadListeners?: FirstLoadListeners
     ) {
         this.options = options;
-        this._initMembers(this.options, firstLoadListeners);
+        // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
+        this._firstLoadListeners =
+            firstLoadListeners || new FirstLoadListeners({ options });
+        this._initMembers(this.options);
     }
 
     // Start a new session
@@ -356,17 +359,17 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this._initMembers(this.options, this._firstLoadListeners);
+        this._firstLoadListeners = new FirstLoadListeners({
+            options: this.options,
+        });
+        this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
         }
     }
 
-    _initMembers(
-        options: HighlightClassOptions,
-        firstLoadListeners?: FirstLoadListeners
-    ) {
+    _initMembers(options: HighlightClassOptions) {
         this.xhrNetworkContents = [];
         this.fetchNetworkContents = [];
         this.tracingOrigins = [];
@@ -487,10 +490,6 @@ export class Highlight {
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
         this.listeners = [];
-
-        // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
-        this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners({ options });
 
         this.events = [];
         this.hasSessionUnloaded = false;
