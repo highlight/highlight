@@ -28,6 +28,7 @@ export const queryBuilderEnabled = (
     isHighlightAdmin: boolean,
     project_id: string
 ) => {
+    return false;
     // Projects can be disabled on a one-off basis by adding to the denyList
     return isHighlightAdmin || !denyList.includes(project_id);
 };

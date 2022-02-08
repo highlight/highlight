@@ -1,0 +1,13 @@
+.codeBlock {
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    margin-bottom: 0;
+    min-width: 100%;
+    padding: 8px 0 !important;
+    width: fit-content;
+}
+
+.codeBlockWrapper {
+    overflow-x: auto;
+}
