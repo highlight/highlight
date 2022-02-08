@@ -610,7 +610,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
-		log.Errorf("An unsupported verboseID was used: %s", projectVerboseID)
+		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
 	}
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
