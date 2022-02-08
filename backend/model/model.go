@@ -254,6 +254,14 @@ type RegistrationData struct {
 	Pun         *string
 }
 
+type Dashboard struct {
+	Model
+	ProjectID         int
+	Layout            *string
+	Name              *string
+	LastAdminToEditID int
+}
+
 type SlackChannel struct {
 	WebhookAccessToken string
 	WebhookURL         string
@@ -665,25 +673,26 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	SessionID      int
-	ErrorGroupID   int
-	Event          string
-	Type           string
-	URL            string
-	Source         string
-	LineNumber     int
-	ColumnNumber   int
-	OS             string
-	Browser        string
-	Trace          *string   `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
-	StackTrace     *string   `json:"stack_trace"`
-	Timestamp      time.Time `json:"timestamp"`
-	Payload        *string   `json:"payload"`
-	Environment    string
-	RequestID      *string // From X-Highlight-Request header
-	IsBeacon       bool    `gorm:"default:false"`
+	OrganizationID   int
+	ProjectID        int `json:"project_id"`
+	SessionID        int
+	ErrorGroupID     int
+	Event            string
+	Type             string
+	URL              string
+	Source           string
+	LineNumber       int
+	ColumnNumber     int
+	OS               string
+	Browser          string
+	Trace            *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
+	StackTrace       *string `json:"stack_trace"`
+	MappedStackTrace *string
+	Timestamp        time.Time `json:"timestamp"`
+	Payload          *string   `json:"payload"`
+	Environment      string
+	RequestID        *string // From X-Highlight-Request header
+	IsBeacon         bool    `gorm:"default:false"`
 }
 
 type ErrorGroup struct {
@@ -1619,6 +1628,8 @@ type SendSlackAlertInput struct {
 	ErrorsCount *int64
 	// MatchedFields is a required parameter for Track Properties and User Properties alerts
 	MatchedFields []*Field
+	// RelatedFields is an optional parameter for Track Properties and User Properties alerts
+	RelatedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
 	// CommentID is a required parameter for SessionFeedback alerts
@@ -1796,14 +1807,19 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
-		var formattedFields []string
-		for _, addr := range input.MatchedFields {
-			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		var matchedFormattedFields string
+		var relatedFormattedFields string
+		for index, addr := range input.MatchedFields {
+			matchedFormattedFields = matchedFormattedFields + fmt.Sprintf("%d. *%s*: `%s`\n", index+1, addr.Name, addr.Value)
+		}
+		for index, addr := range input.RelatedFields {
+			relatedFormattedFields = relatedFormattedFields + fmt.Sprintf("%d. *%s*: `%s`\n", index+1, addr.Name, addr.Value)
 		}
 		// construct Slack message
 		previewText = "Highlight: Track Properties Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", matchedFormattedFields), false, false))
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Related Track Properties:*\n%+v", relatedFormattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

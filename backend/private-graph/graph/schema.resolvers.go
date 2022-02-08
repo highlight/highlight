@@ -970,8 +970,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
 
 		tos := []*mail.Email{}
+		ccs := []*mail.Email{}
 		var adminIds []int
 
+		if admin.Email != nil {
+			ccs = append(ccs, &mail.Email{Address: *admin.Email})
+		}
 		for _, admin := range taggedAdmins {
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
@@ -982,7 +986,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+			err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
@@ -1074,6 +1078,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	createErrorCommentSpan.Finish()
 
 	viewLink := fmt.Sprintf("%v", errorURL)
+
 	if len(taggedAdmins) > 0 && !isGuest {
 		tos := []*mail.Email{}
 		var adminIds []int
@@ -1083,12 +1088,18 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			adminIds = append(adminIds, admin.ID)
 		}
 
+		ccs := []*mail.Email{}
+
+		if admin.Email != nil {
+			ccs = append(ccs, &mail.Email{Address: *admin.Email})
+		}
+
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, Email.SendGridErrorCommentEmailTemplateId, nil)
+			err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridErrorCommentEmailTemplateId, nil)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
@@ -3406,7 +3417,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		"must":[
 			{"bool": {
 				"must_not":[
-					{"term":{"excluded":"true"}},
+					{"term":{"Excluded":true}},
 					{"term":{"within_billing_quota":false}},
 					{"bool": {
 						"must":[

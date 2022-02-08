@@ -80,7 +80,6 @@ const OnboardingBubble = () => {
 
     const { slackUrl: slackBotUrl } = useSlackBot({
         type: 'Personal',
-        watch: false,
     });
 
     useEffect(() => {

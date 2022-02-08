@@ -18,7 +18,7 @@ export type StringifyOptions = {
 };
 
 type LogRecordOptions = {
-    level: LogLevel[];
+    level: ConsoleMethods[];
     lengthThreshold: number;
     stringifyOptions: StringifyOptions;
     logger: Logger | 'console';
@@ -46,26 +46,28 @@ type Logger = {
     warn?: typeof console.warn;
 };
 
-type LogLevel =
-    | 'assert'
-    | 'clear'
-    | 'count'
-    | 'countReset'
-    | 'debug'
-    | 'dir'
-    | 'dirxml'
-    | 'error'
-    | 'group'
-    | 'groupCollapsed'
-    | 'groupEnd'
-    | 'info'
-    | 'log'
-    | 'table'
-    | 'time'
-    | 'timeEnd'
-    | 'timeLog'
-    | 'trace'
-    | 'warn';
+export const ALL_CONSOLE_METHODS = [
+    'assert',
+    'count',
+    'countReset',
+    'debug',
+    'dir',
+    'dirxml',
+    'error',
+    'group',
+    'groupCollapsed',
+    'groupEnd',
+    'info',
+    'log',
+    'table',
+    'time',
+    'timeEnd',
+    'timeLog',
+    'trace',
+    'warn',
+] as const;
+type ConsoleMethodsTuple = typeof ALL_CONSOLE_METHODS;
+export type ConsoleMethods = ConsoleMethodsTuple[number];
 
 export function ConsoleListener(
     callback: (c: ConsoleMessage) => void,
@@ -122,7 +124,7 @@ export function ConsoleListener(
      * @param logger the logger object such as Console
      * @param level the name of log function to be replaced
      */
-    function replace(_logger: Logger, level: LogLevel) {
+    function replace(_logger: Logger, level: ConsoleMethods) {
         if (!_logger[level]) {
             return () => {};
         }

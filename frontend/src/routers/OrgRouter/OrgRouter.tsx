@@ -2,7 +2,10 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
     QueryBuilderInput,
@@ -49,7 +52,7 @@ export const ProjectRouter = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -108,11 +111,19 @@ export const ProjectRouter = () => {
 
     useEffect(() => {
         if (!error) {
-            setIsLoading(loading || integratedLoading);
+            setLoadingState((previousLoadingState) => {
+                if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
+                    return loading || integratedLoading
+                        ? AppLoadingState.LOADING
+                        : AppLoadingState.LOADED;
+                }
+
+                return AppLoadingState.EXTENDED_LOADING;
+            });
         } else {
-            setIsLoading(false);
+            setLoadingState(AppLoadingState.LOADED);
         }
-    }, [error, integratedLoading, loading, setIsLoading]);
+    }, [error, integratedLoading, loading, setLoadingState]);
 
     // Params and hooks for SearchContextProvider
 

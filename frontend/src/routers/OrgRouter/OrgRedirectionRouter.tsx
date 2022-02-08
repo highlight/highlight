@@ -1,4 +1,7 @@
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import {
     useGetAdminAboutYouQuery,
     useGetProjectsAndWorkspacesQuery,
@@ -14,17 +17,17 @@ export const ProjectRedirectionRouter = () => {
     } = useGetAdminAboutYouQuery({
         fetchPolicy: 'no-cache',
     });
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
     const history = useHistory();
 
     useEffect(() => {
         if (loading) {
-            setIsLoading(true);
+            setLoadingState(AppLoadingState.LOADING);
         }
         if (error) {
-            setIsLoading(false);
+            setLoadingState(AppLoadingState.LOADED);
         }
-    }, [loading, setIsLoading, error]);
+    }, [loading, setLoadingState, error]);
 
     if (error) {
         return <p>{'App error: ' + JSON.stringify(error)}</p>;

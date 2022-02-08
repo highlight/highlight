@@ -535,6 +535,15 @@ export type DailyErrorCount = {
     count: Scalars['Int64'];
 };
 
+export type Dashboard = {
+    __typename?: 'Dashboard';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    layout: Scalars['String'];
+    name: Scalars['String'];
+    last_admin_to_edit_id: Scalars['ID'];
+};
+
 export type SanitizedSlackChannel = {
     __typename?: 'SanitizedSlackChannel';
     webhook_channel?: Maybe<Scalars['String']>;

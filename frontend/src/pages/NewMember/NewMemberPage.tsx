@@ -1,6 +1,9 @@
 import { ApolloError } from '@apollo/client';
 import Alert, { AlertProps } from '@components/Alert/Alert';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -26,13 +29,13 @@ const NewMemberPage = () => {
     const addAdminMutation = useAddAdminToWorkspaceMutation;
     const [addAdmin, { loading: addLoading, error }] = addAdminMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     useEffect(() => {
         if (!adminLoading) {
-            setIsLoading(false);
+            setLoadingState(AppLoadingState.LOADED);
         }
-    }, [adminLoading, setIsLoading]);
+    }, [adminLoading, setLoadingState]);
 
     if (adminAdded) {
         return <Redirect to={`/w/${workspace_id}`} />;

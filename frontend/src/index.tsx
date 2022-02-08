@@ -7,6 +7,7 @@ import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceBu
 import { LoadingPage } from '@components/Loading/Loading';
 import {
     AppLoadingContext,
+    AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { datadogLogs } from '@datadog/browser-logs';
@@ -108,7 +109,9 @@ if (!isOnPrem) {
 showHiringMessage();
 
 const App = () => {
-    const [isLoading, setIsLoading] = useState(true);
+    const [loadingState, setLoadingState] = useState<AppLoadingState>(
+        AppLoadingState.LOADING
+    );
 
     return (
         <ErrorBoundary
@@ -124,7 +127,12 @@ const App = () => {
                         baseColor={'var(--color-gray-200)'}
                         highlightColor={'var(--color-primary-background)'}
                     >
-                        <AppLoadingContext value={{ isLoading, setIsLoading }}>
+                        <AppLoadingContext
+                            value={{
+                                loadingState,
+                                setLoadingState,
+                            }}
+                        >
                             <LoadingPage />
                             <AuthenticationRouter />
                         </AppLoadingContext>
@@ -140,7 +148,7 @@ const AuthenticationRouter = () => {
         getAdminQuery,
         { error: adminError, data: adminData, called, refetch },
     ] = useGetAdminLazyQuery();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
 
@@ -179,13 +187,17 @@ const AuthenticationRouter = () => {
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
         }
-    }, [adminError, adminData, setIsLoading]);
+    }, [adminError, adminData]);
 
     useEffect(() => {
         if (authRole === AuthRole.UNAUTHENTICATED) {
-            setIsLoading(isAuthLoading(authRole));
+            setLoadingState(
+                isAuthLoading(authRole)
+                    ? AppLoadingState.LOADING
+                    : AppLoadingState.LOADED
+            );
         }
-    }, [authRole, setIsLoading]);
+    }, [authRole, setLoadingState]);
 
     return (
         <AuthContextProvider

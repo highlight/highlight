@@ -1,4 +1,7 @@
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import LoginForm from '@pages/Login/Login';
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
@@ -27,7 +30,7 @@ export const WorkspaceRouter = () => {
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
         variables: { workspace_id },
@@ -62,9 +65,9 @@ export const WorkspaceRouter = () => {
 
     useEffect(() => {
         if (isLoggedIn) {
-            setIsLoading(false);
+            setLoadingState(AppLoadingState.LOADED);
         }
-    }, [isLoggedIn, setIsLoading]);
+    }, [isLoggedIn, setLoadingState]);
 
     if (loading) {
         return null;

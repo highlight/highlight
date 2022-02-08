@@ -572,7 +572,7 @@ func (w *Worker) Start() {
 
 					if excluded != nil && *excluded {
 						log.WithField("session_id", session.ID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
-						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"excluded": true}); err != nil {
+						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithField("session_id", session.ID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 					}
