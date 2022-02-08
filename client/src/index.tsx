@@ -137,6 +137,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
+    firstLoadListeners?: FirstLoadListeners;
 };
 
 /**
@@ -188,6 +189,95 @@ const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 
 const HIGHLIGHT_URL = 'app.highlight.run';
 
+export class FirstLoadListeners {
+    disableConsoleRecording: boolean;
+    consoleMethodsToRecord: ConsoleMethods[];
+    listeners: listenerHandler[];
+    errors: ErrorMessage[];
+    messages: ConsoleMessage[];
+
+    constructor({ options }: { options: HighlightClassOptions }) {
+        this.disableConsoleRecording =
+            // Disable recording the console on localhost.
+            // We're doing this because on some development builds, the console ends up in an infinite loop.
+            window.location.hostname === 'localhost' ||
+            !!options.disableConsoleRecording;
+        this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
+            ...ALL_CONSOLE_METHODS,
+        ];
+        this.listeners = [];
+        this.errors = [];
+        this.messages = [];
+    }
+
+    isListening() {
+        return this.listeners.length > 0;
+    }
+
+    startListening() {
+        const highlightThis = this;
+        if (!this.disableConsoleRecording) {
+            this.listeners.push(
+                ConsoleListener(
+                    (c: ConsoleMessage) => {
+                        if (
+                            (c.type === 'Error' || c.type === 'error') &&
+                            c.value &&
+                            c.trace
+                        ) {
+                            const errorValue = stringify(c.value);
+                            if (
+                                ERRORS_TO_IGNORE.includes(errorValue) ||
+                                ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
+                                    errorValue.includes(pattern)
+                                )
+                            ) {
+                                return;
+                            }
+                            highlightThis.errors.push({
+                                event: errorValue,
+                                type: 'console.error',
+                                url: window.location.href,
+                                source: c.trace[0]?.fileName
+                                    ? c.trace[0].fileName
+                                    : '',
+                                lineNumber: c.trace[0]?.lineNumber
+                                    ? c.trace[0].lineNumber
+                                    : 0,
+                                columnNumber: c.trace[0]?.columnNumber
+                                    ? c.trace[0].columnNumber
+                                    : 0,
+                                stackTrace: c.trace,
+                                timestamp: new Date().toISOString(),
+                            });
+                        } else {
+                            highlightThis.messages.push(c);
+                        }
+                    },
+                    {
+                        lengthThreshold: 1000,
+                        level: this.consoleMethodsToRecord,
+                        logger: 'console',
+                        stringifyOptions: {
+                            depthOfLimit: 10,
+                            numOfKeysLimit: 100,
+                            stringLengthLimit: 1000,
+                        },
+                    }
+                )
+            );
+        }
+        this.listeners.push(
+            ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+        );
+    }
+
+    stopListening() {
+        this.listeners.forEach((stop: listenerHandler) => stop());
+        this.listeners = [];
+    }
+}
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -196,8 +286,6 @@ export class Highlight {
     organizationID!: string;
     graphqlSDK!: Sdk;
     events!: eventWithTime[];
-    errors!: ErrorMessage[];
-    messages!: ConsoleMessage[];
     xhrNetworkContents!: RequestResponsePair[];
     fetchNetworkContents!: RequestResponsePair[];
     tracingOrigins!: boolean | (string | RegExp)[];
@@ -213,8 +301,6 @@ export class Highlight {
     logger!: Logger;
     disableNetworkRecording!: boolean;
     enableRecordingNetworkContents!: boolean;
-    disableConsoleRecording!: boolean;
-    consoleMethodsToRecord!: ConsoleMethods[];
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -230,6 +316,7 @@ export class Highlight {
     _recordingStartTime!: number;
     _isOnLocalHost!: boolean;
     _onToggleFeedbackFormVisibility!: () => void;
+    _firstLoadListeners!: FirstLoadListeners;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
@@ -238,9 +325,12 @@ export class Highlight {
         return new Highlight(options);
     }
 
-    constructor(options: HighlightClassOptions) {
+    constructor(
+        options: HighlightClassOptions,
+        firstLoadListeners?: FirstLoadListeners
+    ) {
         this.options = options;
-        this._initMembers(this.options);
+        this._initMembers(this.options, firstLoadListeners);
     }
 
     // Start a new session
@@ -266,14 +356,17 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this._initMembers(this.options);
+        this._initMembers(this.options, this._firstLoadListeners);
         await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
         }
     }
 
-    _initMembers(options: HighlightClassOptions) {
+    _initMembers(
+        options: HighlightClassOptions,
+        firstLoadListeners?: FirstLoadListeners
+    ) {
         this.xhrNetworkContents = [];
         this.fetchNetworkContents = [];
         this.tracingOrigins = [];
@@ -328,14 +421,6 @@ export class Highlight {
 
         this.ready = false;
         this.state = 'NotRecording';
-        this.disableConsoleRecording =
-            // Disable recording the console on localhost.
-            // We're doing this because on some development builds, the console ends up in an infinite loop.
-            window.location.hostname === 'localhost' ||
-            !!options.disableConsoleRecording;
-        this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
-            ...ALL_CONSOLE_METHODS,
-        ];
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
@@ -402,9 +487,12 @@ export class Highlight {
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
         this.listeners = [];
+
+        // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
+        this._firstLoadListeners =
+            firstLoadListeners || new FirstLoadListeners({ options });
+
         this.events = [];
-        this.errors = [];
-        this.messages = [];
         this.hasSessionUnloaded = false;
 
         if (window.Intercom) {
@@ -472,7 +560,7 @@ export class Highlight {
     async pushCustomError(message: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
-        this.errors.push({
+        this._firstLoadListeners.errors.push({
             event: message,
             type: 'custom',
             url: window.location.href,
@@ -494,7 +582,7 @@ export class Highlight {
                 console.error(e);
             }
         }
-        this.errors.push({
+        this._firstLoadListeners.errors.push({
             event: message ? message + ':' + error.message : error.message,
             type: 'custom',
             url: window.location.href,
@@ -770,60 +858,11 @@ export class Highlight {
                     );
                 })
             );
-            if (!this.disableConsoleRecording) {
-                this.listeners.push(
-                    ConsoleListener(
-                        (c: ConsoleMessage) => {
-                            if (
-                                (c.type === 'Error' || c.type === 'error') &&
-                                c.value &&
-                                c.trace
-                            ) {
-                                const errorValue = stringify(c.value);
-                                if (
-                                    ERRORS_TO_IGNORE.includes(errorValue) ||
-                                    ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
-                                        errorValue.includes(pattern)
-                                    )
-                                ) {
-                                    return;
-                                }
-                                highlightThis.errors.push({
-                                    event: errorValue,
-                                    type: 'console.error',
-                                    url: window.location.href,
-                                    source: c.trace[0]?.fileName
-                                        ? c.trace[0].fileName
-                                        : '',
-                                    lineNumber: c.trace[0]?.lineNumber
-                                        ? c.trace[0].lineNumber
-                                        : 0,
-                                    columnNumber: c.trace[0]?.columnNumber
-                                        ? c.trace[0].columnNumber
-                                        : 0,
-                                    stackTrace: c.trace,
-                                    timestamp: new Date().toISOString(),
-                                });
-                            } else {
-                                highlightThis.messages.push(c);
-                            }
-                        },
-                        {
-                            lengthThreshold: 1000,
-                            level: this.consoleMethodsToRecord,
-                            logger: 'console',
-                            stringifyOptions: {
-                                depthOfLimit: 10,
-                                numOfKeysLimit: 100,
-                                stringLengthLimit: 1000,
-                            },
-                        }
-                    )
-                );
+
+            if (!this._firstLoadListeners.isListening()) {
+                this._firstLoadListeners.startListening();
             }
-            this.listeners.push(
-                ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
-            );
+
             this.listeners.push(
                 ViewportResizeListener((viewport) => {
                     this.addCustomEvent('Viewport', viewport);
@@ -972,6 +1011,7 @@ export class Highlight {
         this.state = 'NotRecording';
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
+        this._firstLoadListeners.stopListening();
     }
 
     getCurrentSessionTimestamp() {
@@ -1153,9 +1193,9 @@ export class Highlight {
             }
         }
 
-        const messages = [...this.messages];
         const events = [...this.events];
-        const errors = [...this.errors];
+        const messages = [...this._firstLoadListeners.messages];
+        const errors = [...this._firstLoadListeners.errors];
 
         // SendBeacon is not guaranteed to succeed, so keep the events and re-upload on
         // the next PushPayload if there is one. The backend will remove all existing beacon
@@ -1173,9 +1213,13 @@ export class Highlight {
             // 2. rrweb pushes to this.events (with M events)
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
-            this.messages = this.messages.slice(messages.length);
             this.events = this.events.slice(events.length);
-            this.errors = this.errors.slice(errors.length);
+            this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
+                messages.length
+            );
+            this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
+                errors.length
+            );
         }
 
         this.logger.log(
