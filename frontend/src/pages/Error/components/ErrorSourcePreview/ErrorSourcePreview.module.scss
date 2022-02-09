@@ -7,8 +7,8 @@
     padding: 8px 0 !important;
     width: fit-content;
 
-    :global(.token) {
-        background-color: rgba(0, 0, 0, 0) !important;
+    :global(.token):not(.underline) {
+        background: initial !important;
     }
 }
 
@@ -42,8 +42,8 @@
             transparent 25%,
             var(--underline-color) 35%,
             transparent 50%
-        );
-    background-position: 0 100%;
-    background-repeat: repeat-x;
-    background-size: 8px 2px;
+        ) !important;
+    background-position: 0 100% !important;
+    background-repeat: repeat-x !important;
+    background-size: 8px 2px !important;
 }
