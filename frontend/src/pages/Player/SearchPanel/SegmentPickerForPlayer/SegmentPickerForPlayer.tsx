@@ -114,6 +114,7 @@ const SegmentPickerForPlayer = () => {
     return (
         <section className={styles.segmentPickerSection}>
             <Select
+                dropdownMatchSelectWidth={410}
                 value={segmentName}
                 onChange={(value, option) => {
                     if ((option as any)?.key === STARRED_SEGMENT_ID) {

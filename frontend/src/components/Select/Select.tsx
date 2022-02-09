@@ -41,6 +41,7 @@ type Props = Pick<
     | 'aria-label'
     | 'tagRender'
     | 'open'
+    | 'dropdownMatchSelectWidth'
 > & {
     options?: OptionType[];
     hasAccent?: boolean;

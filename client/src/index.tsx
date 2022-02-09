@@ -6,7 +6,11 @@ import {
     eventWithTime,
     listenerHandler,
 } from '@highlight-run/rrweb/dist/types';
-import { ConsoleListener } from './listeners/console-listener';
+import {
+    ALL_CONSOLE_METHODS,
+    ConsoleListener,
+    ConsoleMethods,
+} from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
@@ -124,6 +128,7 @@ export type HighlightClassOptions = {
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
+    consoleMethodsToRecord?: ConsoleMethods[];
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
@@ -209,6 +214,7 @@ export class Highlight {
     disableNetworkRecording!: boolean;
     enableRecordingNetworkContents!: boolean;
     disableConsoleRecording!: boolean;
+    consoleMethodsToRecord!: ConsoleMethods[];
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -261,7 +267,7 @@ export class Highlight {
         }
 
         this._initMembers(this.options);
-        await this.initialize(this.organizationID);
+        await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
         }
@@ -327,6 +333,9 @@ export class Highlight {
             // We're doing this because on some development builds, the console ends up in an infinite loop.
             window.location.hostname === 'localhost' ||
             !!options.disableConsoleRecording;
+        this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
+            ...ALL_CONSOLE_METHODS,
+        ];
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
@@ -557,20 +566,8 @@ export class Highlight {
             }
         }
     }
-    // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-    async initialize(organization_id?: number | string) {
-        var org_id = '';
-        if (typeof organization_id === 'number') {
-            org_id = organization_id.toString();
-        } else if (typeof organization_id === 'string') {
-            org_id = organization_id;
-        } else {
-            org_id = '0';
-        }
+    async initialize() {
         try {
-            if (organization_id) {
-                this.organizationID = org_id;
-            }
             if (this.feedbackWidgetOptions.enabled) {
                 const {
                     onToggleFeedbackFormVisibility,
@@ -813,26 +810,7 @@ export class Highlight {
                         },
                         {
                             lengthThreshold: 1000,
-                            level: [
-                                'assert',
-                                'count',
-                                'countReset',
-                                'debug',
-                                'dir',
-                                'dirxml',
-                                'error',
-                                'group',
-                                'groupCollapsed',
-                                'groupEnd',
-                                'info',
-                                'log',
-                                'table',
-                                'time',
-                                'timeEnd',
-                                'timeLog',
-                                'trace',
-                                'warn',
-                            ],
+                            level: this.consoleMethodsToRecord,
                             logger: 'console',
                             stringifyOptions: {
                                 depthOfLimit: 10,

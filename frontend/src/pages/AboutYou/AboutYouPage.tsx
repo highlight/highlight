@@ -7,7 +7,10 @@ import Card, {
     CardSubHeader,
 } from '@components/Card/Card';
 import Input from '@components/Input/Input';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useUpdateAdminAboutYouDetailsMutation } from '@graph/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
@@ -18,7 +21,7 @@ import { useHistory } from 'react-router';
 import styles from './AboutYouPage.module.scss';
 
 const AboutYouPage = () => {
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
     const { admin } = useAuthContext();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -34,8 +37,8 @@ const AboutYouPage = () => {
     );
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     useEffect(() => {
         if (admin) {

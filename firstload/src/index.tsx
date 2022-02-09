@@ -17,6 +17,7 @@ import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
 import HighlightSegmentMiddleware from './integrations/segment';
+import { ConsoleMethods } from '../../client/src/listeners/console-listener';
 
 initializeFetchListener();
 
@@ -66,6 +67,13 @@ export type HighlightOptions = {
      * @default false
      */
     disableConsoleRecording?: boolean;
+    /**
+     * Specifies which console methods to record.
+     * The value here will be ignored if `disabledConsoleRecording` is `true`.
+     * @default All console methods.
+     * @example consoleMethodsToRecord: ['log', 'info', 'error']
+     */
+    consoleMethodsToRecord?: ConsoleMethods[];
     enableSegmentIntegration?: boolean;
     /**
      * Specifies the environment your application is running in.
@@ -218,6 +226,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     networkRecording: options?.networkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
+                    consoleMethodsToRecord: options?.consoleMethodsToRecord,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
                     enableCanvasRecording: options?.enableCanvasRecording,
@@ -228,7 +237,7 @@ export const H: HighlightPublicInterface = {
                     feedbackWidget: options?.feedbackWidget,
                 });
                 if (!options?.manualStart) {
-                    highlight_obj.initialize(projectID);
+                    highlight_obj.initialize();
                 }
             });
 

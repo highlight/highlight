@@ -247,6 +247,9 @@ type ErrorTrace {
     functionName: String
     columnNumber: Int
     error: String
+    lineContent: String
+    linesBefore: String
+    linesAfter: String
 }
 
 type ReferrerTablePayload {
@@ -487,6 +490,14 @@ type DailyErrorCount {
 type ErrorDistributionItem {
     name: String!
     value: Int64!
+}
+
+type Dashboard {
+    id: ID!
+    project_id: ID!
+    layout: String!
+    name: String!
+    last_admin_to_edit_id: ID!
 }
 
 type SanitizedSlackChannel {

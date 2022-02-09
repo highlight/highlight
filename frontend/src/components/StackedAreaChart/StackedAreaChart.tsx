@@ -100,6 +100,7 @@ const StackedAreaChart = ({
                         <ReferenceLine {...referenceLineProps} isFront={true} />
                     )}
                     <Tooltip
+                        position={{ y: 0 }}
                         content={
                             <RechartTooltip
                                 render={(payload: any) => {

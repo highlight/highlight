@@ -1,4 +1,7 @@
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useGetProjectsQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
@@ -16,7 +19,7 @@ export const WorkspaceRedirectionRouter = () => {
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const {
         loading: o_loading,
@@ -27,8 +30,10 @@ export const WorkspaceRedirectionRouter = () => {
     const history = useHistory();
 
     useEffect(() => {
-        setIsLoading(o_loading);
-    }, [o_loading, setIsLoading]);
+        setLoadingState(
+            o_loading ? AppLoadingState.LOADING : AppLoadingState.LOADED
+        );
+    }, [o_loading, setLoadingState]);
 
     if (o_error) {
         return <p>{'App error: ' + JSON.stringify(o_error)}</p>;

@@ -114,7 +114,7 @@ const getBanner = (project_id: string) => {
     if (isOnPrem) {
         return <OnPremiseBanner />;
     } else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        return <ProductHuntBanner />;
+        return <DemoWorkspaceBanner />;
     } else {
         return <FreePlanBanner />;
     }
@@ -166,7 +166,8 @@ const FreePlanBanner = () => {
     }
 
     if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-        return <ProductHuntBanner />;
+        toggleShowBanner(false);
+        return null;
     }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
@@ -278,7 +279,6 @@ const OnPremiseBanner = () => {
     );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DemoWorkspaceBanner = () => {
     const { currentProject, allProjects } = useApplicationContext();
     const { pathname } = useLocation();
@@ -305,6 +305,7 @@ const DemoWorkspaceBanner = () => {
     );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ProductHuntBanner = () => {
     const { toggleShowBanner } = useGlobalContext();
 

@@ -1,5 +1,8 @@
 import Input from '@components/Input/Input';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
@@ -19,7 +22,7 @@ import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
     const { isAuthLoading, admin } = useAuthContext();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
@@ -68,9 +71,9 @@ export const AuthAdminRouter = () => {
 
     useEffect(() => {
         if (isAuthLoading) {
-            setIsLoading(true);
+            setLoadingState(AppLoadingState.LOADING);
         }
-    }, [isAuthLoading, setIsLoading]);
+    }, [isAuthLoading, setLoadingState]);
 
     if (isAuthLoading) {
         return null;
@@ -97,7 +100,7 @@ const LoginForm = () => {
     );
     const { isAuthLoading, isLoggedIn, admin } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState: setIsLoading } = useAppLoadingContext();
     const [isLoadingFirebase, setIsLoadingFirebase] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -151,7 +154,7 @@ const LoginForm = () => {
 
     useEffect(() => {
         if (isAuthLoading) {
-            setIsLoading(true);
+            setIsLoading(AppLoadingState.LOADING);
         }
     }, [isAuthLoading, setIsLoading]);
 

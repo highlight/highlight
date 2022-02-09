@@ -280,6 +280,9 @@ export type ErrorTrace = {
     functionName?: Maybe<Scalars['String']>;
     columnNumber?: Maybe<Scalars['Int']>;
     error?: Maybe<Scalars['String']>;
+    lineContent?: Maybe<Scalars['String']>;
+    linesBefore?: Maybe<Scalars['String']>;
+    linesAfter?: Maybe<Scalars['String']>;
 };
 
 export type ReferrerTablePayload = {
@@ -539,6 +542,15 @@ export type ErrorDistributionItem = {
     __typename?: 'ErrorDistributionItem';
     name: Scalars['String'];
     value: Scalars['Int64'];
+};
+
+export type Dashboard = {
+    __typename?: 'Dashboard';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    layout: Scalars['String'];
+    name: Scalars['String'];
+    last_admin_to_edit_id: Scalars['ID'];
 };
 
 export type SanitizedSlackChannel = {

@@ -76,6 +76,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
+    const [
+        viewingUnauthorizedSession,
+        setViewingUnauthorizedSession,
+    ] = useState(false);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [performancePayloads, setPerformancePayloads] = useState<
         Array<HighlightPerformancePayload>
@@ -181,6 +185,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                     alert(
                         "btw this session is outside of the project's billing quota."
                     );
+                }
+                // Show the authorization form for Highlight staff if they're trying to access a customer session.
+                if (isHighlightAdmin && project_id !== '1') {
+                    setViewingUnauthorizedSession(true);
                 }
                 if (data.session?.last_user_interaction_time) {
                     lastActiveTimestampRef.current = new Date(
@@ -845,6 +853,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         viewport,
         currentUrl,
         sessionStartDateTime: events.length > 0 ? events[0].timestamp : 0,
+        viewingUnauthorizedSession,
+        setViewingUnauthorizedSession,
     };
 };
 

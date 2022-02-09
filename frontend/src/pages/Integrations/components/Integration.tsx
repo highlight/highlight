@@ -1,7 +1,7 @@
 import Card from '@components/Card/Card';
 import Modal from '@components/Modal/Modal';
 import Switch from '@components/Switch/Switch';
-import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations';
+import { Integration as IntegrationType } from '@pages/Integrations/Integrations';
 import React, { useEffect, useState } from 'react';
 
 import styles from './Integration.module.scss';

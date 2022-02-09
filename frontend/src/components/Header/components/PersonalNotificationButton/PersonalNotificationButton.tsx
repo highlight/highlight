@@ -36,7 +36,6 @@ const PersonalNotificationButton = ({
 
     const { slackUrl: slackBotUrl, isSlackConnectedToWorkspace } = useSlackBot({
         type,
-        watch: true,
     });
 
     useEffect(() => {

@@ -6060,6 +6060,9 @@ export const GetErrorGroupDocument = gql`
                 lineNumber
                 functionName
                 columnNumber
+                lineContent
+                linesBefore
+                linesAfter
             }
             mapped_stack_trace
             stack_trace

@@ -1,5 +1,5 @@
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
-import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegrationConfig';
+import { IntegrationConfigProps } from '@pages/Integrations/components/Integration';
+import SlackIntegrationConfig from '@pages/Integrations/components/SlackIntegrationConfig';
 import React from 'react';
 
 export interface Integration {

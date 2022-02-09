@@ -1,13 +1,16 @@
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import React, { lazy, Suspense, useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 
 const InternalRouter = () => {
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     return (
         <Switch>

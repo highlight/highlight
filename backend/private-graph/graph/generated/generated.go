@@ -94,6 +94,14 @@ type ComplexityRoot struct {
 		ProjectID func(childComplexity int) int
 	}
 
+	Dashboard struct {
+		ID                func(childComplexity int) int
+		LastAdminToEditID func(childComplexity int) int
+		Layout            func(childComplexity int) int
+		Name              func(childComplexity int) int
+		ProjectID         func(childComplexity int) int
+	}
+
 	DateRange struct {
 		EndDate   func(childComplexity int) int
 		StartDate func(childComplexity int) int
@@ -226,7 +234,10 @@ type ComplexityRoot struct {
 		Error        func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
+		LineContent  func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
+		LinesAfter   func(childComplexity int) int
+		LinesBefore  func(childComplexity int) int
 	}
 
 	Field struct {
@@ -1036,6 +1047,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DailySessionCount.ProjectID(childComplexity), true
 
+	case "Dashboard.id":
+		if e.complexity.Dashboard.ID == nil {
+			break
+		}
+
+		return e.complexity.Dashboard.ID(childComplexity), true
+
+	case "Dashboard.last_admin_to_edit_id":
+		if e.complexity.Dashboard.LastAdminToEditID == nil {
+			break
+		}
+
+		return e.complexity.Dashboard.LastAdminToEditID(childComplexity), true
+
+	case "Dashboard.layout":
+		if e.complexity.Dashboard.Layout == nil {
+			break
+		}
+
+		return e.complexity.Dashboard.Layout(childComplexity), true
+
+	case "Dashboard.name":
+		if e.complexity.Dashboard.Name == nil {
+			break
+		}
+
+		return e.complexity.Dashboard.Name(childComplexity), true
+
+	case "Dashboard.project_id":
+		if e.complexity.Dashboard.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.Dashboard.ProjectID(childComplexity), true
+
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
 			break
@@ -1701,12 +1747,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.FunctionName(childComplexity), true
 
+	case "ErrorTrace.lineContent":
+		if e.complexity.ErrorTrace.LineContent == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LineContent(childComplexity), true
+
 	case "ErrorTrace.lineNumber":
 		if e.complexity.ErrorTrace.LineNumber == nil {
 			break
 		}
 
 		return e.complexity.ErrorTrace.LineNumber(childComplexity), true
+
+	case "ErrorTrace.linesAfter":
+		if e.complexity.ErrorTrace.LinesAfter == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LinesAfter(childComplexity), true
+
+	case "ErrorTrace.linesBefore":
+		if e.complexity.ErrorTrace.LinesBefore == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
 
 	case "Field.id":
 		if e.complexity.Field.ID == nil {
@@ -4993,6 +5060,9 @@ type ErrorTrace {
     functionName: String
     columnNumber: Int
     error: String
+    lineContent: String
+    linesBefore: String
+    linesAfter: String
 }
 
 type ReferrerTablePayload {
@@ -5233,6 +5303,14 @@ type DailyErrorCount {
 type ErrorDistributionItem {
     name: String!
     value: Int64!
+}
+
+type Dashboard {
+    id: ID!
+    project_id: ID!
+    layout: String!
+    name: String!
+    last_admin_to_edit_id: ID!
 }
 
 type SanitizedSlackChannel {
@@ -10566,6 +10644,181 @@ func (ec *executionContext) _DailySessionCount_count(ctx context.Context, field 
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Dashboard_id(ctx context.Context, field graphql.CollectedField, obj *model1.Dashboard) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Dashboard",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Dashboard_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.Dashboard) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Dashboard",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Dashboard_layout(ctx context.Context, field graphql.CollectedField, obj *model1.Dashboard) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Dashboard",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Layout, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Dashboard_name(ctx context.Context, field graphql.CollectedField, obj *model1.Dashboard) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Dashboard",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Dashboard_last_admin_to_edit_id(ctx context.Context, field graphql.CollectedField, obj *model1.Dashboard) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Dashboard",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAdminToEditID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13787,6 +14040,102 @@ func (ec *executionContext) _ErrorTrace_error(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_lineContent(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LineContent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_linesBefore(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinesBefore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_linesAfter(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinesAfter, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27672,6 +28021,53 @@ func (ec *executionContext) _DailySessionCount(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var dashboardImplementors = []string{"Dashboard"}
+
+func (ec *executionContext) _Dashboard(ctx context.Context, sel ast.SelectionSet, obj *model1.Dashboard) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dashboardImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Dashboard")
+		case "id":
+			out.Values[i] = ec._Dashboard_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "project_id":
+			out.Values[i] = ec._Dashboard_project_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "layout":
+			out.Values[i] = ec._Dashboard_layout(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Dashboard_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "last_admin_to_edit_id":
+			out.Values[i] = ec._Dashboard_last_admin_to_edit_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var dateRangeImplementors = []string{"DateRange"}
 
 func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet, obj *model1.DateRange) graphql.Marshaler {
@@ -28436,6 +28832,12 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_columnNumber(ctx, field, obj)
 		case "error":
 			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
+		case "lineContent":
+			out.Values[i] = ec._ErrorTrace_lineContent(ctx, field, obj)
+		case "linesBefore":
+			out.Values[i] = ec._ErrorTrace_linesBefore(ctx, field, obj)
+		case "linesAfter":
+			out.Values[i] = ec._ErrorTrace_linesAfter(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
