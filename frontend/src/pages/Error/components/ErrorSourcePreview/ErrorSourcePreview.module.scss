@@ -11,3 +11,35 @@
 .codeBlockWrapper {
     overflow-x: auto;
 }
+
+.underline {
+    --underline-color: var(--color-red-600);
+
+    background-image: linear-gradient(
+            45deg,
+            transparent 65%,
+            var(--underline-color) 80%,
+            transparent 90%
+        ),
+        linear-gradient(
+            135deg,
+            transparent 5%,
+            var(--underline-color) 15%,
+            transparent 25%
+        ),
+        linear-gradient(
+            135deg,
+            transparent 45%,
+            var(--underline-color) 55%,
+            transparent 65%
+        ),
+        linear-gradient(
+            45deg,
+            transparent 25%,
+            var(--underline-color) 35%,
+            transparent 50%
+        );
+    background-position: 0 100%;
+    background-repeat: repeat-x;
+    background-size: 8px 2px;
+}

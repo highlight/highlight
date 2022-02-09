@@ -1,5 +1,5 @@
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import styles from './ErrorSourcePreview.module.scss';
 
@@ -72,6 +72,27 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
     const extension = fileName?.split('.').pop();
     const language = (!!extension && LANGUAGE_MAP[extension]) || 'javascript';
 
+    // Adds a squiggly underline to the line where the error occurred
+    useEffect(() => {
+        const thrownLineElement = document.querySelector(
+            `[data-line-number="${lineNumber}"]`
+        );
+        if (thrownLineElement) {
+            // Skip the first 2 tokens:
+            // 1. First token is the line number
+            // 2. Second token is the tab/indentation
+            [...thrownLineElement.children].slice(2).forEach((childElement) => {
+                if (
+                    childElement.textContent === functionName ||
+                    // `functionName` is empty when the error occurred on the entire line. In this case we add an underline to the entire line.
+                    functionName === ''
+                ) {
+                    childElement.classList.add(styles.underline);
+                }
+            });
+        }
+    }, [functionName, lineNumber]);
+
     return (
         <span className={styles.codeBlockWrapper}>
             <CodeBlock
@@ -85,9 +106,10 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                     if (ln === lineNumber) {
                         return {
                             style: {
-                                backgroundColor: 'var(--color-purple-200)',
+                                backgroundColor: 'var(--color-gray-300)',
                                 display: 'block',
                             },
+                            'data-line-number': lineNumber.toString(),
                         };
                     }
                     return {
