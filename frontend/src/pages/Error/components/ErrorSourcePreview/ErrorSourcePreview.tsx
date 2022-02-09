@@ -32,9 +32,6 @@ const LANGUAGE_MAP: { [K in string]: string } = {
 const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
     fileName,
     lineNumber,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    columnNumber,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     functionName,
     lineContent,
     linesBefore,
