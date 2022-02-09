@@ -3651,7 +3651,7 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 	var g errgroup.Group
 	var queriedSessionsOutOfQuota int64
 	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, project.WorkspaceID)
+		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
