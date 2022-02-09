@@ -3069,6 +3069,40 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*modelInputs.ErrorDistributionItem, error) {
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to view error group")
+	}
+
+	if projectID == 0 {
+		// Make error distribution random for demo org so it looks pretty
+		rand.Seed(int64(errGroup.ID))
+		dists := []*modelInputs.ErrorDistributionItem{}
+		for i := 0; i <= 3; i++ {
+			t := int64(rand.Intn(10) + 1)
+			dists = append(dists, &modelInputs.ErrorDistributionItem{
+				Name:  fmt.Sprintf("Property %d", i),
+				Value: t,
+			})
+		}
+		return dists, nil
+	}
+
+	errorDistribution := []*modelInputs.ErrorDistributionItem{}
+
+	if err := r.DB.Raw(fmt.Sprintf(`
+		SELECT %s as name, COUNT(*) as value FROM error_objects
+		WHERE error_group_id=? AND project_id=?
+		GROUP BY %s
+		ORDER BY 2 DESC;
+	`, property, property), errGroup.ID, projectID).Scan(&errorDistribution).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error distribution")
+	}
+
+	return errorDistribution, nil
+}
+
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")

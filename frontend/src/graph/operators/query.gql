@@ -1078,6 +1078,21 @@ query GetDailyErrorFrequency(
     )
 }
 
+query GetErrorDistribution(
+    $project_id: ID!
+    $error_group_secure_id: String!
+    $property: String!
+) {
+    errorDistribution(
+        project_id: $project_id
+        error_group_secure_id: $error_group_secure_id
+        property: $property
+    ) {
+        name
+        value
+    }
+}
+
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
