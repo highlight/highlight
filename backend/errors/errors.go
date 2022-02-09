@@ -27,11 +27,11 @@ type fetcher interface {
 }
 
 func init() {
-	// if util.IsDevEnv() {
-	// 	fetch = DiskFetcher{}
-	// } else {
-	fetch = NetworkFetcher{}
-	// }
+	if util.IsDevEnv() {
+		fetch = DiskFetcher{}
+	} else {
+		fetch = NetworkFetcher{}
+	}
 }
 
 var fetch fetcher

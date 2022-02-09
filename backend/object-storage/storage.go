@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -254,9 +253,9 @@ func (s *StorageClient) bucketKey(sessionId int, projectId int, key PayloadType)
 
 func (s *StorageClient) sourceMapBucketKey(projectId int, version *string, fileName string) *string {
 	var key string
-	// if util.IsDevEnv() {
-	// 	key = "dev/"
-	// }
+	if util.IsDevEnv() {
+		key = "dev/"
+	}
 	if version == nil {
 		unversioned := "unversioned"
 		version = &unversioned
@@ -266,7 +265,6 @@ func (s *StorageClient) sourceMapBucketKey(projectId int, version *string, fileN
 }
 
 func (s *StorageClient) PushSourceMapFileReaderToS3(projectId int, version *string, fileName string, file io.Reader) (*int64, error) {
-	return pointy.Int64(0), nil
 	key := s.sourceMapBucketKey(projectId, version, fileName)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file,
