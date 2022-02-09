@@ -645,7 +645,14 @@ func (w *Worker) StartMetricMonitorWatcher() {
 
 func (w *Worker) BackfillStackFrames() {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
-		Where("type <> 'Backend' AND stack_trace is not null AND mapped_stack_trace is null").
+		Where(`
+			type <> 'Backend'
+			AND stack_trace is not null
+			AND mapped_stack_trace is null
+			AND exists (
+				select 1 from error_groups eg
+				where eg.id = error_group_id
+				and mapped_stack_trace ilike '%\"error\":null%')`).
 		Order("id desc").Rows()
 	if err != nil {
 		log.Fatalf("error retrieving objects: %+v", err)
