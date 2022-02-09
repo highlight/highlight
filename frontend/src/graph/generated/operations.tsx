@@ -2878,6 +2878,23 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
     'dailyErrorFrequency'
 >;
 
+export type GetErrorDistributionQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
+    property: Types.Scalars['String'];
+}>;
+
+export type GetErrorDistributionQuery = { __typename?: 'Query' } & {
+    errorDistribution: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorDistributionItem' } & Pick<
+                Types.ErrorDistributionItem,
+                'name' | 'value'
+            >
+        >
+    >;
+};
+
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3292,6 +3309,7 @@ export const namedOperations = {
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
         GetRageClicksForProject: 'GetRageClicksForProject' as const,
         GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
+        GetErrorDistribution: 'GetErrorDistribution' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,

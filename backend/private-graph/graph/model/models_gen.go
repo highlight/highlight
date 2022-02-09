@@ -40,6 +40,11 @@ type EnhancedUserDetailsResult struct {
 	Email   *string       `json:"email"`
 }
 
+type ErrorDistributionItem struct {
+	Name  string `json:"name"`
+	Value int64  `json:"value"`
+}
+
 type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
 	SessionID       int        `json:"session_id"`
