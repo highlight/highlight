@@ -6,6 +6,10 @@
     min-width: 100%;
     padding: 8px 0 !important;
     width: fit-content;
+
+    :global(.token):not(.underline) {
+        background: initial !important;
+    }
 }
 
 .codeBlockWrapper {
@@ -38,8 +42,8 @@
             transparent 25%,
             var(--underline-color) 35%,
             transparent 50%
-        );
-    background-position: 0 100%;
-    background-repeat: repeat-x;
-    background-size: 8px 2px;
+        ) !important;
+    background-position: 0 100% !important;
+    background-repeat: repeat-x !important;
+    background-size: 8px 2px !important;
 }
