@@ -8,8 +8,8 @@ import {
     SyntaxHighlighterProps,
 } from 'react-syntax-highlighter';
 import {
-    materialDark,
-    materialLight,
+    atomDark as darkTheme,
+    coy as lightTheme,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import styles from './CodeBlock.module.scss';
@@ -73,7 +73,8 @@ export const CodeBlock = ({
             )}
             <SyntaxHighlighter
                 language={language}
-                style={theme === 'light' ? materialLight : materialDark}
+                style={theme === 'light' ? lightTheme : darkTheme}
+                customStyle={{ padding: '8px 0' }}
                 {...props}
             >
                 {text}

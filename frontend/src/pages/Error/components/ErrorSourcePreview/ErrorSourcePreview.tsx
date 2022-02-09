@@ -123,6 +123,33 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                     paddingLeft: '16px',
                 }}
                 wrapLines
+                customStyle={{
+                    fontFamily: 'Roboto Mono',
+                    border: 'none !important',
+                }}
+                codeTagProps={{
+                    style: {
+                        color: '#111',
+                        background: 'none',
+                        fontFamily:
+                            'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+                        fontSize: '1em',
+                        textAlign: 'left',
+                        whiteSpace: 'pre',
+                        wordSpacing: 'normal',
+                        wordBreak: 'normal',
+                        overflowWrap: 'normal',
+                        lineHeight: '1.5',
+                        tabSize: '4',
+                        hyphens: 'none',
+                        maxHeight: 'inherit',
+                        height: 'inherit',
+                        padding: '0',
+                        display: 'block',
+                        overflow: 'auto',
+                        border: 'none',
+                    },
+                }}
             />
         </span>
     );
