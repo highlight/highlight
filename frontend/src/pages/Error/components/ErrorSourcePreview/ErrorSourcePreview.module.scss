@@ -6,6 +6,10 @@
     min-width: 100%;
     padding: 8px 0 !important;
     width: fit-content;
+
+    :global(.token) {
+        background-color: rgba(0, 0, 0, 0) !important;
+    }
 }
 
 .codeBlockWrapper {
