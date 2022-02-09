@@ -78,23 +78,15 @@ func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
 	return meter, nil
 }
 
-func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int) (int64, error) {
+func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (int64, error) {
 	var queriedSessionsOverQuota int64
 	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("workspace_id", workspaceID))
+		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("project_id", projectID))
 	defer sessionsOverQuotaCountSpan.Finish()
 	if err := DB.Model(&model.Session{}).
-		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=?)
+		Where(`project_id = ?
 			AND within_billing_quota = false
-			AND created_at >= (
-				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=?)
-			AND created_at < (
-				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-				FROM workspaces
-				WHERE id=?)
-			AND excluded <> ?`, workspaceID, workspaceID, workspaceID, true).
+			AND excluded <> true`, projectID).
 		Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
