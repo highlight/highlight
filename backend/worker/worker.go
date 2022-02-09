@@ -696,8 +696,6 @@ func (w *Worker) BackfillStackFrames() {
 				log.Errorf("error updating stack trace string: %+v", err)
 				return
 			}
-
-			log.Infof("%d: %s", modelObj.ID, mappedStackTraceString)
 		})
 	}
 }
