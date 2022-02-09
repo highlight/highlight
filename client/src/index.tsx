@@ -215,6 +215,7 @@ export class FirstLoadListeners {
     }
 
     startListening() {
+        if (this.isListening()) return;
         const highlightThis = this;
         if (!this.disableConsoleRecording) {
             this.listeners.push(
