@@ -121,12 +121,11 @@
 
 .sectionRow {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: var(--size-medium);
     width: 100%;
 }
 
 .sectionItem {
-    align-items: stretch;
     display: inline-block;
     padding: 0 5px;
     width: 50%;
