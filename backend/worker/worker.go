@@ -667,16 +667,7 @@ func (w *Worker) BackfillStackFrames() {
 				return
 			}
 
-			var version *string
-			if err := w.Resolver.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: modelObj.SessionID}}).
-				Select("app_version").Scan(&version).Error; err != nil {
-				if !e.Is(err, gorm.ErrRecordNotFound) {
-					log.Errorf("error getting app version from session: %+v", err)
-					return
-				}
-			}
-
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
+			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, nil, w.Resolver.StorageClient)
 			if err != nil {
 				log.Errorf("error getting stack trace string: %+v", err)
 				return
