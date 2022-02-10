@@ -568,7 +568,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
-		minScore = 10 + len(restCode)
+		minScore = 10 + len(restCode) - 1
 	}
 
 	if result.Sum > minScore {
