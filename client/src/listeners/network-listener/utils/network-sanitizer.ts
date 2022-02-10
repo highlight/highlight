@@ -45,7 +45,12 @@ const sanitizeHeaders = (headersToRedact: string[], headers?: Headers) => {
 };
 
 /** These are known headers that are secrets. */
-const SENSITIVE_HEADERS = ['authorization', 'cookie', 'proxy-authorization'];
+const SENSITIVE_HEADERS = [
+    'authorization',
+    'cookie',
+    'proxy-authorization',
+    'token',
+];
 
 /** Known URLs that contains secrets. */
 export const DEFAULT_URL_BLOCKLIST = [
