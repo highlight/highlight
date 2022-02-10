@@ -51,6 +51,7 @@ export const ResourcePage = React.memo(
             isInteractingWithResources,
             setIsInteractingWithResources,
         ] = useState(false);
+        const [currentActiveIndex, setCurrentActiveIndex] = useState(0);
         const [allResources, setAllResources] = useState<
             Array<NetworkResource> | undefined
         >([]);
@@ -62,6 +63,7 @@ export const ResourcePage = React.memo(
         const {
             setResourcePanel,
             setErrorPanel,
+            panelIsOpen,
         } = useResourceOrErrorDetailPanel();
 
         const {
@@ -220,6 +222,7 @@ export const ResourcePage = React.memo(
         ]);
 
         const resourcesToRender = useMemo(() => {
+            setCurrentActiveIndex(0);
             if (!allResources) {
                 return [];
             }
@@ -238,6 +241,45 @@ export const ResourcePage = React.memo(
 
             return allResources;
         }, [allResources, filterSearchTerm]);
+
+        // Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
+        useEffect(() => {
+            const listener = (e: KeyboardEvent) => {
+                let direction: undefined | number = undefined;
+                if (e.key === 'ArrowUp') {
+                    direction = -1;
+                } else if (e.key === 'ArrowDown') {
+                    direction = 1;
+                }
+
+                if (direction !== undefined) {
+                    e.preventDefault();
+                    let nextIndex = currentActiveIndex + direction;
+                    if (nextIndex < 0) {
+                        nextIndex = 0;
+                    } else if (nextIndex >= resourcesToRender.length) {
+                        nextIndex = resourcesToRender.length - 1;
+                    }
+
+                    setCurrentActiveIndex(nextIndex);
+                    if (panelIsOpen) {
+                        setResourcePanel(resourcesToRender[nextIndex]);
+                        virtuoso.current?.scrollToIndex(nextIndex - 1);
+                    }
+                }
+            };
+            document.addEventListener('keydown', listener);
+
+            return () => {
+                document.removeEventListener('keydown', listener);
+            };
+        }, [
+            currentActiveIndex,
+            panelIsOpen,
+            resourcesToRender,
+            resourcesToRender.length,
+            setResourcePanel,
+        ]);
 
         return (
             <div className={styles.resourcePageWrapper}>
@@ -333,6 +375,9 @@ export const ResourcePage = React.memo(
                                                         filterSearchTerm
                                                     }
                                                     onClickHandler={() => {
+                                                        setCurrentActiveIndex(
+                                                            index
+                                                        );
                                                         setResourcePanel(
                                                             resource
                                                         );
