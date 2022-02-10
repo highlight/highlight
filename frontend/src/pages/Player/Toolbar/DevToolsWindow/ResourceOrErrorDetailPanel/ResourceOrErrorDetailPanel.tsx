@@ -178,7 +178,7 @@ const getOptions = (content: any, id: string) => ({
 });
 
 export const useResourceOrErrorDetailPanel = () => {
-    const { setDetailedPanel } = usePlayerUIContext();
+    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
 
     const setResourceOrErrorPanel = useCallback(
         (resource?: NetworkResource, error?: ErrorObject) => {
@@ -219,5 +219,6 @@ export const useResourceOrErrorDetailPanel = () => {
         setResourceOrErrorPanel,
         setResourcePanel,
         setErrorPanel,
+        panelIsOpen: detailedPanel !== undefined,
     };
 };
