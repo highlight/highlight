@@ -1401,8 +1401,8 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		beaconTime = &now
 	}
 	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled").
-		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F}).Error; err != nil {
+		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}
@@ -1412,6 +1412,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if sessionObj.Processed != nil && *sessionObj.Processed {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed": false,
+			"Excluded":  false,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
 			return
