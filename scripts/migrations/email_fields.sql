@@ -1,7 +1,6 @@
-drop table if exists temp_email_identifiers;
-
-create temp table temp_email_identifiers
-as select created_at, updated_at, value, project_id, id
+insert into fields
+(created_at, updated_at, type, name, value, project_id)
+select NOW(), NOW(), 'user', 'email', value, project_id
 from fields a
 where a.type = 'user'
 and a.name = 'identifier'
@@ -13,11 +12,6 @@ and not exists (
 	and b.name = 'email'
 	and b.value = a.value
 );
-
-insert into fields
-(created_at, updated_at, type, name, value, project_id)
-select NOW(), NOW(), 'user', 'email', value, project_id
-from temp_email_identifiers;
 
 insert into session_fields
 (field_id, session_id)
