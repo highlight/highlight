@@ -920,7 +920,7 @@ export class Highlight {
                         backendUrl: this._backendUrl,
                         tracingOrigins: this.tracingOrigins,
                         urlBlocklist: this.urlBlocklist,
-                        sessionData: this.sessionData,
+                        sessionSecureID: this.sessionData.sessionSecureID,
                     })
                 );
             }

@@ -1,4 +1,3 @@
-import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
 import {
@@ -25,7 +24,7 @@ export const XHRListener = (
     backendUrl: string,
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
-    sessionData: SessionData
+    sessionSecureID: string,
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -76,7 +75,7 @@ export const XHRListener = (
             this.setRequestHeader(
                 HIGHLIGHT_REQUEST_HEADER,
                 getHighlightRequestHeader(
-                    sessionData.sessionSecureID,
+                    sessionSecureID,
                     requestId
                 )
             );
