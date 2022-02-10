@@ -16,7 +16,7 @@ export interface KeyValueTableRow {
     valueDisplayValue: string | React.ReactNode | object;
     /** Set this if the value needs an InfoTooltip. */
     valueInfoTooltipMessage?: string | React.ReactNode;
-    renderType: 'string' | 'json';
+    renderType: 'string' | 'json' | 'react-node';
 }
 
 const KeyValueTable = ({
