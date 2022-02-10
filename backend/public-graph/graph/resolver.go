@@ -560,7 +560,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 				AND error_group_id IS NOT NULL)
 		) a
 		GROUP BY id
-		ORDER BY sum DESC
+		ORDER BY sum DESC, id DESC
 		LIMIT 1`, event, projectID, firstMeta, firstCode, projectID, restMeta, restCode, projectID).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
