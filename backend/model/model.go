@@ -1047,7 +1047,7 @@ func (e *ErrorGroup) GetSlackAttachment(attachment *slack.Attachment) error {
 
 func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionTitle := s.Identifier
-	if len(sessionTitle) <= 0 {
+	if sessionTitle == "" {
 		sessionTitle = fmt.Sprintf("#%d", s.Fingerprint)
 	}
 	sessionActiveDuration := formatDuration(time.Duration(s.ActiveLength * 10e5).Round(time.Second))
@@ -1058,7 +1058,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, s.ProjectID, s.SecureID)
 	sessionImg := ""
 	userProps, err := s.GetUserProperties()
-	if err == nil && len(userProps["avatar"]) > 0 {
+	if err == nil && userProps["avatar"] != "" {
 		sessionImg = userProps["avatar"]
 	}
 
@@ -1072,7 +1072,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	}
 
 	var sideImg *slack.ImageBlockElement
-	if len(sessionImg) > 0 {
+	if sessionImg != "" {
 		sideImg = slack.NewImageBlockElement(sessionImg, "user avatar")
 	}
 
