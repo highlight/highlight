@@ -5926,7 +5926,6 @@ export const GetBillingDetailsDocument = gql`
             }
             meter
             membersMeter
-            sessionsOutOfQuota
         }
         workspace(id: $workspace_id) {
             id
@@ -7739,6 +7738,73 @@ export type GetDailyErrorFrequencyLazyQueryHookResult = ReturnType<
 export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorFrequencyQuery,
     Types.GetDailyErrorFrequencyQueryVariables
+>;
+export const GetErrorDistributionDocument = gql`
+    query GetErrorDistribution(
+        $project_id: ID!
+        $error_group_secure_id: String!
+        $property: String!
+    ) {
+        errorDistribution(
+            project_id: $project_id
+            error_group_secure_id: $error_group_secure_id
+            property: $property
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetErrorDistributionQuery__
+ *
+ * To run a query within a React component, call `useGetErrorDistributionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorDistributionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorDistributionQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      property: // value for 'property'
+ *   },
+ * });
+ */
+export function useGetErrorDistributionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >(GetErrorDistributionDocument, baseOptions);
+}
+export function useGetErrorDistributionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >(GetErrorDistributionDocument, baseOptions);
+}
+export type GetErrorDistributionQueryHookResult = ReturnType<
+    typeof useGetErrorDistributionQuery
+>;
+export type GetErrorDistributionLazyQueryHookResult = ReturnType<
+    typeof useGetErrorDistributionLazyQuery
+>;
+export type GetErrorDistributionQueryResult = Apollo.QueryResult<
+    Types.GetErrorDistributionQuery,
+    Types.GetErrorDistributionQueryVariables
 >;
 export const GetSlackChannelSuggestionDocument = gql`
     query GetSlackChannelSuggestion($project_id: ID!) {

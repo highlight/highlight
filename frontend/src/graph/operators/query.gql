@@ -699,7 +699,6 @@ query GetBillingDetails($workspace_id: ID!) {
         }
         meter
         membersMeter
-        sessionsOutOfQuota
     }
     workspace(id: $workspace_id) {
         id
@@ -1077,6 +1076,21 @@ query GetDailyErrorFrequency(
         error_group_secure_id: $error_group_secure_id
         date_offset: $date_offset
     )
+}
+
+query GetErrorDistribution(
+    $project_id: ID!
+    $error_group_secure_id: String!
+    $property: String!
+) {
+    errorDistribution(
+        project_id: $project_id
+        error_group_secure_id: $error_group_secure_id
+        property: $property
+    ) {
+        name
+        value
+    }
 }
 
 query GetSlackChannelSuggestion($project_id: ID!) {

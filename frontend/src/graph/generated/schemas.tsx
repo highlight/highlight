@@ -538,6 +538,12 @@ export type DailyErrorCount = {
     count: Scalars['Int64'];
 };
 
+export type ErrorDistributionItem = {
+    __typename?: 'ErrorDistributionItem';
+    name: Scalars['String'];
+    value: Scalars['Int64'];
+};
+
 export type Dashboard = {
     __typename?: 'Dashboard';
     id: Scalars['ID'];
@@ -693,6 +699,7 @@ export type Query = {
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
+    errorDistribution: Array<Maybe<ErrorDistributionItem>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
@@ -854,6 +861,12 @@ export type QueryDailyErrorFrequencyArgs = {
     project_id: Scalars['ID'];
     error_group_secure_id: Scalars['String'];
     date_offset: Scalars['Int'];
+};
+
+export type QueryErrorDistributionArgs = {
+    project_id: Scalars['ID'];
+    error_group_secure_id: Scalars['String'];
+    property: Scalars['String'];
 };
 
 export type QueryReferrersArgs = {

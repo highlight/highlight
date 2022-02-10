@@ -3,6 +3,7 @@ import {
     useAuthContext,
 } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
+import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -215,6 +216,32 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     />
                                 )}
                             </div>
+                            {loading ? (
+                                <Skeleton
+                                    count={1}
+                                    style={{
+                                        height: '2ch',
+                                        marginBottom: 0,
+                                    }}
+                                />
+                            ) : (
+                                <div className={styles.sectionRow}>
+                                    <div className={styles.sectionItem}>
+                                        <ErrorDistributionChart
+                                            errorGroup={data?.error_group}
+                                            field="browser"
+                                            title="Browser Distribution"
+                                        />
+                                    </div>
+                                    <div className={styles.sectionItem}>
+                                        <ErrorDistributionChart
+                                            errorGroup={data?.error_group}
+                                            field="os"
+                                            title="OS Distribution"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             <h3 className={styles.titleWithAction}>
                                 Stack Trace
                                 <Tooltip title="Download the stack trace">

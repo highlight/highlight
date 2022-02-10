@@ -27,6 +27,8 @@ export const icon: string;
 export const iconWrapper: string;
 export const intercomLink: string;
 export const section: string;
+export const sectionItem: string;
+export const sectionRow: string;
 export const snippetHeadingTwo: string;
 export const stackTraceErrorTitle: string;
 export const subSection: string;

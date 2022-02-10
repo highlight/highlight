@@ -445,6 +445,9 @@ const PopoutContent = ({
                             );
                         },
                         Option: getMultiselectOption,
+                        LoadingIndicator: () => {
+                            return <></>;
+                        },
                     }}
                     noOptionsMessage={({ inputValue }) =>
                         `No results for "${inputValue}"`

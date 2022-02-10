@@ -69,7 +69,7 @@
 		"**/*.chunk.js": true,
 		"**/*.js.map": true,
 		"**/*.min.js": true,
-		"backend/public-graph/graph/test-files/*": true,
+		"backend/errors/test-files/*": true,
 		"backend/private-graph/graph/generated/*": true,
 		"backend/public-graph/graph/generated/*": true,
 		"backend/go.sum": true,
