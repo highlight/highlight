@@ -6,6 +6,7 @@ import React from 'react';
 import {
     Bar,
     BarChart,
+    LabelList,
     ResponsiveContainer,
     Tooltip as RechartsTooltip,
     XAxis,
@@ -34,8 +35,15 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
         },
     });
 
-    const minChartHeight = (data: Array<any> | undefined) => {
-        return data ? Math.min(Math.max(data.length * 32, 96), 160) : 160;
+    const chartHeight = (data: Array<any> | undefined) => {
+        if (data) {
+            let totalHeight = data.length * 32;
+            if (data.length <= 2) {
+                totalHeight += 60;
+            }
+            return totalHeight;
+        }
+        return 200;
     };
 
     return (
@@ -43,7 +51,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
             <div className={styles.distributionChart}>
                 <ResponsiveContainer
                     width="100%"
-                    height={minChartHeight(data?.errorDistribution)}
+                    height={chartHeight(data?.errorDistribution)}
                 >
                     <BarChart
                         width={200}
@@ -52,9 +60,12 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                         barSize={14}
                         margin={{
                             top: 5,
-                            right: 10,
+                            right: 20,
                             left: -20,
-                            bottom: 0,
+                            bottom:
+                                data && data?.errorDistribution.length > 2
+                                    ? 0
+                                    : 60,
                         }}
                     >
                         <RechartsTooltip
@@ -74,7 +85,13 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                             dataKey="value"
                             radius={[0, 0, 0, 0]}
                             fill="#5629c6"
-                        ></Bar>
+                        >
+                            <LabelList
+                                dataKey="value"
+                                position="right"
+                                className={styles.chartLabel}
+                            />
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
