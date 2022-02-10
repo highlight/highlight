@@ -1068,13 +1068,13 @@ func getWorkspaceIdFromUrl(parsedUrl *url.URL) (int, error) {
 	return workspaceId, nil
 }
 
-func getSessionIdFromUrl(parsedUrl *url.URL) (string, error) {
+func getIdForPageFromUrl(parsedUrl *url.URL, page string) (string, error) {
 	pathParts := strings.Split(parsedUrl.Path, "/")
 	if len(pathParts) < 4 {
 		return "", e.New("invalid url")
 	}
-	if pathParts[2] != "sessions" || len(pathParts[3]) <= 0 {
-		return "", e.New("url isn't for sessions pages")
+	if pathParts[2] != page || len(pathParts[3]) <= 0 {
+		return "", e.New(fmt.Sprintf("url isn't for %s pages", page))
 	}
 
 	return pathParts[3], nil
@@ -1177,23 +1177,32 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 						senderSlackClient = slackClient
 					}
 
-					sessionId, err := getSessionIdFromUrl(u)
-					if err != nil {
-						continue
+					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
+						session := model.Session{SecureID: sessionId}
+						if err := r.DB.Where(&session).First(&session).Error; err != nil {
+							continue
+						}
+
+						attachment := slack.Attachment{}
+						err = session.GetSlackAttachment(&attachment)
+						if err != nil {
+							continue
+						}
+						urlToSlackAttachment[link.URL] = attachment
+					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
+						errorGroup := model.ErrorGroup{SecureID: errorId}
+						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
+							continue
+						}
+
+						attachment := slack.Attachment{}
+						err = errorGroup.GetSlackAttachment(&attachment)
+						if err != nil {
+							continue
+						}
+						urlToSlackAttachment[link.URL] = attachment
 					}
 
-					session := model.Session{SecureID: sessionId}
-					if err := r.DB.Where(&session).First(&session).Error; err != nil {
-						continue
-					}
-
-					attachment := slack.Attachment{}
-					err = session.GetSlackAttachment(&attachment)
-					if err != nil {
-						continue
-					}
-					log.Debug(link.URL)
-					urlToSlackAttachment[link.URL] = attachment
 				}
 
 				if len(urlToSlackAttachment) <= 0 {

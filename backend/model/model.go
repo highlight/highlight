@@ -1010,6 +1010,41 @@ func formatDuration(d time.Duration) string {
 	return ret
 }
 
+func (e *ErrorGroup) GetSlackAttachment(attachment *slack.Attachment) error {
+	errorTitle := e.Event
+	errorDateStr := fmt.Sprintf("<!date^%d^{date} {time}|%s>", e.CreatedAt.Unix(), e.CreatedAt.Format(time.RFC1123))
+	errorType := e.Type
+	errorState := e.State
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, e.ProjectID, e.SecureID)
+
+	fields := []*slack.TextBlockObject{
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Created:*\n%s", errorDateStr), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*State:*\n%s", errorState), false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Type:*\n%s", errorType), false, false),
+	}
+
+	mainSection := slack.NewSectionBlock(
+		slack.NewTextBlockObject(
+			"mrkdwn",
+			fmt.Sprintf("<%s|*Error: %s*>", errorURL, errorTitle),
+			false,
+			false,
+		),
+		fields,
+		nil,
+	)
+
+	openBtn := slack.NewButtonBlockElement("view_error", "", slack.NewTextBlockObject("plain_text", "Open in Highlight", false, false))
+	openBtn.URL = errorURL
+	actionBtns := slack.NewActionBlock("action_block", openBtn)
+
+	attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, mainSection, actionBtns)
+
+	return nil
+}
+
 func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionTitle := s.Identifier
 	if len(sessionTitle) <= 0 {
