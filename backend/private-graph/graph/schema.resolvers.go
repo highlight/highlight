@@ -3682,7 +3682,32 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 		return nil, nil
 	}
 
-	return r.BillingDetails(ctx, project.WorkspaceID)
+	var g errgroup.Group
+	var queriedSessionsOutOfQuota int64
+	g.Go(func() error {
+		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota overflow")
+		}
+		return nil
+	})
+
+	var billingDetails *modelInputs.BillingDetails
+	g.Go(func() error {
+		billingDetails, err = r.BillingDetails(ctx, project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota")
+		}
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data for billing details")
+	}
+
+	billingDetails.SessionsOutOfQuota = queriedSessionsOutOfQuota
+	return billingDetails, nil
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
@@ -3702,21 +3727,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	var g errgroup.Group
 	var meter int64
-	var queriedSessionsOutOfQuota int64
 	var membersMeter int64
 
 	g.Go(func() error {
 		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, workspaceID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota overflow")
 		}
 		return nil
 	})
@@ -3752,9 +3768,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			Interval:     interval,
 			MembersLimit: membersLimit,
 		},
-		Meter:              meter,
-		MembersMeter:       membersMeter,
-		SessionsOutOfQuota: queriedSessionsOutOfQuota,
+		Meter:        meter,
+		MembersMeter: membersMeter,
 	}
 
 	return details, nil

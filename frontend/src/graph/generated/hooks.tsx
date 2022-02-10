@@ -5926,7 +5926,6 @@ export const GetBillingDetailsDocument = gql`
             }
             meter
             membersMeter
-            sessionsOutOfQuota
         }
         workspace(id: $workspace_id) {
             id

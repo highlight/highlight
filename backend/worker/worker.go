@@ -14,6 +14,8 @@ import (
 
 	"gorm.io/gorm"
 
+	highlightErrors "github.com/highlight-run/highlight/backend/errors"
+
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -29,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 )
@@ -640,6 +643,61 @@ func (w *Worker) StartMetricMonitorWatcher() {
 	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
+func (w *Worker) BackfillStackFrames() {
+	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+		Where(`
+			type <> 'Backend'
+			AND stack_trace is not null
+			AND mapped_stack_trace is null
+			AND exists (
+				select 1 from error_groups eg
+				where eg.id = error_group_id
+				and mapped_stack_trace ilike '%\"error\":null%')`).
+		Order("id desc").Rows()
+	if err != nil {
+		log.Fatalf("error retrieving objects: %+v", err)
+	}
+
+	backfiller := workerpool.New(200)
+	backfiller.SetPanicHandler(util.Recover)
+
+	for rows.Next() {
+		backfiller.SubmitRecover(func() {
+			modelObj := &model.ErrorObject{}
+			if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
+				log.Fatalf("error scanning rows: %+v", err)
+			}
+
+			var inputs []*publicModel.StackFrameInput
+			if err := json.Unmarshal([]byte(*modelObj.StackTrace), &inputs); err != nil {
+				log.Errorf("error unmarshalling stack trace from error object: %+v", err)
+				return
+			}
+
+			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(inputs, modelObj.ProjectID, nil, w.Resolver.StorageClient)
+			if err != nil {
+				log.Errorf("error getting stack trace string: %+v", err)
+				return
+			}
+
+			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+			if err != nil {
+				log.Errorf("error marshalling mapped stack trace %+v", err)
+				return
+			}
+
+			mappedStackTraceString := string(mappedStackTraceBytes)
+
+			if err := w.Resolver.DB.Model(&model.ErrorObject{}).
+				Where("id = ?", modelObj.ID).
+				Updates(&model.ErrorObject{MappedStackTrace: &mappedStackTraceString}).Error; err != nil {
+				log.Errorf("error updating stack trace string: %+v", err)
+				return
+			}
+		})
+	}
+}
+
 func (w *Worker) GetHandler(handlerFlag string) func() {
 	switch handlerFlag {
 	case "report-stripe-usage":
@@ -650,6 +708,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
+	case "backfill-stack-frames":
+		return w.BackfillStackFrames
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

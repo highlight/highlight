@@ -217,7 +217,7 @@ const AuthenticationRouter = () => {
             {adminError ? (
                 <ErrorState
                     message={`
-Seems like you we had issue with your login 😢.
+Seems like we had an issue with your login 😢.
 Feel free to log out and try again, or otherwise,
 get in contact with us!
 `}

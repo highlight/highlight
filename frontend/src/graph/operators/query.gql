@@ -699,7 +699,6 @@ query GetBillingDetails($workspace_id: ID!) {
         }
         meter
         membersMeter
-        sessionsOutOfQuota
     }
     workspace(id: $workspace_id) {
         id
