@@ -8,7 +8,7 @@
         "dev": "doppler run -- webpack serve --progress",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
         "gql": "graphql-codegen --config --watch codegen.yml",
-        "test": "jest --passWithNoTests"
+        "test": "jest"
     },
     "repository": {
         "type": "git",
