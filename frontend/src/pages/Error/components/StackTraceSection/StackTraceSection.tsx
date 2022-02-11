@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Tooltip from '@components/Tooltip/Tooltip';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
@@ -95,6 +96,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                         lineContent={e?.lineContent ?? undefined}
                         linesBefore={e?.linesBefore ?? undefined}
                         linesAfter={e?.linesAfter ?? undefined}
+                        error={e?.error ?? undefined}
                     />
                 ))
             ) : (
@@ -119,6 +121,23 @@ type StackSectionProps = {
     lineContent?: string;
     linesBefore?: string;
     linesAfter?: string;
+    error?: string;
+};
+
+const getErrorMessage = (error: string | undefined): string | undefined => {
+    if (!error) {
+        return undefined;
+    }
+
+    if (error.includes('minified source file over')) {
+        return 'Could not load the original source - the source file for this stack frame is over 40MB. This can happen for files which have been combined but have not been minified.';
+    }
+
+    if (error.includes('source map file over')) {
+        return 'Could not load the original source - the source map file for this stack frame is over 40MB.';
+    }
+
+    return undefined;
 };
 
 const StackSection: React.FC<StackSectionProps> = ({
@@ -130,6 +149,7 @@ const StackSection: React.FC<StackSectionProps> = ({
     lineContent,
     linesBefore,
     linesAfter,
+    error,
 }) => {
     const { isHighlightAdmin } = useAuthContext();
     const trigger = (
@@ -140,6 +160,9 @@ const StackSection: React.FC<StackSectionProps> = ({
                     {!!lineContent &&
                         (functionName ? ` in ${functionName}` : '') +
                             (lineNumber ? ` at line ${lineNumber}` : '')}
+                </span>
+                <span>
+                    <InfoTooltip size="large" title={getErrorMessage(error)} />
                 </span>
             </div>
             <hr />
