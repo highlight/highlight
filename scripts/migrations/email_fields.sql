@@ -4,7 +4,7 @@ select NOW(), NOW(), 'user', 'email', value, project_id
 from fields a
 where a.type = 'user'
 and a.name = 'identifier'
-and a.value ilike '%@%.%'
+and a.value ~ '^[A-Za-z0-9._%\-+]+@[A-Za-z0-9.\-]+[.][A-Za-z]+$'
 and not exists (
 	select 1
 	from fields b
