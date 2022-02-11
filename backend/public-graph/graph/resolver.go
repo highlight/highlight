@@ -415,6 +415,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
+		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
+			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
+		}
 		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
