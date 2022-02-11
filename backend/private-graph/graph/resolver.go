@@ -1084,6 +1084,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 	return func(w http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
+			log.Error(e.Wrap(err, "couldn't read request body"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -1091,14 +1092,17 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 		// verify request is from slack
 		sv, err := slack.NewSecretsVerifier(req.Header, signingSecret)
 		if err != nil {
+			log.Error(e.Wrap(err, "error verifying request headers"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		if _, err := sv.Write(body); err != nil {
+			log.Error(e.Wrap(err, "error when verifying request"))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		if err := sv.Ensure(); err != nil {
+			log.Error(e.Wrap(err, "couldn't verify that request is from slack with the signing secret"))
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -1106,6 +1110,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 		// parse events payload
 		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
 		if err != nil {
+			log.Error(e.Wrap(err, "error parsing body as a slack event"))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -1114,14 +1119,18 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 			var r *slackevents.ChallengeResponse
 			err := json.Unmarshal([]byte(body), &r)
 			if err != nil {
+				log.Error(e.Wrap(err, "error parsing body as a slack challenge body"))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "text")
 			if _, err := w.Write([]byte(r.Challenge)); err != nil {
+				log.Error(e.Wrap(err, "couldn't respond to slack challenge request"))
 				return
 			}
 		}
+
+		log.Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
 
 		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
 			go (func() {
@@ -1135,17 +1144,20 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 				for _, link := range ev.Links {
 					u, err := url.Parse(link.URL)
 					if err != nil {
+						log.Error(e.Wrap(err, "couldn't parse url to unfurl"))
 						continue
 					}
 
 					workspaceId, err := getWorkspaceIdFromUrl(u)
 					if err != nil {
+						log.Error(err)
 						continue
 					}
 
 					if workspaceIdToWorkspaceMap[workspaceId] == nil {
 						ws, err := r.GetWorkspace(workspaceId)
 						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get workspace with workspace ID: %d (unfurl url: %s)", workspaceId, link))
 							continue
 						}
 						workspaceIdToWorkspaceMap[workspaceId] = ws
@@ -1156,6 +1168,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					slackAccessToken := workspace.SlackAccessToken
 
 					if len(*slackAccessToken) <= 0 {
+						log.Error(fmt.Errorf("workspace doesn't have a slack access token (unfurl url: %s)", link))
 						continue
 					}
 
@@ -1164,7 +1177,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					if workspaceIdToSlackTeamMap[workspaceId] == nil {
 						teamInfo, err := slackClient.GetTeamInfo()
 						if err != nil {
-							log.Error(err)
+							log.Error(e.Wrapf(err, "couldn't get slack team information (unfurl url: %s)", link))
 							continue
 						}
 
@@ -1172,6 +1185,10 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					}
 
 					if workspaceIdToSlackTeamMap[workspaceId].ID != eventsAPIEvent.TeamID {
+						log.Error(fmt.Errorf(
+							"slack workspace is not authorized to view this highlight workspace (\"%s\" != \"%s\", unfurl url: %s)",
+							workspaceIdToSlackTeamMap[workspaceId].ID, eventsAPIEvent.TeamID, link,
+						))
 						continue
 					} else {
 						senderSlackClient = slackClient
@@ -1180,24 +1197,28 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
 						session := model.Session{SecureID: sessionId}
 						if err := r.DB.Where(&session).First(&session).Error; err != nil {
+							log.Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
 							continue
 						}
 
 						attachment := slack.Attachment{}
 						err = session.GetSlackAttachment(&attachment)
 						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get session slack attachment (unfurl url: %s)", link))
 							continue
 						}
 						urlToSlackAttachment[link.URL] = attachment
 					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
 						errorGroup := model.ErrorGroup{SecureID: errorId}
 						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
+							log.Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
 							continue
 						}
 
 						attachment := slack.Attachment{}
 						err = errorGroup.GetSlackAttachment(&attachment)
 						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get ErrorGroup slack attachment (unfurl url: %s)", link))
 							continue
 						}
 						urlToSlackAttachment[link.URL] = attachment
@@ -1211,6 +1232,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 
 				_, _, _, err := senderSlackClient.UnfurlMessage(ev.Channel, string(ev.MessageTimeStamp), urlToSlackAttachment)
 				if err != nil {
+					log.Error(e.Wrapf(err, "failed to send slack unfurl request"))
 					fmt.Println(err)
 					return
 				}
