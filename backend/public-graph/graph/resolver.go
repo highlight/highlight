@@ -181,6 +181,11 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				}
 			}
 
+			// If the lengths are the same then there were not matched properties, so we don't need to send an alert.
+			if len(relatedFields) == len(properties) {
+				return
+			}
+
 			project := &model.Project{}
 			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
 				log.Error(e.Wrap(err, "error querying project"))
@@ -539,10 +544,10 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 10 AS score, 0
 			FROM error_fingerprints
-			WHERE 
+			WHERE
 				((type = 'META'
 				AND value = ?
-				AND index = 0) 
+				AND index = 0)
 				OR (type = 'CODE'
 				AND value = ?
 				AND index = 0))
@@ -551,7 +556,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 1 AS score, index
 			FROM error_fingerprints
-			WHERE 
+			WHERE
 				((type = 'META'
 				AND value in (?)
 				AND index > 0 and index <= 4)
