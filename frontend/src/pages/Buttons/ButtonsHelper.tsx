@@ -15,3 +15,11 @@ export const DefaultError = () => {
 const DefaultErrorDeeper = () => {
     throw new Error('errors page');
 };
+
+export const RandomError = () => {
+    RandomErrorDeeper();
+};
+
+const RandomErrorDeeper = () => {
+    throw new Error(`random error! ${Math.random()}`);
+};

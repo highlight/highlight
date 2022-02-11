@@ -18,7 +18,7 @@ export interface UseSlackBotProps {
 const PersonalSlackScopes =
     'channels:manage,groups:write,im:write,mpim:write,chat:write';
 const OrganizationSlackScopes =
-    'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write';
+    'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write,links:read,links:write,team:read';
 
 export const useSlackBot = ({ type }: UseSlackBotProps) => {
     const [setupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
