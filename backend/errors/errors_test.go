@@ -39,7 +39,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FileName:     util.MakeStringPointer("lodash.js"),
 					LineNumber:   util.MakeIntPointer(634),
 					ColumnNumber: util.MakeIntPointer(4),
-					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+					FunctionName: util.MakeStringPointer(""),
 				},
 				{
 					FileName:     util.MakeStringPointer("lodash.js"),
@@ -69,7 +69,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
 					LineNumber:   util.MakeIntPointer(634),
 					ColumnNumber: util.MakeIntPointer(4),
-					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+					FunctionName: util.MakeStringPointer(""),
 				},
 				{
 					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),

@@ -21,6 +21,8 @@ import (
 
 const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
+const ERROR_STACK_MAX_FRAME_COUNT = 15
+const ERROR_STACK_MAX_FIELD_SIZE = 1000
 
 type fetcher interface {
 	fetchFile(string) ([]byte, error)
@@ -73,6 +75,18 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	return bodyBytes, nil
 }
 
+func limitMaxSize(value *string) *string {
+	if value == nil {
+		return nil
+	}
+
+	if len(*value) <= ERROR_STACK_MAX_FIELD_SIZE {
+		return value
+	}
+
+	return pointy.String(strings.Repeat((*value)[:ERROR_STACK_MAX_FIELD_SIZE], 1))
+}
+
 /*
 * EnhanceStackTrace makes no DB changes
 * It loops through the stack trace, for each :
@@ -85,7 +99,10 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 	}
 
 	var mappedStackTrace []privateModel.ErrorTrace
-	for _, stackFrame := range input {
+	for idx, stackFrame := range input {
+		if idx >= ERROR_STACK_MAX_FRAME_COUNT {
+			break
+		}
 		if stackFrame == nil || (stackFrame.FileName == nil || len(*stackFrame.FileName) < 1 || stackFrame.LineNumber == nil || stackFrame.ColumnNumber == nil) {
 			continue
 		}
@@ -95,9 +112,9 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 				log.Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{
-				FileName:     stackFrame.FileName,
+				FileName:     limitMaxSize(stackFrame.FileName),
 				LineNumber:   stackFrame.LineNumber,
-				FunctionName: stackFrame.FunctionName,
+				FunctionName: limitMaxSize(stackFrame.FunctionName),
 				ColumnNumber: stackFrame.ColumnNumber,
 				Error:        pointy.String(err.Error()),
 			}
@@ -105,9 +122,6 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 		if mappedStackFrame != nil {
 			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
 		}
-	}
-	if len(mappedStackTrace) > 1 && (mappedStackTrace[0].FunctionName == nil || *mappedStackTrace[0].FunctionName == "") {
-		mappedStackTrace[0].FunctionName = mappedStackTrace[1].FunctionName
 	}
 	return mappedStackTrace, nil
 }
@@ -150,8 +164,8 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if len(minifiedFileBytes) > 5000000 {
-		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+	if len(minifiedFileBytes) > 40e6 {
+		err := e.Errorf("minified source file over 40mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
 
@@ -167,7 +181,10 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	// get path from url
 	u2, err := url.Parse(sourceMapURL)
 	if err != nil {
-		err := e.Wrap(err, "error parsing source map url")
+		if len(sourceMapURL) > 500 {
+			sourceMapURL = sourceMapURL[:500]
+		}
+		err := e.Errorf("error parsing source map url: %s", sourceMapURL)
 		return nil, err
 	}
 	sourceMapFilePath := u2.Path
@@ -190,6 +207,10 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
+	}
+	if len(sourceMapFileBytes) > 40e6 {
+		err := e.Errorf("source map file over 40mb: %v, size: %v", sourceMapFilePath, len(sourceMapFileBytes))
+		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 	if err != nil {
@@ -261,9 +282,9 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	}
 
 	mappedStackFrame := &privateModel.ErrorTrace{
-		FileName:     &sourceFileName,
+		FileName:     limitMaxSize(&sourceFileName),
 		LineNumber:   &line,
-		FunctionName: &fn,
+		FunctionName: limitMaxSize(&fn),
 		ColumnNumber: &col,
 		LineContent:  lineContentPtr,
 		LinesBefore:  linesBeforePtr,

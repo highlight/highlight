@@ -93,6 +93,8 @@ type FieldData struct {
 	Value string
 }
 
+const ERROR_EVENT_MAX_LENGTH = 10000
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -589,10 +591,17 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.New("error object event was nil or empty")
 	}
 
+	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
+		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
 	if len(stackTrace) > 0 {
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
+		}
+		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
+			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
 		}
 		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
