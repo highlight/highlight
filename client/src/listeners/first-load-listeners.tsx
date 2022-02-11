@@ -13,11 +13,13 @@ import {
     ERRORS_TO_IGNORE,
     ERROR_PATTERNS_TO_IGNORE,
 } from '../constants/errors';
+import { HighlightClassOptions } from '../index';
+import stringify from 'json-stringify-safe';
 
 export class FirstLoadListeners {
     disableConsoleRecording: boolean;
     consoleMethodsToRecord: ConsoleMethods[];
-    listeners: listenerHandler[];
+    listeners: (() => void)[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
 
@@ -99,7 +101,7 @@ export class FirstLoadListeners {
     }
 
     stopListening() {
-        this.listeners.forEach((stop: listenerHandler) => stop());
+        this.listeners.forEach((stop: () => void) => stop());
         this.listeners = [];
     }
 }
