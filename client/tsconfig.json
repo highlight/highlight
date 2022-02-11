@@ -17,7 +17,8 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
-		"jsx": "react"
+		"jsx": "react",
+		"downlevelIteration": true
 	},
 	"include": [
 		"src"
