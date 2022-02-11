@@ -93,6 +93,8 @@ type FieldData struct {
 	Value string
 }
 
+const ERROR_EVENT_MAX_LENGTH = 10000
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -402,6 +404,10 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if errorObj.Event == "" || errorObj.Event == "<nil>" {
 		return nil, e.New("error object event was nil or empty")
+	}
+
+	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
+		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
 	}
 
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
