@@ -1233,7 +1233,6 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 				_, _, _, err := senderSlackClient.UnfurlMessage(ev.Channel, string(ev.MessageTimeStamp), urlToSlackAttachment)
 				if err != nil {
 					log.Error(e.Wrapf(err, "failed to send slack unfurl request"))
-					fmt.Println(err)
 					return
 				}
 			})()
