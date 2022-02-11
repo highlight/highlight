@@ -137,6 +137,10 @@ const getErrorMessage = (error: string | undefined): string | undefined => {
         return 'Could not load the original source - the source map file for this stack frame is over 40MB.';
     }
 
+    if (error.includes('error parsing source map file')) {
+        return 'Could not load the original source - the source map is not publicly available or the source map file is malformed.';
+    }
+
     return undefined;
 };
 
