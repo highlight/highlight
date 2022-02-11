@@ -3,9 +3,7 @@ import { getElementSelector } from '../../utils/dom';
 export const ClickListener = (callback: (targetSelector: string) => void) => {
     const recordClick = (event: MouseEvent) => {
         if (event.target) {
-            const element = event.target as Element;
-            const targetSelector = getElementSelector(element);
-
+            const targetSelector = getElementSelector(event.target as Element);
             callback(targetSelector);
         }
     };
