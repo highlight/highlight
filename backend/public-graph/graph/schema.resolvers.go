@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"os"
 	"time"
 
@@ -50,6 +51,14 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if userIdentifier != "" {
 		userProperties["identifier"] = userIdentifier
 	}
+
+	// If userIdentifier is a valid email, save as an email field
+	// (this will be overridden if `email` is passed to `H.identify`)
+	_, err := mail.ParseAddress(userIdentifier)
+	if err == nil {
+		userProperties["email"] = userIdentifier
+	}
+
 	userObj := make(map[string]string)
 	for k, v := range obj {
 		if v != "" {
@@ -57,6 +66,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 			userObj[k] = fmt.Sprintf("%v", v)
 		}
 	}
+
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
