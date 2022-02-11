@@ -46,7 +46,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
         return 200;
     };
 
-    return (
+    return data?.errorDistribution && data.errorDistribution.length > 0 ? (
         <Card className={classNames(styles.distributionSection)} title={title}>
             <div className={styles.distributionChart}>
                 <ResponsiveContainer
@@ -81,11 +81,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                             tickLine={false}
                             axisLine={false}
                         />
-                        <Bar
-                            dataKey="value"
-                            radius={[0, 0, 0, 0]}
-                            fill="#5629c6"
-                        >
+                        <Bar dataKey="value" radius={2} fill="#5629c6">
                             <LabelList
                                 dataKey="value"
                                 position="right"
@@ -96,5 +92,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                 </ResponsiveContainer>
             </div>
         </Card>
+    ) : (
+        <></>
     );
 };
