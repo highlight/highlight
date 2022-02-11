@@ -140,6 +140,7 @@ var Models = []interface{}{
 	&RegistrationData{},
 	&Metric{},
 	&MetricMonitor{},
+	&ErrorFingerprint{},
 }
 
 func init() {
@@ -708,6 +709,7 @@ type ErrorGroup struct {
 	MappedStackTrace *string
 	State            string        `json:"state" gorm:"default:OPEN"`
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
+	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
 	IsPublic         bool `gorm:"default:false"`
@@ -720,6 +722,25 @@ type ErrorField struct {
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type FingerprintType string
+
+var Fingerprint = struct {
+	StackFrameCode     FingerprintType
+	StackFrameMetadata FingerprintType
+}{
+	StackFrameCode:     "CODE",
+	StackFrameMetadata: "META",
+}
+
+type ErrorFingerprint struct {
+	Model
+	ProjectID    int             `gorm:"index:idx_project_error_group_type_value_index"`
+	ErrorGroupId int             `gorm:"index:idx_project_error_group_type_value_index"`
+	Type         FingerprintType `gorm:"index:idx_project_error_group_type_value_index"`
+	Value        string          `gorm:"index:idx_project_error_group_type_value_index"`
+	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
 }
 
 type SessionCommentTag struct {
@@ -882,6 +903,16 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+	}
+
+	// Drop the null constraint on error_fingerprints.error_group_id
+	// This is necessary for replacing the error_groups.fingerprints association through GORM
+	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
+	if err := DB.Exec(`
+		ALTER TABLE error_fingerprints
+    		ALTER COLUMN error_group_id DROP NOT NULL
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
 	}
 
 	sqlDB, err := DB.DB()

@@ -9,7 +9,7 @@ import {
     useSendEmailSignupMutation,
 } from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
-import { CustomError, DefaultError } from './ButtonsHelper';
+import { CustomError, DefaultError, RandomError } from './ButtonsHelper';
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
     const [sendEmail, { loading }] = useSendEmailSignupMutation();
@@ -62,6 +62,14 @@ export const Buttons = () => {
                     }}
                 >
                     Throw an Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        RandomError();
+                    }}
+                >
+                    Throw a randomized Error
                 </button>
                 <button
                     className={commonStyles.submitButton}
