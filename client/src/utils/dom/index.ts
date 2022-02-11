@@ -33,6 +33,11 @@ let rootDocument: Document | Element;
  * Source: https://github.com/antonmedv/finder
  */
 export function getElementSelector(input: Element, options?: Partial<Options>) {
+    // Gate the new selector logic to only running on Highlight
+    if (!window.location.href.includes('app.highlight.run')) {
+        return getElementSelectorFallback(input);
+    }
+
     if (input.nodeType !== Node.ELEMENT_NODE) {
         return getElementSelectorFallback(input);
     }
