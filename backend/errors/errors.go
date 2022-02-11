@@ -209,7 +209,7 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		}
 	}
 	if len(sourceMapFileBytes) > 40e6 {
-		err := e.Errorf("source file over 40mb: %v, size: %v", sourceMapFilePath, len(sourceMapFileBytes))
+		err := e.Errorf("source map file over 40mb: %v, size: %v", sourceMapFilePath, len(sourceMapFileBytes))
 		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
