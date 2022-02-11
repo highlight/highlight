@@ -1329,17 +1329,17 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
-	allEvents := make(map[string][]interface{})
+	allEvents := make([]interface{}, 0)
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, e.Wrap(err, "error decoding event data"), nil
 		}
-		allEvents["events"] = append(allEvents["events"], subEvents["events"]...)
+		allEvents = append(allEvents, subEvents["events"]...)
 	}
-	events := allEvents["events"]
+	events := allEvents
 	if cursor.EventObjectIndex == nil {
-		events = allEvents["events"][cursor.EventIndex:]
+		events = allEvents[cursor.EventIndex:]
 	}
 	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()

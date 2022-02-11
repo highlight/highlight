@@ -28,10 +28,6 @@ export enum ReplayerState {
     SessionRecordingStopped,
     /** Playback of the session has reached the end. */
     SessionEnded,
-    /** There are no rrweb events for this session yet. */
-    NoEventsYet,
-    /** There was a problem loading this session events. */
-    Error,
 }
 
 export const ReplayerPausedStates = [

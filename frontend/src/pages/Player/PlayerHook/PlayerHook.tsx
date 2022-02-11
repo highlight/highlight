@@ -165,7 +165,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [eventsData?.events]);
 
     useEffect(() => {
-        if (subscriptionEventsPayload?.length && eventsPayload?.length) {
+        if (subscriptionEventsPayload?.length && eventsPayload) {
             setEventsPayload([...eventsPayload, ...subscriptionEventsPayload]);
             setSubscriptionEventsPayload([]);
         }
@@ -285,16 +285,12 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (
-            isLiveMode &&
-            state > ReplayerState.Loading &&
-            !unsubscribeSessionPayloadFn
-        ) {
+        if (isLiveMode && eventsData?.events && !unsubscribeSessionPayloadFn) {
             const unsubscribe = subscribeToSessionPayload!({
                 document: OnSessionPayloadAppendedDocument,
                 variables: {
                     session_secure_id,
-                    initial_events_count: events.length,
+                    initial_events_count: eventsData.events.length,
                 },
                 updateQuery: (prev, { subscriptionData }) => {
                     if (subscriptionData.data) {
@@ -325,7 +321,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
         // We don't want to re-evaluate this every time the play/pause fn changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode, state, unsubscribeSessionPayloadFn]);
+    }, [isLiveMode, eventsData, unsubscribeSessionPayloadFn]);
 
     // Reset all state when loading events.
     useEffect(() => {
@@ -360,99 +356,91 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (eventsPayload?.length) {
-            setSessionViewability(SessionViewability.VIEWABLE);
-            // Add an id field to each event so it can be referenced.
-            const newEvents: HighlightEvent[] = toHighlightEvents(
-                eventsPayload
-            );
-            if (loadedEventsIndex <= 0) {
-                setIsLiveMode(sessionData?.session?.processed === false);
-                setState(ReplayerState.Loading);
-                // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-                const playerMountingRoot = document.getElementById(
-                    'player'
-                ) as HTMLElement;
-                // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
-                // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
-                if (playerMountingRoot?.childNodes?.length > 0) {
-                    while (playerMountingRoot.firstChild) {
-                        playerMountingRoot.removeChild(
-                            playerMountingRoot.firstChild
-                        );
-                    }
-                }
+        if (!eventsPayload) return;
 
-                if (newEvents.length < 2) {
-                    if (sessionData?.session?.processed === false) {
-                        setState(ReplayerState.NoEventsYet);
-                        return;
-                    } else {
-                        setState(ReplayerState.Error);
-                        return;
-                    }
-                }
-                const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                    root: playerMountingRoot,
-                    triggerFocus: false,
-                    mouseTail: showPlayerMouseTail,
-                    UNSAFE_replayCanvas: true,
-                    liveMode: isLiveMode,
-                });
-                setLoadedEventsIndex(
-                    Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
-                );
+        setIsLiveMode(sessionData?.session?.processed === false);
+        if (eventsPayload.length < 2) {
+            if (!(sessionData?.session?.processed === false)) {
+                setSessionViewability(SessionViewability.EMPTY_SESSION);
+            }
+            return;
+        }
 
-                r.on('event-cast', (e: any) => {
-                    const event = e as HighlightEvent;
-                    if ((event as customEvent)?.data?.tag === 'Stop') {
-                        setState(ReplayerState.SessionRecordingStopped);
-                    }
-                    if (event.type === 5) {
-                        switch (event.data.tag) {
-                            case 'Navigate':
-                            case 'Reload':
-                                setCurrentUrl(event.data.payload as string);
-                                return;
-                            default:
-                                return;
-                        }
-                    }
-                });
-                const onlyUrlEvents = getAllUrlEvents(newEvents);
-                if (onlyUrlEvents.length >= 1) {
-                    setCurrentUrl(onlyUrlEvents[0].data.payload);
-                }
-                setPerformancePayloads(getAllPerformanceEvents(newEvents));
-                r.on('resize', (_e) => {
-                    const e = _e as viewportResizeDimension;
-                    setViewport(e);
-                });
-                r.on('pause', () => {
-                    setCurrentUrl(
-                        findLatestUrl(
-                            onlyUrlEvents,
-                            r.getCurrentTime() + r.getMetaData().startTime
-                        )
+        setSessionViewability(SessionViewability.VIEWABLE);
+        // Add an id field to each event so it can be referenced.
+        const newEvents: HighlightEvent[] = toHighlightEvents(eventsPayload);
+        if (loadedEventsIndex <= 0) {
+            setState(ReplayerState.Loading);
+            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+            const playerMountingRoot = document.getElementById(
+                'player'
+            ) as HTMLElement;
+            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+            if (playerMountingRoot?.childNodes?.length > 0) {
+                while (playerMountingRoot.firstChild) {
+                    playerMountingRoot.removeChild(
+                        playerMountingRoot.firstChild
                     );
-                });
-                r.on('start', () => {
-                    setCurrentUrl(
-                        findLatestUrl(
-                            onlyUrlEvents,
-                            r.getCurrentTime() + r.getMetaData().startTime
-                        )
-                    );
-                });
-                setReplayer(r);
-                if (isLiveMode) {
-                    r.startLive(newEvents[0].timestamp);
                 }
             }
-            setEvents(newEvents);
-        } else if (eventsPayload?.length === 0) {
-            setSessionViewability(SessionViewability.EMPTY_SESSION);
+
+            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+                root: playerMountingRoot,
+                triggerFocus: false,
+                mouseTail: showPlayerMouseTail,
+                UNSAFE_replayCanvas: true,
+                liveMode: isLiveMode,
+            });
+            setLoadedEventsIndex(Math.min(EVENTS_CHUNK_SIZE, newEvents.length));
+
+            r.on('event-cast', (e: any) => {
+                const event = e as HighlightEvent;
+                if ((event as customEvent)?.data?.tag === 'Stop') {
+                    setState(ReplayerState.SessionRecordingStopped);
+                }
+                if (event.type === 5) {
+                    switch (event.data.tag) {
+                        case 'Navigate':
+                        case 'Reload':
+                            setCurrentUrl(event.data.payload as string);
+                            return;
+                        default:
+                            return;
+                    }
+                }
+            });
+            const onlyUrlEvents = getAllUrlEvents(newEvents);
+            if (onlyUrlEvents.length >= 1) {
+                setCurrentUrl(onlyUrlEvents[0].data.payload);
+            }
+            setPerformancePayloads(getAllPerformanceEvents(newEvents));
+            r.on('resize', (_e) => {
+                const e = _e as viewportResizeDimension;
+                setViewport(e);
+            });
+            r.on('pause', () => {
+                setCurrentUrl(
+                    findLatestUrl(
+                        onlyUrlEvents,
+                        r.getCurrentTime() + r.getMetaData().startTime
+                    )
+                );
+            });
+            r.on('start', () => {
+                setCurrentUrl(
+                    findLatestUrl(
+                        onlyUrlEvents,
+                        r.getCurrentTime() + r.getMetaData().startTime
+                    )
+                );
+            });
+            setReplayer(r);
+            if (isLiveMode) {
+                r.startLive(newEvents[0].timestamp);
+            }
         }
+        setEvents(newEvents);
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsPayload, setPlayerTimeToPersistance]);
