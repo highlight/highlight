@@ -24,6 +24,7 @@
         top: 0;
         transition: opacity 0.1s ease-in;
         width: 6px;
+        z-index: 5;
     }
 
     &.selected {
