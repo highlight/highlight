@@ -323,6 +323,7 @@ const OpenSearchQueryPage: React.FC = () => {
                 project_id: '1',
                 count: 100,
                 query: JSON.stringify(parseGroup(QbUtils.getTree(state.tree))),
+                sort_desc: true,
             },
         });
     };

@@ -407,8 +407,18 @@ query GetErrorFieldsOpensearch(
     )
 }
 
-query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
-    sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
+query GetSessionsOpenSearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+    $sort_desc: Boolean!
+) {
+    sessions_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+        sort_desc: $sort_desc
+    ) {
         sessions {
             id
             secure_id
