@@ -234,7 +234,7 @@ export class Highlight {
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners({ options });
+            firstLoadListeners || new FirstLoadListeners(options);
         this._initMembers(this.options);
     }
 
@@ -261,9 +261,7 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this._firstLoadListeners = new FirstLoadListeners({
-            options: this.options,
-        });
+        this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {

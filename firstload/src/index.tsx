@@ -6,6 +6,7 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../client/src/index';
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners';
 import { FeedbackWidgetOptions } from '../../client/src/ui/feedback-widget/feedback-widget';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
@@ -174,7 +175,10 @@ interface Metadata {
 }
 
 interface HighlightWindow extends Window {
-    Highlight: new (options?: HighlightClassOptions) => Highlight;
+    Highlight: new (
+        options: HighlightClassOptions,
+        firstLoadListeners: FirstLoadListeners
+    ) => Highlight;
     H: HighlightPublicInterface;
     mixpanel?: MixpanelAPI;
     amplitude?: AmplitudeAPI;
@@ -185,6 +189,7 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
+var first_load_listeners: FirstLoadListeners;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -217,25 +222,35 @@ export const H: HighlightPublicInterface = {
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
+            const client_options: HighlightClassOptions = {
+                organizationID: projectID,
+                debug: options?.debug,
+                backendUrl: options?.backendUrl,
+                tracingOrigins: options?.tracingOrigins,
+                disableNetworkRecording: options?.disableNetworkRecording,
+                networkRecording: options?.networkRecording,
+                disableConsoleRecording: options?.disableConsoleRecording,
+                consoleMethodsToRecord: options?.consoleMethodsToRecord,
+                enableSegmentIntegration: options?.enableSegmentIntegration,
+                enableStrictPrivacy: options?.enableStrictPrivacy || false,
+                enableCanvasRecording: options?.enableCanvasRecording,
+                firstloadVersion: packageJson['version'],
+                environment: options?.environment || 'production',
+                appVersion: options?.version,
+                sessionShortcut: options?.sessionShortcut,
+                feedbackWidget: options?.feedbackWidget,
+            };
+            first_load_listeners = new FirstLoadListeners(client_options);
+            if (!options?.manualStart) {
+                // Start some of the listeners before client is loaded, then hand the
+                // listeners over for client to manage
+                first_load_listeners.startListening();
+            }
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight({
-                    organizationID: projectID,
-                    debug: options?.debug,
-                    backendUrl: options?.backendUrl,
-                    tracingOrigins: options?.tracingOrigins,
-                    disableNetworkRecording: options?.disableNetworkRecording,
-                    networkRecording: options?.networkRecording,
-                    disableConsoleRecording: options?.disableConsoleRecording,
-                    consoleMethodsToRecord: options?.consoleMethodsToRecord,
-                    enableSegmentIntegration: options?.enableSegmentIntegration,
-                    enableStrictPrivacy: options?.enableStrictPrivacy || false,
-                    enableCanvasRecording: options?.enableCanvasRecording,
-                    firstloadVersion: packageJson['version'],
-                    environment: options?.environment || 'production',
-                    appVersion: options?.version,
-                    sessionShortcut: options?.sessionShortcut,
-                    feedbackWidget: options?.feedbackWidget,
-                });
+                highlight_obj = new window.Highlight(
+                    client_options,
+                    first_load_listeners
+                );
                 if (!options?.manualStart) {
                     highlight_obj.initialize();
                 }
@@ -342,6 +357,7 @@ export const H: HighlightPublicInterface = {
                 return;
             }
             if (H.options?.manualStart) {
+                first_load_listeners.startListening();
                 var interval = setInterval(function () {
                     if (highlight_obj) {
                         clearInterval(interval);
