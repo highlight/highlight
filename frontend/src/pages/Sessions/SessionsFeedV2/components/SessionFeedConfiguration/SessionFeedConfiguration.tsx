@@ -149,9 +149,9 @@ export const formatCount = (
 export const getSortOrderDisplayName = (sortOrder: SESSION_FEED_SORT_ORDER) => {
     switch (sortOrder) {
         case 'Ascending':
-            return 'Ascending';
+            return 'Ascending (Oldest first)';
         case 'Descending':
         default:
-            return 'Descending';
+            return 'Descending (Newest first)';
     }
 };
