@@ -16,6 +16,10 @@ export const countFormats = ['Short', 'Full'] as const;
 
 export type SESSION_FEED_COUNT_FORMAT = typeof countFormats[number];
 
+export const sortOrders = ['Descending', 'Ascending'] as const;
+
+export type SESSION_FEED_SORT_ORDER = typeof sortOrders[number];
+
 export interface SessionFeedConfigurationContext {
     datetimeFormat: SESSION_FEED_DATETIME_FORMAT;
     setDatetimeFormat: (
@@ -23,6 +27,8 @@ export interface SessionFeedConfigurationContext {
     ) => void;
     countFormat: SESSION_FEED_COUNT_FORMAT;
     setCountFormat: (newCountFormat: SESSION_FEED_COUNT_FORMAT) => void;
+    sortOrder: SESSION_FEED_SORT_ORDER;
+    setSortOrder: (newSortOrder: SESSION_FEED_SORT_ORDER) => void;
 }
 
 export const [
