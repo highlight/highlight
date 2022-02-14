@@ -36,7 +36,7 @@ module.exports = {
         //   "@highlight-run/rrweb": path.resolve(__dirname, "../../rrweb/dist"),
         // }
     },
-    mode: 'development',
+    mode: 'production',
     devtool: 'source-map',
     plugins: [
         new webpack.EnvironmentPlugin({
