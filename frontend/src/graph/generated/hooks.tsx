@@ -6062,6 +6062,7 @@ export const GetErrorGroupDocument = gql`
                 lineContent
                 linesBefore
                 linesAfter
+                error
             }
             mapped_stack_trace
             stack_trace

@@ -2302,6 +2302,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'lineContent'
                             | 'linesBefore'
                             | 'linesAfter'
+                            | 'error'
                         >
                     >
                 >;

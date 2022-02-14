@@ -143,6 +143,11 @@
     align-items: center;
     display: flex;
     font-weight: 400;
+    justify-content: space-between;
+
+    span {
+        display: inline-flex;
+    }
 }
 
 .triggerWrapper {

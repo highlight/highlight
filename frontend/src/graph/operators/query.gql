@@ -735,6 +735,7 @@ query GetErrorGroup($secure_id: String!) {
             lineContent
             linesBefore
             linesAfter
+            error
         }
         mapped_stack_trace
         stack_trace

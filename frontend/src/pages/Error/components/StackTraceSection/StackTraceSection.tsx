@@ -1,3 +1,4 @@
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Tooltip from '@components/Tooltip/Tooltip';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
@@ -94,6 +95,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                         lineContent={e?.lineContent ?? undefined}
                         linesBefore={e?.linesBefore ?? undefined}
                         linesAfter={e?.linesAfter ?? undefined}
+                        error={e?.error ?? undefined}
                     />
                 ))
             ) : (
@@ -118,6 +120,27 @@ type StackSectionProps = {
     lineContent?: string;
     linesBefore?: string;
     linesAfter?: string;
+    error?: string;
+};
+
+const getErrorMessage = (error: string | undefined): string | undefined => {
+    if (!error) {
+        return undefined;
+    }
+
+    if (error.includes('minified source file over')) {
+        return 'Could not load the original source - the source file for this stack frame is over 40MB. This can happen for files which have been combined but have not been minified.';
+    }
+
+    if (error.includes('source map file over')) {
+        return 'Could not load the original source - the source map file for this stack frame is over 40MB.';
+    }
+
+    if (error.includes('error parsing source map file')) {
+        return 'Could not load the original source - the source map is not publicly available or the source map file is malformed.';
+    }
+
+    return undefined;
 };
 
 const StackSection: React.FC<StackSectionProps> = ({
@@ -129,6 +152,7 @@ const StackSection: React.FC<StackSectionProps> = ({
     lineContent,
     linesBefore,
     linesAfter,
+    error,
 }) => {
     const trigger = (
         <div className={ErrorPageStyles.triggerWrapper}>
@@ -138,6 +162,9 @@ const StackSection: React.FC<StackSectionProps> = ({
                     {!!lineContent &&
                         (functionName ? ` in ${functionName}` : '') +
                             (lineNumber ? ` at line ${lineNumber}` : '')}
+                </span>
+                <span>
+                    <InfoTooltip size="large" title={getErrorMessage(error)} />
                 </span>
             </div>
             <hr />
