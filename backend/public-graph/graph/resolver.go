@@ -897,6 +897,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		LastUserInteractionTime:        time.Now(),
 	}
 
+	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
 	if sessionSecureID != nil {
 		session.SecureID = *sessionSecureID
 	}
