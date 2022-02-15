@@ -278,6 +278,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAdminToWorkspace                func(childComplexity int, workspaceID int, inviteID string) int
+		AddLinearIntegrationToProject      func(childComplexity int, projectID int, code string) int
 		AddSlackBotIntegrationToProject    func(childComplexity int, projectID int, code string, redirectPath string) int
 		ChangeAdminRole                    func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateDefaultAlerts                func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
@@ -315,6 +316,7 @@ type ComplexityRoot struct {
 		MarkSessionAsStarred               func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed                func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation              func(childComplexity int, projectID int, code string, redirectPath string) int
+		RemoveLinearIntegrationFromProject func(childComplexity int, projectID int) int
 		RemoveSlackBotIntegrationToProject func(childComplexity int, projectID int) int
 		SendAdminProjectInvite             func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite           func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
@@ -745,6 +747,8 @@ type MutationResolver interface {
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
+	AddLinearIntegrationToProject(ctx context.Context, projectID int, code string) (bool, error)
+	RemoveLinearIntegrationFromProject(ctx context.Context, projectID int) (bool, error)
 	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error)
 	RemoveSlackBotIntegrationToProject(ctx context.Context, projectID int) (bool, error)
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
@@ -1934,6 +1938,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAdminToWorkspace(childComplexity, args["workspace_id"].(int), args["invite_id"].(string)), true
 
+	case "Mutation.addLinearIntegrationToProject":
+		if e.complexity.Mutation.AddLinearIntegrationToProject == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addLinearIntegrationToProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddLinearIntegrationToProject(childComplexity, args["project_id"].(int), args["code"].(string)), true
+
 	case "Mutation.addSlackBotIntegrationToProject":
 		if e.complexity.Mutation.AddSlackBotIntegrationToProject == nil {
 			break
@@ -2377,6 +2393,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
+
+	case "Mutation.removeLinearIntegrationFromProject":
+		if e.complexity.Mutation.RemoveLinearIntegrationFromProject == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeLinearIntegrationFromProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveLinearIntegrationFromProject(childComplexity, args["project_id"].(int)), true
 
 	case "Mutation.removeSlackBotIntegrationToProject":
 		if e.complexity.Mutation.RemoveSlackBotIntegrationToProject == nil {
@@ -5666,6 +5694,8 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
+    addLinearIntegrationToProject(project_id: ID!, code: String!): Boolean!
+    removeLinearIntegrationFromProject(project_id: ID!): Boolean!
     addSlackBotIntegrationToProject(
         project_id: ID!
         code: String!
@@ -5905,6 +5935,30 @@ func (ec *executionContext) field_Mutation_addAdminToWorkspace_args(ctx context.
 		}
 	}
 	args["invite_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addLinearIntegrationToProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["code"] = arg1
 	return args, nil
 }
 
@@ -7369,6 +7423,21 @@ func (ec *executionContext) field_Mutation_openSlackConversation_args(ctx contex
 		}
 	}
 	args["redirect_path"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeLinearIntegrationFromProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -16091,6 +16160,90 @@ func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context,
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addLinearIntegrationToProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addLinearIntegrationToProject_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddLinearIntegrationToProject(rctx, args["project_id"].(int), args["code"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeLinearIntegrationFromProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeLinearIntegrationFromProject_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveLinearIntegrationFromProject(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addSlackBotIntegrationToProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -29168,6 +29321,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
 		case "openSlackConversation":
 			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
+		case "addLinearIntegrationToProject":
+			out.Values[i] = ec._Mutation_addLinearIntegrationToProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeLinearIntegrationFromProject":
+			out.Values[i] = ec._Mutation_removeLinearIntegrationFromProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addSlackBotIntegrationToProject":
 			out.Values[i] = ec._Mutation_addSlackBotIntegrationToProject(ctx, field)
 			if out.Values[i] == graphql.Null {

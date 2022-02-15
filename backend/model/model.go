@@ -176,6 +176,8 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
+	// Linear API Interaction.
+	LinearAccessToken *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 }
@@ -190,6 +192,7 @@ type Workspace struct {
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
 	SlackChannels               *string
+	LinearAccessToken           *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	StripeCustomerID            *string

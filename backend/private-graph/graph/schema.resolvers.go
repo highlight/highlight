@@ -1203,6 +1203,60 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID 
 	return &model.T, nil
 }
 
+func (r *mutationResolver) AddLinearIntegrationToProject(ctx context.Context, projectID int, code string) (bool, error) {
+	var (
+		LINEAR_CLIENT_ID     string
+		LINEAR_CLIENT_SECRET string
+	)
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if tempLinearClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempLinearClientID != "" {
+		LINEAR_CLIENT_ID = tempLinearClientID
+	}
+	if tempLinearClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
+		LINEAR_CLIENT_SECRET = tempLinearClientSecret
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/integrations/linear"
+
+	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
+	if err != nil {
+		return false, e.Wrap(err, "error getting linaer oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{LinearAccessToken: &res.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in workspace")
+	}
+
+	return true, nil
+}
+
+func (r *mutationResolver) RemoveLinearIntegrationFromProject(ctx context.Context, projectID int) (bool, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
+		return false, e.Wrap(err, "error removing linear access token in workspace")
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error) {
 	var (
 		SLACK_CLIENT_ID     string
@@ -1212,8 +1266,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	if err != nil {
 		return false, e.Wrap(err, "admin is not in project")
 	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
+	redirect := os.Getenv("FRONTEND_URI") + "/integrations/slack"
 	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
 		SLACK_CLIENT_ID = tempSlackClientID
 	}
@@ -1237,11 +1290,10 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		return false, err
 	}
 
-	if workspace.SlackAccessToken == nil {
-		if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-			return false, e.Wrap(err, "error updating slack access token in workspace")
-		}
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in workspace")
 	}
+
 	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
 	channelBytes, err := json.Marshal(existingChannels)
 	if err != nil {

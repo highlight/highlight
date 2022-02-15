@@ -853,6 +853,8 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
+    addLinearIntegrationToProject(project_id: ID!, code: String!): Boolean!
+    removeLinearIntegrationFromProject(project_id: ID!): Boolean!
     addSlackBotIntegrationToProject(
         project_id: ID!
         code: String!

@@ -1310,6 +1310,47 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+type LinearAccessTokenResponse struct {
+	AccessToken string   `json:"access_token"`
+	TokenType   string   `json:"token_type"`
+	ExpiresIn   int64    `json:"expires_in"`
+	Scope       []string `json:"scope"`
+}
+
+func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {
+	client := &http.Client{}
+
+	data := url.Values{}
+	data.Set("code", code)
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
+	data.Set("grant_type", "authorization")
+	data.Set("redirect_uri", redirectURL)
+
+	accessTokenResponse := LinearAccessTokenResponse{}
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/oauth/token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error creating api request to linear")
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error getting response from linear oauth token endpoint")
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error reading response body from linear oauth token endpoint")
+	}
+	err = json.Unmarshal(b, &accessTokenResponse)
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return accessTokenResponse, nil
+}
+
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
 	if inviteLink == nil {
 		return true
