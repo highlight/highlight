@@ -43,4 +43,8 @@ module.exports = {
             PUBLIC_GRAPH_URI: 'https://pub.highlight.run',
         }),
     ],
+    performance: {
+        maxEntrypointSize: 8 * 400 * 1000,
+        maxAssetSize: 8 * 400 * 1000,
+    },
 };
