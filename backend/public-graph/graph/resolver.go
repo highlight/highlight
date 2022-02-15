@@ -819,7 +819,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -895,6 +895,11 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		VerboseID:                      projectVerboseID,
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
+	}
+
+	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
+	if sessionSecureID != nil {
+		session.SecureID = *sessionSecureID
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

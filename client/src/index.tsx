@@ -128,7 +128,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    firstLoadListeners?: FirstLoadListeners;
+    sessionSecureID?: string;
 };
 
 /**
@@ -611,6 +611,7 @@ export class Highlight {
                         environment: this.environment,
                         id: fingerprint.toString(),
                         appVersion: this.appVersion,
+                        session_secure_id: this.options.sessionSecureID,
                     });
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'

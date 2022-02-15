@@ -123,6 +123,34 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
+const GenerateSecureID = (): string => {
+    const ID_LENGTH = 28;
+    const CHARACTER_SET =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var secureID = '';
+
+    const hasCrypto =
+        typeof window !== 'undefined' && window.crypto?.getRandomValues;
+    const cryptoRandom = new Uint32Array(ID_LENGTH);
+    if (hasCrypto) {
+        window.crypto.getRandomValues(cryptoRandom);
+    }
+
+    for (let i = 0; i < ID_LENGTH; i++) {
+        if (hasCrypto) {
+            secureID += CHARACTER_SET.charAt(
+                cryptoRandom[i] % CHARACTER_SET.length
+            );
+        } else {
+            secureID += CHARACTER_SET.charAt(
+                Math.floor(Math.random() * CHARACTER_SET.length)
+            );
+        }
+    }
+
+    return secureID;
+};
+
 export interface HighlightPublicInterface {
     init: (projectID?: string | number, debug?: HighlightOptions) => void;
     /**
@@ -239,6 +267,7 @@ export const H: HighlightPublicInterface = {
                 appVersion: options?.version,
                 sessionShortcut: options?.sessionShortcut,
                 feedbackWidget: options?.feedbackWidget,
+                sessionSecureID: GenerateSecureID(),
             };
             first_load_listeners = new FirstLoadListeners(client_options);
             if (!options?.manualStart) {
