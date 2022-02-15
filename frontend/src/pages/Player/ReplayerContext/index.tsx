@@ -107,6 +107,10 @@ export interface ReplayerContextInterface {
     setViewingUnauthorizedSession: React.Dispatch<
         React.SetStateAction<boolean>
     >;
+    browserExtensionScriptURLs: string[];
+    setBrowserExtensionScriptURLs: React.Dispatch<
+        React.SetStateAction<string[]>
+    >;
 }
 
 export const [
