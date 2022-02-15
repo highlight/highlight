@@ -33,11 +33,6 @@ let rootDocument: Document | Element;
  * Source: https://github.com/antonmedv/finder
  */
 export function getElementSelector(input: Element, options?: Partial<Options>) {
-    // Gate the new selector logic to only running on Highlight
-    if (!window.location.href.includes('app.highlight.run')) {
-        return getElementSelectorFallback(input);
-    }
-
     if (input.nodeType !== Node.ELEMENT_NODE) {
         return getElementSelectorFallback(input);
     }
@@ -46,35 +41,41 @@ export function getElementSelector(input: Element, options?: Partial<Options>) {
         return 'html';
     }
 
-    const defaults: Options = {
-        root: document.body,
-        idName: (name: string) => true,
-        className: (name: string) => true,
-        tagName: (name: string) => true,
-        attr: (name: string, value: string) => false,
-        seedMinLength: 1,
-        optimizedMinLength: 2,
-        threshold: 1000,
-        maxNumberOfTries: 10000,
-    };
+    try {
+        const defaults: Options = {
+            root: document.body,
+            idName: (name: string) => true,
+            className: (name: string) => true,
+            tagName: (name: string) => true,
+            attr: (name: string, value: string) => false,
+            seedMinLength: 1,
+            optimizedMinLength: 2,
+            threshold: 1000,
+            maxNumberOfTries: 10000,
+        };
 
-    config = { ...defaults, ...options };
+        config = { ...defaults, ...options };
 
-    rootDocument = findRootDocument(config.root, defaults);
+        rootDocument = findRootDocument(config.root, defaults);
 
-    let path = bottomUpSearch(input, Limit.All, () =>
-        bottomUpSearch(input, Limit.Two, () => bottomUpSearch(input, Limit.One))
-    );
+        let path = bottomUpSearch(input, Limit.All, () =>
+            bottomUpSearch(input, Limit.Two, () =>
+                bottomUpSearch(input, Limit.One)
+            )
+        );
 
-    if (path) {
-        const optimized = sort(optimize(path, input));
+        if (path) {
+            const optimized = sort(optimize(path, input));
 
-        if (optimized.length > 0) {
-            path = optimized[0];
+            if (optimized.length > 0) {
+                path = optimized[0];
+            }
+
+            return selector(path);
+        } else {
+            return getElementSelectorFallback(input);
         }
-
-        return selector(path);
-    } else {
+    } catch {
         return getElementSelectorFallback(input);
     }
 }
