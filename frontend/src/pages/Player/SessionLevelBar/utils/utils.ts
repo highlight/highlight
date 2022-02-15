@@ -1,3 +1,4 @@
+import { elementNode } from '@highlight-run/rrweb/dist/snapshot';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 
 import {
@@ -59,6 +60,66 @@ export const getAllUrlEvents = (events: HighlightEvent[]) => {
     });
 
     return urlEvents as customEvent<string>[];
+};
+
+export const getBrowserExtensionScriptURLs = (events: HighlightEvent[]) => {
+    const scriptURLs: Set<string> = new Set();
+    const elementEvents = events.filter((event) => event.type === 2);
+
+    const isChromeExtensionScript = (src?: string) =>
+        src && src.startsWith('chrome-extension://');
+
+    elementEvents.forEach((event) => {
+        // @ts-expect-error
+        const node = event.data.node as elementNode;
+        node.childNodes?.forEach((childNode) => {
+            // @ts-expect-error
+            childNode.childNodes?.forEach((grandChildNode) => {
+                if (
+                    grandChildNode?.attributes?.src &&
+                    isChromeExtensionScript(grandChildNode.attributes.src)
+                ) {
+                    scriptURLs.add(grandChildNode.attributes.src);
+                }
+                grandChildNode?.childNodes?.forEach((element: any) => {
+                    if (element.tagName === 'script') {
+                        if (
+                            element.attributes.src &&
+                            isChromeExtensionScript(element.attributes.src)
+                        ) {
+                            scriptURLs.add(element.attributes.src);
+                        }
+                    }
+                });
+            });
+        });
+    });
+
+    return [...scriptURLs];
+};
+
+const getChromeExtensionID = (extensionURL: string) => {
+    const regex = /chrome-extension:\/\/\w*/gm;
+    const tokens = regex.exec(extensionURL);
+
+    if (tokens && tokens.length > 0) {
+        const path = tokens[0];
+        const [, id] = path.split('chrome-extension://');
+
+        if (id) {
+            return id;
+        }
+    }
+
+    return null;
+};
+
+export const getChromeExtensionURL = (extensionURL: string) => {
+    const id = getChromeExtensionID(extensionURL);
+    const GOOGLE_SEARCH_URL = `https://www.google.com/search?q=${extensionURL}`;
+    const CHROME_STORE_URL = `https://chrome.google.com/webstore/detail/${id}`;
+
+    return CHROME_STORE_URL || GOOGLE_SEARCH_URL;
 };
 
 export const getAllPerformanceEvents = (
