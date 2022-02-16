@@ -9,3 +9,15 @@
     padding-top: 100px;
     width: 100%;
 }
+
+.hitTargets {
+    column-gap: 30px;
+    height: 100%;
+    padding-left: 100px;
+    padding-top: 200px;
+    width: 100%;
+
+    section {
+        margin-bottom: var(--size-xxLarge);
+    }
+}

@@ -23,7 +23,7 @@ export class FirstLoadListeners {
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
 
-    constructor({ options }: { options: HighlightClassOptions }) {
+    constructor(options: HighlightClassOptions) {
         this.disableConsoleRecording =
             // Disable recording the console on localhost.
             // We're doing this because on some development builds, the console ends up in an infinite loop.

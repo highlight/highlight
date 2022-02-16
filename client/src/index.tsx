@@ -128,7 +128,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    firstLoadListeners?: FirstLoadListeners;
+    sessionSecureID?: string;
 };
 
 /**
@@ -234,7 +234,7 @@ export class Highlight {
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners({ options });
+            firstLoadListeners || new FirstLoadListeners(options);
         this._initMembers(this.options);
     }
 
@@ -261,9 +261,7 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this._firstLoadListeners = new FirstLoadListeners({
-            options: this.options,
-        });
+        this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
@@ -613,6 +611,7 @@ export class Highlight {
                         environment: this.environment,
                         id: fingerprint.toString(),
                         appVersion: this.appVersion,
+                        session_secure_id: this.options.sessionSecureID,
                     });
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
@@ -1069,16 +1068,30 @@ export class Highlight {
     }): PushPayloadMutationVariables {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
+            const documentTimeOrigin = window?.performance?.timeOrigin || 0;
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            resources = resources.filter((r) =>
-                shouldNetworkRequestBeRecorded(
-                    r.name,
-                    this._backendUrl,
-                    this.tracingOrigins
+            // Subtract session start time from performance.timeOrigin
+            // Subtract diff to the times to do the offsets
+            const offset = (this._recordingStartTime - documentTimeOrigin) * 2;
+
+            resources = resources
+                .filter((r) =>
+                    shouldNetworkRequestBeRecorded(
+                        r.name,
+                        this._backendUrl,
+                        this.tracingOrigins
+                    )
                 )
-            );
+                .map((resource) => {
+                    return {
+                        ...resource.toJSON(),
+                        offsetStartTime: resource.startTime - offset,
+                        offsetResponseEnd: resource.responseEnd - offset,
+                        offsetFetchStart: resource.fetchStart - offset,
+                    };
+                });
 
             if (this.enableRecordingNetworkContents) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(

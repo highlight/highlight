@@ -52,6 +52,18 @@ const KeyValueTable = ({
                                               />
                                           )}
                                       </>
+                                  ) : renderType === 'react-node' ? (
+                                      <>
+                                          {valueDisplayValue}
+                                          {valueInfoTooltipMessage && (
+                                              <InfoTooltip
+                                                  title={
+                                                      valueInfoTooltipMessage
+                                                  }
+                                                  className={styles.infoTooltip}
+                                              />
+                                          )}
+                                      </>
                                   ) : !!valueDisplayValue ? (
                                       <JsonViewer
                                           src={valueDisplayValue as object}
