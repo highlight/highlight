@@ -603,7 +603,8 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
 	if len(stackTrace) > 0 {
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
-			errorObj.ProjectID = 1
+			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
+			errorObj.ProjectID = 715
 		}
 		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
 			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
