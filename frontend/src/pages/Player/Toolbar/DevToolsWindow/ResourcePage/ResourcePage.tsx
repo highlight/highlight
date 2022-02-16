@@ -445,6 +445,7 @@ export type NetworkResource = PerformanceResourceTiming & {
     id: number;
     requestResponsePairs?: RequestResponsePair;
     errors?: ErrorObject[];
+    offsetStartTime?: number;
 };
 
 const ResourceRow = ({
