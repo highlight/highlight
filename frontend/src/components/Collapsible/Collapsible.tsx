@@ -6,11 +6,7 @@ import ReactCollapsible from 'react-collapsible';
 import SvgChevronDownIcon from '../../static/ChevronDownIcon';
 import styles from './Collapsible.module.scss';
 
-interface InnerProps {
-    title: string | React.ReactNode;
-    contentClassName?: string;
-    parentClassName?: string;
-    defaultOpen?: boolean;
+interface InnerProps extends Props {
     setExpanded: (newValue: boolean) => void;
     expanded: boolean;
 }
