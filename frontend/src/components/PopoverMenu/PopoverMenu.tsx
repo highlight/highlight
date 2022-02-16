@@ -17,7 +17,7 @@ type Props = {
     buttonIcon?: React.ReactNode;
     buttonContentsOverride?: React.ReactNode;
     header?: React.ReactNode;
-} & Pick<PopoverProps, 'placement'>;
+} & Pick<PopoverProps, 'placement' | 'getPopupContainer'>;
 
 const PopoverMenu = ({
     content,
@@ -27,6 +27,7 @@ const PopoverMenu = ({
     buttonContentsOverride,
     header,
     placement,
+    getPopupContainer,
 }: Props) => {
     if (!content && !menuItems) {
         throw new Error('content or menuItems need to be defined.');
@@ -41,6 +42,7 @@ const PopoverMenu = ({
             trigger={['click']}
             popoverClassName={styles.popover}
             placement={placement}
+            getPopupContainer={getPopupContainer}
             content={
                 content ? (
                     content

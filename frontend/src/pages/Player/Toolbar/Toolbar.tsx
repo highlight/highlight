@@ -249,7 +249,7 @@ export const Toolbar = React.memo(() => {
                         setDevToolsTab: setSelectedDevToolsTab,
                     }}
                 >
-                    {!isPlayerFullscreen && <TimelineIndicators />}
+                    <TimelineIndicators />
                     <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
                         <DevToolsWindow
                             time={
@@ -485,7 +485,7 @@ export const Toolbar = React.memo(() => {
                     )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
-                    {!isPlayerFullscreen && !isLiveMode && (
+                    {!isLiveMode && (
                         <>
                             <ToolbarMenu loading={disableControls} />
                             <DevToolsToolbarItem

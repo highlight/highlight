@@ -1,4 +1,5 @@
 import CheckboxList from '@components/CheckboxList/CheckboxList';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import React from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
@@ -62,6 +63,7 @@ const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             trigger="click"
             content={
                 <div className={styles.contentWrapper}>
