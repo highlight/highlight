@@ -1,34 +1,29 @@
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useState } from 'react';
 import ReactCollapsible from 'react-collapsible';
 
 import SvgChevronDownIcon from '../../static/ChevronDownIcon';
 import styles from './Collapsible.module.scss';
 
-interface Props {
+interface InnerProps {
     title: string | React.ReactNode;
-    /** A unique identifier for this collapsible. This should be used if title is a ReactNode. */
-    id?: string;
     contentClassName?: string;
     parentClassName?: string;
     defaultOpen?: boolean;
+    setExpanded: (newValue: boolean) => void;
+    expanded: boolean;
 }
 
-const Collapsible: React.FC<Props> = ({
+const CollapsibleImpl: React.FC<InnerProps> = ({
     title,
     children,
     contentClassName,
     parentClassName,
-    id,
-    defaultOpen = false,
+    expanded,
+    setExpanded,
     ...props
 }) => {
-    const [expanded, setExpanded] = useLocalStorage(
-        `highlight-collapsible-state-${id || title}`,
-        defaultOpen
-    );
-
     return (
         <ReactCollapsible
             {...props}
@@ -61,6 +56,67 @@ const Collapsible: React.FC<Props> = ({
                 {children}
             </div>
         </ReactCollapsible>
+    );
+};
+
+interface Props {
+    title: string | React.ReactNode;
+    /** A unique identifier for this collapsible. This should be used if title is a ReactNode. */
+    id?: string;
+    contentClassName?: string;
+    parentClassName?: string;
+    defaultOpen?: boolean;
+}
+
+export const StatelessCollapsible: React.FC<Props> = ({
+    title,
+    children,
+    contentClassName,
+    parentClassName,
+    defaultOpen = false,
+    ...props
+}) => {
+    const [expanded, setExpanded] = useState(defaultOpen);
+
+    return (
+        <CollapsibleImpl
+            title={title}
+            contentClassName={contentClassName}
+            parentClassName={parentClassName}
+            expanded={expanded}
+            setExpanded={setExpanded}
+            {...props}
+        >
+            {children}
+        </CollapsibleImpl>
+    );
+};
+
+const Collapsible: React.FC<Props> = ({
+    title,
+    children,
+    contentClassName,
+    parentClassName,
+    id,
+    defaultOpen = false,
+    ...props
+}) => {
+    const [expanded, setExpanded] = useLocalStorage(
+        `highlight-collapsible-state-${id || title}`,
+        defaultOpen
+    );
+
+    return (
+        <CollapsibleImpl
+            title={title}
+            contentClassName={contentClassName}
+            parentClassName={parentClassName}
+            expanded={expanded}
+            setExpanded={setExpanded}
+            {...props}
+        >
+            {children}
+        </CollapsibleImpl>
     );
 };
 
