@@ -1,3 +1,4 @@
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { message } from 'antd';
 import React, { useState } from 'react';
 
@@ -40,6 +41,7 @@ const TimelineEventAnnotation = ({
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={event.identifier}
             popoverClassName={timelineAnnotationStyles.popover}
             content={
