@@ -656,6 +656,7 @@ export const TimelineAnnotationColors: {
     Viewport: '--color-purple-600',
     'Web Vitals': '--color-red-600',
     Referrer: '--color-yellow-800',
+    TabHidden: '--color-gray-800',
 };
 
 export function getAnnotationColor(
