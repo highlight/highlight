@@ -53,6 +53,11 @@
         margin-bottom: initial !important;
         padding: 16px !important;
     }
+
+    svg {
+        flex-shrink: 0;
+        margin-left: 16px;
+    }
 }
 
 .contentWrapper {
