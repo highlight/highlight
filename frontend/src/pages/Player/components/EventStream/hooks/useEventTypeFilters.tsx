@@ -41,6 +41,10 @@ export const useEventTypeFilters = () => {
         `highlight-show-web-vitals`,
         true
     );
+    const [showTabHidden, setShowTabHidden] = useLocalStorage(
+        `highlight-show-tab-hidden`,
+        true
+    );
 
     return {
         showIdentify,
@@ -63,5 +67,7 @@ export const useEventTypeFilters = () => {
         setShowReload,
         showWebVitals,
         setShowWebVitals,
+        showTabHidden,
+        setShowTabHidden,
     };
 };

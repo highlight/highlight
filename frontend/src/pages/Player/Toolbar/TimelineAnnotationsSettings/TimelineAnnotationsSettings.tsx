@@ -47,6 +47,7 @@ export const EventTypeDescriptions: Omit<
     Identify:
         'These are custom calls to Highlight identify method to add identity metadata for a session.',
     Viewport: 'The size of the browser changed.',
+    TabHidden: 'The user switched away from the current tab.',
 };
 
 interface Props {
@@ -90,7 +91,7 @@ const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
                                             )})`,
                                         }}
                                     />
-                                    {eventType}
+                                    {getTimelineEventDisplayName(eventType)}
                                 </div>
                             ),
                             key: eventType,
@@ -153,3 +154,12 @@ const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
 });
 
 export default TimelineAnnotationsSettings;
+
+export const getTimelineEventDisplayName = (name: string) => {
+    switch (name) {
+        case 'TabHidden':
+            return 'Tab State';
+        default:
+            return name;
+    }
+};

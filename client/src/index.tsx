@@ -46,6 +46,7 @@ import {
     PerformanceListener,
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
+import { PageVisibilityListener } from 'listeners/page-visibility-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -222,6 +223,7 @@ export class Highlight {
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
+    hasPushedData!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -393,6 +395,7 @@ export class Highlight {
 
         this.events = [];
         this.hasSessionUnloaded = false;
+        this.hasPushedData = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -769,6 +772,13 @@ export class Highlight {
                 })
             );
             this.listeners.push(
+                PageVisibilityListener((isTabHidden) => {
+                    console.log({ isTabHidden });
+
+                    this.addCustomEvent('TabHidden', isTabHidden);
+                })
+            );
+            this.listeners.push(
                 ClickListener((clickTarget) => {
                     if (clickTarget) {
                         this.addCustomEvent('Click', clickTarget);
@@ -994,6 +1004,7 @@ export class Highlight {
             try {
                 const payload = this._getPayload({ isBeacon: false });
                 await this.graphqlSDK.PushPayload(payload);
+                this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
@@ -1056,7 +1067,10 @@ export class Highlight {
                 }
             };
             intervalId = setTimeout(worker, 500);
-        } else if (this.state === 'Recording' && this.events.length > 0) {
+        } else if (
+            this.state === 'Recording' &&
+            (this.events.length > 0 || this.hasPushedData)
+        ) {
             rrwebAddCustomEvent(tag, payload);
         }
     }

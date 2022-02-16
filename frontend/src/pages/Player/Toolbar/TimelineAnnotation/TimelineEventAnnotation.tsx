@@ -1,4 +1,5 @@
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { message } from 'antd';
 import React, { useState } from 'react';
 
@@ -37,7 +38,8 @@ const TimelineEventAnnotation = ({
     ) {
         return null;
     }
-    const Icon = getPlayerEventIcon(details.title || '');
+
+    const Icon = getPlayerEventIcon(details.title || '', details.payload);
 
     return (
         <Popover
@@ -50,6 +52,11 @@ const TimelineEventAnnotation = ({
                         payload={
                             typeof details.payload === 'object'
                                 ? JSON.stringify(details.payload)
+                                : typeof details.payload === 'boolean' &&
+                                  details.title?.includes('Tab')
+                                ? details.payload
+                                    ? 'The user switched away from this tab.'
+                                    : 'The user is currently active on this tab.'
                                 : details.payload
                         }
                     />
@@ -68,7 +75,7 @@ const TimelineEventAnnotation = ({
                     >
                         {Icon}
                     </span>
-                    {details.title}
+                    {getTimelineEventDisplayName(details.title || '')}
                 </span>
             }
             onVisibleChange={(visible) => {
