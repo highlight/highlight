@@ -276,12 +276,25 @@ export const H: HighlightPublicInterface = {
                 first_load_listeners.startListening();
             }
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight(
-                    client_options,
-                    first_load_listeners
-                );
-                if (!options?.manualStart) {
-                    highlight_obj.initialize();
+                const startFunction = () => {
+                    highlight_obj = new window.Highlight(
+                        client_options,
+                        first_load_listeners
+                    );
+                    if (!options?.manualStart) {
+                        highlight_obj.initialize();
+                    }
+                };
+
+                if ('Highlight' in window) {
+                    startFunction();
+                } else {
+                    const interval = setInterval(() => {
+                        if ('Highlight' in window) {
+                            startFunction();
+                            clearInterval(interval);
+                        }
+                    }, 500);
                 }
             });
 
