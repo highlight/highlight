@@ -123,7 +123,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                     <GoToButton
                         onClick={() => {
                             if (resource) {
-                                pause(resource.startTime);
+                                pause(
+                                    resource.offsetStartTime ||
+                                        resource.startTime
+                                );
 
                                 message.success(
                                     `Changed player time to when ${getNetworkResourcesDisplayName(

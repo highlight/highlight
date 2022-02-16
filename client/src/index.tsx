@@ -1068,16 +1068,30 @@ export class Highlight {
     }): PushPayloadMutationVariables {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
+            const documentTimeOrigin = window?.performance?.timeOrigin || 0;
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            resources = resources.filter((r) =>
-                shouldNetworkRequestBeRecorded(
-                    r.name,
-                    this._backendUrl,
-                    this.tracingOrigins
+            // Subtract session start time from performance.timeOrigin
+            // Subtract diff to the times to do the offsets
+            const offset = (this._recordingStartTime - documentTimeOrigin) * 2;
+
+            resources = resources
+                .filter((r) =>
+                    shouldNetworkRequestBeRecorded(
+                        r.name,
+                        this._backendUrl,
+                        this.tracingOrigins
+                    )
                 )
-            );
+                .map((resource) => {
+                    return {
+                        ...resource.toJSON(),
+                        offsetStartTime: resource.startTime - offset,
+                        offsetResponseEnd: resource.responseEnd - offset,
+                        offsetFetchStart: resource.fetchStart - offset,
+                    };
+                });
 
             if (this.enableRecordingNetworkContents) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
