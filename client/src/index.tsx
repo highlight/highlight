@@ -773,8 +773,6 @@ export class Highlight {
             );
             this.listeners.push(
                 PageVisibilityListener((isTabHidden) => {
-                    console.log({ isTabHidden });
-
                     this.addCustomEvent('TabHidden', isTabHidden);
                 })
             );

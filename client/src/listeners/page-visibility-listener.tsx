@@ -29,7 +29,6 @@ export const PageVisibilityListener = (
     const listener = () => {
         // @ts-expect-error
         const tabState = document[hiddenPropertyName];
-        console.log({ tabState });
 
         if (tabState) {
             callback(true);
