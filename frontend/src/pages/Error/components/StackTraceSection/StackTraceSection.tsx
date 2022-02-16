@@ -1,3 +1,4 @@
+import { StatelessCollapsible } from '@components/Collapsible/Collapsible';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Tooltip from '@components/Tooltip/Tooltip';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
@@ -96,6 +97,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                         linesBefore={e?.linesBefore ?? undefined}
                         linesAfter={e?.linesAfter ?? undefined}
                         error={e?.error ?? undefined}
+                        index={i}
                     />
                 ))
             ) : (
@@ -121,6 +123,7 @@ type StackSectionProps = {
     linesBefore?: string;
     linesAfter?: string;
     error?: string;
+    index: number;
 };
 
 const getErrorMessage = (error: string | undefined): string | undefined => {
@@ -153,20 +156,10 @@ const StackSection: React.FC<StackSectionProps> = ({
     linesBefore,
     linesAfter,
     error,
+    index,
 }) => {
     const trigger = (
         <div className={ErrorPageStyles.triggerWrapper}>
-            <div className={ErrorPageStyles.snippetHeadingTwo}>
-                <span className={ErrorPageStyles.stackTraceErrorTitle}>
-                    {truncateFileName(fileName || '')}
-                    {!!lineContent &&
-                        (functionName ? ` in ${functionName}` : '') +
-                            (lineNumber ? ` at line ${lineNumber}` : '')}
-                </span>
-                <span>
-                    <InfoTooltip size="large" title={getErrorMessage(error)} />
-                </span>
-            </div>
             <hr />
             {!!lineContent ? (
                 <ErrorSourcePreview
@@ -195,13 +188,32 @@ const StackSection: React.FC<StackSectionProps> = ({
                             {functionName}
                         </span>
                     </Tooltip>
+                    <span className={styles.tooltip}>
+                        <InfoTooltip
+                            size="large"
+                            title={getErrorMessage(error)}
+                        />
+                    </span>
                 </div>
             )}
         </div>
     );
     return (
         <div className={ErrorPageStyles.section}>
-            <div className={ErrorPageStyles.collapsible}>{trigger}</div>
+            <div className={styles.collapsibleWrapper}>
+                <StatelessCollapsible
+                    title={
+                        truncateFileName(fileName || '') +
+                        (functionName ? ` in ${functionName}` : '') +
+                        (lineNumber ? ` at line ${lineNumber}` : '')
+                    }
+                    key={index}
+                    defaultOpen={index === 0}
+                    contentClassName={styles.contentWrapper}
+                >
+                    <div className={ErrorPageStyles.collapsible}>{trigger}</div>
+                </StatelessCollapsible>
+            </div>
         </div>
     );
 };
