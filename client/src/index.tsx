@@ -46,7 +46,7 @@ import {
     PerformanceListener,
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
-import { PageVisibilityListener } from 'listeners/page-visibility-listener';
+import { PageVisibilityListener } from './listeners/page-visibility-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
