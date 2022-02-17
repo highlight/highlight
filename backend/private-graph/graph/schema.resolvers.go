@@ -1218,14 +1218,14 @@ func (r *mutationResolver) AddLinearIntegrationToProject(ctx context.Context, pr
 		return false, err
 	}
 
-	if tempLinearClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempLinearClientID != "" {
+	if tempLinearClientID, ok := os.LookupEnv("LINEAR_CLIENT_ID"); ok && tempLinearClientID != "" {
 		LINEAR_CLIENT_ID = tempLinearClientID
 	}
-	if tempLinearClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
+	if tempLinearClientSecret, ok := os.LookupEnv("LINEAR_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
 		LINEAR_CLIENT_SECRET = tempLinearClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/integrations/linear"
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
 
 	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
 	if err != nil {
@@ -1257,7 +1257,7 @@ func (r *mutationResolver) RemoveLinearIntegrationFromProject(ctx context.Contex
 	return true, nil
 }
 
-func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error) {
+func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string) (bool, error) {
 	var (
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
@@ -1266,7 +1266,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	if err != nil {
 		return false, e.Wrap(err, "admin is not in project")
 	}
-	redirect := os.Getenv("FRONTEND_URI") + "/integrations/slack"
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
 	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
 		SLACK_CLIENT_ID = tempSlackClientID
 	}
@@ -4205,6 +4205,21 @@ func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int
 	}
 
 	return workspace.SlackAccessToken != nil, nil
+}
+
+func (r *queryResolver) IsIntegratedWithLinear(ctx context.Context, projectID int) (bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	return workspace.LinearAccessToken != nil, nil
 }
 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {

@@ -127,10 +127,26 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
     'openSlackConversation'
 >;
 
+export type AddLinearIntegrationToProjectMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    code: Types.Scalars['String'];
+}>;
+
+export type AddLinearIntegrationToProjectMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'addLinearIntegrationToProject'>;
+
+export type RemoveLinearIntegrationFromProjectMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type RemoveLinearIntegrationFromProjectMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'removeLinearIntegrationFromProject'>;
+
 export type AddSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
-    redirect_path: Types.Scalars['String'];
 }>;
 
 export type AddSlackBotIntegrationToProjectMutation = {
@@ -2923,6 +2939,14 @@ export type GetWorkspaceIsIntegratedWithSlackQuery = {
     __typename?: 'Query';
 } & Pick<Types.Query, 'is_integrated_with_slack'>;
 
+export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceIsIntegratedWithLinearQuery = {
+    __typename?: 'Query';
+} & Pick<Types.Query, 'is_integrated_with_linear'>;
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3315,6 +3339,7 @@ export const namedOperations = {
         GetErrorDistribution: 'GetErrorDistribution' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
+        GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
@@ -3333,6 +3358,8 @@ export const namedOperations = {
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
+        AddLinearIntegrationToProject: 'AddLinearIntegrationToProject' as const,
+        RemoveLinearIntegrationFromProject: 'RemoveLinearIntegrationFromProject' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         RemoveSlackBotIntegrationToProject: 'RemoveSlackBotIntegrationToProject' as const,
         UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,

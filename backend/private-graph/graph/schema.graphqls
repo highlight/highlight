@@ -735,6 +735,7 @@ type Query {
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
+    is_integrated_with_linear(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -855,11 +856,7 @@ type Mutation {
     ): Boolean
     addLinearIntegrationToProject(project_id: ID!, code: String!): Boolean!
     removeLinearIntegrationFromProject(project_id: ID!): Boolean!
-    addSlackBotIntegrationToProject(
-        project_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean!
+    addSlackBotIntegrationToProject(project_id: ID!, code: String!): Boolean!
     removeSlackBotIntegrationToProject(project_id: ID!): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(

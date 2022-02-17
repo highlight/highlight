@@ -78,17 +78,16 @@ mutation OpenSlackConversation(
         redirect_path: $redirect_path
     )
 }
+mutation AddLinearIntegrationToProject($project_id: ID!, $code: String!) {
+    addLinearIntegrationToProject(project_id: $project_id, code: $code)
+}
 
-mutation AddSlackBotIntegrationToProject(
-    $project_id: ID!
-    $code: String!
-    $redirect_path: String!
-) {
-    addSlackBotIntegrationToProject(
-        project_id: $project_id
-        code: $code
-        redirect_path: $redirect_path
-    )
+mutation RemoveLinearIntegrationFromProject($project_id: ID!) {
+    removeLinearIntegrationFromProject(project_id: $project_id)
+}
+
+mutation AddSlackBotIntegrationToProject($project_id: ID!, $code: String!) {
+    addSlackBotIntegrationToProject(project_id: $project_id, code: $code)
 }
 
 mutation RemoveSlackBotIntegrationToProject($project_id: ID!) {

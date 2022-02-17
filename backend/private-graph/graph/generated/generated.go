@@ -279,7 +279,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToWorkspace                func(childComplexity int, workspaceID int, inviteID string) int
 		AddLinearIntegrationToProject      func(childComplexity int, projectID int, code string) int
-		AddSlackBotIntegrationToProject    func(childComplexity int, projectID int, code string, redirectPath string) int
+		AddSlackBotIntegrationToProject    func(childComplexity int, projectID int, code string) int
 		ChangeAdminRole                    func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateDefaultAlerts                func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
 		CreateErrorAlert                   func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) int
@@ -391,6 +391,7 @@ type ComplexityRoot struct {
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		IdentifierSuggestion         func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
+		IsIntegratedWithLinear       func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack        func(childComplexity int, projectID int) int
 		JoinableWorkspaces           func(childComplexity int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
@@ -749,7 +750,7 @@ type MutationResolver interface {
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddLinearIntegrationToProject(ctx context.Context, projectID int, code string) (bool, error)
 	RemoveLinearIntegrationFromProject(ctx context.Context, projectID int) (bool, error)
-	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error)
+	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string) (bool, error)
 	RemoveSlackBotIntegrationToProject(ctx context.Context, projectID int) (bool, error)
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
@@ -842,6 +843,7 @@ type QueryResolver interface {
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error)
+	IsIntegratedWithLinear(ctx context.Context, projectID int) (bool, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
 	WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model1.WorkspaceInviteLink, error)
@@ -1960,7 +1962,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSlackBotIntegrationToProject(childComplexity, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
+		return e.complexity.Mutation.AddSlackBotIntegrationToProject(childComplexity, args["project_id"].(int), args["code"].(string)), true
 
 	case "Mutation.changeAdminRole":
 		if e.complexity.Mutation.ChangeAdminRole == nil {
@@ -3084,6 +3086,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegrated(childComplexity, args["project_id"].(int)), true
+
+	case "Query.is_integrated_with_linear":
+		if e.complexity.Query.IsIntegratedWithLinear == nil {
+			break
+		}
+
+		args, err := ec.field_Query_is_integrated_with_linear_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsIntegratedWithLinear(childComplexity, args["project_id"].(int)), true
 
 	case "Query.is_integrated_with_slack":
 		if e.complexity.Query.IsIntegratedWithSlack == nil {
@@ -5576,6 +5590,7 @@ type Query {
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
+    is_integrated_with_linear(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -5696,11 +5711,7 @@ type Mutation {
     ): Boolean
     addLinearIntegrationToProject(project_id: ID!, code: String!): Boolean!
     removeLinearIntegrationFromProject(project_id: ID!): Boolean!
-    addSlackBotIntegrationToProject(
-        project_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean!
+    addSlackBotIntegrationToProject(project_id: ID!, code: String!): Boolean!
     removeSlackBotIntegrationToProject(project_id: ID!): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
@@ -5983,15 +5994,6 @@ func (ec *executionContext) field_Mutation_addSlackBotIntegrationToProject_args(
 		}
 	}
 	args["code"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["redirect_path"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirect_path"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["redirect_path"] = arg2
 	return args, nil
 }
 
@@ -9122,6 +9124,21 @@ func (ec *executionContext) field_Query_identifier_suggestion_args(ctx context.C
 }
 
 func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_is_integrated_with_linear_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -16271,7 +16288,7 @@ func (ec *executionContext) _Mutation_addSlackBotIntegrationToProject(ctx contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSlackBotIntegrationToProject(rctx, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string))
+		return ec.resolvers.Mutation().AddSlackBotIntegrationToProject(rctx, args["project_id"].(int), args["code"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20242,6 +20259,48 @@ func (ec *executionContext) _Query_is_integrated_with_slack(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().IsIntegratedWithSlack(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_is_integrated_with_linear(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_is_integrated_with_linear_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsIntegratedWithLinear(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30351,6 +30410,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_is_integrated_with_slack(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "is_integrated_with_linear":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_is_integrated_with_linear(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -1104,6 +1104,10 @@ query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
     is_integrated_with_slack(project_id: $project_id)
 }
 
+query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
+    is_integrated_with_linear(project_id: $project_id)
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
     is_integrated_with_slack(project_id: $project_id)
     slack_channel_suggestion(project_id: $project_id) {

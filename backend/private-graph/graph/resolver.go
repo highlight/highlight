@@ -1324,7 +1324,7 @@ func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientI
 	data.Set("code", code)
 	data.Set("client_id", clientID)
 	data.Set("client_secret", clientSecret)
-	data.Set("grant_type", "authorization")
+	data.Set("grant_type", "authorization_code")
 	data.Set("redirect_uri", redirectURL)
 
 	accessTokenResponse := LinearAccessTokenResponse{}
@@ -1336,10 +1336,17 @@ func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientI
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := client.Do(req)
+
 	if err != nil {
 		return accessTokenResponse, e.Wrap(err, "error getting response from linear oauth token endpoint")
 	}
+
 	b, err := ioutil.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		return accessTokenResponse, e.New("linear API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
 	if err != nil {
 		return accessTokenResponse, e.Wrap(err, "error reading response body from linear oauth token endpoint")
 	}

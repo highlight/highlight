@@ -735,6 +735,7 @@ export type Query = {
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
+    is_integrated_with_linear: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
     workspace_invite_links: WorkspaceInviteLink;
@@ -1020,6 +1021,10 @@ export type QueryIs_Integrated_With_SlackArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryIs_Integrated_With_LinearArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectArgs = {
     id: Scalars['ID'];
 };
@@ -1106,6 +1111,8 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
+    addLinearIntegrationToProject: Scalars['Boolean'];
+    removeLinearIntegrationFromProject: Scalars['Boolean'];
     addSlackBotIntegrationToProject: Scalars['Boolean'];
     removeSlackBotIntegrationToProject: Scalars['Boolean'];
     syncSlackIntegration: SlackSyncResponse;
@@ -1309,10 +1316,18 @@ export type MutationOpenSlackConversationArgs = {
     redirect_path: Scalars['String'];
 };
 
+export type MutationAddLinearIntegrationToProjectArgs = {
+    project_id: Scalars['ID'];
+    code: Scalars['String'];
+};
+
+export type MutationRemoveLinearIntegrationFromProjectArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
-    redirect_path: Scalars['String'];
 };
 
 export type MutationRemoveSlackBotIntegrationToProjectArgs = {

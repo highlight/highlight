@@ -651,17 +651,102 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
+export const AddLinearIntegrationToProjectDocument = gql`
+    mutation AddLinearIntegrationToProject($project_id: ID!, $code: String!) {
+        addLinearIntegrationToProject(project_id: $project_id, code: $code)
+    }
+`;
+export type AddLinearIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddLinearIntegrationToProjectMutation,
+    Types.AddLinearIntegrationToProjectMutationVariables
+>;
+
+/**
+ * __useAddLinearIntegrationToProjectMutation__
+ *
+ * To run a mutation, you first call `useAddLinearIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddLinearIntegrationToProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addLinearIntegrationToProjectMutation, { data, loading, error }] = useAddLinearIntegrationToProjectMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useAddLinearIntegrationToProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AddLinearIntegrationToProjectMutation,
+        Types.AddLinearIntegrationToProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AddLinearIntegrationToProjectMutation,
+        Types.AddLinearIntegrationToProjectMutationVariables
+    >(AddLinearIntegrationToProjectDocument, baseOptions);
+}
+export type AddLinearIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useAddLinearIntegrationToProjectMutation
+>;
+export type AddLinearIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddLinearIntegrationToProjectMutation>;
+export type AddLinearIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddLinearIntegrationToProjectMutation,
+    Types.AddLinearIntegrationToProjectMutationVariables
+>;
+export const RemoveLinearIntegrationFromProjectDocument = gql`
+    mutation RemoveLinearIntegrationFromProject($project_id: ID!) {
+        removeLinearIntegrationFromProject(project_id: $project_id)
+    }
+`;
+export type RemoveLinearIntegrationFromProjectMutationFn = Apollo.MutationFunction<
+    Types.RemoveLinearIntegrationFromProjectMutation,
+    Types.RemoveLinearIntegrationFromProjectMutationVariables
+>;
+
+/**
+ * __useRemoveLinearIntegrationFromProjectMutation__
+ *
+ * To run a mutation, you first call `useRemoveLinearIntegrationFromProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveLinearIntegrationFromProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeLinearIntegrationFromProjectMutation, { data, loading, error }] = useRemoveLinearIntegrationFromProjectMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useRemoveLinearIntegrationFromProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.RemoveLinearIntegrationFromProjectMutation,
+        Types.RemoveLinearIntegrationFromProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.RemoveLinearIntegrationFromProjectMutation,
+        Types.RemoveLinearIntegrationFromProjectMutationVariables
+    >(RemoveLinearIntegrationFromProjectDocument, baseOptions);
+}
+export type RemoveLinearIntegrationFromProjectMutationHookResult = ReturnType<
+    typeof useRemoveLinearIntegrationFromProjectMutation
+>;
+export type RemoveLinearIntegrationFromProjectMutationResult = Apollo.MutationResult<Types.RemoveLinearIntegrationFromProjectMutation>;
+export type RemoveLinearIntegrationFromProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.RemoveLinearIntegrationFromProjectMutation,
+    Types.RemoveLinearIntegrationFromProjectMutationVariables
+>;
 export const AddSlackBotIntegrationToProjectDocument = gql`
-    mutation AddSlackBotIntegrationToProject(
-        $project_id: ID!
-        $code: String!
-        $redirect_path: String!
-    ) {
-        addSlackBotIntegrationToProject(
-            project_id: $project_id
-            code: $code
-            redirect_path: $redirect_path
-        )
+    mutation AddSlackBotIntegrationToProject($project_id: ID!, $code: String!) {
+        addSlackBotIntegrationToProject(project_id: $project_id, code: $code)
     }
 `;
 export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
@@ -684,7 +769,6 @@ export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      code: // value for 'code'
- *      redirect_path: // value for 'redirect_path'
  *   },
  * });
  */
@@ -7916,6 +8000,60 @@ export type GetWorkspaceIsIntegratedWithSlackLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
     Types.GetWorkspaceIsIntegratedWithSlackQuery,
     Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+>;
+export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
+    query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
+        is_integrated_with_linear(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetWorkspaceIsIntegratedWithLinearQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithLinearQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithLinearQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithLinearQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithLinearQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithLinearLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithLinearQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithLinearQuery
+>;
+export type GetWorkspaceIsIntegratedWithLinearLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithLinearLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithLinearQuery,
+    Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
 >;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
