@@ -353,10 +353,10 @@ func main() {
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
 	} else if runtimeParsed == util.All {
-		// w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		// go func() {
-		// 	w.Start()
-		// }()
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
+		go func() {
+			w.Start()
+		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
