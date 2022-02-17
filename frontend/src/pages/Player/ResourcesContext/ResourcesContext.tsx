@@ -1,7 +1,9 @@
 import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks';
 import { Session } from '@graph/schemas';
+import { getGraphQLResolverName } from '@pages/Player/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
+import { RequestResponsePair } from 'highlight.run/dist/client/src/listeners/network-listener/utils/models';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createContext } from '../../../util/context/context';
@@ -9,8 +11,14 @@ import { createContext } from '../../../util/context/context';
 interface ResourcesContext {
     resourcesLoading: boolean;
     loadResources: () => void;
-    resources: Array<PerformanceResourceTiming & { id: number }>;
+    resources: NetworkResourceWithID[];
 }
+
+export type NetworkResourceWithID = PerformanceResourceTiming & {
+    id: number;
+    requestResponsePairs?: RequestResponsePair;
+    displayName?: string;
+};
 
 export const useResources = (
     session: Session | undefined
@@ -43,16 +51,26 @@ export const useResources = (
         }
     }, [queryLoading, skipQuery]);
 
-    const [resources, setResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }>
-    >([]);
+    const [resources, setResources] = useState<NetworkResourceWithID[]>([]);
     useEffect(() => {
         setResources(
             (
                 data?.resources?.map((r, i) => {
                     return { ...r, id: i };
                 }) ?? []
-            ).sort((a, b) => a.startTime - b.startTime)
+            )
+                .sort((a, b) => a.startTime - b.startTime)
+                .map((resource) => {
+                    const resolverName = getGraphQLResolverName(resource);
+
+                    if (resolverName) {
+                        return {
+                            ...resource,
+                            displayName: `${resolverName} (${resource.name})`,
+                        };
+                    }
+                    return resource;
+                })
         );
     }, [data?.resources]);
 
@@ -82,7 +100,21 @@ export const useResources = (
                             (data as any[] | undefined)?.map((r, i) => {
                                 return { ...r, id: i };
                             }) ?? []
-                        ).sort((a, b) => a.startTime - b.startTime)
+                        )
+                            .sort((a, b) => a.startTime - b.startTime)
+                            .map((resource) => {
+                                const resolverName = getGraphQLResolverName(
+                                    resource
+                                );
+
+                                if (resolverName) {
+                                    return {
+                                        ...resource,
+                                        displayName: `${resolverName} (${resource.name})`,
+                                    };
+                                }
+                                return resource;
+                            })
                     );
                 })
                 .catch((e) => {
