@@ -263,6 +263,7 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
+        this.options.sessionSecureID = undefined; // Do not reuse the secure ID generated from firstload
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
