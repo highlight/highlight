@@ -39,6 +39,8 @@ export class ErrorContext {
         this._sourceContextCacheSizeMB = coalesceSize(options.sourceContextCacheSizeMB);
 
         const lruOptions = {
+            // `max` is the max count of cache entries - the docs seemed to imply this
+            // was a required parameter so it is set arbitrarily high at 1000 files.
             max: 1000,
             maxSize: this._sourceContextCacheSizeMB 
                 ? this._sourceContextCacheSizeMB * 1000 * 1000 
