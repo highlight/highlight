@@ -52,6 +52,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
             }
             resource = findResourceWithMatchingHighlightHeader(
                 error.request_id!,
+                // @ts-expect-error
                 resources
             );
             requestNotFound = resource === undefined;

@@ -249,7 +249,7 @@ export const Toolbar = React.memo(() => {
                         setDevToolsTab: setSelectedDevToolsTab,
                     }}
                 >
-                    {!isPlayerFullscreen && <TimelineIndicators />}
+                    <TimelineIndicators />
                     <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
                         <DevToolsWindow
                             time={
@@ -485,7 +485,7 @@ export const Toolbar = React.memo(() => {
                     )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
-                    {!isPlayerFullscreen && !isLiveMode && (
+                    {!isLiveMode && (
                         <>
                             <ToolbarMenu loading={disableControls} />
                             <DevToolsToolbarItem
@@ -656,6 +656,7 @@ export const TimelineAnnotationColors: {
     Viewport: '--color-purple-600',
     'Web Vitals': '--color-red-600',
     Referrer: '--color-yellow-800',
+    TabHidden: '--color-gray-800',
 };
 
 export function getAnnotationColor(

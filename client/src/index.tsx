@@ -46,6 +46,7 @@ import {
     PerformanceListener,
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
+import { PageVisibilityListener } from './listeners/page-visibility-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -222,6 +223,7 @@ export class Highlight {
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
+    hasPushedData!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -261,6 +263,7 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
+        this.options.sessionSecureID = undefined; // Do not reuse the secure ID generated from firstload
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
@@ -393,6 +396,7 @@ export class Highlight {
 
         this.events = [];
         this.hasSessionUnloaded = false;
+        this.hasPushedData = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -554,6 +558,14 @@ export class Highlight {
         }
     }
     async initialize() {
+        if (
+            navigator?.webdriver ||
+            navigator?.userAgent?.includes('Googlebot') ||
+            navigator?.userAgent?.includes('AdsBot')
+        ) {
+            this._firstLoadListeners?.stopListening();
+            return;
+        }
         try {
             if (this.feedbackWidgetOptions.enabled) {
                 const {
@@ -766,6 +778,11 @@ export class Highlight {
             this.listeners.push(
                 ViewportResizeListener((viewport) => {
                     this.addCustomEvent('Viewport', viewport);
+                })
+            );
+            this.listeners.push(
+                PageVisibilityListener((isTabHidden) => {
+                    this.addCustomEvent('TabHidden', isTabHidden);
                 })
             );
             this.listeners.push(
@@ -994,6 +1011,7 @@ export class Highlight {
             try {
                 const payload = this._getPayload({ isBeacon: false });
                 await this.graphqlSDK.PushPayload(payload);
+                this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
@@ -1056,7 +1074,10 @@ export class Highlight {
                 }
             };
             intervalId = setTimeout(worker, 500);
-        } else if (this.state === 'Recording' && this.events.length > 0) {
+        } else if (
+            this.state === 'Recording' &&
+            (this.events.length > 0 || this.hasPushedData)
+        ) {
             rrwebAddCustomEvent(tag, payload);
         }
     }

@@ -4,6 +4,7 @@ import Popover from '@components/Popover/Popover';
 import SvgFilterIcon from '@icons/FilterIcon';
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import React from 'react';
 
@@ -31,6 +32,8 @@ export const EventStreamTypesFilter = () => {
         showViewport,
         showWebVitals,
         setShowWebVitals,
+        setShowTabHidden,
+        showTabHidden,
     } = useEventTypeFilters();
     const activeFiltersCount = [
         showClick,
@@ -135,6 +138,14 @@ export const EventStreamTypesFilter = () => {
                                 label: <Label label="Reload" />,
                                 key: 'Reload',
                             },
+                            {
+                                checked: showTabHidden,
+                                onChange: (e) => {
+                                    setShowTabHidden(e.target.checked);
+                                },
+                                label: <Label label="TabHidden" />,
+                                key: 'Tab State',
+                            },
                         ]}
                         containerClassName={styles.optionsContainer}
                     />
@@ -164,7 +175,7 @@ const Label = ({ label }: LabelProps) => {
                 style={{ background: `var(${getAnnotationColor(label)}` }}
                 className={styles.checkboxLabelIndicator}
             />
-            {label}
+            {getTimelineEventDisplayName(label)}
         </div>
     );
 };

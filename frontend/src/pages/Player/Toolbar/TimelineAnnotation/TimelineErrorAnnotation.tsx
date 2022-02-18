@@ -1,3 +1,4 @@
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
@@ -53,6 +54,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={error.id}
             defaultVisible={errorId === error.id}
             popoverClassName={timelineAnnotationStyles.popover}

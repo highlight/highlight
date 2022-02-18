@@ -849,8 +849,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	// Parse the user-agent string
+	var userAgentString string
 	var deviceDetails DeviceDetails
-	if userAgentString, ok := ctx.Value(model.ContextKeys.UserAgent).(string); ok {
+	if userAgentString, ok = ctx.Value(model.ContextKeys.UserAgent).(string); ok {
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
@@ -904,7 +905,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session")
+		return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
