@@ -4,6 +4,7 @@ import SvgActivityIcon from '@icons/ActivityIcon';
 import SvgEyeIcon from '@icons/EyeIcon';
 import SvgEyeOffIcon from '@icons/EyeOffIcon';
 import SegmentIcon from '@icons/SegmentIcon';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
@@ -63,6 +64,7 @@ export const StreamElement = ({
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
+    const { setActiveEvent } = usePlayerUIContext();
 
     const showExpandedView = searchQuery.length > 0 || showDetails || selected;
     const shouldShowTimestamp =
@@ -74,6 +76,12 @@ export const StreamElement = ({
             className={classNames(styles.cardContainer, {
                 [styles.firstCard]: isFirstCard,
             })}
+            onMouseEnter={() => {
+                setActiveEvent(e);
+            }}
+            onMouseLeave={() => {
+                setActiveEvent(undefined);
+            }}
         >
             <RightPanelCard
                 key={e.identifier}

@@ -1,3 +1,4 @@
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import React from 'react';
 
 import { createContext } from '../../../util/context/context';
@@ -29,6 +30,10 @@ interface PlayerUIContext {
         newValue: 'Events' | 'Comments' | 'Metadata'
     ) => void;
     isQueryBuilder: boolean;
+    activeEvent?: HighlightEvent;
+    setActiveEvent: React.Dispatch<
+        React.SetStateAction<HighlightEvent | undefined>
+    >;
 }
 
 export const [
