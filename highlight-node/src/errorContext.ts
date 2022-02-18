@@ -57,13 +57,14 @@ export class ErrorContext {
             return maybeCached.lines;
         }
 
-        let lineIdx = 1;
         let size = 0;
         const contents = fs.readFileSync(filename, 'utf8');
         const lineStrs = contents.split('\n');
         const lines = new Map<number, string>();
         lineStrs.forEach((line, idx) => {
-            lines.set(idx + 1, line.substring(0, CONTEXT_LINE_MAX_SIZE) + '\n');
+            const curLine = line.substring(0, CONTEXT_LINE_MAX_SIZE) + '\n';
+            lines.set(idx + 1, curLine);
+            size += curLine.length;
         });
 
         this._cache.set(filename, {
