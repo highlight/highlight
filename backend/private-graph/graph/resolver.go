@@ -1134,6 +1134,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 
 		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
 			go (func() {
+				defer util.Recover()
 				ev := eventsAPIEvent.InnerEvent.Data.(*slackevents.LinkSharedEvent)
 
 				workspaceIdToSlackTeamMap := map[int]*slack.TeamInfo{}
@@ -1167,7 +1168,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 
 					slackAccessToken := workspace.SlackAccessToken
 
-					if len(*slackAccessToken) <= 0 {
+					if slackAccessToken == nil || len(*slackAccessToken) <= 0 {
 						log.Error(fmt.Errorf("workspace doesn't have a slack access token (unfurl url: %s)", link))
 						continue
 					}
