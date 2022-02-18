@@ -167,10 +167,35 @@ export const Buttons = () => {
                                 'Content-Type': 'application/json',
                             },
                             method: 'POST',
+                            body: '{"code":"SDFSDF"}',
                         });
                     }}
                 >
                     POST fetch('https://pokeapi.co/api/v2/pokemon/ditto')
+                </button>
+                <button
+                    onClick={() => {
+                        const http = new XMLHttpRequest();
+                        const url = 'https://pokeapi.co/api/v2/pokemon/ditto';
+                        const params = '{"code":"SDFSDF"}';
+                        http.open('POST', url, true);
+
+                        //Send the proper header information along with the request
+                        http.setRequestHeader(
+                            'Content-type',
+                            'application/json'
+                        );
+
+                        http.onreadystatechange = function () {
+                            //Call a function when the state changes.
+                            if (http.readyState == 4 && http.status == 200) {
+                                alert(http.responseText);
+                            }
+                        };
+                        http.send(params);
+                    }}
+                >
+                    POST xhr('https://pokeapi.co/api/v2/pokemon/ditto')
                 </button>
             </div>
             <div>
