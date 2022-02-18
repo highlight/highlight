@@ -558,6 +558,14 @@ export class Highlight {
         }
     }
     async initialize() {
+        if (
+            navigator?.webdriver ||
+            navigator?.userAgent?.includes('Googlebot') ||
+            navigator?.userAgent?.includes('AdsBot')
+        ) {
+            this._firstLoadListeners?.stopListening();
+            return;
+        }
         try {
             if (this.feedbackWidgetOptions.enabled) {
                 const {
