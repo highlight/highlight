@@ -1,4 +1,7 @@
-import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
+import {
+    getFullScreenPopoverGetPopupContainer,
+    usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -32,12 +35,7 @@ const TimelineEventAnnotation = ({
 }: Props) => {
     const details = getEventRenderDetails(event);
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-
-    if (
-        !selectedTimelineAnnotationTypes.includes(details.title || ('' as any))
-    ) {
-        return null;
-    }
+    const { activeEvent } = usePlayerUIContext();
 
     const Icon = getPlayerEventIcon(details.title || '', details.payload);
 
@@ -83,6 +81,12 @@ const TimelineEventAnnotation = ({
             }}
         >
             <TimelineAnnotation
+                hidden={
+                    !selectedTimelineAnnotationTypes.includes(
+                        details.title || ('' as any)
+                    ) && activeEvent?.identifier !== event.identifier
+                }
+                isActive={activeEvent?.identifier === event.identifier}
                 isSelected={isTooltipOpen}
                 event={event}
                 colorKey={
