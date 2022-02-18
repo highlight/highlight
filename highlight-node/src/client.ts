@@ -48,8 +48,10 @@ export class Highlight {
             () => this.flush(),
             this.FLUSH_TIMEOUT * 1000
         );
-        if (!options.disableSourceContext) {
-            this._errorContext = new ErrorContext({});
+        if (!options.disableErrorSourceContext) {
+            this._errorContext = new ErrorContext({
+                sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB
+            });
         }
     }
 

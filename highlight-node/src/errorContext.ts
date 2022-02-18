@@ -11,7 +11,7 @@ const CONTEXT_LINE_MAX_SIZE = 1000;
 const CONTEXT_LINES_COUNT = 5;
 
 interface ErrorContextOptions {
-    sourceContextCacheSizeMB?: number; // Interpreted as unbounded if <= 0, otherwise size in MB. Default 10MB.
+    sourceContextCacheSizeMB?: number; // Size in MB, or unbounded if <= 0. Default is 10MB.
 }
 
 function coalesceSize(inputSize: number | undefined): number | undefined {
@@ -63,7 +63,7 @@ export class ErrorContext {
         const lineStrs = contents.split('\n');
         const lines = new Map<number, string>();
         lineStrs.forEach((line, idx) => {
-            lines.set(idx + 1, line + '\n');
+            lines.set(idx + 1, line.substring(0, CONTEXT_LINE_MAX_SIZE) + '\n');
         });
 
         this._cache.set(filename, {
