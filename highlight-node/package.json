@@ -18,11 +18,14 @@
         "gql": "graphql-codegen --config --watch codegen.yml"
     },
     "dependencies": {
+        "@types/n-readlines": "^1.0.3",
         "error-stack-parser": "^2.0.6",
         "graphql": "15",
         "graphql-request": "^3.7.0",
         "graphql-tag": "^2.12.6",
         "highlight.run": "^2.9.0",
+        "lru-cache": "^7.3.1",
+        "n-readlines": "^1.0.1",
         "npm-run-all": "^4.1.5",
         "prettier": "^2.5.1",
         "typescript": "^4.5.5"
@@ -33,6 +36,7 @@
         "@graphql-codegen/typescript": "^2.4.1",
         "@graphql-codegen/typescript-graphql-request": "^4.3.2",
         "@graphql-codegen/typescript-operations": "^2.2.1",
+        "@types/lru-cache": "^5.1.1",
         "@types/node": "^17.0.13"
     }
 }
