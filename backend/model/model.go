@@ -176,8 +176,6 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
-	// Linear API Interaction.
-	LinearAccessToken *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 }

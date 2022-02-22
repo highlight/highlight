@@ -45,11 +45,7 @@ const LinearIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                         onClick={() => {
                             setModelOpen(false);
                             setIntegrationEnabled(false);
-                            removeLinearIntegrationFromProject({
-                                variables: {
-                                    project_id: project_id,
-                                },
-                            });
+                            removeLinearIntegrationFromProject(project_id);
                         }}
                     >
                         <PlugIcon className={styles.modalBtnIcon} />

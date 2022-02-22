@@ -651,191 +651,114 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
-export const AddLinearIntegrationToProjectDocument = gql`
-    mutation AddLinearIntegrationToProject($project_id: ID!, $code: String!) {
-        addLinearIntegrationToProject(project_id: $project_id, code: $code)
+export const AddIntegrationToProjectDocument = gql`
+    mutation AddIntegrationToProject(
+        $integration_type: IntegrationType
+        $project_id: ID!
+        $code: String!
+    ) {
+        addIntegrationToProject(
+            integration_type: $integration_type
+            project_id: $project_id
+            code: $code
+        )
     }
 `;
-export type AddLinearIntegrationToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddLinearIntegrationToProjectMutation,
-    Types.AddLinearIntegrationToProjectMutationVariables
+export type AddIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddIntegrationToProjectMutation,
+    Types.AddIntegrationToProjectMutationVariables
 >;
 
 /**
- * __useAddLinearIntegrationToProjectMutation__
+ * __useAddIntegrationToProjectMutation__
  *
- * To run a mutation, you first call `useAddLinearIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddLinearIntegrationToProjectMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddIntegrationToProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addLinearIntegrationToProjectMutation, { data, loading, error }] = useAddLinearIntegrationToProjectMutation({
+ * const [addIntegrationToProjectMutation, { data, loading, error }] = useAddIntegrationToProjectMutation({
  *   variables: {
+ *      integration_type: // value for 'integration_type'
  *      project_id: // value for 'project_id'
  *      code: // value for 'code'
  *   },
  * });
  */
-export function useAddLinearIntegrationToProjectMutation(
+export function useAddIntegrationToProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddLinearIntegrationToProjectMutation,
-        Types.AddLinearIntegrationToProjectMutationVariables
+        Types.AddIntegrationToProjectMutation,
+        Types.AddIntegrationToProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddLinearIntegrationToProjectMutation,
-        Types.AddLinearIntegrationToProjectMutationVariables
-    >(AddLinearIntegrationToProjectDocument, baseOptions);
+        Types.AddIntegrationToProjectMutation,
+        Types.AddIntegrationToProjectMutationVariables
+    >(AddIntegrationToProjectDocument, baseOptions);
 }
-export type AddLinearIntegrationToProjectMutationHookResult = ReturnType<
-    typeof useAddLinearIntegrationToProjectMutation
+export type AddIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useAddIntegrationToProjectMutation
 >;
-export type AddLinearIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddLinearIntegrationToProjectMutation>;
-export type AddLinearIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddLinearIntegrationToProjectMutation,
-    Types.AddLinearIntegrationToProjectMutationVariables
+export type AddIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddIntegrationToProjectMutation>;
+export type AddIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddIntegrationToProjectMutation,
+    Types.AddIntegrationToProjectMutationVariables
 >;
-export const RemoveLinearIntegrationFromProjectDocument = gql`
-    mutation RemoveLinearIntegrationFromProject($project_id: ID!) {
-        removeLinearIntegrationFromProject(project_id: $project_id)
+export const RemoveIntegrationFromProjectDocument = gql`
+    mutation RemoveIntegrationFromProject(
+        $integration_type: IntegrationType
+        $project_id: ID!
+    ) {
+        removeIntegrationFromProject(
+            integration_type: $integration_type
+            project_id: $project_id
+        )
     }
 `;
-export type RemoveLinearIntegrationFromProjectMutationFn = Apollo.MutationFunction<
-    Types.RemoveLinearIntegrationFromProjectMutation,
-    Types.RemoveLinearIntegrationFromProjectMutationVariables
+export type RemoveIntegrationFromProjectMutationFn = Apollo.MutationFunction<
+    Types.RemoveIntegrationFromProjectMutation,
+    Types.RemoveIntegrationFromProjectMutationVariables
 >;
 
 /**
- * __useRemoveLinearIntegrationFromProjectMutation__
+ * __useRemoveIntegrationFromProjectMutation__
  *
- * To run a mutation, you first call `useRemoveLinearIntegrationFromProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRemoveLinearIntegrationFromProjectMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRemoveIntegrationFromProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveIntegrationFromProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [removeLinearIntegrationFromProjectMutation, { data, loading, error }] = useRemoveLinearIntegrationFromProjectMutation({
+ * const [removeIntegrationFromProjectMutation, { data, loading, error }] = useRemoveIntegrationFromProjectMutation({
  *   variables: {
+ *      integration_type: // value for 'integration_type'
  *      project_id: // value for 'project_id'
  *   },
  * });
  */
-export function useRemoveLinearIntegrationFromProjectMutation(
+export function useRemoveIntegrationFromProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.RemoveLinearIntegrationFromProjectMutation,
-        Types.RemoveLinearIntegrationFromProjectMutationVariables
+        Types.RemoveIntegrationFromProjectMutation,
+        Types.RemoveIntegrationFromProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.RemoveLinearIntegrationFromProjectMutation,
-        Types.RemoveLinearIntegrationFromProjectMutationVariables
-    >(RemoveLinearIntegrationFromProjectDocument, baseOptions);
+        Types.RemoveIntegrationFromProjectMutation,
+        Types.RemoveIntegrationFromProjectMutationVariables
+    >(RemoveIntegrationFromProjectDocument, baseOptions);
 }
-export type RemoveLinearIntegrationFromProjectMutationHookResult = ReturnType<
-    typeof useRemoveLinearIntegrationFromProjectMutation
+export type RemoveIntegrationFromProjectMutationHookResult = ReturnType<
+    typeof useRemoveIntegrationFromProjectMutation
 >;
-export type RemoveLinearIntegrationFromProjectMutationResult = Apollo.MutationResult<Types.RemoveLinearIntegrationFromProjectMutation>;
-export type RemoveLinearIntegrationFromProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.RemoveLinearIntegrationFromProjectMutation,
-    Types.RemoveLinearIntegrationFromProjectMutationVariables
->;
-export const AddSlackBotIntegrationToProjectDocument = gql`
-    mutation AddSlackBotIntegrationToProject($project_id: ID!, $code: String!) {
-        addSlackBotIntegrationToProject(project_id: $project_id, code: $code)
-    }
-`;
-export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddSlackBotIntegrationToProjectMutation,
-    Types.AddSlackBotIntegrationToProjectMutationVariables
->;
-
-/**
- * __useAddSlackBotIntegrationToProjectMutation__
- *
- * To run a mutation, you first call `useAddSlackBotIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddSlackBotIntegrationToProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addSlackBotIntegrationToProjectMutation, { data, loading, error }] = useAddSlackBotIntegrationToProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      code: // value for 'code'
- *   },
- * });
- */
-export function useAddSlackBotIntegrationToProjectMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.AddSlackBotIntegrationToProjectMutation,
-        Types.AddSlackBotIntegrationToProjectMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.AddSlackBotIntegrationToProjectMutation,
-        Types.AddSlackBotIntegrationToProjectMutationVariables
-    >(AddSlackBotIntegrationToProjectDocument, baseOptions);
-}
-export type AddSlackBotIntegrationToProjectMutationHookResult = ReturnType<
-    typeof useAddSlackBotIntegrationToProjectMutation
->;
-export type AddSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToProjectMutation>;
-export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddSlackBotIntegrationToProjectMutation,
-    Types.AddSlackBotIntegrationToProjectMutationVariables
->;
-export const RemoveSlackBotIntegrationToProjectDocument = gql`
-    mutation RemoveSlackBotIntegrationToProject($project_id: ID!) {
-        removeSlackBotIntegrationToProject(project_id: $project_id)
-    }
-`;
-export type RemoveSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
-    Types.RemoveSlackBotIntegrationToProjectMutation,
-    Types.RemoveSlackBotIntegrationToProjectMutationVariables
->;
-
-/**
- * __useRemoveSlackBotIntegrationToProjectMutation__
- *
- * To run a mutation, you first call `useRemoveSlackBotIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRemoveSlackBotIntegrationToProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [removeSlackBotIntegrationToProjectMutation, { data, loading, error }] = useRemoveSlackBotIntegrationToProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useRemoveSlackBotIntegrationToProjectMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.RemoveSlackBotIntegrationToProjectMutation,
-        Types.RemoveSlackBotIntegrationToProjectMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.RemoveSlackBotIntegrationToProjectMutation,
-        Types.RemoveSlackBotIntegrationToProjectMutationVariables
-    >(RemoveSlackBotIntegrationToProjectDocument, baseOptions);
-}
-export type RemoveSlackBotIntegrationToProjectMutationHookResult = ReturnType<
-    typeof useRemoveSlackBotIntegrationToProjectMutation
->;
-export type RemoveSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.RemoveSlackBotIntegrationToProjectMutation>;
-export type RemoveSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.RemoveSlackBotIntegrationToProjectMutation,
-    Types.RemoveSlackBotIntegrationToProjectMutationVariables
+export type RemoveIntegrationFromProjectMutationResult = Apollo.MutationResult<Types.RemoveIntegrationFromProjectMutation>;
+export type RemoveIntegrationFromProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.RemoveIntegrationFromProjectMutation,
+    Types.RemoveIntegrationFromProjectMutationVariables
 >;
 export const UpdateAllowedEmailOriginsDocument = gql`
     mutation UpdateAllowedEmailOrigins(
@@ -7949,7 +7872,10 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 >;
 export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
     query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-        is_integrated_with_slack(project_id: $project_id)
+        is_integrated_with_slack: is_integrated_with(
+            integration_type: Slack
+            project_id: $project_id
+        )
     }
 `;
 
@@ -8003,7 +7929,10 @@ export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
 >;
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
     query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
-        is_integrated_with_linear(project_id: $project_id)
+        is_integrated_with_linear: is_integrated_with(
+            integration_type: Linear
+            project_id: $project_id
+        )
     }
 `;
 
@@ -8057,7 +7986,10 @@ export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
 >;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
-        is_integrated_with_slack(project_id: $project_id)
+        is_integrated_with_slack: is_integrated_with(
+            integration_type: Slack
+            project_id: $project_id
+        )
         slack_channel_suggestion(project_id: $project_id) {
             webhook_channel
             webhook_channel_id

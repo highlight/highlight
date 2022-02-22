@@ -147,6 +147,11 @@ export enum SocialType {
     Site = 'Site',
 }
 
+export enum IntegrationType {
+    Slack = 'Slack',
+    Linear = 'Linear',
+}
+
 export enum ErrorState {
     Open = 'OPEN',
     Resolved = 'RESOLVED',
@@ -734,8 +739,7 @@ export type Query = {
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
-    is_integrated_with_slack: Scalars['Boolean'];
-    is_integrated_with_linear: Scalars['Boolean'];
+    is_integrated_with: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
     workspace_invite_links: WorkspaceInviteLink;
@@ -1017,11 +1021,8 @@ export type QuerySlack_MembersArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryIs_Integrated_With_SlackArgs = {
-    project_id: Scalars['ID'];
-};
-
-export type QueryIs_Integrated_With_LinearArgs = {
+export type QueryIs_Integrated_WithArgs = {
+    integration_type: IntegrationType;
     project_id: Scalars['ID'];
 };
 
@@ -1111,10 +1112,8 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
-    addLinearIntegrationToProject: Scalars['Boolean'];
-    removeLinearIntegrationFromProject: Scalars['Boolean'];
-    addSlackBotIntegrationToProject: Scalars['Boolean'];
-    removeSlackBotIntegrationToProject: Scalars['Boolean'];
+    addIntegrationToProject: Scalars['Boolean'];
+    removeIntegrationFromProject: Scalars['Boolean'];
     syncSlackIntegration: SlackSyncResponse;
     createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
@@ -1316,21 +1315,14 @@ export type MutationOpenSlackConversationArgs = {
     redirect_path: Scalars['String'];
 };
 
-export type MutationAddLinearIntegrationToProjectArgs = {
+export type MutationAddIntegrationToProjectArgs = {
+    integration_type?: Maybe<IntegrationType>;
     project_id: Scalars['ID'];
     code: Scalars['String'];
 };
 
-export type MutationRemoveLinearIntegrationFromProjectArgs = {
-    project_id: Scalars['ID'];
-};
-
-export type MutationAddSlackBotIntegrationToProjectArgs = {
-    project_id: Scalars['ID'];
-    code: Scalars['String'];
-};
-
-export type MutationRemoveSlackBotIntegrationToProjectArgs = {
+export type MutationRemoveIntegrationFromProjectArgs = {
+    integration_type?: Maybe<IntegrationType>;
     project_id: Scalars['ID'];
 };
 

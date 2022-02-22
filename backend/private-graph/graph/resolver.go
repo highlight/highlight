@@ -1310,6 +1310,127 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
+
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+
+	if err != nil {
+		return e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating slack access token in workspace")
+	}
+
+	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return e.Wrap(err, "error marshaling existing channels")
+	}
+
+	channelString := string(channelBytes)
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return e.Wrap(err, "error updating project fields")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectID int) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		// remove slack integration from workspace
+		if err := tx.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
+			return e.Wrap(err, "error removing slack access token and channels in workspace")
+		}
+
+		empty := "[]"
+		projectAlert := model.Alert{ProjectID: projectID}
+		clearedChannelsAlert := model.Alert{ChannelsToNotify: &empty}
+
+		// set existing alerts to have empty slack channels to notify
+		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created SessionAlert's")
+		}
+
+		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created ErrorAlert's")
+		}
+
+		// set existing metric monitors to have empty slack channels to notify
+		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{ChannelsToNotify: &empty}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
+		}
+
+		// no errors updating DB
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
+	var (
+		LINEAR_CLIENT_ID     string
+		LINEAR_CLIENT_SECRET string
+	)
+
+	if tempLinearClientID, ok := os.LookupEnv("LINEAR_CLIENT_ID"); ok && tempLinearClientID != "" {
+		LINEAR_CLIENT_ID = tempLinearClientID
+	}
+	if tempLinearClientSecret, ok := os.LookupEnv("LINEAR_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
+		LINEAR_CLIENT_SECRET = tempLinearClientSecret
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
+
+	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
+	if err != nil {
+		return e.Wrap(err, "error getting linear oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{LinearAccessToken: &res.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating slack access token in workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveLinearFromWorkspace(workspace *model.Workspace) error {
+	if err := r.RevokeLinearAccessToken(*workspace.LinearAccessToken); err != nil {
+		return err
+	}
+
+	if err := r.DB.Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing linear access token in workspace")
+	}
+
+	return nil
+}
+
 type LinearAccessTokenResponse struct {
 	AccessToken string   `json:"access_token"`
 	TokenType   string   `json:"token_type"`
@@ -1356,6 +1477,31 @@ func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientI
 	}
 
 	return accessTokenResponse, nil
+}
+
+func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
+	client := &http.Client{}
+
+	data := url.Values{}
+	data.Set("access_token", accessToken)
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/oauth/revoke", strings.NewReader(data.Encode()))
+	if err != nil {
+		return e.Wrap(err, "error creating api request to linear")
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return e.Wrap(err, "error getting response from linear revoke oauth token endpoint")
+	}
+
+	if res.StatusCode != 200 {
+		return e.New("linear API responded with error; status_code=" + res.Status)
+	}
+
+	return nil
 }
 
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {

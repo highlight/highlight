@@ -1,7 +1,5 @@
 import Button from '@components/Button/Button/Button';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
-import { useRemoveSlackBotIntegrationToProjectMutation } from '@graph/hooks';
-import { namedOperations } from '@graph/operations';
 import AppsIcon from '@icons/AppsIcon';
 import PlugIcon from '@icons/PlugIcon';
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
@@ -16,16 +14,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     integrationEnabled,
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
-
-    const [
-        removeSlackBotIntegrationToProjectMutation,
-    ] = useRemoveSlackBotIntegrationToProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetWorkspaceIsIntegratedWithSlack,
-        ],
-    });
-
-    const { slackUrl } = useSlackBot({
+    const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot({
         type: 'Organization',
     });
 
@@ -55,11 +44,7 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                         onClick={() => {
                             setModelOpen(false);
                             setIntegrationEnabled(false);
-                            removeSlackBotIntegrationToProjectMutation({
-                                variables: {
-                                    project_id: project_id,
-                                },
-                            });
+                            removeSlackIntegrationFromProject(project_id);
                         }}
                     >
                         <PlugIcon className={styles.modalBtnIcon} />

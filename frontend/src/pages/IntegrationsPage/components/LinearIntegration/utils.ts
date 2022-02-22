@@ -1,35 +1,60 @@
 import {
-    useAddLinearIntegrationToProjectMutation,
+    useAddIntegrationToProjectMutation,
     useGetWorkspaceIsIntegratedWithLinearQuery,
-    useRemoveLinearIntegrationFromProjectMutation,
+    useRemoveIntegrationFromProjectMutation,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { IntegrationType } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import { GetBaseURL } from '@util/window';
+import { useCallback } from 'react';
 
 const LINEAR_SCOPES = ['read', 'issues:create', 'comments:create'];
 
 export const useLinearIntegration = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const [
-        addLinearIntegrationToProject,
-    ] = useAddLinearIntegrationToProjectMutation({
+
+    const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
         refetchQueries: [
             namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
         ],
     });
 
+    const addLinearIntegrationToProject = useCallback(
+        (code: string, projectId?: string) =>
+            addIntegrationToProject({
+                variables: {
+                    integration_type: IntegrationType.Linear,
+                    code: code,
+                    project_id: projectId || project_id,
+                },
+            }),
+        [project_id, addIntegrationToProject]
+    );
+
     const [
-        removeLinearIntegrationFromProject,
-    ] = useRemoveLinearIntegrationFromProjectMutation({
+        removeIntegrationFromProject,
+    ] = useRemoveIntegrationFromProjectMutation({
         refetchQueries: [
             namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
         ],
     });
+
+    const removeLinearIntegrationFromProject = useCallback(
+        (projectId?: string) =>
+            removeIntegrationFromProject({
+                variables: {
+                    integration_type: IntegrationType.Linear,
+                    project_id: projectId || project_id,
+                },
+            }),
+        [project_id, removeIntegrationFromProject]
+    );
 
     const { data, loading, error } = useGetWorkspaceIsIntegratedWithLinearQuery(
         {
-            variables: { project_id },
+            variables: { project_id: project_id },
+            skip: !project_id,
         }
     );
 

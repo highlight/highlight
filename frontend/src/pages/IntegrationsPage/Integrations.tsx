@@ -24,7 +24,7 @@ const INTEGRATIONS: Integration[] = [
         configurationPath: 'slack',
         description:
             'Bring your Highlight comments and alerts to slack as messages.',
-        icon: 'https://img.stackshare.io/service/675/RNiSRYOF_400x400.jpg',
+        icon: '/images/integrations/slack.jpg',
         configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
     },
     {
@@ -32,7 +32,7 @@ const INTEGRATIONS: Integration[] = [
         name: 'Linear',
         configurationPath: 'linear',
         description: 'Bring your Highlight comments to Linear as issues.',
-        icon: 'https://img.stackshare.io/service/12513/MF6whgy1_400x400.png',
+        icon: '/images/integrations/linear.png',
         configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
     },
 ];

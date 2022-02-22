@@ -6,6 +6,7 @@ import {
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import { H } from 'highlight.run';
 import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
@@ -27,41 +28,43 @@ const IntegrationAuthCallbackPage = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state') || '';
-        try {
-            const parsedState = JSON.parse(atob(state));
-            const next = parsedState['next'];
-            const project_id = parsedState['project_id'];
+        let next = '/integrations';
+        (async () => {
+            try {
+                const parsedState = JSON.parse(atob(state));
+                const project_id = parsedState['project_id'];
 
-            if (!code) {
-                history.push(`/${project_id}/${next}`);
-                return;
-            }
-
-            (async () => {
-                try {
-                    if (integrationName.toLowerCase() === 'slack') {
-                        await addSlackToWorkspace(code, project_id);
-                    } else if (
-                        integrationName.toLocaleLowerCase() === 'linear'
-                    ) {
-                        await addLinearIntegrationToProject({
-                            variables: { project_id: project_id, code: code },
-                        });
-                        message.success(
-                            'Highlight is now synced with Linear!',
-                            5
-                        );
-                    }
-                } catch (e) {
-                    console.error(e);
+                if (!project_id) {
+                    throw new Error(
+                        'Error adding integration: no project_id in state query string'
+                    );
                 }
-                setLoadingState(AppLoadingState.LOADED);
-                history.push(`/${project_id}/${next}`);
-            })();
-        } catch (e) {
-            console.error(e);
-            history.push('/');
-        }
+
+                if (!parsedState['next'])
+                    next = `/${project_id}/${parsedState['next']}`;
+
+                if (!code) {
+                    throw new Error(
+                        'Error adding integration: no code in url query string'
+                    );
+                }
+
+                if (integrationName.toLowerCase() === 'slack') {
+                    await addSlackToWorkspace(code, project_id);
+                } else if (integrationName.toLocaleLowerCase() === 'linear') {
+                    await addLinearIntegrationToProject(code, project_id);
+                    message.success('Highlight is now synced with Linear!', 5);
+                }
+            } catch (e: any) {
+                H.consumeError(e);
+                console.error(e);
+                message.error(
+                    'Failed to add integration to project. Please try again.'
+                );
+            } finally {
+                history.push(next);
+            }
+        })();
     }, [
         addSlackToWorkspace,
         integrationName,

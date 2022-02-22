@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import { IntegrationType } from '@graph/schemas';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { GetBaseURL } from '@util/window';
@@ -6,9 +7,10 @@ import { message } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
-    useAddSlackBotIntegrationToProjectMutation,
+    useAddIntegrationToProjectMutation,
     useGetWorkspaceIsIntegratedWithSlackQuery,
     useOpenSlackConversationMutation,
+    useRemoveIntegrationFromProjectMutation,
 } from '../../../../../graph/generated/hooks';
 
 export interface UseSlackBotProps {
@@ -29,14 +31,42 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
     const [openSlackConversation] = useOpenSlackConversationMutation({
         refetchQueries: [namedOperations.Query.GetProject],
     });
-    const [
-        addSlackBotIntegrationToProject,
-    ] = useAddSlackBotIntegrationToProjectMutation({
+    const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
         refetchQueries: [
             namedOperations.Query.GetAlertsPagePayload,
             namedOperations.Query.GetWorkspaceIsIntegratedWithSlack,
         ],
     });
+    const addSlackBotIntegrationToProject = useCallback(
+        (code: string, projectId?: string) =>
+            addIntegrationToProject({
+                variables: {
+                    project_id: projectId || project_id,
+                    code,
+                    integration_type: IntegrationType.Slack,
+                },
+            }),
+        [addIntegrationToProject, project_id]
+    );
+    const [
+        removeIntegrationFromProject,
+    ] = useRemoveIntegrationFromProjectMutation({
+        refetchQueries: [
+            namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+        ],
+    });
+
+    const removeSlackIntegrationFromProject = useCallback(
+        (projectId?: string) =>
+            removeIntegrationFromProject({
+                variables: {
+                    integration_type: IntegrationType.Slack,
+                    project_id: projectId || project_id,
+                },
+            }),
+        [project_id, removeIntegrationFromProject]
+    );
+
     const [loading, setLoading] = useState<boolean>(false);
     const [
         isSlackConnectedToWorkspace,
@@ -49,6 +79,7 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
         refetch,
     } = useGetWorkspaceIsIntegratedWithSlackQuery({
         variables: { project_id },
+        skip: !project_id,
     });
 
     useEffect(() => {
@@ -76,12 +107,10 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
                     5
                 );
             } else {
-                await addSlackBotIntegrationToProject({
-                    variables: {
-                        project_id: projectId || project_id,
-                        code,
-                    },
-                });
+                await addSlackBotIntegrationToProject(
+                    code,
+                    projectId || project_id
+                );
                 setIsSlackConnectedToWorkspace(true);
                 message.success('Highlight is now synced with Slack!', 5);
             }
@@ -103,6 +132,7 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
         isSlackConnectedToWorkspace,
         refetch,
         addSlackToWorkspace,
+        removeSlackIntegrationFromProject,
     };
 };
 

@@ -1101,15 +1101,24 @@ query GetSlackChannelSuggestion($project_id: ID!) {
 }
 
 query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
 }
 
 query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
-    is_integrated_with_linear(project_id: $project_id)
+    is_integrated_with_linear: is_integrated_with(
+        integration_type: Linear
+        project_id: $project_id
+    )
 }
 
 query GetAlertsPagePayload($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
         webhook_channel_id

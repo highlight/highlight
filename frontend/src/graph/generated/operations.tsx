@@ -127,39 +127,24 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
     'openSlackConversation'
 >;
 
-export type AddLinearIntegrationToProjectMutationVariables = Types.Exact<{
+export type AddIntegrationToProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
 }>;
 
-export type AddLinearIntegrationToProjectMutation = {
+export type AddIntegrationToProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addLinearIntegrationToProject'>;
+} & Pick<Types.Mutation, 'addIntegrationToProject'>;
 
-export type RemoveLinearIntegrationFromProjectMutationVariables = Types.Exact<{
+export type RemoveIntegrationFromProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
     project_id: Types.Scalars['ID'];
 }>;
 
-export type RemoveLinearIntegrationFromProjectMutation = {
+export type RemoveIntegrationFromProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'removeLinearIntegrationFromProject'>;
-
-export type AddSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    code: Types.Scalars['String'];
-}>;
-
-export type AddSlackBotIntegrationToProjectMutation = {
-    __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
-
-export type RemoveSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type RemoveSlackBotIntegrationToProjectMutation = {
-    __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'removeSlackBotIntegrationToProject'>;
+} & Pick<Types.Mutation, 'removeIntegrationFromProject'>;
 
 export type UpdateAllowedEmailOriginsMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
@@ -2937,7 +2922,7 @@ export type GetWorkspaceIsIntegratedWithSlackQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithSlackQuery = {
     __typename?: 'Query';
-} & Pick<Types.Query, 'is_integrated_with_slack'>;
+} & { is_integrated_with_slack: Types.Query['is_integrated_with'] };
 
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -2945,7 +2930,7 @@ export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithLinearQuery = {
     __typename?: 'Query';
-} & Pick<Types.Query, 'is_integrated_with_linear'>;
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
 
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -2953,8 +2938,8 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack' | 'identifier_suggestion'
-> & {
+    'identifier_suggestion'
+> & { is_integrated_with_slack: Types.Query['is_integrated_with'] } & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
                 Types.Maybe<
@@ -3358,10 +3343,8 @@ export const namedOperations = {
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
-        AddLinearIntegrationToProject: 'AddLinearIntegrationToProject' as const,
-        RemoveLinearIntegrationFromProject: 'RemoveLinearIntegrationFromProject' as const,
-        AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
-        RemoveSlackBotIntegrationToProject: 'RemoveSlackBotIntegrationToProject' as const,
+        AddIntegrationToProject: 'AddIntegrationToProject' as const,
+        RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
         UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
         CreateProject: 'CreateProject' as const,
         SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
