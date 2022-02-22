@@ -186,11 +186,23 @@ func main() {
 		return brotli_enc.NewBrotliWriter(params, w)
 	})
 	r.Use(compressor.Handler)
-	r.Use(cors.New(cors.Options{
-		AllowOriginRequestFunc: validateOrigin,
-		AllowCredentials:       true,
-		AllowedHeaders:         []string{"*"},
-	}).Handler)
+	baseCORSConfig := cors.Options{
+		AllowedHeaders: []string{"*"},
+	}
+
+	if !util.IsDevOrTestEnv() {
+		if runtimeParsed == util.PublicGraph {
+			baseCORSConfig.AllowedOrigins = []string{"*"}
+		} else {
+			// Config for Private Graph and Worker
+			baseCORSConfig.AllowOriginRequestFunc = validateOrigin
+			baseCORSConfig.AllowCredentials = true
+		}
+	} else {
+		baseCORSConfig.AllowOriginRequestFunc = validateOrigin
+		baseCORSConfig.AllowCredentials = true
+	}
+	r.Use(cors.New(baseCORSConfig).Handler)
 	r.HandleFunc("/health", healthRouter(runtimeParsed))
 	/*
 		Selectively turn on backends depending on the input flag
