@@ -2,12 +2,13 @@ import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import AlertsRouter from '@pages/Alerts/AlertsRouter';
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter';
-import IntegrationsRouter from '@pages/Integrations/IntegrationsRouter';
+import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { Suspense } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
+const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
@@ -52,11 +53,16 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <SetupPage integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/integrations">
-                    <IntegrationsRouter />
+                    <IntegrationsPage />
                 </Route>
                 <Route path="/:project_id/buttons">
                     <Suspense fallback={null}>
                         <Buttons />
+                    </Suspense>
+                </Route>
+                <Route path="/:project_id/hit-targets">
+                    <Suspense fallback={null}>
+                        <HitTargets />
                     </Suspense>
                 </Route>
                 <Route path="/:project_id/home">

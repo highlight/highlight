@@ -190,6 +190,7 @@ type Workspace struct {
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
 	SlackChannels               *string
+	LinearAccessToken           *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	StripeCustomerID            *string

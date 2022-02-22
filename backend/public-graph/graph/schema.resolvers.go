@@ -23,15 +23,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, sessionSecureID)
 
 	projectID, _ := model.FromVerboseID(organizationVerboseID)
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if !util.IsDevEnv() && err != nil {
+		specifiedSecureID := ""
+		if sessionSecureID != nil {
+			specifiedSecureID = *sessionSecureID
+		}
 		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nIs on-prem: %q", err, projectID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
+			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nSecure ID: %s\nIs on-prem: %q", err, projectID, organizationVerboseID, specifiedSecureID, os.Getenv("REACT_APP_ONPREM"))}
 		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		if err != nil {
 			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))

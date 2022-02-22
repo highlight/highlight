@@ -60,6 +60,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
 	span.SetTag("backend", t.serverType)
+	span.SetTag("size", len(rc.RawQuery))
 	defer span.Finish()
 	resp := next(ctx)
 	if resp.Errors != nil {

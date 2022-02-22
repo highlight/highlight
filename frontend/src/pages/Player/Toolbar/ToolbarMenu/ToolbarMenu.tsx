@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button';
 import Popover from '@components/Popover/Popover';
 import PopoverListContent from '@components/Popover/PopoverListContent';
 import SvgSettingsIcon from '@icons/SettingsIcon';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -23,6 +24,7 @@ interface Props {
 const ToolbarMenu = React.memo(({ loading }: Props) => {
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             placement="topLeft"
             trigger={['click']}
             contentContainerClassName={styles.popover}

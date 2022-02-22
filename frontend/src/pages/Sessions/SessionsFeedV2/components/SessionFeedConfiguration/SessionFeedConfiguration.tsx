@@ -7,7 +7,9 @@ import {
     dateTimeFormats,
     SESSION_FEED_COUNT_FORMAT,
     SESSION_FEED_DATETIME_FORMAT,
+    SESSION_FEED_SORT_ORDER,
     SessionFeedConfigurationContext,
+    sortOrders,
 } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { formatNumber } from '@util/numbers';
 import { H } from 'highlight.run';
@@ -27,12 +29,28 @@ const SessionFeedConfiguration = React.memo(
             setDatetimeFormat,
             countFormat,
             setCountFormat,
+            setSortOrder,
+            sortOrder,
         },
     }: Props) => {
         return (
             <Popover
                 content={
                     <div className={styles.popover}>
+                        <label className={styles.label}>
+                            Session Created At Sort Order
+                            <Select
+                                options={sortOrders.map((sortOrder) => ({
+                                    displayValue: `${getSortOrderDisplayName(
+                                        sortOrder
+                                    )}`,
+                                    value: sortOrder,
+                                    id: sortOrder,
+                                }))}
+                                value={sortOrder}
+                                onChange={setSortOrder}
+                            />
+                        </label>
                         <label className={styles.label}>
                             Datetime Format
                             <Select
@@ -125,5 +143,15 @@ export const formatCount = (
             );
             H.consumeError(error);
             return count;
+    }
+};
+
+export const getSortOrderDisplayName = (sortOrder: SESSION_FEED_SORT_ORDER) => {
+    switch (sortOrder) {
+        case 'Ascending':
+            return 'Ascending (Oldest first)';
+        case 'Descending':
+        default:
+            return 'Descending (Newest first)';
     }
 };

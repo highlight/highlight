@@ -52,6 +52,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
             }
             resource = findResourceWithMatchingHighlightHeader(
                 error.request_id!,
+                // @ts-expect-error
                 resources
             );
             requestNotFound = resource === undefined;
@@ -123,7 +124,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                     <GoToButton
                         onClick={() => {
                             if (resource) {
-                                pause(resource.startTime);
+                                pause(
+                                    resource.offsetStartTime ||
+                                        resource.startTime
+                                );
 
                                 message.success(
                                     `Changed player time to when ${getNetworkResourcesDisplayName(

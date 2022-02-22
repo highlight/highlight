@@ -123,6 +123,11 @@ enum SocialType {
     Site
 }
 
+enum IntegrationType {
+    Slack
+    Linear
+}
+
 enum ErrorState {
     OPEN
     RESOLVED
@@ -685,6 +690,7 @@ type Query {
         project_id: ID!
         count: Int!
         query: String!
+        sort_desc: Boolean!
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
@@ -734,7 +740,10 @@ type Query {
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
-    is_integrated_with_slack(project_id: ID!): Boolean!
+    is_integrated_with(
+        integration_type: IntegrationType!
+        project_id: ID!
+    ): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -853,12 +862,15 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
-    addSlackBotIntegrationToProject(
+    addIntegrationToProject(
+        integration_type: IntegrationType
         project_id: ID!
         code: String!
-        redirect_path: String!
     ): Boolean!
-    removeSlackBotIntegrationToProject(project_id: ID!): Boolean!
+    removeIntegrationFromProject(
+        integration_type: IntegrationType
+        project_id: ID!
+    ): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(
         project_id: ID!

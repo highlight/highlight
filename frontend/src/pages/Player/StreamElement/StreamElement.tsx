@@ -1,7 +1,10 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
 import SvgActivityIcon from '@icons/ActivityIcon';
+import SvgEyeIcon from '@icons/EyeIcon';
+import SvgEyeOffIcon from '@icons/EyeOffIcon';
 import SegmentIcon from '@icons/SegmentIcon';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
@@ -28,7 +31,10 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import { useReplayerContext } from '../ReplayerContext';
 import RightPanelCard from '../RightPanelCard/RightPanelCard';
-import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import {
+    EventTypeDescriptions,
+    getTimelineEventDisplayName,
+} from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
@@ -58,6 +64,7 @@ export const StreamElement = ({
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
+    const { setActiveEvent } = usePlayerUIContext();
 
     const showExpandedView = searchQuery.length > 0 || showDetails || selected;
     const shouldShowTimestamp =
@@ -69,6 +76,12 @@ export const StreamElement = ({
             className={classNames(styles.cardContainer, {
                 [styles.firstCard]: isFirstCard,
             })}
+            onMouseEnter={() => {
+                setActiveEvent(e);
+            }}
+            onMouseLeave={() => {
+                setActiveEvent(undefined);
+            }}
         >
             <RightPanelCard
                 key={e.identifier}
@@ -90,7 +103,10 @@ export const StreamElement = ({
                 >
                     <div className={styles.headerRow}>
                         <div className={styles.iconWrapper}>
-                            {getPlayerEventIcon(details.title || '')}
+                            {getPlayerEventIcon(
+                                details.title || '',
+                                details.payload
+                            )}
                         </div>
                     </div>
                     <div
@@ -140,7 +156,9 @@ export const StreamElement = ({
                             ) : (
                                 <div className={styles.payloadContainer}>
                                     <h2 className={styles.payloadTitle}>
-                                        {details.title}{' '}
+                                        {getTimelineEventDisplayName(
+                                            details.title || ''
+                                        )}{' '}
                                         <InfoTooltip
                                             title={
                                                 // @ts-ignore
@@ -166,6 +184,14 @@ export const StreamElement = ({
                                                     ? JSON.stringify(
                                                           details.payload
                                                       )
+                                                    : typeof details.payload ===
+                                                          'boolean' &&
+                                                      details.title?.includes(
+                                                          'Tab'
+                                                      )
+                                                    ? details.payload
+                                                        ? 'The user switched away from this tab.'
+                                                        : 'The user is currently active on this tab.'
                                                     : details.payload
                                             }
                                             searchQuery={searchQuery}
@@ -260,6 +286,9 @@ export const getEventRenderDetails = (
             case 'Page Unload':
                 details.displayValue = 'Page Unload';
                 break;
+            case 'TabHidden':
+                details.displayValue = payload ? 'Tab Hidden' : 'Tab Visible';
+                break;
             default:
                 details.displayValue = payload;
                 break;
@@ -270,7 +299,11 @@ export const getEventRenderDetails = (
     return details;
 };
 
-export const getPlayerEventIcon = (title: string, debug?: boolean) =>
+export const getPlayerEventIcon = (
+    title: string,
+    payload?: any,
+    debug?: boolean
+) =>
     title === 'Click' ? (
         <SvgCursorClickIcon className={classNames(styles.tiltedIcon)} />
     ) : title?.includes('Segment') ? (
@@ -291,6 +324,12 @@ export const getPlayerEventIcon = (title: string, debug?: boolean) =>
         <FaRegStopCircle className={classNames(styles.defaultIcon)} />
     ) : title === 'Viewport' ? (
         <SvgDimensionsIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'TabHidden' ? (
+        payload ? (
+            <SvgEyeOffIcon className={classNames(styles.defaultIcon)} />
+        ) : (
+            <SvgEyeIcon className={classNames(styles.defaultIcon)} />
+        )
     ) : title === 'Focus' ? (
         <SvgCursorIcon className={classNames(styles.defaultIcon)} />
     ) : title === 'Web Vitals' ? (

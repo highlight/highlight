@@ -8,6 +8,7 @@ import {
     findLatestUrl,
     getAllPerformanceEvents,
     getAllUrlEvents,
+    getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { timerEnd } from '@util/timer/timer';
@@ -98,6 +99,11 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
+    // Browser extension script URLs that are in the session.
+    const [
+        browserExtensionScriptURLs,
+        setBrowserExtensionScriptURLs,
+    ] = useState<string[]>([]);
     const [
         unsubscribeSessionPayloadFn,
         setUnsubscribeSessionPayloadFn,
@@ -410,6 +416,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     }
                 }
             });
+            const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
+            setBrowserExtensionScriptURLs(onlyScriptEvents);
+
             const onlyUrlEvents = getAllUrlEvents(newEvents);
             if (onlyUrlEvents.length >= 1) {
                 setCurrentUrl(onlyUrlEvents[0].data.payload);
@@ -843,6 +852,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessionStartDateTime: events.length > 0 ? events[0].timestamp : 0,
         viewingUnauthorizedSession,
         setViewingUnauthorizedSession,
+        browserExtensionScriptURLs,
+        setBrowserExtensionScriptURLs,
     };
 };
 

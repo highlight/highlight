@@ -36,6 +36,34 @@
     }
 }
 
+.tooltip {
+    margin-left: auto;
+}
+
+.collapsibleWrapper {
+    width: 100%;
+    &#{&} {
+        h2 {
+            font-size: 14px !important;
+            font-weight: 400;
+        }
+    }
+
+    span > div {
+        margin-bottom: initial !important;
+        padding: 16px !important;
+    }
+
+    svg {
+        flex-shrink: 0;
+        margin-left: 16px;
+    }
+}
+
+.contentWrapper {
+    padding: 0 !important;
+}
+
 .stackTraceCard {
     margin-bottom: 30px;
 }

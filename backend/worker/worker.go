@@ -179,8 +179,8 @@ func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
 			defer util.Recover()
 
 			baseQuery := `
-				DELETE 
-				FROM %s o  
+				DELETE
+				FROM %s o
 				USING sessions s
 				WHERE o.session_id = s.id
 				AND s.object_storage_enabled = True
@@ -482,13 +482,13 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
-	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -885,7 +885,10 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				}
 				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
 				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
-				if math.Sqrt(first+second) <= 32 {
+
+				RADIUS := 8.0
+				// if the distance between the current and previous click is less than the threshold
+				if math.Sqrt(first+second) <= RADIUS {
 					numTotal += 1
 					if !o.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
 						rageClick.StartTimestamp = el.Timestamp

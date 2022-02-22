@@ -127,23 +127,24 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
     'openSlackConversation'
 >;
 
-export type AddSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
+export type AddIntegrationToProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
-    redirect_path: Types.Scalars['String'];
 }>;
 
-export type AddSlackBotIntegrationToProjectMutation = {
+export type AddIntegrationToProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
+} & Pick<Types.Mutation, 'addIntegrationToProject'>;
 
-export type RemoveSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
+export type RemoveIntegrationFromProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
     project_id: Types.Scalars['ID'];
 }>;
 
-export type RemoveSlackBotIntegrationToProjectMutation = {
+export type RemoveIntegrationFromProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'removeSlackBotIntegrationToProject'>;
+} & Pick<Types.Mutation, 'removeIntegrationFromProject'>;
 
 export type UpdateAllowedEmailOriginsMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
@@ -1816,6 +1817,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
+    sort_desc: Types.Scalars['Boolean'];
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2302,6 +2304,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'lineContent'
                             | 'linesBefore'
                             | 'linesAfter'
+                            | 'error'
                         >
                     >
                 >;
@@ -2921,7 +2924,15 @@ export type GetWorkspaceIsIntegratedWithSlackQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithSlackQuery = {
     __typename?: 'Query';
-} & Pick<Types.Query, 'is_integrated_with_slack'>;
+} & { is_integrated_with_slack: Types.Query['is_integrated_with'] };
+
+export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceIsIntegratedWithLinearQuery = {
+    __typename?: 'Query';
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
 
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -2929,8 +2940,8 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack' | 'identifier_suggestion'
-> & {
+    'identifier_suggestion'
+> & { is_integrated_with_slack: Types.Query['is_integrated_with'] } & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
                 Types.Maybe<
@@ -3315,6 +3326,7 @@ export const namedOperations = {
         GetErrorDistribution: 'GetErrorDistribution' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
+        GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
@@ -3333,8 +3345,8 @@ export const namedOperations = {
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
-        AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
-        RemoveSlackBotIntegrationToProject: 'RemoveSlackBotIntegrationToProject' as const,
+        AddIntegrationToProject: 'AddIntegrationToProject' as const,
+        RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
         UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
         CreateProject: 'CreateProject' as const,
         SubmitRegistrationForm: 'SubmitRegistrationForm' as const,

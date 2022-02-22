@@ -407,8 +407,18 @@ query GetErrorFieldsOpensearch(
     )
 }
 
-query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
-    sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
+query GetSessionsOpenSearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+    $sort_desc: Boolean!
+) {
+    sessions_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+        sort_desc: $sort_desc
+    ) {
         sessions {
             id
             secure_id
@@ -735,6 +745,7 @@ query GetErrorGroup($secure_id: String!) {
             lineContent
             linesBefore
             linesAfter
+            error
         }
         mapped_stack_trace
         stack_trace
@@ -1101,11 +1112,24 @@ query GetSlackChannelSuggestion($project_id: ID!) {
 }
 
 query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
+}
+
+query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
+    is_integrated_with_linear: is_integrated_with(
+        integration_type: Linear
+        project_id: $project_id
+    )
 }
 
 query GetAlertsPagePayload($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
         webhook_channel_id

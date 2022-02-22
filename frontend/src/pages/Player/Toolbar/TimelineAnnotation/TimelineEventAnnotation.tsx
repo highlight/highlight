@@ -1,3 +1,8 @@
+import {
+    getFullScreenPopoverGetPopupContainer,
+    usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext';
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { message } from 'antd';
 import React, { useState } from 'react';
 
@@ -30,16 +35,13 @@ const TimelineEventAnnotation = ({
 }: Props) => {
     const details = getEventRenderDetails(event);
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+    const { activeEvent } = usePlayerUIContext();
 
-    if (
-        !selectedTimelineAnnotationTypes.includes(details.title || ('' as any))
-    ) {
-        return null;
-    }
-    const Icon = getPlayerEventIcon(details.title || '');
+    const Icon = getPlayerEventIcon(details.title || '', details.payload);
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={event.identifier}
             popoverClassName={timelineAnnotationStyles.popover}
             content={
@@ -48,6 +50,11 @@ const TimelineEventAnnotation = ({
                         payload={
                             typeof details.payload === 'object'
                                 ? JSON.stringify(details.payload)
+                                : typeof details.payload === 'boolean' &&
+                                  details.title?.includes('Tab')
+                                ? details.payload
+                                    ? 'The user switched away from this tab.'
+                                    : 'The user is currently active on this tab.'
                                 : details.payload
                         }
                     />
@@ -66,7 +73,7 @@ const TimelineEventAnnotation = ({
                     >
                         {Icon}
                     </span>
-                    {details.title}
+                    {getTimelineEventDisplayName(details.title || '')}
                 </span>
             }
             onVisibleChange={(visible) => {
@@ -74,6 +81,12 @@ const TimelineEventAnnotation = ({
             }}
         >
             <TimelineAnnotation
+                hidden={
+                    !selectedTimelineAnnotationTypes.includes(
+                        details.title || ('' as any)
+                    ) && activeEvent?.identifier !== event.identifier
+                }
+                isActive={activeEvent?.identifier === event.identifier}
                 isSelected={isTooltipOpen}
                 event={event}
                 colorKey={

@@ -2,6 +2,7 @@ import GoToButton from '@components/Button/GoToButton';
 import KeyValueTable from '@components/KeyValueTable/KeyValueTable';
 import Popover from '@components/Popover/Popover';
 import SvgAnnotationWarningIcon from '@icons/AnnotationWarningIcon';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { RageClick, useReplayerContext } from '@pages/Player/ReplayerContext';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import message from 'antd/lib/message';
@@ -21,6 +22,7 @@ const RageClickSpan = ({ rageClick }: Props) => {
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             placement="top"
             onMouseEnter={() => {
                 setIsHovered(true);

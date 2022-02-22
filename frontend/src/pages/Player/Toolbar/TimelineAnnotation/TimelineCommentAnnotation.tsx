@@ -1,4 +1,5 @@
 import { SessionCommentType } from '@graph/schemas';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { message } from 'antd';
 import React, { ReactElement, useState } from 'react';
@@ -30,6 +31,7 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
 
     return (
         <Popover
+            getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={comment.id}
             content={
                 <div className={styles.popoverContent}>
