@@ -1,6 +1,7 @@
 import {
     addCustomEvent as rrwebAddCustomEvent,
     record,
+    getRecordSequentialIdPlugin,
 } from '@highlight-run/rrweb';
 import {
     eventWithTime,
@@ -694,6 +695,7 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
                     this.listeners.push(recordStop);

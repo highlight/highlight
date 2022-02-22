@@ -3115,10 +3115,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@1.1.12":
-  version "1.1.12"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.12.tgz#9a4b60bc94c82c5881b04abe1231cd2377e930e0"
-  integrity sha512-BOyrkaeWw9Nw9PeN95BrS7SwQL75/mbzkuMycb4+0joYij7SKaUJhcPJNYFrG8UIVnpQMlvztIcUaBjvK/SmgQ==
+"@highlight-run/rrweb@1.1.13":
+  version "1.1.13"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.13.tgz#6d94ac5a7179f42a9277c45ba74a4210c22536e3"
+  integrity sha512-lypJvifKgH9wgQst8UcOr1t9fJDKYEiJMNBlCQFeQYuBokIvtHLA+RMTfMbuflgD3iJZX1wvWWKkboxFwox5QQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
