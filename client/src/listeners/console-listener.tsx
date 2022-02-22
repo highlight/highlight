@@ -19,7 +19,6 @@ export type StringifyOptions = {
 
 type LogRecordOptions = {
     level: ConsoleMethods[];
-    lengthThreshold: number;
     stringifyOptions: StringifyOptions;
     logger: Logger | 'console';
 };
@@ -83,7 +82,6 @@ export function ConsoleListener(
     } else {
         logger = loggerType;
     }
-    let logCount = 0;
     const cancelHandlers: (() => void)[] = [];
 
     // add listener to thrown errors
@@ -138,26 +136,13 @@ export function ConsoleListener(
                     const payload = args.map((s) =>
                         stringify(s, logOptions.stringifyOptions)
                     );
-                    logCount++;
-                    if (logCount < logOptions.lengthThreshold) {
-                        callback({
-                            type: level,
-                            trace: trace.slice(1),
-                            value: payload,
-                            time: Date.now(),
-                        });
-                    } else if (logCount === logOptions.lengthThreshold) {
-                        // notify the user
-                        callback({
-                            type: 'Warn',
-                            time: Date.now(),
-                            value: [
-                                stringify(
-                                    'The number of log records reached the threshold.'
-                                ),
-                            ],
-                        });
-                    }
+
+                    callback({
+                        type: level,
+                        trace: trace.slice(1),
+                        value: payload,
+                        time: Date.now(),
+                    });
                 } catch (error) {
                     original('highlight logger error:', error, ...args);
                 }
