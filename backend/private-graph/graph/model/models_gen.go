@@ -265,6 +265,47 @@ func (e ErrorState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type IntegrationType string
+
+const (
+	IntegrationTypeSlack  IntegrationType = "Slack"
+	IntegrationTypeLinear IntegrationType = "Linear"
+)
+
+var AllIntegrationType = []IntegrationType{
+	IntegrationTypeSlack,
+	IntegrationTypeLinear,
+}
+
+func (e IntegrationType) IsValid() bool {
+	switch e {
+	case IntegrationTypeSlack, IntegrationTypeLinear:
+		return true
+	}
+	return false
+}
+
+func (e IntegrationType) String() string {
+	return string(e)
+}
+
+func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IntegrationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IntegrationType", str)
+	}
+	return nil
+}
+
+func (e IntegrationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type MetricType string
 
 const (

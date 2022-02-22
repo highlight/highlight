@@ -79,20 +79,26 @@ mutation OpenSlackConversation(
     )
 }
 
-mutation AddSlackBotIntegrationToProject(
+mutation AddIntegrationToProject(
+    $integration_type: IntegrationType
     $project_id: ID!
     $code: String!
-    $redirect_path: String!
 ) {
-    addSlackBotIntegrationToProject(
+    addIntegrationToProject(
+        integration_type: $integration_type
         project_id: $project_id
         code: $code
-        redirect_path: $redirect_path
     )
 }
 
-mutation RemoveSlackBotIntegrationToProject($project_id: ID!) {
-    removeSlackBotIntegrationToProject(project_id: $project_id)
+mutation RemoveIntegrationFromProject(
+    $integration_type: IntegrationType
+    $project_id: ID!
+) {
+    removeIntegrationFromProject(
+        integration_type: $integration_type
+        project_id: $project_id
+    )
 }
 
 mutation UpdateAllowedEmailOrigins(

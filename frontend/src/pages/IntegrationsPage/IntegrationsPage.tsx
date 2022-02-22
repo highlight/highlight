@@ -1,8 +1,9 @@
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import Integration from '@pages/Integrations/components/Integration';
-import INTEGRATIONS from '@pages/Integrations/Integrations';
+import Integration from '@pages/IntegrationsPage/components/Integration';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 
@@ -14,12 +15,16 @@ const IntegrationsPage = () => {
         type: 'Organization',
     });
 
+    const { isLinearIntegratedWithProject } = useLinearIntegration();
+
     const integrations = useMemo(() => {
         return INTEGRATIONS.map((inter) => ({
             ...inter,
-            defaultEnable: inter.key === 'slack' && isSlackConnectedToWorkspace,
+            defaultEnable:
+                (inter.key === 'slack' && isSlackConnectedToWorkspace) ||
+                (inter.key === 'linear' && isLinearIntegratedWithProject),
         }));
-    }, [isSlackConnectedToWorkspace]);
+    }, [isSlackConnectedToWorkspace, isLinearIntegratedWithProject]);
 
     return (
         <>

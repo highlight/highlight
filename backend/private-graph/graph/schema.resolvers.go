@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1203,33 +1203,10 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID 
 	return &model.T, nil
 }
 
-func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
+func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrationType *modelInputs.IntegrationType, projectID int, code string) (bool, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return false, e.Wrap(err, "admin is not in project")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return false, e.Wrap(err, "error getting slack oauth response")
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -1237,27 +1214,22 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		return false, err
 	}
 
-	if workspace.SlackAccessToken == nil {
-		if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-			return false, e.Wrap(err, "error updating slack access token in workspace")
+	if *integrationType == modelInputs.IntegrationTypeLinear {
+		if err := r.AddLinearToWorkspace(workspace, code); err != nil {
+			return false, err
 		}
-	}
-	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
-	channelBytes, err := json.Marshal(existingChannels)
-	if err != nil {
-		return false, e.Wrap(err, "error marshaling existing channels")
-	}
-	channelString := string(channelBytes)
-	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
-		SlackChannels: &channelString,
-	}).Error; err != nil {
-		return false, e.Wrap(err, "error updating project fields")
+	} else if *integrationType == modelInputs.IntegrationTypeSlack {
+		if err := r.AddSlackToWorkspace(workspace, code); err != nil {
+			return false, err
+		}
+	} else {
+		return false, e.New("invalid integrationType")
 	}
 
 	return true, nil
 }
 
-func (r *mutationResolver) RemoveSlackBotIntegrationToProject(ctx context.Context, projectID int) (bool, error) {
+func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, integrationType *modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return false, e.Wrap(err, "admin is not in project")
@@ -1268,34 +1240,16 @@ func (r *mutationResolver) RemoveSlackBotIntegrationToProject(ctx context.Contex
 		return false, err
 	}
 
-	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		// remove slack integration from workspace
-		if err := tx.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
-			return e.Wrap(err, "error removing slack access token and channels in workspace")
+	if *integrationType == modelInputs.IntegrationTypeLinear {
+		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+			return false, err
 		}
-
-		empty := "[]"
-		projectAlert := model.Alert{ProjectID: projectID}
-		clearedChannelsAlert := model.Alert{ChannelsToNotify: &empty}
-
-		// set existing alerts to have empty slack channels to notify
-		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{Alert: clearedChannelsAlert}).Error; err != nil {
-			return e.Wrap(err, "error removing slack channels from created SessionAlert's")
+	} else if *integrationType == modelInputs.IntegrationTypeSlack {
+		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
+			return false, err
 		}
-
-		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{Alert: clearedChannelsAlert}).Error; err != nil {
-			return e.Wrap(err, "error removing slack channels from created ErrorAlert's")
-		}
-
-		// set existing metric monitors to have empty slack channels to notify
-		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{ChannelsToNotify: &empty}).Error; err != nil {
-			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
-		}
-
-		// no errors updating DB
-		return nil
-	}); err != nil {
-		return false, err
+	} else {
+		return false, e.New("invalid integrationType")
 	}
 
 	return true, nil
@@ -4146,7 +4100,7 @@ func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*mod
 	return ret, nil
 }
 
-func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error) {
+func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
@@ -4158,7 +4112,13 @@ func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int
 		return false, err
 	}
 
-	return workspace.SlackAccessToken != nil, nil
+	if integrationType == modelInputs.IntegrationTypeLinear {
+		return workspace.LinearAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeSlack {
+		return workspace.SlackAccessToken != nil, nil
+	}
+
+	return false, e.New("invalid integrationType")
 }
 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {

@@ -1,40 +1,30 @@
 import Button from '@components/Button/Button/Button';
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
-import { useRemoveSlackBotIntegrationToProjectMutation } from '@graph/hooks';
-import { namedOperations } from '@graph/operations';
 import AppsIcon from '@icons/AppsIcon';
 import PlugIcon from '@icons/PlugIcon';
-import { IntegrationConfigProps } from '@pages/Integrations/components/Integration';
+import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
+import {
+    getLinearOAuthUrl,
+    useLinearIntegration,
+} from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { useParams } from '@util/react-router/useParams';
-import React from 'react';
+import React, { useMemo } from 'react';
 
-import styles from './SlackIntegrationConfig.module.scss';
+import styles from './LinearIntegrationConfig.module.scss';
 
-const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
+const LinearIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     setModelOpen,
     setIntegrationEnabled,
     integrationEnabled,
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
-
-    const [
-        removeSlackBotIntegrationToProjectMutation,
-    ] = useRemoveSlackBotIntegrationToProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetWorkspaceIsIntegratedWithSlack,
-        ],
-    });
-
-    const { slackUrl } = useSlackBot({
-        type: 'Organization',
-    });
-
+    const { removeLinearIntegrationFromProject } = useLinearIntegration();
+    const authUrl = useMemo(() => getLinearOAuthUrl(project_id), [project_id]);
     if (integrationEnabled) {
         return (
             <>
                 <p className={styles.modalSubTitle}>
-                    Disconnecting your Slack workspace from Highlight will
-                    require you to reconfigure any alerts you have made!
+                    Disconnecting your Linear workspace from Highlight will
+                    prevent you from linking issues to future comments
                 </p>
                 <footer>
                     <Button
@@ -55,15 +45,11 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                         onClick={() => {
                             setModelOpen(false);
                             setIntegrationEnabled(false);
-                            removeSlackBotIntegrationToProjectMutation({
-                                variables: {
-                                    project_id: project_id,
-                                },
-                            });
+                            removeLinearIntegrationFromProject(project_id);
                         }}
                     >
                         <PlugIcon className={styles.modalBtnIcon} />
-                        Disconnect Slack
+                        Disconnect Linear
                     </Button>
                 </footer>
             </>
@@ -91,14 +77,14 @@ const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                     trackingId={`IntegrationConfigurationSave-Slack`}
                     className={styles.modalBtn}
                     type="primary"
-                    href={slackUrl}
+                    href={authUrl}
                 >
                     <AppsIcon className={styles.modalBtnIcon} /> Connect
-                    Highlight with Slack
+                    Highlight with Linear
                 </Button>
             </footer>
         </>
     );
 };
 
-export default SlackIntegrationConfig;
+export default LinearIntegrationConfig;

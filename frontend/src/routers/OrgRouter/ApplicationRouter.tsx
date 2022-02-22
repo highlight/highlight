@@ -2,7 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import AlertsRouter from '@pages/Alerts/AlertsRouter';
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter';
-import IntegrationsRouter from '@pages/Integrations/IntegrationsRouter';
+import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { Suspense } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -53,7 +53,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <SetupPage integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/integrations">
-                    <IntegrationsRouter />
+                    <IntegrationsPage />
                 </Route>
                 <Route path="/:project_id/buttons">
                     <Suspense fallback={null}>
