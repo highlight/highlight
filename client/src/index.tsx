@@ -51,6 +51,7 @@ import { PageVisibilityListener } from './listeners/page-visibility-listener';
 import {
     clearHighlightLogs,
     getHighlightLogs,
+    logForHighlight,
 } from './utils/highlight-logging';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -354,6 +355,14 @@ export class Highlight {
                 return await requestFn();
             } catch (error: any) {
                 if (error?.response?.status >= 500 && retries < MAX_RETRIES) {
+                    logForHighlight(
+                        '[' +
+                            (this.sessionData?.sessionSecureID ||
+                                this.options?.sessionSecureID) +
+                            '] Retrying request after ' +
+                            retries +
+                            ' retries'
+                    );
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
@@ -362,6 +371,12 @@ export class Highlight {
                     );
                     return await graphQLRequestWrapper(requestFn, retries + 1);
                 }
+                logForHighlight(
+                    '[' +
+                        (this.sessionData?.sessionSecureID ||
+                            this.options?.sessionSecureID) +
+                        '] Request ran out of retries'
+                );
                 throw error;
             }
         };
