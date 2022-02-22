@@ -1,0 +1,13 @@
+
+const HIGHLIGHT_LOGS_KEY = 'highlightLogs';
+
+// Logs emitted from the highlight SDK itself. Use extremely sparingly!
+// These will persist across sessions until they have been successfully uploaded
+// (which is important for debugging issues related to poor network).
+export const logForHighlight = (logText: string) => {
+    let highlightLogs = window.localStorage.getItem(
+        HIGHLIGHT_LOGS_KEY
+    ) || '';
+    highlightLogs = highlightLogs + '[' + new Date().getTime() + '] ' + logText + '\n';
+    window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
+};
