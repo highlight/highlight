@@ -12,11 +12,11 @@ export const logForHighlight = (logText: string) => {
     window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
 };
 
-export const getLogs = (): string => {
+export const getHighlightLogs = (): string => {
     return window.localStorage.getItem(HIGHLIGHT_LOGS_KEY) || '';
 }
 
-export const clearLogs = (logsToClear: string) => {
+export const clearHighlightLogs = (logsToClear: string) => {
     if (!logsToClear) {
         return;
     }
