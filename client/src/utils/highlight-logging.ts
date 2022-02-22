@@ -11,3 +11,22 @@ export const logForHighlight = (logText: string) => {
     highlightLogs = highlightLogs + '[' + new Date().getTime() + '] ' + logText + '\n';
     window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
 };
+
+export const getLogs = (): string => {
+    return window.localStorage.getItem(HIGHLIGHT_LOGS_KEY) || '';
+}
+
+export const clearLogs = (logsToClear: string) => {
+    if (!logsToClear) {
+        return;
+    }
+    let highlightLogs = window.localStorage.getItem(
+        HIGHLIGHT_LOGS_KEY
+    ) || '';
+    if (highlightLogs.startsWith(logsToClear)) {
+        highlightLogs = highlightLogs.slice(logsToClear.length);
+        window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
+    } else {
+        logForHighlight('Unable to clear logs');
+    }
+}
