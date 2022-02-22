@@ -83,7 +83,6 @@ export class FirstLoadListeners {
                         }
                     },
                     {
-                        lengthThreshold: 1000,
                         level: this.consoleMethodsToRecord,
                         logger: 'console',
                         stringifyOptions: {
