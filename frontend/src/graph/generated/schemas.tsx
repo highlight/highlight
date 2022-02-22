@@ -911,6 +911,7 @@ export type QuerySessions_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     query: Scalars['String'];
+    sort_desc: Scalars['Boolean'];
 };
 
 export type QueryField_TypesArgs = {

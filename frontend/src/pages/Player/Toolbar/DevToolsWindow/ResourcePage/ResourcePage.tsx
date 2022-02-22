@@ -4,7 +4,10 @@ import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
+import {
+    NetworkResourceWithID,
+    useResourcesContext,
+} from '@pages/Player/ResourcesContext/ResourcesContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
@@ -86,6 +89,7 @@ export const ResourcePage = React.memo(
         useEffect(() => {
             if (parsedResources) {
                 setAllResources(
+                    // @ts-expect-error
                     parsedResources?.filter((r) => {
                         if (currentOption === 'All') {
                             return true;
@@ -233,7 +237,7 @@ export const ResourcePage = React.memo(
                         return false;
                     }
 
-                    return resource.name
+                    return (resource.displayName || resource.name)
                         .toLocaleLowerCase()
                         .includes(filterSearchTerm.toLocaleLowerCase());
                 });
@@ -441,10 +445,10 @@ const TimingCanvas = () => {
     );
 };
 
-export type NetworkResource = PerformanceResourceTiming & {
-    id: number;
+export type NetworkResource = NetworkResourceWithID & {
     requestResponsePairs?: RequestResponsePair;
     errors?: ErrorObject[];
+    offsetStartTime?: number;
 };
 
 const ResourceRow = ({
@@ -507,12 +511,12 @@ const ResourceRow = ({
                 <div className={styles.typeSection}>
                     {getNetworkResourcesDisplayName(resource.initiatorType)}
                 </div>
-                <Tooltip title={resource.name}>
+                <Tooltip title={resource.displayName || resource.name}>
                     <TextHighlighter
                         className={styles.nameSection}
                         searchWords={[searchTerm]}
                         autoEscape={true}
-                        textToHighlight={resource.name}
+                        textToHighlight={resource.displayName || resource.name}
                     />
                 </Tooltip>
                 <div className={styles.timingBarWrapper}>
@@ -590,7 +594,6 @@ export const findResourceWithMatchingHighlightHeader = (
 };
 
 export const getHighlightRequestId = (resource: NetworkResource) => {
-    // @ts-expect-error
     return resource.requestResponsePairs?.request?.id;
 };
 

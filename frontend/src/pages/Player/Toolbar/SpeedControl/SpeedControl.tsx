@@ -1,5 +1,6 @@
 import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import React from 'react';
 import { BiMinus } from 'react-icons/bi';
 import { BsPlus } from 'react-icons/bs';
@@ -51,6 +52,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 <BiMinus />
             </Button>
             <PopoverMenu
+                getPopupContainer={getFullScreenPopoverGetPopupContainer}
                 // This is a range() function that generates a list from `PLAYBACK_MIN_SPEED` to `PLAYBACK_MAX_SPEED` in increments of `1`.
                 menuItems={[
                     0.5,

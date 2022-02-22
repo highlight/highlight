@@ -135,7 +135,6 @@ const ResourceDetailsModal = ({
             requestHeaderKeys.forEach((key) => {
                 requestHeadersData.push({
                     keyDisplayValue: key,
-                    // @ts-expect-error
                     valueDisplayValue: request.headers[key],
                     renderType: 'string',
                 });

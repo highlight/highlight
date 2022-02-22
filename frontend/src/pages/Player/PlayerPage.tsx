@@ -16,6 +16,7 @@ import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/No
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm';
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
@@ -108,6 +109,9 @@ const Player = ({ integrated }: Props) => {
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
+    const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
+        undefined
+    );
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
@@ -198,6 +202,8 @@ const Player = ({ integrated }: Props) => {
                 selectedRightPanelTab,
                 setSelectedRightPanelTab,
                 isQueryBuilder,
+                activeEvent,
+                setActiveEvent,
             }}
         >
             <Helmet>

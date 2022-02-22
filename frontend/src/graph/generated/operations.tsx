@@ -1817,6 +1817,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
+    sort_desc: Types.Scalars['Boolean'];
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2303,6 +2304,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'lineContent'
                             | 'linesBefore'
                             | 'linesAfter'
+                            | 'error'
                         >
                     >
                 >;

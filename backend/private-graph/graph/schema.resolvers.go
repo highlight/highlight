@@ -3386,17 +3386,23 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
 	results := []model.Session{}
+
+	sortOrder := "desc"
+	if !sortDesc {
+		sortOrder = "asc"
+	}
+
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
 		SortField:     ptr.String("created_at"),
-		SortOrder:     ptr.String("desc"),
+		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}

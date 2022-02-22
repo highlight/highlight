@@ -34,45 +34,49 @@ let rootDocument: Document | Element;
  */
 export function getElementSelector(input: Element, options?: Partial<Options>) {
     if (input.nodeType !== Node.ELEMENT_NODE) {
-        throw new Error(
-            `Can't generate CSS selector for non-element node type.`
-        );
+        return getElementSelectorFallback(input);
     }
 
     if ('html' === input.tagName.toLowerCase()) {
         return 'html';
     }
 
-    const defaults: Options = {
-        root: document.body,
-        idName: (name: string) => true,
-        className: (name: string) => true,
-        tagName: (name: string) => true,
-        attr: (name: string, value: string) => false,
-        seedMinLength: 1,
-        optimizedMinLength: 2,
-        threshold: 1000,
-        maxNumberOfTries: 10000,
-    };
+    try {
+        const defaults: Options = {
+            root: document.body,
+            idName: (name: string) => true,
+            className: (name: string) => true,
+            tagName: (name: string) => true,
+            attr: (name: string, value: string) => false,
+            seedMinLength: 1,
+            optimizedMinLength: 2,
+            threshold: 1000,
+            maxNumberOfTries: 10000,
+        };
 
-    config = { ...defaults, ...options };
+        config = { ...defaults, ...options };
 
-    rootDocument = findRootDocument(config.root, defaults);
+        rootDocument = findRootDocument(config.root, defaults);
 
-    let path = bottomUpSearch(input, Limit.All, () =>
-        bottomUpSearch(input, Limit.Two, () => bottomUpSearch(input, Limit.One))
-    );
+        let path = bottomUpSearch(input, Limit.All, () =>
+            bottomUpSearch(input, Limit.Two, () =>
+                bottomUpSearch(input, Limit.One)
+            )
+        );
 
-    if (path) {
-        const optimized = sort(optimize(path, input));
+        if (path) {
+            const optimized = sort(optimize(path, input));
 
-        if (optimized.length > 0) {
-            path = optimized[0];
+            if (optimized.length > 0) {
+                path = optimized[0];
+            }
+
+            return selector(path);
+        } else {
+            return getElementSelectorFallback(input);
         }
-
-        return selector(path);
-    } else {
-        throw new Error(`Selector was not found.`);
+    } catch {
+        return getElementSelectorFallback(input);
     }
 }
 
@@ -197,9 +201,7 @@ function penalty(path: Path): number {
 function unique(path: Path) {
     switch (rootDocument.querySelectorAll(selector(path)).length) {
         case 0:
-            throw new Error(
-                `Can't select any node with this selector: ${selector(path)}`
-            );
+            return true;
         case 1:
             return true;
         default:
@@ -466,3 +468,27 @@ function cssesc(string: string, opt: Partial<typeof defaultOptions> = {}) {
     }
     return output;
 }
+
+const getElementSelectorFallback = (element: Element) => {
+    let selector = '';
+    const classNames = element.getAttribute('class');
+    const ids = element.getAttribute('id');
+
+    if (ids) {
+        selector = selector.concat(getSelectorString(ids, '#'));
+    }
+    if (classNames) {
+        selector = selector.concat(getSelectorString(classNames, '.'));
+    }
+
+    // Default to the element's tag if the element doesn't have ids or class names.
+    if (selector === '') {
+        selector = selector.concat(element.tagName.toLowerCase());
+    }
+
+    return selector;
+};
+
+const getSelectorString = (selector: string, delimiter: string) => {
+    return `${delimiter}${selector.trim().split(' ').join(delimiter)}`;
+};

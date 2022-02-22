@@ -1,3 +1,5 @@
+import { NetworkResourceWithID } from '@pages/Player/ResourcesContext/ResourcesContext';
+
 export enum SessionPageSearchParams {
     /** Automatically sets the date range for the current segment based on the value. */
     date = 'date',
@@ -31,4 +33,29 @@ export const getNewCommentFormCoordinates = (
         left: `${newX}px`,
         top: `${clickY}px`,
     };
+};
+
+const REQUEST_INITIATOR_TYPES = ['xmlhttprequest', 'fetch'];
+
+export const getGraphQLResolverName = (
+    resource: NetworkResourceWithID
+): null | string => {
+    if (!REQUEST_INITIATOR_TYPES.includes(resource.initiatorType)) {
+        return null;
+    }
+    if (!resource.requestResponsePairs) {
+        return null;
+    }
+
+    try {
+        const body = JSON.parse(resource.requestResponsePairs.request.body);
+
+        if ('operationName' in body) {
+            return body['operationName'];
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
 };

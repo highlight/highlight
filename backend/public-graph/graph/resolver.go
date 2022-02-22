@@ -603,7 +603,8 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
 	if len(stackTrace) > 0 {
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
-			errorObj.ProjectID = 1
+			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
+			errorObj.ProjectID = 715
 		}
 		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
 			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
@@ -664,7 +665,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	var errorGroup *model.ErrorGroup
 	var err error
 	// New error grouping logic is gated by project_id 1 for now
-	if projectID == 1 {
+	if projectID == 1 || projectID == 79 {
 		errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting top error group match")
@@ -819,7 +820,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -848,8 +849,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	// Parse the user-agent string
+	var userAgentString string
 	var deviceDetails DeviceDetails
-	if userAgentString, ok := ctx.Value(model.ContextKeys.UserAgent).(string); ok {
+	if userAgentString, ok = ctx.Value(model.ContextKeys.UserAgent).(string); ok {
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
@@ -897,8 +899,13 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		LastUserInteractionTime:        time.Now(),
 	}
 
+	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
+	if sessionSecureID != nil {
+		session.SecureID = *sessionSecureID
+	}
+
 	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session")
+		return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {

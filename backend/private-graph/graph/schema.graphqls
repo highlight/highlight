@@ -690,6 +690,7 @@ type Query {
         project_id: ID!
         count: Int!
         query: String!
+        sort_desc: Boolean!
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(

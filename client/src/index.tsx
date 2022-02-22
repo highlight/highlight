@@ -1,6 +1,7 @@
 import {
     addCustomEvent as rrwebAddCustomEvent,
     record,
+    getRecordSequentialIdPlugin,
 } from '@highlight-run/rrweb';
 import {
     eventWithTime,
@@ -46,6 +47,7 @@ import {
     PerformanceListener,
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
+import { PageVisibilityListener } from './listeners/page-visibility-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -128,7 +130,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    firstLoadListeners?: FirstLoadListeners;
+    sessionSecureID?: string;
 };
 
 /**
@@ -222,6 +224,7 @@ export class Highlight {
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
+    hasPushedData!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -234,7 +237,7 @@ export class Highlight {
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners({ options });
+            firstLoadListeners || new FirstLoadListeners(options);
         this._initMembers(this.options);
     }
 
@@ -261,9 +264,8 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this._firstLoadListeners = new FirstLoadListeners({
-            options: this.options,
-        });
+        this.options.sessionSecureID = undefined; // Do not reuse the secure ID generated from firstload
+        this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
@@ -395,6 +397,7 @@ export class Highlight {
 
         this.events = [];
         this.hasSessionUnloaded = false;
+        this.hasPushedData = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -556,6 +559,14 @@ export class Highlight {
         }
     }
     async initialize() {
+        if (
+            navigator?.webdriver ||
+            navigator?.userAgent?.includes('Googlebot') ||
+            navigator?.userAgent?.includes('AdsBot')
+        ) {
+            this._firstLoadListeners?.stopListening();
+            return;
+        }
         try {
             if (this.feedbackWidgetOptions.enabled) {
                 const {
@@ -613,6 +624,7 @@ export class Highlight {
                         environment: this.environment,
                         id: fingerprint.toString(),
                         appVersion: this.appVersion,
+                        session_secure_id: this.options.sessionSecureID,
                     });
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
@@ -683,6 +695,7 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
                     this.listeners.push(recordStop);
@@ -767,6 +780,11 @@ export class Highlight {
             this.listeners.push(
                 ViewportResizeListener((viewport) => {
                     this.addCustomEvent('Viewport', viewport);
+                })
+            );
+            this.listeners.push(
+                PageVisibilityListener((isTabHidden) => {
+                    this.addCustomEvent('TabHidden', isTabHidden);
                 })
             );
             this.listeners.push(
@@ -995,6 +1013,7 @@ export class Highlight {
             try {
                 const payload = this._getPayload({ isBeacon: false });
                 await this.graphqlSDK.PushPayload(payload);
+                this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
@@ -1057,7 +1076,10 @@ export class Highlight {
                 }
             };
             intervalId = setTimeout(worker, 500);
-        } else if (this.state === 'Recording' && this.events.length > 0) {
+        } else if (
+            this.state === 'Recording' &&
+            (this.events.length > 0 || this.hasPushedData)
+        ) {
             rrwebAddCustomEvent(tag, payload);
         }
     }
@@ -1069,16 +1091,30 @@ export class Highlight {
     }): PushPayloadMutationVariables {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
+            const documentTimeOrigin = window?.performance?.timeOrigin || 0;
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            resources = resources.filter((r) =>
-                shouldNetworkRequestBeRecorded(
-                    r.name,
-                    this._backendUrl,
-                    this.tracingOrigins
+            // Subtract session start time from performance.timeOrigin
+            // Subtract diff to the times to do the offsets
+            const offset = (this._recordingStartTime - documentTimeOrigin) * 2;
+
+            resources = resources
+                .filter((r) =>
+                    shouldNetworkRequestBeRecorded(
+                        r.name,
+                        this._backendUrl,
+                        this.tracingOrigins
+                    )
                 )
-            );
+                .map((resource) => {
+                    return {
+                        ...resource.toJSON(),
+                        offsetStartTime: resource.startTime - offset,
+                        offsetResponseEnd: resource.responseEnd - offset,
+                        offsetFetchStart: resource.fetchStart - offset,
+                    };
+                });
 
             if (this.enableRecordingNetworkContents) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(

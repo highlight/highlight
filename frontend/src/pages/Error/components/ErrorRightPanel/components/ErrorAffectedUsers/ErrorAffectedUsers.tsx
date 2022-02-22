@@ -115,7 +115,10 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                             }
                             fullWidth
                             className={styles.button}
-                            disabled={!isLoggedIn}
+                            disabled={
+                                !isLoggedIn ||
+                                mostRecentAffectedSession === undefined
+                            }
                         >
                             Most Recent Session
                         </ButtonLink>
