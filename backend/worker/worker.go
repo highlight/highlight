@@ -482,13 +482,13 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
-	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
