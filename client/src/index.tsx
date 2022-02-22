@@ -48,6 +48,10 @@ import {
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
 import { PageVisibilityListener } from './listeners/page-visibility-listener';
+import {
+    clearHighlightLogs,
+    getHighlightLogs,
+} from './utils/highlight-logging';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -1149,7 +1153,7 @@ export class Highlight {
 
         const resourcesString = JSON.stringify({ resources: resources });
         const messagesString = stringify({ messages: messages });
-        const payload = {
+        let payload: PushPayloadMutationVariables = {
             session_id: this.sessionData.sessionID.toString(),
             events: { events },
             messages: messagesString,
@@ -1158,6 +1162,10 @@ export class Highlight {
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
         };
+        const highlightLogs = getHighlightLogs();
+        if (highlightLogs) {
+            payload.highlight_logs = highlightLogs;
+        }
 
         await sendFn(payload);
 
@@ -1183,6 +1191,7 @@ export class Highlight {
             this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
                 errors.length
             );
+            clearHighlightLogs(highlightLogs);
         }
     }
 }
