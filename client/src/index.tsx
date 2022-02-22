@@ -857,19 +857,24 @@ export class Highlight {
                     document.visibilityState === 'hidden' &&
                     'sendBeacon' in navigator
                 ) {
-                    const payload = this._getPayload({ isBeacon: true });
-                    let blob = new Blob(
-                        [
-                            JSON.stringify({
-                                query: print(PushPayloadDocument),
-                                variables: payload,
-                            }),
-                        ],
-                        {
-                            type: 'application/json',
-                        }
-                    );
-                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                    this._sendPayload({
+                        isBeacon: true,
+                        sendFn: (payload) => {
+                            let blob = new Blob(
+                                [
+                                    JSON.stringify({
+                                        query: print(PushPayloadDocument),
+                                        variables: payload,
+                                    }),
+                                ],
+                                {
+                                    type: 'application/json',
+                                }
+                            );
+                            navigator.sendBeacon(`${this._backendUrl}`, blob);
+                            return Promise.resolve();
+                        },
+                    });
                 }
             });
 
@@ -1011,8 +1016,10 @@ export class Highlight {
                 return;
             }
             try {
-                const payload = this._getPayload({ isBeacon: false });
-                await this.graphqlSDK.PushPayload(payload);
+                await this._sendPayload({
+                    isBeacon: false,
+                    sendFn: (payload) => this.graphqlSDK.PushPayload(payload),
+                });
                 this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
@@ -1084,11 +1091,13 @@ export class Highlight {
         }
     }
 
-    _getPayload({
+    async _sendPayload({
         isBeacon,
+        sendFn,
     }: {
         isBeacon: boolean;
-    }): PushPayloadMutationVariables {
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
+    }): Promise<void> {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             const documentTimeOrigin = window?.performance?.timeOrigin || 0;
@@ -1134,9 +1143,26 @@ export class Highlight {
         const messages = [...this._firstLoadListeners.messages];
         const errors = [...this._firstLoadListeners.errors];
 
-        // SendBeacon is not guaranteed to succeed, so keep the events and re-upload on
-        // the next PushPayload if there is one. The backend will remove all existing beacon
-        // payloads whenever it receives a new payload.
+        this.logger.log(
+            `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+        );
+
+        const resourcesString = JSON.stringify({ resources: resources });
+        const messagesString = stringify({ messages: messages });
+        const payload = {
+            session_id: this.sessionData.sessionID.toString(),
+            events: { events },
+            messages: messagesString,
+            resources: resourcesString,
+            errors,
+            is_beacon: isBeacon,
+            has_session_unloaded: this.hasSessionUnloaded,
+        };
+
+        await sendFn(payload);
+
+        // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
+        // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
         if (!isBeacon) {
             if (!this.disableNetworkRecording) {
                 this.xhrNetworkContents = [];
@@ -1158,22 +1184,6 @@ export class Highlight {
                 errors.length
             );
         }
-
-        this.logger.log(
-            `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
-        );
-
-        const resourcesString = JSON.stringify({ resources: resources });
-        const messagesString = stringify({ messages: messages });
-        return {
-            session_id: this.sessionData.sessionID.toString(),
-            events: { events },
-            messages: messagesString,
-            resources: resourcesString,
-            errors,
-            is_beacon: isBeacon,
-            has_session_unloaded: this.hasSessionUnloaded,
-        };
     }
 }
 
