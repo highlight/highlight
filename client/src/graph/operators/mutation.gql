@@ -6,6 +6,7 @@ mutation PushPayload(
     $errors: [ErrorObjectInput]!
     $is_beacon: Boolean
     $has_session_unloaded: Boolean
+    $highlight_logs: String
 ) {
     pushPayload(
         session_id: $session_id
@@ -15,6 +16,7 @@ mutation PushPayload(
         errors: $errors
         is_beacon: $is_beacon
         has_session_unloaded: $has_session_unloaded
+        highlight_logs: $highlight_logs
     )
 }
 
