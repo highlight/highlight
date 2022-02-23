@@ -89,7 +89,7 @@
 .backdrop {
     background: rgba(0, 0, 0, 0.5);
     left: calc(-1 * var(--sidebar-width));
-    min-height: 100vh;
+    min-height: 200vh;
     opacity: 0;
     pointer-events: none;
     position: fixed;

@@ -134,8 +134,7 @@ export const ProjectRouter = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
-    const [isQuickSearchOpen, setIsQuickSearchOpenImpl] = useState(true);
-    const setIsQuickSearchOpen = () => setIsQuickSearchOpenImpl(true);
+    const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(true);
 
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
