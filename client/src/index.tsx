@@ -48,6 +48,11 @@ import {
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
 import { PageVisibilityListener } from './listeners/page-visibility-listener';
+import {
+    clearHighlightLogs,
+    getHighlightLogs,
+    logForHighlight,
+} from './utils/highlight-logging';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -349,7 +354,19 @@ export class Highlight {
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (error?.response?.status >= 500 && retries < MAX_RETRIES) {
+                if (
+                    (!error?.response?.status ||
+                        error?.response?.status >= 500) &&
+                    retries < MAX_RETRIES
+                ) {
+                    logForHighlight(
+                        '[' +
+                            (this.sessionData?.sessionSecureID ||
+                                this.options?.sessionSecureID) +
+                            '] Retrying request after ' +
+                            retries +
+                            ' retries'
+                    );
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
@@ -358,6 +375,14 @@ export class Highlight {
                     );
                     return await graphQLRequestWrapper(requestFn, retries + 1);
                 }
+                logForHighlight(
+                    '[' +
+                        (this.sessionData?.sessionSecureID ||
+                            this.options?.sessionSecureID) +
+                        '] Request failed after ' +
+                        retries +
+                        ' retries'
+                );
                 throw error;
             }
         };
@@ -1149,7 +1174,7 @@ export class Highlight {
 
         const resourcesString = JSON.stringify({ resources: resources });
         const messagesString = stringify({ messages: messages });
-        const payload = {
+        let payload: PushPayloadMutationVariables = {
             session_id: this.sessionData.sessionID.toString(),
             events: { events },
             messages: messagesString,
@@ -1158,6 +1183,10 @@ export class Highlight {
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
         };
+        const highlightLogs = getHighlightLogs();
+        if (highlightLogs) {
+            payload.highlight_logs = highlightLogs;
+        }
 
         await sendFn(payload);
 
@@ -1183,6 +1212,7 @@ export class Highlight {
             this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
                 errors.length
             );
+            clearHighlightLogs(highlightLogs);
         }
     }
 }

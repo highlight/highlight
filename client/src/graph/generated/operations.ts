@@ -135,6 +135,7 @@ export type MutationPushPayloadArgs = {
   errors: Array<Maybe<ErrorObjectInput>>;
   is_beacon?: Maybe<Scalars['Boolean']>;
   has_session_unloaded?: Maybe<Scalars['Boolean']>;
+  highlight_logs?: Maybe<Scalars['String']>;
 };
 
 
@@ -181,6 +182,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
   is_beacon?: Types.Maybe<Types.Scalars['Boolean']>;
   has_session_unloaded?: Types.Maybe<Types.Scalars['Boolean']>;
+  highlight_logs?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 
@@ -293,7 +295,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean, $has_session_unloaded: Boolean) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean, $has_session_unloaded: Boolean, $highlight_logs: String) {
   pushPayload(
     session_id: $session_id
     events: $events
@@ -302,6 +304,7 @@ export const PushPayloadDocument = gql`
     errors: $errors
     is_beacon: $is_beacon
     has_session_unloaded: $has_session_unloaded
+    highlight_logs: $highlight_logs
   )
 }
     `;
