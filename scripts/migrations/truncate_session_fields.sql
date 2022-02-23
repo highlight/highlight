@@ -1,3 +1,8 @@
+CREATE TABLE long_fields
+AS (SELECT *
+    FROM fields
+    WHERE length(value) > 2000);
+
 update fields
 set value = left(value, 2000)
 where length(value) > 2000;
