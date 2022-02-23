@@ -354,7 +354,11 @@ export class Highlight {
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (error?.response?.status >= 500 && retries < MAX_RETRIES) {
+                if (
+                    (!error?.response?.status ||
+                        error?.response?.status >= 500) &&
+                    retries < MAX_RETRIES
+                ) {
                     logForHighlight(
                         '[' +
                             (this.sessionData?.sessionSecureID ||
@@ -375,7 +379,9 @@ export class Highlight {
                     '[' +
                         (this.sessionData?.sessionSecureID ||
                             this.options?.sessionSecureID) +
-                        '] Request ran out of retries'
+                        '] Request failed after ' +
+                        retries +
+                        ' retries'
                 );
                 throw error;
             }
