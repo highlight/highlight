@@ -95,8 +95,6 @@ type FieldData struct {
 
 const ERROR_EVENT_MAX_LENGTH = 10000
 
-const SESSION_FIELD_MAX_LENGTH = 2000
-
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -108,9 +106,6 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	modelFields := []*model.Field{}
 	projectID := session.ProjectID
 	for k, fv := range properties {
-		if len(fv) > SESSION_FIELD_MAX_LENGTH {
-			fv = fv[:SESSION_FIELD_MAX_LENGTH]
-		}
 		modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 	}
 
