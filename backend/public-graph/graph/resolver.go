@@ -109,9 +109,10 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	projectID := session.ProjectID
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
-			fv = fv[:SESSION_FIELD_MAX_LENGTH]
+			log.Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
+		} else {
+			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
-		modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 	}
 
 	err := r.AppendFields(modelFields, session)
