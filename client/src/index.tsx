@@ -497,6 +497,10 @@ export class Highlight {
         const invalidTypes: any[] = [];
         const tooLong: any[] = [];
         for (const [key, value] of Object.entries(properties_object)) {
+            if (value === undefined || value === null) {
+                continue;
+            }
+
             if (!['number', 'string', 'boolean'].includes(typeof value)) {
                 invalidTypes.push({ [key]: value });
             }
