@@ -4,7 +4,7 @@
     justify-content: flex-end;
 }
 
-.footer {
+.formItemSpacer {
     display: flex;
     flex-direction: column;
     gap: var(--size-xSmall);
@@ -53,6 +53,46 @@
 
 .form {
     :global(.ant-form-item) {
-        margin-bottom: var(--size-medium) !important;
+        margin-bottom: 0 !important;
     }
+}
+
+.btnIconRight {
+    margin-left: var(--size-small);
+}
+
+.btnIconLeft {
+    margin-right: var(--size-small);
+}
+
+.hide {
+    visibility: hidden !important;
+
+    animation-fill-mode: forwards;
+    opacity: 0;
+}
+
+.slides {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    width: calc(200% + (var(--size-medium) / 2));
+    row-gap: var(--size-medium);
+
+    & > div {
+        width: 100%;
+        transition: opacity 0.25s, visibility 0.15s linear;
+        visibility: visible;
+    }
+}
+
+.slidesContainer {
+    overflow-x: hidden;
+    margin-left: calc(-1 * var(--size-large));
+    margin-right: calc(-1 * var(--size-large));
+    padding-left: var(--size-large);
+    padding-right: var(--size-large);
+    padding-top: var(--size-xSmall);
+    padding-bottom: var(--size-xSmall);
 }

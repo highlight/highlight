@@ -1,17 +1,24 @@
+import Input from '@components/Input/Input';
+import Select from '@components/Select/Select';
 import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
+import ArrowLeftIcon from '@icons/ArrowLeftIcon';
+import ArrowRightIcon from '@icons/ArrowRightIcon';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
+import TextArea from 'antd/lib/input/TextArea';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
+import { Link } from 'react-router-dom';
 
 import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
@@ -42,6 +49,11 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
 }
 
+enum CommentFormSection {
+    CommentForm,
+    NewIssueForm,
+}
+
 export const NewCommentForm = ({
     currentTime,
     onCloseHandler,
@@ -68,6 +80,10 @@ export const NewCommentForm = ({
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
     const [tags, setTags] = useState([]);
+    const [section, setSection] = useState<CommentFormSection>(
+        CommentFormSection.CommentForm
+    );
+    const [selectedIssueServices, setSelectedIssueServices] = useState([]);
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -263,26 +279,116 @@ export const NewCommentForm = ({
         [admin, adminSuggestions]
     );
 
+    const slidesRef = useRef<HTMLDivElement>();
+
+    useEffect(() => {
+        if (!slidesRef.current) return;
+
+        if (section === CommentFormSection.CommentForm) {
+            slidesRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+            slidesRef.current.scrollTo({
+                left: slidesRef.current.scrollWidth,
+                behavior: 'smooth',
+            });
+        }
+    }, [slidesRef, section]);
+
     return (
         <Form
             name="newComment"
             onFinish={onFinish}
             form={form}
+            layout="vertical"
             onKeyDown={onFormChangeHandler}
-            className={styles.form}
+            className={classNames(styles.form, styles.formItemSpacer)}
         >
-            <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <div className={styles.commentInputContainer}>
-                    <CommentTextBody
-                        commentText={commentText}
-                        onChangeHandler={onChangeHandler}
-                        placeholder={placeholder}
-                        suggestions={adminSuggestions}
-                        onDisplayTransformHandler={onDisplayTransform}
-                        suggestionsPortalHost={parentRef?.current as Element}
-                    />
+            <div
+                className={styles.slidesContainer}
+                ref={(ref) => (slidesRef.current = ref || undefined)}
+            >
+                <div
+                    className={classNames(styles.formItemSpacer, styles.slides)}
+                >
+                    <div
+                        className={classNames(
+                            styles.formItemSpacer,
+                            section !== CommentFormSection.CommentForm
+                                ? styles.hide
+                                : ''
+                        )}
+                    >
+                        <div className={styles.commentInputContainer}>
+                            <CommentTextBody
+                                commentText={commentText}
+                                onChangeHandler={onChangeHandler}
+                                placeholder={placeholder}
+                                suggestions={adminSuggestions}
+                                onDisplayTransformHandler={onDisplayTransform}
+                                suggestionsPortalHost={
+                                    parentRef?.current as Element
+                                }
+                            />
+                        </div>
+                        <div className={styles.formItemSpacer}>
+                            <Select
+                                aria-label="Comment tags"
+                                allowClear={true}
+                                defaultActiveFirstOption
+                                placeholder={'Create an issue'}
+                                mode="multiple"
+                                options={[
+                                    {
+                                        displayValue: 'Create a Linear issue',
+                                        id: 'linear',
+                                        value: 'linear',
+                                    },
+                                ]}
+                                onChange={setSelectedIssueServices}
+                                notFoundContent={
+                                    <p>
+                                        <Link to="../integrations">
+                                            Add issue tracker integrations
+                                        </Link>{' '}
+                                        and then it should show up here
+                                    </p>
+                                }
+                            />
+
+                            <SessionCommentTagSelect
+                                onChange={setTags}
+                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
+                            />
+                        </div>
+                    </div>
+                    <div
+                        className={classNames(
+                            styles.formItemSpacer,
+                            section !== CommentFormSection.NewIssueForm
+                                ? styles.hide
+                                : ''
+                        )}
+                    >
+                        <h3>Create a new issue</h3>
+                        <Form.Item name="issueTitle" label="Issue Title">
+                            <Input
+                                placeholder="Issue Title"
+                                defaultValue="New issue in Highlight session"
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="issueDescription"
+                            label="Issue Description"
+                        >
+                            <TextArea
+                                placeholder="Issue Description"
+                                rows={3}
+                            />
+                        </Form.Item>
+                    </div>
                 </div>
-            </Form.Item>
+            </div>
+
             <Form.Item
                 shouldUpdate
                 wrapperCol={{ span: 24 }}
@@ -290,32 +396,87 @@ export const NewCommentForm = ({
             >
                 {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
                 {() => (
-                    <div className={styles.footer}>
-                        <div>
-                            <SessionCommentTagSelect
-                                onChange={setTags}
-                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
-                            />
-                        </div>
+                    <div className={styles.formItemSpacer}>
                         <div className={styles.actionButtons}>
                             <Button
                                 trackingId="CancelCreatingSessionComment"
                                 htmlType="button"
                                 onClick={() => {
-                                    onCloseHandler();
-                                    form.resetFields();
+                                    if (
+                                        section ===
+                                        CommentFormSection.NewIssueForm
+                                    ) {
+                                        setSection(
+                                            CommentFormSection.CommentForm
+                                        );
+                                    } else {
+                                        onCloseHandler();
+                                        form.resetFields();
+                                    }
                                 }}
                             >
-                                Cancel
+                                {section === CommentFormSection.NewIssueForm ? (
+                                    <>
+                                        <ArrowLeftIcon
+                                            className={styles.btnIconLeft}
+                                        />
+                                        Go back
+                                    </>
+                                ) : (
+                                    <>Cancel</>
+                                )}
                             </Button>
                             <Button
                                 trackingId="CreateNewSessionComment"
                                 type="primary"
-                                htmlType="submit"
+                                htmlType={
+                                    selectedIssueServices.length > 0 &&
+                                    section === CommentFormSection.CommentForm
+                                        ? 'button'
+                                        : 'submit'
+                                }
                                 disabled={commentText.length === 0}
+                                onClick={(e) => {
+                                    if (
+                                        section ===
+                                            CommentFormSection.CommentForm &&
+                                        selectedIssueServices.length > 0
+                                    ) {
+                                        e.preventDefault();
+                                        setSection(
+                                            CommentFormSection.NewIssueForm
+                                        );
+
+                                        const issueDesc = form.getFieldValue(
+                                            'issueDescription'
+                                        );
+
+                                        if (
+                                            !issueDesc ||
+                                            issueDesc.length <= 0
+                                        ) {
+                                            form.setFields([
+                                                {
+                                                    name: 'issueDescription',
+                                                    value: commentTextForEmail,
+                                                },
+                                            ]);
+                                        }
+                                    }
+                                }}
                                 loading={isCreatingComment}
                             >
-                                Post
+                                {selectedIssueServices.length > 0 &&
+                                section === CommentFormSection.CommentForm ? (
+                                    <>
+                                        Next
+                                        <ArrowRightIcon
+                                            className={styles.btnIconRight}
+                                        />
+                                    </>
+                                ) : (
+                                    <>Post</>
+                                )}
                             </Button>
                         </div>
                     </div>
