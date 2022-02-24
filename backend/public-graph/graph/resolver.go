@@ -1634,17 +1634,33 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	// We care about if the session in it's entirety has errors or not.
 	// `processPayload` is run on chunks of a session so we need to check if we've seen any errors
 	// in previous chunks.
-	if sessionObj.HasErrors != nil {
+	if sessionObj != nil && sessionObj.HasErrors != nil {
 		if *sessionObj.HasErrors {
 			sessionHasErrors = true
 		}
 	}
 
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F, HasErrors: &sessionHasErrors}).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-		return
+	fieldsToUpdate := model.Session{
+		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F,
+	}
+
+	// We only want to update the `HasErrors` field if the session has errors.
+	if sessionHasErrors {
+		fieldsToUpdate.HasErrors = &model.T
+
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+			return
+		}
+	} else {
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+			return
+		}
 	}
 
 	// If the session was previously marked as processed, clear this
@@ -1656,6 +1672,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
+			return
+		}
+	}
+
+	if sessionHasErrors {
+		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+			"has_errors": true,
+		}); err != nil {
+			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return
 		}
 	}
