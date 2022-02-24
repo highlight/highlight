@@ -504,7 +504,16 @@ export class Highlight {
             if (!['number', 'string', 'boolean'].includes(typeof value)) {
                 invalidTypes.push({ [key]: value });
             }
-            let asString = typeof value === 'string' ? value : stringify(value);
+            let asString: string;
+            if (value === undefined) {
+                asString = 'undefined';
+            } else if (value === null) {
+                asString = 'null';
+            } else if (typeof value === 'string') {
+                asString = value;
+            } else {
+                asString = stringify(value);
+            }
             if (asString.length > PROPERTY_MAX_LENGTH) {
                 tooLong.push({ [key]: value });
                 asString = asString.substring(0, PROPERTY_MAX_LENGTH);
