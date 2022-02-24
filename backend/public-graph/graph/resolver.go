@@ -1629,9 +1629,20 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
+
+	sessionHasErrors := len(errors) > 0
+	// We care about if the session in it's entirety has errors or not.
+	// `processPayload` is run on chunks of a session so we need to check if we've seen any errors
+	// in previous chunks.
+	if sessionObj.HasErrors != nil {
+		if *sessionObj.HasErrors {
+			sessionHasErrors = true
+		}
+	}
+
 	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F}).Error; err != nil {
+		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F, HasErrors: &sessionHasErrors}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 		return
 	}
@@ -1640,8 +1651,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	// in OpenSearch so that it's treated as a live session again.
 	if sessionObj.Processed != nil && *sessionObj.Processed {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"processed": false,
-			"Excluded":  false,
+			"processed":  false,
+			"Excluded":   false,
+			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
 			return
