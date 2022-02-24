@@ -518,6 +518,8 @@ type ComplexityRoot struct {
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
 		FirstTime                      func(childComplexity int) int
+		HasErrors                      func(childComplexity int) int
+		HasRageClicks                  func(childComplexity int) int
 		ID                             func(childComplexity int) int
 		Identifier                     func(childComplexity int) int
 		IsPublic                       func(childComplexity int) int
@@ -3997,6 +3999,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.FirstTime(childComplexity), true
 
+	case "Session.has_errors":
+		if e.complexity.Session.HasErrors == nil {
+			break
+		}
+
+		return e.complexity.Session.HasErrors(childComplexity), true
+
+	case "Session.has_rage_clicks":
+		if e.complexity.Session.HasRageClicks == nil {
+			break
+		}
+
+		return e.complexity.Session.HasRageClicks(childComplexity), true
+
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
 			break
@@ -4850,6 +4866,8 @@ type Session {
     viewed: Boolean
     starred: Boolean
     processed: Boolean
+    has_rage_clicks: Boolean
+    has_errors: Boolean
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
@@ -22935,6 +22953,70 @@ func (ec *executionContext) _Session_processed(ctx context.Context, field graphq
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_has_rage_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasRageClicks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_has_errors(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_first_time(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -30813,6 +30895,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_starred(ctx, field, obj)
 		case "processed":
 			out.Values[i] = ec._Session_processed(ctx, field, obj)
+		case "has_rage_clicks":
+			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
+		case "has_errors":
+			out.Values[i] = ec._Session_has_errors(ctx, field, obj)
 		case "first_time":
 			out.Values[i] = ec._Session_first_time(ctx, field, obj)
 		case "field_group":
