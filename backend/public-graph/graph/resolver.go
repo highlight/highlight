@@ -1372,7 +1372,9 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if highlightLogs != nil {
 		logsArray := strings.Split(*highlightLogs, "\n")
 		for _, clientLog := range logsArray {
-			log.Warnf("[Client]%s", clientLog)
+			if clientLog != "" {
+				log.Warnf("[Client]%s", clientLog)
+			}
 		}
 	}
 	sessionObj := &model.Session{}
