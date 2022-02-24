@@ -705,7 +705,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		if err := r.DB.Debug().Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
+		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
 			return e.Wrap(err, "error appending new fingerprints")
 		}
 
