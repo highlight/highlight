@@ -7,6 +7,7 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import LoginForm from '@pages/Login/Login';
 import NewProjectPage from '@pages/NewProject/NewProjectPage';
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm';
+import SwitchProject from '@pages/SwitchProject/SwitchProject';
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
@@ -47,6 +48,11 @@ export const AppRouter = () => {
                     <Route path="/w/:workspace_id(\d+)/new">
                         <Landing>
                             <NewProjectPage />
+                        </Landing>
+                    </Route>
+                    <Route path="/w/:workspace_id(\d+)/switch">
+                        <Landing>
+                            <SwitchProject />
                         </Landing>
                     </Route>
                     <Route path="/w/:workspace_id(\d+)/about-you">
