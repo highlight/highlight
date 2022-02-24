@@ -704,7 +704,33 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	if err := r.DB.Model(errorGroup).Association("Fingerprints").Replace(fingerprints); err != nil {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := r.DB.Debug().Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
+			return e.Wrap(err, "error appending new fingerprints")
+		}
+
+		var newIds []int
+		for _, fingerprint := range fingerprints {
+			newIds = append(newIds, fingerprint.ID)
+		}
+
+		if err := r.DB.Exec(`
+			UPDATE error_fingerprints
+			SET error_group_id = NULL
+			WHERE id IN (
+				SELECT id
+				FROM error_fingerprints
+				WHERE id NOT IN (?)
+				AND error_group_id = ?
+				ORDER BY id
+				FOR UPDATE
+			)
+		`, newIds, errorGroup.ID).Error; err != nil {
+			return e.Wrap(err, "error removing old fingerprints from the error group")
+		}
+
+		return nil
+	}); err != nil {
 		return nil, e.Wrap(err, "error replacing error group fingerprints")
 	}
 
