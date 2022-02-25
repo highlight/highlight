@@ -119,16 +119,17 @@ const SwitchWorkspace = () => {
                 variables: { workspace_id: selectedWorkspace },
             }).then((result) => {
                 if (!!result.data?.joinWorkspace) {
-                    message.success('successfuly joined workspace!', 1);
-                    setTimeout(() => {
-                        setShouldRedirect(true);
-                    }, 1000 * 1.5);
+                    message.success('Successfuly joined workspace!', 1);
+                    setShouldRedirect(true);
                 }
             });
         }
     };
 
     if (shouldRedirect) {
+        if (actionText === 'Join') {
+            return <Redirect to={`/w/${selectedWorkspace}/switch`} />;
+        }
         return <Redirect to={`/w/${selectedWorkspace}`} />;
     }
 
