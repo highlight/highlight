@@ -82,9 +82,18 @@
     text-align: center;
     width: 80px;
     z-index: 1000;
+
+    &.inactive {
+        width: 300px;
+    }
 }
 
 .sliderPopoverTime {
+    font-size: 10px;
+}
+
+.sliderPopoverDescription {
+    color: var(--color-gray-400);
     font-size: 10px;
 }
 
