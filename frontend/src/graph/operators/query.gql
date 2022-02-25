@@ -167,6 +167,8 @@ query GetSession($secure_id: String!) {
         object_storage_enabled
         payload_size
         processed
+        has_rage_clicks
+        has_errors
         within_billing_quota
         client_version
         client_config
@@ -439,6 +441,8 @@ query GetSessionsOpenSearch(
             viewed
             starred
             processed
+            has_rage_clicks
+            has_errors
             fields {
                 name
                 value
@@ -525,6 +529,8 @@ query GetSessions(
             viewed
             starred
             processed
+            has_rage_clicks
+            has_errors
             field_group
             fields {
                 name

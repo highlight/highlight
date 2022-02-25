@@ -293,7 +293,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		r.ProjectID = s.ProjectID
 		rageClickSets[i] = r
 	}
-	if len(rageClickSets) > 0 {
+	hasRageClicks := len(rageClickSets) > 0
+	if hasRageClicks {
 		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
@@ -348,20 +349,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:    &model.T,
-			Length:       sessionTotalLengthInMilliseconds,
-			ActiveLength: activeDuration.Milliseconds(),
-			EventCounts:  &eventCountsString,
+			Processed:     &model.T,
+			Length:        sessionTotalLengthInMilliseconds,
+			ActiveLength:  activeDuration.Milliseconds(),
+			EventCounts:   &eventCountsString,
+			HasRageClicks: &hasRageClicks,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":     true,
-		"length":        sessionTotalLengthInMilliseconds,
-		"active_length": activeDuration.Milliseconds(),
-		"EventCounts":   eventCountsString,
+		"processed":       true,
+		"length":          sessionTotalLengthInMilliseconds,
+		"active_length":   activeDuration.Milliseconds(),
+		"EventCounts":     eventCountsString,
+		"has_rage_clicks": hasRageClicks,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}

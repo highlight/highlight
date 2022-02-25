@@ -498,6 +498,22 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getActivityIntervals()
                     );
 
+                    // Inject the Material font icons into the player if it's a Boardgent session.
+                    // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
+                    if (
+                        project_id === '669' &&
+                        replayer.iframe.contentDocument
+                    ) {
+                        const cssLink = document.createElement('link');
+                        cssLink.href =
+                            'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
+                        cssLink.rel = 'stylesheet';
+                        cssLink.type = 'text/css';
+                        replayer.iframe.contentDocument.head.appendChild(
+                            cssLink
+                        );
+                    }
+
                     console.log(
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()

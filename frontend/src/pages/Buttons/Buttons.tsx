@@ -27,6 +27,8 @@ export const Buttons = () => {
 
     return (
         <div className={styles.buttonBody}>
+            <i className="mdi mdi-progress-check mdi-48px"></i>
+
             <iframe
                 title="Introducing Superhuman"
                 src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
