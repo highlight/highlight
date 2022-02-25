@@ -120,9 +120,7 @@ const SwitchWorkspace = () => {
             }).then((result) => {
                 if (!!result.data?.joinWorkspace) {
                     message.success('Successfuly joined workspace!', 1);
-                    setTimeout(() => {
-                        setShouldRedirect(true);
-                    }, 1000 * 1.5);
+                    setShouldRedirect(true);
                 }
             });
         }

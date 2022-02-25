@@ -1,6 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
-import { CircularSpinner } from '@components/Loading/Loading';
+import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage';
 import Select from '@components/Select/Select';
 import {
     AppLoadingState,
@@ -66,17 +66,7 @@ const SwitchProject = () => {
                     <p className={styles.subTitle}>
                         Pick a project. If you’re having trouble getting into
                         the correct project, message us on{' '}
-                        <span
-                            className={styles.intercomButton}
-                            onClick={() =>
-                                window.Intercom('update', {
-                                    hide_default_launcher: false,
-                                })
-                            }
-                        >
-                            Intercom
-                        </span>
-                        .
+                        <IntercomInlineMessage>Intercom</IntercomInlineMessage>.
                     </p>
                     <Select
                         className={styles.fullWidth}
@@ -93,18 +83,10 @@ const SwitchProject = () => {
                         className={styles.button}
                         block
                         htmlType="submit"
+                        loading={loading}
                         disabled={selectedProject.length === 0}
                     >
-                        {loading ? (
-                            <CircularSpinner
-                                style={{
-                                    fontSize: 18,
-                                    color: 'var(--text-primary-inverted)',
-                                }}
-                            />
-                        ) : (
-                            `Enter Project`
-                        )}
+                        Enter Project
                     </Button>
                     <ButtonLink
                         trackingId={`SwitchProject-CreateProject`}
