@@ -16,6 +16,7 @@ const CollapsibleImpl: React.FC<InnerProps> = ({
     children,
     contentClassName,
     parentClassName,
+    stacked,
     expanded,
     setExpanded,
     ...props
@@ -42,7 +43,11 @@ const CollapsibleImpl: React.FC<InnerProps> = ({
                 </div>
             }
             transitionTime={150}
-            classParentString={classNames(styles.collapsible, parentClassName)}
+            classParentString={
+                stacked
+                    ? classNames(styles.collapsibleStacked, parentClassName)
+                    : classNames(styles.collapsible, parentClassName)
+            }
             handleTriggerClick={() => {
                 setExpanded(!expanded);
             }}
@@ -62,6 +67,7 @@ interface Props {
     contentClassName?: string;
     parentClassName?: string;
     defaultOpen?: boolean;
+    stacked?: boolean;
 }
 
 export const StatelessCollapsible: React.FC<Props> = ({
@@ -69,6 +75,7 @@ export const StatelessCollapsible: React.FC<Props> = ({
     children,
     contentClassName,
     parentClassName,
+    stacked = false,
     defaultOpen = false,
     ...props
 }) => {
@@ -81,6 +88,7 @@ export const StatelessCollapsible: React.FC<Props> = ({
             parentClassName={parentClassName}
             expanded={expanded}
             setExpanded={setExpanded}
+            stacked={stacked}
             {...props}
         >
             {children}
