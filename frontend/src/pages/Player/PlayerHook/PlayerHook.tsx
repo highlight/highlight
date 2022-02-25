@@ -236,7 +236,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     });
                     fetchEventChunkURL({
                         secure_id: session_secure_id,
-                        index: 0,
+                        index: 1,
                     })
                         .then((response) =>
                             fetch(response.data.event_chunk_url)
