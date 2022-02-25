@@ -704,7 +704,33 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	if err := r.DB.Model(errorGroup).Association("Fingerprints").Replace(fingerprints); err != nil {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
+			return e.Wrap(err, "error appending new fingerprints")
+		}
+
+		var newIds []int
+		for _, fingerprint := range fingerprints {
+			newIds = append(newIds, fingerprint.ID)
+		}
+
+		if err := r.DB.Exec(`
+			UPDATE error_fingerprints
+			SET error_group_id = NULL
+			WHERE id IN (
+				SELECT id
+				FROM error_fingerprints
+				WHERE id NOT IN (?)
+				AND error_group_id = ?
+				ORDER BY id
+				FOR UPDATE
+			)
+		`, newIds, errorGroup.ID).Error; err != nil {
+			return e.Wrap(err, "error removing old fingerprints from the error group")
+		}
+
+		return nil
+	}); err != nil {
 		return nil, e.Wrap(err, "error replacing error group fingerprints")
 	}
 
@@ -1629,21 +1655,58 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F}).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-		return
+
+	sessionHasErrors := len(errors) > 0
+	// We care about if the session in it's entirety has errors or not.
+	// `processPayload` is run on chunks of a session so we need to check if we've seen any errors
+	// in previous chunks.
+	if sessionObj != nil && sessionObj.HasErrors != nil {
+		if *sessionObj.HasErrors {
+			sessionHasErrors = true
+		}
+	}
+
+	fieldsToUpdate := model.Session{
+		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F,
+	}
+
+	// We only want to update the `HasErrors` field if the session has errors.
+	if sessionHasErrors {
+		fieldsToUpdate.HasErrors = &model.T
+
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+			return
+		}
+	} else {
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+			return
+		}
 	}
 
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	if sessionObj.Processed != nil && *sessionObj.Processed {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"processed": false,
-			"Excluded":  false,
+			"processed":  false,
+			"Excluded":   false,
+			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
+			return
+		}
+	}
+
+	if sessionHasErrors {
+		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+			"has_errors": true,
+		}); err != nil {
+			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return
 		}
 	}
