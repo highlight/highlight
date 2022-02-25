@@ -581,12 +581,19 @@ const SessionSegment = ({
             }}
         >
             <div
-                className={styles.sliderPopover}
+                className={classNames(styles.sliderPopover, {
+                    [styles.inactive]: !interval.active,
+                })}
                 style={{
-                    left: `${Math.min(
-                        Math.max(sliderClientX - 40, 0),
-                        wrapperWidth - 80
-                    )}px`,
+                    left: interval.active
+                        ? `${Math.min(
+                              Math.max(sliderClientX - 40, 0),
+                              wrapperWidth - 80
+                          )}px`
+                        : `${Math.min(
+                              Math.max(sliderClientX - 150, 0),
+                              wrapperWidth - 75
+                          )}px`,
                     display: isPercentInInterval(
                         sliderClientX / wrapperWidth,
                         interval
@@ -596,6 +603,13 @@ const SessionSegment = ({
                 }}
             >
                 <div>{interval.active ? 'Active' : 'Inactive'}</div>
+                {!interval.active && (
+                    <div className={styles.sliderPopoverDescription}>
+                        Inactivity represents time where the user isn't
+                        scrolling, clicking or interacting with your
+                        application.
+                    </div>
+                )}
                 <div className={styles.sliderPopoverTime}>
                     {interval.active
                         ? MillisToMinutesAndSeconds(
