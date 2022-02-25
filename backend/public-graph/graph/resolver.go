@@ -937,7 +937,17 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return nil, e.Wrap(err, "error creating session")
+		}
+		sessionObj := &model.Session{}
+		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
+		}
+		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || location.City != sessionObj.City {
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		}
+		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
