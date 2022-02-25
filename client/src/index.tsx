@@ -429,8 +429,9 @@ export class Highlight {
         if (window.Intercom) {
             window.Intercom('onShow', () => {
                 window.Intercom('update', {
-                    highlightSessionURL: this.getCurrentSessionURL(),
+                    highlightSessionURL: this.getCurrentSessionURLWithTimestamp(),
                 });
+                this.addProperties({ event: 'Intercom onShow' });
             });
         }
     }
