@@ -674,6 +674,13 @@ export type MetricMonitor = {
     disabled: Scalars['Boolean'];
 };
 
+export type EventChunk = {
+    __typename?: 'EventChunk';
+    secure_id: Scalars['Int'];
+    index: Scalars['Int'];
+    timestamp: Scalars['Timestamp'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -753,6 +760,8 @@ export type Query = {
     web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
+    event_chunk_url: Scalars['String'];
+    event_chunks: Array<EventChunk>;
 };
 
 export type QuerySessionArgs = {
@@ -1078,6 +1087,15 @@ export type QueryMetric_PreviewArgs = {
 
 export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryEvent_Chunk_UrlArgs = {
+    secure_id: Scalars['String'];
+    index: Scalars['Int'];
+};
+
+export type QueryEvent_ChunksArgs = {
+    secure_id: Scalars['String'];
 };
 
 export type Mutation = {

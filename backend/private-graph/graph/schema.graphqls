@@ -611,6 +611,12 @@ type MetricMonitor {
     disabled: Boolean!
 }
 
+type EventChunk {
+    secure_id: Int!
+    index: Int!
+    timestamp: Timestamp!
+}
+
 scalar Upload
 
 type Query {
@@ -766,6 +772,8 @@ type Query {
         aggregateFunction: String!
     ): [MetricPreview]!
     metric_monitors(project_id: ID!): [MetricMonitor]!
+    event_chunk_url(secure_id: String!, index: Int!): String!
+    event_chunks(secure_id: String!): [EventChunk!]!
 }
 
 type Mutation {

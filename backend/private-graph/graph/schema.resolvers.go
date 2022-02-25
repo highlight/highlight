@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -206,6 +207,10 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
+}
+
+func (r *eventChunkResolver) SecureID(ctx context.Context, obj *model.EventChunk) (int, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
@@ -4475,6 +4480,28 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 	return metricMonitors, nil
 }
 
+func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, index int) (string, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return "", e.Wrap(err, "error fetching session for subscription")
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
+	if err != nil {
+		return "", e.Wrap(err, "error getting direct download URL")
+	}
+
+	if str == nil {
+		return "", e.Wrap(err, "nil direct download URL")
+	}
+
+	return *str, err
+}
+
+func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*model.EventChunk, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -4496,7 +4523,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
@@ -4510,7 +4537,7 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources URL")
 	}
@@ -4524,7 +4551,7 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting messages URL")
 	}
@@ -4770,6 +4797,9 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
+// EventChunk returns generated.EventChunkResolver implementation.
+func (r *Resolver) EventChunk() generated.EventChunkResolver { return &eventChunkResolver{r} }
+
 // Metric returns generated.MetricResolver implementation.
 func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
@@ -4804,6 +4834,7 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
+type eventChunkResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }

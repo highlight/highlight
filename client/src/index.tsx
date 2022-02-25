@@ -228,6 +228,7 @@ export class Highlight {
     _isOnLocalHost!: boolean;
     _onToggleFeedbackFormVisibility!: () => void;
     _firstLoadListeners!: FirstLoadListeners;
+    _eventBytesSinceSnapshot!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
@@ -1263,6 +1264,7 @@ export class Highlight {
                 this.fetchNetworkContents = [];
                 performance.clearResourceTimings();
             }
+
             // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
             // Originally, we would clear this.events but this could lead to a race condition.
             // Example Scenario:
@@ -1271,6 +1273,21 @@ export class Highlight {
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
             this.events = this.events.slice(events.length);
+
+            // (This is probably expensive)
+            this._eventBytesSinceSnapshot =
+                this._eventBytesSinceSnapshot + stringify(events).length || 0;
+            console.log(
+                'this._eventBytesSinceSnapshot',
+                this._eventBytesSinceSnapshot
+            );
+            // After 5mb, take a full snapshot and reset the counter
+            if (this._eventBytesSinceSnapshot >= 5e6) {
+                record.takeFullSnapshot();
+                this._eventBytesSinceSnapshot = 0;
+                console.log('took full snapshot');
+            }
+
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
             );

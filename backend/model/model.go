@@ -141,6 +141,7 @@ var Models = []interface{}{
 	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
+	&EventChunk{},
 }
 
 func init() {
@@ -443,6 +444,13 @@ type Session struct {
 	Lock sql.NullTime
 
 	RetryCount int
+}
+
+type EventChunk struct {
+	Model
+	SessionID int
+	Index     int
+	Timestamp time.Time
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

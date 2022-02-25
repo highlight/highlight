@@ -21,6 +21,8 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     OnSessionPayloadAppendedDocument,
+    useGetEventChunksQuery,
+    useGetEventChunkUrlQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -159,6 +161,19 @@ export const usePlayer = (): ReplayerContextInterface => {
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
     });
+
+    const {
+        data: eventChunksData,
+        loading: eventChunksLoading,
+    } = useGetEventChunksQuery({
+        variables: { secure_id: session_secure_id },
+    });
+
+    const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
+        fetchPolicy: 'no-cache',
+        skip: true,
+    });
+
     const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
         undefined
     );
@@ -219,9 +234,16 @@ export const usePlayer = (): ReplayerContextInterface => {
                             skip_events: true,
                         },
                     });
-                    fetch(directDownloadUrl)
+                    fetchEventChunkURL({
+                        secure_id: session_secure_id,
+                        index: 0,
+                    })
+                        .then((response) =>
+                            fetch(response.data.event_chunk_url)
+                        )
                         .then((response) => response.json())
                         .then((data) => {
+                            console.log('data', data);
                             setEventsPayload(data || []);
                         })
                         .catch((e) => {
