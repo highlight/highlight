@@ -30,6 +30,7 @@ enum PlatformType {
     React = 'React',
     Vue = 'Vue.js',
     NextJs = 'Next.js',
+    SvelteKit = 'SvelteKit',
     Gatsby = 'Gatsby.js',
 }
 
@@ -67,6 +68,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         PlatformType.React,
                         PlatformType.Vue,
                         PlatformType.NextJs,
+                        PlatformType.SvelteKit,
                         PlatformType.Gatsby,
                         PlatformType.Html,
                     ]}
@@ -104,7 +106,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 </p>
                             </Section>
                         )}
-                        {platform === PlatformType.Html ? (
+                        {platform === PlatformType.Html ||
+                        platform === PlatformType.SvelteKit ? (
                             <HtmlInstructions
                                 projectVerboseId={data?.project?.verbose_id}
                             />
