@@ -450,7 +450,7 @@ type EventChunk struct {
 	Model
 	SessionID int
 	Index     int
-	Timestamp time.Time
+	Timestamp int64
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

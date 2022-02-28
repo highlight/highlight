@@ -676,9 +676,9 @@ export type MetricMonitor = {
 
 export type EventChunk = {
     __typename?: 'EventChunk';
-    secure_id: Scalars['Int'];
+    session_id: Scalars['Int'];
     index: Scalars['Int'];
-    timestamp: Scalars['Timestamp'];
+    timestamp: Scalars['Int64'];
 };
 
 export type Query = {

@@ -612,9 +612,9 @@ type MetricMonitor {
 }
 
 type EventChunk {
-    secure_id: Int!
+    session_id: Int!
     index: Int!
-    timestamp: Timestamp!
+    timestamp: Int64!
 }
 
 scalar Upload

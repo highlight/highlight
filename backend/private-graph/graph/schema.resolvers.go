@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -207,10 +207,6 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
-}
-
-func (r *eventChunkResolver) SecureID(ctx context.Context, obj *model.EventChunk) (int, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
@@ -4499,7 +4495,18 @@ func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, inde
 }
 
 func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*model.EventChunk, error) {
-	panic(fmt.Errorf("not implemented"))
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching session for subscription")
+	}
+
+	chunks := []*model.EventChunk{}
+	if err := r.DB.Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
+		Scan(&chunks).Error; err != nil {
+		return nil, e.Wrap(err, "fail")
+	}
+
+	return chunks, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
@@ -4797,9 +4804,6 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
-// EventChunk returns generated.EventChunkResolver implementation.
-func (r *Resolver) EventChunk() generated.EventChunkResolver { return &eventChunkResolver{r} }
-
 // Metric returns generated.MetricResolver implementation.
 func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
@@ -4834,7 +4838,6 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
-type eventChunkResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }

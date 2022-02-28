@@ -169,6 +169,18 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: { secure_id: session_secure_id },
     });
 
+    const [curChunk, setCurChunk] = useState(0);
+    const [chunksLoaded, setChunksLoaded] = useState<number[]>([]);
+    const [nextChunkTimestamp, setNextChunkTimestamp] = useState<
+        number | undefined
+    >(undefined);
+
+    useEffect(() => {
+        if (nextChunkTimestamp === undefined) {
+            setNextChunkTimestamp(eventChunksData?.event_chunks[1].timestamp);
+        }
+    }, [eventChunksData, nextChunkTimestamp]);
+
     const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
         fetchPolicy: 'no-cache',
         skip: true,
@@ -193,6 +205,56 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [eventsPayload, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+
+    const cl = [...chunksLoaded];
+    const nctHack = [nextChunkTimestamp];
+    const onevent = (e: any) => {
+        const event = e as HighlightEvent;
+        const next = curChunk + 1;
+        const nct = nctHack[0];
+        // console.log('cur chunk timestamp', event.timestamp);
+        // console.log('next chunk timestamp', nextChunkTimestamp);
+        if (nct && event.timestamp > nct) {
+            console.log('in new chunk', next, nct);
+            setCurChunk(next);
+            nctHack[0] = eventChunksData?.event_chunks[next + 1]?.timestamp;
+            setNextChunkTimestamp(nctHack[0]);
+            console.log('new chunk timestamp', nctHack[0]);
+        } else if (nct && event.timestamp > nct - 30000 && !cl.includes(next)) {
+            console.log('loading new chunk', chunksLoaded, next);
+            cl.push(next);
+            setChunksLoaded(cl);
+            fetchEventChunkURL({
+                secure_id: session_secure_id,
+                index: next,
+            })
+                .then((response) => fetch(response.data.event_chunk_url))
+                .then((response) => response.json())
+                .then((data) => {
+                    setEventsPayload(eventsPayload?.concat(data) || []);
+                })
+                .catch((e) => {
+                    setEventsPayload([]);
+                    H.consumeError(
+                        e,
+                        'Error direct downloading session payload'
+                    );
+                });
+        }
+        if ((event as customEvent)?.data?.tag === 'Stop') {
+            setState(ReplayerState.SessionRecordingStopped);
+        }
+        if (event.type === 5) {
+            switch (event.data.tag) {
+                case 'Navigate':
+                case 'Reload':
+                    setCurrentUrl(event.data.payload as string);
+                    return;
+                default:
+                    return;
+            }
+        }
+    };
 
     const { data: sessionData } = useGetSessionQuery({
         variables: {
@@ -236,15 +298,15 @@ export const usePlayer = (): ReplayerContextInterface => {
                     });
                     fetchEventChunkURL({
                         secure_id: session_secure_id,
-                        index: 1,
+                        index: 0,
                     })
                         .then((response) =>
                             fetch(response.data.event_chunk_url)
                         )
                         .then((response) => response.json())
                         .then((data) => {
-                            console.log('data', data);
                             setEventsPayload(data || []);
+                            setChunksLoaded([0]);
                         })
                         .catch((e) => {
                             setEventsPayload([]);
@@ -397,6 +459,13 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionViewability(SessionViewability.VIEWABLE);
         // Add an id field to each event so it can be referenced.
         const newEvents: HighlightEvent[] = toHighlightEvents(eventsPayload);
+
+        if (replayer !== undefined) {
+            replayer.off('event-cast', onevent);
+            replayer.on('event-cast', onevent);
+        }
+
+        console.log('chunk loadedEventsIndex', loadedEventsIndex);
         if (loadedEventsIndex <= 0) {
             setState(ReplayerState.Loading);
             // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
@@ -422,22 +491,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
             setLoadedEventsIndex(Math.min(EVENTS_CHUNK_SIZE, newEvents.length));
 
-            r.on('event-cast', (e: any) => {
-                const event = e as HighlightEvent;
-                if ((event as customEvent)?.data?.tag === 'Stop') {
-                    setState(ReplayerState.SessionRecordingStopped);
-                }
-                if (event.type === 5) {
-                    switch (event.data.tag) {
-                        case 'Navigate':
-                        case 'Reload':
-                            setCurrentUrl(event.data.payload as string);
-                            return;
-                        default:
-                            return;
-                    }
-                }
-            });
+            r.on('event-cast', onevent);
             const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
             setBrowserExtensionScriptURLs(onlyScriptEvents);
 
@@ -474,7 +528,13 @@ export const usePlayer = (): ReplayerContextInterface => {
         setEvents(newEvents);
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [eventsPayload, setPlayerTimeToPersistance]);
+    }, [
+        eventsPayload,
+        setPlayerTimeToPersistance,
+        nextChunkTimestamp,
+        chunksLoaded,
+        eventChunksData,
+    ]);
 
     const [eventsDataLoaded, setEventsDataLoaded] = useState(false);
     useEffect(() => {

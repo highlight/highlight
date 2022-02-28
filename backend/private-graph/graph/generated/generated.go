@@ -43,7 +43,6 @@ type ResolverRoot interface {
 	ErrorGroup() ErrorGroupResolver
 	ErrorObject() ErrorObjectResolver
 	ErrorSegment() ErrorSegmentResolver
-	EventChunk() EventChunkResolver
 	Metric() MetricResolver
 	MetricMonitor() MetricMonitorResolver
 	Mutation() MutationResolver
@@ -243,7 +242,7 @@ type ComplexityRoot struct {
 
 	EventChunk struct {
 		Index     func(childComplexity int) int
-		SecureID  func(childComplexity int) int
+		SessionID func(childComplexity int) int
 		Timestamp func(childComplexity int) int
 	}
 
@@ -714,9 +713,6 @@ type ErrorObjectResolver interface {
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
-}
-type EventChunkResolver interface {
-	SecureID(ctx context.Context, obj *model1.EventChunk) (int, error)
 }
 type MetricResolver interface {
 	Type(ctx context.Context, obj *model1.Metric) (string, error)
@@ -1796,12 +1792,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EventChunk.Index(childComplexity), true
 
-	case "EventChunk.secure_id":
-		if e.complexity.EventChunk.SecureID == nil {
+	case "EventChunk.session_id":
+		if e.complexity.EventChunk.SessionID == nil {
 			break
 		}
 
-		return e.complexity.EventChunk.SecureID(childComplexity), true
+		return e.complexity.EventChunk.SessionID(childComplexity), true
 
 	case "EventChunk.timestamp":
 		if e.complexity.EventChunk.Timestamp == nil {
@@ -5484,9 +5480,9 @@ type MetricMonitor {
 }
 
 type EventChunk {
-    secure_id: Int!
+    session_id: Int!
     index: Int!
-    timestamp: Timestamp!
+    timestamp: Int64!
 }
 
 scalar Upload
@@ -14294,7 +14290,7 @@ func (ec *executionContext) _ErrorTrace_linesAfter(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EventChunk_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
+func (ec *executionContext) _EventChunk_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14305,14 +14301,14 @@ func (ec *executionContext) _EventChunk_secure_id(ctx context.Context, field gra
 		Object:     "EventChunk",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.EventChunk().SecureID(rctx, obj)
+		return obj.SessionID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14394,9 +14390,9 @@ func (ec *executionContext) _EventChunk_timestamp(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_id(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -29194,29 +29190,20 @@ func (ec *executionContext) _EventChunk(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EventChunk")
-		case "secure_id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._EventChunk_secure_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+		case "session_id":
+			out.Values[i] = ec._EventChunk_session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "index":
 			out.Values[i] = ec._EventChunk_index(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "timestamp":
 			out.Values[i] = ec._EventChunk_timestamp(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

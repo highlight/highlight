@@ -3971,7 +3971,7 @@ export type GetEventChunkUrlQueryResult = Apollo.QueryResult<
 export const GetEventChunksDocument = gql`
     query GetEventChunks($secure_id: String!) {
         event_chunks(secure_id: $secure_id) {
-            secure_id
+            session_id
             index
             timestamp
         }

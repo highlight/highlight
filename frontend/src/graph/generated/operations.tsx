@@ -1490,7 +1490,7 @@ export type GetEventChunksQuery = { __typename?: 'Query' } & {
     event_chunks: Array<
         { __typename?: 'EventChunk' } & Pick<
             Types.EventChunk,
-            'secure_id' | 'index' | 'timestamp'
+            'session_id' | 'index' | 'timestamp'
         >
     >;
 };
