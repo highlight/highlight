@@ -269,6 +269,9 @@ export const Toolbar = React.memo(() => {
                                     sliderClientX={sliderClientX}
                                     wrapperWidth={wrapperWidth}
                                     getSliderTime={getSliderTime}
+                                    isLastSegment={
+                                        ind === sessionIntervals.length - 1
+                                    }
                                 />
                             ))}
                         </div>
@@ -342,7 +345,11 @@ export const Toolbar = React.memo(() => {
                     </div>
                 )}
             </DevToolsContextProvider>
-            <div className={styles.toolbarSection}>
+            <div
+                className={classNames(styles.toolbarSection, {
+                    [styles.devToolsOpen]: showDevTools,
+                })}
+            >
                 <div className={styles.toolbarLeftSection}>
                     <button
                         className={classNames(
@@ -553,11 +560,13 @@ const SessionSegment = ({
     sliderClientX,
     wrapperWidth,
     getSliderTime,
+    isLastSegment,
 }: {
     interval: ParsedSessionInterval;
     sliderClientX: number;
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
+    isLastSegment: boolean;
 }) => {
     const { time, sessionStartDateTime } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
@@ -637,7 +646,10 @@ const SessionSegment = ({
             </div>
             <div
                 className={classNames(
+                    // todo
                     styles.sliderRail,
+                    { [styles.firstSegment]: interval.startPercent === 0 },
+                    { [styles.lastSegment]: isLastSegment },
                     isPercentInInterval(sliderClientX / wrapperWidth, interval)
                         ? styles.segmentHover
                         : ''
