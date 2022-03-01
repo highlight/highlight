@@ -46,7 +46,7 @@ import {
     getHighlightLogs,
     logForHighlight,
 } from './utils/highlight-logging';
-import { GenerateSecureID } from 'utils/secure-id';
+import { GenerateSecureID } from './utils/secure-id';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
