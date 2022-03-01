@@ -944,7 +944,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
-		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || location.Latitude.(float64) != sessionObj.Latitude || location.Longitude.(float64) != sessionObj.Longitude {
+		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || projectID != sessionObj.ProjectID || location.Latitude.(float64) != sessionObj.Latitude || location.Longitude.(float64) != sessionObj.Longitude {
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
 		}
 		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
