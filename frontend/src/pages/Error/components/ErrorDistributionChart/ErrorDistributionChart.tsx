@@ -1,5 +1,4 @@
 import Card from '@components/Card/Card';
-import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import { ErrorGroup, Maybe } from '@graph/schemas';
 import { formatNumber } from '@util/numbers';
 import classNames from 'classnames';
@@ -9,7 +8,6 @@ import {
     BarChart,
     LabelList,
     ResponsiveContainer,
-    Tooltip as RechartsTooltip,
     XAxis,
     YAxis,
 } from 'recharts';
@@ -47,11 +45,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
 
     const chartHeight = (data: Array<any> | undefined) => {
         if (data) {
-            let totalHeight = data.length * 32;
-            if (data.length <= 2) {
-                totalHeight += 60;
-            }
-            return totalHeight;
+            return data.length * 32;
         }
         return 200;
     };
@@ -85,13 +79,9 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                             top: 5,
                             right: 30,
                             left: -20,
-                            bottom: formattedData.length > 2 ? 0 : 60,
+                            bottom: 0,
                         }}
                     >
-                        <RechartsTooltip
-                            cursor={{ fill: 'transparent' }}
-                            content={<RechartTooltip />}
-                        />
                         <XAxis type="number" hide={true} />
                         <YAxis
                             type="category"

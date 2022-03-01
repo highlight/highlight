@@ -1,8 +1,8 @@
+import SvgCopyIcon from '@icons/CopyIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import React, { useEffect } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { FaCopy } from 'react-icons/fa';
 import {
     Prism as SyntaxHighlighter,
     SyntaxHighlighterProps,
@@ -58,13 +58,12 @@ export const CodeBlock = ({
                         }}
                     >
                         <span className={styles.copyDiv}>
-                            <FaCopy
+                            <SvgCopyIcon
                                 style={{
                                     position: 'absolute',
-                                    marginRight: 3,
                                     height: 14,
                                     width: 14,
-                                    color: 'var(--color-gray-500)',
+                                    color: 'var(--color-text-primary)',
                                 }}
                             />
                         </span>
