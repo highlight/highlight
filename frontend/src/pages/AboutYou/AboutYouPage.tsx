@@ -70,7 +70,12 @@ const AboutYouPage = () => {
             message.success(
                 `Nice to meet you ${firstName}, let's get started!`
             );
-            // TODO: attach property to Intercom user
+            if (window.Intercom) {
+                window.Intercom('update', {
+                    isProductPersona: isProductRole,
+                    isEngineeringPersona: isEngineeringRole,
+                });
+            }
             history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
