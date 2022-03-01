@@ -42,8 +42,10 @@ func GetMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 
 func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
-	if err := DB.Model(&model.DailySessionCount{}).
-		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+	if err := DB.Raw(`
+			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
+			FROM daily_session_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -52,7 +54,6 @@ func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
-		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
@@ -61,8 +62,10 @@ func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 
 func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
 	var meter int64
-	if err := DB.Model(&model.DailySessionCount{}).
-		Where(`project_id = ?
+	if err := DB.Raw(`
+			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
+			FROM daily_session_counts_view
+			WHERE project_id = ?
 			AND date >= (
 				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -71,7 +74,6 @@ func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)`, project.ID, project.WorkspaceID, project.WorkspaceID).
-		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
