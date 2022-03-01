@@ -3,6 +3,7 @@ import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/K
 import AlertsRouter from '@pages/Alerts/AlertsRouter';
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter';
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage';
+import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter';
 import { useParams } from '@util/react-router/useParams';
 import React, { Suspense } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -12,7 +13,6 @@ const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
-import SetupPage from '../../pages/Setup/SetupPage';
 import ProjectSettings from '../../pages/WorkspaceSettings/ProjectSettings';
 
 interface Props {
@@ -50,7 +50,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <DashboardsRouter />
                 </Route>
                 <Route path="/:project_id/setup">
-                    <SetupPage integrated={integrated} />
+                    <SetupRouter integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/integrations">
                     <IntegrationsPage />

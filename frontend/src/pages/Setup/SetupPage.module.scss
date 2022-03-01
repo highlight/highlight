@@ -71,3 +71,71 @@
     padding: var(--size-medium) 0;
     padding-bottom: 0;
 }
+
+.fieldsBox {
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    padding: 30px;
+    width: 100%;
+
+    h3 {
+        font-size: 18px;
+        margin-bottom: var(--size-large) !important;
+    }
+}
+
+.flexLayout {
+    display: flex;
+}
+
+.leftColumn {
+    flex: 0 0 300px;
+    padding-right: var(--size-xLarge);
+}
+
+.checkWrapper {
+    align-items: center;
+    background-color: var(--color-gray-400);
+    border-radius: 50%;
+    display: flex;
+    height: 20px;
+    justify-content: center;
+    padding: 3px;
+    width: 20px;
+
+    &.checkWrapperCompleted {
+        background-color: var(--color-green-400);
+    }
+}
+
+.checkIcon {
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
+    height: 10px;
+    width: 10px;
+}
+
+.setupStepsContainer {
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin-bottom: var(--size-small);
+    margin-top: var(--size-medium);
+    padding: 0;
+    row-gap: var(--size-medium);
+
+    li {
+        align-items: center;
+        color: var(--text-primary);
+        column-gap: var(--size-xSmall);
+        cursor: pointer;
+        display: flex;
+        height: var(--size-large);
+        padding-bottom: var(--size-xSmall);
+        padding-left: 0;
+        padding-right: 0;
+        padding-top: var(--size-xSmall);
+        width: 100%;
+    }
+}
