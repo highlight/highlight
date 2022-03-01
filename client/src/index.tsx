@@ -51,6 +51,7 @@ import {
     getHighlightLogs,
     logForHighlight,
 } from './utils/highlight-logging';
+import { GenerateSecureID } from 'utils/secure-id';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -133,7 +134,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    sessionSecureID?: string;
+    sessionSecureID: string; // Introduced in firstLoad 3.0.1, will be undefined before that
 };
 
 /**
@@ -232,6 +233,10 @@ export class Highlight {
         options: HighlightClassOptions,
         firstLoadListeners?: FirstLoadListeners
     ) {
+        if (!options.sessionSecureID) {
+            // Firstload versions before 3.0.1 did not have this property
+            options.sessionSecureID = GenerateSecureID();
+        }
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
@@ -262,7 +267,7 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
-        this.options.sessionSecureID = undefined; // Do not reuse the secure ID generated from firstload
+        this.options.sessionSecureID = GenerateSecureID();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();

@@ -19,6 +19,8 @@ import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitize
 import { RequestResponsePair } from './network-listener/utils/models';
 import { NetworkListener } from 'listeners/network-listener/network-listener';
 
+// Note: This class is used by both firstload and client. When constructed in client, it will match the current
+// codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
 export class FirstLoadListeners {
     disableConsoleRecording: boolean;
     consoleMethodsToRecord: ConsoleMethods[];
@@ -121,8 +123,7 @@ export class FirstLoadListeners {
     // For those versions, calling this from client will monkey-patch the network listeners onto the old FirstLoadListener object.
     static setupNetworkListener(
         sThis: FirstLoadListeners,
-        options: HighlightClassOptions,
-        sessionSecureID: string
+        options: HighlightClassOptions
     ): void {
         sThis._backendUrl =
             options?.backendUrl ||
@@ -185,7 +186,7 @@ export class FirstLoadListeners {
                     backendUrl: sThis._backendUrl,
                     tracingOrigins: sThis.tracingOrigins,
                     urlBlocklist: sThis.urlBlocklist,
-                    sessionSecureID: sessionSecureID,
+                    sessionSecureID: options.sessionSecureID,
                 })
             );
         }
