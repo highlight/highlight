@@ -28,11 +28,6 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { NetworkListener } from './listeners/network-listener/network-listener';
-import {
-    matchPerformanceTimingsWithRequestResponsePair,
-    shouldNetworkRequestBeRecorded,
-} from './listeners/network-listener/utils/utils';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
@@ -134,7 +129,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
-    sessionSecureID: string; // Introduced in firstLoad 3.0.1, will be undefined before that
+    sessionSecureID: string; // Introduced in firstLoad 3.0.1
 };
 
 /**
@@ -1131,47 +1126,10 @@ export class Highlight {
         isBeacon: boolean;
         sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
     }): Promise<void> {
-        let resources: Array<any> = [];
-        if (!this.disableNetworkRecording) {
-            const documentTimeOrigin = window?.performance?.timeOrigin || 0;
-            // get all resources that don't include 'api.highlight.run'
-            resources = performance.getEntriesByType('resource');
-
-            // Subtract session start time from performance.timeOrigin
-            // Subtract diff to the times to do the offsets
-            const offset = (this._recordingStartTime - documentTimeOrigin) * 2;
-
-            resources = resources
-                .filter((r) =>
-                    shouldNetworkRequestBeRecorded(
-                        r.name,
-                        this._backendUrl,
-                        this.tracingOrigins
-                    )
-                )
-                .map((resource) => {
-                    return {
-                        ...resource.toJSON(),
-                        offsetStartTime: resource.startTime - offset,
-                        offsetResponseEnd: resource.responseEnd - offset,
-                        offsetFetchStart: resource.fetchStart - offset,
-                    };
-                });
-
-            if (this.enableRecordingNetworkContents) {
-                resources = matchPerformanceTimingsWithRequestResponsePair(
-                    resources,
-                    this.xhrNetworkContents,
-                    'xmlhttprequest'
-                );
-                resources = matchPerformanceTimingsWithRequestResponsePair(
-                    resources,
-                    this.fetchNetworkContents,
-                    'fetch'
-                );
-            }
-        }
-
+        const resources = FirstLoadListeners.getRecordedNetworkResources(
+            this._firstLoadListeners,
+            this._recordingStartTime
+        );
         const events = [...this.events];
         const messages = [...this._firstLoadListeners.messages];
         const errors = [...this._firstLoadListeners.errors];
@@ -1201,11 +1159,9 @@ export class Highlight {
         // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
         // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
         if (!isBeacon) {
-            if (!this.disableNetworkRecording) {
-                this.xhrNetworkContents = [];
-                this.fetchNetworkContents = [];
-                performance.clearResourceTimings();
-            }
+            FirstLoadListeners.clearRecordedNetworkResources(
+                this._firstLoadListeners
+            );
             // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
             // Originally, we would clear this.events but this could lead to a race condition.
             // Example Scenario:

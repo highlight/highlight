@@ -17,7 +17,11 @@ import { HighlightClassOptions } from '../index';
 import stringify from 'json-stringify-safe';
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer';
 import { RequestResponsePair } from './network-listener/utils/models';
-import { NetworkListener } from 'listeners/network-listener/network-listener';
+import { NetworkListener } from './network-listener/network-listener';
+import {
+    matchPerformanceTimingsWithRequestResponsePair,
+    shouldNetworkRequestBeRecorded,
+} from './network-listener/utils/utils';
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
@@ -27,7 +31,7 @@ export class FirstLoadListeners {
     listeners: (() => void)[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
-    // For versions earlier than 4.0.0 (Feb 2022), the properties below don't exist without being patched in
+    // The properties below were added in 4.0.0 (Feb 2022), and are patched in by client via setupNetworkListeners()
     options: HighlightClassOptions;
     hasNetworkRecording: boolean | undefined = true;
     _backendUrl!: string;
@@ -111,6 +115,9 @@ export class FirstLoadListeners {
                 )
             );
         }
+        this.listeners.push(
+            ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+        );
         FirstLoadListeners.setupNetworkListener(this, this.options);
     }
 
@@ -189,6 +196,61 @@ export class FirstLoadListeners {
                     sessionSecureID: options.sessionSecureID,
                 })
             );
+        }
+    }
+
+    static getRecordedNetworkResources(
+        sThis: FirstLoadListeners,
+        recordingStartTime: number
+    ): Array<any> {
+        let resources: Array<any> = [];
+        if (!sThis.disableNetworkRecording) {
+            const documentTimeOrigin = window?.performance?.timeOrigin || 0;
+            // get all resources that don't include 'api.highlight.run'
+            resources = performance.getEntriesByType('resource');
+
+            // Subtract session start time from performance.timeOrigin
+            // Subtract diff to the times to do the offsets
+            const offset = (recordingStartTime - documentTimeOrigin) * 2;
+
+            resources = resources
+                .filter((r) =>
+                    shouldNetworkRequestBeRecorded(
+                        r.name,
+                        sThis._backendUrl,
+                        sThis.tracingOrigins
+                    )
+                )
+                .map((resource) => {
+                    return {
+                        ...resource.toJSON(),
+                        offsetStartTime: resource.startTime - offset,
+                        offsetResponseEnd: resource.responseEnd - offset,
+                        offsetFetchStart: resource.fetchStart - offset,
+                    };
+                });
+
+            if (sThis.enableRecordingNetworkContents) {
+                resources = matchPerformanceTimingsWithRequestResponsePair(
+                    resources,
+                    sThis.xhrNetworkContents,
+                    'xmlhttprequest'
+                );
+                resources = matchPerformanceTimingsWithRequestResponsePair(
+                    resources,
+                    sThis.fetchNetworkContents,
+                    'fetch'
+                );
+            }
+        }
+        return resources;
+    }
+
+    static clearRecordedNetworkResources(sThis: FirstLoadListeners): void {
+        if (!sThis.disableNetworkRecording) {
+            sThis.xhrNetworkContents = [];
+            sThis.fetchNetworkContents = [];
+            performance.clearResourceTimings();
         }
     }
 }
