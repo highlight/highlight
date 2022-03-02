@@ -56,12 +56,23 @@ const AboutYouPage = () => {
         e.preventDefault();
 
         try {
+            let persona = 'ENGINEERING';
+
+            if (isProductRole && isEngineeringRole) {
+                persona = 'PRODUCT_AND_ENGINEERING';
+            } else if (isProductRole) {
+                persona = 'PRODUCT';
+            } else if (isEngineeringRole) {
+                persona = 'ENGINEERING';
+            }
+
             await updateAdminAboutYourDetails({
                 variables: {
                     adminDetails: {
                         name: `${firstName} ${lastName}`,
                         user_defined_role: role,
                         referral: signUpReferral,
+                        user_defined_persona: persona,
                     },
                 },
             });
