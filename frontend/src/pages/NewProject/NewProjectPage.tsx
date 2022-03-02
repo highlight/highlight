@@ -9,6 +9,7 @@ import {
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
+    useGetWorkspaceQuery,
     useGetWorkspacesCountQuery,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
@@ -29,6 +30,9 @@ const NewProjectPage = () => {
     const [error, setError] = useState<undefined | string>(undefined);
     const [name, setName] = useState<string>('');
 
+    const { data: currentWorkspaceData } = useGetWorkspaceQuery({
+        variables: { id: workspace_id },
+    });
     const [
         createProject,
         { loading: projectLoading, data: projectData, error: projectError },
@@ -164,6 +168,28 @@ const NewProjectPage = () => {
                                 )}
                             </ButtonLink>
                         )}
+                        {!isWorkspace &&
+                            currentWorkspaceData?.workspace &&
+                            currentWorkspaceData.workspace.projects.length >
+                                0 && (
+                                <ButtonLink
+                                    trackingId={`Enter${pageTypeCaps}`}
+                                    className={classNames(styles.button)}
+                                    to={`/w/${workspace_id}/switch`}
+                                    fullWidth
+                                    type="default"
+                                >
+                                    Enter an Existing Project{' '}
+                                    {!loading && (
+                                        <Dot className={styles.workspaceCount}>
+                                            {
+                                                currentWorkspaceData.workspace
+                                                    .projects.length
+                                            }
+                                        </Dot>
+                                    )}
+                                </ButtonLink>
+                            )}
                     </CardFormActionsContainer>
                 </CardForm>
             </div>

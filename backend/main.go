@@ -85,9 +85,10 @@ func validateOrigin(request *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		isAWSRenderEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d1ggqq795qhcr.amplifyapp.com")
+		// Is this an AWS Amplify environment?
+		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || (origin == "https://master.d25bj3loqvp3nx.amplifyapp.com")
 
-		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSRenderEnv {
+		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {

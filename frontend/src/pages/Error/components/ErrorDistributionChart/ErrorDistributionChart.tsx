@@ -1,14 +1,13 @@
 import Card from '@components/Card/Card';
-import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import { ErrorGroup, Maybe } from '@graph/schemas';
+import { formatNumber } from '@util/numbers';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Bar,
     BarChart,
     LabelList,
     ResponsiveContainer,
-    Tooltip as RechartsTooltip,
     XAxis,
     YAxis,
 } from 'recharts';
@@ -27,6 +26,15 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
     field,
     title,
 }) => {
+    const [formattedData, setFormattedData] = useState<
+        | ({
+              formattedValue: string;
+              name: string;
+              value: any;
+          } | null)[]
+        | undefined
+    >([]);
+
     const { data } = useGetErrorDistributionQuery({
         variables: {
             project_id: `${errorGroup?.project_id}`,
@@ -37,41 +45,43 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
 
     const chartHeight = (data: Array<any> | undefined) => {
         if (data) {
-            let totalHeight = data.length * 32;
-            if (data.length <= 2) {
-                totalHeight += 60;
-            }
-            return totalHeight;
+            return data.length * 32;
         }
         return 200;
     };
 
-    return data?.errorDistribution && data.errorDistribution.length > 0 ? (
+    useEffect(() => {
+        const d = data?.errorDistribution.map((o) =>
+            o
+                ? {
+                      ...o,
+                      value: o.value,
+                      formattedValue: formatNumber(o.value, 0),
+                  }
+                : o
+        );
+        setFormattedData(d);
+    }, [data]);
+
+    return formattedData && formattedData.length > 0 ? (
         <Card className={classNames(styles.distributionSection)} title={title}>
             <div className={styles.distributionChart}>
                 <ResponsiveContainer
                     width="100%"
-                    height={chartHeight(data?.errorDistribution)}
+                    height={chartHeight(formattedData)}
                 >
                     <BarChart
                         width={200}
-                        data={data?.errorDistribution}
+                        data={formattedData}
                         layout="vertical"
                         barSize={14}
                         margin={{
                             top: 5,
-                            right: 20,
+                            right: 30,
                             left: -20,
-                            bottom:
-                                data && data?.errorDistribution.length > 2
-                                    ? 0
-                                    : 60,
+                            bottom: 0,
                         }}
                     >
-                        <RechartsTooltip
-                            cursor={{ fill: 'transparent' }}
-                            content={<RechartTooltip />}
-                        />
                         <XAxis type="number" hide={true} />
                         <YAxis
                             type="category"
@@ -83,7 +93,7 @@ export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
                         />
                         <Bar dataKey="value" radius={2} fill="#5629c6">
                             <LabelList
-                                dataKey="value"
+                                dataKey="formattedValue"
                                 position="right"
                                 className={styles.chartLabel}
                             />

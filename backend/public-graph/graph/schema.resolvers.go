@@ -208,9 +208,9 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (*int, error) {
 	r.PushPayloadWorkerPool.SubmitRecover(func() {
-		r.processPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded)
+		r.processPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
 	})
 	return &sessionID, nil
 }

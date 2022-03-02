@@ -95,6 +95,8 @@ type FieldData struct {
 
 const ERROR_EVENT_MAX_LENGTH = 10000
 
+const SESSION_FIELD_MAX_LENGTH = 2000
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -106,7 +108,11 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	modelFields := []*model.Field{}
 	projectID := session.ProjectID
 	for k, fv := range properties {
-		modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
+		if len(fv) > SESSION_FIELD_MAX_LENGTH {
+			log.Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
+		} else {
+			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
+		}
 	}
 
 	err := r.AppendFields(modelFields, session)
@@ -698,7 +704,33 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	if err := r.DB.Model(errorGroup).Association("Fingerprints").Replace(fingerprints); err != nil {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
+			return e.Wrap(err, "error appending new fingerprints")
+		}
+
+		var newIds []int
+		for _, fingerprint := range fingerprints {
+			newIds = append(newIds, fingerprint.ID)
+		}
+
+		if err := r.DB.Exec(`
+			UPDATE error_fingerprints
+			SET error_group_id = NULL
+			WHERE id IN (
+				SELECT id
+				FROM error_fingerprints
+				WHERE id NOT IN (?)
+				AND error_group_id = ?
+				ORDER BY id
+				FOR UPDATE
+			)
+		`, newIds, errorGroup.ID).Error; err != nil {
+			return e.Wrap(err, "error removing old fingerprints from the error group")
+		}
+
+		return nil
+	}); err != nil {
 		return nil, e.Wrap(err, "error replacing error group fingerprints")
 	}
 
@@ -905,7 +937,17 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return nil, e.Wrap(err, "error creating session")
+		}
+		sessionObj := &model.Session{}
+		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
+		}
+		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || projectID != sessionObj.ProjectID || location.Latitude.(float64) != sessionObj.Latitude || location.Longitude.(float64) != sessionObj.Longitude {
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		}
+		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
@@ -1356,13 +1398,21 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool) {
+func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
+	if highlightLogs != nil {
+		logsArray := strings.Split(*highlightLogs, "\n")
+		for _, clientLog := range logsArray {
+			if clientLog != "" {
+				log.Warnf("[Client]%s", clientLog)
+			}
+		}
+	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
@@ -1615,21 +1665,58 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	if isBeacon {
 		beaconTime = &now
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-		Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-		Updates(&model.Session{PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F}).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-		return
+
+	sessionHasErrors := len(errors) > 0
+	// We care about if the session in it's entirety has errors or not.
+	// `processPayload` is run on chunks of a session so we need to check if we've seen any errors
+	// in previous chunks.
+	if sessionObj != nil && sessionObj.HasErrors != nil {
+		if *sessionObj.HasErrors {
+			sessionHasErrors = true
+		}
+	}
+
+	fieldsToUpdate := model.Session{
+		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F,
+	}
+
+	// We only want to update the `HasErrors` field if the session has errors.
+	if sessionHasErrors {
+		fieldsToUpdate.HasErrors = &model.T
+
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+			return
+		}
+	} else {
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+			return
+		}
 	}
 
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	if sessionObj.Processed != nil && *sessionObj.Processed {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"processed": false,
-			"Excluded":  false,
+			"processed":  false,
+			"Excluded":   false,
+			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
+			return
+		}
+	}
+
+	if sessionHasErrors {
+		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+			"has_errors": true,
+		}); err != nil {
+			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return
 		}
 	}

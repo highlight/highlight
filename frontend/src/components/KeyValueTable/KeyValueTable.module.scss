@@ -13,7 +13,7 @@
     column-gap: var(--size-small);
     display: grid;
     font-family: var(--header-font-family);
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 80px minmax(0, 1fr);
     row-gap: var(--size-xSmall);
 
     p {

@@ -68,6 +68,8 @@ const KeyValueTable = ({
                                       <JsonViewer
                                           src={valueDisplayValue as object}
                                           collapsed
+                                          allowDownload
+                                          downloadFileName={`${keyDisplayValue}`}
                                       />
                                   ) : (
                                       'undefined'

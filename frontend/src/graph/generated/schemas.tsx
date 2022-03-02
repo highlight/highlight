@@ -54,6 +54,8 @@ export type Session = {
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
     processed?: Maybe<Scalars['Boolean']>;
+    has_rage_clicks?: Maybe<Scalars['Boolean']>;
+    has_errors?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;

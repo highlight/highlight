@@ -818,6 +818,8 @@ export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
 
 export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
+export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not'];
+
 const LABEL_MAP: { [key: string]: string } = {
     referrer: 'Referrer',
     os_name: 'Operating System',
@@ -841,6 +843,8 @@ const LABEL_MAP: { [key: string]: string } = {
     state: 'State',
     event: 'Event',
     timestamp: 'Date',
+    has_rage_clicks: 'Has Rage Clicks',
+    has_errors: 'Has Errors',
 };
 
 const getOperator = (

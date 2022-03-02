@@ -3115,10 +3115,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@1.1.13":
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.13.tgz#6d94ac5a7179f42a9277c45ba74a4210c22536e3"
-  integrity sha512-lypJvifKgH9wgQst8UcOr1t9fJDKYEiJMNBlCQFeQYuBokIvtHLA+RMTfMbuflgD3iJZX1wvWWKkboxFwox5QQ==
+"@highlight-run/rrweb@1.1.15":
+  version "1.1.15"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.15.tgz#649a0bddc8047ecf5cce884b70dfff40aec56f98"
+  integrity sha512-eViinsMbRrqD7eqNpXn4g+VyAnWmI6VpMyaq46NkwUS6gcEGFQwmCYWgTIY9sZw8kOtL8bCLLYRzNRO8ME4z7g==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -5827,15 +5827,10 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001125, caniuse-lite@^1.0.30001181:
-  version "1.0.30001248"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001248.tgz"
-  integrity sha512-NwlQbJkxUFJ8nMErnGtT0QTM2TJ33xgz4KXJSMIrjXIbDVdaYueGyjOrLKRtJC+rTiWfi6j5cnZN1NBiSBJGNw==
-
-caniuse-lite@^1.0.30001251:
-  version "1.0.30001251"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001251.tgz#6853a606ec50893115db660f82c094d18f096d85"
-  integrity sha512-HOe1r+9VkU4TFmnU70z+r7OLmtR+/chB1rdcJUeQlAinjEeb0cKL20tlAtOagNZhbrtLnCvV19B4FmF1rgzl6A==
+caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001125, caniuse-lite@^1.0.30001181, caniuse-lite@^1.0.30001251:
+  version "1.0.30001312"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001312.tgz"
+  integrity sha512-Wiz1Psk2MEK0pX3rUzWaunLTZzqS2JYZFzNKqAiJGiuxIjRPLgV6+VDPOg6lQOUxmDwhTlh198JsTTi8Hzw6aQ==
 
 capital-case@^1.0.4:
   version "1.0.4"
@@ -14709,6 +14704,11 @@ react-fast-compare@^3.1.1, react-fast-compare@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.0.tgz#641a9da81b6a6320f270e89724fb45a0b39e43bb"
   integrity sha512-rtGImPZ0YyLrscKI9xTpV8psd6I8VAtjKCzQDlzyDvqJA8XOW78TXYQwNRNd8g8JZnDu8q9Fu/1v4HPAVwVdHA==
+
+react-files-hooks@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-files-hooks/-/react-files-hooks-2.0.0.tgz#2efcc168b8761925abfb79997e1cce183eb47fc2"
+  integrity sha512-9paOy6mD4K854ERaIqe8tClawvnVYygtJHaxrtlcuacEC4d1lZU6CCv+ZdJFb406h8JyzgHRUCAawgJ6cM3uQg==
 
 react-firebase-hooks@^2.2.0:
   version "2.2.0"

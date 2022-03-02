@@ -293,7 +293,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		r.ProjectID = s.ProjectID
 		rageClickSets[i] = r
 	}
-	if len(rageClickSets) > 0 {
+	hasRageClicks := len(rageClickSets) > 0
+	if hasRageClicks {
 		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
@@ -348,20 +349,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:    &model.T,
-			Length:       sessionTotalLengthInMilliseconds,
-			ActiveLength: activeDuration.Milliseconds(),
-			EventCounts:  &eventCountsString,
+			Processed:     &model.T,
+			Length:        sessionTotalLengthInMilliseconds,
+			ActiveLength:  activeDuration.Milliseconds(),
+			EventCounts:   &eventCountsString,
+			HasRageClicks: &hasRageClicks,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":     true,
-		"length":        sessionTotalLengthInMilliseconds,
-		"active_length": activeDuration.Milliseconds(),
-		"EventCounts":   eventCountsString,
+		"processed":       true,
+		"length":          sessionTotalLengthInMilliseconds,
+		"active_length":   activeDuration.Milliseconds(),
+		"EventCounts":     eventCountsString,
+		"has_rage_clicks": hasRageClicks,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
@@ -643,6 +646,19 @@ func (w *Worker) StartMetricMonitorWatcher() {
 	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
+func (w *Worker) RefreshMaterializedViews() {
+	ctx := context.Background()
+	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
+		tracer.ResourceName("worker.refreshMaterializedViews"))
+	defer span.Finish()
+
+	if err := w.Resolver.DB.Exec(`
+		REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
+	`).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error refreshing materialized views"))
+	}
+}
+
 func (w *Worker) BackfillStackFrames() {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
 		Where(`
@@ -710,6 +726,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.StartMetricMonitorWatcher
 	case "backfill-stack-frames":
 		return w.BackfillStackFrames
+	case "refresh-materialized-views":
+		return w.RefreshMaterializedViews
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

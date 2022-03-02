@@ -129,6 +129,7 @@ export type MutationPushPayloadArgs = {
   errors: Array<Maybe<ErrorObjectInput>>;
   is_beacon?: Maybe<Scalars['Boolean']>;
   has_session_unloaded?: Maybe<Scalars['Boolean']>;
+  highlight_logs?: Maybe<Scalars['String']>;
 };
 
 
