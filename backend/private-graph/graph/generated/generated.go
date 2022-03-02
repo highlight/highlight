@@ -59,16 +59,17 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Admin struct {
-		Email            func(childComplexity int) int
-		EmailVerified    func(childComplexity int) int
-		ID               func(childComplexity int) int
-		Name             func(childComplexity int) int
-		PhotoURL         func(childComplexity int) int
-		Referral         func(childComplexity int) int
-		Role             func(childComplexity int) int
-		SlackIMChannelID func(childComplexity int) int
-		UID              func(childComplexity int) int
-		UserDefinedRole  func(childComplexity int) int
+		Email              func(childComplexity int) int
+		EmailVerified      func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
+		PhotoURL           func(childComplexity int) int
+		Referral           func(childComplexity int) int
+		Role               func(childComplexity int) int
+		SlackIMChannelID   func(childComplexity int) int
+		UID                func(childComplexity int) int
+		UserDefinedPersona func(childComplexity int) int
+		UserDefinedRole    func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -964,6 +965,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.UID(childComplexity), true
+
+	case "Admin.user_defined_persona":
+		if e.complexity.Admin.UserDefinedPersona == nil {
+			break
+		}
+
+		return e.complexity.Admin.UserDefinedPersona(childComplexity), true
 
 	case "Admin.user_defined_role":
 		if e.complexity.Admin.UserDefinedRole == nil {
@@ -5165,6 +5173,7 @@ type SearchParams {
 input AdminAboutYouDetails {
     name: String!
     user_defined_role: String!
+    user_defined_persona: String!
     referral: String!
 }
 
@@ -5236,6 +5245,7 @@ type Admin {
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    user_defined_persona: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -10303,6 +10313,38 @@ func (ec *executionContext) _Admin_user_defined_role(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.UserDefinedRole, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_user_defined_persona(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserDefinedPersona, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27448,6 +27490,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "user_defined_persona":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_persona"))
+			it.UserDefinedPersona, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "referral":
 			var err error
 
@@ -27988,6 +28038,8 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_referral(ctx, field, obj)
 		case "user_defined_role":
 			out.Values[i] = ec._Admin_user_defined_role(ctx, field, obj)
+		case "user_defined_persona":
+			out.Values[i] = ec._Admin_user_defined_persona(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

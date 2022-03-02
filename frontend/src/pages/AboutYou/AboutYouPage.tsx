@@ -6,6 +6,7 @@ import Card, {
     CardHeader,
     CardSubHeader,
 } from '@components/Card/Card';
+import CardSelect from '@components/CardSelect/CardSelect';
 import Input from '@components/Input/Input';
 import {
     AppLoadingState,
@@ -17,6 +18,7 @@ import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useHistory } from 'react-router';
+import { useToggle } from 'react-use';
 
 import styles from './AboutYouPage.module.scss';
 
@@ -25,6 +27,8 @@ const AboutYouPage = () => {
     const { admin } = useAuthContext();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false);
+    const [isProductRole, toggleIsProductRole] = useToggle(false);
     const [role, setRole] = useState('');
     const history = useHistory();
     const [
@@ -52,20 +56,41 @@ const AboutYouPage = () => {
         e.preventDefault();
 
         try {
+            let persona = 'ENGINEERING';
+
+            if (isProductRole && isEngineeringRole) {
+                persona = 'PRODUCT_AND_ENGINEERING';
+            } else if (isProductRole) {
+                persona = 'PRODUCT';
+            } else if (isEngineeringRole) {
+                persona = 'ENGINEERING';
+            }
+
             await updateAdminAboutYourDetails({
                 variables: {
                     adminDetails: {
                         name: `${firstName} ${lastName}`,
                         user_defined_role: role,
                         referral: signUpReferral,
+                        user_defined_persona: persona,
                     },
                 },
             });
 
+            window.sessionStorage.setItem(
+                'HighlightFilledOutAboutYouForm',
+                'true'
+            );
             setSignUpReferral('');
             message.success(
                 `Nice to meet you ${firstName}, let's get started!`
             );
+            if (window.Intercom) {
+                window.Intercom('update', {
+                    isProductPersona: isProductRole,
+                    isEngineeringPersona: isEngineeringRole,
+                });
+            }
             history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
@@ -102,15 +127,34 @@ const AboutYouPage = () => {
                             setLastName(e.target.value);
                         }}
                     />
-                    <Input
-                        placeholder="Role (e.g. CEO, CTO, Engineer, Product Manager)"
-                        name="Role"
-                        value={role}
-                        onChange={(e) => {
-                            setRole(e.target.value);
-                        }}
-                        autoComplete="off"
-                    />
+
+                    <section className={styles.section}>
+                        <h3>What are you using Highlight for?</h3>
+                        <Input
+                            placeholder="Your Role (e.g. CEO, CTO, Engineer, Product Manager)"
+                            name="Role"
+                            value={role}
+                            onChange={(e) => {
+                                setRole(e.target.value);
+                            }}
+                            autoComplete="off"
+                        />
+
+                        <div className={styles.roleContainer}>
+                            <CardSelect
+                                title="Product / Support"
+                                description={`I'll be using Highlight for product and support.`}
+                                isSelected={isProductRole}
+                                onClick={toggleIsProductRole}
+                            />
+                            <CardSelect
+                                title="Engineering"
+                                description={`I’ll be using Highlight for debugging and monitoring.`}
+                                isSelected={isEngineeringRole}
+                                onClick={toggleIsEngineeringRole}
+                            />
+                        </div>
+                    </section>
                     <CardFormActionsContainer>
                         <Button
                             trackingId="AboutYouPageNext"
@@ -121,7 +165,8 @@ const AboutYouPage = () => {
                             disabled={
                                 firstName.length === 0 ||
                                 lastName.length === 0 ||
-                                role.length === 0
+                                role.length === 0 ||
+                                (!isEngineeringRole && !isProductRole)
                             }
                         >
                             Let's Go!

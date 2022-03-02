@@ -646,6 +646,19 @@ func (w *Worker) StartMetricMonitorWatcher() {
 	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
 }
 
+func (w *Worker) RefreshMaterializedViews() {
+	ctx := context.Background()
+	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
+		tracer.ResourceName("worker.refreshMaterializedViews"))
+	defer span.Finish()
+
+	if err := w.Resolver.DB.Exec(`
+		REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
+	`).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error refreshing materialized views"))
+	}
+}
+
 func (w *Worker) BackfillStackFrames() {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
 		Where(`
@@ -713,6 +726,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.StartMetricMonitorWatcher
 	case "backfill-stack-frames":
 		return w.BackfillStackFrames
+	case "refresh-materialized-views":
+		return w.RefreshMaterializedViews
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

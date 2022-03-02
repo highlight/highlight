@@ -51,7 +51,9 @@ const StackTraceSection = ({ errorGroup, loading, compact = false }: Props) => {
         ) ?? 0;
 
     const everyFrameHasError = errorGroup?.structured_stack_trace?.every(
-        (frame) => !!frame?.error
+        (frame) =>
+            !!frame?.error &&
+            !frame.error.includes('file does not contain source map url')
     );
 
     const showStackFrameNotUseful =

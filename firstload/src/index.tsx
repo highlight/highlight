@@ -156,7 +156,7 @@ export interface HighlightPublicInterface {
     ) => void;
     getSessionURL: () => Promise<string>;
     getSessionDetails: () => Promise<SessionDetails>;
-    start: () => void;
+    start: (options?: StartOptions) => void;
     /** Stops the session and error recording. */
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
@@ -169,6 +169,13 @@ export interface HighlightPublicInterface {
      * Calling this will toggle the visibility of the feedback modal.
      */
     toggleSessionFeedbackModal: () => void;
+}
+
+interface StartOptions {
+    /**
+     * Specifies whether console warn messages should not be created.
+     */
+    silent?: boolean;
 }
 
 interface Metadata {
@@ -363,12 +370,14 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('track', e);
         }
     },
-    start: () => {
+    start: (options) => {
         try {
             if (highlight_obj?.state === 'Recording') {
-                console.warn(
-                    'You cannot called `start()` again. The session is already being recorded.'
-                );
+                if (!options?.silent) {
+                    console.warn(
+                        'You cannot called `start()` again. The session is already being recorded.'
+                    );
+                }
                 return;
             }
             if (H.options?.manualStart) {

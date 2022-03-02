@@ -19,6 +19,7 @@ export { default as ChartIcon } from './ChartIcon';
 export { default as Check } from './Check';
 export { default as CheckCircleIcon } from './CheckCircleIcon';
 export { default as Checkmark } from './Checkmark';
+export { default as CheckmarkIcon } from './CheckmarkIcon';
 export { default as ChevronDownIcon } from './ChevronDownIcon';
 export { default as ChevronLeftIcon } from './ChevronLeftIcon';
 export { default as ChevronRightIcon } from './ChevronRightIcon';

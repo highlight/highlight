@@ -1,3 +1,22 @@
 .card {
     max-width: 500px;
 }
+
+.section {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--size-small) !important;
+    padding-top: var(--size-small);
+    row-gap: var(--size-medium);
+
+    h3 {
+        font-size: 16px;
+        margin-bottom: 0 !important;
+    }
+}
+
+.roleContainer {
+    column-gap: var(--size-large);
+    display: flex;
+    padding-top: var(--size-small);
+}
