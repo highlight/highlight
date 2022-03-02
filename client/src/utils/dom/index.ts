@@ -50,8 +50,8 @@ export function getElementSelector(input: Element, options?: Partial<Options>) {
             attr: (name: string, value: string) => false,
             seedMinLength: 1,
             optimizedMinLength: 2,
-            threshold: 1000,
-            maxNumberOfTries: 10000,
+            threshold: 50,
+            maxNumberOfTries: 1000,
         };
 
         config = { ...defaults, ...options };
