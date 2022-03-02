@@ -78,7 +78,7 @@
     row-gap: var(--size-medium);
     width: calc(200% + (var(--size-medium) / 2));
 
-    & > div {
+    div {
         transition: opacity 0.25s, visibility 0.15s linear;
         visibility: visible;
         width: 100%;
