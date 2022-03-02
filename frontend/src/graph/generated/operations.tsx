@@ -2175,6 +2175,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'slack_im_channel_id'
             | 'role'
             | 'email_verified'
+            | 'user_defined_role'
         >
     >;
 };
