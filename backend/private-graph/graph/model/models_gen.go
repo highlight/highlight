@@ -10,9 +10,10 @@ import (
 )
 
 type AdminAboutYouDetails struct {
-	Name            string `json:"name"`
-	UserDefinedRole string `json:"user_defined_role"`
-	Referral        string `json:"referral"`
+	Name               string `json:"name"`
+	UserDefinedRole    string `json:"user_defined_role"`
+	UserDefinedPersona string `json:"user_defined_persona"`
+	Referral           string `json:"referral"`
 }
 
 type AverageSessionLength struct {
