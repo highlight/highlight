@@ -1,7 +1,5 @@
 export const actionButtons: string;
 export const actionButtonsContainer: string;
-export const btnIconLeft: string;
-export const btnIconRight: string;
 export const commentInputContainer: string;
 export const form: string;
 export const formItemSpacer: string;

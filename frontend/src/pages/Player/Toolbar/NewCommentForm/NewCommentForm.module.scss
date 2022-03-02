@@ -2,6 +2,13 @@
     display: flex;
     gap: var(--size-xSmall);
     justify-content: flex-end;
+
+    button {
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        gap: var(--size-small);
+    }
 }
 
 .formItemSpacer {
@@ -57,42 +64,33 @@
     }
 }
 
-.btnIconRight {
-    margin-left: var(--size-small);
-}
-
-.btnIconLeft {
-    margin-right: var(--size-small);
-}
-
 .hide {
-    visibility: hidden !important;
-
     animation-fill-mode: forwards;
     opacity: 0;
+    visibility: hidden !important;
 }
 
 .slides {
+    align-items: flex-start;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: flex-start;
-    width: calc(200% + (var(--size-medium) / 2));
     row-gap: var(--size-medium);
+    width: calc(200% + (var(--size-medium) / 2));
 
     & > div {
-        width: 100%;
         transition: opacity 0.25s, visibility 0.15s linear;
         visibility: visible;
+        width: 100%;
     }
 }
 
 .slidesContainer {
-    overflow-x: hidden;
     margin-left: calc(-1 * var(--size-large));
     margin-right: calc(-1 * var(--size-large));
+    overflow-x: hidden;
+    padding-bottom: var(--size-xSmall);
     padding-left: var(--size-large);
     padding-right: var(--size-large);
     padding-top: var(--size-xSmall);
-    padding-bottom: var(--size-xSmall);
 }

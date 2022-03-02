@@ -103,6 +103,12 @@ export const NewCommentForm = ({
         SanitizedSlackChannelInput[]
     >([]);
 
+    const sessionUrl = `${
+        window.location.port !== ''
+            ? 'https://app.highlight.run'
+            : window.location.origin
+    }${window.location.pathname}`;
+
     const onFinish = async () => {
         H.track('Create Comment', {
             numHighlightAdminMentions: mentionedAdmins.length,
@@ -137,6 +143,11 @@ export const NewCommentForm = ({
                 .replace('data:image/png;base64,', '');
         }
 
+        const { issueTitle, issueDescription } = form.getFieldsValue([
+            'issueTitle',
+            'issueDescription',
+        ]);
+
         try {
             await createComment({
                 variables: {
@@ -147,13 +158,20 @@ export const NewCommentForm = ({
                     text_for_email: commentTextForEmail.trim(),
                     x_coordinate: commentPosition?.x || 0,
                     y_coordinate: commentPosition?.y || 0,
-                    session_url: `${window.location.origin}${window.location.pathname}`,
+                    session_url: sessionUrl,
                     tagged_admins: mentionedAdmins,
                     tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     session_image,
                     tags: getTags(tags, commentTagsData),
+                    integrations: selectedIssueServices,
+                    issue_title:
+                        selectedIssueServices.length > 0 ? issueTitle : null,
+                    issue_description:
+                        selectedIssueServices.length > 0
+                            ? issueDescription
+                            : null,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -341,7 +359,7 @@ export const NewCommentForm = ({
                                     {
                                         displayValue: 'Create a Linear issue',
                                         id: 'linear',
-                                        value: 'linear',
+                                        value: 'Linear',
                                     },
                                 ]}
                                 onChange={setSelectedIssueServices}
@@ -370,11 +388,12 @@ export const NewCommentForm = ({
                         )}
                     >
                         <h3>Create a new issue</h3>
-                        <Form.Item name="issueTitle" label="Issue Title">
-                            <Input
-                                placeholder="Issue Title"
-                                defaultValue="New issue in Highlight session"
-                            />
+                        <Form.Item
+                            name="issueTitle"
+                            initialValue="New issue in Highlight session"
+                            label="Issue Title"
+                        >
+                            <Input placeholder="Issue Title" />
                         </Form.Item>
                         <Form.Item
                             name="issueDescription"
@@ -417,9 +436,7 @@ export const NewCommentForm = ({
                             >
                                 {section === CommentFormSection.NewIssueForm ? (
                                     <>
-                                        <ArrowLeftIcon
-                                            className={styles.btnIconLeft}
-                                        />
+                                        <ArrowLeftIcon />
                                         Go back
                                     </>
                                 ) : (
@@ -470,9 +487,7 @@ export const NewCommentForm = ({
                                 section === CommentFormSection.CommentForm ? (
                                     <>
                                         Next
-                                        <ArrowRightIcon
-                                            className={styles.btnIconRight}
-                                        />
+                                        <ArrowRightIcon />
                                     </>
                                 ) : (
                                     <>Post</>

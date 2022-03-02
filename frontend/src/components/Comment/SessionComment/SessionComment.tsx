@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 
 import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
+import AttachmentList from './../AttachmentList/AttachmentList';
 import styles from './SessionComment.module.scss';
 import SessionCommentHeader, {
     CommentHeaderMenuItem,
@@ -93,6 +94,9 @@ export const SessionCommentTextBody = ({
                         </Tag>
                     ))}
                 </div>
+            )}
+            {comment.attachments.length > 0 && (
+                <AttachmentList attachments={comment.attachments} />
             )}
         </>
     );

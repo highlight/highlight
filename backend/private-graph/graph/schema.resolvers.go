@@ -876,7 +876,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1017,6 +1017,61 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		})
 	}
 
+	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear {
+				attachment := &model.ExternalAttachment{
+					IntegrationType:  modelInputs.IntegrationTypeLinear,
+					SessionCommentID: sessionComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+			}
+		}
+	}
+
+	return sessionComment, nil
+}
+
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionComment := &model.SessionComment{}
+	if err := r.DB.Preload("Attachments").Where(&model.SessionComment{Model: model.Model{ID: sessionCommentID}}).Find(sessionComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+
+	if len(integrations) > 0 {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
+				attachment := &model.ExternalAttachment{
+					IntegrationType:  modelInputs.IntegrationTypeLinear,
+					SessionCommentID: sessionComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+			}
+		}
+	}
+
 	return sessionComment, nil
 }
 
@@ -1032,10 +1087,13 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
 	}
+	if err := r.DB.Delete(&model.ExternalAttachment{SessionCommentID: id}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment attachments")
+	}
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -1129,6 +1187,61 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 		})
 	}
+
+	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear {
+				attachment := &model.ExternalAttachment{
+					IntegrationType: modelInputs.IntegrationTypeLinear,
+					ErrorCommentID:  errorComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				errorComment.Attachments = append(errorComment.Attachments, attachment)
+			}
+		}
+	}
+	return errorComment, nil
+}
+
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	errorComment := &model.ErrorComment{}
+	if err := r.DB.Preload("Attachments").Where(&model.ErrorComment{Model: model.Model{ID: errorCommentID}}).Find(errorComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v", errorURL)
+
+	if len(integrations) > 0 {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
+				attachment := &model.ExternalAttachment{
+					IntegrationType: modelInputs.IntegrationTypeLinear,
+					ErrorCommentID:  errorComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				errorComment.Attachments = append(errorComment.Attachments, attachment)
+			}
+		}
+	}
+
 	return errorComment, nil
 }
 
@@ -1143,6 +1256,9 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
+	}
+	if err := r.DB.Delete(&model.ExternalAttachment{ErrorCommentID: id}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
 	return &model.T, nil
 }
@@ -2787,7 +2903,8 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 	}
 
 	sessionComments := []*model.SessionComment{}
-	if err := r.DB.Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+
+	if err := r.DB.Preload("Attachments").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
@@ -2840,7 +2957,7 @@ func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorComments := []*model.ErrorComment{}
-	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments for error_group")
 	}
 	return errorComments, nil

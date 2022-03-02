@@ -431,6 +431,20 @@ type ErrorResults {
     totalCount: Int64!
 }
 
+# 2 way connector type between highlight objects and external integration objects
+# should be used to update information from/to platforms
+type ExternalAttachment {
+    id: ID!
+    integration_type: IntegrationType!
+
+    external_id: String!
+    title: String
+
+    # associations to highlight objects
+    session_comment_id: Int
+    error_comment_id: Int
+}
+
 type SessionComment {
     id: ID!
     project_id: ID!
@@ -446,6 +460,7 @@ type SessionComment {
     type: SessionCommentType!
     metadata: Any
     tags: [String]!
+    attachments: [ExternalAttachment]!
 }
 
 type SlackSyncResponse {
@@ -472,6 +487,7 @@ type ErrorComment {
     updated_at: Timestamp!
     author: SanitizedAdmin!
     text: String!
+    attachments: [ExternalAttachment]!
 }
 
 enum SessionLifecycle {
@@ -843,7 +859,21 @@ type Mutation {
         time: Float!
         author_name: String!
         session_image: String
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+    ): SessionComment
+    createIssueForSessionComment(
+        project_id: ID!
+        session_url: String!
+        session_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        time: Float!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
@@ -855,6 +885,19 @@ type Mutation {
         tagged_slack_users: [SanitizedSlackChannelInput]!
         error_url: String!
         author_name: String!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
+    ): ErrorComment
+    createIssueForErrorComment(
+        project_id: ID!
+        error_url: String!
+        error_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
     openSlackConversation(

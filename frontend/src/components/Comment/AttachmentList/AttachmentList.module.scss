@@ -1,0 +1,23 @@
+.attachmentList {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+.attachmentLink {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+
+    > :global(span) {
+        align-items: center;
+        display: flex;
+        gap: var(--size-xSmall);
+
+        > :global(img) {
+            border-radius: var(--size-xxSmall);
+            width: var(--size-medium);
+        }
+    }
+}
