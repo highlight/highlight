@@ -7,6 +7,7 @@ import {
     useSearchContext,
 } from '@pages/Sessions/SearchContext/SearchContext';
 import QueryBuilder, {
+    BOOLEAN_OPERATORS,
     CUSTOM_TYPE,
     CustomField,
     DATE_OPERATORS,
@@ -51,6 +52,22 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'viewed',
         options: {
             type: 'boolean',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'has_errors',
+        options: {
+            type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'has_rage_clicks',
+        options: {
+            type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
     {

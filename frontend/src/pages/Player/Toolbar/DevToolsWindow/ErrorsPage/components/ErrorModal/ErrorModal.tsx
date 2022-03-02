@@ -81,6 +81,7 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
                         <StackTraceSection
                             errorGroup={data.error_group}
                             loading={loading}
+                            compact={true}
                         />
                     ) : (
                         <Skeleton

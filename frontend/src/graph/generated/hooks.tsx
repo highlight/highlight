@@ -4057,6 +4057,8 @@ export const GetSessionDocument = gql`
             object_storage_enabled
             payload_size
             processed
+            has_rage_clicks
+            has_errors
             within_billing_quota
             client_version
             client_config
@@ -5032,6 +5034,8 @@ export const GetSessionsOpenSearchDocument = gql`
                 viewed
                 starred
                 processed
+                has_rage_clicks
+                has_errors
                 fields {
                     name
                     value
@@ -5223,6 +5227,8 @@ export const GetSessionsDocument = gql`
                 viewed
                 starred
                 processed
+                has_rage_clicks
+                has_errors
                 field_group
                 fields {
                     name
