@@ -77,6 +77,10 @@ const AboutYouPage = () => {
                 },
             });
 
+            window.sessionStorage.setItem(
+                'HighlightFilledOutAboutYouForm',
+                'true'
+            );
             setSignUpReferral('');
             message.success(
                 `Nice to meet you ${firstName}, let's get started!`
