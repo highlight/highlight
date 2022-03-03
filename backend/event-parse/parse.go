@@ -86,6 +86,7 @@ type ReplayEvent struct {
 	Type         EventType       `json:"type"`
 	Data         json.RawMessage `json:"data"`
 	TimestampRaw float64         `json:"timestamp"`
+	SID          float64         `json:"_sid"`
 }
 
 // ReplayEvents is a set of ReplayEvent(s).
@@ -98,6 +99,7 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 		Timestamp float64         `json:"timestamp"`
 		Type      EventType       `json:"type"`
 		Data      json.RawMessage `json:"data"`
+		SID       float64         `json:"_sid"`
 	}{}
 	if err := json.Unmarshal(b, &aux); err != nil {
 		return errors.Wrap(err, "error with custom unmarshal of events")
@@ -106,6 +108,7 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 	r.Type = aux.Type
 	r.Timestamp = javascriptToGolangTime(aux.Timestamp)
 	r.TimestampRaw = aux.Timestamp
+	r.SID = aux.SID
 	return nil
 }
 
