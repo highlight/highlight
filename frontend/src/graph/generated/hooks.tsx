@@ -5690,6 +5690,7 @@ export const GetAdminDocument = gql`
             slack_im_channel_id
             role
             email_verified
+            user_defined_role
         }
     }
 `;

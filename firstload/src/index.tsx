@@ -19,6 +19,7 @@ import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
 import HighlightSegmentMiddleware from './integrations/segment';
 import { ConsoleMethods } from '../../client/src/listeners/console-listener';
+import { GenerateSecureID } from '../../client/src/utils/secure-id';
 
 initializeFetchListener();
 
@@ -123,34 +124,6 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
-const GenerateSecureID = (): string => {
-    const ID_LENGTH = 28;
-    const CHARACTER_SET =
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    var secureID = '';
-
-    const hasCrypto =
-        typeof window !== 'undefined' && window.crypto?.getRandomValues;
-    const cryptoRandom = new Uint32Array(ID_LENGTH);
-    if (hasCrypto) {
-        window.crypto.getRandomValues(cryptoRandom);
-    }
-
-    for (let i = 0; i < ID_LENGTH; i++) {
-        if (hasCrypto) {
-            secureID += CHARACTER_SET.charAt(
-                cryptoRandom[i] % CHARACTER_SET.length
-            );
-        } else {
-            secureID += CHARACTER_SET.charAt(
-                Math.floor(Math.random() * CHARACTER_SET.length)
-            );
-        }
-    }
-
-    return secureID;
-};
-
 export interface HighlightPublicInterface {
     init: (projectID?: string | number, debug?: HighlightOptions) => void;
     /**
@@ -183,7 +156,7 @@ export interface HighlightPublicInterface {
     ) => void;
     getSessionURL: () => Promise<string>;
     getSessionDetails: () => Promise<SessionDetails>;
-    start: () => void;
+    start: (options?: StartOptions) => void;
     /** Stops the session and error recording. */
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
@@ -196,6 +169,13 @@ export interface HighlightPublicInterface {
      * Calling this will toggle the visibility of the feedback modal.
      */
     toggleSessionFeedbackModal: () => void;
+}
+
+interface StartOptions {
+    /**
+     * Specifies whether console warn messages should not be created.
+     */
+    silent?: boolean;
 }
 
 interface Metadata {
@@ -390,12 +370,14 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('track', e);
         }
     },
-    start: () => {
+    start: (options) => {
         try {
             if (highlight_obj?.state === 'Recording') {
-                console.warn(
-                    'You cannot called `start()` again. The session is already being recorded.'
-                );
+                if (!options?.silent) {
+                    console.warn(
+                        'You cannot called `start()` again. The session is already being recorded.'
+                    );
+                }
                 return;
             }
             if (H.options?.manualStart) {
