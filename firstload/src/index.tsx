@@ -379,8 +379,7 @@ export const H: HighlightPublicInterface = {
                     );
                 }
                 return;
-            }
-            if (H.options?.manualStart) {
+            } else {
                 first_load_listeners.startListening();
                 var interval = setInterval(function () {
                     if (highlight_obj) {
@@ -388,10 +387,6 @@ export const H: HighlightPublicInterface = {
                         highlight_obj.initialize();
                     }
                 }, 200);
-            } else {
-                console.warn(
-                    "Highlight Error: Can't call `start()` without setting `manualStart` option in `H.init`"
-                );
             }
         } catch (e) {
             HighlightWarning('start', e);
