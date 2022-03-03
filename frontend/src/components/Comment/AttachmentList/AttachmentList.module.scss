@@ -9,15 +9,23 @@
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
+}
 
-    > :global(span) {
-        align-items: center;
-        display: flex;
-        gap: var(--size-xSmall);
+.issueTitle {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    gap: calc(var(--size-xSmall) + 2px);
 
-        > :global(img) {
-            border-radius: var(--size-xxSmall);
-            width: var(--size-medium);
-        }
+    > :global(img) {
+        border-radius: var(--size-xxSmall);
+        width: var(--size-medium);
     }
+}
+
+.issueOpenIcon {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    justify-content: flex-end;
 }

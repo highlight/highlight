@@ -11,11 +11,13 @@ type Props = Pick<
 > & {
     renderEmptyComponent?: React.ReactNode;
     rowHasPadding?: boolean;
+    smallPadding?: boolean;
 };
 
 const Table = ({
     renderEmptyComponent,
     rowHasPadding = false,
+    smallPadding = false,
     ...props
 }: Props) => {
     return (
@@ -30,6 +32,8 @@ const Table = ({
             <AntDesignTable
                 {...props}
                 className={classNames(styles.table, {
+                    [styles.normalTableSizing]: !smallPadding,
+                    [styles.smallTableSizing]: smallPadding,
                     [styles.rowHasPadding]: rowHasPadding,
                     [styles.interactable]: !!props.onRow,
                 })}
