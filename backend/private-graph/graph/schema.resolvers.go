@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1017,7 +1017,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		})
 	}
 
-	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
+	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 		for _, s := range integrations {
 			if *s == modelInputs.IntegrationTypeLinear {
 				attachment := &model.ExternalAttachment{
