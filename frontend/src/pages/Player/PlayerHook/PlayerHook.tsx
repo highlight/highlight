@@ -2,6 +2,7 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
+    Handler,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
 import {
@@ -68,6 +69,8 @@ export enum SessionViewability {
     OVER_BILLING_QUOTA,
     ERROR,
 }
+
+const hack: Handler[] = [];
 
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn, isHighlightAdmin } = useAuthContext();
@@ -169,17 +172,15 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: { secure_id: session_secure_id },
     });
 
-    const [curChunk, setCurChunk] = useState(0);
-    const [chunksLoaded, setChunksLoaded] = useState<number[]>([]);
-    const [nextChunkTimestamp, setNextChunkTimestamp] = useState<
-        number | undefined
-    >(undefined);
+    const chunksLoaded = useRef<number[]>([]);
+    const nextChunkTimestamp = useRef<number | undefined>(undefined);
 
     useEffect(() => {
-        if (nextChunkTimestamp === undefined) {
-            setNextChunkTimestamp(eventChunksData?.event_chunks[1].timestamp);
+        if (nextChunkTimestamp.current === undefined) {
+            nextChunkTimestamp.current =
+                eventChunksData?.event_chunks[1].timestamp;
         }
-    }, [eventChunksData, nextChunkTimestamp]);
+    }, [eventChunksData]);
 
     const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
         fetchPolicy: 'no-cache',
@@ -209,68 +210,59 @@ export const usePlayer = (): ReplayerContextInterface => {
     // const cl = [...chunksLoaded];
     // const nctHack = [nextChunkTimestamp];
     // const ccHack = [curChunk];
-    const onevent = useCallback(
-        (e: any) => {
-            const event = e as HighlightEvent;
-            const next = curChunk + 1;
-            const nct = nextChunkTimestamp;
-            // console.log('cur chunk timestamp', event.timestamp);
-            // console.log('next chunk timestamp', nextChunkTimestamp);
-            if (nct && event.timestamp > nct) {
-                console.log('in new chunk', next, nct);
-                const newTs =
-                    eventChunksData?.event_chunks[next + 1]?.timestamp;
-                setCurChunk(next);
-                setNextChunkTimestamp(newTs);
-                console.log('new chunk timestamp', newTs);
-            } else if (
-                nct &&
-                event.timestamp > nct - 30000 &&
-                !chunksLoaded.includes(next)
-            ) {
-                console.log('loading new chunk', chunksLoaded, next);
-                setChunksLoaded(chunksLoaded.concat([next]));
-                fetchEventChunkURL({
-                    secure_id: session_secure_id,
-                    index: next,
+    const curChunk = useRef(0);
+    const onevent = (e: any) => {
+        console.log('event', e.timestamp);
+        const event = e as HighlightEvent;
+        const next = curChunk.current + 1;
+        const nct = nextChunkTimestamp.current;
+
+        // console.log((nct ?? 0) - event.timestamp);
+        if (nct && event.timestamp > nct) {
+            console.log('in new chunk', next, nct);
+            const newTs = eventChunksData?.event_chunks[next + 1]?.timestamp;
+            curChunk.current = next;
+            nextChunkTimestamp.current = newTs;
+            console.log('new chunk timestamp', newTs);
+        } else if (
+            nct &&
+            event.timestamp > nct - 30000 &&
+            !chunksLoaded.current.includes(next)
+        ) {
+            console.log('loading new chunk', chunksLoaded, next);
+            chunksLoaded.current.push(next);
+            fetchEventChunkURL({
+                secure_id: session_secure_id,
+                index: next,
+            })
+                .then((response) => fetch(response.data.event_chunk_url))
+                .then((response) => response.json())
+                .then((data) => {
+                    setEventsPayload(eventsPayload?.concat(data) || []);
+                    // setEventsPayload(data || []);
                 })
-                    .then((response) => fetch(response.data.event_chunk_url))
-                    .then((response) => response.json())
-                    .then((data) => {
-                        setEventsPayload(eventsPayload?.concat(data) || []);
-                    })
-                    .catch((e) => {
-                        setEventsPayload([]);
-                        H.consumeError(
-                            e,
-                            'Error direct downloading session payload'
-                        );
-                    });
+                .catch((e) => {
+                    setEventsPayload([]);
+                    H.consumeError(
+                        e,
+                        'Error direct downloading session payload'
+                    );
+                });
+        }
+        if ((event as customEvent)?.data?.tag === 'Stop') {
+            setState(ReplayerState.SessionRecordingStopped);
+        }
+        if (event.type === 5) {
+            switch (event.data.tag) {
+                case 'Navigate':
+                case 'Reload':
+                    setCurrentUrl(event.data.payload as string);
+                    return;
+                default:
+                    return;
             }
-            if ((event as customEvent)?.data?.tag === 'Stop') {
-                setState(ReplayerState.SessionRecordingStopped);
-            }
-            if (event.type === 5) {
-                switch (event.data.tag) {
-                    case 'Navigate':
-                    case 'Reload':
-                        setCurrentUrl(event.data.payload as string);
-                        return;
-                    default:
-                        return;
-                }
-            }
-        },
-        [
-            chunksLoaded,
-            curChunk,
-            eventChunksData?.event_chunks,
-            eventsPayload,
-            fetchEventChunkURL,
-            nextChunkTimestamp,
-            session_secure_id,
-        ]
-    );
+        }
+    };
 
     const { data: sessionData } = useGetSessionQuery({
         variables: {
@@ -322,7 +314,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         .then((response) => response.json())
                         .then((data) => {
                             setEventsPayload(data || []);
-                            setChunksLoaded([0]);
+                            chunksLoaded.current = [0];
                         })
                         .catch((e) => {
                             setEventsPayload([]);
@@ -515,6 +507,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setCurrentUrl(onlyUrlEvents[0].data.payload);
             }
             setPerformancePayloads(getAllPerformanceEvents(newEvents));
+            console.log('chunk onevent registered');
+            r.on('event-cast', onevent);
             r.on('resize', (_e) => {
                 const e = _e as viewportResizeDimension;
                 setViewport(e);
@@ -551,12 +545,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         eventChunksData,
     ]);
 
-    useEffect(() => {
-        console.log('chunk replacing onevent', chunksLoaded);
-        // @ts-expect-error - this unregisters all handlers for the 'event-cast' key
-        replayer?.off('event-cast');
-        replayer?.on('event-cast', onevent);
-    }, [onevent, replayer]);
+    // useEffect(() => {
+    //     console.log('chunk replacing onevent', chunksLoaded);
+    //     replayer?.off('event-cast', prev);
+    //     replayer?.on('event-cast', onevent);
+    //     setPrev(onevent);
+    // }, [onevent, replayer]);
 
     const [eventsDataLoaded, setEventsDataLoaded] = useState(false);
     useEffect(() => {

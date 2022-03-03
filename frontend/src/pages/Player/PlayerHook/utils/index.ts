@@ -34,21 +34,21 @@ export const getSessionIntervals = (
 ): ParsedSessionInterval[] => {
     // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. We mitigate an unusable slider by providing a single interval. See HIG-211 for context.
     const isBadSession = allIntervals.some((interval) => interval.duration < 0);
-    if (isBadSession) {
-        return [
-            {
-                active: true,
-                duration: metadata.totalTime,
-                endPercent: 1,
-                startPercent: 0,
-                endTime: metadata.totalTime,
-                startTime: 0,
-                errors: [],
-                sessionEvents: [],
-                comments: [],
-            },
-        ];
-    }
+    // if (isBadSession) {
+    return [
+        {
+            active: true,
+            duration: metadata.totalTime,
+            endPercent: 1,
+            startPercent: 0,
+            endTime: metadata.totalTime,
+            startTime: 0,
+            errors: [],
+            sessionEvents: [],
+            comments: [],
+        },
+    ];
+    // }
 
     const sliderIntervalMap = getIntervalWithPercentages(
         metadata,
