@@ -15,11 +15,11 @@
     align-items: center;
     color: var(--color-gray-500);
     display: flex;
-    gap: calc(var(--size-xSmall) + 2px);
+    gap: var(--size-xSmall);
 
     > :global(img) {
         border-radius: var(--size-xxSmall);
-        width: var(--size-medium);
+        width: calc(var(--size-medium) + 2px);
     }
 }
 
