@@ -98,6 +98,8 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                 language={language}
                 hideCopy
                 showLineNumbers
+                numberOfLines={text.length}
+                lineNumber={lineNumber}
                 startingLineNumber={(lineNumber ?? 1) - before.length}
                 lineProps={(ln) => {
                     if (ln === lineNumber) {
@@ -118,11 +120,13 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                 lineNumberStyle={{
                     paddingRight: '16px',
                     paddingLeft: '16px',
+                    display: 'none',
                 }}
                 wrapLines
                 customStyle={{
                     fontFamily: 'Roboto Mono',
                     border: 'none !important',
+                    overflow: 'auto',
                 }}
                 codeTagProps={{
                     style: {
@@ -141,10 +145,12 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                         hyphens: 'none',
                         maxHeight: 'inherit',
                         height: 'inherit',
-                        padding: '0',
+                        padding: '8px 0',
                         display: 'block',
                         overflow: 'auto',
                         border: 'none',
+                        width: 'fit-content',
+                        minWidth: '100%',
                     },
                 }}
             />
