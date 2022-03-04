@@ -7,6 +7,7 @@ import {
 } from '@graph/operations';
 import ArrowLeftIcon from '@icons/ArrowLeftIcon';
 import ArrowRightIcon from '@icons/ArrowRightIcon';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import INTEGRATIONS, {
     Integration,
 } from '@pages/IntegrationsPage/Integrations';
@@ -318,6 +319,28 @@ export const NewCommentForm = ({
         [admin, adminSuggestions]
     );
 
+    const { isLinearIntegratedWithProject } = useLinearIntegration();
+
+    const issueIntegrationsOptions = useMemo(() => {
+        const integrations = [];
+        if (isLinearIntegratedWithProject) {
+            integrations.push({
+                displayValue: (
+                    <span>
+                        <img
+                            className={styles.integrationIcon}
+                            src={integrationMap['linear']?.icon}
+                        />
+                        Create a Linear issue
+                    </span>
+                ),
+                id: 'linear',
+                value: 'Linear',
+            });
+        }
+        return integrations;
+    }, [isLinearIntegratedWithProject, integrationMap]);
+
     return (
         <Form
             name="newComment"
@@ -362,33 +385,14 @@ export const NewCommentForm = ({
                                 allowClear={true}
                                 defaultActiveFirstOption
                                 placeholder={'Create an issue'}
-                                options={[
-                                    {
-                                        displayValue: (
-                                            <span>
-                                                <img
-                                                    className={
-                                                        styles.integrationIcon
-                                                    }
-                                                    src={
-                                                        integrationMap['linear']
-                                                            ?.icon
-                                                    }
-                                                />
-                                                Create a Linear issue
-                                            </span>
-                                        ),
-                                        id: 'linear',
-                                        value: 'Linear',
-                                    },
-                                ]}
+                                options={issueIntegrationsOptions}
                                 onChange={setSelectedIssueService}
                                 notFoundContent={
                                     <p>
                                         <Link to="../integrations">
                                             Add issue tracker integrations
                                         </Link>{' '}
-                                        and then it should show up here
+                                        and then they should show up here
                                     </p>
                                 }
                             />
