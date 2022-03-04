@@ -248,6 +248,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		firstEventTimestamp        time.Time
 		firstFullSnapshotTimestamp time.Time
 		lastEventTimestamp         time.Time
+		latestSID                  int
+		areEventsOutOfOrder        bool
 	)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
@@ -275,6 +277,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				RageClickSets:              rageClickSets,
 				CurrentlyInRageClickSet:    currentlyInRageClickSet,
 				TimestampCounts:            timestamps,
+				LatestSID:                  latestSID,
+				AreEventsOutOfOrder:        areEventsOutOfOrder,
 			})
 			if o.Error != nil {
 				return e.Wrap(o.Error, "error processing event chunk")
@@ -286,6 +290,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			rageClickSets = o.RageClickSets
 			currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			timestamps = o.TimestampCounts
+			latestSID = o.LatestSID
+			areEventsOutOfOrder = o.AreEventsOutOfOrder
 		}
 	}
 	for i, r := range rageClickSets {
@@ -760,6 +766,10 @@ type processEventChunkInput struct {
 	LastEventTimestamp time.Time
 	// TimestampCounts represents a count of all user interaction events per second
 	TimestampCounts map[time.Time]int
+	// LatestSID represents the last sequential ID seen
+	LatestSID int
+	// AreEventsOutOfOrder is true if the list of event SID's is not monotonically increasing from 1
+	AreEventsOutOfOrder bool
 }
 
 type processEventChunkOutput struct {
@@ -779,6 +789,10 @@ type processEventChunkOutput struct {
 	CalculatedDuration time.Duration
 	// TimestampCounts represents a count of all user interaction events per second
 	TimestampCounts map[time.Time]int
+	// LatestSID represents the last sequential ID seen
+	LatestSID int
+	// AreEventsOutOfOrder is true if the list of event SID's is not monotonically increasing from 1
+	AreEventsOutOfOrder bool
 	// Error
 	Error error
 }
@@ -809,6 +823,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
 	o.RageClickSets = input.RageClickSets
 	o.TimestampCounts = input.TimestampCounts
+	o.LatestSID = input.LatestSID
+	o.AreEventsOutOfOrder = input.AreEventsOutOfOrder
 	for _, event := range events.Events {
 		if event == nil {
 			continue
