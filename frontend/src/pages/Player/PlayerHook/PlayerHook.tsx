@@ -383,8 +383,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (isLiveMode && eventsData?.events && !unsubscribeSessionPayloadFn) {
-            const unsubscribe = subscribeToSessionPayload!({
+        if (
+            isLiveMode &&
+            eventsData?.events &&
+            !unsubscribeSessionPayloadFn &&
+            subscribeToSessionPayload
+        ) {
+            const unsubscribe = subscribeToSessionPayload({
                 document: OnSessionPayloadAppendedDocument,
                 variables: {
                     session_secure_id,

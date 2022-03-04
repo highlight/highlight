@@ -12,7 +12,12 @@ import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import {
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    useHistory,
+} from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
@@ -21,7 +26,17 @@ import { ProjectRouter } from '../OrgRouter/OrgRouter';
 import styles from './AppRouter.module.scss';
 
 export const AppRouter = () => {
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, admin } = useAuthContext();
+    const history = useHistory();
+
+    if (admin && !admin.user_defined_role) {
+        const res = window.sessionStorage.getItem(
+            'HighlightFilledOutAboutYouForm'
+        );
+        if (!res) {
+            history.push('/about-you');
+        }
+    }
 
     return (
         <div className={styles.appBody}>

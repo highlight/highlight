@@ -253,6 +253,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Name = &adminDetails.Name
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
+	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err

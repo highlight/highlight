@@ -373,6 +373,7 @@ export type SearchParams = {
 export type AdminAboutYouDetails = {
     name: Scalars['String'];
     user_defined_role: Scalars['String'];
+    user_defined_persona: Scalars['String'];
     referral: Scalars['String'];
 };
 
@@ -450,6 +451,7 @@ export type Admin = {
     email_verified?: Maybe<Scalars['Boolean']>;
     referral?: Maybe<Scalars['String']>;
     user_defined_role?: Maybe<Scalars['String']>;
+    user_defined_persona?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
