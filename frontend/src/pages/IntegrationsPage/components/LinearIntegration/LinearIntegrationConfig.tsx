@@ -59,8 +59,8 @@ const LinearIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     return (
         <>
             <p className={styles.modalSubTitle}>
-                Connect Slack to your Highlight workspace to setup alerts and
-                tag teammates in comments
+                Connect Linear to your Highlight workspace to create issues from
+                comments.
             </p>
             <footer>
                 <Button
