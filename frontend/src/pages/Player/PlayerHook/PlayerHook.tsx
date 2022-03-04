@@ -211,24 +211,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     // const nctHack = [nextChunkTimestamp];
     // const ccHack = [curChunk];
     const curChunk = useRef(0);
-    const onevent = (e: any) => {
-        console.log('event', e.timestamp);
-        const event = e as HighlightEvent;
-        const next = curChunk.current + 1;
-        const nct = nextChunkTimestamp.current;
+    // const resetState = () => {
+    //     curChunk.current = 0;
+    //     nextChunkTimestamp.current = undefined;
+    //     chunksLoaded.current = [];
+    // };
 
-        // console.log((nct ?? 0) - event.timestamp);
-        if (nct && event.timestamp > nct) {
-            console.log('in new chunk', next, nct);
-            const newTs = eventChunksData?.event_chunks[next + 1]?.timestamp;
-            curChunk.current = next;
-            nextChunkTimestamp.current = newTs;
-            console.log('new chunk timestamp', newTs);
-        } else if (
-            nct &&
-            event.timestamp > nct - 30000 &&
-            !chunksLoaded.current.includes(next)
-        ) {
+    const ensureChunkLoaded = (next: number) => {
+        if (!chunksLoaded.current.includes(next)) {
             console.log('loading new chunk', chunksLoaded, next);
             chunksLoaded.current.push(next);
             fetchEventChunkURL({
@@ -249,6 +239,31 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                 });
         }
+    };
+
+    const handleTimestamp = (timestamp: number) => {
+        // const next = curChunk.current + 1;
+        // const nct = nextChunkTimestamp.current;
+        const curIdx = getChunkByTimestamp(timestamp);
+
+        if (curChunk.current !== curIdx) {
+            console.log('in new chunk', curIdx);
+            // const newTs = eventChunksData?.event_chunks[next + 1]?.timestamp;
+            curChunk.current = curIdx;
+            // nextChunkTimestamp.current = newTs;
+            ensureChunkLoaded(curIdx);
+
+            console.log('new chunk timestamp', curIdx);
+        } else {
+            ensureChunkLoaded(getChunkByTimestamp(timestamp + 30000));
+        }
+    };
+
+    const onevent = (e: any) => {
+        // console.log('event', e.timestamp);
+        const event = e as HighlightEvent;
+        handleTimestamp(event.timestamp);
+
         if ((event as customEvent)?.data?.tag === 'Stop') {
             setState(ReplayerState.SessionRecordingStopped);
         }
@@ -441,6 +456,74 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     }, [setShowLeftPanel, setShowRightPanel]);
 
+    const getChunkByTimestamp = (ts: number): number => {
+        let lastIndex = 0;
+        eventChunksData?.event_chunks?.forEach((chunk, idx) => {
+            if (chunk.timestamp <= ts) {
+                lastIndex = idx;
+            }
+        });
+        return lastIndex;
+    };
+
+    const initReplayer = (newEvents: HighlightEvent[]) => {
+        setState(ReplayerState.Loading);
+        // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+        const playerMountingRoot = document.getElementById(
+            'player'
+        ) as HTMLElement;
+        // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+        // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+        if (playerMountingRoot?.childNodes?.length > 0) {
+            while (playerMountingRoot.firstChild) {
+                playerMountingRoot.removeChild(playerMountingRoot.firstChild);
+            }
+        }
+
+        const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+            root: playerMountingRoot,
+            triggerFocus: false,
+            mouseTail: showPlayerMouseTail,
+            UNSAFE_replayCanvas: true,
+            liveMode: isLiveMode,
+        });
+        setLoadedEventsIndex(Math.min(EVENTS_CHUNK_SIZE, newEvents.length));
+
+        const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
+        setBrowserExtensionScriptURLs(onlyScriptEvents);
+
+        const onlyUrlEvents = getAllUrlEvents(newEvents);
+        if (onlyUrlEvents.length >= 1) {
+            setCurrentUrl(onlyUrlEvents[0].data.payload);
+        }
+        setPerformancePayloads(getAllPerformanceEvents(newEvents));
+        console.log('chunk onevent registered');
+        r.on('event-cast', onevent);
+        r.on('resize', (_e) => {
+            const e = _e as viewportResizeDimension;
+            setViewport(e);
+        });
+        r.on('pause', () => {
+            setCurrentUrl(
+                findLatestUrl(
+                    onlyUrlEvents,
+                    r.getCurrentTime() + r.getMetaData().startTime
+                )
+            );
+        });
+        r.on('start', () => {
+            const newTs = r.getCurrentTime() + r.getMetaData().startTime;
+            const newIdx = getChunkByTimestamp(newTs);
+            // resetState();
+            ensureChunkLoaded(newIdx);
+            setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs));
+        });
+        setReplayer(r);
+        if (isLiveMode) {
+            r.startLive(newEvents[0].timestamp);
+        }
+    };
+
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
         if (download && eventsPayload) {
@@ -480,66 +563,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
         console.log('chunk loadedEventsIndex', loadedEventsIndex);
         if (loadedEventsIndex <= 0) {
-            setState(ReplayerState.Loading);
-            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-            const playerMountingRoot = document.getElementById(
-                'player'
-            ) as HTMLElement;
-            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
-            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
-            if (playerMountingRoot?.childNodes?.length > 0) {
-                while (playerMountingRoot.firstChild) {
-                    playerMountingRoot.removeChild(
-                        playerMountingRoot.firstChild
-                    );
-                }
-            }
-
-            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                root: playerMountingRoot,
-                triggerFocus: false,
-                mouseTail: showPlayerMouseTail,
-                UNSAFE_replayCanvas: true,
-                liveMode: isLiveMode,
-            });
-            setLoadedEventsIndex(Math.min(EVENTS_CHUNK_SIZE, newEvents.length));
-
-            const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
-            setBrowserExtensionScriptURLs(onlyScriptEvents);
-
-            const onlyUrlEvents = getAllUrlEvents(newEvents);
-            if (onlyUrlEvents.length >= 1) {
-                setCurrentUrl(onlyUrlEvents[0].data.payload);
-            }
-            setPerformancePayloads(getAllPerformanceEvents(newEvents));
-            console.log('chunk onevent registered');
-            r.on('event-cast', onevent);
-            r.on('resize', (_e) => {
-                const e = _e as viewportResizeDimension;
-                setViewport(e);
-            });
-            r.on('pause', () => {
-                setCurrentUrl(
-                    findLatestUrl(
-                        onlyUrlEvents,
-                        r.getCurrentTime() + r.getMetaData().startTime
-                    )
-                );
-            });
-            r.on('start', () => {
-                setCurrentUrl(
-                    findLatestUrl(
-                        onlyUrlEvents,
-                        r.getCurrentTime() + r.getMetaData().startTime
-                    )
-                );
-            });
-            setReplayer(r);
-            if (isLiveMode) {
-                r.startLive(newEvents[0].timestamp);
-            }
+            initReplayer(newEvents);
         }
-        setEvents(newEvents);
+        setEvents(events.concat(newEvents));
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
