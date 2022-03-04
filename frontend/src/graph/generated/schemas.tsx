@@ -480,6 +480,16 @@ export type ErrorResults = {
     totalCount: Scalars['Int64'];
 };
 
+export type ExternalAttachment = {
+    __typename?: 'ExternalAttachment';
+    id: Scalars['ID'];
+    integration_type: IntegrationType;
+    external_id: Scalars['String'];
+    title?: Maybe<Scalars['String']>;
+    session_comment_id?: Maybe<Scalars['Int']>;
+    error_comment_id?: Maybe<Scalars['Int']>;
+};
+
 export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
@@ -496,6 +506,7 @@ export type SessionComment = {
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
     tags: Array<Maybe<Scalars['String']>>;
+    attachments: Array<Maybe<ExternalAttachment>>;
 };
 
 export type SlackSyncResponse = {
@@ -525,6 +536,7 @@ export type ErrorComment = {
     updated_at: Scalars['Timestamp'];
     author: SanitizedAdmin;
     text: Scalars['String'];
+    attachments: Array<Maybe<ExternalAttachment>>;
 };
 
 export enum SessionLifecycle {
@@ -1113,8 +1125,10 @@ export type Mutation = {
     createOrUpdateStripeSubscription?: Maybe<Scalars['String']>;
     updateBillingDetails?: Maybe<Scalars['Boolean']>;
     createSessionComment?: Maybe<SessionComment>;
+    createIssueForSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
+    createIssueForErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addIntegrationToProject: Scalars['Boolean'];
@@ -1292,7 +1306,22 @@ export type MutationCreateSessionCommentArgs = {
     time: Scalars['Float'];
     author_name: Scalars['String'];
     session_image?: Maybe<Scalars['String']>;
+    issue_title?: Maybe<Scalars['String']>;
+    issue_description?: Maybe<Scalars['String']>;
+    integrations: Array<Maybe<IntegrationType>>;
     tags: Array<Maybe<SessionCommentTagInput>>;
+};
+
+export type MutationCreateIssueForSessionCommentArgs = {
+    project_id: Scalars['ID'];
+    session_url: Scalars['String'];
+    session_comment_id: Scalars['Int'];
+    author_name: Scalars['String'];
+    text_for_attachment: Scalars['String'];
+    time: Scalars['Float'];
+    issue_title?: Maybe<Scalars['String']>;
+    issue_description?: Maybe<Scalars['String']>;
+    integrations: Array<Maybe<IntegrationType>>;
 };
 
 export type MutationDeleteSessionCommentArgs = {
@@ -1308,6 +1337,20 @@ export type MutationCreateErrorCommentArgs = {
     tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     error_url: Scalars['String'];
     author_name: Scalars['String'];
+    issue_title?: Maybe<Scalars['String']>;
+    issue_description?: Maybe<Scalars['String']>;
+    integrations: Array<Maybe<IntegrationType>>;
+};
+
+export type MutationCreateIssueForErrorCommentArgs = {
+    project_id: Scalars['ID'];
+    error_url: Scalars['String'];
+    error_comment_id: Scalars['Int'];
+    author_name: Scalars['String'];
+    text_for_attachment: Scalars['String'];
+    issue_title?: Maybe<Scalars['String']>;
+    issue_description?: Maybe<Scalars['String']>;
+    integrations: Array<Maybe<IntegrationType>>;
 };
 
 export type MutationDeleteErrorCommentArgs = {

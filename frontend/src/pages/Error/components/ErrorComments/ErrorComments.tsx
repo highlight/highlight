@@ -1,6 +1,10 @@
+import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
 import MenuItem from '@components/Menu/MenuItem';
+import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
 import { namedOperations } from '@graph/operations';
+import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
@@ -74,6 +78,9 @@ const ErrorComments = ({ parentRef }: Props) => {
                     tagged_admins: mentionedAdmins,
                     tagged_slack_users: mentionedSlackUsers,
                     author_name: admin?.name || admin?.email || 'Someone',
+                    integrations: [],
+                    issue_title: '',
+                    issue_description: '',
                 },
                 refetchQueries: [namedOperations.Query.GetErrorComments],
             });
@@ -235,6 +242,9 @@ export const ErrorCommentCard = ({ comment }: any) => (
     <div className={styles.commentDiv}>
         <ErrorCommentHeader comment={comment}>
             <CommentTextBody commentText={comment.text} />
+            {comment.attachments.length > 0 && (
+                <AttachmentList attachments={comment.attachments} />
+            )}
         </ErrorCommentHeader>
     </div>
 );
@@ -244,8 +254,23 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
         refetchQueries: [namedOperations.Query.GetErrorComments],
     });
 
+    const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+
+    const createIssueMenuItem = (
+        <MenuItem
+            icon={<SvgFileText2Icon />}
+            onClick={() => {
+                H.track('Create Issue from Comment');
+                setShowNewIssueModal(true);
+            }}
+        >
+            Create Issue from Comment
+        </MenuItem>
+    );
+
     const moreMenu = (
         <Menu>
+            {createIssueMenuItem}
             <MenuItem
                 icon={<SvgTrashIcon />}
                 onClick={() => {
@@ -264,6 +289,14 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
     return (
         <CommentHeader moreMenu={moreMenu} comment={comment}>
             {children}
+            <NewIssueModal
+                selectedIntegration={LINEAR_INTEGRATION}
+                visible={showNewIssueModal}
+                changeVisible={setShowNewIssueModal}
+                commentId={parseInt(comment.id, 10)}
+                commentText={comment.text}
+                commentType="ErrorComment"
+            />
         </CommentHeader>
     );
 };
