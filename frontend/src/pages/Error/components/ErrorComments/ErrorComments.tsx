@@ -4,6 +4,7 @@ import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
 import { namedOperations } from '@graph/operations';
 import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
@@ -289,6 +290,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
         <CommentHeader moreMenu={moreMenu} comment={comment}>
             {children}
             <NewIssueModal
+                selectedIntegration={LINEAR_INTEGRATION}
                 visible={showNewIssueModal}
                 changeVisible={setShowNewIssueModal}
                 commentId={parseInt(comment.id, 10)}

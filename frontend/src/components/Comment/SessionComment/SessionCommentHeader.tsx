@@ -8,6 +8,8 @@ import SvgCopyIcon from '@icons/CopyIcon';
 import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgReferrer from '@icons/Referrer';
 import SvgTrashIcon from '@icons/TrashIcon';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
@@ -47,6 +49,8 @@ const SessionCommentHeader = ({
     });
     const history = useHistory();
 
+    const { isLinearIntegratedWithProject } = useLinearIntegration();
+
     const [showNewIssueModal, setShowNewIssueModal] = useState(false);
 
     const getCommentLink = () => {
@@ -63,7 +67,7 @@ const SessionCommentHeader = ({
                 setShowNewIssueModal(true);
             }}
         >
-            Create Issue from Comment
+            Create Linear Issue
         </MenuItem>
     );
 
@@ -145,7 +149,7 @@ const SessionCommentHeader = ({
             >
                 Delete comment
             </MenuItem>
-            {session && createIssueMenuItem}
+            {session && isLinearIntegratedWithProject && createIssueMenuItem}
             {menuItems?.map((menuItem, index) => (
                 <MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
                     {menuItem.label}
@@ -224,6 +228,7 @@ const SessionCommentHeader = ({
         >
             {children}
             <NewIssueModal
+                selectedIntegration={LINEAR_INTEGRATION}
                 visible={showNewIssueModal}
                 changeVisible={setShowNewIssueModal}
                 timestamp={comment.timestamp || 0}

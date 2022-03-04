@@ -3,17 +3,17 @@ import Button from '@components/Button/Button/Button';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
-import Select from '@components/Select/Select';
+import TextArea from '@components/TextArea/TextArea';
 import {
     useCreateIssueForErrorCommentMutation,
     useCreateIssueForSessionCommentMutation,
 } from '@graph/hooks';
+import { IntegrationType } from '@graph/schemas';
+import { Integration } from '@pages/IntegrationsPage/Integrations';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
-import TextArea from 'antd/lib/input/TextArea';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import styles from './NewIssueModal.module.scss';
 
@@ -23,12 +23,14 @@ interface NewIssueModalProps {
     commentId: number;
     commentText: string;
     timestamp?: number;
+    selectedIntegration: Integration;
     commentType: 'ErrorComment' | 'SessionComment';
 }
 const NewIssueModal: React.FC<NewIssueModalProps> = ({
     visible,
     changeVisible,
     commentId,
+    selectedIntegration,
     commentText,
     commentType,
     timestamp,
@@ -42,7 +44,6 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
         project_id: string;
     }>();
 
-    const [selectedIssueServices, setSelectedIssueServices] = useState([]);
     const { admin } = useAuthContext();
 
     const [loading, setLoading] = useState(false);
@@ -84,7 +85,9 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
-                        integrations: selectedIssueServices,
+                        integrations: selectedIntegration
+                            ? ([selectedIntegration.name] as IntegrationType[])
+                            : [],
                         author_name: admin?.name || admin?.email || 'Someone',
                         time: timestamp || 0,
                     },
@@ -100,7 +103,9 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
-                        integrations: selectedIssueServices,
+                        integrations: selectedIntegration
+                            ? ([selectedIntegration.name] as IntegrationType[])
+                            : [],
                         author_name: admin?.name || admin?.email || 'Someone',
                     },
                 });
@@ -129,7 +134,15 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
 
     return (
         <Modal
-            title="Create a new Issue"
+            title={
+                <>
+                    <img
+                        src={selectedIntegration.icon}
+                        className={styles.integrationIcon}
+                    />
+                    Create a new {selectedIntegration.name} issue
+                </>
+            }
             visible={visible}
             onCancel={() => changeVisible(false)}
         >
@@ -142,38 +155,16 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                     onKeyDown={onFormChangeHandler}
                 >
                     <div>
-                        <Form.Item name="integrations" label="Issue Services">
-                            <Select
-                                aria-label="Comment tags"
-                                allowClear={true}
-                                defaultActiveFirstOption
-                                placeholder={'Issue Services'}
-                                mode="multiple"
-                                options={[
-                                    {
-                                        displayValue: 'Create a Linear issue',
-                                        id: 'linear',
-                                        value: 'Linear',
-                                    },
-                                ]}
-                                onChange={setSelectedIssueServices}
-                                notFoundContent={
-                                    <p>
-                                        <Link to="../integrations">
-                                            Add issue tracker integrations
-                                        </Link>{' '}
-                                        and then it should show up here
-                                    </p>
-                                }
-                            />
-                        </Form.Item>
-
                         <Form.Item
                             name="issueTitle"
                             initialValue="New issue in Highlight session"
                             label="Issue Title"
                         >
-                            <Input placeholder="Issue Title" />
+                            <Input
+                                placeholder="Issue Title"
+                                required
+                                className={styles.textBoxStyles}
+                            />
                         </Form.Item>
                         <Form.Item
                             name="issueDescription"
@@ -182,6 +173,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                             <TextArea
                                 placeholder="Issue Description"
                                 rows={3}
+                                className={styles.textBoxStyles}
                             />
                         </Form.Item>
                         <div className={styles.actionButtons}>
@@ -197,7 +189,6 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                                 type="primary"
                                 htmlType="submit"
                                 loading={loading}
-                                disabled={selectedIssueServices.length <= 0}
                             >
                                 Create Issue
                             </Button>

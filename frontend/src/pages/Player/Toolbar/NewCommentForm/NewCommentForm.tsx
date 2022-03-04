@@ -1,22 +1,25 @@
 import Input from '@components/Input/Input';
 import Select from '@components/Select/Select';
+import TextArea from '@components/TextArea/TextArea';
 import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
 import ArrowLeftIcon from '@icons/ArrowLeftIcon';
 import ArrowRightIcon from '@icons/ArrowRightIcon';
+import INTEGRATIONS, {
+    Integration,
+} from '@pages/IntegrationsPage/Integrations';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
-import TextArea from 'antd/lib/input/TextArea';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { Link } from 'react-router-dom';
 
@@ -34,6 +37,7 @@ import {
 } from '../../../../graph/generated/hooks';
 import {
     Admin,
+    IntegrationType,
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '../../../../graph/generated/schemas';
@@ -83,7 +87,24 @@ export const NewCommentForm = ({
     const [section, setSection] = useState<CommentFormSection>(
         CommentFormSection.CommentForm
     );
-    const [selectedIssueServices, setSelectedIssueServices] = useState([]);
+    const [
+        selectedIssueService,
+        setSelectedIssueService,
+    ] = useState<IntegrationType>();
+
+    const integrationMap = useMemo(() => {
+        const ret: { [key: string]: Integration } = {};
+        for (const integration of INTEGRATIONS) {
+            ret[integration.key] = integration;
+        }
+        return ret;
+    }, []);
+
+    const issueServiceDetail = useMemo(() => {
+        if (!selectedIssueService) return undefined;
+        return integrationMap[selectedIssueService.toLowerCase()];
+    }, [selectedIssueService, integrationMap]);
+
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -165,13 +186,13 @@ export const NewCommentForm = ({
                     author_name: admin?.name || admin?.email || 'Someone',
                     session_image,
                     tags: getTags(tags, commentTagsData),
-                    integrations: selectedIssueServices,
-                    issue_title:
-                        selectedIssueServices.length > 0 ? issueTitle : null,
-                    issue_description:
-                        selectedIssueServices.length > 0
-                            ? issueDescription
-                            : null,
+                    integrations: selectedIssueService
+                        ? [selectedIssueService]
+                        : [],
+                    issue_title: selectedIssueService ? issueTitle : null,
+                    issue_description: selectedIssueService
+                        ? issueDescription
+                        : null,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -297,21 +318,6 @@ export const NewCommentForm = ({
         [admin, adminSuggestions]
     );
 
-    const slidesRef = useRef<HTMLDivElement>();
-
-    useEffect(() => {
-        if (!slidesRef.current) return;
-
-        if (section === CommentFormSection.CommentForm) {
-            slidesRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-            slidesRef.current.scrollTo({
-                left: slidesRef.current.scrollWidth,
-                behavior: 'smooth',
-            });
-        }
-    }, [slidesRef, section]);
-
     return (
         <Form
             name="newComment"
@@ -321,20 +327,22 @@ export const NewCommentForm = ({
             onKeyDown={onFormChangeHandler}
             className={classNames(styles.form, styles.formItemSpacer)}
         >
-            <div
-                className={styles.slidesContainer}
-                ref={(ref) => (slidesRef.current = ref || undefined)}
-            >
+            <div className={styles.slidesContainer}>
                 <div
-                    className={classNames(styles.formItemSpacer, styles.slides)}
+                    className={classNames(
+                        styles.formItemSpacer,
+                        styles.slides,
+                        {
+                            [styles.showSecondSlide]:
+                                section === CommentFormSection.NewIssueForm,
+                        }
+                    )}
                 >
                     <div
-                        className={classNames(
-                            styles.formItemSpacer,
-                            section !== CommentFormSection.CommentForm
-                                ? styles.hide
-                                : ''
-                        )}
+                        className={classNames(styles.formItemSpacer, {
+                            [styles.hide]:
+                                section !== CommentFormSection.CommentForm,
+                        })}
                     >
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
@@ -354,15 +362,27 @@ export const NewCommentForm = ({
                                 allowClear={true}
                                 defaultActiveFirstOption
                                 placeholder={'Create an issue'}
-                                mode="multiple"
                                 options={[
                                     {
-                                        displayValue: 'Create a Linear issue',
+                                        displayValue: (
+                                            <span>
+                                                <img
+                                                    className={
+                                                        styles.integrationIcon
+                                                    }
+                                                    src={
+                                                        integrationMap['linear']
+                                                            ?.icon
+                                                    }
+                                                />
+                                                Create a Linear issue
+                                            </span>
+                                        ),
                                         id: 'linear',
                                         value: 'Linear',
                                     },
                                 ]}
-                                onChange={setSelectedIssueServices}
+                                onChange={setSelectedIssueService}
                                 notFoundContent={
                                     <p>
                                         <Link to="../integrations">
@@ -380,20 +400,30 @@ export const NewCommentForm = ({
                         </div>
                     </div>
                     <div
-                        className={classNames(
-                            styles.formItemSpacer,
-                            section !== CommentFormSection.NewIssueForm
-                                ? styles.hide
-                                : ''
-                        )}
+                        className={classNames(styles.formItemSpacer, {
+                            [styles.hide]:
+                                section !== CommentFormSection.NewIssueForm,
+                        })}
                     >
-                        <h3>Create a new issue</h3>
+                        <h3>
+                            <img
+                                className={classNames(
+                                    styles.integrationIcon,
+                                    styles.largeSize
+                                )}
+                                src={issueServiceDetail?.icon}
+                            />
+                            Create a new {issueServiceDetail?.name} issue
+                        </h3>
                         <Form.Item
                             name="issueTitle"
                             initialValue="New issue in Highlight session"
                             label="Issue Title"
                         >
-                            <Input placeholder="Issue Title" />
+                            <Input
+                                placeholder="Issue Title"
+                                className={styles.textBoxStyles}
+                            />
                         </Form.Item>
                         <Form.Item
                             name="issueDescription"
@@ -402,6 +432,7 @@ export const NewCommentForm = ({
                             <TextArea
                                 placeholder="Issue Description"
                                 rows={3}
+                                className={styles.textBoxStyles}
                             />
                         </Form.Item>
                     </div>
@@ -447,7 +478,7 @@ export const NewCommentForm = ({
                                 trackingId="CreateNewSessionComment"
                                 type="primary"
                                 htmlType={
-                                    selectedIssueServices.length > 0 &&
+                                    selectedIssueService &&
                                     section === CommentFormSection.CommentForm
                                         ? 'button'
                                         : 'submit'
@@ -457,7 +488,7 @@ export const NewCommentForm = ({
                                     if (
                                         section ===
                                             CommentFormSection.CommentForm &&
-                                        selectedIssueServices.length > 0
+                                        selectedIssueService
                                     ) {
                                         e.preventDefault();
                                         setSection(
@@ -483,7 +514,7 @@ export const NewCommentForm = ({
                                 }}
                                 loading={isCreatingComment}
                             >
-                                {selectedIssueServices.length > 0 &&
+                                {selectedIssueService &&
                                 section === CommentFormSection.CommentForm ? (
                                     <>
                                         Next

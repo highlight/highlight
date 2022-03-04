@@ -11,6 +11,22 @@
     }
 }
 
+.textBoxStyles {
+    font-size: inherit !important;
+}
+
+.integrationIcon {
+    border-radius: var(--size-xxSmall);
+    margin-bottom: 2px;
+    margin-right: var(--size-xSmall);
+    width: calc(var(--size-medium) + 2px);
+}
+
+.integrationIcon.largeSize {
+    margin-bottom: 4px;
+    width: calc(var(--size-large) + 2px);
+}
+
 .formItemSpacer {
     display: flex;
     flex-direction: column;
@@ -76,13 +92,18 @@
     flex-direction: row;
     flex-wrap: nowrap;
     row-gap: var(--size-medium);
+    transition: transform 0.25s ease;
     width: calc(200% + (var(--size-medium) / 2));
 
-    div {
+    > div {
         transition: opacity 0.25s, visibility 0.15s linear;
         visibility: visible;
         width: 100%;
     }
+}
+
+.showSecondSlide {
+    transform: translateX(calc(-50% - var(--size-xxSmall)));
 }
 
 .slidesContainer {
