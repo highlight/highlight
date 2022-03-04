@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1087,7 +1087,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
 	}
-	if err := r.DB.Delete(&model.ExternalAttachment{SessionCommentID: id}).Error; err != nil {
+	if err := r.DB.Where(&model.ExternalAttachment{SessionCommentID: id}).Delete(&model.ExternalAttachment{}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
 	return &model.T, nil
