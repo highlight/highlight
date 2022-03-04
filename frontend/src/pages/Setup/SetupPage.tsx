@@ -32,6 +32,7 @@ import styles from './SetupPage.module.scss';
 
 interface SetupStep {
     displayName: string;
+    path: string;
     action?: () => void;
     completed: boolean;
     tooltip?: string;
@@ -48,12 +49,13 @@ enum PlatformType {
 enum BackendPlatformType {
     Express = 'Express',
     NextJs = 'Next.js',
+    Go = 'Go',
 }
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const history = useHistory();
     const { admin } = useAuthContext();
-    const { project_id, step } = useParams<{
+    const { project_id, step = 'client' } = useParams<{
         project_id: string;
         step: string;
     }>();
@@ -78,6 +80,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         const STEPS: SetupStep[] = [];
         STEPS.push({
             displayName: 'Client SDK',
+            path: 'client',
             action: () => {
                 history.push(`/${project_id}/setup/client`);
             },
@@ -85,6 +88,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         });
         STEPS.push({
             displayName: 'Backend SDK',
+            path: 'backend',
             action: () => {
                 history.push(`/${project_id}/setup/backend`);
             },
@@ -92,6 +96,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         });
         STEPS.push({
             displayName: 'More Features',
+            path: 'more',
             action: () => {
                 history.push(`/${project_id}/setup/more`);
             },
@@ -111,20 +116,24 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         <div className={styles.fieldsBox}>
                             <h3>Setup Status</h3>
                             <ul className={styles.setupStepsContainer}>
-                                {steps.map((step) => (
+                                {steps.map((s) => (
                                     <li
-                                        key={step.displayName}
-                                        className={styles.flexLayout}
-                                        onClick={
-                                            step.action ? step.action : () => {}
-                                        }
+                                        key={s.displayName}
+                                        className={classNames(
+                                            styles.flexLayout,
+                                            {
+                                                [styles.selected]:
+                                                    s.path === step,
+                                            }
+                                        )}
+                                        onClick={s.action ? s.action : () => {}}
                                     >
                                         <div
                                             className={classNames(
                                                 styles.checkWrapper,
                                                 {
                                                     [styles.checkWrapperCompleted]:
-                                                        step.completed,
+                                                        s.completed,
                                                 }
                                             )}
                                         >
@@ -134,7 +143,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                                 )}
                                             />
                                         </div>{' '}
-                                        {step.displayName}
+                                        {s.displayName}
                                     </li>
                                 ))}
                             </ul>
@@ -157,7 +166,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 admin={admin}
                                 backendPlatform={backendPlatform}
                                 setBackendPlatform={setBackendPlatform}
-                                project_id={projectIdRemapped}
                                 projectData={data}
                                 projectLoading={loading}
                                 integrated={integrated}
@@ -452,15 +460,12 @@ return (
 const BackendSetup = ({
     backendPlatform,
     setBackendPlatform,
-    project_id,
     projectData,
     projectLoading,
-    integrated,
 }: {
     admin: Admin | undefined;
     backendPlatform: BackendPlatformType;
     setBackendPlatform: (newValue: BackendPlatformType) => void;
-    project_id: string;
     projectData: GetProjectQuery | undefined;
     projectLoading: boolean;
     integrated: boolean;
@@ -471,7 +476,7 @@ const BackendSetup = ({
                 <h2>Your Highlight Snippet</h2>
             </div>
             <p className={layoutStyles.subTitle}>
-                Setup Highlight in your web application!
+                Setup Highlight in your backend!
             </p>
             <RadioGroup<BackendPlatformType>
                 style={{ marginTop: 20, marginBottom: 20 }}
@@ -479,6 +484,7 @@ const BackendSetup = ({
                 labels={[
                     BackendPlatformType.Express,
                     BackendPlatformType.NextJs,
+                    BackendPlatformType.Go,
                 ]}
                 onSelect={(p: BackendPlatformType) => setBackendPlatform(p)}
             />
@@ -492,65 +498,13 @@ const BackendSetup = ({
                 />
             ) : (
                 <div className={styles.stepsContainer}>
-                    {backendPlatform === BackendPlatformType.NextJs && (
-                        <Section title="Is This for Me?" defaultOpen>
-                            <p>
-                                These steps apply to other types of apps and
-                                websites where you have access to a file like{' '}
-                                <code>index.html</code>.
-                            </p>
-                            <p>Some examples are:</p>
-                            <ul>
-                                <li>WordPress</li>
-                                <li>Webflow</li>
-                                <li>Shopify</li>
-                                <li>Squarespace</li>
-                            </ul>
-                            <p>
-                                If you're not sure how to integrate or have any
-                                questions feel free to{' '}
-                                <IntercomInlineMessage defaultMessage="Hi! I need help integrating Highlight.">
-                                    message us
-                                </IntercomInlineMessage>
-                                !
-                            </p>
-                        </Section>
+                    {backendPlatform === BackendPlatformType.NextJs ? (
+                        <NextBackendInstructions />
+                    ) : backendPlatform === BackendPlatformType.Express ? (
+                        <ExpressBackendInstructions />
+                    ) : (
+                        <GoBackendInstructions />
                     )}
-                    <Section
-                        defaultOpen
-                        title={
-                            <span className={styles.sectionTitleWithIcon}>
-                                Verify Installation
-                                {integrated && (
-                                    <IntegrationDetector
-                                        verbose={false}
-                                        integrated={integrated}
-                                    />
-                                )}
-                            </span>
-                        }
-                        id="highlightIntegration"
-                    >
-                        <p>
-                            Please follow the setup instructions above to
-                            install Highlight. It should take less than a minute
-                            for us to detect installation.
-                        </p>
-                        <div className={styles.integrationContainer}>
-                            <IntegrationDetector
-                                integrated={integrated}
-                                verbose={true}
-                            />
-                            {integrated && (
-                                <ButtonLink
-                                    to={`/${project_id}/sessions`}
-                                    trackingId="ViewSessionFromSetupPage"
-                                >
-                                    View Session
-                                </ButtonLink>
-                            )}
-                        </div>
-                    </Section>
                     <Section
                         title={
                             <span className={styles.sectionTitleWithIcon}>
@@ -801,6 +755,209 @@ const HtmlInstructions = ({
                 />
             </div>
         </Section>
+    );
+};
+
+const NextBackendInstructions = () => {
+    return (
+        <>
+            <Section title="Installing the SDK" defaultOpen>
+                <p>
+                    Install the
+                    <code>@highlight-run/next</code> package.
+                </p>
+                <CodeBlock
+                    text={`npm install @highlight-run/next`}
+                    language="shell"
+                />
+                <p>or with Yarn:</p>
+                <CodeBlock
+                    text={`yarn add @highlight-run/next`}
+                    language="shell"
+                />
+            </Section>
+            <Section title="Initializing Highlight on the Backend" defaultOpen>
+                <p>Initialize the SDK by importing Highlight like so: </p>
+                <CodeBlock
+                    text={`import { Highlight } from '@highlight-run/next';`}
+                    language="javascript"
+                />
+                <p>
+                    and then defining it in a common file. You can configure how
+                    Highlight records with the{' '}
+                    <a
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        options
+                    </a>
+                    .
+                </p>
+                <p>
+                    <CodeBlock
+                        language="javascript"
+                        text={`const highlightOptions = {};
+export const withHighlight = Highlight(highlightOptions);`}
+                    />
+                </p>
+                <p>
+                    Wrap each of your route handlers in <code>/api/</code> with
+                    Highlight
+                </p>
+                <p>
+                    <CodeBlock
+                        language="javascript"
+                        text={`import { withHighlight } from "./common";
+
+const handler = async (req, res) => {
+  res.status(200).json({ name: "Jay" });
+};
+
+export default withHighlight(handler);`}
+                    />
+                </p>
+            </Section>
+        </>
+    );
+};
+
+const ExpressBackendInstructions = () => {
+    return (
+        <>
+            <Section title="Installing the SDK" defaultOpen>
+                <p>
+                    Install the
+                    <code>@highlight-run/node</code> package.
+                </p>
+                <CodeBlock
+                    text={`npm install @highlight-run/node`}
+                    language="shell"
+                />
+                <p>or with Yarn:</p>
+                <CodeBlock
+                    text={`yarn add @highlight-run/node`}
+                    language="shell"
+                />
+            </Section>
+            <Section title="Initializing Highlight on the Backend" defaultOpen>
+                <p>Initialize the SDK by importing Highlight like so: </p>
+                <CodeBlock
+                    text={`import { Highlight } from '@highlight-run/node';`}
+                    language="javascript"
+                />
+                <p>
+                    and then calling as soon as you can in your site's startup
+                    process. You can configure how Highlight records with the{' '}
+                    <a
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        options
+                    </a>
+                    .
+                </p>
+                <p>
+                    <CodeBlock
+                        language="javascript"
+                        text={`const highlightOptions = {}; 
+const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
+`}
+                    />
+                </p>
+                <p>
+                    <CodeBlock
+                        language="javascript"
+                        text={`import { Highlight } from "@highlight-run/node";
+
+const app = express();
+
+const highlightOptions = {}; 
+const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
+
+// This should be before any other error middleware and after all controllers
+app.use(highlightHandler);`}
+                    />
+                </p>
+            </Section>
+        </>
+    );
+};
+
+const GoBackendInstructions = () => {
+    return (
+        <>
+            <Section title="Installing the SDK" defaultOpen>
+                <p>
+                    Install the
+                    <code>highlight-go</code> package.
+                </p>
+                <CodeBlock
+                    text={`go get -u github.com/highlight-run/highlight-go`}
+                    language="shell"
+                />
+            </Section>
+            <Section title="Initializing Highlight on the Backend" defaultOpen>
+                <p>
+                    Add the following lines to your application's main{' '}
+                    <code>(func main)</code> function:
+                </p>
+                <CodeBlock
+                    text={`import (
+    "github.com/highlight-run/highlight-go"
+)
+
+func main() {
+    //...application logic...
+    highlight.Start()
+    defer highlight.Stop()
+    //...application logic...
+}
+                    `}
+                    language="go"
+                />
+                <p>
+                    and then using a Highlight middleware in your app's router:
+                </p>
+                <p>
+                    If you're using <code>go-chi/chi</code>:
+                </p>
+                <p>
+                    <CodeBlock
+                        language="go"
+                        text={`import (
+    highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
+)
+
+func main() {
+    //...
+    r := chi.NewMux()
+    r.Use(highlightChi.Middleware)
+    //...
+}`}
+                    />
+                </p>
+                <p>
+                    If you're using <code>gin-gonic/gin</code>:
+                </p>
+                <p>
+                    <CodeBlock
+                        language="go"
+                        text={`import (
+    highlightGin "github.com/highlight-run/highlight-go/middleware/gin"
+)
+
+func main() {
+    //...
+    r := gin.New()
+    r.Use(highlightGin.Middleware())
+    //...
+}`}
+                    />
+                </p>
+            </Section>
+        </>
     );
 };
 

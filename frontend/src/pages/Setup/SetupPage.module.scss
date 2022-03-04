@@ -123,7 +123,7 @@
     margin-bottom: var(--size-small);
     margin-top: var(--size-medium);
     padding: 0;
-    row-gap: var(--size-medium);
+    row-gap: var(--size-small);
 
     li {
         align-items: center;
@@ -137,5 +137,9 @@
         padding-right: 0;
         padding-top: var(--size-xSmall);
         width: 100%;
+    }
+
+    .selected {
+        font-weight: 500;
     }
 }

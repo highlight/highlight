@@ -11,6 +11,7 @@ export const leftColumn: string;
 export const platformOption: string;
 export const radioGroupWrapper: string;
 export const sectionTitleWithIcon: string;
+export const selected: string;
 export const setupStepsContainer: string;
 export const stepsContainer: string;
 export const subTitle: string;
