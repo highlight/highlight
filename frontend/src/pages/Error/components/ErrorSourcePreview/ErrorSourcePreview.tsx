@@ -150,6 +150,7 @@ const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
                         overflow: 'auto',
                         border: 'none',
                         width: 'fit-content',
+                        minWidth: '100%',
                     },
                 }}
             />

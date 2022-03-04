@@ -85,6 +85,7 @@ export const CodeBlock = ({
                             padding: '0',
                             margin: '0',
                             overflow: 'visible',
+                            minWidth: 'auto',
                         }}
                     >
                         <code style={props.codeTagProps?.style}>
