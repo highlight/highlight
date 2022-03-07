@@ -268,7 +268,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
-			o := processEventChunk(&processEventChunkInput{
+			o := processEventChunk(s.SecureID, &processEventChunkInput{
 				EventsChunk:                &eventsObject,
 				ClickEventQueue:            clickEventQueue,
 				FirstEventTimestamp:        firstEventTimestamp,
@@ -797,7 +797,7 @@ type processEventChunkOutput struct {
 	Error error
 }
 
-func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput) {
+func processEventChunk(sessionSecureID string, input *processEventChunkInput) (o processEventChunkOutput) {
 	var events *parse.ReplayEvents
 	var err error
 	if input == nil {
@@ -828,6 +828,16 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	for _, event := range events.Events {
 		if event == nil {
 			continue
+		}
+		sequentialID := int(event.SID)
+		eventTime := event.Timestamp.UnixMilli()
+		if sequentialID <= 0 {
+			log.Warn(fmt.Sprintf("The payload for %s has an event with an invald SID at time %d", sessionSecureID, eventTime))
+		} else {
+			if sequentialID != o.LatestSID+1 {
+				log.Warn(fmt.Sprintf("The payload for %s has two SID's out-of-order: %d and %d at time %d", sessionSecureID, o.LatestSID, sequentialID, eventTime))
+			}
+			o.LatestSID = sequentialID
 		}
 		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
 		if o.FirstFullSnapshotTimestamp.IsZero() {
