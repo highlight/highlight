@@ -41,6 +41,8 @@ export class FirstLoadListeners {
     fetchNetworkContents!: RequestResponsePair[];
     tracingOrigins!: boolean | (string | RegExp)[];
     networkHeadersToRedact!: string[];
+    networkBodyKeysToRecord: string[] | undefined;
+    networkHeaderKeysToRecord: string[] | undefined;
     urlBlocklist!: string[];
 
     constructor(options: HighlightClassOptions) {
@@ -149,6 +151,8 @@ export class FirstLoadListeners {
             sThis.enableRecordingNetworkContents = false;
             sThis.networkHeadersToRedact = [];
             sThis.urlBlocklist = [];
+            sThis.networkBodyKeysToRecord = [];
+            sThis.networkBodyKeysToRecord = [];
         } else if (typeof options?.networkRecording === 'boolean') {
             sThis.disableNetworkRecording = !options.networkRecording;
             sThis.enableRecordingNetworkContents = false;
@@ -175,6 +179,25 @@ export class FirstLoadListeners {
                 ...sThis.urlBlocklist,
                 ...DEFAULT_URL_BLOCKLIST,
             ];
+
+            sThis.networkHeaderKeysToRecord =
+                options.networkRecording?.headerKeysToRecord || [];
+            // `headerKeysToRecord` override `networkHeadersToRedact`.
+            if (sThis.networkHeaderKeysToRecord.length > 0) {
+                sThis.networkHeadersToRedact = [];
+                sThis.networkHeaderKeysToRecord = sThis.networkHeaderKeysToRecord.map(
+                    (key) => key.toLocaleLowerCase()
+                );
+            }
+
+            sThis.networkBodyKeysToRecord =
+                options.networkRecording?.bodyKeysToRecord || [];
+
+            if (sThis.networkBodyKeysToRecord) {
+                sThis.networkBodyKeysToRecord = sThis.networkBodyKeysToRecord.map(
+                    (key) => key.toLocaleLowerCase()
+                );
+            }
         }
 
         if (
@@ -194,6 +217,8 @@ export class FirstLoadListeners {
                     tracingOrigins: sThis.tracingOrigins,
                     urlBlocklist: sThis.urlBlocklist,
                     sessionSecureID: options.sessionSecureID,
+                    headerKeysToRecord: sThis.networkHeaderKeysToRecord,
+                    bodyKeysToRecord: sThis.networkBodyKeysToRecord,
                 })
             );
         }
