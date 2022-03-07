@@ -47,7 +47,6 @@ import {
     addEventsToSessionIntervals,
     findNextSessionInList,
     getCommentsInSessionIntervalsRelative,
-    getEventsForTimelineIndicator,
     getSessionIntervals,
     PlayerSearchParameters,
     useSetPlayerTimestampFromSearchParam,
@@ -211,13 +210,15 @@ export const usePlayer = (): ReplayerContextInterface => {
     // const nctHack = [nextChunkTimestamp];
     // const ccHack = [curChunk];
     const curChunk = useRef(0);
+    const fastForwardTimestamp = useRef(0);
+    const curPlayTs = useRef(0);
     // const resetState = () => {
     //     curChunk.current = 0;
     //     nextChunkTimestamp.current = undefined;
     //     chunksLoaded.current = [];
     // };
 
-    const ensureChunkLoaded = (next: number) => {
+    const ensureChunkLoaded = (next: number, cb: (() => void) | undefined) => {
         if (!chunksLoaded.current.includes(next)) {
             console.log('loading new chunk', chunksLoaded, next);
             chunksLoaded.current.push(next);
@@ -231,6 +232,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     setEventsPayload(eventsPayload?.concat(data) || []);
                     // setEventsPayload(data || []);
                 })
+                // .then(() => {
+                //     // cb && cb();
+                // })
                 .catch((e) => {
                     setEventsPayload([]);
                     H.consumeError(
@@ -241,9 +245,19 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
-    const handleTimestamp = (timestamp: number) => {
+    const handleTimestamp = (
+        timestamp: number,
+        cb: (() => void) | undefined
+    ) => {
         // const next = curChunk.current + 1;
         // const nct = nextChunkTimestamp.current;
+        // console.log('timestamp, ff', timestamp, fastForwardTimestamp.current);
+        if (timestamp < fastForwardTimestamp.current) {
+            return;
+        } else if (timestamp > fastForwardTimestamp.current) {
+            fastForwardTimestamp.current = 0;
+        }
+
         const curIdx = getChunkByTimestamp(timestamp);
 
         if (curChunk.current !== curIdx) {
@@ -251,18 +265,20 @@ export const usePlayer = (): ReplayerContextInterface => {
             // const newTs = eventChunksData?.event_chunks[next + 1]?.timestamp;
             curChunk.current = curIdx;
             // nextChunkTimestamp.current = newTs;
-            ensureChunkLoaded(curIdx);
+            ensureChunkLoaded(curIdx, cb);
 
             console.log('new chunk timestamp', curIdx);
         } else {
-            ensureChunkLoaded(getChunkByTimestamp(timestamp + 30000));
+            ensureChunkLoaded(
+                getChunkByTimestamp(timestamp + 30000),
+                undefined
+            );
         }
     };
 
     const onevent = (e: any) => {
-        // console.log('event', e.timestamp);
         const event = e as HighlightEvent;
-        handleTimestamp(event.timestamp);
+        handleTimestamp(event.timestamp, undefined);
 
         if ((event as customEvent)?.data?.tag === 'Stop') {
             setState(ReplayerState.SessionRecordingStopped);
@@ -513,9 +529,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         });
         r.on('start', () => {
             const newTs = r.getCurrentTime() + r.getMetaData().startTime;
-            const newIdx = getChunkByTimestamp(newTs);
+            // fastForwardTimestamp.current = newTs;
+            // console.log('ff start', fastForwardTimestamp.current);
+            // handleTimestamp(newTs);
+            // const newIdx = getChunkByTimestamp(newTs);
             // resetState();
-            ensureChunkLoaded(newIdx);
+            // ensureChunkLoaded(newIdx);
             setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs));
         });
         setReplayer(r);
@@ -662,13 +681,13 @@ export const usePlayer = (): ReplayerContextInterface => {
                             replayer.getMetaData().startTime
                         )
                     );
-                    setEventsForTimelineIndicator(
-                        getEventsForTimelineIndicator(
-                            events,
-                            replayer.getMetaData().startTime,
-                            replayer.getMetaData().totalTime
-                        )
-                    );
+                    // setEventsForTimelineIndicator(
+                    //     getEventsForTimelineIndicator(
+                    //         events,
+                    //         replayer.getMetaData().startTime,
+                    //         replayer.getMetaData().totalTime
+                    //     )
+                    // );
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     if (eventsData?.rage_clicks) {
                         setSessionIntervals((sessionIntervals) => {
@@ -767,9 +786,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                         errors,
                         setSelectedErrorId
                     );
-                    if (isLiveMode && state > ReplayerState.Loading) {
+                    if (state > ReplayerState.Loading) {
                         // Resynchronize player timestamp after each batch of events
-                        play();
+                        // play(curPlayTs.current);
                     }
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
@@ -889,6 +908,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
+
+        const newTs = (newTime ?? 0) + (replayer?.getMetaData().startTime ?? 0);
+        fastForwardTimestamp.current = newTs;
+        // console.log('ff start', fastForwardTimestamp.current);
+        handleTimestamp(newTs, () => replayer?.play(newTime));
+
         replayer?.play(newTime);
 
         // Log how long it took to move to the new time.
@@ -907,6 +932,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (newTime !== undefined) {
                 setTime(newTime);
             }
+
+            const newTs =
+                (newTime ?? 0) + (replayer?.getMetaData().startTime ?? 0);
+            fastForwardTimestamp.current = newTs;
+            console.log('ff start', fastForwardTimestamp.current);
+            handleTimestamp(newTs, () => replayer?.pause(newTime));
+            curPlayTs.current = newTs;
             replayer?.pause(newTime);
 
             // Log how long it took to move to the new time.

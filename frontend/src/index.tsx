@@ -37,7 +37,7 @@ import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
 
-const dev = process.env.NODE_ENV === 'development' ? true : false;
+const dev = true;
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
@@ -85,7 +85,7 @@ if (dev) {
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
 }
-H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
+// H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (!isOnPrem) {
     H.start();
 
