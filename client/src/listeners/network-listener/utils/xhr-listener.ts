@@ -24,7 +24,8 @@ export const XHRListener = (
     backendUrl: string,
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
-    sessionSecureID: string
+    sessionSecureID: string,
+    bodyKeysToRecord: string[]
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -91,7 +92,10 @@ export const XHRListener = (
             if (postData) {
                 const bodyData = getBodyData(postData, requestModel.url);
                 if (bodyData) {
-                    requestModel['body'] = bodyData;
+                    requestModel['body'] = getBodyThatShouldBeRecorded(
+                        bodyData,
+                        bodyKeysToRecord
+                    );
                 }
             }
         }
@@ -108,7 +112,10 @@ export const XHRListener = (
                 if (postData) {
                     const bodyData = getBodyData(postData, requestModel.url);
                     if (bodyData) {
-                        requestModel['body'] = bodyData;
+                        requestModel['body'] = getBodyThatShouldBeRecorded(
+                            bodyData,
+                            bodyKeysToRecord
+                        );
                     }
                 }
 
@@ -130,17 +137,26 @@ export const XHRListener = (
                 responseModel.headers = headerMap;
 
                 if (this.responseType === '' || this.responseType === 'text') {
-                    responseModel['body'] = this.responseText;
+                    responseModel['body'] = getBodyThatShouldBeRecorded(
+                        this.responseText,
+                        bodyKeysToRecord
+                    );
                     // Each character is 8 bytes, total size is number of characters multiplied by 8.
                     responseModel['size'] = this.responseText.length * 8;
                 } else if (this.responseType === 'blob') {
                     const blob = this.response as Blob;
                     const response = await blob.text();
-                    responseModel['body'] = response;
+                    responseModel['body'] = getBodyThatShouldBeRecorded(
+                        response,
+                        bodyKeysToRecord
+                    );
                     responseModel['size'] = blob.size;
                 } else {
                     try {
-                        responseModel['body'] = this.response;
+                        responseModel['body'] = getBodyThatShouldBeRecorded(
+                            this.response,
+                            bodyKeysToRecord
+                        );
                     } catch {}
                 }
             }
@@ -210,4 +226,29 @@ const getBodyData = (postData: any, url: string) => {
     }
 
     return null;
+};
+
+export const getBodyThatShouldBeRecorded = (
+    bodyData: any,
+    bodyKeysToRecord: string[]
+) => {
+    if (bodyKeysToRecord.length === 0 || !bodyData) {
+        return bodyData;
+    }
+
+    try {
+        const json = JSON.parse(bodyData);
+
+        Object.keys(json).forEach((header) => {
+            if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
+                console.log(header.toLocaleLowerCase());
+
+                json[header] = '[REDACTED]';
+            }
+        });
+
+        return JSON.stringify(json);
+    } catch {}
+
+    return bodyData;
 };

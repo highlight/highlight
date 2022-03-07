@@ -185,10 +185,19 @@ export class FirstLoadListeners {
             // `headerKeysToRecord` override `networkHeadersToRedact`.
             if (sThis.networkHeaderKeysToRecord.length > 0) {
                 sThis.networkHeadersToRedact = [];
+                sThis.networkHeaderKeysToRecord = sThis.networkHeaderKeysToRecord.map(
+                    (key) => key.toLocaleLowerCase()
+                );
             }
 
             sThis.networkBodyKeysToRecord =
                 options.networkRecording?.bodyKeysToRecord || [];
+
+            if (sThis.networkBodyKeysToRecord) {
+                sThis.networkBodyKeysToRecord = sThis.networkBodyKeysToRecord.map(
+                    (key) => key.toLocaleLowerCase()
+                );
+            }
         }
 
         if (

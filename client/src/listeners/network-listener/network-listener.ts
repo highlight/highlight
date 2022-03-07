@@ -42,7 +42,8 @@ export const NetworkListener = ({
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionSecureID
+        sessionSecureID,
+        bodyKeysToRecord
     );
     const removeFetchListener = FetchListener(
         (requestResponsePair) => {
@@ -57,7 +58,8 @@ export const NetworkListener = ({
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionSecureID
+        sessionSecureID,
+        bodyKeysToRecord
     );
 
     return () => {

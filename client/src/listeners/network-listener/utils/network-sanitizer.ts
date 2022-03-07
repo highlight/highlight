@@ -46,7 +46,7 @@ const sanitizeHeaders = (
         Object.keys(newHeaders)?.forEach((header: string) => {
             // Only keep the keys that are specified in `headersToRecord`.
             if (![...headersToRecord].includes(header?.toLowerCase())) {
-                delete newHeaders[header];
+                newHeaders[header] = '[REDACTED]';
             }
         });
 
