@@ -1,3 +1,4 @@
+import { NetworkRecordingOptions } from '../../index';
 import { FetchListener } from './utils/fetch-listener';
 import { RequestResponsePair } from './utils/models';
 import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer';
@@ -7,7 +8,7 @@ export type NetworkListenerCallback = (
     requestResponsePair: RequestResponsePair
 ) => void;
 
-interface NetworkListenerArguments {
+type NetworkListenerArguments = {
     xhrCallback: NetworkListenerCallback;
     fetchCallback: NetworkListenerCallback;
     headersToRedact: string[];
@@ -15,7 +16,7 @@ interface NetworkListenerArguments {
     tracingOrigins: boolean | (string | RegExp)[];
     urlBlocklist: string[];
     sessionSecureID: string;
-}
+} & Pick<NetworkRecordingOptions, 'bodyKeysToRecord' | 'headerKeysToRecord'>;
 
 export const NetworkListener = ({
     xhrCallback,
@@ -25,34 +26,38 @@ export const NetworkListener = ({
     tracingOrigins,
     urlBlocklist,
     sessionSecureID,
+    bodyKeysToRecord = [],
+    headerKeysToRecord = [],
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener(
         (requestResponsePair) => {
             xhrCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,
-                    headersToRedact
+                    headersToRedact,
+                    headerKeysToRecord
                 )
             );
         },
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionSecureID,
+        sessionSecureID
     );
     const removeFetchListener = FetchListener(
         (requestResponsePair) => {
             fetchCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,
-                    headersToRedact
+                    headersToRedact,
+                    headerKeysToRecord
                 )
             );
         },
         backendUrl,
         tracingOrigins,
         urlBlocklist,
-        sessionSecureID,
+        sessionSecureID
     );
 
     return () => {
@@ -63,11 +68,12 @@ export const NetworkListener = ({
 
 const sanitizeRequestResponsePair = (
     { request, response, ...rest }: RequestResponsePair,
-    headersToRedact: string[]
+    headersToRedact: string[],
+    headersToRecord: string[]
 ): RequestResponsePair => {
     return {
-        request: sanitizeRequest(request, headersToRedact),
-        response: sanitizeResponse(response, headersToRedact),
+        request: sanitizeRequest(request, headersToRedact, headersToRecord),
+        response: sanitizeResponse(response, headersToRedact, headersToRecord),
         ...rest,
     };
 };
