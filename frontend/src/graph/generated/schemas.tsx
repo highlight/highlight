@@ -715,6 +715,7 @@ export type Query = {
     workspace_admins_by_project_id: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
+    liveUsersCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
     projectHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
@@ -857,6 +858,10 @@ export type QueryIsIntegratedArgs = {
 };
 
 export type QueryUnprocessedSessionsCountArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryLiveUsersCountArgs = {
     project_id: Scalars['ID'];
 };
 

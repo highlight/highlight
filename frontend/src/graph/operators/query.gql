@@ -1024,6 +1024,7 @@ query UnprocessedSessionsCount($project_id: ID!) {
 
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
     unprocessedSessionsCount(project_id: $project_id)
+    liveUsersCount(project_id: $project_id)
     newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         count
     }
