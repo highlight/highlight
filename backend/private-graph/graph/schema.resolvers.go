@@ -3040,8 +3040,28 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 	}
 
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, Processed: &model.F, Excluded: &model.F}).
+		Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
+}
+
+func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	var count int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(DISTINCT(COALESCE(identifier, CAST(fingerprint AS text))))
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil

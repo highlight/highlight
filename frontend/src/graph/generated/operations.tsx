@@ -2874,7 +2874,7 @@ export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'unprocessedSessionsCount'
+    'unprocessedSessionsCount' | 'liveUsersCount'
 > & {
         newUsersCount?: Types.Maybe<
             { __typename?: 'NewUsersCount' } & Pick<

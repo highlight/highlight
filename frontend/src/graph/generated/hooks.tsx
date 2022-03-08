@@ -7423,6 +7423,7 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
 export const GetKeyPerformanceIndicatorsDocument = gql`
     query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
         unprocessedSessionsCount(project_id: $project_id)
+        liveUsersCount(project_id: $project_id)
         newUsersCount(
             project_id: $project_id
             lookBackPeriod: $lookBackPeriod
