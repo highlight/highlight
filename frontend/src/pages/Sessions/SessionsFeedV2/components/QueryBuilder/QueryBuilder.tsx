@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
@@ -820,6 +821,8 @@ export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
 export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not'];
 
+export const VIEWED_BY_OPERATORS: Operator[] = ['is'];
+
 const LABEL_MAP: { [key: string]: string } = {
     referrer: 'Referrer',
     os_name: 'Operating System',
@@ -835,7 +838,8 @@ const LABEL_MAP: { [key: string]: string } = {
     browser_version: 'Browser Version',
     environment: 'Environment',
     processed: 'Status',
-    viewed: 'Viewed',
+    viewed: 'Viewed By Anyone',
+    viewed_by_me: 'Viewed By Me',
     first_time: 'First Time',
     starred: 'Starred',
     identifier: 'Identifier',
@@ -1050,6 +1054,7 @@ const QueryBuilder = ({
     setSearchParams,
     readonly,
 }: QueryBuilderProps) => {
+    const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
             if (!field) {
@@ -1080,6 +1085,28 @@ const QueryBuilder = ({
                 const isKeyword = !(
                     getCustomFieldOptions(field)?.type !== 'text'
                 );
+
+                if (field.label === 'viewed_by_me' && admin) {
+                    const baseQuery = {
+                        term: {
+                            [`viewed_by_admins.id`]: admin.id,
+                        },
+                    };
+
+                    if (value === 'true') {
+                        return {
+                            ...baseQuery,
+                        };
+                    }
+                    return {
+                        bool: {
+                            must_not: {
+                                ...baseQuery,
+                            },
+                        },
+                    };
+                }
+
                 switch (op) {
                     case 'is':
                         return {
@@ -1160,7 +1187,7 @@ const QueryBuilder = ({
                 }
             }
         },
-        [getCustomFieldOptions]
+        [getCustomFieldOptions, admin]
     );
 
     const parseRuleImpl = useCallback(
