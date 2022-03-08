@@ -3040,7 +3040,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 	}
 
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, Processed: &model.F, Excluded: &model.F}).
+	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
 		Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
 	}
