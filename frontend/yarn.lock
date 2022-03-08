@@ -3115,10 +3115,8 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@1.1.15":
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.15.tgz#649a0bddc8047ecf5cce884b70dfff40aec56f98"
-  integrity sha512-eViinsMbRrqD7eqNpXn4g+VyAnWmI6VpMyaq46NkwUS6gcEGFQwmCYWgTIY9sZw8kOtL8bCLLYRzNRO8ME4z7g==
+"@highlight-run/rrweb@file:.yalc/@highlight-run/rrweb":
+  version "1.1.14"
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -17863,6 +17861,11 @@ use@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
+
+usehooks-ts@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.4.2.tgz#a9a5df9d04dcce993d7e8ec088965ba44dfcd9cc"
+  integrity sha512-YqD5HaloGpRSoNaXhAxR+CHTKda44mDtFqNJk5gRuy4qeHVxpp8ycN3LY0txYqNudCVuAk1f8m6M0ojQ5Aph8Q==
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
