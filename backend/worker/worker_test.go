@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"container/list"
 	"io/ioutil"
 	"log"
 	"testing"
@@ -673,9 +672,7 @@ func TestGetActiveDuration(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			var a EventProcessingAccumulator
-			a.TimestampCounts = make(map[time.Time]int)
-			a.ClickEventQueue = list.New()
+			a := MakeEventProcessingAccumulator("fakeSecureID")
 			for _, event := range tt.events {
 				a = processEventChunk(a, event)
 				if a.Error != nil {
@@ -796,9 +793,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			var a EventProcessingAccumulator
-			a.TimestampCounts = make(map[time.Time]int)
-			a.ClickEventQueue = list.New()
+			a := MakeEventProcessingAccumulator("fakeSecureID")
 			for _, event := range tt.events {
 				a = processEventChunk(a, event)
 				if a.Error != nil {

@@ -243,21 +243,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
-	activeDuration := time.Duration(0)
-	accumulator := EventProcessingAccumulator{
-		SessionSecureID:            s.SecureID,
-		ClickEventQueue:            list.New(),
-		CurrentlyInRageClickSet:    false,
-		RageClickSets:              []*model.RageClickEvent{},
-		FirstEventTimestamp:        time.Time{},
-		FirstFullSnapshotTimestamp: time.Time{},
-		LastEventTimestamp:         time.Time{},
-		ActiveDuration:             0,
-		TimestampCounts:            map[time.Time]int{},
-		LatestSID:                  0,
-		AreEventsOutOfOrder:        false,
-		Error:                      nil,
-	}
+	accumulator := MakeEventProcessingAccumulator(s.SecureID)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
@@ -314,7 +300,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	if activeDuration == 0 {
+	if accumulator.ActiveDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
 		s.Excluded = &model.T
@@ -340,7 +326,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		model.Session{
 			Processed:     &model.T,
 			Length:        sessionTotalLengthInMilliseconds,
-			ActiveLength:  activeDuration.Milliseconds(),
+			ActiveLength:  accumulator.ActiveDuration.Milliseconds(),
 			EventCounts:   &eventCountsString,
 			HasRageClicks: &hasRageClicks,
 		},
@@ -351,7 +337,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"processed":       true,
 		"length":          sessionTotalLengthInMilliseconds,
-		"active_length":   activeDuration.Milliseconds(),
+		"active_length":   accumulator.ActiveDuration.Milliseconds(),
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
 	}); err != nil {
@@ -756,6 +742,23 @@ type EventProcessingAccumulator struct {
 	AreEventsOutOfOrder bool
 	// Error
 	Error error
+}
+
+func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccumulator {
+	return EventProcessingAccumulator{
+		SessionSecureID:            sessionSecureID,
+		ClickEventQueue:            list.New(),
+		CurrentlyInRageClickSet:    false,
+		RageClickSets:              []*model.RageClickEvent{},
+		FirstEventTimestamp:        time.Time{},
+		FirstFullSnapshotTimestamp: time.Time{},
+		LastEventTimestamp:         time.Time{},
+		ActiveDuration:             0,
+		TimestampCounts:            map[time.Time]int{},
+		LatestSID:                  0,
+		AreEventsOutOfOrder:        false,
+		Error:                      nil,
+	}
 }
 
 func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObject) EventProcessingAccumulator {
