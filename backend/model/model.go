@@ -447,6 +447,9 @@ type Session struct {
 	Lock sql.NullTime
 
 	RetryCount int
+
+	// Represents the admins that have viewed this session.
+	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

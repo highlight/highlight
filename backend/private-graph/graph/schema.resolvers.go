@@ -359,6 +359,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
 	session := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
@@ -369,6 +373,21 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
+	newAdminView := struct {
+		ID int `json:"id"`
+	}{
+		ID: admin.ID,
+	}
+
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+		newAdminView}); err != nil {
+		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
+	}
+
+	if err := r.DB.Model(&s).Association("ViewedByAdmins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
 	return session, nil

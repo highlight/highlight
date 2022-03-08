@@ -929,6 +929,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		VerboseID:                      projectVerboseID,
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
+		ViewedByAdmins:                 []model.Admin{},
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
