@@ -449,7 +449,7 @@ type Session struct {
 	RetryCount int
 
 	// Represents the admins that have viewed this session.
-	ViewedByAdminIDs []Admin `json:"viewed_by_admin_ids" gorm:"many2many:session_admin_views;"`
+	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
