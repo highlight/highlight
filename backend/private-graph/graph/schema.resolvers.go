@@ -375,6 +375,17 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
+	newAdminView := struct {
+		ID int `json:"id"`
+	}{
+		ID: admin.ID,
+	}
+
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+		newAdminView}); err != nil {
+		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
+	}
+
 	if err := r.DB.Model(&s).Association("ViewedByAdmins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
