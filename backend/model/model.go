@@ -933,6 +933,24 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
 	}
 
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_session_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM sessions
+			WHERE excluded <> true
+			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
+			AND processed = true
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+	}
+
+	if err := DB.Exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
