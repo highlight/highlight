@@ -257,8 +257,8 @@ const MinimalSessionCard = React.memo(
                             <Tooltip
                                 title={
                                     !viewed
-                                        ? "This session hasn't been viewed."
-                                        : 'This session has been viewed by someone.'
+                                        ? "This session hasn't been viewed by anyone on your team."
+                                        : 'This session has been viewed by someone on your team.'
                                 }
                             >
                                 <div>
