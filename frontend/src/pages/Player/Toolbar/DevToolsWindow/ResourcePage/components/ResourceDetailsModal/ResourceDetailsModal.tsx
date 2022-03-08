@@ -25,6 +25,7 @@ const ResourceDetailsModal = ({
     selectedNetworkResource,
     networkRecordingEnabledForSession,
 }: Props) => {
+    // Here
     const generalData: KeyValueTableRow[] = [
         {
             keyDisplayValue: 'Request URL',

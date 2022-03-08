@@ -24,6 +24,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
     requestResponsePairs: RequestResponsePair[],
     type: 'xmlhttprequest' | 'fetch'
 ) => {
+    // Here
     // Request response pairs are sorted by end time; sort performance timings the same way
     performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd);
 
@@ -98,6 +99,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
         .sort((a, b) => a.fetchStart - b.fetchStart)
         .map((performanceTiming) => {
             performanceTiming.toJSON = function () {
+                // HEre
                 return {
                     initiatorType: this.initiatorType,
                     startTime: this.startTime,

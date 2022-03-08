@@ -247,6 +247,7 @@ export class FirstLoadListeners {
                     )
                 )
                 .map((resource) => {
+                    // Here
                     return {
                         ...resource.toJSON(),
                         offsetStartTime: resource.startTime - offset,

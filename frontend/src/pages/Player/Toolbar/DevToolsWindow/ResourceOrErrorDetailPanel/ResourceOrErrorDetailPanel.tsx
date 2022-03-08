@@ -124,6 +124,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                     <GoToButton
                         onClick={() => {
                             if (resource) {
+                                // Here
                                 pause(
                                     resource.offsetStartTime ||
                                         resource.startTime
