@@ -324,11 +324,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:     &model.T,
-			Length:        sessionTotalLengthInMilliseconds,
-			ActiveLength:  accumulator.ActiveDuration.Milliseconds(),
-			EventCounts:   &eventCountsString,
-			HasRageClicks: &hasRageClicks,
+			Processed:           &model.T,
+			Length:              sessionTotalLengthInMilliseconds,
+			ActiveLength:        accumulator.ActiveDuration.Milliseconds(),
+			EventCounts:         &eventCountsString,
+			HasRageClicks:       &hasRageClicks,
+			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -548,17 +549,17 @@ func (w *Worker) Start() {
 					if err := w.Resolver.DB.Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
 						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
-						log.WithField("session_id", session.ID).Error(e.Wrap(err, "error incrementing retry count"))
+						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
 					if excluded != nil && *excluded {
-						log.WithField("session_id", session.ID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
-							log.WithField("session_id", session.ID).Error(e.Wrap(err, "error updating session in opensearch"))
+							log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 					}
 
-					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
+					log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
@@ -779,10 +780,10 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 		if !a.AreEventsOutOfOrder {
 			eventTime := event.Timestamp.Unix()
 			if sequentialID <= 0 {
-				log.Warn(fmt.Sprintf("The payload for %s has an event after SID %d with an invald SID at time %d", a.SessionSecureID, a.LatestSID, eventTime))
+				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has an event after SID %d with an invalid SID at time %d", a.LatestSID, eventTime))
 				a.AreEventsOutOfOrder = true
-			} else if sequentialID != a.LatestSID+1 {
-				log.Warn(fmt.Sprintf("The payload for %s has two SID's out-of-order: %d and %d at time %d", a.SessionSecureID, a.LatestSID, sequentialID, eventTime))
+			} else if sequentialID != a.LatestSID+1 && sequentialID != 1 { // The ID can reset to 1 if a navigation or refresh happens
+				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has two SID's out-of-order: %d and %d at time %d", a.LatestSID, sequentialID, eventTime))
 				a.AreEventsOutOfOrder = true
 			}
 		}
