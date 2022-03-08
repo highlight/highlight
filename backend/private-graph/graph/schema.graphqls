@@ -55,6 +55,15 @@ type Session {
     last_user_interaction_time: Timestamp!
 }
 
+type SessionInterval {
+    project_id: ID!
+    session_secure_id: String!
+    start_time: Timestamp!
+    end_time: Timestamp!
+    duration: Int!
+    active: Boolean!
+}
+
 type RageClickEvent {
     id: ID!
     project_id: ID!
@@ -636,6 +645,7 @@ scalar Upload
 type Query {
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
+    session_intervals(session_secure_id: String!): [SessionInterval!]!
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     rageClicksForProject(
         project_id: ID!

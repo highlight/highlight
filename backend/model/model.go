@@ -121,6 +121,7 @@ var Models = []interface{}{
 	&Segment{},
 	&Admin{},
 	&Session{},
+	&SessionInterval{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
 	&Field{},
@@ -794,6 +795,16 @@ type ErrorComment struct {
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
 	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
+}
+
+type SessionInterval struct {
+	Model
+	ProjectID       int
+	SessionSecureID string
+	StartTime       time.Time
+	EndTime         time.Time
+	Duration        int
+	Active          bool
 }
 
 type RageClickEvent struct {

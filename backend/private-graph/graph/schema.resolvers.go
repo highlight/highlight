@@ -2498,6 +2498,22 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	return events, err
 }
 
+func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
+	}
+
+	var sessionIntervals []*model.SessionInterval
+	if res := r.DB.Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get session intervals")
+	}
+
+	return sessionIntervals, nil
+}
+
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)

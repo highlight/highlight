@@ -39,6 +39,9 @@ import (
 // Worker is a job runner that parses sessions
 const MIN_INACTIVE_DURATION = 10
 
+// For active and inactive segment calculation
+const INACTIVE_THRESHOLD = 0.02
+
 // Stop trying to reprocess a session if its retry count exceeds this
 const MAX_RETRIES = 5
 
@@ -249,6 +252,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		firstFullSnapshotTimestamp time.Time
 		lastEventTimestamp         time.Time
 	)
+	var userInteractionEvents []*parse.ReplayEvent
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
@@ -286,6 +290,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			rageClickSets = o.RageClickSets
 			currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			timestamps = o.TimestampCounts
+			userInteractionEvents = append(userInteractionEvents, o.UserInteractionEvents...)
 		}
 	}
 	for i, r := range rageClickSets {
@@ -298,6 +303,107 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
+	}
+
+	userInteractionEvents = append([]*parse.ReplayEvent{{
+		Timestamp: firstEventTimestamp,
+	}}, userInteractionEvents...)
+	userInteractionEvents = append(userInteractionEvents, &parse.ReplayEvent{
+		Timestamp: lastEventTimestamp,
+	})
+
+	var allIntervals []model.SessionInterval
+	for i := 1; i < len(userInteractionEvents); i++ {
+		currentEvent := userInteractionEvents[i-1]
+		nextEvent := userInteractionEvents[i]
+		diff := nextEvent.Timestamp.Sub(currentEvent.Timestamp)
+		if diff.Seconds() <= MIN_INACTIVE_DURATION {
+			allIntervals = append(allIntervals, model.SessionInterval{
+				ProjectID:       s.ProjectID,
+				SessionSecureID: s.SecureID,
+				StartTime:       currentEvent.Timestamp,
+				EndTime:         nextEvent.Timestamp,
+				Duration:        int(diff.Milliseconds()),
+				Active:          model.T,
+			})
+		} else {
+			allIntervals = append(allIntervals, model.SessionInterval{
+				ProjectID:       s.ProjectID,
+				SessionSecureID: s.SecureID,
+				StartTime:       currentEvent.Timestamp,
+				EndTime:         nextEvent.Timestamp,
+				Duration:        int(diff.Milliseconds()),
+				Active:          model.F,
+			})
+		}
+	}
+
+	if len(allIntervals) < 1 {
+		return nil
+	}
+
+	// Merges continuous active and inactive segments
+	var mergedIntervals []model.SessionInterval
+	startInterval := allIntervals[0]
+	for i := 1; i < len(allIntervals); i++ {
+		currentInterval := allIntervals[i-1]
+		nextInterval := allIntervals[i]
+		if currentInterval.Active != nextInterval.Active {
+			mergedIntervals = append(mergedIntervals, model.SessionInterval{
+				ProjectID:       s.ProjectID,
+				SessionSecureID: s.SecureID,
+				StartTime:       startInterval.StartTime,
+				EndTime:         currentInterval.EndTime,
+				Duration:        int(currentInterval.EndTime.Sub(startInterval.StartTime).Milliseconds()),
+				Active:          currentInterval.Active,
+			})
+			startInterval = nextInterval
+		}
+	}
+	if len(allIntervals) > 0 {
+		mergedIntervals = append(mergedIntervals, model.SessionInterval{
+			ProjectID:       s.ProjectID,
+			SessionSecureID: s.SecureID,
+			StartTime:       startInterval.StartTime,
+			EndTime:         allIntervals[len(allIntervals)-1].EndTime,
+			Duration:        int(allIntervals[len(allIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
+			Active:          allIntervals[len(allIntervals)-1].Active,
+		})
+	}
+
+	// Merges inactive segments that are less than a threshold into surrounding active sessions
+	var finalIntervals []model.SessionInterval
+	startInterval = mergedIntervals[0]
+	sessionLength := float64(CalculateSessionLength(firstEventTimestamp, lastEventTimestamp).Milliseconds())
+	for i := 1; i < len(mergedIntervals); i++ {
+		currentInterval := mergedIntervals[i-1]
+		nextInterval := mergedIntervals[i]
+		if (!nextInterval.Active && nextInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) || (!currentInterval.Active && currentInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) {
+			finalIntervals = append(finalIntervals, model.SessionInterval{
+				ProjectID:       s.ProjectID,
+				SessionSecureID: s.SecureID,
+				StartTime:       startInterval.StartTime,
+				EndTime:         currentInterval.EndTime,
+				Duration:        int(currentInterval.EndTime.Sub(startInterval.StartTime).Milliseconds()),
+				Active:          currentInterval.Active,
+			})
+			startInterval = nextInterval
+		}
+	}
+	if len(mergedIntervals) > 0 {
+		finalIntervals = append(finalIntervals, model.SessionInterval{
+			ProjectID:       s.ProjectID,
+			SessionSecureID: s.SecureID,
+			StartTime:       startInterval.StartTime,
+			EndTime:         mergedIntervals[len(mergedIntervals)-1].EndTime,
+			Duration:        int(mergedIntervals[len(mergedIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
+			Active:          mergedIntervals[len(mergedIntervals)-1].Active,
+		})
+	}
+
+	fmt.Println("LENGTH OF session: ", len(finalIntervals))
+	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
+		log.Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
 	var eventCountsLen int64 = 100
@@ -779,6 +885,8 @@ type processEventChunkOutput struct {
 	CalculatedDuration time.Duration
 	// TimestampCounts represents a count of all user interaction events per second
 	TimestampCounts map[time.Time]int
+	// UserInteractionEvents represents the user interaction events in the session from rrweb
+	UserInteractionEvents []*parse.ReplayEvent
 	// Error
 	Error error
 }
@@ -809,6 +917,10 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
 	o.RageClickSets = input.RageClickSets
 	o.TimestampCounts = input.TimestampCounts
+
+	var userInteractionEvents []*parse.ReplayEvent
+	o.UserInteractionEvents = userInteractionEvents
+
 	for _, event := range events.Events {
 		if event == nil {
 			continue
@@ -863,6 +975,10 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}[*mouseInteractionEventData.Source]; !ok {
 				continue
 			}
+
+			// Obtains all user interaction events for calculating active and inactive segments
+			userInteractionEvents = append(userInteractionEvents, event)
+
 			ts := event.Timestamp.Round(time.Millisecond)
 			if _, ok := o.TimestampCounts[ts]; !ok {
 				o.TimestampCounts[ts] = 0
@@ -934,6 +1050,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			o.TimestampCounts[ts] += 1
 		}
 	}
+	o.UserInteractionEvents = userInteractionEvents
 	return o
 }
 
