@@ -126,6 +126,7 @@ var Models = []interface{}{
 	&Field{},
 	&EmailSignup{},
 	&ResourcesObject{},
+	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
 	&ErrorComment{},
@@ -747,6 +748,17 @@ type ErrorFingerprint struct {
 	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
 }
 
+type ExternalAttachment struct {
+	Model
+	IntegrationType modelInputs.IntegrationType
+
+	ExternalID string
+	Title      string
+
+	SessionCommentID int `gorm:"index"`
+	ErrorCommentID   int `gorm:"index"`
+}
+
 type SessionCommentTag struct {
 	Model
 	SessionComments []SessionComment `json:"session_comments" gorm:"many2many:session_tags;"`
@@ -766,9 +778,10 @@ type SessionComment struct {
 	Text            string
 	XCoordinate     float64
 	YCoordinate     float64
-	Type            string               `json:"type" gorm:"default:ADMIN"`
-	Metadata        JSONB                `json:"metadata" gorm:"type:jsonb"`
-	Tags            []*SessionCommentTag `json:"tags" gorm:"many2many:session_tags;"`
+	Type            string                `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB                 `json:"metadata" gorm:"type:jsonb"`
+	Tags            []*SessionCommentTag  `json:"tags" gorm:"many2many:session_tags;"`
+	Attachments     []*ExternalAttachment `gorm:"foreignKey:SessionCommentID"`
 }
 
 type ErrorComment struct {
@@ -780,6 +793,7 @@ type ErrorComment struct {
 	ErrorId        int
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
+	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
 }
 
 type RageClickEvent struct {

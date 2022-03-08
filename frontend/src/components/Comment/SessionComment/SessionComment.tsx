@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
+import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
 import SplitButton from '@components/SplitButton/SplitButton';
 import Tag from '@components/Tag/Tag';
 import SvgHeartIcon from '@icons/HeartIcon';
@@ -56,10 +57,13 @@ export const SessionComment = ({ comment, menuItems, footer }: Props) => {
                 key={comment.id}
                 comment={comment}
                 menuItems={menuItems}
-                footer={footer}
             >
                 <SessionCommentTextBody comment={comment} />
             </SessionCommentHeader>
+            {comment.attachments.length > 0 && (
+                <AttachmentList attachments={comment.attachments} />
+            )}
+            {footer}
         </>
     );
 };

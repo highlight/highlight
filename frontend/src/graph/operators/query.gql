@@ -38,6 +38,11 @@ fragment SessionPayloadFragment on SessionPayload {
             email
             photo_url
         }
+        attachments {
+            integration_type
+            external_id
+            title
+        }
         x_coordinate
         y_coordinate
         type
@@ -238,6 +243,12 @@ query GetSessionComments($session_secure_id: String!) {
         type
         metadata
         tags
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
@@ -304,6 +315,11 @@ query GetErrorComments($error_group_secure_id: String!) {
             name
             email
             photo_url
+        }
+        attachments {
+            integration_type
+            external_id
+            title
         }
     }
 }

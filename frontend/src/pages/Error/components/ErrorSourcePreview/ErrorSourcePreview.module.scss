@@ -1,10 +1,9 @@
 .codeBlock {
     border: 0 !important;
     border-radius: 0 !important;
+    flex: 1 1 auto;
     margin: 0 !important;
     margin-bottom: 0;
-    min-width: 100%;
-    padding: 8px 0 !important;
     width: fit-content;
 
     :global(.token):not(.underline) {
@@ -15,7 +14,6 @@
 .codeBlockWrapper {
     border-bottom-left-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
-    overflow-x: auto;
 }
 
 .underline {
