@@ -777,7 +777,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 		}
 		sequentialID := int(event.SID)
 		if !a.AreEventsOutOfOrder {
-			eventTime := event.Timestamp.UnixMilli()
+			eventTime := event.Timestamp.Unix()
 			if sequentialID <= 0 {
 				log.Warn(fmt.Sprintf("The payload for %s has an event after SID %d with an invald SID at time %d", a.SessionSecureID, a.LatestSID, eventTime))
 				a.AreEventsOutOfOrder = true
