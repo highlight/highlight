@@ -289,27 +289,51 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	})
 
 	var allIntervals []model.SessionInterval
+	startTime := userInteractionEvents[0].Timestamp
+	var activeInterval bool
 	for i := 1; i < len(userInteractionEvents); i++ {
 		currentEvent := userInteractionEvents[i-1]
 		nextEvent := userInteractionEvents[i]
 		diff := nextEvent.Timestamp.Sub(currentEvent.Timestamp)
+		intervalDiff := currentEvent.Timestamp.Sub(startTime)
 		if diff.Seconds() <= MIN_INACTIVE_DURATION {
-			allIntervals = append(allIntervals, model.SessionInterval{
-				ProjectID:       s.ProjectID,
-				SessionSecureID: s.SecureID,
-				StartTime:       currentEvent.Timestamp,
-				EndTime:         nextEvent.Timestamp,
-				Duration:        int(diff.Milliseconds()),
-				Active:          model.T,
-			})
+			if i == 1 {
+				activeInterval = model.T
+			}
+			if !activeInterval {
+				allIntervals = append(allIntervals, model.SessionInterval{
+					SessionSecureID: s.SecureID,
+					StartTime:       startTime,
+					EndTime:         currentEvent.Timestamp,
+					Duration:        int(intervalDiff.Milliseconds()),
+					Active:          model.F,
+				})
+				startTime = currentEvent.Timestamp
+				activeInterval = model.T
+			}
 		} else {
+			if i == 1 {
+				activeInterval = model.F
+			}
+			if activeInterval {
+				allIntervals = append(allIntervals, model.SessionInterval{
+					SessionSecureID: s.SecureID,
+					StartTime:       startTime,
+					EndTime:         currentEvent.Timestamp,
+					Duration:        int(intervalDiff.Milliseconds()),
+					Active:          model.T,
+				})
+				startTime = currentEvent.Timestamp
+				activeInterval = model.F
+			}
+		}
+		if i == len(userInteractionEvents)-1 {
 			allIntervals = append(allIntervals, model.SessionInterval{
-				ProjectID:       s.ProjectID,
 				SessionSecureID: s.SecureID,
-				StartTime:       currentEvent.Timestamp,
+				StartTime:       startTime,
 				EndTime:         nextEvent.Timestamp,
-				Duration:        int(diff.Milliseconds()),
-				Active:          model.F,
+				Duration:        int(nextEvent.Timestamp.Sub(startTime).Milliseconds()),
+				Active:          activeInterval,
 			})
 		}
 	}
@@ -317,16 +341,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(allIntervals) < 1 {
 		return nil
 	}
-
-	// Merges continuous active and inactive segments
-	var mergedIntervals []model.SessionInterval
+	// Merges inactive segments that are less than a threshold into surrounding active sessions
+	var finalIntervals []model.SessionInterval
 	startInterval := allIntervals[0]
+	sessionLength := float64(CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp).Milliseconds())
 	for i := 1; i < len(allIntervals); i++ {
 		currentInterval := allIntervals[i-1]
 		nextInterval := allIntervals[i]
-		if currentInterval.Active != nextInterval.Active {
-			mergedIntervals = append(mergedIntervals, model.SessionInterval{
-				ProjectID:       s.ProjectID,
+		if (!nextInterval.Active && nextInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) || (!currentInterval.Active && currentInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) {
+			finalIntervals = append(finalIntervals, model.SessionInterval{
 				SessionSecureID: s.SecureID,
 				StartTime:       startInterval.StartTime,
 				EndTime:         currentInterval.EndTime,
@@ -337,8 +360,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 	if len(allIntervals) > 0 {
-		mergedIntervals = append(mergedIntervals, model.SessionInterval{
-			ProjectID:       s.ProjectID,
+		finalIntervals = append(finalIntervals, model.SessionInterval{
 			SessionSecureID: s.SecureID,
 			StartTime:       startInterval.StartTime,
 			EndTime:         allIntervals[len(allIntervals)-1].EndTime,
@@ -347,37 +369,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		})
 	}
 
-	// Merges inactive segments that are less than a threshold into surrounding active sessions
-	var finalIntervals []model.SessionInterval
-	startInterval = mergedIntervals[0]
-	sessionLength := float64(CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp).Milliseconds())
-	for i := 1; i < len(mergedIntervals); i++ {
-		currentInterval := mergedIntervals[i-1]
-		nextInterval := mergedIntervals[i]
-		if (!nextInterval.Active && nextInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) || (!currentInterval.Active && currentInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) {
-			finalIntervals = append(finalIntervals, model.SessionInterval{
-				ProjectID:       s.ProjectID,
-				SessionSecureID: s.SecureID,
-				StartTime:       startInterval.StartTime,
-				EndTime:         currentInterval.EndTime,
-				Duration:        int(currentInterval.EndTime.Sub(startInterval.StartTime).Milliseconds()),
-				Active:          currentInterval.Active,
-			})
-			startInterval = nextInterval
-		}
-	}
-	if len(mergedIntervals) > 0 {
-		finalIntervals = append(finalIntervals, model.SessionInterval{
-			ProjectID:       s.ProjectID,
-			SessionSecureID: s.SecureID,
-			StartTime:       startInterval.StartTime,
-			EndTime:         mergedIntervals[len(mergedIntervals)-1].EndTime,
-			Duration:        int(mergedIntervals[len(mergedIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
-			Active:          mergedIntervals[len(mergedIntervals)-1].Active,
-		})
-	}
-
-	fmt.Println("LENGTH OF session: ", len(finalIntervals))
 	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
 		log.Error(e.Wrap(err, "error creating session activity intervals"))
 	}

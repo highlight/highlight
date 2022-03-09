@@ -602,7 +602,6 @@ type ComplexityRoot struct {
 		Active          func(childComplexity int) int
 		Duration        func(childComplexity int) int
 		EndTime         func(childComplexity int) int
-		ProjectID       func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		StartTime       func(childComplexity int) int
 	}
@@ -4524,13 +4523,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionInterval.EndTime(childComplexity), true
 
-	case "SessionInterval.project_id":
-		if e.complexity.SessionInterval.ProjectID == nil {
-			break
-		}
-
-		return e.complexity.SessionInterval.ProjectID(childComplexity), true
-
 	case "SessionInterval.session_secure_id":
 		if e.complexity.SessionInterval.SessionSecureID == nil {
 			break
@@ -5053,7 +5045,6 @@ type Session {
 }
 
 type SessionInterval {
-    project_id: ID!
     session_secure_id: String!
     start_time: Timestamp!
     end_time: Timestamp!
@@ -25412,41 +25403,6 @@ func (ec *executionContext) _SessionCommentTag_name(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SessionInterval_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionInterval) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SessionInterval",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SessionInterval_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionInterval) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -32458,11 +32414,6 @@ func (ec *executionContext) _SessionInterval(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SessionInterval")
-		case "project_id":
-			out.Values[i] = ec._SessionInterval_project_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "session_secure_id":
 			out.Values[i] = ec._SessionInterval_session_secure_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

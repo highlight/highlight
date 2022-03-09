@@ -799,8 +799,7 @@ type ErrorComment struct {
 
 type SessionInterval struct {
 	Model
-	ProjectID       int
-	SessionSecureID string
+	SessionSecureID string `json:"secure_id"`
 	StartTime       time.Time
 	EndTime         time.Time
 	Duration        int

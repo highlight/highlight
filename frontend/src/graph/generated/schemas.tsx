@@ -74,7 +74,6 @@ export type Session = {
 
 export type SessionInterval = {
     __typename?: 'SessionInterval';
-    project_id: Scalars['ID'];
     session_secure_id: Scalars['String'];
     start_time: Scalars['Timestamp'];
     end_time: Scalars['Timestamp'];

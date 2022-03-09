@@ -509,20 +509,23 @@ export const usePlayer = (): ReplayerContextInterface => {
 
                     // Preprocess session interval data from backend
                     const parsedSessionIntervalsData: SessionInterval[] =
-                        sessionIntervalsData?.session_intervals.map(
-                            (interval) => {
-                                return {
-                                    startTime: new Date(
-                                        interval.start_time
-                                    ).getTime(),
-                                    endTime: new Date(
-                                        interval.end_time
-                                    ).getTime(),
-                                    duration: interval.duration,
-                                    active: interval.active,
-                                };
-                            }
-                        ) || replayer.getActivityIntervals();
+                        sessionIntervalsData &&
+                        sessionIntervalsData.session_intervals.length > 0
+                            ? sessionIntervalsData.session_intervals.map(
+                                  (interval) => {
+                                      return {
+                                          startTime: new Date(
+                                              interval.start_time
+                                          ).getTime(),
+                                          endTime: new Date(
+                                              interval.end_time
+                                          ).getTime(),
+                                          duration: interval.duration,
+                                          active: interval.active,
+                                      };
+                                  }
+                              )
+                            : replayer.getActivityIntervals();
                     const sessionMetadata: playerMetaData = parsedSessionIntervalsData
                         ? {
                               startTime: new Date(

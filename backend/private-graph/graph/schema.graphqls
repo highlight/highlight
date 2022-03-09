@@ -56,7 +56,6 @@ type Session {
 }
 
 type SessionInterval {
-    project_id: ID!
     session_secure_id: String!
     start_time: Timestamp!
     end_time: Timestamp!
