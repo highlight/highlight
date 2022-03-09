@@ -1899,6 +1899,19 @@ export type SendAdminWorkspaceInviteMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'sendAdminWorkspaceInvite'>;
 
+export type GetSessionIntervalsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetSessionIntervalsQuery = { __typename?: 'Query' } & {
+    session_intervals: Array<
+        { __typename?: 'SessionInterval' } & Pick<
+            Types.SessionInterval,
+            'start_time' | 'end_time' | 'active' | 'duration'
+        >
+    >;
+};
+
 export type GetFieldTypesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3420,6 +3433,7 @@ export const namedOperations = {
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetSessionIntervals: 'GetSessionIntervals' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
         GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,

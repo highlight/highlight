@@ -4849,6 +4849,65 @@ export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions
     Types.SendAdminWorkspaceInviteMutation,
     Types.SendAdminWorkspaceInviteMutationVariables
 >;
+export const GetSessionIntervalsDocument = gql`
+    query GetSessionIntervals($session_secure_id: String!) {
+        session_intervals(session_secure_id: $session_secure_id) {
+            start_time
+            end_time
+            active
+            duration
+        }
+    }
+`;
+
+/**
+ * __useGetSessionIntervalsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionIntervalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionIntervalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionIntervalsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetSessionIntervalsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >(GetSessionIntervalsDocument, baseOptions);
+}
+export function useGetSessionIntervalsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >(GetSessionIntervalsDocument, baseOptions);
+}
+export type GetSessionIntervalsQueryHookResult = ReturnType<
+    typeof useGetSessionIntervalsQuery
+>;
+export type GetSessionIntervalsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionIntervalsLazyQuery
+>;
+export type GetSessionIntervalsQueryResult = Apollo.QueryResult<
+    Types.GetSessionIntervalsQuery,
+    Types.GetSessionIntervalsQueryVariables
+>;
 export const GetFieldTypesDocument = gql`
     query GetFieldTypes($project_id: ID!) {
         field_types(project_id: $project_id) {

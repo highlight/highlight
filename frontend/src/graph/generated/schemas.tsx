@@ -72,6 +72,15 @@ export type Session = {
     last_user_interaction_time: Scalars['Timestamp'];
 };
 
+export type SessionInterval = {
+    __typename?: 'SessionInterval';
+    session_secure_id: Scalars['String'];
+    start_time: Scalars['Timestamp'];
+    end_time: Scalars['Timestamp'];
+    duration: Scalars['Int'];
+    active: Scalars['Boolean'];
+};
+
 export type RageClickEvent = {
     __typename?: 'RageClickEvent';
     id: Scalars['ID'];
@@ -694,6 +703,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    session_intervals: Array<SessionInterval>;
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
     error_groups?: Maybe<ErrorResults>;
@@ -777,6 +787,10 @@ export type QuerySessionArgs = {
 };
 
 export type QueryEventsArgs = {
+    session_secure_id: Scalars['String'];
+};
+
+export type QuerySession_IntervalsArgs = {
     session_secure_id: Scalars['String'];
 };
 
