@@ -3025,6 +3025,10 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, nil
