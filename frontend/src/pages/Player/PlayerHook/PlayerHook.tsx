@@ -778,7 +778,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const pause = useCallback(
         (newTime?: number) => {
-            setIsLiveMode(false);
+            if (isLiveMode) {
+                // pause() will automatically be called again after the transition
+                setIsLiveMode(false);
+                return;
+            }
             setState(ReplayerState.Paused);
             if (newTime !== undefined) {
                 setTime(newTime);
@@ -793,7 +797,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionId: session?.secure_id,
             });
         },
-        [replayer, session?.secure_id]
+        [isLiveMode, replayer, session?.secure_id]
     );
 
     /**
