@@ -61,12 +61,12 @@ const SessionCommentHeader = ({
 
     const defaultIssueTitle = useMemo(() => {
         if (session?.identifier) {
-            return `Issue with ${session?.identifier}'s session`;
+            return `Highlight Comment: ${session?.identifier}'s session`;
         }
         if (session?.fingerprint) {
-            return `Issue with session with fingerprint #${session?.fingerprint}`;
+            return `Highlight Comment: session with device ID ${session?.fingerprint}`;
         }
-        return `Issue with this Highlight session`;
+        return `Highlight Comment for a session`;
     }, [session]);
 
     const createIssueMenuItem = (
