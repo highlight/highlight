@@ -132,6 +132,12 @@ query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
         type
         metadata
         tags
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
