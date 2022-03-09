@@ -1277,7 +1277,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
 	}
-	if err := r.DB.Delete(&model.ExternalAttachment{ErrorCommentID: id}).Error; err != nil {
+	if err := r.DB.Where(&model.ExternalAttachment{ErrorCommentID: id}).Delete(&model.ExternalAttachment{}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
 	return &model.T, nil
