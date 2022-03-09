@@ -13,7 +13,7 @@ import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { PropsWithChildren, useState } from 'react';
+import React, { PropsWithChildren, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { useDeleteSessionCommentMutation } from '../../../graph/generated/hooks';
@@ -58,6 +58,16 @@ const SessionCommentHeader = ({
         url.searchParams.set(PlayerSearchParameters.commentId, comment.id);
         return url;
     };
+
+    const defaultIssueTitle = useMemo(() => {
+        if (session?.identifier) {
+            return `Issue with ${session?.identifier}'s session`;
+        }
+        if (session?.fingerprint) {
+            return `Issue with session with fingerprint #${session?.fingerprint}`;
+        }
+        return `Issue with this Highlight session`;
+    }, [session]);
 
     const createIssueMenuItem = (
         <MenuItem
@@ -235,6 +245,7 @@ const SessionCommentHeader = ({
                 commentId={parseInt(comment.id, 10)}
                 commentText={comment.text}
                 commentType="SessionComment"
+                defaultIssueTitle={defaultIssueTitle}
             />
         </CommentHeader>
     );

@@ -242,10 +242,10 @@ export const ErrorCommentCard = ({ comment }: any) => (
     <div className={styles.commentDiv}>
         <ErrorCommentHeader comment={comment}>
             <CommentTextBody commentText={comment.text} />
-            {comment.attachments.length > 0 && (
-                <AttachmentList attachments={comment.attachments} />
-            )}
         </ErrorCommentHeader>
+        {comment.attachments.length > 0 && (
+            <AttachmentList attachments={comment.attachments} />
+        )}
     </div>
 );
 

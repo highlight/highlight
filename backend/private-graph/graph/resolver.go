@@ -1598,7 +1598,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo512.png"}}
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
 
 	requestBytes, err := json.Marshal(req)
 	if err != nil {

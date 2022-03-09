@@ -65,7 +65,7 @@ export const NewCommentForm = ({
     commentPosition,
     parentRef,
 }: Props) => {
-    const { time } = useReplayerContext();
+    const { time, session } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
@@ -124,6 +124,16 @@ export const NewCommentForm = ({
     const [mentionedSlackUsers, setMentionedSlackUsers] = useState<
         SanitizedSlackChannelInput[]
     >([]);
+
+    const defaultIssueTitle = useMemo(() => {
+        if (session?.identifier) {
+            return `Issue with ${session?.identifier}'s session`;
+        }
+        if (session?.fingerprint) {
+            return `Issue with session with fingerprint #${session?.fingerprint}`;
+        }
+        return `Issue with this Highlight session`;
+    }, [session]);
 
     const sessionUrl = `${
         window.location.port !== ''
@@ -421,7 +431,7 @@ export const NewCommentForm = ({
                         </h3>
                         <Form.Item
                             name="issueTitle"
-                            initialValue="New issue in Highlight session"
+                            initialValue={defaultIssueTitle}
                             label="Issue Title"
                         >
                             <Input
