@@ -4012,6 +4012,12 @@ export const GetSessionPayloadDocument = gql`
             type
             metadata
             tags
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
         }
     }
 `;

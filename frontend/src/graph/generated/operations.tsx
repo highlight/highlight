@@ -1561,6 +1561,17 @@ export type GetSessionPayloadQuery = {
                                 'id' | 'name' | 'email' | 'photo_url'
                             >
                         >;
+                        attachments: Array<
+                            Types.Maybe<
+                                { __typename?: 'ExternalAttachment' } & Pick<
+                                    Types.ExternalAttachment,
+                                    | 'id'
+                                    | 'integration_type'
+                                    | 'external_id'
+                                    | 'title'
+                                >
+                            >
+                        >;
                     }
             >
         >;
