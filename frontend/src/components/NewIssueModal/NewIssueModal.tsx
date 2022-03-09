@@ -22,6 +22,7 @@ interface NewIssueModalProps {
     changeVisible: (newVal: boolean) => void;
     commentId: number;
     commentText: string;
+    defaultIssueTitle?: string;
     timestamp?: number;
     selectedIntegration: Integration;
     commentType: 'ErrorComment' | 'SessionComment';
@@ -33,6 +34,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
     selectedIntegration,
     commentText,
     commentType,
+    defaultIssueTitle,
     timestamp,
 }) => {
     const [form] = Form.useForm<{
@@ -157,7 +159,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                     <div>
                         <Form.Item
                             name="issueTitle"
-                            initialValue="New issue in Highlight session"
+                            initialValue={defaultIssueTitle}
                             label="Issue Title"
                         >
                             <Input

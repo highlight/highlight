@@ -6,6 +6,7 @@ import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
 import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getCommentMentionSuggestions } from '@util/comment/util';
+import { getErrorTitle } from '@util/errors/errorUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
 import { H } from 'highlight.run';
@@ -238,23 +239,30 @@ const ErrorComments = ({ parentRef }: Props) => {
     );
 };
 
-export const ErrorCommentCard = ({ comment }: any) => (
+export const ErrorCommentCard = ({ comment, errorGroup }: any) => (
     <div className={styles.commentDiv}>
-        <ErrorCommentHeader comment={comment}>
+        <ErrorCommentHeader comment={comment} errorGroup={errorGroup}>
             <CommentTextBody commentText={comment.text} />
-            {comment.attachments.length > 0 && (
-                <AttachmentList attachments={comment.attachments} />
-            )}
         </ErrorCommentHeader>
+        {comment.attachments.length > 0 && (
+            <AttachmentList attachments={comment.attachments} />
+        )}
     </div>
 );
 
-const ErrorCommentHeader = ({ comment, children }: any) => {
+const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
         refetchQueries: [namedOperations.Query.GetErrorComments],
     });
 
     const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+
+    const defaultIssueTitle = useMemo(() => {
+        if (errorGroup?.error_group?.event) {
+            return getErrorTitle(errorGroup?.error_group?.event);
+        }
+        return `Issue from this bug error`;
+    }, [errorGroup]);
 
     const createIssueMenuItem = (
         <MenuItem
@@ -296,6 +304,7 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
                 commentId={parseInt(comment.id, 10)}
                 commentText={comment.text}
                 commentType="ErrorComment"
+                defaultIssueTitle={defaultIssueTitle || ''}
             />
         </CommentHeader>
     );
