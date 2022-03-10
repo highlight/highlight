@@ -32,7 +32,6 @@ const IntegrationAuthCallbackPage = () => {
         (async () => {
             try {
                 const parsedState = JSON.parse(atob(state));
-                console.log('[gt]', parsedState);
                 const project_id = parsedState['project_id'];
 
                 if (!project_id) {
