@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2484,7 +2484,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	if err := r.DB.Raw(`
 	SELECT id, name, 
 	(select COALESCE(SUM(count), 0) as currentPeriodSessionCount
-	  from daily_session_counts
+	  from daily_session_counts_view
 		  where
 			  project_id in (SELECT id FROM projects WHERE workspace_id=workspaces.id)
 		  AND date >=  now() - interval '1 month'
@@ -5010,13 +5010,3 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) Account(ctx context.Context) ([]*modelInputs.Account, error) {
-	panic(fmt.Errorf("not implemented"))
-}
