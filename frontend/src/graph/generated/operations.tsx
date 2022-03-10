@@ -1668,6 +1668,21 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetAccountsQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetAccountsQuery = { __typename?: 'Query' } & {
+    accounts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Account' } & Pick<
+                    Types.Account,
+                    'id' | 'name' | 'session_count'
+                >
+            >
+        >
+    >;
+};
+
 export type GetErrorCommentsQueryVariables = Types.Exact<{
     error_group_secure_id: Types.Scalars['String'];
 }>;
@@ -3232,6 +3247,7 @@ export const namedOperations = {
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+        GetAccounts: 'GetAccounts' as const,
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,

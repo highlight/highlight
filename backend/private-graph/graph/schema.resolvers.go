@@ -2331,6 +2331,26 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
+	if !r.isWhitelistedAccount(ctx) {
+		return nil, e.New("You don't have access to this data")
+	}
+	accounts := []*modelInputs.Account{}
+	if err := r.DB.Raw(`
+	SELECT id, name, 
+	(select COALESCE(SUM(count), 0) as currentPeriodSessionCount
+	  from daily_session_counts
+		  where
+			  project_id in (SELECT id FROM projects WHERE workspace_id=workspaces.id)
+		  AND date >=  now() - interval '1 month'
+  	) as last_month_session_count , id, plan_tier, stripe_customer_id
+	FROM workspaces
+	`).Scan(&accounts).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving accounts for project")
+	}
+	return accounts, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
@@ -4743,3 +4763,13 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) Account(ctx context.Context) ([]*modelInputs.Account, error) {
+	panic(fmt.Errorf("not implemented"))
+}

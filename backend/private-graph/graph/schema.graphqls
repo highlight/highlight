@@ -153,6 +153,12 @@ type Project {
     workspace_id: ID!
 }
 
+type Account {
+    id: ID!
+    name: String!
+    session_count: Int!
+}
+
 type Workspace {
     id: ID!
     name: String!
@@ -593,6 +599,7 @@ type MetricMonitor {
 scalar Upload
 
 type Query {
+    accounts: [Account]
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!

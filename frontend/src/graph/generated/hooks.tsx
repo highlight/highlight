@@ -4308,6 +4308,61 @@ export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsForAdminQuery,
     Types.GetSessionCommentsForAdminQueryVariables
 >;
+export const GetAccountsDocument = gql`
+    query GetAccounts {
+        accounts {
+            id
+            name
+            session_count
+        }
+    }
+`;
+
+/**
+ * __useGetAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAccountsQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetAccountsQuery,
+        Types.GetAccountsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAccountsQuery,
+        Types.GetAccountsQueryVariables
+    >(GetAccountsDocument, baseOptions);
+}
+export function useGetAccountsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAccountsQuery,
+        Types.GetAccountsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAccountsQuery,
+        Types.GetAccountsQueryVariables
+    >(GetAccountsDocument, baseOptions);
+}
+export type GetAccountsQueryHookResult = ReturnType<typeof useGetAccountsQuery>;
+export type GetAccountsLazyQueryHookResult = ReturnType<
+    typeof useGetAccountsLazyQuery
+>;
+export type GetAccountsQueryResult = Apollo.QueryResult<
+    Types.GetAccountsQuery,
+    Types.GetAccountsQueryVariables
+>;
 export const GetErrorCommentsDocument = gql`
     query GetErrorComments($error_group_secure_id: String!) {
         error_comments(error_group_secure_id: $error_group_secure_id) {

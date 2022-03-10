@@ -288,6 +288,14 @@ query GetSessionCommentsForAdmin {
     }
 }
 
+query GetAccounts {
+    accounts {
+        id
+        name
+        session_count
+    }
+}
+
 query GetErrorComments($error_group_secure_id: String!) {
     error_comments(error_group_secure_id: $error_group_secure_id) {
         id

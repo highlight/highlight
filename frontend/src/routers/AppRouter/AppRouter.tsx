@@ -3,6 +3,7 @@ import '../../App.scss';
 import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import AboutYouPage from '@pages/AboutYou/AboutYouPage';
+import Accounts from '@pages/Accounts/Accounts';
 import LoginForm from '@pages/Login/Login';
 import NewProjectPage from '@pages/NewProject/NewProjectPage';
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm';
@@ -25,6 +26,9 @@ export const AppRouter = () => {
         <div className={styles.appBody}>
             <Router>
                 <Switch>
+                    <Route path="/accounts">
+                        <Accounts />
+                    </Route>
                     <Route path="/w/:workspace_id(\d+)/invite/:invite_id">
                         <Landing>
                             <NewMemberPage />
