@@ -1,6 +1,9 @@
+import Popover from '@components/Popover/Popover';
 import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
-import React from 'react';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
+import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { BiMinus } from 'react-icons/bi';
 import { BsPlus } from 'react-icons/bs';
 
@@ -16,11 +19,22 @@ interface Props {
     disabled: boolean;
 }
 
+const INTERACTION_COUNT_THRESHOLD_TO_TRIGGER_NOTIFICATION = 5;
+
 const SpeedControl = ({ disabled }: Props) => {
+    const [interactionCount, setInteractionCount] = useState<number | null>(0);
     const { playerSpeed, setPlayerSpeed } = usePlayerConfiguration();
+
+    const shouldShowShortcutEducation =
+        interactionCount === null
+            ? false
+            : interactionCount >
+              INTERACTION_COUNT_THRESHOLD_TO_TRIGGER_NOTIFICATION;
 
     const onHandleSpeedChange = (type: 'DECREMENT' | 'INCREMENT') => {
         let newSpeed = playerSpeed;
+
+        setInteractionCount((prev) => (prev === null ? null : prev + 1));
 
         if (type === 'DECREMENT') {
             newSpeed = Math.max(
@@ -51,6 +65,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 <BiMinus />
             </Button>
             <PopoverMenu
+                getPopupContainer={getFullScreenPopoverGetPopupContainer}
                 // This is a range() function that generates a list from `PLAYBACK_MIN_SPEED` to `PLAYBACK_MAX_SPEED` in increments of `1`.
                 menuItems={[
                     0.5,
@@ -78,15 +93,52 @@ const SpeedControl = ({ disabled }: Props) => {
                 }))}
                 buttonTrackingId="SpeedControlMenu"
                 buttonContentsOverride={
-                    <Button
-                        trackingId="SpeedControlMenu"
-                        size="small"
-                        className={styles.shortcutButton}
+                    <Popover
+                        visible={shouldShowShortcutEducation}
+                        onMouseLeave={() => {
+                            setInteractionCount(null);
+                        }}
+                        title={
+                            <h3 className={styles.popoverTitle}>Pro Tip!</h3>
+                        }
+                        popoverClassName={styles.popover}
+                        content={
+                            <div className={styles.popoverContent}>
+                                <p>
+                                    We've notice you're changing the player
+                                    speed a lot. Did you know you can quickly
+                                    change the player speed with the shortcuts
+                                    menu?
+                                </p>
+                                <motion.div
+                                    className={styles.downIndicator}
+                                    initial={{ translateY: 0 }}
+                                    animate={{ translateY: 12 }}
+                                    exit={{ translateY: 0 }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        repeatType: 'mirror',
+                                        bounce: 0.25,
+                                    }}
+                                >
+                                    👇
+                                </motion.div>
+                            </div>
+                        }
                     >
-                        <span className={styles.speedText}>
-                            {playerSpeed.toFixed(1)}x
-                        </span>
-                    </Button>
+                        <Button
+                            trackingId="SpeedControlMenu"
+                            size="small"
+                            className={styles.shortcutButton}
+                            onClick={() => {
+                                setInteractionCount(null);
+                            }}
+                        >
+                            <span className={styles.speedText}>
+                                {playerSpeed.toFixed(1)}x
+                            </span>
+                        </Button>
+                    </Popover>
                 }
                 header={<h3>Playback Speed</h3>}
             />

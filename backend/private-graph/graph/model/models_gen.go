@@ -16,9 +16,10 @@ type Account struct {
 }
 
 type AdminAboutYouDetails struct {
-	Name            string `json:"name"`
-	UserDefinedRole string `json:"user_defined_role"`
-	Referral        string `json:"referral"`
+	Name               string `json:"name"`
+	UserDefinedRole    string `json:"user_defined_role"`
+	UserDefinedPersona string `json:"user_defined_persona"`
+	Referral           string `json:"referral"`
 }
 
 type AverageSessionLength struct {
@@ -44,6 +45,11 @@ type EnhancedUserDetailsResult struct {
 	Bio     *string       `json:"bio"`
 	Socials []*SocialLink `json:"socials"`
 	Email   *string       `json:"email"`
+}
+
+type ErrorDistributionItem struct {
+	Name  string `json:"name"`
+	Value int64  `json:"value"`
 }
 
 type ErrorMetadata struct {
@@ -78,6 +84,9 @@ type ErrorTrace struct {
 	FunctionName *string `json:"functionName"`
 	ColumnNumber *int    `json:"columnNumber"`
 	Error        *string `json:"error"`
+	LineContent  *string `json:"lineContent"`
+	LinesBefore  *string `json:"linesBefore"`
+	LinesAfter   *string `json:"linesAfter"`
 }
 
 type LengthRangeInput struct {
@@ -260,6 +269,47 @@ func (e *ErrorState) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ErrorState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type IntegrationType string
+
+const (
+	IntegrationTypeSlack  IntegrationType = "Slack"
+	IntegrationTypeLinear IntegrationType = "Linear"
+)
+
+var AllIntegrationType = []IntegrationType{
+	IntegrationTypeSlack,
+	IntegrationTypeLinear,
+}
+
+func (e IntegrationType) IsValid() bool {
+	switch e {
+	case IntegrationTypeSlack, IntegrationTypeLinear:
+		return true
+	}
+	return false
+}
+
+func (e IntegrationType) String() string {
+	return string(e)
+}
+
+func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IntegrationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IntegrationType", str)
+	}
+	return nil
+}
+
+func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

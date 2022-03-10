@@ -36,11 +36,15 @@ module.exports = {
         //   "@highlight-run/rrweb": path.resolve(__dirname, "../../rrweb/dist"),
         // }
     },
-    mode: 'development',
+    mode: 'production',
     devtool: 'source-map',
     plugins: [
         new webpack.EnvironmentPlugin({
             PUBLIC_GRAPH_URI: 'https://pub.highlight.run',
         }),
     ],
+    performance: {
+        maxEntrypointSize: 8 * 400 * 1000,
+        maxAssetSize: 8 * 400 * 1000,
+    },
 };

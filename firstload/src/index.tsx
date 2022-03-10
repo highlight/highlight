@@ -6,6 +6,7 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../client/src/index';
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners';
 import { FeedbackWidgetOptions } from '../../client/src/ui/feedback-widget/feedback-widget';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
@@ -16,6 +17,9 @@ import {
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
+import HighlightSegmentMiddleware from './integrations/segment';
+import { ConsoleMethods } from '../../client/src/listeners/console-listener';
+import { GenerateSecureID } from '../../client/src/utils/secure-id';
 
 initializeFetchListener();
 
@@ -65,6 +69,13 @@ export type HighlightOptions = {
      * @default false
      */
     disableConsoleRecording?: boolean;
+    /**
+     * Specifies which console methods to record.
+     * The value here will be ignored if `disabledConsoleRecording` is `true`.
+     * @default All console methods.
+     * @example consoleMethodsToRecord: ['log', 'info', 'error']
+     */
+    consoleMethodsToRecord?: ConsoleMethods[];
     enableSegmentIntegration?: boolean;
     /**
      * Specifies the environment your application is running in.
@@ -145,7 +156,7 @@ export interface HighlightPublicInterface {
     ) => void;
     getSessionURL: () => Promise<string>;
     getSessionDetails: () => Promise<SessionDetails>;
-    start: () => void;
+    start: (options?: StartOptions) => void;
     /** Stops the session and error recording. */
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
@@ -160,12 +171,22 @@ export interface HighlightPublicInterface {
     toggleSessionFeedbackModal: () => void;
 }
 
+interface StartOptions {
+    /**
+     * Specifies whether console warn messages should not be created.
+     */
+    silent?: boolean;
+}
+
 interface Metadata {
     [key: string]: string | boolean | number;
 }
 
 interface HighlightWindow extends Window {
-    Highlight: new (options?: HighlightClassOptions) => Highlight;
+    Highlight: new (
+        options: HighlightClassOptions,
+        firstLoadListeners: FirstLoadListeners
+    ) => Highlight;
     H: HighlightPublicInterface;
     mixpanel?: MixpanelAPI;
     amplitude?: AmplitudeAPI;
@@ -176,6 +197,7 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
+var first_load_listeners: FirstLoadListeners;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -208,26 +230,51 @@ export const H: HighlightPublicInterface = {
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
+            const client_options: HighlightClassOptions = {
+                organizationID: projectID,
+                debug: options?.debug,
+                backendUrl: options?.backendUrl,
+                tracingOrigins: options?.tracingOrigins,
+                disableNetworkRecording: options?.disableNetworkRecording,
+                networkRecording: options?.networkRecording,
+                disableConsoleRecording: options?.disableConsoleRecording,
+                consoleMethodsToRecord: options?.consoleMethodsToRecord,
+                enableSegmentIntegration: options?.enableSegmentIntegration,
+                enableStrictPrivacy: options?.enableStrictPrivacy || false,
+                enableCanvasRecording: options?.enableCanvasRecording,
+                firstloadVersion: packageJson['version'],
+                environment: options?.environment || 'production',
+                appVersion: options?.version,
+                sessionShortcut: options?.sessionShortcut,
+                feedbackWidget: options?.feedbackWidget,
+                sessionSecureID: GenerateSecureID(),
+            };
+            first_load_listeners = new FirstLoadListeners(client_options);
+            if (!options?.manualStart) {
+                // Start some of the listeners before client is loaded, then hand the
+                // listeners over for client to manage
+                first_load_listeners.startListening();
+            }
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight({
-                    organizationID: projectID,
-                    debug: options?.debug,
-                    backendUrl: options?.backendUrl,
-                    tracingOrigins: options?.tracingOrigins,
-                    disableNetworkRecording: options?.disableNetworkRecording,
-                    networkRecording: options?.networkRecording,
-                    disableConsoleRecording: options?.disableConsoleRecording,
-                    enableSegmentIntegration: options?.enableSegmentIntegration,
-                    enableStrictPrivacy: options?.enableStrictPrivacy || false,
-                    enableCanvasRecording: options?.enableCanvasRecording,
-                    firstloadVersion: packageJson['version'],
-                    environment: options?.environment || 'production',
-                    appVersion: options?.version,
-                    sessionShortcut: options?.sessionShortcut,
-                    feedbackWidget: options?.feedbackWidget,
-                });
-                if (!options?.manualStart) {
-                    highlight_obj.initialize(projectID);
+                const startFunction = () => {
+                    highlight_obj = new window.Highlight(
+                        client_options,
+                        first_load_listeners
+                    );
+                    if (!options?.manualStart) {
+                        highlight_obj.initialize();
+                    }
+                };
+
+                if ('Highlight' in window) {
+                    startFunction();
+                } else {
+                    const interval = setInterval(() => {
+                        if ('Highlight' in window) {
+                            startFunction();
+                            clearInterval(interval);
+                        }
+                    }, 500);
                 }
             });
 
@@ -310,6 +357,15 @@ export const H: HighlightPublicInterface = {
                 });
             }
 
+            if (
+                !!H.options?.integrations?.mixpanel?.projectToken &&
+                !window?.mixpanel?.track
+            ) {
+                console.warn(
+                    "Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser."
+                );
+            }
+
             if (window.amplitude?.getInstance) {
                 window.amplitude.getInstance().logEvent(event, {
                     ...metadata,
@@ -323,25 +379,23 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('track', e);
         }
     },
-    start: () => {
+    start: (options) => {
         try {
             if (highlight_obj?.state === 'Recording') {
-                console.warn(
-                    'You cannot called `start()` again. The session is already being recorded.'
-                );
+                if (!options?.silent) {
+                    console.warn(
+                        'You cannot called `start()` again. The session is already being recorded.'
+                    );
+                }
                 return;
-            }
-            if (H.options?.manualStart) {
+            } else {
+                first_load_listeners.startListening();
                 var interval = setInterval(function () {
                     if (highlight_obj) {
                         clearInterval(interval);
                         highlight_obj.initialize();
                     }
                 }, 200);
-            } else {
-                console.warn(
-                    "Highlight Error: Can't call `start()` without setting `manualStart` option in `H.init`"
-                );
             }
         } catch (e) {
             HighlightWarning('start', e);
@@ -444,3 +498,5 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage();
+
+export { HighlightSegmentMiddleware };

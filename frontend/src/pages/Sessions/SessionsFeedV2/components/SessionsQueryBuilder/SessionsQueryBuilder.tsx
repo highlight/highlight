@@ -7,6 +7,7 @@ import {
     useSearchContext,
 } from '@pages/Sessions/SearchContext/SearchContext';
 import QueryBuilder, {
+    BOOLEAN_OPERATORS,
     CUSTOM_TYPE,
     CustomField,
     DATE_OPERATORS,
@@ -17,6 +18,7 @@ import QueryBuilder, {
     RANGE_OPERATORS,
     RuleProps,
     serializeRules,
+    VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import moment from 'moment';
@@ -51,6 +53,30 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'viewed',
         options: {
             type: 'boolean',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'viewed_by_me',
+        options: {
+            type: 'boolean',
+            operators: VIEWED_BY_OPERATORS,
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'has_errors',
+        options: {
+            type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'has_rage_clicks',
+        options: {
+            type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
     {
@@ -185,36 +211,38 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     };
 };
 
-const SessionsQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
-    const {
-        setSearchQuery,
-        searchParams,
-        setSearchParams,
-    } = useSearchContext();
-    const { refetch } = useGetFieldsOpensearchQuery({
-        skip: true,
-    });
-    const fetchFields = (variables: FetchFieldVariables) =>
-        refetch(variables).then((r) => r.data.fields_opensearch);
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+const SessionsQueryBuilder = React.memo(
+    ({ readonly }: { readonly?: boolean }) => {
+        const {
+            setSearchQuery,
+            searchParams,
+            setSearchParams,
+        } = useSearchContext();
+        const { refetch } = useGetFieldsOpensearchQuery({
+            skip: true,
+        });
+        const fetchFields = (variables: FetchFieldVariables) =>
+            refetch(variables).then((r) => r.data.fields_opensearch);
+        const { project_id } = useParams<{
+            project_id: string;
+        }>();
 
-    const { data: fieldData } = useGetFieldTypesQuery({
-        variables: { project_id },
-    });
+        const { data: fieldData } = useGetFieldTypesQuery({
+            variables: { project_id },
+        });
 
-    return (
-        <QueryBuilder
-            setSearchQuery={setSearchQuery}
-            customFields={CUSTOM_FIELDS}
-            fetchFields={fetchFields}
-            fieldData={fieldData}
-            getQueryFromParams={getQueryFromParams}
-            searchParams={searchParams}
-            setSearchParams={setSearchParams}
-            readonly={readonly}
-        />
-    );
-};
+        return (
+            <QueryBuilder
+                setSearchQuery={setSearchQuery}
+                customFields={CUSTOM_FIELDS}
+                fetchFields={fetchFields}
+                fieldData={fieldData}
+                getQueryFromParams={getQueryFromParams}
+                searchParams={searchParams}
+                setSearchParams={setSearchParams}
+                readonly={readonly}
+            />
+        );
+    }
+);
 export default SessionsQueryBuilder;

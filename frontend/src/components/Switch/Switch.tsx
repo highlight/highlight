@@ -8,7 +8,7 @@ import styles from './Switch.module.scss';
 
 type Props = Pick<
     SwitchProps,
-    'checked' | 'onChange' | 'loading' | 'className' | 'size'
+    'checked' | 'onChange' | 'loading' | 'className' | 'size' | 'disabled'
 > & {
     label: string | React.ReactNode;
     /** Renders the label before the switch. */

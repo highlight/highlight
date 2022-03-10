@@ -4,14 +4,21 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import AboutYouPage from '@pages/AboutYou/AboutYouPage';
 import Accounts from '@pages/Accounts/Accounts';
+import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage';
 import LoginForm from '@pages/Login/Login';
 import NewProjectPage from '@pages/NewProject/NewProjectPage';
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm';
+import SwitchProject from '@pages/SwitchProject/SwitchProject';
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import {
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    useHistory,
+} from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
@@ -20,7 +27,17 @@ import { ProjectRouter } from '../OrgRouter/OrgRouter';
 import styles from './AppRouter.module.scss';
 
 export const AppRouter = () => {
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, admin } = useAuthContext();
+    const history = useHistory();
+
+    if (admin && !admin.user_defined_role) {
+        const res = window.sessionStorage.getItem(
+            'HighlightFilledOutAboutYouForm'
+        );
+        if (!res) {
+            history.push('/about-you');
+        }
+    }
 
     return (
         <div className={styles.appBody}>
@@ -44,9 +61,17 @@ export const AppRouter = () => {
                             <NewProjectPage />
                         </Landing>
                     </Route>
+                    <Route path="/callback/:integrationName">
+                        <IntegrationAuthCallbackPage />
+                    </Route>
                     <Route path="/w/:workspace_id(\d+)/new">
                         <Landing>
                             <NewProjectPage />
+                        </Landing>
+                    </Route>
+                    <Route path="/w/:workspace_id(\d+)/switch">
+                        <Landing>
+                            <SwitchProject />
                         </Landing>
                     </Route>
                     <Route path="/w/:workspace_id(\d+)/about-you">

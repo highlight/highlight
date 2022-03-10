@@ -98,6 +98,7 @@ export type MutationInitializeSessionArgs = {
   environment: Scalars['String'];
   appVersion?: Maybe<Scalars['String']>;
   fingerprint: Scalars['String'];
+  session_secure_id?: Maybe<Scalars['String']>;
 };
 
 
@@ -128,6 +129,7 @@ export type MutationPushPayloadArgs = {
   errors: Array<Maybe<ErrorObjectInput>>;
   is_beacon?: Maybe<Scalars['Boolean']>;
   has_session_unloaded?: Maybe<Scalars['Boolean']>;
+  highlight_logs?: Maybe<Scalars['String']>;
 };
 
 

@@ -8,6 +8,7 @@ import styles from './Button.module.scss';
 export type GenericHighlightButtonProps = ButtonProps & {
     /** The ID used for identifying that this button was clicked for analytics. */
     trackingId: string;
+    trackProperties?: { [key: string]: string };
     /** Does this button only have an icon? */
     iconButton?: boolean;
     /** Reduces the padding. */
@@ -21,6 +22,7 @@ const Button = ({
     trackingId,
     iconButton,
     small = false,
+    trackProperties,
     ...props
 }: React.PropsWithChildren<GenericHighlightButtonProps>) => {
     return (
@@ -30,7 +32,7 @@ const Button = ({
                 if (props.onClick) {
                     props.onClick(e);
                 }
-                H.track(`Button-${trackingId}`);
+                H.track(`Button-${trackingId}`, trackProperties);
             }}
             className={classNames(props.className, styles.buttonBase, {
                 [styles.iconButton]: iconButton,

@@ -43,6 +43,11 @@ export const SessionPayloadFragmentFragmentDoc = gql`
                 email
                 photo_url
             }
+            attachments {
+                integration_type
+                external_id
+                title
+            }
             x_coordinate
             y_coordinate
             type
@@ -651,61 +656,114 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
-export const AddSlackBotIntegrationToProjectDocument = gql`
-    mutation AddSlackBotIntegrationToProject(
+export const AddIntegrationToProjectDocument = gql`
+    mutation AddIntegrationToProject(
+        $integration_type: IntegrationType
         $project_id: ID!
         $code: String!
-        $redirect_path: String!
     ) {
-        addSlackBotIntegrationToProject(
+        addIntegrationToProject(
+            integration_type: $integration_type
             project_id: $project_id
             code: $code
-            redirect_path: $redirect_path
         )
     }
 `;
-export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddSlackBotIntegrationToProjectMutation,
-    Types.AddSlackBotIntegrationToProjectMutationVariables
+export type AddIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddIntegrationToProjectMutation,
+    Types.AddIntegrationToProjectMutationVariables
 >;
 
 /**
- * __useAddSlackBotIntegrationToProjectMutation__
+ * __useAddIntegrationToProjectMutation__
  *
- * To run a mutation, you first call `useAddSlackBotIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddSlackBotIntegrationToProjectMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddIntegrationToProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addSlackBotIntegrationToProjectMutation, { data, loading, error }] = useAddSlackBotIntegrationToProjectMutation({
+ * const [addIntegrationToProjectMutation, { data, loading, error }] = useAddIntegrationToProjectMutation({
  *   variables: {
+ *      integration_type: // value for 'integration_type'
  *      project_id: // value for 'project_id'
  *      code: // value for 'code'
- *      redirect_path: // value for 'redirect_path'
  *   },
  * });
  */
-export function useAddSlackBotIntegrationToProjectMutation(
+export function useAddIntegrationToProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddSlackBotIntegrationToProjectMutation,
-        Types.AddSlackBotIntegrationToProjectMutationVariables
+        Types.AddIntegrationToProjectMutation,
+        Types.AddIntegrationToProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddSlackBotIntegrationToProjectMutation,
-        Types.AddSlackBotIntegrationToProjectMutationVariables
-    >(AddSlackBotIntegrationToProjectDocument, baseOptions);
+        Types.AddIntegrationToProjectMutation,
+        Types.AddIntegrationToProjectMutationVariables
+    >(AddIntegrationToProjectDocument, baseOptions);
 }
-export type AddSlackBotIntegrationToProjectMutationHookResult = ReturnType<
-    typeof useAddSlackBotIntegrationToProjectMutation
+export type AddIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useAddIntegrationToProjectMutation
 >;
-export type AddSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToProjectMutation>;
-export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddSlackBotIntegrationToProjectMutation,
-    Types.AddSlackBotIntegrationToProjectMutationVariables
+export type AddIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddIntegrationToProjectMutation>;
+export type AddIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddIntegrationToProjectMutation,
+    Types.AddIntegrationToProjectMutationVariables
+>;
+export const RemoveIntegrationFromProjectDocument = gql`
+    mutation RemoveIntegrationFromProject(
+        $integration_type: IntegrationType
+        $project_id: ID!
+    ) {
+        removeIntegrationFromProject(
+            integration_type: $integration_type
+            project_id: $project_id
+        )
+    }
+`;
+export type RemoveIntegrationFromProjectMutationFn = Apollo.MutationFunction<
+    Types.RemoveIntegrationFromProjectMutation,
+    Types.RemoveIntegrationFromProjectMutationVariables
+>;
+
+/**
+ * __useRemoveIntegrationFromProjectMutation__
+ *
+ * To run a mutation, you first call `useRemoveIntegrationFromProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveIntegrationFromProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeIntegrationFromProjectMutation, { data, loading, error }] = useRemoveIntegrationFromProjectMutation({
+ *   variables: {
+ *      integration_type: // value for 'integration_type'
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useRemoveIntegrationFromProjectMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.RemoveIntegrationFromProjectMutation,
+        Types.RemoveIntegrationFromProjectMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.RemoveIntegrationFromProjectMutation,
+        Types.RemoveIntegrationFromProjectMutationVariables
+    >(RemoveIntegrationFromProjectDocument, baseOptions);
+}
+export type RemoveIntegrationFromProjectMutationHookResult = ReturnType<
+    typeof useRemoveIntegrationFromProjectMutation
+>;
+export type RemoveIntegrationFromProjectMutationResult = Apollo.MutationResult<Types.RemoveIntegrationFromProjectMutation>;
+export type RemoveIntegrationFromProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.RemoveIntegrationFromProjectMutation,
+    Types.RemoveIntegrationFromProjectMutationVariables
 >;
 export const UpdateAllowedEmailOriginsDocument = gql`
     mutation UpdateAllowedEmailOrigins(
@@ -1265,6 +1323,9 @@ export const CreateSessionCommentDocument = gql`
         $author_name: String!
         $session_image: String
         $tags: [SessionCommentTagInput]!
+        $integrations: [IntegrationType]!
+        $issue_title: String
+        $issue_description: String
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1281,6 +1342,9 @@ export const CreateSessionCommentDocument = gql`
             author_name: $author_name
             session_image: $session_image
             tags: $tags
+            integrations: $integrations
+            issue_title: $issue_title
+            issue_description: $issue_description
         ) {
             id
             timestamp
@@ -1294,6 +1358,12 @@ export const CreateSessionCommentDocument = gql`
             text
             x_coordinate
             y_coordinate
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
         }
     }
 `;
@@ -1329,6 +1399,9 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      session_image: // value for 'session_image'
  *      tags: // value for 'tags'
+ *      integrations: // value for 'integrations'
+ *      issue_title: // value for 'issue_title'
+ *      issue_description: // value for 'issue_description'
  *   },
  * });
  */
@@ -1350,6 +1423,99 @@ export type CreateSessionCommentMutationResult = Apollo.MutationResult<Types.Cre
 export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSessionCommentMutation,
     Types.CreateSessionCommentMutationVariables
+>;
+export const CreateIssueForSessionCommentDocument = gql`
+    mutation CreateIssueForSessionComment(
+        $project_id: ID!
+        $session_comment_id: Int!
+        $text_for_attachment: String!
+        $session_url: String!
+        $time: Float!
+        $author_name: String!
+        $integrations: [IntegrationType]!
+        $issue_title: String
+        $issue_description: String
+    ) {
+        createIssueForSessionComment(
+            project_id: $project_id
+            session_url: $session_url
+            session_comment_id: $session_comment_id
+            author_name: $author_name
+            text_for_attachment: $text_for_attachment
+            time: $time
+            issue_title: $issue_title
+            issue_description: $issue_description
+            integrations: $integrations
+        ) {
+            id
+            timestamp
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+            x_coordinate
+            y_coordinate
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
+        }
+    }
+`;
+export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateIssueForSessionCommentMutation,
+    Types.CreateIssueForSessionCommentMutationVariables
+>;
+
+/**
+ * __useCreateIssueForSessionCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateIssueForSessionCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateIssueForSessionCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createIssueForSessionCommentMutation, { data, loading, error }] = useCreateIssueForSessionCommentMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      session_comment_id: // value for 'session_comment_id'
+ *      text_for_attachment: // value for 'text_for_attachment'
+ *      session_url: // value for 'session_url'
+ *      time: // value for 'time'
+ *      author_name: // value for 'author_name'
+ *      integrations: // value for 'integrations'
+ *      issue_title: // value for 'issue_title'
+ *      issue_description: // value for 'issue_description'
+ *   },
+ * });
+ */
+export function useCreateIssueForSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateIssueForSessionCommentMutation,
+        Types.CreateIssueForSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateIssueForSessionCommentMutation,
+        Types.CreateIssueForSessionCommentMutationVariables
+    >(CreateIssueForSessionCommentDocument, baseOptions);
+}
+export type CreateIssueForSessionCommentMutationHookResult = ReturnType<
+    typeof useCreateIssueForSessionCommentMutation
+>;
+export type CreateIssueForSessionCommentMutationResult = Apollo.MutationResult<Types.CreateIssueForSessionCommentMutation>;
+export type CreateIssueForSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateIssueForSessionCommentMutation,
+    Types.CreateIssueForSessionCommentMutationVariables
 >;
 export const DeleteSessionCommentDocument = gql`
     mutation DeleteSessionComment($id: ID!) {
@@ -1407,6 +1573,9 @@ export const CreateErrorCommentDocument = gql`
         $tagged_slack_users: [SanitizedSlackChannelInput]!
         $error_url: String!
         $author_name: String!
+        $integrations: [IntegrationType]!
+        $issue_title: String
+        $issue_description: String
     ) {
         createErrorComment(
             project_id: $project_id
@@ -1417,6 +1586,9 @@ export const CreateErrorCommentDocument = gql`
             tagged_slack_users: $tagged_slack_users
             error_url: $error_url
             author_name: $author_name
+            integrations: $integrations
+            issue_title: $issue_title
+            issue_description: $issue_description
         ) {
             id
             created_at
@@ -1456,6 +1628,9 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      tagged_slack_users: // value for 'tagged_slack_users'
  *      error_url: // value for 'error_url'
  *      author_name: // value for 'author_name'
+ *      integrations: // value for 'integrations'
+ *      issue_title: // value for 'issue_title'
+ *      issue_description: // value for 'issue_description'
  *   },
  * });
  */
@@ -1477,6 +1652,93 @@ export type CreateErrorCommentMutationResult = Apollo.MutationResult<Types.Creat
 export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorCommentMutation,
     Types.CreateErrorCommentMutationVariables
+>;
+export const CreateIssueForErrorCommentDocument = gql`
+    mutation CreateIssueForErrorComment(
+        $project_id: ID!
+        $error_comment_id: Int!
+        $text_for_attachment: String!
+        $error_url: String!
+        $author_name: String!
+        $integrations: [IntegrationType]!
+        $issue_title: String
+        $issue_description: String
+    ) {
+        createIssueForErrorComment(
+            project_id: $project_id
+            error_url: $error_url
+            error_comment_id: $error_comment_id
+            author_name: $author_name
+            text_for_attachment: $text_for_attachment
+            issue_title: $issue_title
+            issue_description: $issue_description
+            integrations: $integrations
+        ) {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
+        }
+    }
+`;
+export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateIssueForErrorCommentMutation,
+    Types.CreateIssueForErrorCommentMutationVariables
+>;
+
+/**
+ * __useCreateIssueForErrorCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateIssueForErrorCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateIssueForErrorCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createIssueForErrorCommentMutation, { data, loading, error }] = useCreateIssueForErrorCommentMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_comment_id: // value for 'error_comment_id'
+ *      text_for_attachment: // value for 'text_for_attachment'
+ *      error_url: // value for 'error_url'
+ *      author_name: // value for 'author_name'
+ *      integrations: // value for 'integrations'
+ *      issue_title: // value for 'issue_title'
+ *      issue_description: // value for 'issue_description'
+ *   },
+ * });
+ */
+export function useCreateIssueForErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateIssueForErrorCommentMutation,
+        Types.CreateIssueForErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateIssueForErrorCommentMutation,
+        Types.CreateIssueForErrorCommentMutationVariables
+    >(CreateIssueForErrorCommentDocument, baseOptions);
+}
+export type CreateIssueForErrorCommentMutationHookResult = ReturnType<
+    typeof useCreateIssueForErrorCommentMutation
+>;
+export type CreateIssueForErrorCommentMutationResult = Apollo.MutationResult<Types.CreateIssueForErrorCommentMutation>;
+export type CreateIssueForErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateIssueForErrorCommentMutation,
+    Types.CreateIssueForErrorCommentMutationVariables
 >;
 export const DeleteErrorCommentDocument = gql`
     mutation DeleteErrorComment($id: ID!) {
@@ -3750,6 +4012,12 @@ export const GetSessionPayloadDocument = gql`
             type
             metadata
             tags
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
         }
     }
 `;
@@ -3891,6 +4159,8 @@ export const GetSessionDocument = gql`
             object_storage_enabled
             payload_size
             processed
+            has_rage_clicks
+            has_errors
             within_billing_quota
             client_version
             client_config
@@ -3901,6 +4171,8 @@ export const GetSessionDocument = gql`
             messages_url
             deviceMemory
             last_user_interaction_time
+            length
+            active_length
         }
     }
 `;
@@ -4106,6 +4378,12 @@ export const GetSessionCommentsDocument = gql`
             type
             metadata
             tags
+            attachments {
+                id
+                integration_type
+                external_id
+                title
+            }
         }
     }
 `;
@@ -4377,6 +4655,11 @@ export const GetErrorCommentsDocument = gql`
                 email
                 photo_url
             }
+            attachments {
+                integration_type
+                external_id
+                title
+            }
         }
     }
 `;
@@ -4620,6 +4903,65 @@ export type SendAdminWorkspaceInviteMutationResult = Apollo.MutationResult<Types
 export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions<
     Types.SendAdminWorkspaceInviteMutation,
     Types.SendAdminWorkspaceInviteMutationVariables
+>;
+export const GetSessionIntervalsDocument = gql`
+    query GetSessionIntervals($session_secure_id: String!) {
+        session_intervals(session_secure_id: $session_secure_id) {
+            start_time
+            end_time
+            active
+            duration
+        }
+    }
+`;
+
+/**
+ * __useGetSessionIntervalsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionIntervalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionIntervalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionIntervalsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetSessionIntervalsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >(GetSessionIntervalsDocument, baseOptions);
+}
+export function useGetSessionIntervalsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionIntervalsQuery,
+        Types.GetSessionIntervalsQueryVariables
+    >(GetSessionIntervalsDocument, baseOptions);
+}
+export type GetSessionIntervalsQueryHookResult = ReturnType<
+    typeof useGetSessionIntervalsQuery
+>;
+export type GetSessionIntervalsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionIntervalsLazyQuery
+>;
+export type GetSessionIntervalsQueryResult = Apollo.QueryResult<
+    Types.GetSessionIntervalsQuery,
+    Types.GetSessionIntervalsQueryVariables
 >;
 export const GetFieldTypesDocument = gql`
     query GetFieldTypes($project_id: ID!) {
@@ -4891,11 +5233,13 @@ export const GetSessionsOpenSearchDocument = gql`
         $project_id: ID!
         $count: Int!
         $query: String!
+        $sort_desc: Boolean!
     ) {
         sessions_opensearch(
             project_id: $project_id
             count: $count
             query: $query
+            sort_desc: $sort_desc
         ) {
             sessions {
                 id
@@ -4917,6 +5261,8 @@ export const GetSessionsOpenSearchDocument = gql`
                 viewed
                 starred
                 processed
+                has_rage_clicks
+                has_errors
                 fields {
                     name
                     value
@@ -4948,6 +5294,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      sort_desc: // value for 'sort_desc'
  *   },
  * });
  */
@@ -5107,6 +5454,8 @@ export const GetSessionsDocument = gql`
                 viewed
                 starred
                 processed
+                has_rage_clicks
+                has_errors
                 field_group
                 fields {
                     name
@@ -5681,6 +6030,7 @@ export const GetAdminDocument = gql`
             slack_im_channel_id
             role
             email_verified
+            user_defined_role
         }
     }
 `;
@@ -5933,7 +6283,6 @@ export const GetBillingDetailsDocument = gql`
             }
             meter
             membersMeter
-            sessionsOutOfQuota
         }
         workspace(id: $workspace_id) {
             id
@@ -6067,6 +6416,10 @@ export const GetErrorGroupDocument = gql`
                 lineNumber
                 functionName
                 columnNumber
+                lineContent
+                linesBefore
+                linesAfter
+                error
             }
             mapped_stack_trace
             stack_trace
@@ -7190,6 +7543,7 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
 export const GetKeyPerformanceIndicatorsDocument = gql`
     query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
         unprocessedSessionsCount(project_id: $project_id)
+        liveUsersCount(project_id: $project_id)
         newUsersCount(
             project_id: $project_id
             lookBackPeriod: $lookBackPeriod
@@ -7744,6 +8098,73 @@ export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorFrequencyQuery,
     Types.GetDailyErrorFrequencyQueryVariables
 >;
+export const GetErrorDistributionDocument = gql`
+    query GetErrorDistribution(
+        $project_id: ID!
+        $error_group_secure_id: String!
+        $property: String!
+    ) {
+        errorDistribution(
+            project_id: $project_id
+            error_group_secure_id: $error_group_secure_id
+            property: $property
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetErrorDistributionQuery__
+ *
+ * To run a query within a React component, call `useGetErrorDistributionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorDistributionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorDistributionQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      property: // value for 'property'
+ *   },
+ * });
+ */
+export function useGetErrorDistributionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >(GetErrorDistributionDocument, baseOptions);
+}
+export function useGetErrorDistributionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorDistributionQuery,
+        Types.GetErrorDistributionQueryVariables
+    >(GetErrorDistributionDocument, baseOptions);
+}
+export type GetErrorDistributionQueryHookResult = ReturnType<
+    typeof useGetErrorDistributionQuery
+>;
+export type GetErrorDistributionLazyQueryHookResult = ReturnType<
+    typeof useGetErrorDistributionLazyQuery
+>;
+export type GetErrorDistributionQueryResult = Apollo.QueryResult<
+    Types.GetErrorDistributionQuery,
+    Types.GetErrorDistributionQueryVariables
+>;
 export const GetSlackChannelSuggestionDocument = gql`
     query GetSlackChannelSuggestion($project_id: ID!) {
         slack_channel_suggestion(project_id: $project_id) {
@@ -7803,7 +8224,10 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 >;
 export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
     query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-        is_integrated_with_slack(project_id: $project_id)
+        is_integrated_with_slack: is_integrated_with(
+            integration_type: Slack
+            project_id: $project_id
+        )
     }
 `;
 
@@ -7855,9 +8279,69 @@ export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
     Types.GetWorkspaceIsIntegratedWithSlackQuery,
     Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
 >;
+export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
+    query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
+        is_integrated_with_linear: is_integrated_with(
+            integration_type: Linear
+            project_id: $project_id
+        )
+    }
+`;
+
+/**
+ * __useGetWorkspaceIsIntegratedWithLinearQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithLinearQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithLinearQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithLinearQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithLinearQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithLinearLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithLinearQuery,
+        Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+    >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithLinearQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithLinearQuery
+>;
+export type GetWorkspaceIsIntegratedWithLinearLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithLinearLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithLinearQuery,
+    Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
-        is_integrated_with_slack(project_id: $project_id)
+        is_integrated_with_slack: is_integrated_with(
+            integration_type: Slack
+            project_id: $project_id
+        )
         slack_channel_suggestion(project_id: $project_id) {
             webhook_channel
             webhook_channel_id

@@ -52,6 +52,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
             }
             resource = findResourceWithMatchingHighlightHeader(
                 error.request_id!,
+                // @ts-expect-error
                 resources
             );
             requestNotFound = resource === undefined;
@@ -123,7 +124,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                     <GoToButton
                         onClick={() => {
                             if (resource) {
-                                pause(resource.startTime);
+                                pause(
+                                    resource.offsetStartTime ||
+                                        resource.startTime
+                                );
 
                                 message.success(
                                     `Changed player time to when ${getNetworkResourcesDisplayName(
@@ -178,7 +182,7 @@ const getOptions = (content: any, id: string) => ({
 });
 
 export const useResourceOrErrorDetailPanel = () => {
-    const { setDetailedPanel } = usePlayerUIContext();
+    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
 
     const setResourceOrErrorPanel = useCallback(
         (resource?: NetworkResource, error?: ErrorObject) => {
@@ -219,5 +223,6 @@ export const useResourceOrErrorDetailPanel = () => {
         setResourceOrErrorPanel,
         setResourcePanel,
         setErrorPanel,
+        panelIsOpen: detailedPanel !== undefined,
     };
 };

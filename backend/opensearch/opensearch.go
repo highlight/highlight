@@ -2,7 +2,6 @@ package opensearch
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -77,9 +76,7 @@ type SearchOptions struct {
 
 func NewOpensearchClient() (*Client, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
+		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchDomain},
 		Username:  OpensearchUsername,
 		Password:  OpensearchPassword,
@@ -89,9 +86,7 @@ func NewOpensearchClient() (*Client, error) {
 	}
 
 	readClient, err := opensearch.NewClient(opensearch.Config{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
+		Transport: http.DefaultTransport,
 		Addresses: []string{OpensearchReadDomain},
 		Username:  OpensearchUsername,
 		Password:  OpensearchPassword,
@@ -143,7 +138,7 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 		Body:            body,
 		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
@@ -202,7 +197,7 @@ func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) erro
 		Body:       body,
 		Routing:    routing,
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
@@ -247,7 +242,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 		Body:            body,
 		RetryOnConflict: pointy.Int(3),
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+			// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
@@ -287,12 +282,12 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 		Body:       body,
 	}
 
-	res, err := req.Do(context.Background(), c.Client)
+	_, err = req.Do(context.Background(), c.Client)
 	if err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error indexing document")
 	}
 
-	log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
+	// log.Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
 
 	return nil
 }

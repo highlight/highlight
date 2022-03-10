@@ -8,7 +8,7 @@
         "dev": "doppler run -- webpack serve --progress",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
         "gql": "graphql-codegen --config --watch codegen.yml",
-        "test": "jest"
+        "test": "jest --passWithNoTests"
     },
     "repository": {
         "type": "git",
@@ -49,8 +49,8 @@
     },
     "dependencies": {
         "@babel/plugin-transform-runtime": "^7.16.7",
-        "@highlight-run/rrweb": "1.1.6",
-        "clientjs": "^0.2.1",
+        "@highlight-run/rrweb": "1.1.15",
+        "clientjs": "0.1.11",
         "error-stack-parser": "^2.0.6",
         "graphql": "^15.8.0",
         "graphql-request": "^3.7.0",

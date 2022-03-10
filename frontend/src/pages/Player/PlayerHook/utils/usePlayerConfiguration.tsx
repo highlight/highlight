@@ -69,7 +69,7 @@ const usePlayerConfiguration = () => {
     );
     const [showPlayerAbsoluteTime, setShowPlayerAbsoluteTime] = useLocalStorage(
         'highlightShowPlayerAbsoluteTime',
-        true
+        false
     );
     const [
         _showDetailedSessionView,

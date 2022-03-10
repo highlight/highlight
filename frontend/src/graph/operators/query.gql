@@ -38,6 +38,11 @@ fragment SessionPayloadFragment on SessionPayload {
             email
             photo_url
         }
+        attachments {
+            integration_type
+            external_id
+            title
+        }
         x_coordinate
         y_coordinate
         type
@@ -127,6 +132,12 @@ query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
         type
         metadata
         tags
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
@@ -167,6 +178,8 @@ query GetSession($secure_id: String!) {
         object_storage_enabled
         payload_size
         processed
+        has_rage_clicks
+        has_errors
         within_billing_quota
         client_version
         client_config
@@ -177,6 +190,8 @@ query GetSession($secure_id: String!) {
         messages_url
         deviceMemory
         last_user_interaction_time
+        length
+        active_length
     }
 }
 
@@ -234,6 +249,12 @@ query GetSessionComments($session_secure_id: String!) {
         type
         metadata
         tags
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
@@ -309,6 +330,11 @@ query GetErrorComments($error_group_secure_id: String!) {
             email
             photo_url
         }
+        attachments {
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
@@ -356,6 +382,15 @@ mutation SendAdminWorkspaceInvite(
         base_url: $base_url
         role: $role
     )
+}
+
+query GetSessionIntervals($session_secure_id: String!) {
+    session_intervals(session_secure_id: $session_secure_id) {
+        start_time
+        end_time
+        active
+        duration
+    }
 }
 
 query GetFieldTypes($project_id: ID!) {
@@ -413,8 +448,18 @@ query GetErrorFieldsOpensearch(
     )
 }
 
-query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
-    sessions_opensearch(project_id: $project_id, count: $count, query: $query) {
+query GetSessionsOpenSearch(
+    $project_id: ID!
+    $count: Int!
+    $query: String!
+    $sort_desc: Boolean!
+) {
+    sessions_opensearch(
+        project_id: $project_id
+        count: $count
+        query: $query
+        sort_desc: $sort_desc
+    ) {
         sessions {
             id
             secure_id
@@ -435,6 +480,8 @@ query GetSessionsOpenSearch($project_id: ID!, $count: Int!, $query: String!) {
             viewed
             starred
             processed
+            has_rage_clicks
+            has_errors
             fields {
                 name
                 value
@@ -521,6 +568,8 @@ query GetSessions(
             viewed
             starred
             processed
+            has_rage_clicks
+            has_errors
             field_group
             fields {
                 name
@@ -647,6 +696,7 @@ query GetAdmin {
         slack_im_channel_id
         role
         email_verified
+        user_defined_role
     }
 }
 
@@ -705,7 +755,6 @@ query GetBillingDetails($workspace_id: ID!) {
         }
         meter
         membersMeter
-        sessionsOutOfQuota
     }
     workspace(id: $workspace_id) {
         id
@@ -739,6 +788,10 @@ query GetErrorGroup($secure_id: String!) {
             lineNumber
             functionName
             columnNumber
+            lineContent
+            linesBefore
+            linesAfter
+            error
         }
         mapped_stack_trace
         stack_trace
@@ -994,6 +1047,7 @@ query UnprocessedSessionsCount($project_id: ID!) {
 
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
     unprocessedSessionsCount(project_id: $project_id)
+    liveUsersCount(project_id: $project_id)
     newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         count
     }
@@ -1082,6 +1136,21 @@ query GetDailyErrorFrequency(
     )
 }
 
+query GetErrorDistribution(
+    $project_id: ID!
+    $error_group_secure_id: String!
+    $property: String!
+) {
+    errorDistribution(
+        project_id: $project_id
+        error_group_secure_id: $error_group_secure_id
+        property: $property
+    ) {
+        name
+        value
+    }
+}
+
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
@@ -1090,11 +1159,24 @@ query GetSlackChannelSuggestion($project_id: ID!) {
 }
 
 query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
+}
+
+query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
+    is_integrated_with_linear: is_integrated_with(
+        integration_type: Linear
+        project_id: $project_id
+    )
 }
 
 query GetAlertsPagePayload($project_id: ID!) {
-    is_integrated_with_slack(project_id: $project_id)
+    is_integrated_with_slack: is_integrated_with(
+        integration_type: Slack
+        project_id: $project_id
+    )
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
         webhook_channel_id

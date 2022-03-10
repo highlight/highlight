@@ -57,3 +57,23 @@
     height: var(--size-medium);
     width: var(--size-medium);
 }
+
+.popover {
+    :global(.ant-popover-arrow) {
+        display: none;
+    }
+}
+
+.popoverTitle {
+    font-size: 18px;
+}
+
+.popoverContent {
+    width: 300px;
+}
+
+.downIndicator {
+    font-size: 24px;
+    padding-bottom: var(--size-xxSmall);
+    text-align: center;
+}

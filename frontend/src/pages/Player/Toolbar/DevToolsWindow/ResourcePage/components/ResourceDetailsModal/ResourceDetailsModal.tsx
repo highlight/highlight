@@ -1,4 +1,5 @@
 import { ErrorObject } from '@graph/schemas';
+import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock';
 import React from 'react';
 
 import DataCard from '../../../../../../../components/DataCard/DataCard';
@@ -134,7 +135,6 @@ const ResourceDetailsModal = ({
             requestHeaderKeys.forEach((key) => {
                 requestHeadersData.push({
                     keyDisplayValue: key,
-                    // @ts-expect-error
                     valueDisplayValue: request.headers[key],
                     renderType: 'string',
                 });
@@ -146,20 +146,40 @@ const ResourceDetailsModal = ({
                 const parsedRequestBody = JSON.parse(request.body);
 
                 Object.keys(parsedRequestBody).forEach((key) => {
-                    const renderType =
-                        typeof parsedRequestBody[key] === 'object'
-                            ? 'json'
-                            : 'string';
-                    requestPayloadData.push({
-                        keyDisplayValue: key,
-                        valueDisplayValue:
-                            renderType === 'string'
-                                ? parsedRequestBody[key]?.toString()
-                                : JSON.parse(
-                                      JSON.stringify(parsedRequestBody[key])
-                                  ),
-                        renderType,
-                    });
+                    // `query` is a special for GraphQL requests.
+                    // Check to see if the value for `query` is valid GraphQL, if so render it using a GraphQL formatter
+                    if (key === 'query') {
+                        const queryString = parsedRequestBody[key];
+
+                        requestPayloadData.push({
+                            keyDisplayValue: key,
+                            valueDisplayValue: (
+                                <CodeBlock
+                                    language="graphql"
+                                    text={queryString}
+                                    wrapLines
+                                    wrapLongLines
+                                    hideCopy
+                                />
+                            ),
+                            renderType: 'string',
+                        });
+                    } else {
+                        const renderType =
+                            typeof parsedRequestBody[key] === 'object'
+                                ? 'json'
+                                : 'string';
+                        requestPayloadData.push({
+                            keyDisplayValue: key,
+                            valueDisplayValue:
+                                renderType === 'string'
+                                    ? parsedRequestBody[key]?.toString()
+                                    : JSON.parse(
+                                          JSON.stringify(parsedRequestBody[key])
+                                      ),
+                            renderType,
+                        });
+                    }
                 });
             } catch {
                 requestPayloadData.push({

@@ -3,7 +3,10 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import Tag from '@components/Tag/Tag';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -21,7 +24,7 @@ const SwitchWorkspace = () => {
 
     const [selectedWorkspace, setSelectedWorkspace] = useState('');
     const [actionText, setActionText] = useState('Enter');
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const joinWorkspaceMutation = useJoinWorkspaceMutation();
     const [joinWorkspace, { loading: joinLoading }] = joinWorkspaceMutation;
@@ -31,8 +34,8 @@ const SwitchWorkspace = () => {
     const { loading, data } = useGetWorkspacesQuery();
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     useEffect(() => {
         if (!loading) {
@@ -116,16 +119,17 @@ const SwitchWorkspace = () => {
                 variables: { workspace_id: selectedWorkspace },
             }).then((result) => {
                 if (!!result.data?.joinWorkspace) {
-                    message.success('successfuly joined workspace!', 1);
-                    setTimeout(() => {
-                        setShouldRedirect(true);
-                    }, 1000 * 1.5);
+                    message.success('Successfuly joined workspace!', 1);
+                    setShouldRedirect(true);
                 }
             });
         }
     };
 
     if (shouldRedirect) {
+        if (actionText === 'Join') {
+            return <Redirect to={`/w/${selectedWorkspace}/switch`} />;
+        }
         return <Redirect to={`/w/${selectedWorkspace}`} />;
     }
 

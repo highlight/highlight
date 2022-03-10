@@ -134,6 +134,9 @@ const monkeyPatchLocalStorage = (
  * Duplicates are triggered whenever a localStorage change happens even when it's not changing a Segment value.
  */
 const shouldSend = (payload: any) => {
+    if (!Boolean(payload)) {
+        return false;
+    }
     let hashMessage = '';
 
     try {

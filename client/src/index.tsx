@@ -1,13 +1,14 @@
 import {
     addCustomEvent as rrwebAddCustomEvent,
     record,
+    getRecordSequentialIdPlugin,
 } from '@highlight-run/rrweb';
 import {
     eventWithTime,
     listenerHandler,
 } from '@highlight-run/rrweb/dist/types';
-import { ConsoleListener } from './listeners/console-listener';
-import { ErrorListener } from './listeners/error-listener';
+import { FirstLoadListeners } from './listeners/first-load-listeners';
+import { ConsoleMethods } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
 import ErrorStackParser from 'error-stack-parser';
@@ -19,25 +20,14 @@ import {
 } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
-import { graphql, print } from 'graphql';
+import { print } from 'graphql';
 
-import {
-    ConsoleMessage,
-    ErrorMessage,
-} from '../../frontend/src/util/shared-types';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { NetworkListener } from './listeners/network-listener/network-listener';
-import { RequestResponsePair } from './listeners/network-listener/utils/models';
-import {
-    matchPerformanceTimingsWithRequestResponsePair,
-    shouldNetworkRequestBeRecorded,
-} from './listeners/network-listener/utils/utils';
-import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
@@ -46,11 +36,17 @@ import {
     initializeFeedbackWidget,
 } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
-import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from './constants/errors';
 import {
     PerformanceListener,
     PerformancePayload,
 } from './listeners/performance-listener/performance-listener';
+import { PageVisibilityListener } from './listeners/page-visibility-listener';
+import {
+    clearHighlightLogs,
+    getHighlightLogs,
+    logForHighlight,
+} from './utils/highlight-logging';
+import { GenerateSecureID } from './utils/secure-id';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -89,6 +85,7 @@ export type NetworkRecordingOptions = {
      * The header value is replaced with '[REDACTED]'.
      * These headers are case-insensitive.
      * `recordHeadersAndBody` needs to be enabled.
+     * This option will be ignored if `headerKeysToRecord` is set.
      * @example
      * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
      */
@@ -99,6 +96,33 @@ export type NetworkRecordingOptions = {
      * @default ['https://www.googleapis.com/identitytoolkit', 'https://securetoken.googleapis.com']
      */
     urlBlocklist?: string[];
+    /**
+     * Specifies the keys for request/response headers to record.
+     * This option will override `networkHeadersToRedact` if specified.
+     * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
+     * @example headerKeysToRecord: ['id', 'pageNumber']
+     * // Only `headers.id` and `headers.pageNumber` will be recorded.
+     * headers = {
+     * 'id': '123',
+     * 'pageNumber': '1',
+     * 'secret-token': 'super-sensitive-value',
+     * 'plain-text-password': 'password123',
+     * }
+     */
+    headerKeysToRecord?: string[];
+    /**
+     * Specifies the keys for request/response headers to record.
+     * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
+     * @example bodyKeysToRecord: ['id', 'pageNumber']
+     * // Only `body.id` and `body.pageNumber` will be recorded.
+     * body = {
+     * 'id': '123',
+     * 'pageNumber': '1',
+     * 'secret-token': 'super-sensitive-value',
+     * 'plain-text-password': 'password123',
+     * }
+     */
+    bodyKeysToRecord?: string[];
 };
 
 export type SessionShortcutOptions = false | string;
@@ -124,6 +148,7 @@ export type HighlightClassOptions = {
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
+    consoleMethodsToRecord?: ConsoleMethods[];
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
@@ -132,6 +157,7 @@ export type HighlightClassOptions = {
     appVersion?: string;
     sessionShortcut?: SessionShortcutOptions;
     feedbackWidget?: FeedbackWidgetOptions;
+    sessionSecureID: string; // Introduced in firstLoad 3.0.1
 };
 
 /**
@@ -183,6 +209,8 @@ const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 
 const HIGHLIGHT_URL = 'app.highlight.run';
 
+const PROPERTY_MAX_LENGTH = 2000;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -191,13 +219,6 @@ export class Highlight {
     organizationID!: string;
     graphqlSDK!: Sdk;
     events!: eventWithTime[];
-    errors!: ErrorMessage[];
-    messages!: ConsoleMessage[];
-    xhrNetworkContents!: RequestResponsePair[];
-    fetchNetworkContents!: RequestResponsePair[];
-    tracingOrigins!: boolean | (string | RegExp)[];
-    networkHeadersToRedact!: string[];
-    urlBlocklist!: string[];
     sessionData!: SessionData;
     ready!: boolean;
     state!: 'NotRecording' | 'Recording';
@@ -206,9 +227,6 @@ export class Highlight {
      */
     numberOfFailedRequests!: number;
     logger!: Logger;
-    disableNetworkRecording!: boolean;
-    enableRecordingNetworkContents!: boolean;
-    disableConsoleRecording!: boolean;
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -224,16 +242,28 @@ export class Highlight {
     _recordingStartTime!: number;
     _isOnLocalHost!: boolean;
     _onToggleFeedbackFormVisibility!: () => void;
+    _firstLoadListeners!: FirstLoadListeners;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
+    hasPushedData!: boolean;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
     }
 
-    constructor(options: HighlightClassOptions) {
+    constructor(
+        options: HighlightClassOptions,
+        firstLoadListeners?: FirstLoadListeners
+    ) {
+        if (!options.sessionSecureID) {
+            // Firstload versions before 3.0.1 did not have this property
+            options.sessionSecureID = GenerateSecureID();
+        }
         this.options = options;
+        // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
+        this._firstLoadListeners =
+            firstLoadListeners || new FirstLoadListeners(options);
         this._initMembers(this.options);
     }
 
@@ -260,19 +290,16 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
+        this.options.sessionSecureID = GenerateSecureID();
+        this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
-        await this.initialize(this.organizationID);
+        await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
         }
     }
 
     _initMembers(options: HighlightClassOptions) {
-        this.xhrNetworkContents = [];
-        this.fetchNetworkContents = [];
-        this.tracingOrigins = [];
-        this.networkHeadersToRedact = [];
-        this.urlBlocklist = [];
         this.numberOfFailedRequests = 0;
         this.sessionShortcut = false;
         this._recordingStartTime = 0;
@@ -286,47 +313,8 @@ export class Highlight {
             this.debugOptions = options?.debug ?? {};
         }
 
-        // Old versions of `firstload` use `disableNetworkRecording`. We fork here to ensure backwards compatibility.
-        if (options?.disableNetworkRecording !== undefined) {
-            this.disableNetworkRecording = options?.disableNetworkRecording;
-            this.enableRecordingNetworkContents = false;
-            this.networkHeadersToRedact = [];
-            this.urlBlocklist = [];
-        } else if (typeof options?.networkRecording === 'boolean') {
-            this.disableNetworkRecording = !options.networkRecording;
-            this.enableRecordingNetworkContents = false;
-            this.networkHeadersToRedact = [];
-            this.urlBlocklist = [];
-        } else {
-            if (options.networkRecording?.enabled !== undefined) {
-                this.disableNetworkRecording = !options.networkRecording
-                    .enabled;
-            } else {
-                this.disableNetworkRecording = false;
-            }
-            this.enableRecordingNetworkContents =
-                options.networkRecording?.recordHeadersAndBody || false;
-            this.networkHeadersToRedact =
-                options.networkRecording?.networkHeadersToRedact?.map(
-                    (header) => header.toLowerCase()
-                ) || [];
-            this.urlBlocklist =
-                options.networkRecording?.urlBlocklist?.map((url) =>
-                    url.toLowerCase()
-                ) || [];
-            this.urlBlocklist = [
-                ...this.urlBlocklist,
-                ...DEFAULT_URL_BLOCKLIST,
-            ];
-        }
-
         this.ready = false;
         this.state = 'NotRecording';
-        this.disableConsoleRecording =
-            // Disable recording the console on localhost.
-            // We're doing this because on some development builds, the console ends up in an infinite loop.
-            window.location.hostname === 'localhost' ||
-            !!options.disableConsoleRecording;
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
@@ -335,7 +323,6 @@ export class Highlight {
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
             'https://pub.highlight.run';
-        this.tracingOrigins = options.tracingOrigins || [];
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -348,7 +335,19 @@ export class Highlight {
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (error?.response?.status >= 500 && retries < MAX_RETRIES) {
+                if (
+                    (!error?.response?.status ||
+                        error?.response?.status >= 500) &&
+                    retries < MAX_RETRIES
+                ) {
+                    logForHighlight(
+                        '[' +
+                            (this.sessionData?.sessionSecureID ||
+                                this.options?.sessionSecureID) +
+                            '] Retrying request after ' +
+                            retries +
+                            ' retries'
+                    );
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
@@ -357,6 +356,14 @@ export class Highlight {
                     );
                     return await graphQLRequestWrapper(requestFn, retries + 1);
                 }
+                logForHighlight(
+                    '[' +
+                        (this.sessionData?.sessionSecureID ||
+                            this.options?.sessionSecureID) +
+                        '] Request failed after ' +
+                        retries +
+                        ' retries'
+                );
                 throw error;
             }
         };
@@ -393,16 +400,17 @@ export class Highlight {
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
         this.listeners = [];
+
         this.events = [];
-        this.errors = [];
-        this.messages = [];
         this.hasSessionUnloaded = false;
+        this.hasPushedData = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
                 window.Intercom('update', {
-                    highlightSessionURL: this.getCurrentSessionURL(),
+                    highlightSessionURL: this.getCurrentSessionURLWithTimestamp(),
                 });
+                this.addProperties({ event: 'Intercom onShow' });
             });
         }
     }
@@ -440,10 +448,11 @@ export class Highlight {
             JSON.stringify(user_object)
         );
         try {
+            const stringified = this._stringifyProperties(user_object, 'user');
             await this.graphqlSDK.identifySession({
                 session_id: this.sessionData.sessionID.toString(),
                 user_identifier: this.sessionData.userIdentifier,
-                user_object: user_object,
+                user_object: stringified,
             });
             const sourceString = source === 'segment' ? source : 'default';
             this.logger.log(
@@ -460,10 +469,64 @@ export class Highlight {
         }
     }
 
+    _stringifyProperties(
+        properties_object: any,
+        type: 'session' | 'track' | 'user'
+    ) {
+        const stringifiedObj: any = {};
+        const invalidTypes: any[] = [];
+        const tooLong: any[] = [];
+        for (const [key, value] of Object.entries(properties_object)) {
+            if (value === undefined || value === null) {
+                continue;
+            }
+
+            if (!['number', 'string', 'boolean'].includes(typeof value)) {
+                invalidTypes.push({ [key]: value });
+            }
+            let asString: string;
+            if (value === undefined) {
+                asString = 'undefined';
+            } else if (value === null) {
+                asString = 'null';
+            } else if (typeof value === 'string') {
+                asString = value;
+            } else {
+                asString = stringify(value);
+            }
+            if (asString.length > PROPERTY_MAX_LENGTH) {
+                tooLong.push({ [key]: value });
+                asString = asString.substring(0, PROPERTY_MAX_LENGTH);
+            }
+
+            stringifiedObj[key] = asString;
+        }
+
+        // Skipping logging for 'session' type because they're generated by Highlight
+        // (e.g. visited-url > 2000 characters)
+        if (type !== 'session') {
+            if (invalidTypes.length > 0) {
+                console.warn(
+                    `Highlight was passed one or more ${type} properties not of type string, number, or boolean.`,
+                    invalidTypes
+                );
+            }
+
+            if (tooLong.length > 0) {
+                console.warn(
+                    `Highlight was passed one or more ${type} properties exceeding 2000 characters, which will be truncated.`,
+                    tooLong
+                );
+            }
+        }
+
+        return stringifiedObj;
+    }
+
     async pushCustomError(message: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
-        this.errors.push({
+        this._firstLoadListeners.errors.push({
             event: message,
             type: 'custom',
             url: window.location.href,
@@ -485,7 +548,7 @@ export class Highlight {
                 console.error(e);
             }
         }
-        this.errors.push({
+        this._firstLoadListeners.errors.push({
             event: message ? message + ':' + error.message : error.message,
             type: 'custom',
             url: window.location.href,
@@ -505,9 +568,13 @@ export class Highlight {
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
             try {
+                const stringified = this._stringifyProperties(
+                    properties_obj,
+                    'session'
+                );
                 await this.graphqlSDK.addSessionProperties({
                     session_id: this.sessionData.sessionID.toString(),
-                    properties_object: properties_obj,
+                    properties_object: stringified,
                 });
                 this.logger.log(
                     `AddSessionProperties to session (${
@@ -535,9 +602,13 @@ export class Highlight {
                 this.addCustomEvent<string>('Track', stringify(properties_obj));
             }
             try {
+                const stringified = this._stringifyProperties(
+                    properties_obj,
+                    'track'
+                );
                 await this.graphqlSDK.addTrackProperties({
                     session_id: this.sessionData.sessionID.toString(),
-                    properties_object: properties_obj,
+                    properties_object: stringified,
                 });
                 const sourceString =
                     typeArg?.source === 'segment' ? typeArg.source : 'default';
@@ -557,20 +628,16 @@ export class Highlight {
             }
         }
     }
-    // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-    async initialize(organization_id?: number | string) {
-        var org_id = '';
-        if (typeof organization_id === 'number') {
-            org_id = organization_id.toString();
-        } else if (typeof organization_id === 'string') {
-            org_id = organization_id;
-        } else {
-            org_id = '0';
+    async initialize() {
+        if (
+            navigator?.webdriver ||
+            navigator?.userAgent?.includes('Googlebot') ||
+            navigator?.userAgent?.includes('AdsBot')
+        ) {
+            this._firstLoadListeners?.stopListening();
+            return;
         }
         try {
-            if (organization_id) {
-                this.organizationID = org_id;
-            }
             if (this.feedbackWidgetOptions.enabled) {
                 const {
                     onToggleFeedbackFormVisibility,
@@ -597,6 +664,17 @@ export class Highlight {
                 this._recordingStartTime = parseInt(recordingStartTime, 10);
             }
 
+            if (!this._firstLoadListeners.isListening()) {
+                this._firstLoadListeners.startListening();
+            }
+
+            if (!this._firstLoadListeners.hasNetworkRecording) {
+                FirstLoadListeners.setupNetworkListener(
+                    this._firstLoadListeners,
+                    this.options
+                );
+            }
+
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
             if (
@@ -620,13 +698,14 @@ export class Highlight {
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
                         enable_recording_network_contents: this
-                            .enableRecordingNetworkContents,
+                            ._firstLoadListeners.enableRecordingNetworkContents,
                         clientVersion: packageJson['version'],
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
                         id: fingerprint.toString(),
                         appVersion: this.appVersion,
+                        session_secure_id: this.options.sessionSecureID,
                     });
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
@@ -697,6 +776,7 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
                     this.listeners.push(recordStop);
@@ -773,82 +853,15 @@ export class Highlight {
                     );
                 })
             );
-            if (!this.disableConsoleRecording) {
-                this.listeners.push(
-                    ConsoleListener(
-                        (c: ConsoleMessage) => {
-                            if (
-                                (c.type === 'Error' || c.type === 'error') &&
-                                c.value &&
-                                c.trace
-                            ) {
-                                const errorValue = stringify(c.value);
-                                if (
-                                    ERRORS_TO_IGNORE.includes(errorValue) ||
-                                    ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
-                                        errorValue.includes(pattern)
-                                    )
-                                ) {
-                                    return;
-                                }
-                                highlightThis.errors.push({
-                                    event: errorValue,
-                                    type: 'console.error',
-                                    url: window.location.href,
-                                    source: c.trace[0]?.fileName
-                                        ? c.trace[0].fileName
-                                        : '',
-                                    lineNumber: c.trace[0]?.lineNumber
-                                        ? c.trace[0].lineNumber
-                                        : 0,
-                                    columnNumber: c.trace[0]?.columnNumber
-                                        ? c.trace[0].columnNumber
-                                        : 0,
-                                    stackTrace: c.trace,
-                                    timestamp: new Date().toISOString(),
-                                });
-                            } else {
-                                highlightThis.messages.push(c);
-                            }
-                        },
-                        {
-                            lengthThreshold: 1000,
-                            level: [
-                                'assert',
-                                'count',
-                                'countReset',
-                                'debug',
-                                'dir',
-                                'dirxml',
-                                'error',
-                                'group',
-                                'groupCollapsed',
-                                'groupEnd',
-                                'info',
-                                'log',
-                                'table',
-                                'time',
-                                'timeEnd',
-                                'timeLog',
-                                'trace',
-                                'warn',
-                            ],
-                            logger: 'console',
-                            stringifyOptions: {
-                                depthOfLimit: 10,
-                                numOfKeysLimit: 100,
-                                stringLengthLimit: 1000,
-                            },
-                        }
-                    )
-                );
-            }
-            this.listeners.push(
-                ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
-            );
+
             this.listeners.push(
                 ViewportResizeListener((viewport) => {
                     this.addCustomEvent('Viewport', viewport);
+                })
+            );
+            this.listeners.push(
+                PageVisibilityListener((isTabHidden) => {
+                    this.addCustomEvent('TabHidden', isTabHidden);
                 })
             );
             this.listeners.push(
@@ -887,27 +900,6 @@ export class Highlight {
                 });
             }
 
-            if (
-                !this.disableNetworkRecording &&
-                this.enableRecordingNetworkContents
-            ) {
-                this.listeners.push(
-                    NetworkListener({
-                        xhrCallback: (requestResponsePair) => {
-                            this.xhrNetworkContents.push(requestResponsePair);
-                        },
-                        fetchCallback: (requestResponsePair) => {
-                            this.fetchNetworkContents.push(requestResponsePair);
-                        },
-                        headersToRedact: this.networkHeadersToRedact,
-                        backendUrl: this._backendUrl,
-                        tracingOrigins: this.tracingOrigins,
-                        urlBlocklist: this.urlBlocklist,
-                        sessionData: this.sessionData,
-                    })
-                );
-            }
-
             this.listeners.push(
                 PerformanceListener((payload: PerformancePayload) => {
                     this.addCustomEvent('Performance', stringify(payload));
@@ -921,19 +913,24 @@ export class Highlight {
                     document.visibilityState === 'hidden' &&
                     'sendBeacon' in navigator
                 ) {
-                    const payload = this._getPayload({ isBeacon: true });
-                    let blob = new Blob(
-                        [
-                            JSON.stringify({
-                                query: print(PushPayloadDocument),
-                                variables: payload,
-                            }),
-                        ],
-                        {
-                            type: 'application/json',
-                        }
-                    );
-                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                    this._sendPayload({
+                        isBeacon: true,
+                        sendFn: (payload) => {
+                            let blob = new Blob(
+                                [
+                                    JSON.stringify({
+                                        query: print(PushPayloadDocument),
+                                        variables: payload,
+                                    }),
+                                ],
+                                {
+                                    type: 'application/json',
+                                }
+                            );
+                            navigator.sendBeacon(`${this._backendUrl}`, blob);
+                            return Promise.resolve();
+                        },
+                    });
                 }
             });
 
@@ -994,6 +991,7 @@ export class Highlight {
         this.state = 'NotRecording';
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
+        this._firstLoadListeners.stopListening();
     }
 
     getCurrentSessionTimestamp() {
@@ -1074,8 +1072,11 @@ export class Highlight {
                 return;
             }
             try {
-                const payload = this._getPayload({ isBeacon: false });
-                await this.graphqlSDK.PushPayload(payload);
+                await this._sendPayload({
+                    isBeacon: false,
+                    sendFn: (payload) => this.graphqlSDK.PushPayload(payload),
+                });
+                this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
@@ -1138,65 +1139,28 @@ export class Highlight {
                 }
             };
             intervalId = setTimeout(worker, 500);
+        } else if (
+            this.state === 'Recording' &&
+            (this.events.length > 0 || this.hasPushedData)
+        ) {
+            rrwebAddCustomEvent(tag, payload);
         }
     }
 
-    _getPayload({
+    async _sendPayload({
         isBeacon,
+        sendFn,
     }: {
         isBeacon: boolean;
-    }): PushPayloadMutationVariables {
-        let resources: Array<any> = [];
-        if (!this.disableNetworkRecording) {
-            // get all resources that don't include 'api.highlight.run'
-            resources = performance.getEntriesByType('resource');
-
-            resources = resources.filter((r) =>
-                shouldNetworkRequestBeRecorded(
-                    r.name,
-                    this._backendUrl,
-                    this.tracingOrigins
-                )
-            );
-
-            if (this.enableRecordingNetworkContents) {
-                resources = matchPerformanceTimingsWithRequestResponsePair(
-                    resources,
-                    this.xhrNetworkContents,
-                    'xmlhttprequest'
-                );
-                resources = matchPerformanceTimingsWithRequestResponsePair(
-                    resources,
-                    this.fetchNetworkContents,
-                    'fetch'
-                );
-            }
-        }
-
-        const messages = [...this.messages];
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
+    }): Promise<void> {
+        const resources = FirstLoadListeners.getRecordedNetworkResources(
+            this._firstLoadListeners,
+            this._recordingStartTime
+        );
         const events = [...this.events];
-        const errors = [...this.errors];
-
-        // SendBeacon is not guaranteed to succeed, so keep the events and re-upload on
-        // the next PushPayload if there is one. The backend will remove all existing beacon
-        // payloads whenever it receives a new payload.
-        if (!isBeacon) {
-            if (!this.disableNetworkRecording) {
-                this.xhrNetworkContents = [];
-                this.fetchNetworkContents = [];
-                performance.clearResourceTimings();
-            }
-            // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
-            // Originally, we would clear this.events but this could lead to a race condition.
-            // Example Scenario:
-            // 1. Create the events payload from this.events (with N events)
-            // 2. rrweb pushes to this.events (with M events)
-            // 3. Network request made to push payload (Only includes N events)
-            // 4. this.events is cleared (we lose M events)
-            this.messages = this.messages.slice(messages.length);
-            this.events = this.events.slice(events.length);
-            this.errors = this.errors.slice(errors.length);
-        }
+        const messages = [...this._firstLoadListeners.messages];
+        const errors = [...this._firstLoadListeners.errors];
 
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
@@ -1204,7 +1168,7 @@ export class Highlight {
 
         const resourcesString = JSON.stringify({ resources: resources });
         const messagesString = stringify({ messages: messages });
-        return {
+        let payload: PushPayloadMutationVariables = {
             session_id: this.sessionData.sessionID.toString(),
             events: { events },
             messages: messagesString,
@@ -1213,6 +1177,35 @@ export class Highlight {
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
         };
+        const highlightLogs = getHighlightLogs();
+        if (highlightLogs) {
+            payload.highlight_logs = highlightLogs;
+        }
+
+        await sendFn(payload);
+
+        // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
+        // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
+        if (!isBeacon) {
+            FirstLoadListeners.clearRecordedNetworkResources(
+                this._firstLoadListeners
+            );
+            // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+            // Originally, we would clear this.events but this could lead to a race condition.
+            // Example Scenario:
+            // 1. Create the events payload from this.events (with N events)
+            // 2. rrweb pushes to this.events (with M events)
+            // 3. Network request made to push payload (Only includes N events)
+            // 4. this.events is cleared (we lose M events)
+            this.events = this.events.slice(events.length);
+            this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
+                messages.length
+            );
+            this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
+                errors.length
+            );
+            clearHighlightLogs(highlightLogs);
+        }
     }
 }
 

@@ -2,6 +2,9 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import Tooltip from '@components/Tooltip/Tooltip';
+import SvgBugIcon from '@icons/BugIcon';
+import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
@@ -16,7 +19,6 @@ import TextTransition from 'react-text-transition';
 import { Avatar } from '../../../../../components/Avatar/Avatar';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
 import SvgEyeOffIcon from '../../../../../static/EyeOffIcon';
-import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
@@ -252,69 +254,98 @@ const MinimalSessionCard = React.memo(
                                 }
                             )}
                         >
-                            <div>
-                                <span
-                                    className={styles.cardAnnotation}
-                                    style={
+                            <Tooltip
+                                title={
+                                    !viewed
+                                        ? "This session hasn't been viewed by anyone on your team."
+                                        : 'This session has been viewed by someone on your team.'
+                                }
+                            >
+                                <div>
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': !viewed
+                                                    ? 'var(--color-blue-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgEyeOffIcon />
+                                    </span>
+                                </div>
+                            </Tooltip>
+                            <Tooltip
+                                title={
+                                    session?.first_time
+                                        ? `This is ${session.identifier}'s first session on your app.`
+                                        : `This is not ${session?.identifier}'s first session. This icon will be colored for a user's first session on your app.`
+                                }
+                            >
+                                <div>
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': session?.first_time
+                                                    ? 'var(--color-red-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
                                         {
-                                            '--primary-color': !viewed
-                                                ? 'var(--color-blue-400)'
-                                                : 'var(--color-gray-300)',
-                                        } as React.CSSProperties
-                                    }
-                                >
-                                    <SvgEyeOffIcon />
-                                </span>
-                            </div>
-                            <div>
-                                <span
-                                    className={styles.cardAnnotation}
-                                    style={
-                                        {
-                                            '--primary-color': session?.first_time
-                                                ? 'var(--color-red-400)'
-                                                : 'var(--color-gray-300)',
-                                        } as React.CSSProperties
-                                    }
-                                >
-                                    {
-                                        ALERT_CONFIGURATIONS['NEW_USER_ALERT']
-                                            .icon
-                                    }
-                                </span>
-                            </div>
-                            <div>
-                                <span
-                                    className={styles.cardAnnotation}
-                                    style={
-                                        {
-                                            '--primary-color': session?.identifier
-                                                ? 'var(--color-orange-400)'
-                                                : 'var(--color-gray-300)',
-                                        } as React.CSSProperties
-                                    }
-                                >
-                                    {
-                                        ALERT_CONFIGURATIONS[
-                                            'USER_PROPERTIES_ALERT'
-                                        ].icon
-                                    }
-                                </span>
-                            </div>
-                            <div>
-                                <span
-                                    className={styles.cardAnnotation}
-                                    style={
-                                        {
-                                            '--primary-color': !session?.processed
-                                                ? 'var(--color-purple-400)'
-                                                : 'var(--color-gray-300)',
-                                        } as React.CSSProperties
-                                    }
-                                >
-                                    <SvgFastForwardIcon />
-                                </span>
-                            </div>
+                                            ALERT_CONFIGURATIONS[
+                                                'NEW_USER_ALERT'
+                                            ].icon
+                                        }
+                                    </span>
+                                </div>
+                            </Tooltip>
+                            <Tooltip
+                                title={
+                                    session?.has_errors
+                                        ? 'This session has errors.'
+                                        : 'This session does not have any errors.'
+                                }
+                            >
+                                <div>
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': session?.has_errors
+                                                    ? '#eb5757'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgBugIcon />
+                                    </span>
+                                </div>
+                            </Tooltip>
+                            <Tooltip
+                                title={
+                                    session?.has_rage_clicks
+                                        ? 'This session has rage clicks.'
+                                        : 'This session does not have rage clicks.'
+                                }
+                            >
+                                <div>
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': session?.has_rage_clicks
+                                                    ? 'var(--color-red-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgCursorClickIcon />
+                                    </span>
+                                </div>
+                            </Tooltip>
                         </div>
                     )}
                 </div>

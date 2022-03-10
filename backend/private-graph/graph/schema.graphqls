@@ -37,6 +37,8 @@ type Session {
     viewed: Boolean
     starred: Boolean
     processed: Boolean
+    has_rage_clicks: Boolean
+    has_errors: Boolean
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
@@ -51,6 +53,14 @@ type Session {
     messages_url: String
     deviceMemory: Int
     last_user_interaction_time: Timestamp!
+}
+
+type SessionInterval {
+    session_secure_id: String!
+    start_time: Timestamp!
+    end_time: Timestamp!
+    duration: Int!
+    active: Boolean!
 }
 
 type RageClickEvent {
@@ -121,6 +131,11 @@ enum SocialType {
     Twitter
     Facebook
     Site
+}
+
+enum IntegrationType {
+    Slack
+    Linear
 }
 
 enum ErrorState {
@@ -253,6 +268,9 @@ type ErrorTrace {
     functionName: String
     columnNumber: Int
     error: String
+    lineContent: String
+    linesBefore: String
+    linesAfter: String
 }
 
 type ReferrerTablePayload {
@@ -332,6 +350,7 @@ type SearchParams {
 input AdminAboutYouDetails {
     name: String!
     user_defined_role: String!
+    user_defined_persona: String!
     referral: String!
 }
 
@@ -403,6 +422,7 @@ type Admin {
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    user_defined_persona: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -429,6 +449,20 @@ type ErrorResults {
     totalCount: Int64!
 }
 
+# 2 way connector type between highlight objects and external integration objects
+# should be used to update information from/to platforms
+type ExternalAttachment {
+    id: ID!
+    integration_type: IntegrationType!
+
+    external_id: String!
+    title: String
+
+    # associations to highlight objects
+    session_comment_id: Int
+    error_comment_id: Int
+}
+
 type SessionComment {
     id: ID!
     project_id: ID!
@@ -444,6 +478,7 @@ type SessionComment {
     type: SessionCommentType!
     metadata: Any
     tags: [String]!
+    attachments: [ExternalAttachment]!
 }
 
 type SlackSyncResponse {
@@ -470,6 +505,7 @@ type ErrorComment {
     updated_at: Timestamp!
     author: SanitizedAdmin!
     text: String!
+    attachments: [ExternalAttachment]!
 }
 
 enum SessionLifecycle {
@@ -488,6 +524,19 @@ type DailyErrorCount {
     project_id: ID!
     date: Timestamp!
     count: Int64!
+}
+
+type ErrorDistributionItem {
+    name: String!
+    value: Int64!
+}
+
+type Dashboard {
+    id: ID!
+    project_id: ID!
+    layout: String!
+    name: String!
+    last_admin_to_edit_id: ID!
 }
 
 type SanitizedSlackChannel {
@@ -602,6 +651,7 @@ type Query {
     accounts: [Account]
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
+    session_intervals(session_secure_id: String!): [SessionInterval!]!
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     rageClicksForProject(
         project_id: ID!
@@ -634,6 +684,7 @@ type Query {
     workspace_admins_by_project_id(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
+    liveUsersCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
     projectHasViewedASession(project_id: ID!): Session
     dailySessionsCount(
@@ -649,6 +700,11 @@ type Query {
         error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
+    errorDistribution(
+        project_id: ID!
+        error_group_secure_id: String!
+        property: String!
+    ): [ErrorDistributionItem]!
     referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
     newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
     topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
@@ -671,6 +727,7 @@ type Query {
         project_id: ID!
         count: Int!
         query: String!
+        sort_desc: Boolean!
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
@@ -720,7 +777,10 @@ type Query {
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
-    is_integrated_with_slack(project_id: ID!): Boolean!
+    is_integrated_with(
+        integration_type: IntegrationType!
+        project_id: ID!
+    ): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -820,7 +880,21 @@ type Mutation {
         time: Float!
         author_name: String!
         session_image: String
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+    ): SessionComment
+    createIssueForSessionComment(
+        project_id: ID!
+        session_url: String!
+        session_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        time: Float!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
@@ -832,6 +906,19 @@ type Mutation {
         tagged_slack_users: [SanitizedSlackChannelInput]!
         error_url: String!
         author_name: String!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
+    ): ErrorComment
+    createIssueForErrorComment(
+        project_id: ID!
+        error_url: String!
+        error_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        issue_title: String
+        issue_description: String
+        integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
     openSlackConversation(
@@ -839,10 +926,14 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
-    addSlackBotIntegrationToProject(
+    addIntegrationToProject(
+        integration_type: IntegrationType
         project_id: ID!
         code: String!
-        redirect_path: String!
+    ): Boolean!
+    removeIntegrationFromProject(
+        integration_type: IntegrationType
+        project_id: ID!
     ): Boolean!
     syncSlackIntegration(project_id: ID!): SlackSyncResponse!
     createDefaultAlerts(

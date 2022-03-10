@@ -89,7 +89,8 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                             [key]: d[key],
                         }));
 
-                        if (data.length === 0) {
+                        const hasData = data.some((data) => !isNaN(data[key]));
+                        if (data.length === 0 || !hasData) {
                             return (
                                 <div className={styles.noDataContainer}>
                                     <p>
@@ -110,7 +111,6 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
                                 heightPercent="50%"
                                 fillColor={fillColor}
                                 strokeColor={strokeColor}
-                                syncId="PerformancePageDevTools"
                                 xAxisTickFormatter={(tickItem) => {
                                     return MillisToMinutesAndSeconds(tickItem);
                                 }}

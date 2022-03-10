@@ -14,7 +14,9 @@ import { Replayer } from '@highlight-run/rrweb';
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
+import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm';
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
@@ -107,6 +109,9 @@ const Player = ({ integrated }: Props) => {
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
+    const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
+        undefined
+    );
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
@@ -197,6 +202,8 @@ const Player = ({ integrated }: Props) => {
                 selectedRightPanelTab,
                 setSelectedRightPanelTab,
                 isQueryBuilder,
+                activeEvent,
+                setActiveEvent,
             }}
         >
             <Helmet>
@@ -264,6 +271,7 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
+                    <UnauthorizedViewingForm />
                     {sessionViewability === SessionViewability.ERROR ? (
                         <ErrorState
                             shownWithHeader
@@ -377,30 +385,6 @@ const Player = ({ integrated }: Props) => {
                                                     </ElevatedCard>
                                                 </div>
                                             )}
-                                            {replayerState ===
-                                                ReplayerState.Error && (
-                                                <div
-                                                    className={
-                                                        styles.manuallyStoppedMessageContainer
-                                                    }
-                                                    style={{
-                                                        height: replayer?.wrapper.getBoundingClientRect()
-                                                            .height,
-                                                        width: replayer?.wrapper.getBoundingClientRect()
-                                                            .width,
-                                                    }}
-                                                >
-                                                    <ElevatedCard title="This session doesn't exist.">
-                                                        <p>
-                                                            If you're seeing
-                                                            this than this
-                                                            session you're
-                                                            trying to view
-                                                            doesn't exist.
-                                                        </p>
-                                                    </ElevatedCard>
-                                                </div>
-                                            )}
                                             {isPlayerReady && (
                                                 <PlayerCommentCanvas
                                                     setModalPosition={
@@ -429,10 +413,6 @@ const Player = ({ integrated }: Props) => {
                                                 )}
                                                 id="player"
                                             />
-                                            {replayerState ===
-                                                ReplayerState.NoEventsYet && (
-                                                <LoadingLiveSessionCard />
-                                            )}
                                             {!isPlayerReady &&
                                                 sessionViewability ===
                                                     SessionViewability.VIEWABLE &&

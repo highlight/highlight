@@ -17,6 +17,7 @@
     font-size: 12px !important;
     grid-template-columns: 22px 1fr min-content;
     height: 100%;
+    position: relative;
     width: 100%;
 
     &.noTimestamp {
@@ -45,6 +46,7 @@
     margin-left: 10px;
     padding: 5px;
     padding-right: 0;
+    width: max-content;
 }
 
 .iconWrapper {
@@ -120,6 +122,9 @@
     color: var(--color-gray-500);
     grid-column-start: 3;
     grid-row-start: 3;
+    position: absolute;
+    right: -8px;
+    top: -6px;
 
     &:hover {
         color: var(--text-primary);
@@ -153,4 +158,8 @@
 .payloadTitle {
     font-size: 12px !important;
     margin-bottom: var(--size-xSmall) !important;
+
+    > div {
+        overflow-wrap: anywhere;
+    }
 }

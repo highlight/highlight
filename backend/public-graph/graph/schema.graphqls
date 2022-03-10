@@ -71,6 +71,7 @@ type Mutation {
         environment: String!
         appVersion: String
         fingerprint: String!
+        session_secure_id: String
     ): Session
     identifySession(
         session_id: ID!
@@ -87,6 +88,7 @@ type Mutation {
         errors: [ErrorObjectInput]!
         is_beacon: Boolean
         has_session_unloaded: Boolean
+        highlight_logs: String
     ): ID
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     addSessionFeedback(

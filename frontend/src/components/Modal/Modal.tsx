@@ -20,7 +20,7 @@ type Props = Pick<
     | 'getContainer'
     | 'className'
 > & {
-    title?: string;
+    title?: React.ReactNode;
     minimal?: boolean;
     minimalPaddingSize?: string;
 };

@@ -3,6 +3,7 @@ import HighlightGate from '@components/HighlightGate/HighlightGate';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
+import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef } from 'react';
 
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
@@ -30,7 +31,6 @@ interface Props {
 
 const TimelineIndicatorsMemoized = React.memo(
     ({
-        openDevTools,
         refContainer,
         sessionIntervals,
         selectedTimelineAnnotationTypes,
@@ -39,69 +39,76 @@ const TimelineIndicatorsMemoized = React.memo(
         pause,
     }: Props) => {
         return (
-            <aside
-                className={classNames(styles.container, {
-                    [styles.withDevtoolsOpen]: openDevTools,
-                })}
-                ref={refContainer}
-            >
-                {sessionIntervals.map((sessionInterval, index) => (
-                    <div
-                        key={`${sessionInterval.startPercent}-${index}`}
-                        className={classNames(styles.sessionInterval, {
-                            [styles.active]: sessionInterval.active,
-                        })}
-                        style={{
-                            left: `${sessionInterval.startPercent * 100}%`,
-                            width: `${
-                                (sessionInterval.endPercent -
-                                    sessionInterval.startPercent) *
-                                100
-                            }%`,
-                        }}
-                    >
-                        {sessionInterval.sessionEvents.map((event) => (
-                            <TimelineEventAnnotation
-                                event={event}
-                                startTime={startTime}
-                                selectedTimelineAnnotationTypes={
-                                    selectedTimelineAnnotationTypes
-                                }
-                                pause={pause}
-                                key={`${event.timestamp}-${event.identifier}`}
-                            />
-                        ))}
-                        {selectedTimelineAnnotationTypes.includes('Errors') &&
-                            sessionInterval.errors.map((error) => (
-                                <TimelineErrorAnnotation
-                                    error={error}
-                                    key={`${error.timestamp}-${error.id}`}
+            <AnimatePresence presenceAffectsLayout>
+                <aside
+                    className={classNames(styles.container)}
+                    ref={refContainer}
+                >
+                    {sessionIntervals.map((sessionInterval, index) => (
+                        <div
+                            key={`${sessionInterval.startPercent}-${index}`}
+                            className={classNames(styles.sessionInterval, {
+                                [styles.active]: sessionInterval.active,
+                            })}
+                            style={{
+                                left: `${sessionInterval.startPercent * 100}%`,
+                                width: `${
+                                    (sessionInterval.endPercent -
+                                        sessionInterval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {sessionInterval.sessionEvents.map((event) => (
+                                <TimelineEventAnnotation
+                                    event={event}
+                                    startTime={startTime}
+                                    selectedTimelineAnnotationTypes={
+                                        selectedTimelineAnnotationTypes
+                                    }
+                                    pause={pause}
+                                    key={`${event.timestamp}-${event.identifier}`}
                                 />
                             ))}
-                        {selectedTimelineAnnotationTypes.includes('Comments') &&
-                            sessionInterval.comments.map((comment) => {
-                                return (
-                                    <TimelineCommentAnnotation
-                                        comment={comment}
-                                        key={comment.id}
-                                    />
-                                );
-                            })}
-                        {selectedTimelineAnnotationTypes.includes('Click') &&
-                            rageClicks
-                                .filter(
-                                    (rageClick) =>
-                                        rageClick.sessionIntervalIndex === index
-                                )
-                                .map((rageClick) => (
-                                    <RageClickSpan
-                                        rageClick={rageClick}
-                                        key={rageClick.startTimestamp}
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Errors'
+                            ) &&
+                                sessionInterval.errors.map((error) => (
+                                    <TimelineErrorAnnotation
+                                        error={error}
+                                        key={`${error.timestamp}-${error.id}`}
                                     />
                                 ))}
-                    </div>
-                ))}
-            </aside>
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Comments'
+                            ) &&
+                                sessionInterval.comments.map((comment) => {
+                                    return (
+                                        <TimelineCommentAnnotation
+                                            comment={comment}
+                                            key={comment.id}
+                                        />
+                                    );
+                                })}
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Click'
+                            ) &&
+                                rageClicks
+                                    .filter(
+                                        (rageClick) =>
+                                            rageClick.sessionIntervalIndex ===
+                                            index
+                                    )
+                                    .map((rageClick) => (
+                                        <RageClickSpan
+                                            rageClick={rageClick}
+                                            key={rageClick.startTimestamp}
+                                        />
+                                    ))}
+                        </div>
+                    ))}
+                </aside>
+            </AnimatePresence>
         );
     }
 );
@@ -145,11 +152,7 @@ const TimelineIndicators = React.memo(() => {
         state,
     ]);
 
-    if (
-        selectedTimelineAnnotationTypes.length === 0 ||
-        state === ReplayerState.Loading ||
-        !replayer
-    ) {
+    if (state === ReplayerState.Loading || !replayer) {
         return null;
     }
 

@@ -9,6 +9,7 @@ import SvgFastForwardIcon from '@icons/FastForwardIcon';
 import SvgMouseIcon from '@icons/MouseIcon';
 import SvgPinTackIcon from '@icons/PinTackIcon';
 import SvgVideoIcon from '@icons/VideoIcon';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
 import SpeedControl from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
@@ -143,6 +144,7 @@ export const DevToolsToolbarItem = React.memo(
     ({ loading, renderContext }: ToolbarItemProps) => {
         const { showDevTools, setShowDevTools } = usePlayerConfiguration();
         const { devToolsButton, setDevToolsButton } = useToolbarItemsContext();
+        const { isPlayerFullscreen } = usePlayerUIContext();
 
         if (!shouldRender(devToolsButton, renderContext)) {
             return null;
@@ -154,6 +156,7 @@ export const DevToolsToolbarItem = React.memo(
                 configuration={devToolsButton}
                 menuRender={
                     <Switch
+                        disabled={isPlayerFullscreen}
                         label="Show DevTools"
                         className={styles.switchElement}
                         labelFirst
@@ -179,7 +182,7 @@ export const DevToolsToolbarItem = React.memo(
                         onClick={() => {
                             setShowDevTools(!showDevTools);
                         }}
-                        disabled={loading}
+                        disabled={loading || isPlayerFullscreen}
                         toggled={showDevTools}
                     >
                         <SvgDevtoolsIcon

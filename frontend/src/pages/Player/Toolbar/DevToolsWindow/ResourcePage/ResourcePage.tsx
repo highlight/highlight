@@ -4,7 +4,10 @@ import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
+import {
+    NetworkResourceWithID,
+    useResourcesContext,
+} from '@pages/Player/ResourcesContext/ResourcesContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
@@ -51,6 +54,7 @@ export const ResourcePage = React.memo(
             isInteractingWithResources,
             setIsInteractingWithResources,
         ] = useState(false);
+        const [currentActiveIndex, setCurrentActiveIndex] = useState(0);
         const [allResources, setAllResources] = useState<
             Array<NetworkResource> | undefined
         >([]);
@@ -62,6 +66,7 @@ export const ResourcePage = React.memo(
         const {
             setResourcePanel,
             setErrorPanel,
+            panelIsOpen,
         } = useResourceOrErrorDetailPanel();
 
         const {
@@ -84,6 +89,7 @@ export const ResourcePage = React.memo(
         useEffect(() => {
             if (parsedResources) {
                 setAllResources(
+                    // @ts-expect-error
                     parsedResources?.filter((r) => {
                         if (currentOption === 'All') {
                             return true;
@@ -220,6 +226,7 @@ export const ResourcePage = React.memo(
         ]);
 
         const resourcesToRender = useMemo(() => {
+            setCurrentActiveIndex(0);
             if (!allResources) {
                 return [];
             }
@@ -230,7 +237,7 @@ export const ResourcePage = React.memo(
                         return false;
                     }
 
-                    return resource.name
+                    return (resource.displayName || resource.name)
                         .toLocaleLowerCase()
                         .includes(filterSearchTerm.toLocaleLowerCase());
                 });
@@ -238,6 +245,45 @@ export const ResourcePage = React.memo(
 
             return allResources;
         }, [allResources, filterSearchTerm]);
+
+        // Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
+        useEffect(() => {
+            const listener = (e: KeyboardEvent) => {
+                let direction: undefined | number = undefined;
+                if (e.key === 'ArrowUp') {
+                    direction = -1;
+                } else if (e.key === 'ArrowDown') {
+                    direction = 1;
+                }
+
+                if (direction !== undefined) {
+                    e.preventDefault();
+                    let nextIndex = currentActiveIndex + direction;
+                    if (nextIndex < 0) {
+                        nextIndex = 0;
+                    } else if (nextIndex >= resourcesToRender.length) {
+                        nextIndex = resourcesToRender.length - 1;
+                    }
+
+                    setCurrentActiveIndex(nextIndex);
+                    if (panelIsOpen) {
+                        setResourcePanel(resourcesToRender[nextIndex]);
+                        virtuoso.current?.scrollToIndex(nextIndex - 1);
+                    }
+                }
+            };
+            document.addEventListener('keydown', listener);
+
+            return () => {
+                document.removeEventListener('keydown', listener);
+            };
+        }, [
+            currentActiveIndex,
+            panelIsOpen,
+            resourcesToRender,
+            resourcesToRender.length,
+            setResourcePanel,
+        ]);
 
         return (
             <div className={styles.resourcePageWrapper}>
@@ -333,6 +379,9 @@ export const ResourcePage = React.memo(
                                                         filterSearchTerm
                                                     }
                                                     onClickHandler={() => {
+                                                        setCurrentActiveIndex(
+                                                            index
+                                                        );
                                                         setResourcePanel(
                                                             resource
                                                         );
@@ -396,10 +445,10 @@ const TimingCanvas = () => {
     );
 };
 
-export type NetworkResource = PerformanceResourceTiming & {
-    id: number;
+export type NetworkResource = NetworkResourceWithID & {
     requestResponsePairs?: RequestResponsePair;
     errors?: ErrorObject[];
+    offsetStartTime?: number;
 };
 
 const ResourceRow = ({
@@ -462,12 +511,12 @@ const ResourceRow = ({
                 <div className={styles.typeSection}>
                     {getNetworkResourcesDisplayName(resource.initiatorType)}
                 </div>
-                <Tooltip title={resource.name}>
+                <Tooltip title={resource.displayName || resource.name}>
                     <TextHighlighter
                         className={styles.nameSection}
                         searchWords={[searchTerm]}
                         autoEscape={true}
-                        textToHighlight={resource.name}
+                        textToHighlight={resource.displayName || resource.name}
                     />
                 </Tooltip>
                 <div className={styles.timingBarWrapper}>
@@ -545,7 +594,6 @@ export const findResourceWithMatchingHighlightHeader = (
 };
 
 export const getHighlightRequestId = (resource: NetworkResource) => {
-    // @ts-expect-error
     return resource.requestResponsePairs?.request?.id;
 };
 

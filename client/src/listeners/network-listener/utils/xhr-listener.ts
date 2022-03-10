@@ -1,4 +1,3 @@
-import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
 import {
@@ -25,7 +24,8 @@ export const XHRListener = (
     backendUrl: string,
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
-    sessionData: SessionData
+    sessionSecureID: string,
+    bodyKeysToRecord: string[]
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -75,10 +75,7 @@ export const XHRListener = (
         if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
             this.setRequestHeader(
                 HIGHLIGHT_REQUEST_HEADER,
-                getHighlightRequestHeader(
-                    sessionData.sessionSecureID,
-                    requestId
-                )
+                getHighlightRequestHeader(sessionSecureID, requestId)
             );
         }
 
@@ -91,6 +88,18 @@ export const XHRListener = (
             body: undefined,
         };
 
+        if (shouldRecordHeaderAndBody) {
+            if (postData) {
+                const bodyData = getBodyData(postData, requestModel.url);
+                if (bodyData) {
+                    requestModel['body'] = getBodyThatShouldBeRecorded(
+                        bodyData,
+                        bodyKeysToRecord
+                    );
+                }
+            }
+        }
+
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
             const responseModel: Response = {
@@ -101,22 +110,12 @@ export const XHRListener = (
 
             if (shouldRecordHeaderAndBody) {
                 if (postData) {
-                    if (typeof postData === 'string') {
-                        // TODO: This should be removed when we move recording logic from client to firstload.
-                        // This is only for development purposes. We don't want to send the body of pushPayload requests because it'll end up being recursive.
-                        if (
-                            (requestModel.url.includes('localhost') ||
-                                requestModel.url.includes('highlight.run')) &&
-                            !postData.includes('pushPayload')
-                        ) {
-                            requestModel['body'] = postData;
-                        }
-                    } else if (
-                        typeof postData === 'object' ||
-                        typeof postData === 'number' ||
-                        typeof postData === 'boolean'
-                    ) {
-                        requestModel['body'] = postData.toString();
+                    const bodyData = getBodyData(postData, requestModel.url);
+                    if (bodyData) {
+                        requestModel['body'] = getBodyThatShouldBeRecorded(
+                            bodyData,
+                            bodyKeysToRecord
+                        );
                     }
                 }
 
@@ -138,17 +137,26 @@ export const XHRListener = (
                 responseModel.headers = headerMap;
 
                 if (this.responseType === '' || this.responseType === 'text') {
-                    responseModel['body'] = this.responseText;
+                    responseModel['body'] = getBodyThatShouldBeRecorded(
+                        this.responseText,
+                        bodyKeysToRecord
+                    );
                     // Each character is 8 bytes, total size is number of characters multiplied by 8.
                     responseModel['size'] = this.responseText.length * 8;
                 } else if (this.responseType === 'blob') {
                     const blob = this.response as Blob;
                     const response = await blob.text();
-                    responseModel['body'] = response;
+                    responseModel['body'] = getBodyThatShouldBeRecorded(
+                        response,
+                        bodyKeysToRecord
+                    );
                     responseModel['size'] = blob.size;
                 } else {
                     try {
-                        responseModel['body'] = this.response;
+                        responseModel['body'] = getBodyThatShouldBeRecorded(
+                            this.response,
+                            bodyKeysToRecord
+                        );
                     } catch {}
                 }
             }
@@ -195,4 +203,52 @@ export const XHRListener = (
         XHR.send = originalSend;
         XHR.setRequestHeader = originalSetRequestHeader;
     };
+};
+
+const getBodyData = (postData: any, url: string) => {
+    if (typeof postData === 'string') {
+        // TODO: This should be removed when we move recording logic from client to firstload.
+        // This is only for development purposes. We don't want to send the body of pushPayload requests because it'll end up being recursive.
+        if (
+            !(
+                (url.includes('localhost') || url.includes('highlight.run')) &&
+                postData.includes('pushPayload')
+            )
+        ) {
+            return postData;
+        }
+    } else if (
+        typeof postData === 'object' ||
+        typeof postData === 'number' ||
+        typeof postData === 'boolean'
+    ) {
+        return postData.toString();
+    }
+
+    return null;
+};
+
+export const getBodyThatShouldBeRecorded = (
+    bodyData: any,
+    bodyKeysToRecord: string[]
+) => {
+    if (bodyKeysToRecord.length === 0 || !bodyData) {
+        return bodyData;
+    }
+
+    try {
+        const json = JSON.parse(bodyData);
+
+        Object.keys(json).forEach((header) => {
+            if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
+                console.log(header.toLocaleLowerCase());
+
+                json[header] = '[REDACTED]';
+            }
+        });
+
+        return JSON.stringify(json);
+    } catch {}
+
+    return bodyData;
 };

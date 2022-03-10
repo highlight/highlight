@@ -104,6 +104,7 @@ export type MutationInitializeSessionArgs = {
   environment: Scalars['String'];
   appVersion?: Maybe<Scalars['String']>;
   fingerprint: Scalars['String'];
+  session_secure_id?: Maybe<Scalars['String']>;
 };
 
 
@@ -134,6 +135,7 @@ export type MutationPushPayloadArgs = {
   errors: Array<Maybe<ErrorObjectInput>>;
   is_beacon?: Maybe<Scalars['Boolean']>;
   has_session_unloaded?: Maybe<Scalars['Boolean']>;
+  highlight_logs?: Maybe<Scalars['String']>;
 };
 
 
@@ -180,6 +182,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
   is_beacon?: Types.Maybe<Types.Scalars['Boolean']>;
   has_session_unloaded?: Types.Maybe<Types.Scalars['Boolean']>;
+  highlight_logs?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 
@@ -268,6 +271,7 @@ export type InitializeSessionMutationVariables = Types.Exact<{
   environment: Types.Scalars['String'];
   id: Types.Scalars['String'];
   appVersion?: Types.Maybe<Types.Scalars['String']>;
+  session_secure_id?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 
@@ -291,7 +295,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean, $has_session_unloaded: Boolean) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!, $is_beacon: Boolean, $has_session_unloaded: Boolean, $highlight_logs: String) {
   pushPayload(
     session_id: $session_id
     events: $events
@@ -300,6 +304,7 @@ export const PushPayloadDocument = gql`
     errors: $errors
     is_beacon: $is_beacon
     has_session_unloaded: $has_session_unloaded
+    highlight_logs: $highlight_logs
   )
 }
     `;
@@ -350,7 +355,7 @@ export const AddSessionFeedbackDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String) {
+    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String, $session_secure_id: String) {
   initializeSession(
     organization_verbose_id: $organization_verbose_id
     enable_strict_privacy: $enable_strict_privacy
@@ -361,6 +366,7 @@ export const InitializeSessionDocument = gql`
     environment: $environment
     appVersion: $appVersion
     fingerprint: $id
+    session_secure_id: $session_secure_id
   ) {
     id
     secure_id

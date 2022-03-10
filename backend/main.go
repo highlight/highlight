@@ -52,6 +52,7 @@ var (
 	sendgridKey         = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
+	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
@@ -84,9 +85,10 @@ func validateOrigin(request *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		isAWSRenderEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d1ggqq795qhcr.amplifyapp.com")
+		// Is this an AWS Amplify environment?
+		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || (origin == "https://master.d25bj3loqvp3nx.amplifyapp.com")
 
-		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSRenderEnv {
+		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
@@ -203,6 +205,7 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
+		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(slackSigningSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)

@@ -127,15 +127,24 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
     'openSlackConversation'
 >;
 
-export type AddSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
+export type AddIntegrationToProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
-    redirect_path: Types.Scalars['String'];
 }>;
 
-export type AddSlackBotIntegrationToProjectMutation = {
+export type AddIntegrationToProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
+} & Pick<Types.Mutation, 'addIntegrationToProject'>;
+
+export type RemoveIntegrationFromProjectMutationVariables = Types.Exact<{
+    integration_type?: Types.Maybe<Types.IntegrationType>;
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type RemoveIntegrationFromProjectMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'removeIntegrationFromProject'>;
 
 export type UpdateAllowedEmailOriginsMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
@@ -310,6 +319,11 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     tags:
         | Array<Types.Maybe<Types.SessionCommentTagInput>>
         | Types.Maybe<Types.SessionCommentTagInput>;
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -328,6 +342,60 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
                     { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
                         'id' | 'name' | 'email'
+                    >
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    session_comment_id: Types.Scalars['Int'];
+    text_for_attachment: Types.Scalars['String'];
+    session_url: Types.Scalars['String'];
+    time: Types.Scalars['Float'];
+    author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateIssueForSessionCommentMutation = {
+    __typename?: 'Mutation';
+} & {
+    createIssueForSessionComment?: Types.Maybe<
+        { __typename?: 'SessionComment' } & Pick<
+            Types.SessionComment,
+            | 'id'
+            | 'timestamp'
+            | 'created_at'
+            | 'updated_at'
+            | 'text'
+            | 'x_coordinate'
+            | 'y_coordinate'
+        > & {
+                author?: Types.Maybe<
+                    { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
                     >
                 >;
             }
@@ -356,6 +424,11 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
     error_url: Types.Scalars['String'];
     author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -367,6 +440,41 @@ export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     Types.SanitizedAdmin,
                     'id' | 'name' | 'email'
+                >;
+            }
+    >;
+};
+
+export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    error_comment_id: Types.Scalars['Int'];
+    text_for_attachment: Types.Scalars['String'];
+    error_url: Types.Scalars['String'];
+    author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
+    createIssueForErrorComment?: Types.Maybe<
+        { __typename?: 'ErrorComment' } & Pick<
+            Types.ErrorComment,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
+                    >
                 >;
             }
     >;
@@ -1336,6 +1444,14 @@ export type SessionPayloadFragmentFragment = {
                                 'id' | 'name' | 'email' | 'photo_url'
                             >
                         >;
+                        attachments: Array<
+                            Types.Maybe<
+                                { __typename?: 'ExternalAttachment' } & Pick<
+                                    Types.ExternalAttachment,
+                                    'integration_type' | 'external_id' | 'title'
+                                >
+                            >
+                        >;
                     }
             >
         >;
@@ -1445,6 +1561,17 @@ export type GetSessionPayloadQuery = {
                                 'id' | 'name' | 'email' | 'photo_url'
                             >
                         >;
+                        attachments: Array<
+                            Types.Maybe<
+                                { __typename?: 'ExternalAttachment' } & Pick<
+                                    Types.ExternalAttachment,
+                                    | 'id'
+                                    | 'integration_type'
+                                    | 'external_id'
+                                    | 'title'
+                                >
+                            >
+                        >;
                     }
             >
         >;
@@ -1494,6 +1621,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'object_storage_enabled'
             | 'payload_size'
             | 'processed'
+            | 'has_rage_clicks'
+            | 'has_errors'
             | 'within_billing_quota'
             | 'client_version'
             | 'client_config'
@@ -1504,6 +1633,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'messages_url'
             | 'deviceMemory'
             | 'last_user_interaction_time'
+            | 'length'
+            | 'active_length'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1586,6 +1717,17 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                         { __typename?: 'SanitizedAdmin' } & Pick<
                             Types.SanitizedAdmin,
                             'id' | 'name' | 'email' | 'photo_url'
+                        >
+                    >;
+                    attachments: Array<
+                        Types.Maybe<
+                            { __typename?: 'ExternalAttachment' } & Pick<
+                                Types.ExternalAttachment,
+                                | 'id'
+                                | 'integration_type'
+                                | 'external_id'
+                                | 'title'
+                            >
                         >
                     >;
                 }
@@ -1698,6 +1840,14 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                         Types.SanitizedAdmin,
                         'id' | 'name' | 'email' | 'photo_url'
                     >;
+                    attachments: Array<
+                        Types.Maybe<
+                            { __typename?: 'ExternalAttachment' } & Pick<
+                                Types.ExternalAttachment,
+                                'integration_type' | 'external_id' | 'title'
+                            >
+                        >
+                    >;
                 }
         >
     >;
@@ -1764,6 +1914,19 @@ export type SendAdminWorkspaceInviteMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'sendAdminWorkspaceInvite'>;
 
+export type GetSessionIntervalsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetSessionIntervalsQuery = { __typename?: 'Query' } & {
+    session_intervals: Array<
+        { __typename?: 'SessionInterval' } & Pick<
+            Types.SessionInterval,
+            'start_time' | 'end_time' | 'active' | 'duration'
+        >
+    >;
+};
+
 export type GetFieldTypesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -1821,6 +1984,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
+    sort_desc: Types.Scalars['Boolean'];
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -1850,6 +2014,8 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'has_rage_clicks'
+                    | 'has_errors'
                     | 'first_time'
                     | 'user_properties'
                     | 'event_counts'
@@ -1955,6 +2121,8 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'has_rage_clicks'
+                    | 'has_errors'
                     | 'field_group'
                     | 'first_time'
                     | 'user_properties'
@@ -2172,6 +2340,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'slack_im_channel_id'
             | 'role'
             | 'email_verified'
+            | 'user_defined_role'
         >
     >;
 };
@@ -2245,7 +2414,7 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     billingDetails: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+        'meter' | 'membersMeter'
     > & {
             plan: { __typename?: 'Plan' } & Pick<
                 Types.Plan,
@@ -2304,6 +2473,10 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'lineNumber'
                             | 'functionName'
                             | 'columnNumber'
+                            | 'lineContent'
+                            | 'linesBefore'
+                            | 'linesAfter'
+                            | 'error'
                         >
                     >
                 >;
@@ -2740,7 +2913,7 @@ export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'unprocessedSessionsCount'
+    'unprocessedSessionsCount' | 'liveUsersCount'
 > & {
         newUsersCount?: Types.Maybe<
             { __typename?: 'NewUsersCount' } & Pick<
@@ -2883,6 +3056,23 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
     'dailyErrorFrequency'
 >;
 
+export type GetErrorDistributionQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
+    property: Types.Scalars['String'];
+}>;
+
+export type GetErrorDistributionQuery = { __typename?: 'Query' } & {
+    errorDistribution: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorDistributionItem' } & Pick<
+                Types.ErrorDistributionItem,
+                'name' | 'value'
+            >
+        >
+    >;
+};
+
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -2906,7 +3096,15 @@ export type GetWorkspaceIsIntegratedWithSlackQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithSlackQuery = {
     __typename?: 'Query';
-} & Pick<Types.Query, 'is_integrated_with_slack'>;
+} & { is_integrated_with_slack: Types.Query['is_integrated_with'] };
+
+export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceIsIntegratedWithLinearQuery = {
+    __typename?: 'Query';
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
 
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -2914,8 +3112,8 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack' | 'identifier_suggestion'
-> & {
+    'identifier_suggestion'
+> & { is_integrated_with_slack: Types.Query['is_integrated_with'] } & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
                 Types.Maybe<
@@ -3251,6 +3449,7 @@ export const namedOperations = {
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetSessionIntervals: 'GetSessionIntervals' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
         GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
@@ -3298,8 +3497,10 @@ export const namedOperations = {
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
         GetRageClicksForProject: 'GetRageClicksForProject' as const,
         GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
+        GetErrorDistribution: 'GetErrorDistribution' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
+        GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
@@ -3318,7 +3519,8 @@ export const namedOperations = {
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
-        AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
+        AddIntegrationToProject: 'AddIntegrationToProject' as const,
+        RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
         UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
         CreateProject: 'CreateProject' as const,
         SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
@@ -3330,8 +3532,10 @@ export const namedOperations = {
         EditSegment: 'EditSegment' as const,
         CreateSegment: 'CreateSegment' as const,
         CreateSessionComment: 'CreateSessionComment' as const,
+        CreateIssueForSessionComment: 'CreateIssueForSessionComment' as const,
         DeleteSessionComment: 'DeleteSessionComment' as const,
         CreateErrorComment: 'CreateErrorComment' as const,
+        CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
         DeleteErrorComment: 'DeleteErrorComment' as const,
         DeleteErrorSegment: 'DeleteErrorSegment' as const,
         EditErrorSegment: 'EditErrorSegment' as const,

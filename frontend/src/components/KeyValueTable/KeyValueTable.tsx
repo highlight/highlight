@@ -16,7 +16,7 @@ export interface KeyValueTableRow {
     valueDisplayValue: string | React.ReactNode | object;
     /** Set this if the value needs an InfoTooltip. */
     valueInfoTooltipMessage?: string | React.ReactNode;
-    renderType: 'string' | 'json';
+    renderType: 'string' | 'json' | 'react-node';
 }
 
 const KeyValueTable = ({
@@ -52,10 +52,24 @@ const KeyValueTable = ({
                                               />
                                           )}
                                       </>
+                                  ) : renderType === 'react-node' ? (
+                                      <>
+                                          {valueDisplayValue}
+                                          {valueInfoTooltipMessage && (
+                                              <InfoTooltip
+                                                  title={
+                                                      valueInfoTooltipMessage
+                                                  }
+                                                  className={styles.infoTooltip}
+                                              />
+                                          )}
+                                      </>
                                   ) : !!valueDisplayValue ? (
                                       <JsonViewer
                                           src={valueDisplayValue as object}
                                           collapsed
+                                          allowDownload
+                                          downloadFileName={`${keyDisplayValue}`}
                                       />
                                   ) : (
                                       'undefined'

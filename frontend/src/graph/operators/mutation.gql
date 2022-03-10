@@ -79,15 +79,25 @@ mutation OpenSlackConversation(
     )
 }
 
-mutation AddSlackBotIntegrationToProject(
+mutation AddIntegrationToProject(
+    $integration_type: IntegrationType
     $project_id: ID!
     $code: String!
-    $redirect_path: String!
 ) {
-    addSlackBotIntegrationToProject(
+    addIntegrationToProject(
+        integration_type: $integration_type
         project_id: $project_id
         code: $code
-        redirect_path: $redirect_path
+    )
+}
+
+mutation RemoveIntegrationFromProject(
+    $integration_type: IntegrationType
+    $project_id: ID!
+) {
+    removeIntegrationFromProject(
+        integration_type: $integration_type
+        project_id: $project_id
     )
 }
 
@@ -210,6 +220,9 @@ mutation CreateSessionComment(
     $author_name: String!
     $session_image: String
     $tags: [SessionCommentTagInput]!
+    $integrations: [IntegrationType]!
+    $issue_title: String
+    $issue_description: String
 ) {
     createSessionComment(
         project_id: $project_id
@@ -226,6 +239,9 @@ mutation CreateSessionComment(
         author_name: $author_name
         session_image: $session_image
         tags: $tags
+        integrations: $integrations
+        issue_title: $issue_title
+        issue_description: $issue_description
     ) {
         id
         timestamp
@@ -239,6 +255,55 @@ mutation CreateSessionComment(
         text
         x_coordinate
         y_coordinate
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
+    }
+}
+
+mutation CreateIssueForSessionComment(
+    $project_id: ID!
+    $session_comment_id: Int!
+    $text_for_attachment: String!
+    $session_url: String!
+    $time: Float!
+    $author_name: String!
+    $integrations: [IntegrationType]!
+    $issue_title: String
+    $issue_description: String
+) {
+    createIssueForSessionComment(
+        project_id: $project_id
+        session_url: $session_url
+        session_comment_id: $session_comment_id
+        author_name: $author_name
+        text_for_attachment: $text_for_attachment
+        time: $time
+        issue_title: $issue_title
+        issue_description: $issue_description
+        integrations: $integrations
+    ) {
+        id
+        timestamp
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+        }
+        text
+        x_coordinate
+        y_coordinate
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 
@@ -255,6 +320,9 @@ mutation CreateErrorComment(
     $tagged_slack_users: [SanitizedSlackChannelInput]!
     $error_url: String!
     $author_name: String!
+    $integrations: [IntegrationType]!
+    $issue_title: String
+    $issue_description: String
 ) {
     createErrorComment(
         project_id: $project_id
@@ -265,6 +333,9 @@ mutation CreateErrorComment(
         tagged_slack_users: $tagged_slack_users
         error_url: $error_url
         author_name: $author_name
+        integrations: $integrations
+        issue_title: $issue_title
+        issue_description: $issue_description
     ) {
         id
         created_at
@@ -275,6 +346,43 @@ mutation CreateErrorComment(
             email
         }
         text
+    }
+}
+mutation CreateIssueForErrorComment(
+    $project_id: ID!
+    $error_comment_id: Int!
+    $text_for_attachment: String!
+    $error_url: String!
+    $author_name: String!
+    $integrations: [IntegrationType]!
+    $issue_title: String
+    $issue_description: String
+) {
+    createIssueForErrorComment(
+        project_id: $project_id
+        error_url: $error_url
+        error_comment_id: $error_comment_id
+        author_name: $author_name
+        text_for_attachment: $text_for_attachment
+        issue_title: $issue_title
+        issue_description: $issue_description
+        integrations: $integrations
+    ) {
+        id
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+        }
+        text
+        attachments {
+            id
+            integration_type
+            external_id
+            title
+        }
     }
 }
 

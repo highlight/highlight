@@ -1,4 +1,7 @@
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import {
+    getFullScreenPopoverGetPopupContainer,
+    usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext';
 import {
     changeSession,
     findNextSessionInList,
@@ -73,6 +76,7 @@ export const usePlayerKeyboardShortcuts = () => {
     message.config({
         maxCount: 1,
         rtl: false,
+        getContainer: getFullScreenPopoverGetPopupContainer,
     });
 
     /**

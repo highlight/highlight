@@ -2,7 +2,10 @@ import Button from '@components/Button/Button/Button';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useGetAdminQuery } from '@graph/hooks';
 import { Landing } from '@pages/Landing/Landing';
 import { auth } from '@util/auth';
@@ -16,7 +19,7 @@ interface Props {
 }
 
 const VerifyEmailCard = ({ onStartHandler }: Props) => {
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
     const { data, stopPolling } = useGetAdminQuery({
         pollInterval: 500,
     });
@@ -26,8 +29,8 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     ] = useState(false);
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     const isEmailVerified = data?.admin?.email_verified || false;
 

@@ -1,25 +1,39 @@
+import SvgCopyIcon from '@icons/CopyIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { FaCopy } from 'react-icons/fa';
-import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
-    atomOneDark,
-    atomOneLight,
-} from 'react-syntax-highlighter/dist/esm/styles/hljs';
+    Prism as SyntaxHighlighter,
+    SyntaxHighlighterProps,
+} from 'react-syntax-highlighter';
+import {
+    atomDark as darkTheme,
+    coy as lightTheme,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import styles from './CodeBlock.module.scss';
+
+type Props = SyntaxHighlighterProps & {
+    text: string;
+    onCopy?: () => void;
+    hideCopy?: boolean;
+    language: string;
+    numberOfLines?: number;
+    lineNumber?: number;
+};
 
 export const CodeBlock = ({
     text,
     onCopy,
     language,
-}: {
-    text: string;
-    onCopy?: () => void;
-    language: string;
-}) => {
+    hideCopy,
+    numberOfLines,
+    showLineNumbers,
+    lineNumber,
+    ...props
+}: Props) => {
     const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
         'highlightTheme',
         'light'
@@ -40,33 +54,74 @@ export const CodeBlock = ({
 
     return (
         <span className={styles.codeBlock}>
-            <span className={styles.copyButton}>
-                <CopyToClipboard
-                    text={text}
-                    onCopy={() => {
-                        message.success('Copied Snippet', 5);
-                        onCopy && onCopy();
-                    }}
+            {!hideCopy && (
+                <span className={styles.copyButton}>
+                    <CopyToClipboard
+                        text={text}
+                        onCopy={() => {
+                            message.success('Copied Snippet', 5);
+                            onCopy && onCopy();
+                        }}
+                    >
+                        <span className={styles.copyDiv}>
+                            <SvgCopyIcon
+                                style={{
+                                    position: 'absolute',
+                                    height: 14,
+                                    width: 14,
+                                    color: 'var(--color-text-primary)',
+                                }}
+                            />
+                        </span>
+                    </CopyToClipboard>
+                </span>
+            )}
+            <span className={styles.codeBlockInner}>
+                {showLineNumbers && (
+                    <pre
+                        style={{
+                            ...props.customStyle,
+                            ...props.codeTagProps?.style,
+                            padding: '0',
+                            margin: '0',
+                            overflow: 'visible',
+                            minWidth: 'auto',
+                        }}
+                    >
+                        <code style={props.codeTagProps?.style}>
+                            {Array.from(Array(numberOfLines).keys()).map(
+                                (i) => (
+                                    <div
+                                        key={i}
+                                        className={classNames(
+                                            styles.lineNumberSticky,
+                                            {
+                                                [styles.highlightedLine]:
+                                                    lineNumber ===
+                                                    i +
+                                                        (props.startingLineNumber ||
+                                                            0),
+                                            }
+                                        )}
+                                    >
+                                        {i + (props.startingLineNumber || 0)}
+                                    </div>
+                                )
+                            )}
+                        </code>
+                    </pre>
+                )}
+
+                <SyntaxHighlighter
+                    language={language}
+                    style={theme === 'light' ? lightTheme : darkTheme}
+                    customStyle={{ padding: '8px 0' }}
+                    showLineNumbers={showLineNumbers}
+                    {...props}
                 >
-                    <span className={styles.copyDiv}>
-                        <FaCopy
-                            style={{
-                                position: 'absolute',
-                                marginRight: 3,
-                                height: 14,
-                                width: 14,
-                                color: 'var(--color-gray-500)',
-                            }}
-                        />
-                    </span>
-                </CopyToClipboard>
+                    {text}
+                </SyntaxHighlighter>
             </span>
-            <SyntaxHighlighter
-                language={language}
-                style={theme === 'light' ? atomOneLight : atomOneDark}
-            >
-                {text}
-            </SyntaxHighlighter>
         </span>
     );
 };

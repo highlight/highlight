@@ -1,3 +1,5 @@
+import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
+import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils';
 import { bytesToPrettyString } from '@util/string';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -22,7 +24,7 @@ type Field = {
 };
 
 const MetadataPanel = () => {
-    const { session } = useReplayerContext();
+    const { session, browserExtensionScriptURLs } = useReplayerContext();
     const {
         setSearchParams,
         setSegmentName,
@@ -129,6 +131,21 @@ const MetadataPanel = () => {
         },
     ];
 
+    if (session?.length) {
+        sessionData.push({
+            keyDisplayValue: 'Duration',
+            valueDisplayValue: formatShortTime(session.length / 1000),
+            renderType: 'string',
+        });
+    }
+    if (session?.active_length) {
+        sessionData.push({
+            keyDisplayValue: 'Active Duration',
+            valueDisplayValue: formatShortTime(session.active_length / 1000),
+            renderType: 'string',
+        });
+    }
+
     // Data exposed to Highlight employees.
     if (isHighlightAdmin) {
         if (session?.object_storage_enabled) {
@@ -234,6 +251,24 @@ const MetadataPanel = () => {
         });
     }
 
+    const environmentData: KeyValueTableRow[] = browserExtensionScriptURLs.map(
+        (scriptUrl) => ({
+            keyDisplayValue: 'Browser Extension',
+            renderType: 'react-node',
+            valueDisplayValue: (
+                <a
+                    href={getChromeExtensionURL(scriptUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    {scriptUrl}
+                </a>
+            ),
+            valueInfoTooltipMessage:
+                "Highlight detected a browser extension is installed and might interfere with your app's behavior.",
+        })
+    );
+
     return (
         <div className={styles.metadataPanel}>
             {!session ? (
@@ -256,6 +291,10 @@ const MetadataPanel = () => {
 
                     <DataCard title="Device">
                         <KeyValueTable data={deviceData} />
+                    </DataCard>
+
+                    <DataCard title="Environment">
+                        <KeyValueTable data={environmentData} />
                     </DataCard>
                 </>
             )}

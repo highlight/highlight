@@ -68,13 +68,18 @@ const KeyPerformanceIndicators = () => {
                         tooltipText="Devices that have used your application that don't have an identity associated with the device."
                     />
                     <KeyPerformanceIndicator
-                        value={formatLongNumber(
-                            data?.unprocessedSessionsCount || 0
-                        )}
+                        value={formatLongNumber(data?.liveUsersCount || 0)}
                         title="Live Users"
                         tooltipText={
                             <>Users that are currently using your app.</>
                         }
+                    />
+                    <KeyPerformanceIndicator
+                        value={formatLongNumber(
+                            data?.unprocessedSessionsCount || 0
+                        )}
+                        title="Live Sessions"
+                        tooltipText={<>Sessions currently in progress.</>}
                     />
                     <KeyPerformanceIndicator
                         value={

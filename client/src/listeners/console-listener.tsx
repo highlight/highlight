@@ -18,8 +18,7 @@ export type StringifyOptions = {
 };
 
 type LogRecordOptions = {
-    level: LogLevel[];
-    lengthThreshold: number;
+    level: ConsoleMethods[];
     stringifyOptions: StringifyOptions;
     logger: Logger | 'console';
 };
@@ -46,26 +45,28 @@ type Logger = {
     warn?: typeof console.warn;
 };
 
-type LogLevel =
-    | 'assert'
-    | 'clear'
-    | 'count'
-    | 'countReset'
-    | 'debug'
-    | 'dir'
-    | 'dirxml'
-    | 'error'
-    | 'group'
-    | 'groupCollapsed'
-    | 'groupEnd'
-    | 'info'
-    | 'log'
-    | 'table'
-    | 'time'
-    | 'timeEnd'
-    | 'timeLog'
-    | 'trace'
-    | 'warn';
+export const ALL_CONSOLE_METHODS = [
+    'assert',
+    'count',
+    'countReset',
+    'debug',
+    'dir',
+    'dirxml',
+    'error',
+    'group',
+    'groupCollapsed',
+    'groupEnd',
+    'info',
+    'log',
+    'table',
+    'time',
+    'timeEnd',
+    'timeLog',
+    'trace',
+    'warn',
+] as const;
+type ConsoleMethodsTuple = typeof ALL_CONSOLE_METHODS;
+export type ConsoleMethods = ConsoleMethodsTuple[number];
 
 export function ConsoleListener(
     callback: (c: ConsoleMessage) => void,
@@ -81,7 +82,6 @@ export function ConsoleListener(
     } else {
         logger = loggerType;
     }
-    let logCount = 0;
     const cancelHandlers: (() => void)[] = [];
 
     // add listener to thrown errors
@@ -122,7 +122,7 @@ export function ConsoleListener(
      * @param logger the logger object such as Console
      * @param level the name of log function to be replaced
      */
-    function replace(_logger: Logger, level: LogLevel) {
+    function replace(_logger: Logger, level: ConsoleMethods) {
         if (!_logger[level]) {
             return () => {};
         }
@@ -136,26 +136,13 @@ export function ConsoleListener(
                     const payload = args.map((s) =>
                         stringify(s, logOptions.stringifyOptions)
                     );
-                    logCount++;
-                    if (logCount < logOptions.lengthThreshold) {
-                        callback({
-                            type: level,
-                            trace: trace.slice(1),
-                            value: payload,
-                            time: Date.now(),
-                        });
-                    } else if (logCount === logOptions.lengthThreshold) {
-                        // notify the user
-                        callback({
-                            type: 'Warn',
-                            time: Date.now(),
-                            value: [
-                                stringify(
-                                    'The number of log records reached the threshold.'
-                                ),
-                            ],
-                        });
-                    }
+
+                    callback({
+                        type: level,
+                        trace: trace.slice(1),
+                        value: payload,
+                        time: Date.now(),
+                    });
                 } catch (error) {
                     original('highlight logger error:', error, ...args);
                 }

@@ -1,4 +1,4 @@
-import { SessionData } from '../../../index';
+import { getBodyThatShouldBeRecorded } from '../utils/xhr-listener';
 import { NetworkListenerCallback } from '../network-listener';
 import {
     RequestResponsePair,
@@ -36,7 +36,8 @@ export const FetchListener = (
     backendUrl: string,
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
-    sessionData: SessionData
+    sessionSecureID: string,
+    bodyKeysToRecord: string[]
 ) => {
     const originalFetch = window._originalFetch || window.fetch;
 
@@ -53,10 +54,7 @@ export const FetchListener = (
             let headers = new Headers(init.headers);
             headers.set(
                 HIGHLIGHT_REQUEST_HEADER,
-                getHighlightRequestHeader(
-                    sessionData.sessionSecureID,
-                    requestId
-                )
+                getHighlightRequestHeader(sessionSecureID, requestId)
             );
             init.headers = Object.fromEntries(headers.entries());
         }
@@ -75,7 +73,10 @@ export const FetchListener = (
             request.headers = Object.fromEntries(
                 new Headers(init?.headers).entries()
             );
-            request.body = init?.body;
+            request.body = getBodyThatShouldBeRecorded(
+                init?.body,
+                bodyKeysToRecord
+            );
         }
 
         let responsePromise = originalFetch.call(this, input, init);
@@ -83,7 +84,8 @@ export const FetchListener = (
             responsePromise,
             request,
             callback,
-            shouldRecordHeaderAndBody
+            shouldRecordHeaderAndBody,
+            bodyKeysToRecord
         );
         return responsePromise;
     };
@@ -114,7 +116,8 @@ const logRequest = (
     responsePromise: Promise<Response>,
     requestPayload: HighlightRequest,
     callback: NetworkListenerCallback,
-    shouldRecordHeaderAndBody: boolean
+    shouldRecordHeaderAndBody: boolean,
+    bodyKeysToRecord: string[]
 ) => {
     const onPromiseResolveHandler = async (response: Response | Error) => {
         let responsePayload: HighlightResponse = {
@@ -162,6 +165,10 @@ const logRequest = (
                             result += utf8Decoder.decode(partialData);
                         }
                         text = result;
+                        text = getBodyThatShouldBeRecorded(
+                            text,
+                            bodyKeysToRecord
+                        );
                     } else {
                         text = '';
                     }

@@ -2,10 +2,14 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CardForm, CardFormActionsContainer } from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import Input from '@components/Input/Input';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
+    useGetWorkspaceQuery,
     useGetWorkspacesCountQuery,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
@@ -26,6 +30,9 @@ const NewProjectPage = () => {
     const [error, setError] = useState<undefined | string>(undefined);
     const [name, setName] = useState<string>('');
 
+    const { data: currentWorkspaceData } = useGetWorkspaceQuery({
+        variables: { id: workspace_id },
+    });
     const [
         createProject,
         { loading: projectLoading, data: projectData, error: projectError },
@@ -38,7 +45,7 @@ const NewProjectPage = () => {
             error: workspaceError,
         },
     ] = useCreateWorkspaceMutation();
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     useEffect(() => {
         if (projectError || workspaceError) {
@@ -47,8 +54,8 @@ const NewProjectPage = () => {
     }, [setError, projectError, workspaceError]);
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     const { data, loading } = useGetWorkspacesCountQuery();
 
@@ -161,6 +168,28 @@ const NewProjectPage = () => {
                                 )}
                             </ButtonLink>
                         )}
+                        {!isWorkspace &&
+                            currentWorkspaceData?.workspace &&
+                            currentWorkspaceData.workspace.projects.length >
+                                0 && (
+                                <ButtonLink
+                                    trackingId={`Enter${pageTypeCaps}`}
+                                    className={classNames(styles.button)}
+                                    to={`/w/${workspace_id}/switch`}
+                                    fullWidth
+                                    type="default"
+                                >
+                                    Enter an Existing Project{' '}
+                                    {!loading && (
+                                        <Dot className={styles.workspaceCount}>
+                                            {
+                                                currentWorkspaceData.workspace
+                                                    .projects.length
+                                            }
+                                        </Dot>
+                                    )}
+                                </ButtonLink>
+                            )}
                     </CardFormActionsContainer>
                 </CardForm>
             </div>

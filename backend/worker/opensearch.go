@@ -49,7 +49,7 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
@@ -61,7 +61,7 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 func (w *Worker) IndexErrorGroups(isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(&model.ErrorGroup{}).
@@ -101,7 +101,7 @@ func (w *Worker) IndexErrorGroups(isUpdate bool) {
 func (w *Worker) IndexErrorObjects(isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
@@ -135,7 +135,7 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, 
 
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(modelProto).
@@ -167,10 +167,10 @@ const JOIN_MAPPINGS = `
 				}
 			}
 		},
-		"join_type": { 
+		"join_type": {
 			"type": "join",
 			"relations": {
-				"parent": "child" 
+				"parent": "child"
 			}
 		}
 	}
@@ -195,7 +195,7 @@ const NESTED_FIELD_MAPPINGS = `
 	}
 }`
 
-const FIELD_MAPPINGS = ` 
+const FIELD_MAPPINGS = `
 {
 	"properties": {
 		"Value": {
@@ -210,7 +210,7 @@ const FIELD_APPEND_SCRIPT = `
 {
 	"script": {
 		"lang": "painless",
-		"source": "def ids = new ArrayList();for (int i = 0; i < ctx._source[params.fieldName].length; i += 1) {ids.add(ctx._source[params.fieldName].get(i).id);}for (def id : ids) {int len = params.toAppend.length;for (int i = len - 1; i >= 0; i--) {def cur_item_id = params.toAppend.get(i).id;if (id.equals(cur_item_id)) {params.toAppend.remove(i);}}}if (params.toAppend.length > 0) {ctx._source[params.fieldName].addAll(params.toAppend);} else {ctx.op = \"noop\";}"
+		"source": "def ids = new ArrayList(); def existingParams = ctx._source[params.fieldName]; if (existingParams == null) { existingParams = new ArrayList(); ctx._source[params.fieldName] = existingParams; } for (int i = 0; i < existingParams.length; i += 1) { ids.add(existingParams.get(i).id); } for (def id : ids) { int len = params.toAppend.length; for (int i = len - 1; i >= 0; i--) { def cur_item_id = params.toAppend.get(i).id; if (id.equals(cur_item_id)) { params.toAppend.remove(i); } } } if (params.toAppend.length > 0) { ctx._source[params.fieldName].addAll(params.toAppend); } else { ctx.op = \"noop\"; }"
 	}
 }
 `

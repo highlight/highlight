@@ -87,14 +87,14 @@ const StreamElementPayload = ({ payload, searchQuery }: StreamElementProps) => {
                                 />
                             ) : (
                                 object[key]?.toString() || (
-                                    <>
+                                    <span>
                                         undefined{' '}
                                         <InfoTooltip
                                             title={`No value was provided for ${key} from your application.`}
                                             align={{ offset: [12, 0] }}
                                             placement="topRight"
                                         />
-                                    </>
+                                    </span>
                                 )
                             )}
                         </span>

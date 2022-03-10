@@ -1,5 +1,8 @@
 import Input from '@components/Input/Input';
-import { useAppLoadingContext } from '@context/AppLoadingContext';
+import {
+    AppLoadingState,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { useSubmitRegistrationFormMutation } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -33,7 +36,7 @@ const RegistrationForm = () => {
     const [heardAbout, setHeardAbout] = useState<string>('');
     const [pun, setPun] = useState<string>('');
 
-    const { setIsLoading } = useAppLoadingContext();
+    const { setLoadingState } = useAppLoadingContext();
 
     const [
         submitRegistrationForm,
@@ -41,8 +44,8 @@ const RegistrationForm = () => {
     ] = useSubmitRegistrationFormMutation();
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [setIsLoading]);
+        setLoadingState(AppLoadingState.LOADED);
+    }, [setLoadingState]);
 
     const [redirect, setRedirect] = useState(false);
     const waitingForRedirect = !!data && !error;

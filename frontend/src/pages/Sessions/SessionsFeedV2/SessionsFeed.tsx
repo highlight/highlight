@@ -100,6 +100,7 @@ export const SessionFeed = React.memo(() => {
             project_id,
             count: 0, // Don't need any results, just the count
             query: getUnprocessedSessionsQuery(searchQuery),
+            sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
         skip: !isQueryBuilder || !searchQuery,
         pollInterval: 5000,
@@ -119,6 +120,7 @@ export const SessionFeed = React.memo(() => {
             query: searchQuery,
             count: count + 10,
             project_id,
+            sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
         onCompleted: (response) => {
             if (response?.sessions_opensearch) {

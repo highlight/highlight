@@ -9,7 +9,9 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
@@ -615,7 +618,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 	return sqlFilters
 }
 
-func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
+func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
@@ -623,6 +626,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 
 	p := mail.NewPersonalization()
 	p.AddTos(tos...)
+	p.AddCCs(ccs...)
 	p.SetDynamicTemplateData("Author_Name", authorName)
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)
@@ -1051,6 +1055,192 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	return nil
 }
 
+func getWorkspaceIdFromUrl(parsedUrl *url.URL) (int, error) {
+	pathParts := strings.Split(parsedUrl.Path, "/")
+	if len(pathParts) < 2 {
+		return -1, e.New("invalid url")
+	}
+	workspaceId, err := strconv.Atoi(pathParts[1])
+	if err != nil {
+		return -1, e.Wrap(err, "couldn't parse out workspace id")
+	}
+
+	return workspaceId, nil
+}
+
+func getIdForPageFromUrl(parsedUrl *url.URL, page string) (string, error) {
+	pathParts := strings.Split(parsedUrl.Path, "/")
+	if len(pathParts) < 4 {
+		return "", e.New("invalid url")
+	}
+	if pathParts[2] != page || len(pathParts[3]) <= 0 {
+		return "", e.New(fmt.Sprintf("url isn't for %s pages", page))
+	}
+
+	return pathParts[3], nil
+}
+
+func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			log.Error(e.Wrap(err, "couldn't read request body"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// verify request is from slack
+		sv, err := slack.NewSecretsVerifier(req.Header, signingSecret)
+		if err != nil {
+			log.Error(e.Wrap(err, "error verifying request headers"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if _, err := sv.Write(body); err != nil {
+			log.Error(e.Wrap(err, "error when verifying request"))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if err := sv.Ensure(); err != nil {
+			log.Error(e.Wrap(err, "couldn't verify that request is from slack with the signing secret"))
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		// parse events payload
+		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
+		if err != nil {
+			log.Error(e.Wrap(err, "error parsing body as a slack event"))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if eventsAPIEvent.Type == slackevents.URLVerification {
+			var r *slackevents.ChallengeResponse
+			err := json.Unmarshal([]byte(body), &r)
+			if err != nil {
+				log.Error(e.Wrap(err, "error parsing body as a slack challenge body"))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text")
+			if _, err := w.Write([]byte(r.Challenge)); err != nil {
+				log.Error(e.Wrap(err, "couldn't respond to slack challenge request"))
+				return
+			}
+		}
+
+		log.Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
+
+		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
+			go (func() {
+				defer util.Recover()
+				ev := eventsAPIEvent.InnerEvent.Data.(*slackevents.LinkSharedEvent)
+
+				workspaceIdToSlackTeamMap := map[int]*slack.TeamInfo{}
+				workspaceIdToWorkspaceMap := map[int]*model.Workspace{}
+				urlToSlackAttachment := map[string]slack.Attachment{}
+				var senderSlackClient *slack.Client
+
+				for _, link := range ev.Links {
+					u, err := url.Parse(link.URL)
+					if err != nil {
+						log.Error(e.Wrap(err, "couldn't parse url to unfurl"))
+						continue
+					}
+
+					workspaceId, err := getWorkspaceIdFromUrl(u)
+					if err != nil {
+						log.Error(err)
+						continue
+					}
+
+					if workspaceIdToWorkspaceMap[workspaceId] == nil {
+						ws, err := r.GetWorkspace(workspaceId)
+						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get workspace with workspace ID: %d (unfurl url: %s)", workspaceId, link))
+							continue
+						}
+						workspaceIdToWorkspaceMap[workspaceId] = ws
+					}
+
+					workspace := workspaceIdToWorkspaceMap[workspaceId]
+
+					slackAccessToken := workspace.SlackAccessToken
+
+					if slackAccessToken == nil || len(*slackAccessToken) <= 0 {
+						log.Error(fmt.Errorf("workspace doesn't have a slack access token (unfurl url: %s)", link))
+						continue
+					}
+
+					slackClient := slack.New(*slackAccessToken)
+
+					if workspaceIdToSlackTeamMap[workspaceId] == nil {
+						teamInfo, err := slackClient.GetTeamInfo()
+						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get slack team information (unfurl url: %s)", link))
+							continue
+						}
+
+						workspaceIdToSlackTeamMap[workspaceId] = teamInfo
+					}
+
+					if workspaceIdToSlackTeamMap[workspaceId].ID != eventsAPIEvent.TeamID {
+						log.Error(fmt.Errorf(
+							"slack workspace is not authorized to view this highlight workspace (\"%s\" != \"%s\", unfurl url: %s)",
+							workspaceIdToSlackTeamMap[workspaceId].ID, eventsAPIEvent.TeamID, link,
+						))
+						continue
+					} else {
+						senderSlackClient = slackClient
+					}
+
+					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
+						session := model.Session{SecureID: sessionId}
+						if err := r.DB.Where(&session).First(&session).Error; err != nil {
+							log.Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
+							continue
+						}
+
+						attachment := slack.Attachment{}
+						err = session.GetSlackAttachment(&attachment)
+						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get session slack attachment (unfurl url: %s)", link))
+							continue
+						}
+						urlToSlackAttachment[link.URL] = attachment
+					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
+						errorGroup := model.ErrorGroup{SecureID: errorId}
+						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
+							log.Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
+							continue
+						}
+
+						attachment := slack.Attachment{}
+						err = errorGroup.GetSlackAttachment(&attachment)
+						if err != nil {
+							log.Error(e.Wrapf(err, "couldn't get ErrorGroup slack attachment (unfurl url: %s)", link))
+							continue
+						}
+						urlToSlackAttachment[link.URL] = attachment
+					}
+
+				}
+
+				if len(urlToSlackAttachment) <= 0 {
+					return
+				}
+
+				_, _, _, err := senderSlackClient.UnfurlMessage(ev.Channel, string(ev.MessageTimeStamp), urlToSlackAttachment)
+				if err != nil {
+					log.Error(e.Wrapf(err, "failed to send slack unfurl request"))
+					return
+				}
+			})()
+		}
+	}
+}
+
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		const MaxBodyBytes = int64(65536)
@@ -1121,6 +1311,419 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
+
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+
+	if err != nil {
+		return e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating slack access token in workspace")
+	}
+
+	existingChannels, _, _ := r.GetSlackChannelsFromSlack(workspace.ID)
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return e.Wrap(err, "error marshaling existing channels")
+	}
+
+	channelString := string(channelBytes)
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return e.Wrap(err, "error updating project fields")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectID int) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		// remove slack integration from workspace
+		if err := tx.Where(&workspace).Select("slack_access_token", "slack_channels").Updates(&model.Workspace{SlackAccessToken: nil, SlackChannels: nil}).Error; err != nil {
+			return e.Wrap(err, "error removing slack access token and channels in workspace")
+		}
+
+		empty := "[]"
+		projectAlert := model.Alert{ProjectID: projectID}
+		clearedChannelsAlert := model.Alert{ChannelsToNotify: &empty}
+
+		// set existing alerts to have empty slack channels to notify
+		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created SessionAlert's")
+		}
+
+		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{Alert: clearedChannelsAlert}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created ErrorAlert's")
+		}
+
+		// set existing metric monitors to have empty slack channels to notify
+		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{ChannelsToNotify: &empty}).Error; err != nil {
+			return e.Wrap(err, "error removing slack channels from created MetricMonitor's")
+		}
+
+		// no errors updating DB
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
+	var (
+		LINEAR_CLIENT_ID     string
+		LINEAR_CLIENT_SECRET string
+	)
+
+	if tempLinearClientID, ok := os.LookupEnv("LINEAR_CLIENT_ID"); ok && tempLinearClientID != "" {
+		LINEAR_CLIENT_ID = tempLinearClientID
+	}
+	if tempLinearClientSecret, ok := os.LookupEnv("LINEAR_CLIENT_SECRET"); ok && tempLinearClientSecret != "" {
+		LINEAR_CLIENT_SECRET = tempLinearClientSecret
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
+
+	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
+	if err != nil {
+		return e.Wrap(err, "error getting linear oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{LinearAccessToken: &res.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating slack access token in workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveLinearFromWorkspace(workspace *model.Workspace) error {
+	if err := r.RevokeLinearAccessToken(*workspace.LinearAccessToken); err != nil {
+		return err
+	}
+
+	if err := r.DB.Where(&workspace).Select("linear_access_token").Updates(&model.Workspace{LinearAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing linear access token in workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) MakeLinearGraphQLRequest(accessToken string, body string) ([]byte, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/graphql", strings.NewReader(body))
+	if err != nil {
+		return nil, e.Wrap(err, "error creating api request to linear")
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting response from linear graphql endpoint")
+	}
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "error reading response body from linear graphql endpoint")
+	}
+
+	if res.StatusCode != 200 {
+		return nil, e.New("linear graphql API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	return b, nil
+}
+
+type LinearTeamsResponse struct {
+	Data struct {
+		Teams struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"teams"`
+	} `json:"data"`
+}
+
+func (r *Resolver) GetLinearTeams(accessToken string) (*LinearTeamsResponse, error) {
+	requestQuery := `
+	query {
+		teams {
+			nodes {
+				id
+			}
+		}
+	}
+	`
+
+	type GraphQLReq struct {
+		Query string `json:"query"`
+	}
+
+	req := GraphQLReq{Query: requestQuery}
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	teamsResponse := &LinearTeamsResponse{}
+
+	err = json.Unmarshal(b, teamsResponse)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return teamsResponse, nil
+}
+
+type LinearCreateIssueResponse struct {
+	Data struct {
+		IssueCreate struct {
+			Issue struct {
+				ID         string `json:"id"`
+				Identifier string `json:"identifier"`
+			} `json:"issue"`
+		} `json:"issueCreate"`
+	} `json:"data"`
+}
+
+func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title string, description string) (*LinearCreateIssueResponse, error) {
+	requestQuery := `
+	mutation createIssue($teamId: String!, $title: String!, $desc: String!) {
+		issueCreate(input: {teamId: $teamId, title: $title, description: $desc}) {
+			issue {
+				id,
+				identifier
+			}
+		}
+	}
+	`
+
+	type GraphQLVars struct {
+		TeamID string `json:"teamId"`
+		Title  string `json:"title"`
+		Desc   string `json:"desc"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{TeamID: teamID, Title: title, Desc: description}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	createIssueRes := &LinearCreateIssueResponse{}
+
+	err = json.Unmarshal(b, createIssueRes)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return createIssueRes, nil
+}
+
+type LinearCreateAttachmentResponse struct {
+	Data struct {
+		AttachmentCreate struct {
+			Attachment struct {
+				ID string `json:"id"`
+			} `json:"Attachment"`
+			Success bool `json:"success"`
+		} `json:"attachmentCreate"`
+	} `json:"data"`
+}
+
+func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, title string, subtitle string, url string) (*LinearCreateAttachmentResponse, error) {
+	requestQuery := `
+	mutation createAttachment($issueId: String!, $url: String!, $iconUrl: String!, $title: String!, $subtitle: String) {
+		attachmentCreate(input: {issueId: $issueId, url: $url, iconUrl: $iconUrl, title: $title, subtitle: $subtitle}) {
+		  attachment {
+			id
+		  }
+		  success
+		}
+	  }	  
+	`
+
+	type GraphQLVars struct {
+		IssueID  string `json:"issueId"`
+		Title    string `json:"title"`
+		Subtitle string `json:"subtitle"`
+		Url      string `json:"url"`
+		IconUrl  string `json:"iconUrl"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	createAttachmentRes := &LinearCreateAttachmentResponse{}
+
+	err = json.Unmarshal(b, createAttachmentRes)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return createAttachmentRes, nil
+}
+
+func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string) error {
+	teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+	if err != nil {
+		return err
+	}
+
+	if len(teamRes.Data.Teams.Nodes) <= 0 {
+		return e.New("no teams to make a linear issue to")
+	}
+
+	teamId := teamRes.Data.Teams.Nodes[0].ID
+
+	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, teamId, issueTitle, issueDescription)
+	if err != nil {
+		return err
+	}
+
+	attachmentRes, err := r.CreateLinearAttachment(*workspace.LinearAccessToken, issueRes.Data.IssueCreate.Issue.ID, commentText, authorName, viewLink)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = attachmentRes.Data.AttachmentCreate.Attachment.ID
+	attachment.Title = issueRes.Data.IssueCreate.Issue.Identifier
+
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+type LinearAccessTokenResponse struct {
+	AccessToken string   `json:"access_token"`
+	TokenType   string   `json:"token_type"`
+	ExpiresIn   int64    `json:"expires_in"`
+	Scope       []string `json:"scope"`
+}
+
+func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientID string, clientSecret string) (LinearAccessTokenResponse, error) {
+	client := &http.Client{}
+
+	data := url.Values{}
+	data.Set("code", code)
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
+	data.Set("grant_type", "authorization_code")
+	data.Set("redirect_uri", redirectURL)
+
+	accessTokenResponse := LinearAccessTokenResponse{}
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/oauth/token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error creating api request to linear")
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error getting response from linear oauth token endpoint")
+	}
+
+	b, err := ioutil.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		return accessTokenResponse, e.New("linear API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error reading response body from linear oauth token endpoint")
+	}
+	err = json.Unmarshal(b, &accessTokenResponse)
+	if err != nil {
+		return accessTokenResponse, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return accessTokenResponse, nil
+}
+
+func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
+	client := &http.Client{}
+
+	data := url.Values{}
+	data.Set("access_token", accessToken)
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/oauth/revoke", strings.NewReader(data.Encode()))
+	if err != nil {
+		return e.Wrap(err, "error creating api request to linear")
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return e.Wrap(err, "error getting response from linear revoke oauth token endpoint")
+	}
+
+	if res.StatusCode != 200 {
+		return e.New("linear API responded with error; status_code=" + res.Status)
+	}
+
+	return nil
+}
+
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
 	if inviteLink == nil {
 		return true
@@ -1161,17 +1764,17 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
-	allEvents := make(map[string][]interface{})
+	allEvents := make([]interface{}, 0)
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, e.Wrap(err, "error decoding event data"), nil
 		}
-		allEvents["events"] = append(allEvents["events"], subEvents["events"]...)
+		allEvents = append(allEvents, subEvents["events"]...)
 	}
-	events := allEvents["events"]
+	events := allEvents
 	if cursor.EventObjectIndex == nil {
-		events = allEvents["events"][cursor.EventIndex:]
+		events = allEvents[cursor.EventIndex:]
 	}
 	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
