@@ -2553,6 +2553,22 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 	return sessionIntervals, nil
 }
 
+func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
+	}
+
+	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
+	if res := r.DB.Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get timeline indicator events")
+	}
+
+	return timelineIndicatorEvents, nil
+}
+
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
@@ -4952,6 +4968,10 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 	return ch, nil
 }
 
+func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (interface{}, error) {
+	return obj.Data, nil
+}
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -4996,6 +5016,11 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
+// TimelineIndicatorEvent returns generated.TimelineIndicatorEventResolver implementation.
+func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventResolver {
+	return &timelineIndicatorEventResolver{r}
+}
+
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
@@ -5010,3 +5035,4 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+type timelineIndicatorEventResolver struct{ *Resolver }

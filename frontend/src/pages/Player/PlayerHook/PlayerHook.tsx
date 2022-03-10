@@ -26,6 +26,7 @@ import {
     useGetSessionIntervalsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
+    useGetTimelineIndicatorEventsQuery,
     useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
 import {
@@ -181,6 +182,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [eventsPayload, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+
+    const {
+        data: timelineIndicatorEventsData,
+    } = useGetTimelineIndicatorEventsQuery({
+        variables: {
+            session_secure_id: session_secure_id,
+        },
+    });
 
     const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
         variables: {
@@ -569,6 +578,18 @@ export const usePlayer = (): ReplayerContextInterface => {
                         );
                     }
 
+                    const parsedTimelineIndicatorEvents =
+                        timelineIndicatorEventsData &&
+                        timelineIndicatorEventsData.timeline_indicator_events
+                            .length > 0
+                            ? timelineIndicatorEventsData.timeline_indicator_events.map(
+                                  (e) =>
+                                      ({
+                                          ...e,
+                                          identifier: e.sid.toString(),
+                                      } as HighlightEvent)
+                              )
+                            : events;
                     console.log(
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
@@ -581,7 +602,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                                     errors,
                                     replayer.getMetaData().startTime
                                 ),
-                                events,
+                                parsedTimelineIndicatorEvents,
                                 replayer.getMetaData().startTime
                             ),
                             sessionComments,
@@ -590,7 +611,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                     setEventsForTimelineIndicator(
                         getEventsForTimelineIndicator(
-                            events,
+                            parsedTimelineIndicatorEvents,
                             replayer.getMetaData().startTime,
                             replayer.getMetaData().totalTime
                         )

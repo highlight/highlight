@@ -52,6 +52,7 @@ type ResolverRoot interface {
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
 	Subscription() SubscriptionResolver
+	TimelineIndicatorEvent() TimelineIndicatorEventResolver
 }
 
 type DirectiveRoot struct {
@@ -442,6 +443,7 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
+		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
 		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
@@ -647,6 +649,14 @@ type ComplexityRoot struct {
 		DiscountPercent func(childComplexity int) int
 	}
 
+	TimelineIndicatorEvent struct {
+		Data            func(childComplexity int) int
+		SID             func(childComplexity int) int
+		SessionSecureID func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
+		Type            func(childComplexity int) int
+	}
+
 	TopUsersPayload struct {
 		ActiveTimePercentage func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -813,6 +823,7 @@ type QueryResolver interface {
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
 	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model1.SessionInterval, error)
+	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
@@ -921,6 +932,9 @@ type SessionCommentResolver interface {
 }
 type SubscriptionResolver interface {
 	SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model1.SessionPayload, error)
+}
+type TimelineIndicatorEventResolver interface {
+	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (interface{}, error)
 }
 
 type executableSchema struct {
@@ -3584,6 +3598,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SubscriptionDetails(childComplexity, args["workspace_id"].(int)), true
 
+	case "Query.timeline_indicator_events":
+		if e.complexity.Query.TimelineIndicatorEvents == nil {
+			break
+		}
+
+		args, err := ec.field_Query_timeline_indicator_events_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TimelineIndicatorEvents(childComplexity, args["session_secure_id"].(string)), true
+
 	case "Query.topUsers":
 		if e.complexity.Query.TopUsers == nil {
 			break
@@ -4697,6 +4723,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.DiscountPercent(childComplexity), true
 
+	case "TimelineIndicatorEvent.data":
+		if e.complexity.TimelineIndicatorEvent.Data == nil {
+			break
+		}
+
+		return e.complexity.TimelineIndicatorEvent.Data(childComplexity), true
+
+	case "TimelineIndicatorEvent.sid":
+		if e.complexity.TimelineIndicatorEvent.SID == nil {
+			break
+		}
+
+		return e.complexity.TimelineIndicatorEvent.SID(childComplexity), true
+
+	case "TimelineIndicatorEvent.session_secure_id":
+		if e.complexity.TimelineIndicatorEvent.SessionSecureID == nil {
+			break
+		}
+
+		return e.complexity.TimelineIndicatorEvent.SessionSecureID(childComplexity), true
+
+	case "TimelineIndicatorEvent.timestamp":
+		if e.complexity.TimelineIndicatorEvent.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.TimelineIndicatorEvent.Timestamp(childComplexity), true
+
+	case "TimelineIndicatorEvent.type":
+		if e.complexity.TimelineIndicatorEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.TimelineIndicatorEvent.Type(childComplexity), true
+
 	case "TopUsersPayload.active_time_percentage":
 		if e.complexity.TopUsersPayload.ActiveTimePercentage == nil {
 			break
@@ -5100,6 +5161,14 @@ type SessionInterval {
     end_time: Timestamp!
     duration: Int!
     active: Boolean!
+}
+
+type TimelineIndicatorEvent {
+    session_secure_id: String!
+    timestamp: Float!
+    sid: Float!
+    data: Any
+    type: Int!
 }
 
 type RageClickEvent {
@@ -5691,6 +5760,9 @@ type Query {
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     session_intervals(session_secure_id: String!): [SessionInterval!]!
+    timeline_indicator_events(
+        session_secure_id: String!
+    ): [TimelineIndicatorEvent!]!
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     rageClicksForProject(
         project_id: ID!
@@ -10206,6 +10278,21 @@ func (ec *executionContext) field_Query_subscription_details_args(ctx context.Co
 		}
 	}
 	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_timeline_indicator_events_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -18715,6 +18802,48 @@ func (ec *executionContext) _Query_session_intervals(ctx context.Context, field 
 	return ec.marshalNSessionInterval2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionIntervalᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_timeline_indicator_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_timeline_indicator_events_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TimelineIndicatorEvents(rctx, args["session_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.TimelineIndicatorEvent)
+	fc.Result = res
+	return ec.marshalNTimelineIndicatorEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEventᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_rage_clicks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26363,6 +26492,178 @@ func (ec *executionContext) _SubscriptionDetails_discountAmount(ctx context.Cont
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TimelineIndicatorEvent_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimelineIndicatorEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionSecureID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimelineIndicatorEvent_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimelineIndicatorEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimelineIndicatorEvent_sid(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimelineIndicatorEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimelineIndicatorEvent_data(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimelineIndicatorEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TimelineIndicatorEvent().Data(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(interface{})
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimelineIndicatorEvent_type(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimelineIndicatorEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TopUsersPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -30934,6 +31235,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "timeline_indicator_events":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_timeline_indicator_events(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "rage_clicks":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -32943,6 +33258,59 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._SubscriptionDetails_discountAmount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var timelineIndicatorEventImplementors = []string{"TimelineIndicatorEvent"}
+
+func (ec *executionContext) _TimelineIndicatorEvent(ctx context.Context, sel ast.SelectionSet, obj *model1.TimelineIndicatorEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timelineIndicatorEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimelineIndicatorEvent")
+		case "session_secure_id":
+			out.Values[i] = ec._TimelineIndicatorEvent_session_secure_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "timestamp":
+			out.Values[i] = ec._TimelineIndicatorEvent_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "sid":
+			out.Values[i] = ec._TimelineIndicatorEvent_sid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "data":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TimelineIndicatorEvent_data(ctx, field, obj)
+				return res
+			})
+		case "type":
+			out.Values[i] = ec._TimelineIndicatorEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -35322,6 +35690,53 @@ func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighli
 
 func (ec *executionContext) marshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionInterval) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNTimelineIndicatorEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.TimelineIndicatorEvent) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimelineIndicatorEvent2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEvent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNTimelineIndicatorEvent2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEvent(ctx context.Context, sel ast.SelectionSet, v *model1.TimelineIndicatorEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._TimelineIndicatorEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

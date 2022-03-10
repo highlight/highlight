@@ -393,6 +393,15 @@ query GetSessionIntervals($session_secure_id: String!) {
     }
 }
 
+query GetTimelineIndicatorEvents($session_secure_id: String!) {
+    timeline_indicator_events(session_secure_id: $session_secure_id) {
+        timestamp
+        data
+        type
+        sid
+    }
+}
+
 query GetFieldTypes($project_id: ID!) {
     field_types(project_id: $project_id) {
         type
