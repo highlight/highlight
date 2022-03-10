@@ -2,6 +2,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { Table } from 'antd';
 import React, { useEffect } from 'react';
 
 import { useGetAccountsQuery } from '../../graph/generated/hooks';
@@ -17,28 +18,28 @@ export const Accounts = () => {
     }, [setLoadingState]);
 
     return (
-        <div>
+        <div style={{ padding: 50 }}>
             {loading ? (
                 'loading...'
             ) : (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>ID</th>
-                            <th>Last Month Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {accountData?.accounts?.map((a, i) => (
-                            <tr key={i}>
-                                <td>{a?.name}</td>
-                                <td>{a?.id}</td>
-                                <td>{a?.session_count}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <Table
+                    columns={[
+                        { title: 'Name', dataIndex: 'name' },
+                        { title: 'ID', dataIndex: 'id' },
+                        {
+                            title: 'Last Month Count',
+                            dataIndex: 'session_count',
+                        },
+                    ]}
+                    dataSource={accountData?.accounts?.map((a, i) => {
+                        return {
+                            key: i,
+                            name: a?.name,
+                            id: a?.id,
+                            session_count: a?.session_count,
+                        };
+                    })}
+                />
             )}
         </div>
     );
