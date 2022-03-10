@@ -32,6 +32,7 @@ const IntegrationAuthCallbackPage = () => {
         (async () => {
             try {
                 const parsedState = JSON.parse(atob(state));
+                console.log('[gt]', parsedState);
                 const project_id = parsedState['project_id'];
 
                 if (!project_id) {
@@ -40,8 +41,11 @@ const IntegrationAuthCallbackPage = () => {
                     );
                 }
 
-                if (!parsedState['next'])
+                if (!parsedState['next']) {
                     next = `/${project_id}/${parsedState['next']}`;
+                } else {
+                    next = `/${project_id}/integrations`;
+                }
 
                 if (!code) {
                     throw new Error(
@@ -63,6 +67,7 @@ const IntegrationAuthCallbackPage = () => {
                 );
             } finally {
                 history.push(next);
+                setLoadingState(AppLoadingState.LOADED);
             }
         })();
     }, [
