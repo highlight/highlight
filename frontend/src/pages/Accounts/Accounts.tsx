@@ -45,6 +45,7 @@ export const Accounts = () => {
                 'loading...'
             ) : (
                 <Table
+                    pagination={false}
                     onRow={(record) => {
                         return {
                             onClick: () => {
