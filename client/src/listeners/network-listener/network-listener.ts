@@ -26,8 +26,8 @@ export const NetworkListener = ({
     tracingOrigins,
     urlBlocklist,
     sessionSecureID,
-    bodyKeysToRecord = [],
-    headerKeysToRecord = [],
+    bodyKeysToRecord,
+    headerKeysToRecord,
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener(
         (requestResponsePair) => {
@@ -71,7 +71,7 @@ export const NetworkListener = ({
 const sanitizeRequestResponsePair = (
     { request, response, ...rest }: RequestResponsePair,
     headersToRedact: string[],
-    headersToRecord: string[]
+    headersToRecord?: string[]
 ): RequestResponsePair => {
     return {
         request: sanitizeRequest(request, headersToRedact, headersToRecord),

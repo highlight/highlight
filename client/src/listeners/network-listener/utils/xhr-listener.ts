@@ -25,7 +25,7 @@ export const XHRListener = (
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
     sessionSecureID: string,
-    bodyKeysToRecord: string[]
+    bodyKeysToRecord?: string[]
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -230,9 +230,9 @@ const getBodyData = (postData: any, url: string) => {
 
 export const getBodyThatShouldBeRecorded = (
     bodyData: any,
-    bodyKeysToRecord: string[]
+    bodyKeysToRecord?: string[]
 ) => {
-    if (bodyKeysToRecord.length === 0 || !bodyData) {
+    if (!bodyKeysToRecord || !bodyData) {
         return bodyData;
     }
 
@@ -241,8 +241,6 @@ export const getBodyThatShouldBeRecorded = (
 
         Object.keys(json).forEach((header) => {
             if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
-                console.log(header.toLocaleLowerCase());
-
                 json[header] = '[REDACTED]';
             }
         });

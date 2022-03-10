@@ -46,6 +46,8 @@ const options: HighlightOptions = {
     networkRecording: {
         enabled: true,
         recordHeadersAndBody: true,
+        headerKeysToRecord: [],
+        bodyKeysToRecord: [],
     },
     tracingOrigins: ['highlight.run', 'localhost'],
     integrations: {
