@@ -35,9 +35,7 @@ export const Account = () => {
 
 export const Accounts = () => {
     const history = useHistory();
-    const { data: accountData, loading } = useGetAccountsQuery({
-        fetchPolicy: 'network-only',
-    });
+    const { data: accountData, loading } = useGetAccountsQuery();
 
     return (
         <div style={{ padding: 50 }}>
