@@ -37,7 +37,7 @@ export const FetchListener = (
     tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
     sessionSecureID: string,
-    bodyKeysToRecord: string[]
+    bodyKeysToRecord?: string[]
 ) => {
     const originalFetch = window._originalFetch || window.fetch;
 
@@ -117,7 +117,7 @@ const logRequest = (
     requestPayload: HighlightRequest,
     callback: NetworkListenerCallback,
     shouldRecordHeaderAndBody: boolean,
-    bodyKeysToRecord: string[]
+    bodyKeysToRecord?: string[]
 ) => {
     const onPromiseResolveHandler = async (response: Response | Error) => {
         let responsePayload: HighlightResponse = {

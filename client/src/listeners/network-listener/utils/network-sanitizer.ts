@@ -3,7 +3,7 @@ import { Request, Response, Headers } from './models';
 export const sanitizeRequest = (
     request: Request,
     headersToRedact: string[],
-    headersToRecord: string[]
+    headersToRecord?: string[]
 ): Request => {
     const newHeaders = sanitizeHeaders(
         headersToRedact,
@@ -20,7 +20,7 @@ export const sanitizeRequest = (
 export const sanitizeResponse = (
     response: Response,
     headersToRedact: string[],
-    headersToRecord: string[]
+    headersToRecord?: string[]
 ): Response => {
     const newHeaders = sanitizeHeaders(
         headersToRedact,
@@ -42,7 +42,7 @@ const sanitizeHeaders = (
     const newHeaders = { ...headers };
 
     // `headersToRecord` overrides `headersToRedact`.
-    if (headersToRecord && headersToRecord.length > 0) {
+    if (headersToRecord) {
         Object.keys(newHeaders)?.forEach((header: string) => {
             // Only keep the keys that are specified in `headersToRecord`.
             if (![...headersToRecord].includes(header?.toLowerCase())) {
