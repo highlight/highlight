@@ -4,11 +4,31 @@ import {
 } from '@context/AppLoadingContext';
 import { Table } from 'antd';
 import React, { useEffect } from 'react';
+import { Route, Switch, useHistory, useParams } from 'react-router-dom';
 
 import { useGetAccountsQuery } from '../../graph/generated/hooks';
 
+export const AccountsPage = () => {
+    return (
+        <Switch>
+            <Route path="/accounts/:account_id">
+                <Account />
+            </Route>
+            <Route path="/accounts">
+                <Accounts />
+            </Route>
+        </Switch>
+    );
+};
+
+export const Account = () => {
+    const { account_id } = useParams<{ account_id: string }>();
+    return <div>{account_id}</div>;
+};
+
 export const Accounts = () => {
     const { setLoadingState } = useAppLoadingContext();
+    const history = useHistory();
     const { data: accountData, loading } = useGetAccountsQuery({
         fetchPolicy: 'network-only',
     });
@@ -23,6 +43,13 @@ export const Accounts = () => {
                 'loading...'
             ) : (
                 <Table
+                    onRow={(record, rowIndex) => {
+                        return {
+                            onClick: (event) => {
+                                history.push(`/accounts/${record.id}`);
+                            },
+                        };
+                    }}
                     columns={[
                         { title: 'Name', dataIndex: 'name' },
                         { title: 'ID', dataIndex: 'id' },
