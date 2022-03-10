@@ -194,6 +194,13 @@ export type Project = {
     workspace_id: Scalars['ID'];
 };
 
+export type Account = {
+    __typename?: 'Account';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    session_count: Scalars['Int'];
+};
+
 export type Workspace = {
     __typename?: 'Workspace';
     id: Scalars['ID'];
@@ -701,6 +708,7 @@ export type MetricMonitor = {
 
 export type Query = {
     __typename?: 'Query';
+    accounts?: Maybe<Array<Maybe<Account>>>;
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_intervals: Array<SessionInterval>;

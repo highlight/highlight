@@ -2476,6 +2476,26 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
+	if !r.isWhitelistedAccount(ctx) {
+		return nil, e.New("You don't have access to this data")
+	}
+	accounts := []*modelInputs.Account{}
+	if err := r.DB.Raw(`
+	SELECT id, name, 
+	(select COALESCE(SUM(count), 0) as currentPeriodSessionCount
+	  from daily_session_counts_view
+		  where
+			  project_id in (SELECT id FROM projects WHERE workspace_id=workspaces.id)
+		  AND date >=  now() - interval '1 month'
+  	) as last_month_session_count , id, plan_tier, stripe_customer_id
+	FROM workspaces
+	`).Scan(&accounts).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving accounts for project")
+	}
+	return accounts, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}

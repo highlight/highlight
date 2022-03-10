@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type Account struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	SessionCount int    `json:"session_count"`
+}
+
 type AdminAboutYouDetails struct {
 	Name               string `json:"name"`
 	UserDefinedRole    string `json:"user_defined_role"`
