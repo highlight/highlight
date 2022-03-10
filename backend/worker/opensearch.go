@@ -49,7 +49,7 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	if err := w.Resolver.DB.Preload("Fields").Where(whereClause).Model(modelProto).
@@ -61,7 +61,7 @@ func (w *Worker) IndexSessions(isUpdate bool) {
 func (w *Worker) IndexErrorGroups(isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(&model.ErrorGroup{}).
@@ -101,7 +101,7 @@ func (w *Worker) IndexErrorGroups(isUpdate bool) {
 func (w *Worker) IndexErrorObjects(isUpdate bool) {
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
@@ -135,7 +135,7 @@ func (w *Worker) IndexTable(index opensearch.Index, modelPrototype interface{}, 
 
 	whereClause := "True"
 	if isUpdate {
-		whereClause = "updated_at > NOW() - interval '1 day'"
+		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
 	rows, err := w.Resolver.DB.Model(modelProto).
