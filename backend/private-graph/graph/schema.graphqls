@@ -174,6 +174,18 @@ type Account {
     session_count: Int!
 }
 
+type AccountDetails {
+    id: ID!
+    name: String!
+    session_count_per_month: [NamedCount]
+    session_count_per_day: [NamedCount]
+}
+
+type NamedCount {
+    name: String!
+    count: Int!
+}
+
 type Workspace {
     id: ID!
     name: String!
@@ -649,6 +661,7 @@ scalar Upload
 
 type Query {
     accounts: [Account]
+    account_details(workspace_id: ID!): AccountDetails!
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     session_intervals(session_secure_id: String!): [SessionInterval!]!

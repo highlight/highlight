@@ -2496,6 +2496,55 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	return accounts, nil
 }
 
+func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*modelInputs.AccountDetails, error) {
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting workspace info")
+	}
+
+	var queriedMonths = []struct {
+		Sum   int
+		Month string
+	}{}
+	if err := r.DB.Raw(`
+	select SUM(count), to_char(date, 'yyyy-MM') as month 
+	from daily_session_counts 
+	where project_id in (select id from projects where projects.workspace_id = ?) 
+	group by month;
+	`, workspaceID).Scan(&queriedMonths).Error; err != nil {
+		return nil, e.Errorf("error retrieving months: %v", err)
+	}
+
+	var queriedDays = []struct {
+		Sum int
+		Day string
+	}{}
+	if err := r.DB.Raw(`
+	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
+	from daily_session_counts
+	where project_id in (select id from projects where projects.workspace_id = ?) group by date;
+	`, workspaceID).Scan(&queriedDays).Error; err != nil {
+		return nil, e.Errorf("error retrieving days: %v", err)
+	}
+
+	sessionCountsPerMonth := []*modelInputs.NamedCount{}
+	sessionCountsPerDay := []*modelInputs.NamedCount{}
+	for _, s := range queriedMonths {
+		sessionCountsPerMonth = append(sessionCountsPerMonth, &modelInputs.NamedCount{Name: s.Month, Count: s.Sum})
+	}
+	for _, s := range queriedDays {
+		sessionCountsPerDay = append(sessionCountsPerDay, &modelInputs.NamedCount{Name: s.Day, Count: s.Sum})
+	}
+
+	details := &modelInputs.AccountDetails{
+		SessionCountPerMonth: sessionCountsPerMonth,
+		SessionCountPerDay:   sessionCountsPerDay,
+		Name:                 *workspace.Name,
+		ID:                   workspace.ID,
+	}
+	return details, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}

@@ -64,6 +64,13 @@ type ComplexityRoot struct {
 		SessionCount func(childComplexity int) int
 	}
 
+	AccountDetails struct {
+		ID                   func(childComplexity int) int
+		Name                 func(childComplexity int) int
+		SessionCountPerDay   func(childComplexity int) int
+		SessionCountPerMonth func(childComplexity int) int
+	}
+
 	Admin struct {
 		Email              func(childComplexity int) int
 		EmailVerified      func(childComplexity int) int
@@ -356,6 +363,11 @@ type ComplexityRoot struct {
 		UpdateUserPropertiesAlert        func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int, disabled bool) int
 	}
 
+	NamedCount struct {
+		Count func(childComplexity int) int
+		Name  func(childComplexity int) int
+	}
+
 	NewUsersCount struct {
 		Count func(childComplexity int) int
 	}
@@ -378,6 +390,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		APIKeyToOrgID                func(childComplexity int, apiKey string) int
+		AccountDetails               func(childComplexity int, workspaceID int) int
 		Accounts                     func(childComplexity int) int
 		Admin                        func(childComplexity int) int
 		AdminHasCreatedComment       func(childComplexity int, adminID int) int
@@ -810,6 +823,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
+	AccountDetails(ctx context.Context, workspaceID int) (*model.AccountDetails, error)
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
 	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model1.SessionInterval, error)
@@ -958,6 +972,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.SessionCount(childComplexity), true
+
+	case "AccountDetails.id":
+		if e.complexity.AccountDetails.ID == nil {
+			break
+		}
+
+		return e.complexity.AccountDetails.ID(childComplexity), true
+
+	case "AccountDetails.name":
+		if e.complexity.AccountDetails.Name == nil {
+			break
+		}
+
+		return e.complexity.AccountDetails.Name(childComplexity), true
+
+	case "AccountDetails.session_count_per_day":
+		if e.complexity.AccountDetails.SessionCountPerDay == nil {
+			break
+		}
+
+		return e.complexity.AccountDetails.SessionCountPerDay(childComplexity), true
+
+	case "AccountDetails.session_count_per_month":
+		if e.complexity.AccountDetails.SessionCountPerMonth == nil {
+			break
+		}
+
+		return e.complexity.AccountDetails.SessionCountPerMonth(childComplexity), true
 
 	case "Admin.email":
 		if e.complexity.Admin.Email == nil {
@@ -2757,6 +2799,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserPropertiesAlert(childComplexity, args["project_id"].(int), args["session_alert_id"].(int), args["name"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["environments"].([]*string), args["user_properties"].([]*model.UserPropertyInput), args["threshold_window"].(int), args["disabled"].(bool)), true
 
+	case "NamedCount.count":
+		if e.complexity.NamedCount.Count == nil {
+			break
+		}
+
+		return e.complexity.NamedCount.Count(childComplexity), true
+
+	case "NamedCount.name":
+		if e.complexity.NamedCount.Name == nil {
+			break
+		}
+
+		return e.complexity.NamedCount.Name(childComplexity), true
+
 	case "NewUsersCount.count":
 		if e.complexity.NewUsersCount.Count == nil {
 			break
@@ -2845,6 +2901,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.APIKeyToOrgID(childComplexity, args["api_key"].(string)), true
+
+	case "Query.account_details":
+		if e.complexity.Query.AccountDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_account_details_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AccountDetails(childComplexity, args["workspace_id"].(int)), true
 
 	case "Query.accounts":
 		if e.complexity.Query.Accounts == nil {
@@ -5213,6 +5281,18 @@ type Account {
     session_count: Int!
 }
 
+type AccountDetails {
+    id: ID!
+    name: String!
+    session_count_per_month: [NamedCount]
+    session_count_per_day: [NamedCount]
+}
+
+type NamedCount {
+    name: String!
+    count: Int!
+}
+
 type Workspace {
     id: ID!
     name: String!
@@ -5688,6 +5768,7 @@ scalar Upload
 
 type Query {
     accounts: [Account]
+    account_details(workspace_id: ID!): AccountDetails!
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     session_intervals(session_secure_id: String!): [SessionInterval!]!
@@ -8955,6 +9036,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_account_details_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_adminHasCreatedComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10605,6 +10701,140 @@ func (ec *executionContext) _Account_session_count(ctx context.Context, field gr
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetails_id(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetails_name(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetails_session_count_per_month(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionCountPerMonth, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.NamedCount)
+	fc.Result = res
+	return ec.marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetails_session_count_per_day(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionCountPerDay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.NamedCount)
+	fc.Result = res
+	return ec.marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_id(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -18184,6 +18414,76 @@ func (ec *executionContext) _Mutation_submitRegistrationForm(ctx context.Context
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _NamedCount_name(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NamedCount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NamedCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NamedCount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18593,6 +18893,48 @@ func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.C
 	res := resTmp.([]*model.Account)
 	fc.Result = res
 	return ec.marshalOAccount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_account_details(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_account_details_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AccountDetails(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AccountDetails)
+	fc.Result = res
+	return ec.marshalNAccountDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -29282,6 +29624,42 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var accountDetailsImplementors = []string{"AccountDetails"}
+
+func (ec *executionContext) _AccountDetails(ctx context.Context, sel ast.SelectionSet, obj *model.AccountDetails) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, accountDetailsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AccountDetails")
+		case "id":
+			out.Values[i] = ec._AccountDetails_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._AccountDetails_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_count_per_month":
+			out.Values[i] = ec._AccountDetails_session_count_per_month(ctx, field, obj)
+		case "session_count_per_day":
+			out.Values[i] = ec._AccountDetails_session_count_per_day(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var adminImplementors = []string{"Admin"}
 
 func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, obj *model1.Admin) graphql.Marshaler {
@@ -30757,6 +31135,38 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var namedCountImplementors = []string{"NamedCount"}
+
+func (ec *executionContext) _NamedCount(ctx context.Context, sel ast.SelectionSet, obj *model.NamedCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, namedCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NamedCount")
+		case "name":
+			out.Values[i] = ec._NamedCount_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._NamedCount_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var newUsersCountImplementors = []string{"NewUsersCount"}
 
 func (ec *executionContext) _NewUsersCount(ctx context.Context, sel ast.SelectionSet, obj *model.NewUsersCount) graphql.Marshaler {
@@ -30896,6 +31306,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_accounts(ctx, field)
+				return res
+			})
+		case "account_details":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_account_details(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "session":
@@ -33536,6 +33960,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAccountDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetails(ctx context.Context, sel ast.SelectionSet, v model.AccountDetails) graphql.Marshaler {
+	return ec._AccountDetails(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAccountDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetails(ctx context.Context, sel ast.SelectionSet, v *model.AccountDetails) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AccountDetails(ctx, sel, v)
+}
 
 func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*model1.Admin) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
@@ -36425,6 +36863,53 @@ func (ec *executionContext) marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._MetricPreview(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalONamedCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalONamedCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v *model.NamedCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NamedCount(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONewUsersCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNewUsersCount(ctx context.Context, sel ast.SelectionSet, v *model.NewUsersCount) graphql.Marshaler {
