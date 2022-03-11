@@ -210,6 +210,20 @@ export type Account = {
     session_count: Scalars['Int'];
 };
 
+export type AccountDetails = {
+    __typename?: 'AccountDetails';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    session_count_per_month?: Maybe<Array<Maybe<NamedCount>>>;
+    session_count_per_day?: Maybe<Array<Maybe<NamedCount>>>;
+};
+
+export type NamedCount = {
+    __typename?: 'NamedCount';
+    name: Scalars['String'];
+    count: Scalars['Int'];
+};
+
 export type Workspace = {
     __typename?: 'Workspace';
     id: Scalars['ID'];
@@ -718,6 +732,7 @@ export type MetricMonitor = {
 export type Query = {
     __typename?: 'Query';
     accounts?: Maybe<Array<Maybe<Account>>>;
+    account_details: AccountDetails;
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_intervals: Array<SessionInterval>;
@@ -798,6 +813,10 @@ export type Query = {
     web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
+};
+
+export type QueryAccount_DetailsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QuerySessionArgs = {

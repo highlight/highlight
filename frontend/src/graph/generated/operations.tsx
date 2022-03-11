@@ -1825,6 +1825,38 @@ export type GetAccountsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetAccountDetailsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetAccountDetailsQuery = { __typename?: 'Query' } & {
+    account_details: { __typename?: 'AccountDetails' } & Pick<
+        Types.AccountDetails,
+        'id' | 'name'
+    > & {
+            session_count_per_month?: Types.Maybe<
+                Array<
+                    Types.Maybe<
+                        { __typename?: 'NamedCount' } & Pick<
+                            Types.NamedCount,
+                            'name' | 'count'
+                        >
+                    >
+                >
+            >;
+            session_count_per_day?: Types.Maybe<
+                Array<
+                    Types.Maybe<
+                        { __typename?: 'NamedCount' } & Pick<
+                            Types.NamedCount,
+                            'name' | 'count'
+                        >
+                    >
+                >
+            >;
+        };
+};
+
 export type GetErrorCommentsQueryVariables = Types.Exact<{
     error_group_secure_id: Types.Scalars['String'];
 }>;
@@ -3459,6 +3491,7 @@ export const namedOperations = {
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
         GetAccounts: 'GetAccounts' as const,
+        GetAccountDetails: 'GetAccountDetails' as const,
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,

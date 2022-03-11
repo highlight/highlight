@@ -891,16 +891,6 @@ export interface QueryBuilderState {
     rules: QueryBuilderRule[];
 }
 
-export const getDefaultQuery = (): string =>
-    JSON.stringify({
-        isAnd: true,
-        rules: getDefaultRules(),
-    });
-
-const getDefaultRules = (): QueryBuilderRule[] => {
-    return [['custom_processed', 'is', 'true']];
-};
-
 export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
     const ruleGroups = rules
         .map((rule) => {
