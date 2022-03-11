@@ -813,7 +813,7 @@ type SessionInterval struct {
 
 type TimelineIndicatorEvent struct {
 	Model
-	SessionSecureID string `json:"secure_id"`
+	SessionSecureID string `gorm:"index" json:"secure_id"`
 	Timestamp       float64
 	Type            int
 	SID             float64

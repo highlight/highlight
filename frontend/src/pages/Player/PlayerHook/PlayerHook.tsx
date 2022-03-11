@@ -582,12 +582,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                         timelineIndicatorEventsData &&
                         timelineIndicatorEventsData.timeline_indicator_events
                             .length > 0
-                            ? timelineIndicatorEventsData.timeline_indicator_events.map(
-                                  (e) =>
-                                      ({
-                                          ...e,
-                                          identifier: e.sid.toString(),
-                                      } as HighlightEvent)
+                            ? toHighlightEvents(
+                                  timelineIndicatorEventsData.timeline_indicator_events
                               )
                             : events;
                     console.log(
