@@ -7,7 +7,10 @@ import { Table } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 
-import { useGetAccountsQuery } from '../../graph/generated/hooks';
+import {
+    useGetAccountDetailsQuery,
+    useGetAccountsQuery,
+} from '../../graph/generated/hooks';
 
 export const AccountsPage = () => {
     const { setLoadingState } = useAppLoadingContext();
@@ -30,7 +33,22 @@ export const AccountsPage = () => {
 
 export const Account = () => {
     const { account_id } = useParams<{ account_id: string }>();
-    return <div>{account_id}</div>;
+    const { data: accountData, loading } = useGetAccountDetailsQuery({
+        variables: { workspace_id: account_id },
+    });
+    console.log(accountData);
+    return (
+        <div>
+            {loading ? (
+                'Loading...'
+            ) : (
+                <div>
+                    {/* {JSON.stringify(accountData?.session_count_per_month)} */}
+                    <div>{account_id}</div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export const Accounts = () => {

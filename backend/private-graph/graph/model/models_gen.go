@@ -15,6 +15,13 @@ type Account struct {
 	SessionCount int    `json:"session_count"`
 }
 
+type AccountDetails struct {
+	ID                   int           `json:"id"`
+	Name                 string        `json:"name"`
+	SessionCountPerMonth []*NamedCount `json:"session_count_per_month"`
+	SessionCountPerDay   []*NamedCount `json:"session_count_per_day"`
+}
+
 type AdminAboutYouDetails struct {
 	Name               string `json:"name"`
 	UserDefinedRole    string `json:"user_defined_role"`
@@ -97,6 +104,11 @@ type LengthRangeInput struct {
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
+}
+
+type NamedCount struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
 }
 
 type NewUsersCount struct {

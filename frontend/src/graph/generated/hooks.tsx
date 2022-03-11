@@ -4641,6 +4641,71 @@ export type GetAccountsQueryResult = Apollo.QueryResult<
     Types.GetAccountsQuery,
     Types.GetAccountsQueryVariables
 >;
+export const GetAccountDetailsDocument = gql`
+    query GetAccountDetails($workspace_id: ID!) {
+        account_details(workspace_id: $workspace_id) {
+            id
+            name
+            session_count_per_month {
+                name
+                count
+            }
+            session_count_per_day {
+                name
+                count
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetAccountDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetAccountDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAccountDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAccountDetailsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetAccountDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAccountDetailsQuery,
+        Types.GetAccountDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAccountDetailsQuery,
+        Types.GetAccountDetailsQueryVariables
+    >(GetAccountDetailsDocument, baseOptions);
+}
+export function useGetAccountDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAccountDetailsQuery,
+        Types.GetAccountDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAccountDetailsQuery,
+        Types.GetAccountDetailsQueryVariables
+    >(GetAccountDetailsDocument, baseOptions);
+}
+export type GetAccountDetailsQueryHookResult = ReturnType<
+    typeof useGetAccountDetailsQuery
+>;
+export type GetAccountDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetAccountDetailsLazyQuery
+>;
+export type GetAccountDetailsQueryResult = Apollo.QueryResult<
+    Types.GetAccountDetailsQuery,
+    Types.GetAccountDetailsQueryVariables
+>;
 export const GetErrorCommentsDocument = gql`
     query GetErrorComments($error_group_secure_id: String!) {
         error_comments(error_group_secure_id: $error_group_secure_id) {
