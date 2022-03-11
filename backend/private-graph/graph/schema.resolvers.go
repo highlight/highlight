@@ -2520,7 +2520,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 		Day string
 	}{}
 	if err := r.DB.Raw(`
-	to_char(date, 'MON-DD-YYYY') as day
+	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
 	from daily_session_counts
 	where project_id in (select id from projects where projects.workspace_id = ?) group by date;
 	`, workspaceID).Scan(&queriedDays).Error; err != nil {

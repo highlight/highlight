@@ -6,6 +6,16 @@ import { useParams } from '@util/react-router/useParams';
 import { Table } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Legend,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 import {
     useGetAccountDetailsQuery,
@@ -38,16 +48,56 @@ export const Account = () => {
     });
     console.log(accountData);
     return (
-        <div>
+        <ResponsiveContainer width="80%" height="50%">
             {loading ? (
-                'Loading...'
+                <div>loading</div>
             ) : (
-                <div>
-                    {/* {JSON.stringify(accountData?.session_count_per_month)} */}
-                    <div>{account_id}</div>
-                </div>
+                <>
+                    <h1>Daily Session Count</h1>
+                    <BarChart
+                        width={600}
+                        height={300}
+                        data={accountData?.account_details?.session_count_per_day?.map(
+                            (m) => ({ amt: m?.count, name: m?.name })
+                        )}
+                        margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="amt" fill="#8884d8" />
+                    </BarChart>
+                    <h1>Monthly Session Count</h1>
+                    <BarChart
+                        width={600}
+                        height={300}
+                        data={accountData?.account_details?.session_count_per_month?.map(
+                            (m, i) => ({ amt: m?.count, name: m?.name })
+                        )}
+                        margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="amt" fill="#8884d8" />
+                    </BarChart>
+                </>
             )}
-        </div>
+        </ResponsiveContainer>
     );
 };
 
