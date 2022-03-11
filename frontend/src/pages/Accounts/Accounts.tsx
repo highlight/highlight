@@ -79,7 +79,7 @@ export const Account = () => {
                         width={1000}
                         height={300}
                         data={accountData?.account_details?.session_count_per_month?.map(
-                            (m, i) => ({ amt: m?.count, name: m?.name })
+                            (m) => ({ amt: m?.count, name: m?.name })
                         )}
                         margin={{
                             top: 5,
