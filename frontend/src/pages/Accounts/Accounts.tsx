@@ -55,7 +55,7 @@ export const Account = () => {
                 <>
                     <h1>Daily Session Count</h1>
                     <BarChart
-                        width={600}
+                        width={1000}
                         height={300}
                         data={accountData?.account_details?.session_count_per_day?.map(
                             (m) => ({ amt: m?.count, name: m?.name })
@@ -76,7 +76,7 @@ export const Account = () => {
                     </BarChart>
                     <h1>Monthly Session Count</h1>
                     <BarChart
-                        width={600}
+                        width={1000}
                         height={300}
                         data={accountData?.account_details?.session_count_per_month?.map(
                             (m, i) => ({ amt: m?.count, name: m?.name })
