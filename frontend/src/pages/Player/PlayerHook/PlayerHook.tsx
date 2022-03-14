@@ -59,6 +59,7 @@ const EVENTS_CHUNK_SIZE = parseInt(
     10
 );
 const LOOKAHEAD_MS = 30000;
+const MAX_CHUNK_COUNT = 3;
 
 export enum SessionViewability {
     VIEWABLE,
@@ -105,6 +106,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
     ] = useState<string[]>([]);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(true);
     const [
         unsubscribeSessionPayloadFn,
         setUnsubscribeSessionPayloadFn,
@@ -194,6 +196,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (!!eventsData?.events && chunkEvents.size === 0) {
             chunkEventsActions.set(0, toHighlightEvents(eventsData?.events));
+            setIsLoadingEvents(false);
         }
     }, [eventsData?.events, chunkEvents.size, chunkEventsActions]);
 
@@ -203,13 +206,14 @@ export const usePlayer = (): ReplayerContextInterface => {
                 ...(chunkEvents.get(0) ?? []),
                 ...toHighlightEvents(subscriptionEventsPayload),
             ]);
+            setIsLoadingEvents(false);
             setSubscriptionEventsPayload([]);
         }
     }, [chunkEvents, chunkEventsActions, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
-    const ensureChunkLoaded = useCallback(
+    const getChunkIdx = useCallback(
         (ts: number) => {
             let idx = 0;
             eventChunksData?.event_chunks?.forEach((chunk, i) => {
@@ -217,45 +221,102 @@ export const usePlayer = (): ReplayerContextInterface => {
                     idx = i;
                 }
             });
+            return idx;
+        },
+        [eventChunksData?.event_chunks]
+    );
 
-            if (!chunkEvents.has(idx)) {
-                chunkEventsActions.set(idx, []);
-                console.log('fetching chunk by index', idx);
-                fetchEventChunkURL({
-                    secure_id: session_secure_id,
-                    index: idx,
-                })
-                    .then((response) => fetch(response.data.event_chunk_url))
-                    .then((response) => response.json())
-                    .then((data) => {
-                        chunkEventsActions.set(idx, toHighlightEvents(data));
+    const ensureChunksLoaded = useCallback(
+        (startTs: number, endTs?: number) => {
+            const startIdx = getChunkIdx(startTs);
+            const endIdx = endTs ? getChunkIdx(endTs) : startIdx;
+
+            let needsLoad = false;
+            for (let i = startIdx; i <= endIdx; i++) {
+                if (!chunkEvents.has(i)) {
+                    chunkEventsActions.set(i, []);
+
+                    needsLoad = true;
+                    console.log('fetching chunk by index', i);
+                    // setIsLoadingEvents(true);
+                    fetchEventChunkURL({
+                        secure_id: session_secure_id,
+                        index: i,
                     })
-                    .catch((e) => {
-                        chunkEventsActions.set(idx, []);
-                        H.consumeError(
-                            e,
-                            'Error direct downloading session payload'
-                        );
-                    });
+                        .then((response) =>
+                            fetch(response.data.event_chunk_url)
+                        )
+                        .then((response) => response.json())
+                        .then((data) => {
+                            chunkEventsActions.set(i, toHighlightEvents(data));
+                            console.log('chunkEvents.keys', chunkEvents.keys());
+                        })
+                        .catch((e) => {
+                            chunkEventsActions.set(i, []);
+                            H.consumeError(
+                                e,
+                                'Error direct downloading session payload'
+                            );
+                        })
+                        .finally(() => {
+                            setIsLoadingEvents(false);
+                        });
+                }
             }
+
+            return needsLoad;
         },
         [
             chunkEvents,
             chunkEventsActions,
-            eventChunksData?.event_chunks,
             fetchEventChunkURL,
+            getChunkIdx,
+            replayer,
             session_secure_id,
+            time,
         ]
     );
 
-    if (
-        replayer?.getMetaData().startTime !== undefined &&
-        replayer?.timer.timeOffset !== undefined
-    ) {
-        const timestamp =
-            replayer?.getMetaData().startTime + replayer?.timer.timeOffset;
+    if (replayer?.getMetaData().startTime !== undefined) {
+        const timestamp = replayer.getMetaData().startTime + time;
 
-        ensureChunkLoaded(timestamp + LOOKAHEAD_MS);
+        let toRemove: number | undefined = undefined;
+        if (replayer?.getMetaData().startTime !== undefined) {
+            const timestamp = replayer?.getMetaData().startTime + time;
+
+            const curIdx = getChunkIdx(timestamp);
+
+            let minIdx: number | undefined = undefined;
+            let maxIdx: number | undefined = undefined;
+            let count = 0;
+            for (const [k, v] of chunkEvents) {
+                if (v.length !== 0) {
+                    count++;
+                }
+
+                if (minIdx === undefined || k < minIdx) {
+                    minIdx = k;
+                }
+
+                if (maxIdx === undefined || k > maxIdx) {
+                    maxIdx = k;
+                }
+            }
+
+            if (count > MAX_CHUNK_COUNT) {
+                if (minIdx !== undefined && curIdx !== minIdx) {
+                    toRemove = minIdx;
+                } else if (maxIdx !== undefined) {
+                    toRemove = maxIdx;
+                }
+            }
+        }
+
+        if (toRemove !== undefined) {
+            chunkEventsActions.remove(toRemove);
+        }
+
+        ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
     }
 
     const onevent = (e: any) => {
@@ -330,6 +391,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         fetchEvents = fetch(directDownloadUrl);
                     }
 
+                    setIsLoadingEvents(true);
                     fetchEvents
                         .then((response) => response.json())
                         .then((data) => {
@@ -344,6 +406,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                                 e,
                                 'Error direct downloading session payload'
                             );
+                        })
+                        .finally(() => {
+                            setIsLoadingEvents(false);
                         });
                 } else {
                     setEventsDataLoaded(false);
@@ -586,7 +651,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             // const addEventsWorker = () => {
             console.log('eventsKey', eventsKey);
-            replayer.replaceEvents(events);
+            replayer.replaceEvents(events, false);
+            console.log('replace events done');
 
             // events
             //     .slice(eventsIndex, eventsIndex + EVENTS_CHUNK_SIZE)
@@ -737,8 +803,13 @@ export const usePlayer = (): ReplayerContextInterface => {
                 errors,
                 setSelectedErrorId
             );
+            console.log('rest of player state updated');
             if (state > ReplayerState.Loading) {
                 // Resynchronize player timestamp after each batch of events
+                // const newTs =
+                // (time ?? 0) + (replayer?.getMetaData().startTime ?? 0);
+                // replayer?.play(time);
+                // play(newTs);
                 // play(curPlayTs.current);
             }
             // } else {
@@ -853,9 +924,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
 
-        const newTs = (newTime ?? 0) + (replayer?.getMetaData().startTime ?? 0);
-        ensureChunkLoaded(newTs);
-
+        const newTs =
+            (newTime ?? time ?? 0) + (replayer?.getMetaData().startTime ?? 0);
+        const needsLoad = ensureChunksLoaded(newTs);
+        if (needsLoad) {
+            setIsLoadingEvents(true);
+        }
         replayer?.play(newTime);
 
         // Log how long it took to move to the new time.
@@ -877,7 +951,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             const newTs =
                 (newTime ?? 0) + (replayer?.getMetaData().startTime ?? 0);
-            ensureChunkLoaded(newTs);
+            const needsLoad = ensureChunksLoaded(newTs);
+            if (needsLoad) {
+                setIsLoadingEvents(true);
+            }
             replayer?.pause(newTime);
 
             // Log how long it took to move to the new time.
@@ -888,7 +965,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionId: session?.secure_id,
             });
         },
-        [ensureChunkLoaded, replayer, session?.secure_id]
+        [ensureChunksLoaded, replayer, session?.secure_id]
     );
 
     /**
@@ -970,6 +1047,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         setViewingUnauthorizedSession,
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
+        isLoadingEvents,
+        setIsLoadingEvents,
     };
 };
 

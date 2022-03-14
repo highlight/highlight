@@ -111,6 +111,8 @@ export interface ReplayerContextInterface {
     setBrowserExtensionScriptURLs: React.Dispatch<
         React.SetStateAction<string[]>
     >;
+    isLoadingEvents: boolean;
+    setIsLoadingEvents: (isLoading: boolean) => void;
 }
 
 export const [
