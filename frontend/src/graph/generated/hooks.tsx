@@ -5028,6 +5028,65 @@ export type GetSessionIntervalsQueryResult = Apollo.QueryResult<
     Types.GetSessionIntervalsQuery,
     Types.GetSessionIntervalsQueryVariables
 >;
+export const GetTimelineIndicatorEventsDocument = gql`
+    query GetTimelineIndicatorEvents($session_secure_id: String!) {
+        timeline_indicator_events(session_secure_id: $session_secure_id) {
+            timestamp
+            data
+            type
+            sid
+        }
+    }
+`;
+
+/**
+ * __useGetTimelineIndicatorEventsQuery__
+ *
+ * To run a query within a React component, call `useGetTimelineIndicatorEventsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTimelineIndicatorEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTimelineIndicatorEventsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetTimelineIndicatorEventsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetTimelineIndicatorEventsQuery,
+        Types.GetTimelineIndicatorEventsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetTimelineIndicatorEventsQuery,
+        Types.GetTimelineIndicatorEventsQueryVariables
+    >(GetTimelineIndicatorEventsDocument, baseOptions);
+}
+export function useGetTimelineIndicatorEventsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetTimelineIndicatorEventsQuery,
+        Types.GetTimelineIndicatorEventsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetTimelineIndicatorEventsQuery,
+        Types.GetTimelineIndicatorEventsQueryVariables
+    >(GetTimelineIndicatorEventsDocument, baseOptions);
+}
+export type GetTimelineIndicatorEventsQueryHookResult = ReturnType<
+    typeof useGetTimelineIndicatorEventsQuery
+>;
+export type GetTimelineIndicatorEventsLazyQueryHookResult = ReturnType<
+    typeof useGetTimelineIndicatorEventsLazyQuery
+>;
+export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
+    Types.GetTimelineIndicatorEventsQuery,
+    Types.GetTimelineIndicatorEventsQueryVariables
+>;
 export const GetFieldTypesDocument = gql`
     query GetFieldTypes($project_id: ID!) {
         field_types(project_id: $project_id) {

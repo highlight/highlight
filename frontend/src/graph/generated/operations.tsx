@@ -1959,6 +1959,19 @@ export type GetSessionIntervalsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetTimelineIndicatorEventsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
+    timeline_indicator_events: Array<
+        { __typename?: 'TimelineIndicatorEvent' } & Pick<
+            Types.TimelineIndicatorEvent,
+            'timestamp' | 'data' | 'type' | 'sid'
+        >
+    >;
+};
+
 export type GetFieldTypesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3483,6 +3496,7 @@ export const namedOperations = {
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessionIntervals: 'GetSessionIntervals' as const,
+        GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
         GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,

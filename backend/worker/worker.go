@@ -265,8 +265,28 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if accumulator.Error != nil {
 				return e.Wrap(accumulator.Error, "error processing event chunk")
 			}
-
 			userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
+
+			if len(accumulator.EventsForTimelineIndicator) > 0 {
+				var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
+				for _, customEvent := range accumulator.EventsForTimelineIndicator {
+					var parsedData model.JSONB
+					err = json.Unmarshal(customEvent.Data, &parsedData)
+					if err != nil {
+						return e.Wrap(err, "error processing event chunk")
+					}
+					eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
+						SessionSecureID: s.SecureID,
+						Timestamp:       customEvent.TimestampRaw,
+						SID:             customEvent.SID,
+						Type:            int(customEvent.Type),
+						Data:            parsedData,
+					})
+				}
+				if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+					log.Error(e.Wrap(err, "error creating events for timeline indicator"))
+				}
+			}
 		}
 	}
 	for i, r := range accumulator.RageClickSets {
@@ -837,6 +857,8 @@ type EventProcessingAccumulator struct {
 	TimestampCounts map[time.Time]int
 	// UserInteractionEvents represents the user interaction events in the session from rrweb
 	UserInteractionEvents []*parse.ReplayEvent
+	// EventsForTimelineIndicator represents the custom events that will be shown on the timeline indicator
+	EventsForTimelineIndicator []*parse.ReplayEvent
 	// LatestSID represents the last sequential ID seen
 	LatestSID int
 	// AreEventsOutOfOrder is true if the list of event SID's is not monotonically increasing from 1
@@ -856,6 +878,8 @@ func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccum
 		LastEventTimestamp:         time.Time{},
 		ActiveDuration:             0,
 		TimestampCounts:            map[time.Time]int{},
+		UserInteractionEvents:      []*parse.ReplayEvent{},
+		EventsForTimelineIndicator: []*parse.ReplayEvent{},
 		LatestSID:                  0,
 		AreEventsOutOfOrder:        false,
 		Error:                      nil,
@@ -872,6 +896,9 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 		a.Error = err
 		return a
 	}
+
+	var eventsForTimelineIndicator []*parse.ReplayEvent
+	a.EventsForTimelineIndicator = eventsForTimelineIndicator
 
 	var userInteractionEvents []*parse.ReplayEvent
 	a.UserInteractionEvents = userInteractionEvents
@@ -1015,8 +1042,10 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				a.TimestampCounts[ts] = 0
 			}
 			a.TimestampCounts[ts] += 1
+			eventsForTimelineIndicator = append(eventsForTimelineIndicator, event)
 		}
 	}
+	a.EventsForTimelineIndicator = eventsForTimelineIndicator
 	a.UserInteractionEvents = userInteractionEvents
 	return a
 }

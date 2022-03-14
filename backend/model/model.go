@@ -122,6 +122,7 @@ var Models = []interface{}{
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
+	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
 	&Field{},
@@ -808,6 +809,15 @@ type SessionInterval struct {
 	EndTime         time.Time
 	Duration        int
 	Active          bool
+}
+
+type TimelineIndicatorEvent struct {
+	Model
+	SessionSecureID string `gorm:"index" json:"secure_id"`
+	Timestamp       float64
+	Type            int
+	SID             float64
+	Data            JSONB `json:"data" sql:"type:jsonb"`
 }
 
 type RageClickEvent struct {
