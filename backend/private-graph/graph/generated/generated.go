@@ -46,6 +46,7 @@ type ResolverRoot interface {
 	Metric() MetricResolver
 	MetricMonitor() MetricMonitorResolver
 	Mutation() MutationResolver
+	Project() ProjectResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
 	Session() SessionResolver
@@ -334,7 +335,7 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers []string) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -381,12 +382,13 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
-		BillingEmail func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Name         func(childComplexity int) int
-		Secret       func(childComplexity int) int
-		VerboseID    func(childComplexity int) int
-		WorkspaceID  func(childComplexity int) int
+		BillingEmail  func(childComplexity int) int
+		ExcludedUsers func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Secret        func(childComplexity int) int
+		VerboseID     func(childComplexity int) int
+		WorkspaceID   func(childComplexity int) int
 	}
 
 	Query struct {
@@ -773,7 +775,7 @@ type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers []string) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -830,6 +832,9 @@ type MutationResolver interface {
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
 	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
 	SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error)
+}
+type ProjectResolver interface {
+	ExcludedUsers(ctx context.Context, obj *model1.Project) ([]string, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -2487,7 +2492,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].([]string)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -2868,6 +2873,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.BillingEmail(childComplexity), true
+
+	case "Project.excluded_users":
+		if e.complexity.Project.ExcludedUsers == nil {
+			break
+		}
+
+		return e.complexity.Project.ExcludedUsers(childComplexity), true
 
 	case "Project.id":
 		if e.complexity.Project.ID == nil {
@@ -5342,6 +5354,7 @@ type Project {
     billing_email: String
     secret: String
     workspace_id: ID!
+    excluded_users: [String!]
 }
 
 type Account {
@@ -6001,7 +6014,12 @@ type Mutation {
     updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
-    editProject(id: ID!, name: String, billing_email: String): Project
+    editProject(
+        id: ID!
+        name: String
+        billing_email: String
+        excluded_users: [String!]
+    ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
     markSessionAsStarred(secure_id: String!, starred: Boolean): Session
@@ -7875,6 +7893,15 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["billing_email"] = arg2
+	var arg3 []string
+	if tmp, ok := rawArgs["excluded_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_users"))
+		arg3, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["excluded_users"] = arg3
 	return args, nil
 }
 
@@ -16288,7 +16315,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string))
+		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18948,6 +18975,38 @@ func (ec *executionContext) _Project_workspace_id(ctx context.Context, field gra
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_excluded_users(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Project().ExcludedUsers(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -31551,17 +31610,17 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "verbose_id":
 			out.Values[i] = ec._Project_verbose_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Project_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "billing_email":
 			out.Values[i] = ec._Project_billing_email(ctx, field, obj)
@@ -31570,8 +31629,19 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "workspace_id":
 			out.Values[i] = ec._Project_workspace_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "excluded_users":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_excluded_users(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37651,6 +37721,42 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {

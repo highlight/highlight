@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -327,14 +327,15 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers []string) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 	if err := r.DB.Model(project).Updates(&model.Project{
-		Name:         name,
-		BillingEmail: billingEmail,
+		Name:          name,
+		BillingEmail:  billingEmail,
+		ExcludedUsers: excludedUsers,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
@@ -2474,6 +2475,10 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	}
 
 	return &model.T, nil
+}
+
+func (r *projectResolver) ExcludedUsers(ctx context.Context, obj *model.Project) ([]string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
@@ -5045,6 +5050,9 @@ func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &met
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Project returns generated.ProjectResolver implementation.
+func (r *Resolver) Project() generated.ProjectResolver { return &projectResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -5078,6 +5086,7 @@ type errorSegmentResolver struct{ *Resolver }
 type metricResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
+type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
