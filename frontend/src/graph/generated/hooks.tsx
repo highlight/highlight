@@ -5959,6 +5959,7 @@ export const GetProjectOrWorkspaceDocument = gql`
             id
             name
             billing_email
+            excluded_users
         }
         workspace(id: $workspace_id) @include(if: $is_workspace) {
             id
@@ -6281,6 +6282,7 @@ export const GetProjectDocument = gql`
             name
             verbose_id
             billing_email
+            excluded_users
         }
         workspace: workspace_for_project(project_id: $id) {
             id

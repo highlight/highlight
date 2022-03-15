@@ -1,8 +1,4 @@
-import {
-    useEditProjectMutation,
-    useEditWorkspaceMutation,
-    useGetProjectOrWorkspaceQuery,
-} from '@graph/hooks';
+import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message, Select } from 'antd';
@@ -18,19 +14,13 @@ import {
 import styles from './ExcludedUsersForm.module.scss';
 
 export const ExcludedUsersForm = () => {
-    const { project_id, workspace_id } = useParams<{
+    const { project_id } = useParams<{
         project_id: string;
-        workspace_id: string;
     }>();
-    const isWorkspace = !!workspace_id;
     const [excludedUsers, setExcludedUsers] = useState<string[]>([]);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const { data, loading } = useGetProjectOrWorkspaceQuery({
+    const { data, loading } = useGetProjectQuery({
         variables: {
-            project_id,
-            workspace_id,
-            is_workspace: isWorkspace,
+            id: project_id,
         },
     });
 
@@ -44,32 +34,23 @@ export const ExcludedUsersForm = () => {
         ],
     });
 
-    const [
-        editWorkspace,
-        { loading: editWorkspaceLoading },
-    ] = useEditWorkspaceMutation();
-
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
         editProject({
             variables: {
                 id: project_id,
-                name,
-                billing_email: email,
+                excluded_users: excludedUsers,
             },
         }).then(() => {
             message.success('Updated project fields!', 5);
         });
     };
 
-    const editingObj = isWorkspace ? data?.workspace : data?.project;
-
     useEffect(() => {
         if (!loading) {
-            setName(editingObj?.name || '');
-            setEmail(data?.project?.billing_email || '');
+            setExcludedUsers(data?.project?.excluded_users || []);
         }
-    }, [data?.project?.billing_email, editingObj?.name, loading]);
+    }, [data?.project?.excluded_users, loading]);
 
     if (loading) {
         return <LoadingBar />;
@@ -95,9 +76,7 @@ export const ExcludedUsersForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
                 <Button
-                    trackingId={`${
-                        isWorkspace ? 'Workspace' : 'Project'
-                    }Update`}
+                    trackingId={`ExcludedUsersUpdate`}
                     htmlType="submit"
                     type="primary"
                     className={classNames(
@@ -105,7 +84,7 @@ export const ExcludedUsersForm = () => {
                         styles.saveButton
                     )}
                 >
-                    {editProjectLoading || editWorkspaceLoading ? (
+                    {editProjectLoading ? (
                         <CircularSpinner
                             style={{
                                 fontSize: 18,

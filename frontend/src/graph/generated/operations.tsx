@@ -2297,7 +2297,7 @@ export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'billing_email'
+            'id' | 'name' | 'billing_email' | 'excluded_users'
         >
     >;
     workspace?: Types.Maybe<
@@ -2414,7 +2414,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'verbose_id' | 'billing_email'
+            'id' | 'name' | 'verbose_id' | 'billing_email' | 'excluded_users'
         >
     >;
     workspace?: Types.Maybe<
