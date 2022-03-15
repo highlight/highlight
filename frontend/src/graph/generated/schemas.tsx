@@ -201,6 +201,7 @@ export type Project = {
     billing_email?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
+    excluded_users?: Maybe<Array<Scalars['String']>>;
 };
 
 export type Account = {
@@ -1237,6 +1238,7 @@ export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
+    excluded_users?: Maybe<Array<Scalars['String']>>;
 };
 
 export type MutationEditWorkspaceArgs = {
