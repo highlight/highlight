@@ -183,6 +183,14 @@ const HIGHLIGHT_URL = 'app.highlight.run';
 
 const PROPERTY_MAX_LENGTH = 2000;
 
+/*
+ * Don't take another full snapshot unless it's been at least
+ * 4 minutes AND the cumulative payload size since the last
+ * snapshot is > 10MB.
+ */
+const MIN_SNAPSHOT_BYTES = 10e6;
+const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -216,6 +224,7 @@ export class Highlight {
     _onToggleFeedbackFormVisibility!: () => void;
     _firstLoadListeners!: FirstLoadListeners;
     _eventBytesSinceSnapshot!: number;
+    _lastSnapshotTime!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
@@ -1125,7 +1134,7 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
     }): Promise<void> {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
@@ -1155,7 +1164,7 @@ export class Highlight {
             payload.highlight_logs = highlightLogs;
         }
 
-        await sendFn(payload);
+        const eventsSize = await sendFn(payload);
 
         // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
         // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
@@ -1174,16 +1183,21 @@ export class Highlight {
 
             // (This is probably expensive)
             this._eventBytesSinceSnapshot =
-                this._eventBytesSinceSnapshot + stringify(events).length || 0;
+                this._eventBytesSinceSnapshot + eventsSize;
             console.log(
                 'this._eventBytesSinceSnapshot',
                 this._eventBytesSinceSnapshot
             );
-            // After 5mb, take a full snapshot and reset the counter
-            if (this._eventBytesSinceSnapshot >= 5e6) {
+            const now = new Date().getTime();
+            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+            // take a full snapshot and reset the counters
+            if (
+                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
+                this._lastSnapshotTime - now >= MIN_SNAPSHOT_TIME
+            ) {
                 record.takeFullSnapshot();
                 this._eventBytesSinceSnapshot = 0;
-                console.log('took full snapshot');
+                this._lastSnapshotTime = now;
             }
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(

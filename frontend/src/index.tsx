@@ -85,7 +85,7 @@ if (dev) {
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
 }
-// H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
+H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (!isOnPrem) {
     H.start();
 

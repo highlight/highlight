@@ -177,7 +177,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const events: HighlightEvent[] = [];
     let eventsKey = '';
-    for (const [k, v] of chunkEvents) {
+    const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
+    for (const [k, v] of sortedChunks) {
         if (v.length !== 0) {
             eventsKey += k + ',';
         }
