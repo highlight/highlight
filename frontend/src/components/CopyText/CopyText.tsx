@@ -1,7 +1,7 @@
 import SvgCopyIcon from '@icons/CopyIcon';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import Button from '../Button/Button/Button';
 import styles from './CopyText.module.scss';
@@ -10,9 +10,10 @@ interface Props {
     text: string;
     className?: string;
     inline?: boolean;
+    custom?: ReactNode;
 }
 
-const CopyText: React.FC<Props> = ({ text, className, inline }) => {
+const CopyText: React.FC<Props> = ({ text, className, inline, custom }) => {
     const onCopyHandler = () => {
         navigator.clipboard.writeText(text);
         message.success('Copied the invite link');
@@ -21,7 +22,7 @@ const CopyText: React.FC<Props> = ({ text, className, inline }) => {
     if (inline) {
         return (
             <div className={styles.inlineContainer}>
-                <span>{text}</span>
+                {custom ? custom : <span>{text}</span>}
                 <Button
                     trackingId="CopyTextMinimal"
                     iconButton
