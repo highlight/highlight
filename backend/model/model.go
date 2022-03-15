@@ -121,11 +121,14 @@ var Models = []interface{}{
 	&Segment{},
 	&Admin{},
 	&Session{},
+	&SessionInterval{},
+	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
 	&Field{},
 	&EmailSignup{},
 	&ResourcesObject{},
+	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
 	&ErrorComment{},
@@ -393,9 +396,10 @@ type Session struct {
 	// Tells us if 'beforeunload' was fired on the client - note this is not necessarily fired on every session end
 	HasUnloaded bool `gorm:"default:false"`
 	// Tells us if the session has been parsed by a worker.
-	Processed     *bool `json:"processed"`
-	HasRageClicks *bool `json:"has_rage_clicks"`
-	HasErrors     *bool `json:"has_errors"`
+	Processed           *bool `json:"processed"`
+	HasRageClicks       *bool `json:"has_rage_clicks"`
+	HasErrors           *bool `json:"has_errors"`
+	HasOutOfOrderEvents bool  `gorm:"default:false"`
 	// The timestamp of the first payload received after the session got processed (if applicable)
 	ResumedAfterProcessedTime *time.Time `json:"resumed_after_processed_time"`
 	// The length of a session.
@@ -447,6 +451,9 @@ type Session struct {
 	Lock sql.NullTime
 
 	RetryCount int
+
+	// Represents the admins that have viewed this session.
+	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 }
 
 type EventChunk struct {
@@ -755,6 +762,17 @@ type ErrorFingerprint struct {
 	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
 }
 
+type ExternalAttachment struct {
+	Model
+	IntegrationType modelInputs.IntegrationType
+
+	ExternalID string
+	Title      string
+
+	SessionCommentID int `gorm:"index"`
+	ErrorCommentID   int `gorm:"index"`
+}
+
 type SessionCommentTag struct {
 	Model
 	SessionComments []SessionComment `json:"session_comments" gorm:"many2many:session_tags;"`
@@ -774,9 +792,10 @@ type SessionComment struct {
 	Text            string
 	XCoordinate     float64
 	YCoordinate     float64
-	Type            string               `json:"type" gorm:"default:ADMIN"`
-	Metadata        JSONB                `json:"metadata" gorm:"type:jsonb"`
-	Tags            []*SessionCommentTag `json:"tags" gorm:"many2many:session_tags;"`
+	Type            string                `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB                 `json:"metadata" gorm:"type:jsonb"`
+	Tags            []*SessionCommentTag  `json:"tags" gorm:"many2many:session_tags;"`
+	Attachments     []*ExternalAttachment `gorm:"foreignKey:SessionCommentID"`
 }
 
 type ErrorComment struct {
@@ -788,6 +807,25 @@ type ErrorComment struct {
 	ErrorId        int
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
+	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
+}
+
+type SessionInterval struct {
+	Model
+	SessionSecureID string `json:"secure_id"`
+	StartTime       time.Time
+	EndTime         time.Time
+	Duration        int
+	Active          bool
+}
+
+type TimelineIndicatorEvent struct {
+	Model
+	SessionSecureID string `gorm:"index" json:"secure_id"`
+	Timestamp       float64
+	Type            int
+	SID             float64
+	Data            JSONB `json:"data" sql:"type:jsonb"`
 }
 
 type RageClickEvent struct {
@@ -925,6 +963,24 @@ func SetupDB(dbName string) (*gorm.DB, error) {
     		ALTER COLUMN error_group_id DROP NOT NULL
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_session_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM sessions
+			WHERE excluded <> true
+			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
+			AND processed = true
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+	}
+
+	if err := DB.Exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
 	sqlDB, err := DB.DB()

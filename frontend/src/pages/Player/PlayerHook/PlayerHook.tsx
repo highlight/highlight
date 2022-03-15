@@ -26,6 +26,7 @@ import {
     useGetEventChunkUrlQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
+    useGetTimelineIndicatorEventsQuery,
     useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
 import {
@@ -43,7 +44,11 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    addErrorsToSessionIntervals,
+    addEventsToSessionIntervals,
     findNextSessionInList,
+    getCommentsInSessionIntervalsRelative,
+    getEventsForTimelineIndicator,
     getSessionIntervals,
     PlayerSearchParameters,
     useSetPlayerTimestampFromSearchParam,
@@ -337,6 +342,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
         }
     };
+
+    const {
+        data: timelineIndicatorEventsData,
+    } = useGetTimelineIndicatorEventsQuery({
+        variables: {
+            session_secure_id: session_secure_id,
+        },
+    });
 
     const { data: sessionData } = useGetSessionQuery({
         variables: {
@@ -685,34 +698,41 @@ export const usePlayer = (): ReplayerContextInterface => {
                 replayer.iframe.contentDocument.head.appendChild(cssLink);
             }
 
+            const parsedTimelineIndicatorEvents =
+                timelineIndicatorEventsData &&
+                timelineIndicatorEventsData.timeline_indicator_events.length > 0
+                    ? toHighlightEvents(
+                          timelineIndicatorEventsData.timeline_indicator_events
+                      )
+                    : events;
             console.log(
                 '[Highlight] Session Metadata:',
                 replayer.getMetaData()
             );
-            setSessionIntervals(sessionIntervals);
-            // setSessionIntervals(
-            //     getCommentsInSessionIntervalsRelative(
-            //         addEventsToSessionIntervals(
-            //             addErrorsToSessionIntervals(
-            //                 sessionIntervals,
-            //                 errors,
-            //                 replayer.getMetaData().startTime
-            //             ),
-            //             events,
-            //             replayer.getMetaData().startTime
-            //         ),
-            //         sessionComments,
-            //         replayer.getMetaData().startTime
-            //     )
-            // );
-            // setEventsForTimelineIndicator(
-            //     getEventsForTimelineIndicator(
-            //         events,
-            //         replayer.getMetaData().startTime,
-            //         replayer.getMetaData().totalTime
-            //     )
-            // );
+            setSessionIntervals(
+                getCommentsInSessionIntervalsRelative(
+                    addEventsToSessionIntervals(
+                        addErrorsToSessionIntervals(
+                            sessionIntervals,
+                            errors,
+                            replayer.getMetaData().startTime
+                        ),
+                        parsedTimelineIndicatorEvents,
+                        replayer.getMetaData().startTime
+                    ),
+                    sessionComments,
+                    replayer.getMetaData().startTime
+                )
+            );
+            setEventsForTimelineIndicator(
+                getEventsForTimelineIndicator(
+                    parsedTimelineIndicatorEvents,
+                    replayer.getMetaData().startTime,
+                    replayer.getMetaData().totalTime
+                )
+            );
             setSessionEndTime(replayer.getMetaData().totalTime);
+
             if (eventsData?.rage_clicks) {
                 setSessionIntervals((sessionIntervals) => {
                     const allClickEvents: (ParsedHighlightEvent & {

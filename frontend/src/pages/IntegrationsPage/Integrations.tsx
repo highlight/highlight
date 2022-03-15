@@ -17,24 +17,25 @@ export interface Integration {
     configurationPage: (opts: IntegrationConfigProps) => React.ReactNode;
 }
 
-const INTEGRATIONS: Integration[] = [
-    {
-        key: 'slack',
-        name: 'Slack',
-        configurationPath: 'slack',
-        description:
-            'Bring your Highlight comments and alerts to slack as messages.',
-        icon: '/images/integrations/slack.jpg',
-        configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
-    },
-    {
-        key: 'linear',
-        name: 'Linear',
-        configurationPath: 'linear',
-        description: 'Bring your Highlight comments to Linear as issues.',
-        icon: '/images/integrations/linear.png',
-        configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
-    },
-];
+export const SLACK_INTEGRATION: Integration = {
+    key: 'slack',
+    name: 'Slack',
+    configurationPath: 'slack',
+    description:
+        'Bring your Highlight comments and alerts to slack as messages.',
+    icon: '/images/integrations/slack.jpg',
+    configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
+};
+
+export const LINEAR_INTEGRATION: Integration = {
+    key: 'linear',
+    name: 'Linear',
+    configurationPath: 'linear',
+    description: 'Bring your Highlight comments to Linear as issues.',
+    icon: '/images/integrations/linear.png',
+    configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
+};
+
+const INTEGRATIONS: Integration[] = [SLACK_INTEGRATION, LINEAR_INTEGRATION];
 
 export default INTEGRATIONS;

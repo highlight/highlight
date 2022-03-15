@@ -671,16 +671,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	var errorGroup *model.ErrorGroup
 	var err error
 	// New error grouping logic is gated by project_id 1 for now
-	if projectID == 1 || projectID == 79 {
-		errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting top error group match")
-		}
-	} else {
-		errorGroup, err = r.GetOrCreateErrorGroupOld(errorObj, stackTraceString)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting error group match (old code path)")
-		}
+	errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
+	if err != nil {
+		return nil, e.Wrap(err, "Error getting top error group match")
 	}
 
 	errorObj.ErrorGroupID = errorGroup.ID
@@ -929,6 +922,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		VerboseID:                      projectVerboseID,
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
+		ViewedByAdmins:                 []model.Admin{},
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022

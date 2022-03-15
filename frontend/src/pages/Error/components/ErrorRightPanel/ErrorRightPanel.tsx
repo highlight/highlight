@@ -41,7 +41,7 @@ const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
                         key: 'Comments',
                         panelContent: (
                             <div className={styles.commentsTabContainer}>
-                                <ErrorFullCommentList />
+                                <ErrorFullCommentList errorGroup={errorGroup} />
                                 <div className={styles.createCommentContainer}>
                                     <ErrorComments parentRef={parentRef} />
                                 </div>

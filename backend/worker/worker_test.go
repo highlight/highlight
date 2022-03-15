@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"container/list"
 	"io/ioutil"
 	"log"
 	"testing"
@@ -22,6 +21,7 @@ func TestCalculateSessionLength(t *testing.T) {
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       1,
 						Timestamp: time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					},
 				}},
@@ -34,12 +34,14 @@ func TestCalculateSessionLength(t *testing.T) {
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       1,
 						Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					},
 				}},
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       2,
 						Timestamp: time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					},
 				},
@@ -53,6 +55,7 @@ func TestCalculateSessionLength(t *testing.T) {
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       1,
 						Timestamp: time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					},
 				}},
@@ -62,18 +65,22 @@ func TestCalculateSessionLength(t *testing.T) {
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       1,
 						Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					},
 					{
+						SID:       2,
 						Timestamp: time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					},
 				}},
 			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{
 					{
+						SID:       1,
 						Timestamp: time.Date(1970, time.Month(1), 1, 3, 0, 0, 0, time.UTC),
 					},
 					{
+						SID:       2,
 						Timestamp: time.Date(1970, time.Month(1), 1, 4, 0, 0, 0, time.UTC),
 					},
 				}},
@@ -122,6 +129,7 @@ func TestGetActiveDuration(t *testing.T) {
 				Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"test": 5},
 						"timestamp": 1,
 						"type": 4
@@ -144,6 +152,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -153,6 +162,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 2,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -163,6 +173,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 3,
 							"data": {"source": 5},
 							"timestamp": 5001,
 							"type": 3
@@ -179,6 +190,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -188,6 +200,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 2,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -197,6 +210,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 3,
 							"data": {"source": 5},
 							"timestamp": 20000,
 							"type": 3
@@ -213,6 +227,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -222,6 +237,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 2,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -231,6 +247,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 3,
 							"data": {"test": 5},
 							"timestamp": 500,
 							"type": 4
@@ -240,6 +257,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 4,
 							"data": {"source": 5},
 							"timestamp": 1000,
 							"type": 3
@@ -249,6 +267,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 						{
 							"events": [{
+							"_sid": 5,
 								"data": {"source": 5},
 								"timestamp": 2001,
 								"type": 3
@@ -258,6 +277,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 6,
 							"data": {"source": 5},
 							"timestamp": 20000,
 							"type": 3
@@ -274,6 +294,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -283,6 +304,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 2,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 1,
 							"type": 3
@@ -293,6 +315,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 3,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 100,
 							"type": 3
@@ -303,6 +326,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 4,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200,
 							"type": 3
@@ -313,6 +337,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 5,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 300,
 							"type": 3
@@ -323,6 +348,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 6,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 400,
 							"type": 3
@@ -333,6 +359,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 7,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 450,
 							"type": 3
@@ -343,6 +370,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 8,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 993,
 							"type": 3
@@ -353,6 +381,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 9,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 994,
 							"type": 3
@@ -363,6 +392,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 10,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 995,
 							"type": 3
@@ -373,6 +403,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 11,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 996,
 							"type": 3
@@ -383,6 +414,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 12,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 997,
 							"type": 3
@@ -393,6 +425,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 13,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 1999,
 							"type": 3
@@ -403,6 +436,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 14,
 							"data": {"source": 5},
 							"timestamp": 2001,
 							"type": 3
@@ -413,6 +447,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 15,
 							"data": {"source": 5},
 							"timestamp": 20000,
 							"type": 3
@@ -423,6 +458,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 16,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200001,
 							"type": 3
@@ -433,6 +469,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 17,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200002,
 							"type": 3
@@ -443,6 +480,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 18,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200003,
 							"type": 3
@@ -453,6 +491,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 19,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200300,
 							"type": 3
@@ -463,6 +502,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 20,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200400,
 							"type": 3
@@ -474,51 +514,61 @@ func TestGetActiveDuration(t *testing.T) {
 					{
 						"events": [
 						{
+							"_sid": 21,
 							"data": {"source": 5},
 							"timestamp": 200440,
 							"type": 2
 						},
 						{
+							"_sid": 22,
 							"data": {"source": 5},
 							"timestamp": 200441,
 							"type": 2
 						},
 						{
+							"_sid": 23,
 							"data": {"source": 5},
 							"timestamp": 200442,
 							"type": 2
 						},
 						{
+							"_sid": 24,
 							"data": {"source": 5},
 							"timestamp": 200443,
 							"type": 2
 						},
 						{
+							"_sid": 25,
 							"data": {"source": 5},
 							"timestamp": 200444,
 							"type": 2
 						},
 						{
+							"_sid": 26,
 							"data": {"source": 5},
 							"timestamp": 200445,
 							"type": 2
 						},
 						{
+							"_sid": 27,
 							"data": {"source": 5},
 							"timestamp": 200446,
 							"type": 2
 						},
 						{
+							"_sid": 28,
 							"data": {"source": 5},
 							"timestamp": 200447,
 							"type": 2
 						},
 						{
+							"_sid": 29,
 							"data": {"source": 5},
 							"timestamp": 200448,
 							"type": 2
 						},
 						{
+							"_sid": 30,
 							"data": {"source": 5},
 							"timestamp": 200449,
 							"type": 2
@@ -529,6 +579,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 31,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200450,
 							"type": 3
@@ -539,6 +590,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 32,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200993,
 							"type": 3
@@ -549,6 +601,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 33,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200994,
 							"type": 3
@@ -559,6 +612,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 34,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200995,
 							"type": 3
@@ -569,6 +623,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 35,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200996,
 							"type": 3
@@ -579,6 +634,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 36,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200997,
 							"type": 3
@@ -589,6 +645,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 37,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 201999,
 							"type": 3
@@ -599,6 +656,7 @@ func TestGetActiveDuration(t *testing.T) {
 					Events: `
 					{
 						"events": [{
+							"_sid": 38,
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 202001,
 							"type": 3
@@ -614,55 +672,28 @@ func TestGetActiveDuration(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			activeDuration := time.Duration(0)
-			var (
-				firstEventTimestamp        time.Time
-				firstFullSnapshotTimestamp time.Time
-				lastEventTimestamp         time.Time
-				rageClickSets              []*model.RageClickEvent
-				currentlyInRageClickSet    bool
-				clickEventQueue            *list.List
-			)
-			timestamps := make(map[time.Time]int)
-			clickEventQueue = list.New()
-			var o processEventChunkOutput
+			a := MakeEventProcessingAccumulator("fakeSecureID")
 			for _, event := range tt.events {
-				o = processEventChunk(&processEventChunkInput{
-					EventsChunk:                &event,
-					ClickEventQueue:            clickEventQueue,
-					FirstEventTimestamp:        firstEventTimestamp,
-					FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
-					LastEventTimestamp:         lastEventTimestamp,
-					RageClickSets:              rageClickSets,
-					CurrentlyInRageClickSet:    currentlyInRageClickSet,
-					TimestampCounts:            timestamps,
-				})
-				if o.Error != nil {
-					t.Logf("error: %v", o.Error)
+				a = processEventChunk(a, event)
+				if a.Error != nil {
+					t.Logf("error: %v", a.Error)
 				}
-				firstEventTimestamp = o.FirstEventTimestamp
-				firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
-				lastEventTimestamp = o.LastEventTimestamp
-				activeDuration += o.CalculatedDuration
-				rageClickSets = o.RageClickSets
-				currentlyInRageClickSet = o.CurrentlyInRageClickSet
-				timestamps = o.TimestampCounts
 			}
 
 			if tt.expectedRageClicks != nil {
-				if diff := deep.Equal(tt.expectedRageClicks, rageClickSets); len(diff) > 0 {
+				if diff := deep.Equal(tt.expectedRageClicks, a.RageClickSets); len(diff) > 0 {
 					t.Errorf("expected rage clicks not equal to actual rage clicks (%+v)", diff)
 				}
 			}
 
-			t.Logf("want: %v, actual: %v", tt.wantActiveDuration, activeDuration)
-			if diff := deep.Equal(tt.wantActiveDuration, activeDuration); diff != nil {
+			t.Logf("want: %v, actual: %v", tt.wantActiveDuration, a.ActiveDuration)
+			if diff := deep.Equal(tt.wantActiveDuration, a.ActiveDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)
 			}
-			if diff := deep.Equal(tt.expectedFirstTS, firstEventTimestamp); diff != nil {
+			if diff := deep.Equal(tt.expectedFirstTS, a.FirstEventTimestamp); diff != nil {
 				t.Errorf("[expected first timestamp not equal to actual]: %v", diff)
 			}
-			for _, iii := range o.RageClickSets {
+			for _, iii := range a.RageClickSets {
 				t.Logf("rage click set: %+v", iii)
 			}
 		})
@@ -679,6 +710,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 				Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"test": 5},
 						"timestamp": 1,
 						"type": 4
@@ -697,6 +729,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -706,6 +739,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 2,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -721,6 +755,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -730,6 +765,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 2,
 						"data": {"source": 5},
 						"type": 2
 					}]
@@ -744,6 +780,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 					Events: `
 				{
 					"events": [{
+						"_sid": 1,
 						"data": {"source": 5},
 						"timestamp": 1,
 						"type": 3
@@ -756,41 +793,14 @@ func TestFullSnapshotValidation(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			activeDuration := time.Duration(0)
-			var (
-				firstEventTimestamp        time.Time
-				firstFullSnapshotTimestamp time.Time
-				lastEventTimestamp         time.Time
-				rageClickSets              []*model.RageClickEvent
-				currentlyInRageClickSet    bool
-				clickEventQueue            *list.List
-			)
-			timestamps := make(map[time.Time]int)
-			clickEventQueue = list.New()
-			var o processEventChunkOutput
+			a := MakeEventProcessingAccumulator("fakeSecureID")
 			for _, event := range tt.events {
-				o = processEventChunk(&processEventChunkInput{
-					EventsChunk:                &event,
-					ClickEventQueue:            clickEventQueue,
-					FirstEventTimestamp:        firstEventTimestamp,
-					FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
-					LastEventTimestamp:         lastEventTimestamp,
-					RageClickSets:              rageClickSets,
-					CurrentlyInRageClickSet:    currentlyInRageClickSet,
-					TimestampCounts:            timestamps,
-				})
-				if o.Error != nil {
+				a = processEventChunk(a, event)
+				if a.Error != nil {
 					break
 				}
-				firstEventTimestamp = o.FirstEventTimestamp
-				firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
-				lastEventTimestamp = o.LastEventTimestamp
-				activeDuration += o.CalculatedDuration
-				rageClickSets = o.RageClickSets
-				currentlyInRageClickSet = o.CurrentlyInRageClickSet
-				timestamps = o.TimestampCounts
 			}
-			succeeded := o.Error == nil
+			succeeded := a.Error == nil
 			if succeeded != tt.isValid {
 				t.Errorf("expected success value: %t, actual success value: %t", tt.isValid, succeeded)
 			}

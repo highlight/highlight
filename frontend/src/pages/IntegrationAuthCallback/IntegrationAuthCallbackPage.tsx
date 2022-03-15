@@ -40,8 +40,11 @@ const IntegrationAuthCallbackPage = () => {
                     );
                 }
 
-                if (!parsedState['next'])
+                if (!parsedState['next']) {
                     next = `/${project_id}/${parsedState['next']}`;
+                } else {
+                    next = `/${project_id}/integrations`;
+                }
 
                 if (!code) {
                     throw new Error(
@@ -63,6 +66,7 @@ const IntegrationAuthCallbackPage = () => {
                 );
             } finally {
                 history.push(next);
+                setLoadingState(AppLoadingState.LOADED);
             }
         })();
     }, [

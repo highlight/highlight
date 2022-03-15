@@ -1,3 +1,13 @@
+.normalTableSizing {
+    --padding-x: var(--size-large);
+    --padding-y: var(--size-medium);
+}
+
+.smallTableSizing {
+    --padding-x: var(--size-medium);
+    --padding-y: var(--size-small);
+}
+
 .table {
     :global(.ant-table-thead > tr > th) {
         background: transparent !important;
@@ -11,8 +21,8 @@
 
     :global(tr > .ant-table-cell) {
         border-bottom: 1px solid var(--color-gray-300) !important;
-        padding-bottom: var(--size-medium) !important;
-        padding-top: var(--size-medium) !important;
+        padding-bottom: var(--padding-y) !important;
+        padding-top: var(--padding-y) !important;
     }
 
     :global(.ant-table-row:last-of-type > .ant-table-cell) {
@@ -44,11 +54,11 @@
 
     &.rowHasPadding {
         :global(tr > .ant-table-cell:first-of-type) {
-            padding-left: var(--size-large) !important;
+            padding-left: var(--padding-x) !important;
         }
 
         :global(tr > .ant-table-cell:last-of-type) {
-            padding-right: var(--size-large) !important;
+            padding-right: var(--padding-x) !important;
         }
     }
 }

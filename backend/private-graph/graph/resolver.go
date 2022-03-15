@@ -1432,6 +1432,225 @@ func (r *Resolver) RemoveLinearFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
+func (r *Resolver) MakeLinearGraphQLRequest(accessToken string, body string) ([]byte, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("POST", "https://api.linear.app/graphql", strings.NewReader(body))
+	if err != nil {
+		return nil, e.Wrap(err, "error creating api request to linear")
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting response from linear graphql endpoint")
+	}
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "error reading response body from linear graphql endpoint")
+	}
+
+	if res.StatusCode != 200 {
+		return nil, e.New("linear graphql API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	return b, nil
+}
+
+type LinearTeamsResponse struct {
+	Data struct {
+		Teams struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"teams"`
+	} `json:"data"`
+}
+
+func (r *Resolver) GetLinearTeams(accessToken string) (*LinearTeamsResponse, error) {
+	requestQuery := `
+	query {
+		teams {
+			nodes {
+				id
+			}
+		}
+	}
+	`
+
+	type GraphQLReq struct {
+		Query string `json:"query"`
+	}
+
+	req := GraphQLReq{Query: requestQuery}
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	teamsResponse := &LinearTeamsResponse{}
+
+	err = json.Unmarshal(b, teamsResponse)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return teamsResponse, nil
+}
+
+type LinearCreateIssueResponse struct {
+	Data struct {
+		IssueCreate struct {
+			Issue struct {
+				ID         string `json:"id"`
+				Identifier string `json:"identifier"`
+			} `json:"issue"`
+		} `json:"issueCreate"`
+	} `json:"data"`
+}
+
+func (r *Resolver) CreateLinearIssue(accessToken string, teamID string, title string, description string) (*LinearCreateIssueResponse, error) {
+	requestQuery := `
+	mutation createIssue($teamId: String!, $title: String!, $desc: String!) {
+		issueCreate(input: {teamId: $teamId, title: $title, description: $desc}) {
+			issue {
+				id,
+				identifier
+			}
+		}
+	}
+	`
+
+	type GraphQLVars struct {
+		TeamID string `json:"teamId"`
+		Title  string `json:"title"`
+		Desc   string `json:"desc"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{TeamID: teamID, Title: title, Desc: description}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	createIssueRes := &LinearCreateIssueResponse{}
+
+	err = json.Unmarshal(b, createIssueRes)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return createIssueRes, nil
+}
+
+type LinearCreateAttachmentResponse struct {
+	Data struct {
+		AttachmentCreate struct {
+			Attachment struct {
+				ID string `json:"id"`
+			} `json:"Attachment"`
+			Success bool `json:"success"`
+		} `json:"attachmentCreate"`
+	} `json:"data"`
+}
+
+func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, title string, subtitle string, url string) (*LinearCreateAttachmentResponse, error) {
+	requestQuery := `
+	mutation createAttachment($issueId: String!, $url: String!, $iconUrl: String!, $title: String!, $subtitle: String) {
+		attachmentCreate(input: {issueId: $issueId, url: $url, iconUrl: $iconUrl, title: $title, subtitle: $subtitle}) {
+		  attachment {
+			id
+		  }
+		  success
+		}
+	  }	  
+	`
+
+	type GraphQLVars struct {
+		IssueID  string `json:"issueId"`
+		Title    string `json:"title"`
+		Subtitle string `json:"subtitle"`
+		Url      string `json:"url"`
+		IconUrl  string `json:"iconUrl"`
+	}
+
+	type GraphQLReq struct {
+		Query     string      `json:"query"`
+		Variables GraphQLVars `json:"variables"`
+	}
+
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
+
+	requestBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := r.MakeLinearGraphQLRequest(accessToken, string(requestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	createAttachmentRes := &LinearCreateAttachmentResponse{}
+
+	err = json.Unmarshal(b, createAttachmentRes)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling linear oauth token response")
+	}
+
+	return createAttachmentRes, nil
+}
+
+func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string) error {
+	teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+	if err != nil {
+		return err
+	}
+
+	if len(teamRes.Data.Teams.Nodes) <= 0 {
+		return e.New("no teams to make a linear issue to")
+	}
+
+	teamId := teamRes.Data.Teams.Nodes[0].ID
+
+	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, teamId, issueTitle, issueDescription)
+	if err != nil {
+		return err
+	}
+
+	attachmentRes, err := r.CreateLinearAttachment(*workspace.LinearAccessToken, issueRes.Data.IssueCreate.Issue.ID, commentText, authorName, viewLink)
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = attachmentRes.Data.AttachmentCreate.Attachment.ID
+	attachment.Title = issueRes.Data.IssueCreate.Issue.Identifier
+
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 type LinearAccessTokenResponse struct {
 	AccessToken string   `json:"access_token"`
 	TokenType   string   `json:"token_type"`

@@ -22,7 +22,8 @@ func TestEventsFromString(t *testing.T) {
 				"events": [{
 					"data": {"test": 5},
 					"timestamp": 0,
-					"type": 4
+					"type": 4,
+					"_sid": 1234
 				}]
 			}
 			`,
@@ -31,6 +32,7 @@ func TestEventsFromString(t *testing.T) {
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      Meta,
 					Data:      json.RawMessage(`{"test": 5}`),
+					SID:       1234,
 				},
 			}},
 			map[string][]map[string]interface{}{
@@ -41,6 +43,7 @@ func TestEventsFromString(t *testing.T) {
 						},
 						"timestamp": 0,
 						"type":      4,
+						"_sid":      1234,
 					},
 				},
 			},
@@ -50,7 +53,8 @@ func TestEventsFromString(t *testing.T) {
 			{
 				"events": [{
 					"timestamp": 0,
-					"type": 2
+					"type": 2,
+					"_sid": 5678
 				}]
 			}
 			`,
@@ -58,6 +62,7 @@ func TestEventsFromString(t *testing.T) {
 				{
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      FullSnapshot,
+					SID:       5678,
 				},
 			}},
 			map[string][]map[string]interface{}{
@@ -66,6 +71,7 @@ func TestEventsFromString(t *testing.T) {
 						"timestamp": 0,
 						"type":      2,
 						"data":      nil,
+						"_sid":      5678,
 					},
 				},
 			},

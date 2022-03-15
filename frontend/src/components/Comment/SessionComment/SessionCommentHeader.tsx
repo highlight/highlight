@@ -1,4 +1,5 @@
 import MenuItem from '@components/Menu/MenuItem';
+import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
 import SvgBallotBoxIcon from '@icons/BallotBoxIcon';
@@ -7,11 +8,12 @@ import SvgCopyIcon from '@icons/CopyIcon';
 import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgReferrer from '@icons/Referrer';
 import SvgTrashIcon from '@icons/TrashIcon';
-import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { useDeleteSessionCommentMutation } from '../../../graph/generated/hooks';
@@ -47,11 +49,37 @@ const SessionCommentHeader = ({
     });
     const history = useHistory();
 
+    const { isLinearIntegratedWithProject } = useLinearIntegration();
+
+    const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+
     const getCommentLink = () => {
         const url = onGetLinkWithTimestamp(comment.timestamp || 0);
         url.searchParams.set(PlayerSearchParameters.commentId, comment.id);
         return url;
     };
+
+    const defaultIssueTitle = useMemo(() => {
+        if (session?.identifier) {
+            return `Highlight Comment: ${session?.identifier}'s session`;
+        }
+        if (session?.fingerprint) {
+            return `Highlight Comment: session with device ID ${session?.fingerprint}`;
+        }
+        return `Highlight Comment for a session`;
+    }, [session]);
+
+    const createIssueMenuItem = (
+        <MenuItem
+            icon={<SvgFileText2Icon />}
+            onClick={() => {
+                H.track('Create Issue from Comment');
+                setShowNewIssueModal(true);
+            }}
+        >
+            Create Linear Issue
+        </MenuItem>
+    );
 
     const moreMenu = (
         <Menu>
@@ -131,28 +159,7 @@ const SessionCommentHeader = ({
             >
                 Delete comment
             </MenuItem>
-            {session && (
-                <MenuItem
-                    icon={<SvgFileText2Icon />}
-                    onClick={() => {
-                        H.track('Create Linear issue');
-                        const url = getCommentLink();
-                        window.open(
-                            `http://linear.app/new?title=Highlight session comment for ${getDisplayName(
-                                session
-                            )}&description=${comment.text.replaceAll(
-                                '@',
-                                ''
-                            )}%0A%0ASession: ${url.href
-                                .replaceAll('=', '%3D')
-                                .replaceAll('&', '%26')}`,
-                            '_blank'
-                        );
-                    }}
-                >
-                    Create Linear issue
-                </MenuItem>
-            )}
+            {session && isLinearIntegratedWithProject && createIssueMenuItem}
             {menuItems?.map((menuItem, index) => (
                 <MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
                     {menuItem.label}
@@ -163,28 +170,7 @@ const SessionCommentHeader = ({
 
     const shareMenu = (
         <Menu>
-            {session && (
-                <MenuItem
-                    icon={<SvgFileText2Icon />}
-                    onClick={() => {
-                        H.track('Create Linear issue');
-                        const url = getCommentLink();
-                        window.open(
-                            `http://linear.app/new?title=Highlight session comment for ${getDisplayName(
-                                session
-                            )}&description=${comment.text.replaceAll(
-                                '@',
-                                ''
-                            )}%0A%0ASession: ${url.href
-                                .replaceAll('=', '%3D')
-                                .replaceAll('&', '%26')}`,
-                            '_blank'
-                        );
-                    }}
-                >
-                    Create Linear issue
-                </MenuItem>
-            )}
+            {session && createIssueMenuItem}
             <MenuItem
                 icon={<SvgBallotBoxIcon />}
                 onClick={() => {
@@ -251,6 +237,16 @@ const SessionCommentHeader = ({
             shareMenu={shareMenu}
         >
             {children}
+            <NewIssueModal
+                selectedIntegration={LINEAR_INTEGRATION}
+                visible={showNewIssueModal}
+                changeVisible={setShowNewIssueModal}
+                timestamp={comment.timestamp || 0}
+                commentId={parseInt(comment.id, 10)}
+                commentText={comment.text}
+                commentType="SessionComment"
+                defaultIssueTitle={defaultIssueTitle}
+            />
         </CommentHeader>
     );
 };

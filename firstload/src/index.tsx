@@ -357,6 +357,15 @@ export const H: HighlightPublicInterface = {
                 });
             }
 
+            if (
+                !!H.options?.integrations?.mixpanel?.projectToken &&
+                !window?.mixpanel?.track
+            ) {
+                console.warn(
+                    "Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser."
+                );
+            }
+
             if (window.amplitude?.getInstance) {
                 window.amplitude.getInstance().logEvent(event, {
                     ...metadata,

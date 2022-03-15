@@ -39,6 +39,9 @@ import (
 // Worker is a job runner that parses sessions
 const MIN_INACTIVE_DURATION = 10
 
+// For active and inactive segment calculation
+const INACTIVE_THRESHOLD = 0.02
+
 // Stop trying to reprocess a session if its retry count exceeds this
 const MAX_RETRIES = 5
 
@@ -243,19 +246,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
-	activeDuration := time.Duration(0)
-	var (
-		firstEventTimestamp        time.Time
-		firstFullSnapshotTimestamp time.Time
-		lastEventTimestamp         time.Time
-	)
+	var userInteractionEvents []*parse.ReplayEvent
+	accumulator := MakeEventProcessingAccumulator(s.SecureID)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
-	clickEventQueue := list.New()
-	var rageClickSets []*model.RageClickEvent
-	var currentlyInRageClickSet bool
-	timestamps := make(map[time.Time]int)
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -266,45 +261,143 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
-			o := processEventChunk(&processEventChunkInput{
-				EventsChunk:                &eventsObject,
-				ClickEventQueue:            clickEventQueue,
-				FirstEventTimestamp:        firstEventTimestamp,
-				FirstFullSnapshotTimestamp: firstFullSnapshotTimestamp,
-				LastEventTimestamp:         lastEventTimestamp,
-				RageClickSets:              rageClickSets,
-				CurrentlyInRageClickSet:    currentlyInRageClickSet,
-				TimestampCounts:            timestamps,
-			})
-			if o.Error != nil {
-				return e.Wrap(o.Error, "error processing event chunk")
+			accumulator = processEventChunk(accumulator, eventsObject)
+			if accumulator.Error != nil {
+				return e.Wrap(accumulator.Error, "error processing event chunk")
 			}
-			firstEventTimestamp = o.FirstEventTimestamp
-			firstFullSnapshotTimestamp = o.FirstFullSnapshotTimestamp
-			lastEventTimestamp = o.LastEventTimestamp
-			activeDuration += o.CalculatedDuration
-			rageClickSets = o.RageClickSets
-			currentlyInRageClickSet = o.CurrentlyInRageClickSet
-			timestamps = o.TimestampCounts
+			userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
+
+			if len(accumulator.EventsForTimelineIndicator) > 0 {
+				var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
+				for _, customEvent := range accumulator.EventsForTimelineIndicator {
+					var parsedData model.JSONB
+					err = json.Unmarshal(customEvent.Data, &parsedData)
+					if err != nil {
+						return e.Wrap(err, "error processing event chunk")
+					}
+					eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
+						SessionSecureID: s.SecureID,
+						Timestamp:       customEvent.TimestampRaw,
+						SID:             customEvent.SID,
+						Type:            int(customEvent.Type),
+						Data:            parsedData,
+					})
+				}
+				if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+					log.Error(e.Wrap(err, "error creating events for timeline indicator"))
+				}
+			}
 		}
 	}
-	for i, r := range rageClickSets {
+	for i, r := range accumulator.RageClickSets {
 		r.SessionSecureID = s.SecureID
 		r.ProjectID = s.ProjectID
-		rageClickSets[i] = r
+		accumulator.RageClickSets[i] = r
 	}
-	hasRageClicks := len(rageClickSets) > 0
+	hasRageClicks := len(accumulator.RageClickSets) > 0
 	if hasRageClicks {
-		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
+		if err := w.Resolver.DB.Create(&accumulator.RageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
 
+	userInteractionEvents = append([]*parse.ReplayEvent{{
+		Timestamp: accumulator.FirstEventTimestamp,
+	}}, userInteractionEvents...)
+	userInteractionEvents = append(userInteractionEvents, &parse.ReplayEvent{
+		Timestamp: accumulator.LastEventTimestamp,
+	})
+
+	var allIntervals []model.SessionInterval
+	startTime := userInteractionEvents[0].Timestamp
+	var activeInterval bool
+	for i := 1; i < len(userInteractionEvents); i++ {
+		currentEvent := userInteractionEvents[i-1]
+		nextEvent := userInteractionEvents[i]
+		diff := nextEvent.Timestamp.Sub(currentEvent.Timestamp)
+		intervalDiff := currentEvent.Timestamp.Sub(startTime)
+		if diff.Seconds() <= MIN_INACTIVE_DURATION {
+			if i == 1 {
+				activeInterval = model.T
+			}
+			if !activeInterval {
+				allIntervals = append(allIntervals, model.SessionInterval{
+					SessionSecureID: s.SecureID,
+					StartTime:       startTime,
+					EndTime:         currentEvent.Timestamp,
+					Duration:        int(intervalDiff.Milliseconds()),
+					Active:          model.F,
+				})
+				startTime = currentEvent.Timestamp
+				activeInterval = model.T
+			}
+		} else {
+			if i == 1 {
+				activeInterval = model.F
+			}
+			if activeInterval {
+				allIntervals = append(allIntervals, model.SessionInterval{
+					SessionSecureID: s.SecureID,
+					StartTime:       startTime,
+					EndTime:         currentEvent.Timestamp,
+					Duration:        int(intervalDiff.Milliseconds()),
+					Active:          model.T,
+				})
+				startTime = currentEvent.Timestamp
+				activeInterval = model.F
+			}
+		}
+		if i == len(userInteractionEvents)-1 {
+			allIntervals = append(allIntervals, model.SessionInterval{
+				SessionSecureID: s.SecureID,
+				StartTime:       startTime,
+				EndTime:         nextEvent.Timestamp,
+				Duration:        int(nextEvent.Timestamp.Sub(startTime).Milliseconds()),
+				Active:          activeInterval,
+			})
+		}
+	}
+
+	if len(allIntervals) < 1 {
+		return nil
+	}
+	// Merges inactive segments that are less than a threshold into surrounding active sessions
+	var finalIntervals []model.SessionInterval
+	startInterval := allIntervals[0]
+	sessionLength := float64(CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp).Milliseconds())
+	for i := 1; i < len(allIntervals); i++ {
+		currentInterval := allIntervals[i-1]
+		nextInterval := allIntervals[i]
+		if (!nextInterval.Active && nextInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) || (!currentInterval.Active && currentInterval.Duration > int(INACTIVE_THRESHOLD*sessionLength)) {
+			finalIntervals = append(finalIntervals, model.SessionInterval{
+				SessionSecureID: s.SecureID,
+				StartTime:       startInterval.StartTime,
+				EndTime:         currentInterval.EndTime,
+				Duration:        int(currentInterval.EndTime.Sub(startInterval.StartTime).Milliseconds()),
+				Active:          currentInterval.Active,
+			})
+			startInterval = nextInterval
+		}
+	}
+	if len(allIntervals) > 0 {
+		finalIntervals = append(finalIntervals, model.SessionInterval{
+			SessionSecureID: s.SecureID,
+			StartTime:       startInterval.StartTime,
+			EndTime:         allIntervals[len(allIntervals)-1].EndTime,
+			Duration:        int(allIntervals[len(allIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
+			Active:          allIntervals[len(allIntervals)-1].Active,
+		})
+	}
+
+	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
+		log.Error(e.Wrap(err, "error creating session activity intervals"))
+	}
+
 	var eventCountsLen int64 = 100
-	window := float64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
+	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
 	eventCounts := make([]int64, eventCountsLen)
-	for t, c := range timestamps {
-		i := int64(math.Round(float64(t.Sub(firstEventTimestamp).Milliseconds()) / window))
+	for t, c := range accumulator.TimestampCounts {
+		i := int64(math.Round(float64(t.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / window))
 		if i < 0 {
 			i = 0
 		} else if i > 99 {
@@ -319,13 +412,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
-	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
+	sessionTotalLength := CalculateSessionLength(accumulator.FirstEventTimestamp, accumulator.LastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	if activeDuration == 0 {
+	if accumulator.ActiveDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
 		s.Excluded = &model.T
@@ -349,11 +442,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:     &model.T,
-			Length:        sessionTotalLengthInMilliseconds,
-			ActiveLength:  activeDuration.Milliseconds(),
-			EventCounts:   &eventCountsString,
-			HasRageClicks: &hasRageClicks,
+			Processed:           &model.T,
+			Length:              sessionTotalLengthInMilliseconds,
+			ActiveLength:        accumulator.ActiveDuration.Milliseconds(),
+			EventCounts:         &eventCountsString,
+			HasRageClicks:       &hasRageClicks,
+			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -362,7 +456,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"processed":       true,
 		"length":          sessionTotalLengthInMilliseconds,
-		"active_length":   activeDuration.Milliseconds(),
+		"active_length":   accumulator.ActiveDuration.Milliseconds(),
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
 	}); err != nil {
@@ -395,7 +489,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		if len(rageClickSets) < 1 {
+		if len(accumulator.RageClickSets) < 1 {
 			return nil
 		}
 		// Sending Rage Click Alert
@@ -450,7 +544,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			count64 := int64(count)
 			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &model.SendSlackAlertInput{Workspace: workspace,
 				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
-				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
+				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
 		}
 		return nil
 	})
@@ -573,17 +667,17 @@ func (w *Worker) Start() {
 					if err := w.Resolver.DB.Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
 						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
-						log.WithField("session_id", session.ID).Error(e.Wrap(err, "error incrementing retry count"))
+						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
 					if excluded != nil && *excluded {
-						log.WithField("session_id", session.ID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
+						log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
-							log.WithField("session_id", session.ID).Error(e.Wrap(err, "error updating session in opensearch"))
+							log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 					}
 
-					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
+					log.WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
@@ -743,28 +837,10 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
-type processEventChunkInput struct {
-	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
-	EventsChunk *model.EventsObject
+type EventProcessingAccumulator struct {
+	SessionSecureID string
 	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
 	ClickEventQueue *list.List
-	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
-	CurrentlyInRageClickSet bool
-	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
-	RageClickSets []*model.RageClickEvent
-	// FirstEventTimestamp represents the timestamp for the first event
-	FirstEventTimestamp time.Time
-	// FirstFullSnapshotTimestamp represents the timestamp for the first full snapshot
-	FirstFullSnapshotTimestamp time.Time
-	// LastEventTimestamp represents the timestamp for the first event
-	LastEventTimestamp time.Time
-	// TimestampCounts represents a count of all user interaction events per second
-	TimestampCounts map[time.Time]int
-}
-
-type processEventChunkOutput struct {
-	// DidEventsChunkChange denotes whether the events chunk was altered and needs to be updated in the stored file
-	DidEventsChunkChange bool
 	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
 	CurrentlyInRageClickSet bool
 	// RageClickSets contains all rage click sets that will be inserted into the db
@@ -775,83 +851,113 @@ type processEventChunkOutput struct {
 	FirstFullSnapshotTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
-	// CalculatedDuration represents the calculated active duration for the current event chunk
-	CalculatedDuration time.Duration
+	// ActiveDuration represents the duration that the user was active
+	ActiveDuration time.Duration
 	// TimestampCounts represents a count of all user interaction events per second
 	TimestampCounts map[time.Time]int
+	// UserInteractionEvents represents the user interaction events in the session from rrweb
+	UserInteractionEvents []*parse.ReplayEvent
+	// EventsForTimelineIndicator represents the custom events that will be shown on the timeline indicator
+	EventsForTimelineIndicator []*parse.ReplayEvent
+	// LatestSID represents the last sequential ID seen
+	LatestSID int
+	// AreEventsOutOfOrder is true if the list of event SID's is not monotonically increasing from 1
+	AreEventsOutOfOrder bool
 	// Error
 	Error error
 }
 
-func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput) {
-	var events *parse.ReplayEvents
-	var err error
-	if input == nil {
-		o.Error = errors.New("processEventChunkInput cannot be nil")
-		return o
+func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccumulator {
+	return EventProcessingAccumulator{
+		SessionSecureID:            sessionSecureID,
+		ClickEventQueue:            list.New(),
+		CurrentlyInRageClickSet:    false,
+		RageClickSets:              []*model.RageClickEvent{},
+		FirstEventTimestamp:        time.Time{},
+		FirstFullSnapshotTimestamp: time.Time{},
+		LastEventTimestamp:         time.Time{},
+		ActiveDuration:             0,
+		TimestampCounts:            map[time.Time]int{},
+		UserInteractionEvents:      []*parse.ReplayEvent{},
+		EventsForTimelineIndicator: []*parse.ReplayEvent{},
+		LatestSID:                  0,
+		AreEventsOutOfOrder:        false,
+		Error:                      nil,
 	}
-	if input.EventsChunk == nil {
-		o.Error = errors.New("EventsChunk cannot be nil")
-		return o
+}
+
+func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObject) EventProcessingAccumulator {
+	if a.ClickEventQueue == nil {
+		a.Error = errors.New("ClickEventQueue cannot be nil")
+		return a
 	}
-	if input.ClickEventQueue == nil {
-		o.Error = errors.New("ClickEventQueue cannot be nil")
-		return o
-	}
-	events, err = parse.EventsFromString(input.EventsChunk.Events)
+	events, err := parse.EventsFromString(eventsChunk.Events)
 	if err != nil {
-		o.Error = err
-		return o
+		a.Error = err
+		return a
 	}
-	o.FirstEventTimestamp = input.FirstEventTimestamp
-	o.FirstFullSnapshotTimestamp = input.FirstFullSnapshotTimestamp
-	o.LastEventTimestamp = input.LastEventTimestamp
-	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
-	o.RageClickSets = input.RageClickSets
-	o.TimestampCounts = input.TimestampCounts
+
+	var eventsForTimelineIndicator []*parse.ReplayEvent
+	a.EventsForTimelineIndicator = eventsForTimelineIndicator
+
+	var userInteractionEvents []*parse.ReplayEvent
+	a.UserInteractionEvents = userInteractionEvents
+
 	for _, event := range events.Events {
 		if event == nil {
 			continue
 		}
+		sequentialID := int(event.SID)
+		if !a.AreEventsOutOfOrder {
+			eventTime := event.Timestamp.Unix()
+			if sequentialID <= 0 {
+				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has an event after SID %d with an invalid SID at time %d", a.LatestSID, eventTime))
+				a.AreEventsOutOfOrder = true
+			} else if sequentialID != a.LatestSID+1 && sequentialID != 1 { // The ID can reset to 1 if a navigation or refresh happens
+				log.WithField("session_secure_id", a.SessionSecureID).Warn(fmt.Sprintf("The payload has two SID's out-of-order: %d and %d at time %d", a.LatestSID, sequentialID, eventTime))
+				a.AreEventsOutOfOrder = true
+			}
+		}
+		a.LatestSID = sequentialID
 		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
-		if o.FirstFullSnapshotTimestamp.IsZero() {
+		if a.FirstFullSnapshotTimestamp.IsZero() {
 			if event.Type == parse.FullSnapshot {
-				o.FirstFullSnapshotTimestamp = event.Timestamp
+				a.FirstFullSnapshotTimestamp = event.Timestamp
 			} else if event.Type == parse.IncrementalSnapshot {
-				o.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
-				return o
+				a.Error = errors.New("The payload has an IncrementalSnapshot before the first FullSnapshot")
+				return a
 			}
 		}
 		if event.Type == parse.IncrementalSnapshot {
 			var diff time.Duration
-			if !o.LastEventTimestamp.IsZero() {
-				diff = event.Timestamp.Sub(o.LastEventTimestamp)
+			if !a.LastEventTimestamp.IsZero() {
+				diff = event.Timestamp.Sub(a.LastEventTimestamp)
 				if diff.Seconds() <= MIN_INACTIVE_DURATION {
-					o.CalculatedDuration += diff
+					a.ActiveDuration += diff
 				}
 			}
-			o.LastEventTimestamp = event.Timestamp
-			if o.FirstEventTimestamp.IsZero() {
-				o.FirstEventTimestamp = event.Timestamp
+			a.LastEventTimestamp = event.Timestamp
+			if a.FirstEventTimestamp.IsZero() {
+				a.FirstEventTimestamp = event.Timestamp
 			}
 
 			// purge old clicks
 			var toRemove []*list.Element
-			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
 					toRemove = append(toRemove, element)
 				}
 			}
 
 			for _, elem := range toRemove {
-				input.ClickEventQueue.Remove(elem)
+				a.ClickEventQueue.Remove(elem)
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
 			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 			if err != nil {
-				o.Error = err
-				return o
+				a.Error = err
+				return a
 			}
 			if mouseInteractionEventData.Source == nil {
 				// all user interaction events must have a source
@@ -863,11 +969,15 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}[*mouseInteractionEventData.Source]; !ok {
 				continue
 			}
+
+			// Obtains all user interaction events for calculating active and inactive segments
+			userInteractionEvents = append(userInteractionEvents, event)
+
 			ts := event.Timestamp.Round(time.Millisecond)
-			if _, ok := o.TimestampCounts[ts]; !ok {
-				o.TimestampCounts[ts] = 0
+			if _, ok := a.TimestampCounts[ts]; !ok {
+				a.TimestampCounts[ts] = 0
 			}
-			o.TimestampCounts[ts] += 1
+			a.TimestampCounts[ts] += 1
 			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
 				mouseInteractionEventData.Type == nil {
 				// all values must be not nil on a click/touch event
@@ -884,13 +994,13 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}
 
 			// save all new click events
-			input.ClickEventQueue.PushBack(event)
+			a.ClickEventQueue.PushBack(event)
 
 			numTotal := 0
 			rageClick := model.RageClickEvent{
 				TotalClicks: 5,
 			}
-			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				el := element.Value.(*parse.ReplayEvent)
 				if el == event {
 					continue
@@ -898,8 +1008,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				var prev *parse.MouseInteractionEventData
 				err = json.Unmarshal(el.Data, &prev)
 				if err != nil {
-					o.Error = err
-					return o
+					a.Error = err
+					return a
 				}
 				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
 				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
@@ -908,33 +1018,36 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				// if the distance between the current and previous click is less than the threshold
 				if math.Sqrt(first+second) <= RADIUS {
 					numTotal += 1
-					if !o.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
+					if !a.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
 						rageClick.StartTimestamp = el.Timestamp
 					}
 				}
 			}
 			if numTotal >= 5 {
-				if o.CurrentlyInRageClickSet {
-					o.RageClickSets[len(o.RageClickSets)-1].TotalClicks += 1
-					o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = event.Timestamp
+				if a.CurrentlyInRageClickSet {
+					a.RageClickSets[len(a.RageClickSets)-1].TotalClicks += 1
+					a.RageClickSets[len(a.RageClickSets)-1].EndTimestamp = event.Timestamp
 				} else {
-					o.CurrentlyInRageClickSet = true
+					a.CurrentlyInRageClickSet = true
 					rageClick.EndTimestamp = event.Timestamp
 					rageClick.TotalClicks = numTotal
-					o.RageClickSets = append(o.RageClickSets, &rageClick)
+					a.RageClickSets = append(a.RageClickSets, &rageClick)
 				}
-			} else if o.CurrentlyInRageClickSet {
-				o.CurrentlyInRageClickSet = false
+			} else if a.CurrentlyInRageClickSet {
+				a.CurrentlyInRageClickSet = false
 			}
 		} else if event.Type == parse.Custom {
 			ts := event.Timestamp.Round(time.Millisecond)
-			if _, ok := o.TimestampCounts[ts]; !ok {
-				o.TimestampCounts[ts] = 0
+			if _, ok := a.TimestampCounts[ts]; !ok {
+				a.TimestampCounts[ts] = 0
 			}
-			o.TimestampCounts[ts] += 1
+			a.TimestampCounts[ts] += 1
+			eventsForTimelineIndicator = append(eventsForTimelineIndicator, event)
 		}
 	}
-	return o
+	a.EventsForTimelineIndicator = eventsForTimelineIndicator
+	a.UserInteractionEvents = userInteractionEvents
+	return a
 }
 
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {

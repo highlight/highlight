@@ -85,6 +85,7 @@ export type NetworkRecordingOptions = {
      * The header value is replaced with '[REDACTED]'.
      * These headers are case-insensitive.
      * `recordHeadersAndBody` needs to be enabled.
+     * This option will be ignored if `headerKeysToRecord` is set.
      * @example
      * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
      */
@@ -95,6 +96,33 @@ export type NetworkRecordingOptions = {
      * @default ['https://www.googleapis.com/identitytoolkit', 'https://securetoken.googleapis.com']
      */
     urlBlocklist?: string[];
+    /**
+     * Specifies the keys for request/response headers to record.
+     * This option will override `networkHeadersToRedact` if specified.
+     * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
+     * @example headerKeysToRecord: ['id', 'pageNumber']
+     * // Only `headers.id` and `headers.pageNumber` will be recorded.
+     * headers = {
+     * 'id': '123',
+     * 'pageNumber': '1',
+     * 'secret-token': 'super-sensitive-value',
+     * 'plain-text-password': 'password123',
+     * }
+     */
+    headerKeysToRecord?: string[];
+    /**
+     * Specifies the keys for request/response headers to record.
+     * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
+     * @example bodyKeysToRecord: ['id', 'pageNumber']
+     * // Only `body.id` and `body.pageNumber` will be recorded.
+     * body = {
+     * 'id': '123',
+     * 'pageNumber': '1',
+     * 'secret-token': 'super-sensitive-value',
+     * 'plain-text-password': 'password123',
+     * }
+     */
+    bodyKeysToRecord?: string[];
 };
 
 export type SessionShortcutOptions = false | string;
@@ -1134,7 +1162,7 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
     }): Promise<void> {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,

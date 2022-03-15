@@ -18,7 +18,7 @@ const AUTHORIZATION_POLICIES = {
     [POLICY_NAMES.BillingUpdate]: onlyAllowAdminRole,
     [POLICY_NAMES.BillingView]: onlyAllowAdminRole,
     [POLICY_NAMES.RolesUpdate]: onlyAllowAdminRole,
-    [POLICY_NAMES.IntegrationsUpdate]: onlyAllowHighlightStaff,
+    [POLICY_NAMES.IntegrationsUpdate]: onlyAllowAdminRole,
     [POLICY_NAMES.Dashboards]: onlyAllowHighlightStaff,
 } as const;
 
