@@ -556,11 +556,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         : replayer.getMetaData();
 
                     // replicating the backend session interval calculation to help debug
-                    if (
-                        isHighlightAdmin &&
-                        project_id === '1' &&
-                        eventsData?.events
-                    ) {
+                    if (eventsData?.events) {
                         const testingMetadata = replayer.getMetaData();
                         const userInteractionEvents = [
                             { timestamp: testingMetadata.startTime },
