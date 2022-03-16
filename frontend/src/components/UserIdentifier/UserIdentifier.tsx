@@ -26,6 +26,7 @@ const UserIdentifier = ({ session, className }: Props) => {
         <Tooltip title={displayValue} mouseEnterDelay={0}>
             <CopyText
                 text={displayValue}
+                onCopyTooltipText={`Copied identifier to clipboard!`}
                 custom={
                     <Button
                         className={classNames(styles.button, className)}
