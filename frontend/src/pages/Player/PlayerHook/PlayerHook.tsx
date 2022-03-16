@@ -2,6 +2,8 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
+    playerMetaData,
+    SessionInterval,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
 import {
@@ -21,6 +23,7 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     OnSessionPayloadAppendedDocument,
+    useGetSessionIntervalsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useGetTimelineIndicatorEventsQuery,
@@ -150,6 +153,11 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
+    const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
+        variables: {
+            session_secure_id: session_secure_id,
+        },
+    });
     const [
         getSessionPayloadQuery,
         {
@@ -506,10 +514,184 @@ export const usePlayer = (): ReplayerContextInterface => {
                 if (eventsIndex >= events.length) {
                     setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
+                    // Preprocess session interval data from backend
+                    const parsedSessionIntervalsData: SessionInterval[] =
+                        sessionIntervalsData &&
+                        sessionIntervalsData.session_intervals.length > 0
+                            ? sessionIntervalsData.session_intervals.map(
+                                  (interval) => {
+                                      return {
+                                          startTime: new Date(
+                                              interval.start_time
+                                          ).getTime(),
+                                          endTime: new Date(
+                                              interval.end_time
+                                          ).getTime(),
+                                          duration: interval.duration,
+                                          active: interval.active,
+                                      };
+                                  }
+                              )
+                            : replayer.getActivityIntervals();
+                    const sessionMetadata: playerMetaData = parsedSessionIntervalsData
+                        ? {
+                              startTime: new Date(
+                                  parsedSessionIntervalsData[0].startTime
+                              ).getTime(),
+                              endTime: new Date(
+                                  parsedSessionIntervalsData[
+                                      parsedSessionIntervalsData.length - 1
+                                  ].endTime
+                              ).getTime(),
+                              totalTime:
+                                  new Date(
+                                      parsedSessionIntervalsData[
+                                          parsedSessionIntervalsData.length - 1
+                                      ].endTime
+                                  ).getTime() -
+                                  new Date(
+                                      parsedSessionIntervalsData[0].startTime
+                                  ).getTime(),
+                          }
+                        : replayer.getMetaData();
+
+                    // replicating the backend session interval calculation to help debug
+                    if (
+                        isHighlightAdmin &&
+                        project_id === '1' &&
+                        eventsData?.events
+                    ) {
+                        const testingMetadata = replayer.getMetaData();
+                        const userInteractionEvents = [
+                            { timestamp: testingMetadata.startTime },
+                            ...eventsData.events.filter(
+                                (e) =>
+                                    e.type === 3 &&
+                                    e.data.source > 0 &&
+                                    e.data.source <= 5
+                            ),
+                            { timestamp: testingMetadata.endTime },
+                        ];
+                        const allIntervals = [];
+                        let startTime = userInteractionEvents[0].timestamp;
+                        let activeInterval = true;
+                        for (let i = 1; i < userInteractionEvents.length; i++) {
+                            const currentEvent = userInteractionEvents[i - 1];
+                            const nextEvent = userInteractionEvents[i];
+                            const diff =
+                                nextEvent.timestamp - currentEvent.timestamp;
+                            const intervalDiff =
+                                currentEvent.timestamp - startTime;
+                            console.log(
+                                `[HighlightIntervalLog] startTime: ${startTime}, currentTime: ${currentEvent.timestamp}`
+                            );
+                            console.log(
+                                `[HighlightIntervalLog] currIntervalLength: ${intervalDiff}, nextDiff: ${diff}`
+                            );
+                            if (diff <= 10000) {
+                                if (i === 1) {
+                                    activeInterval = true;
+                                }
+                                if (!activeInterval) {
+                                    allIntervals.push({
+                                        startTime: startTime,
+                                        endTime: currentEvent.timestamp,
+                                        duration: intervalDiff,
+                                        active: false,
+                                    });
+                                    console.log(
+                                        `[HighlightIntervalLog] InactiveAdded: ${startTime} to ${currentEvent.timestamp}, duration ${intervalDiff}`
+                                    );
+                                    startTime = currentEvent.timestamp;
+                                    activeInterval = true;
+                                }
+                            } else {
+                                if (i === 1) {
+                                    activeInterval = false;
+                                }
+                                if (activeInterval) {
+                                    allIntervals.push({
+                                        startTime: startTime,
+                                        endTime: currentEvent.timestamp,
+                                        duration: intervalDiff,
+                                        active: true,
+                                    });
+                                    console.log(
+                                        `[HighlightIntervalLog] ActiveAdded: ${startTime} to ${currentEvent.timestamp}, duration ${intervalDiff}`
+                                    );
+                                    startTime = currentEvent.timestamp;
+                                    activeInterval = false;
+                                }
+                            }
+                            if (i === userInteractionEvents.length - 1) {
+                                allIntervals.push({
+                                    startTime: startTime,
+                                    endTime: nextEvent.timestamp,
+                                    duration: nextEvent.timestamp - startTime,
+                                    active: activeInterval,
+                                });
+                                console.log(
+                                    `[HighlightIntervalLog] LastAdded: ${startTime} to ${nextEvent.timestamp}`
+                                );
+                            }
+                        }
+                        const finalIntervals = [];
+                        let currentInterval = allIntervals[0];
+                        for (let i = 1; i < allIntervals.length; i++) {
+                            if (
+                                (!allIntervals[i].active &&
+                                    allIntervals[i].duration >
+                                        0.02 * testingMetadata.totalTime) ||
+                                (!allIntervals[i - 1].active &&
+                                    allIntervals[i - 1].duration >
+                                        0.02 * testingMetadata.totalTime)
+                            ) {
+                                finalIntervals.push({
+                                    startTime: currentInterval.startTime,
+                                    endTime: allIntervals[i - 1].endTime,
+                                    duration:
+                                        allIntervals[i - 1].endTime -
+                                        currentInterval.startTime,
+                                    active: allIntervals[i - 1].active,
+                                });
+                                currentInterval = allIntervals[i];
+                            }
+                        }
+                        if (currentInterval && allIntervals.length > 0) {
+                            finalIntervals.push({
+                                startTime: currentInterval.startTime,
+                                endTime:
+                                    allIntervals[allIntervals.length - 1]
+                                        .endTime,
+                                duration:
+                                    allIntervals[allIntervals.length - 1]
+                                        .endTime - currentInterval.startTime,
+                                active:
+                                    allIntervals[allIntervals.length - 1]
+                                        .active,
+                            });
+                        }
+                        console.log(
+                            '[HighlightIntervalsLog] newLogic: ',
+                            finalIntervals
+                        );
+                        console.log(
+                            '[HighlightIntervalsLog] client: ',
+                            replayer.getActivityIntervals()
+                        );
+                        console.log(
+                            '[HighlightIntervalsLog] backend: ',
+                            parsedSessionIntervalsData
+                        );
+                    }
 
                     const sessionIntervals = getSessionIntervals(
-                        replayer.getMetaData(),
-                        replayer.getActivityIntervals()
+                        isHighlightAdmin && project_id === '1'
+                            ? sessionMetadata
+                            : replayer.getMetaData(),
+                        isHighlightAdmin && project_id === '1'
+                            ? parsedSessionIntervalsData
+                            : replayer.getActivityIntervals()
                     );
 
                     // Inject the Material font icons into the player if it's a Boardgent session.
