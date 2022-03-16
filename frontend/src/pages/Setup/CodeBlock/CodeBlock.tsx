@@ -76,7 +76,11 @@ export const CodeBlock = ({
                     </CopyToClipboard>
                 </span>
             )}
-            <span className={styles.codeBlockInner}>
+            <span
+                className={classNames({
+                    [styles.codeBlockInner]: showLineNumbers,
+                })}
+            >
                 {showLineNumbers && (
                     <pre
                         style={{
