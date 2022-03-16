@@ -110,26 +110,29 @@ const AboutYouPage = () => {
                 </CardSubHeader>
 
                 <CardForm onSubmit={onFormSubmit}>
-                    <Input
-                        placeholder="First Name"
-                        name="First Name"
-                        value={firstName}
-                        onChange={(e) => {
-                            setFirstName(e.target.value);
-                        }}
-                        autoFocus
-                    />
-                    <Input
-                        placeholder="Last Name"
-                        name="Last Name"
-                        value={lastName}
-                        onChange={(e) => {
-                            setLastName(e.target.value);
-                        }}
-                    />
+                    <section className={styles.section}>
+                        <h3>What's your name?</h3>
+                        <Input
+                            placeholder="First Name"
+                            name="First Name"
+                            value={firstName}
+                            onChange={(e) => {
+                                setFirstName(e.target.value);
+                            }}
+                            autoFocus
+                        />
+                        <Input
+                            placeholder="Last Name"
+                            name="Last Name"
+                            value={lastName}
+                            onChange={(e) => {
+                                setLastName(e.target.value);
+                            }}
+                        />
+                    </section>
 
                     <section className={styles.section}>
-                        <h3>What are you using Highlight for?</h3>
+                        <h3>What's your role?</h3>
                         <Input
                             placeholder="Your Role (e.g. CEO, CTO, Engineer, Product Manager)"
                             name="Role"
@@ -139,7 +142,10 @@ const AboutYouPage = () => {
                             }}
                             autoComplete="off"
                         />
+                    </section>
 
+                    <section className={styles.section}>
+                        <h3>What's your use case for Highlight?</h3>
                         <div className={styles.roleContainer}>
                             <CardSelect
                                 title="Product / Support"
