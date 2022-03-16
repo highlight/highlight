@@ -556,11 +556,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                         : replayer.getMetaData();
 
                     // replicating the backend session interval calculation to help debug
-                    if (eventsData?.events) {
+                    if (eventsPayload) {
                         const testingMetadata = replayer.getMetaData();
                         const userInteractionEvents = [
                             { timestamp: testingMetadata.startTime },
-                            ...eventsData.events.filter(
+                            ...eventsPayload.filter(
                                 (e) =>
                                     e.type === 3 &&
                                     e.data.source > 0 &&
@@ -682,12 +682,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                     }
 
                     const sessionIntervals = getSessionIntervals(
-                        isHighlightAdmin && project_id === '1'
-                            ? sessionMetadata
-                            : replayer.getMetaData(),
-                        isHighlightAdmin && project_id === '1'
-                            ? parsedSessionIntervalsData
-                            : replayer.getActivityIntervals()
+                        sessionMetadata,
+                        parsedSessionIntervalsData
                     );
 
                     // Inject the Material font icons into the player if it's a Boardgent session.
