@@ -42,7 +42,10 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
                 title="Error Sharing"
             >
                 <ModalBody>
-                    <CopyText text={window.location.href} />
+                    <CopyText
+                        text={window.location.href}
+                        onCopyTooltipText="Copied error link to clipboard!"
+                    />
                     <hr className={styles.divider} />
                     <h3>Sharing Options</h3>
                     {isLoggedIn && (

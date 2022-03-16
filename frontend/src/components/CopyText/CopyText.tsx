@@ -11,12 +11,19 @@ interface Props {
     className?: string;
     inline?: boolean;
     custom?: ReactNode;
+    onCopyTooltipText: string;
 }
 
-const CopyText: React.FC<Props> = ({ text, className, inline, custom }) => {
+const CopyText: React.FC<Props> = ({
+    text,
+    className,
+    inline,
+    custom,
+    onCopyTooltipText,
+}) => {
     const onCopyHandler = () => {
         navigator.clipboard.writeText(text);
-        message.success('Copied the invite link');
+        message.success(onCopyTooltipText);
     };
 
     if (inline) {
