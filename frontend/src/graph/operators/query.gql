@@ -665,7 +665,6 @@ query GetProjectOrWorkspace(
         id
         name
         billing_email
-        excluded_users
     }
     workspace(id: $workspace_id) @include(if: $is_workspace) {
         id

@@ -16,6 +16,7 @@ export type Scalars = {
     Any: any;
     Timestamp: any;
     Int64: any;
+    StringArray: any;
     Upload: any;
 };
 
@@ -201,7 +202,7 @@ export type Project = {
     billing_email?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
-    excluded_users?: Maybe<Array<Scalars['String']>>;
+    excluded_users?: Maybe<Scalars['StringArray']>;
 };
 
 export type Account = {
@@ -1238,7 +1239,7 @@ export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
-    excluded_users?: Maybe<Array<Scalars['String']>>;
+    excluded_users?: Maybe<Scalars['StringArray']>;
 };
 
 export type MutationEditWorkspaceArgs = {

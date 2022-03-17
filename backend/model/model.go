@@ -234,7 +234,7 @@ type Project struct {
 	MonthlySessionLimit *int
 	WorkspaceID         int
 	FreeTier            bool           `gorm:"default:false"`
-	ExcludedUsers       pq.StringArray `gorm:"type:text[]"`
+	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 }
 
 type HasSecret interface {

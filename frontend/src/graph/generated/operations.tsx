@@ -194,9 +194,7 @@ export type EditProjectMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     name?: Types.Maybe<Types.Scalars['String']>;
     billing_email?: Types.Maybe<Types.Scalars['String']>;
-    excluded_users?: Types.Maybe<
-        Array<Types.Scalars['String']> | Types.Scalars['String']
-    >;
+    excluded_users?: Types.Maybe<Types.Scalars['StringArray']>;
 }>;
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -2297,7 +2295,7 @@ export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'billing_email' | 'excluded_users'
+            'id' | 'name' | 'billing_email'
         >
     >;
     workspace?: Types.Maybe<

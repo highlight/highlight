@@ -36,6 +36,7 @@ export const ExcludedUsersForm = () => {
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
+        console.log('Excluded users: ', excludedUsers);
         editProject({
             variables: {
                 id: project_id,
@@ -68,6 +69,7 @@ export const ExcludedUsersForm = () => {
                     // className={styles.channelSelect}
                     mode="tags"
                     placeholder={`User identifiers that .`}
+                    defaultValue={data?.project?.excluded_users || undefined}
                     onChange={(excluded: string[]) =>
                         setExcludedUsers(excluded)
                     }

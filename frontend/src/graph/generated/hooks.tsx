@@ -987,7 +987,7 @@ export const EditProjectDocument = gql`
         $id: ID!
         $name: String
         $billing_email: String
-        $excluded_users: [String!]
+        $excluded_users: StringArray
     ) {
         editProject(
             id: $id
@@ -5959,7 +5959,6 @@ export const GetProjectOrWorkspaceDocument = gql`
             id
             name
             billing_email
-            excluded_users
         }
         workspace(id: $workspace_id) @include(if: $is_workspace) {
             id

@@ -147,7 +147,7 @@ mutation EditProject(
     $id: ID!
     $name: String
     $billing_email: String
-    $excluded_users: [String!]
+    $excluded_users: StringArray
 ) {
     editProject(
         id: $id
