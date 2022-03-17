@@ -668,6 +668,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                             });
                         }
                         console.log(
+                            '[HighlightIntervalsLog] newLogicUnmerged: ',
+                            allIntervals
+                        );
+                        console.log(
                             '[HighlightIntervalsLog] newLogic: ',
                             finalIntervals
                         );
