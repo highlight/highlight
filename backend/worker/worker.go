@@ -310,7 +310,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// sort events by timestamp since calculations assume this
 	sort.Slice(userInteractionEvents, func(i, j int) bool {
-		return userInteractionEvents[i].Timestamp.UnixMilli() < userInteractionEvents[j].Timestamp.UnixMilli()
+		return userInteractionEvents[i].Timestamp.UnixNano() < userInteractionEvents[j].Timestamp.UnixNano()
 	})
 
 	var allIntervals []model.SessionInterval
