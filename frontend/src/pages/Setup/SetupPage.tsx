@@ -111,7 +111,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             <Helmet>
                 <title>Setup: {platform}</title>
             </Helmet>
-            <LeadAlignLayout>
+            <LeadAlignLayout maxWidth={1000}>
                 <div className={styles.flexLayout}>
                     <div className={styles.leftColumn}>
                         <div className={styles.fieldsBox}>
@@ -601,7 +601,7 @@ const MoreSetup = ({
     return (
         <>
             <div className={styles.headingWrapper}>
-                <h2>Your Highlight Snippet</h2>
+                <h2>Your Highlight Tools</h2>
             </div>
             <p className={layoutStyles.subTitle}>
                 More superpowers from Highlight!
