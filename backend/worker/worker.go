@@ -395,7 +395,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		})
 	}
 
-	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
+	if err := w.Resolver.DB.Create(allIntervals).Error; err != nil {
 		log.Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
