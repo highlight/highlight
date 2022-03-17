@@ -1,7 +1,7 @@
 .button {
     color: var(--color-purple);
+    max-width: calc(100% - 1.2em - 2 * var(--size-xxSmall));
     padding: 0;
-    width: 100%;
 
     > span {
         overflow: hidden;

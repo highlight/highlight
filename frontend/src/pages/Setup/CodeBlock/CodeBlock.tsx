@@ -1,6 +1,7 @@
 import SvgCopyIcon from '@icons/CopyIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import {
@@ -19,6 +20,8 @@ type Props = SyntaxHighlighterProps & {
     onCopy?: () => void;
     hideCopy?: boolean;
     language: string;
+    numberOfLines?: number;
+    lineNumber?: number;
 };
 
 export const CodeBlock = ({
@@ -26,6 +29,9 @@ export const CodeBlock = ({
     onCopy,
     language,
     hideCopy,
+    numberOfLines,
+    showLineNumbers,
+    lineNumber,
     ...props
 }: Props) => {
     const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
@@ -70,14 +76,56 @@ export const CodeBlock = ({
                     </CopyToClipboard>
                 </span>
             )}
-            <SyntaxHighlighter
-                language={language}
-                style={theme === 'light' ? lightTheme : darkTheme}
-                customStyle={{ padding: '8px 0' }}
-                {...props}
+            <span
+                className={classNames({
+                    [styles.codeBlockInner]: showLineNumbers,
+                })}
             >
-                {text}
-            </SyntaxHighlighter>
+                {showLineNumbers && (
+                    <pre
+                        style={{
+                            ...props.customStyle,
+                            ...props.codeTagProps?.style,
+                            padding: '0',
+                            margin: '0',
+                            overflow: 'visible',
+                            minWidth: 'auto',
+                        }}
+                    >
+                        <code style={props.codeTagProps?.style}>
+                            {Array.from(Array(numberOfLines).keys()).map(
+                                (i) => (
+                                    <div
+                                        key={i}
+                                        className={classNames(
+                                            styles.lineNumberSticky,
+                                            {
+                                                [styles.highlightedLine]:
+                                                    lineNumber ===
+                                                    i +
+                                                        (props.startingLineNumber ||
+                                                            0),
+                                            }
+                                        )}
+                                    >
+                                        {i + (props.startingLineNumber || 0)}
+                                    </div>
+                                )
+                            )}
+                        </code>
+                    </pre>
+                )}
+
+                <SyntaxHighlighter
+                    language={language}
+                    style={theme === 'light' ? lightTheme : darkTheme}
+                    customStyle={{ padding: '8px 0' }}
+                    showLineNumbers={showLineNumbers}
+                    {...props}
+                >
+                    {text}
+                </SyntaxHighlighter>
+            </span>
         </span>
     );
 };

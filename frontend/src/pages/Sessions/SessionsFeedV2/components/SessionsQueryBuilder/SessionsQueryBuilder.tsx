@@ -18,6 +18,7 @@ import QueryBuilder, {
     RANGE_OPERATORS,
     RuleProps,
     serializeRules,
+    VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
 import moment from 'moment';
@@ -52,6 +53,14 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'viewed',
         options: {
             type: 'boolean',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'viewed_by_me',
+        options: {
+            type: 'boolean',
+            operators: VIEWED_BY_OPERATORS,
         },
     },
     {
@@ -188,13 +197,6 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     }
     if (params.first_time) {
         rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
-    }
-    if (!params.show_live_sessions) {
-        rules.push(deserializeGroup('custom_processed', 'is', ['true']));
-    } else {
-        rules.push(
-            deserializeGroup('custom_processed', 'is', ['true', 'false'])
-        );
     }
     return {
         isAnd: true,

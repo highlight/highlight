@@ -31,7 +31,6 @@ interface Props {
 
 const TimelineIndicatorsMemoized = React.memo(
     ({
-        openDevTools,
         refContainer,
         sessionIntervals,
         selectedTimelineAnnotationTypes,
@@ -42,9 +41,7 @@ const TimelineIndicatorsMemoized = React.memo(
         return (
             <AnimatePresence presenceAffectsLayout>
                 <aside
-                    className={classNames(styles.container, {
-                        [styles.withDevtoolsOpen]: openDevTools,
-                    })}
+                    className={classNames(styles.container)}
                     ref={refContainer}
                 >
                     {sessionIntervals.map((sessionInterval, index) => (
@@ -155,11 +152,7 @@ const TimelineIndicators = React.memo(() => {
         state,
     ]);
 
-    if (
-        selectedTimelineAnnotationTypes.length === 0 ||
-        state === ReplayerState.Loading ||
-        !replayer
-    ) {
+    if (state === ReplayerState.Loading || !replayer) {
         return null;
     }
 

@@ -319,6 +319,11 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     tags:
         | Array<Types.Maybe<Types.SessionCommentTagInput>>
         | Types.Maybe<Types.SessionCommentTagInput>;
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -337,6 +342,60 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
                     { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
                         'id' | 'name' | 'email'
+                    >
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    session_comment_id: Types.Scalars['Int'];
+    text_for_attachment: Types.Scalars['String'];
+    session_url: Types.Scalars['String'];
+    time: Types.Scalars['Float'];
+    author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateIssueForSessionCommentMutation = {
+    __typename?: 'Mutation';
+} & {
+    createIssueForSessionComment?: Types.Maybe<
+        { __typename?: 'SessionComment' } & Pick<
+            Types.SessionComment,
+            | 'id'
+            | 'timestamp'
+            | 'created_at'
+            | 'updated_at'
+            | 'text'
+            | 'x_coordinate'
+            | 'y_coordinate'
+        > & {
+                author?: Types.Maybe<
+                    { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
                     >
                 >;
             }
@@ -365,6 +424,11 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
     error_url: Types.Scalars['String'];
     author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -376,6 +440,41 @@ export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     Types.SanitizedAdmin,
                     'id' | 'name' | 'email'
+                >;
+            }
+    >;
+};
+
+export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    error_comment_id: Types.Scalars['Int'];
+    text_for_attachment: Types.Scalars['String'];
+    error_url: Types.Scalars['String'];
+    author_name: Types.Scalars['String'];
+    integrations:
+        | Array<Types.Maybe<Types.IntegrationType>>
+        | Types.Maybe<Types.IntegrationType>;
+    issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_description?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
+    createIssueForErrorComment?: Types.Maybe<
+        { __typename?: 'ErrorComment' } & Pick<
+            Types.ErrorComment,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
+                >;
+                attachments: Array<
+                    Types.Maybe<
+                        { __typename?: 'ExternalAttachment' } & Pick<
+                            Types.ExternalAttachment,
+                            'id' | 'integration_type' | 'external_id' | 'title'
+                        >
+                    >
                 >;
             }
     >;
@@ -1345,6 +1444,14 @@ export type SessionPayloadFragmentFragment = {
                                 'id' | 'name' | 'email' | 'photo_url'
                             >
                         >;
+                        attachments: Array<
+                            Types.Maybe<
+                                { __typename?: 'ExternalAttachment' } & Pick<
+                                    Types.ExternalAttachment,
+                                    'integration_type' | 'external_id' | 'title'
+                                >
+                            >
+                        >;
                     }
             >
         >;
@@ -1452,6 +1559,17 @@ export type GetSessionPayloadQuery = {
                             { __typename?: 'SanitizedAdmin' } & Pick<
                                 Types.SanitizedAdmin,
                                 'id' | 'name' | 'email' | 'photo_url'
+                            >
+                        >;
+                        attachments: Array<
+                            Types.Maybe<
+                                { __typename?: 'ExternalAttachment' } & Pick<
+                                    Types.ExternalAttachment,
+                                    | 'id'
+                                    | 'integration_type'
+                                    | 'external_id'
+                                    | 'title'
+                                >
                             >
                         >;
                     }
@@ -1601,6 +1719,17 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                             'id' | 'name' | 'email' | 'photo_url'
                         >
                     >;
+                    attachments: Array<
+                        Types.Maybe<
+                            { __typename?: 'ExternalAttachment' } & Pick<
+                                Types.ExternalAttachment,
+                                | 'id'
+                                | 'integration_type'
+                                | 'external_id'
+                                | 'title'
+                            >
+                        >
+                    >;
                 }
         >
     >;
@@ -1681,6 +1810,53 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetAccountsQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetAccountsQuery = { __typename?: 'Query' } & {
+    accounts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Account' } & Pick<
+                    Types.Account,
+                    'id' | 'name' | 'session_count'
+                >
+            >
+        >
+    >;
+};
+
+export type GetAccountDetailsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetAccountDetailsQuery = { __typename?: 'Query' } & {
+    account_details: { __typename?: 'AccountDetails' } & Pick<
+        Types.AccountDetails,
+        'id' | 'name'
+    > & {
+            session_count_per_month?: Types.Maybe<
+                Array<
+                    Types.Maybe<
+                        { __typename?: 'NamedCount' } & Pick<
+                            Types.NamedCount,
+                            'name' | 'count'
+                        >
+                    >
+                >
+            >;
+            session_count_per_day?: Types.Maybe<
+                Array<
+                    Types.Maybe<
+                        { __typename?: 'NamedCount' } & Pick<
+                            Types.NamedCount,
+                            'name' | 'count'
+                        >
+                    >
+                >
+            >;
+        };
+};
+
 export type GetErrorCommentsQueryVariables = Types.Exact<{
     error_group_secure_id: Types.Scalars['String'];
 }>;
@@ -1695,6 +1871,14 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
                         'id' | 'name' | 'email' | 'photo_url'
+                    >;
+                    attachments: Array<
+                        Types.Maybe<
+                            { __typename?: 'ExternalAttachment' } & Pick<
+                                Types.ExternalAttachment,
+                                'integration_type' | 'external_id' | 'title'
+                            >
+                        >
                     >;
                 }
         >
@@ -1761,6 +1945,32 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
 export type SendAdminWorkspaceInviteMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'sendAdminWorkspaceInvite'>;
+
+export type GetSessionIntervalsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetSessionIntervalsQuery = { __typename?: 'Query' } & {
+    session_intervals: Array<
+        { __typename?: 'SessionInterval' } & Pick<
+            Types.SessionInterval,
+            'start_time' | 'end_time' | 'active' | 'duration'
+        >
+    >;
+};
+
+export type GetTimelineIndicatorEventsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
+    timeline_indicator_events: Array<
+        { __typename?: 'TimelineIndicatorEvent' } & Pick<
+            Types.TimelineIndicatorEvent,
+            'timestamp' | 'data' | 'type' | 'sid'
+        >
+    >;
+};
 
 export type GetFieldTypesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -2175,6 +2385,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'slack_im_channel_id'
             | 'role'
             | 'email_verified'
+            | 'user_defined_role'
         >
     >;
 };
@@ -2747,7 +2958,7 @@ export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'unprocessedSessionsCount'
+    'unprocessedSessionsCount' | 'liveUsersCount'
 > & {
         newUsersCount?: Types.Maybe<
             { __typename?: 'NewUsersCount' } & Pick<
@@ -3279,9 +3490,13 @@ export const namedOperations = {
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+        GetAccounts: 'GetAccounts' as const,
+        GetAccountDetails: 'GetAccountDetails' as const,
         GetErrorComments: 'GetErrorComments' as const,
         GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetSessionIntervals: 'GetSessionIntervals' as const,
+        GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
         GetFieldTypes: 'GetFieldTypes' as const,
         GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
         GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
@@ -3364,8 +3579,10 @@ export const namedOperations = {
         EditSegment: 'EditSegment' as const,
         CreateSegment: 'CreateSegment' as const,
         CreateSessionComment: 'CreateSessionComment' as const,
+        CreateIssueForSessionComment: 'CreateIssueForSessionComment' as const,
         DeleteSessionComment: 'DeleteSessionComment' as const,
         CreateErrorComment: 'CreateErrorComment' as const,
+        CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
         DeleteErrorComment: 'DeleteErrorComment' as const,
         DeleteErrorSegment: 'DeleteErrorSegment' as const,
         EditErrorSegment: 'EditErrorSegment' as const,

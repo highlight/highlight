@@ -1,3 +1,4 @@
+import { GetErrorGroupQuery } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
@@ -7,7 +8,11 @@ import { MillisToMinutesAndSeconds } from '../../../../../../util/time';
 import { ErrorCommentCard } from '../../../ErrorComments/ErrorComments';
 import styles from './ErrorFullCommentList.module.scss';
 
-const ErrorFullCommentList = () => {
+const ErrorFullCommentList = ({
+    errorGroup,
+}: {
+    errorGroup?: GetErrorGroupQuery;
+}) => {
     const { error_secure_id } = useParams<{
         error_secure_id: string;
         project_id: string;
@@ -25,6 +30,7 @@ const ErrorFullCommentList = () => {
             commentRender={(comment) => (
                 <ErrorCommentCard
                     comment={comment}
+                    errorGroup={errorGroup}
                     footer={
                         <p className={styles.timestamp}>
                             {MillisToMinutesAndSeconds(comment?.timestamp || 0)}

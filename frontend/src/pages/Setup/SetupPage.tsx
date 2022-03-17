@@ -43,6 +43,7 @@ enum PlatformType {
     React = 'React',
     Vue = 'Vue.js',
     NextJs = 'Next.js',
+    SvelteKit = 'SvelteKit',
     Gatsby = 'Gatsby.js',
 }
 
@@ -110,7 +111,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             <Helmet>
                 <title>Setup: {platform}</title>
             </Helmet>
-            <LeadAlignLayout maxWidth={950}>
+            <LeadAlignLayout>
                 <div className={styles.flexLayout}>
                     <div className={styles.leftColumn}>
                         <div className={styles.fieldsBox}>
@@ -218,6 +219,7 @@ const ClientSetup = ({
                     PlatformType.React,
                     PlatformType.Vue,
                     PlatformType.NextJs,
+                    PlatformType.SvelteKit,
                     PlatformType.Gatsby,
                     PlatformType.Html,
                 ]}
@@ -257,7 +259,8 @@ const ClientSetup = ({
                             </p>
                         </Section>
                     )}
-                    {platform === PlatformType.Html ? (
+                    {platform === PlatformType.Html ||
+                    platform === PlatformType.SvelteKit ? (
                         <HtmlInstructions
                             projectVerboseId={projectData?.project?.verbose_id}
                         />

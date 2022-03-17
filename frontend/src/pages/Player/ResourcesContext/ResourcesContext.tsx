@@ -35,7 +35,7 @@ export const useResources = (
     const skipQuery =
         sessionSecureId === undefined ||
         session === undefined ||
-        !!session.resources_url;
+        !!session?.resources_url;
 
     const { data, loading: queryLoading } = useGetResourcesQuery({
         variables: {

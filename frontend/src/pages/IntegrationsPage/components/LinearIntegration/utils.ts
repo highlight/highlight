@@ -78,7 +78,7 @@ export const getLinearOAuthUrl = (projectId: string) => {
 
     const redirectUri = `${GetBaseURL()}/callback/linear`;
 
-    const authUrl = `https://linear.app/oauth/authorize?client_id=f60ff43c7376d0aceaa1e111db39e60d&response_type=code&scope=${encodeURIComponent(
+    const authUrl = `https://linear.app/oauth/authorize?client_id=f60ff43c7376d0aceaa1e111db39e60d&prompt=consent&response_type=code&scope=${encodeURIComponent(
         LINEAR_SCOPES.join(',')
     )}&state=${btoa(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
         redirectUri

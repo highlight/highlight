@@ -40,6 +40,15 @@
     height: 5px;
     transition: all 0.2s ease-in-out;
     width: 100%;
+
+    &.firstSegment {
+        border-bottom-left-radius: var(--size-xxSmall);
+        border-left: 1px solid var(--color-gray-300);
+    }
+    &.lastSegment {
+        border-bottom-right-radius: var(--size-xxSmall);
+        border-right: 1px solid var(--color-gray-300);
+    }
 }
 
 .livePlayerRail {
@@ -114,6 +123,7 @@
 }
 
 .playerRail {
+    margin-bottom: var(--size-small);
     position: relative;
     z-index: 31;
 }
@@ -148,10 +158,6 @@
     display: flex;
     flex-direction: row;
     margin-left: var(--size-medium);
-
-    > * {
-        margin-top: 2px;
-    }
 }
 
 .toolbarRightSection {
@@ -167,7 +173,6 @@
         height: fit-content;
         margin-left: var(--size-xxSmall);
         margin-right: var(--size-xxSmall);
-        margin-top: var(--size-xxSmall);
     }
 
     > *:last-child {
@@ -184,6 +189,11 @@
     height: 50px;
     width: 100%;
     z-index: 30;
+
+    &.devToolsOpen {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
 }
 
 .toolbarPinnedSettings {
@@ -200,7 +210,7 @@
         height: fit-content;
         margin-left: var(--size-xxSmall);
         margin-right: var(--size-xxSmall);
-        margin-top: 10px;
+        margin-top: 8px;
     }
 }
 

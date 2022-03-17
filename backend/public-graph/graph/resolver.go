@@ -671,16 +671,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	var errorGroup *model.ErrorGroup
 	var err error
 	// New error grouping logic is gated by project_id 1 for now
-	if projectID == 1 || projectID == 79 {
-		errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting top error group match")
-		}
-	} else {
-		errorGroup, err = r.GetOrCreateErrorGroupOld(errorObj, stackTraceString)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting error group match (old code path)")
-		}
+	errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
+	if err != nil {
+		return nil, e.Wrap(err, "Error getting top error group match")
 	}
 
 	errorObj.ErrorGroupID = errorGroup.ID
@@ -929,6 +922,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		VerboseID:                      projectVerboseID,
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
+		ViewedByAdmins:                 []model.Admin{},
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
@@ -937,7 +931,17 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return nil, e.Wrap(err, "error creating session")
+		}
+		sessionObj := &model.Session{}
+		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
+		}
+		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || projectID != sessionObj.ProjectID || location.Latitude.(float64) != sessionObj.Latitude || location.Longitude.(float64) != sessionObj.Longitude {
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		}
+		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {

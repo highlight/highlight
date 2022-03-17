@@ -2,13 +2,14 @@ import { Request, Response, Headers } from './models';
 
 export const sanitizeRequest = (
     request: Request,
-    headersToRedact: string[]
+    headersToRedact: string[],
+    headersToRecord?: string[]
 ): Request => {
-    // GET requests don't have a body so no need to sanitize them.
-    //     if (request.verb !== 'GET') {
-    //         const newBody = sanitizeBody(request.body);
-    //     }
-    const newHeaders = sanitizeHeaders(headersToRedact, request.headers);
+    const newHeaders = sanitizeHeaders(
+        headersToRedact,
+        request.headers,
+        headersToRecord
+    );
 
     return {
         ...request,
@@ -18,9 +19,14 @@ export const sanitizeRequest = (
 
 export const sanitizeResponse = (
     response: Response,
-    headersToRedact: string[]
+    headersToRedact: string[],
+    headersToRecord?: string[]
 ): Response => {
-    const newHeaders = sanitizeHeaders(headersToRedact, response.headers);
+    const newHeaders = sanitizeHeaders(
+        headersToRedact,
+        response.headers,
+        headersToRecord
+    );
 
     return {
         ...response,
@@ -28,10 +34,27 @@ export const sanitizeResponse = (
     };
 };
 
-const sanitizeHeaders = (headersToRedact: string[], headers?: Headers) => {
+const sanitizeHeaders = (
+    headersToRedact: string[],
+    headers?: Headers,
+    headersToRecord?: string[]
+) => {
     const newHeaders = { ...headers };
 
+    // `headersToRecord` overrides `headersToRedact`.
+    if (headersToRecord) {
+        Object.keys(newHeaders)?.forEach((header: string) => {
+            // Only keep the keys that are specified in `headersToRecord`.
+            if (![...headersToRecord].includes(header?.toLowerCase())) {
+                newHeaders[header] = '[REDACTED]';
+            }
+        });
+
+        return newHeaders;
+    }
+
     Object.keys(newHeaders)?.forEach((header: string) => {
+        // Redact all the keys in `headersToRedact`.
         if (
             [...SENSITIVE_HEADERS, ...headersToRedact].includes(
                 header?.toLowerCase()

@@ -51,6 +51,7 @@ const SessionShareButton = (props: ButtonProps) => {
                                 ? onGetLinkWithTimestamp(time).toString()
                                 : onGetLink().toString()
                         }
+                        onCopyTooltipText="Copied session link to clipboard!"
                     />
                     <hr className={styles.divider} />
                     <h3>Sharing Options</h3>

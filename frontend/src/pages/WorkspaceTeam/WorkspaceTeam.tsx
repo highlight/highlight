@@ -188,6 +188,7 @@ const WorkspaceTeam = () => {
                                             text={
                                                 sendInviteEmailData.sendAdminWorkspaceInvite
                                             }
+                                            onCopyTooltipText="Copied invite link to clipboard!"
                                             inline
                                         />
                                     </span>
@@ -208,6 +209,7 @@ const WorkspaceTeam = () => {
                             data?.workspace_invite_links.secret || '',
                             workspace_id
                         )}
+                        onCopyTooltipText="Copied invite link to clipboard!"
                     />
                     <hr className={styles.hr} />
                     <p className={styles.boxSubTitle}>

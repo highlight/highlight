@@ -252,6 +252,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Name = &adminDetails.Name
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
+	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -358,6 +359,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
 	session := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
@@ -368,6 +373,21 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
+	}
+
+	newAdminView := struct {
+		ID int `json:"id"`
+	}{
+		ID: admin.ID,
+	}
+
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+		newAdminView}); err != nil {
+		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
+	}
+
+	if err := r.DB.Model(&s).Association("ViewedByAdmins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
 	return session, nil
@@ -876,7 +896,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1017,6 +1037,61 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		})
 	}
 
+	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear {
+				attachment := &model.ExternalAttachment{
+					IntegrationType:  modelInputs.IntegrationTypeLinear,
+					SessionCommentID: sessionComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+			}
+		}
+	}
+
+	return sessionComment, nil
+}
+
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionComment := &model.SessionComment{}
+	if err := r.DB.Preload("Attachments").Where(&model.SessionComment{Model: model.Model{ID: sessionCommentID}}).Find(sessionComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+
+	if len(integrations) > 0 {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
+				attachment := &model.ExternalAttachment{
+					IntegrationType:  modelInputs.IntegrationTypeLinear,
+					SessionCommentID: sessionComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+			}
+		}
+	}
+
 	return sessionComment, nil
 }
 
@@ -1032,10 +1107,13 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
 	}
+	if err := r.DB.Where(&model.ExternalAttachment{SessionCommentID: id}).Delete(&model.ExternalAttachment{}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment attachments")
+	}
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -1129,6 +1207,61 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 		})
 	}
+
+	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear {
+				attachment := &model.ExternalAttachment{
+					IntegrationType: modelInputs.IntegrationTypeLinear,
+					ErrorCommentID:  errorComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				errorComment.Attachments = append(errorComment.Attachments, attachment)
+			}
+		}
+	}
+	return errorComment, nil
+}
+
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	errorComment := &model.ErrorComment{}
+	if err := r.DB.Preload("Attachments").Where(&model.ErrorComment{Model: model.Model{ID: errorCommentID}}).Find(errorComment).Error; err != nil {
+		return nil, err
+	}
+
+	viewLink := fmt.Sprintf("%v", errorURL)
+
+	if len(integrations) > 0 {
+		for _, s := range integrations {
+			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
+				attachment := &model.ExternalAttachment{
+					IntegrationType: modelInputs.IntegrationTypeLinear,
+					ErrorCommentID:  errorComment.ID,
+				}
+
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink); err != nil {
+					return nil, e.Wrap(err, "error creating linear ticket or workspace")
+				}
+
+				errorComment.Attachments = append(errorComment.Attachments, attachment)
+			}
+		}
+	}
+
 	return errorComment, nil
 }
 
@@ -1143,6 +1276,9 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
+	}
+	if err := r.DB.Where(&model.ExternalAttachment{ErrorCommentID: id}).Delete(&model.ExternalAttachment{}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
 	return &model.T, nil
 }
@@ -2340,6 +2476,75 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
+	if !r.isWhitelistedAccount(ctx) {
+		return nil, e.New("You don't have access to this data")
+	}
+	accounts := []*modelInputs.Account{}
+	if err := r.DB.Raw(`
+	SELECT id, name, 
+	(select COALESCE(SUM(count), 0) as currentPeriodSessionCount
+	  from daily_session_counts_view
+		  where
+			  project_id in (SELECT id FROM projects WHERE workspace_id=workspaces.id)
+		  AND date >=  now() - interval '1 month'
+  	) as last_month_session_count , id, plan_tier, stripe_customer_id
+	FROM workspaces
+	`).Scan(&accounts).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving accounts for project")
+	}
+	return accounts, nil
+}
+
+func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*modelInputs.AccountDetails, error) {
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting workspace info")
+	}
+
+	var queriedMonths = []struct {
+		Sum   int
+		Month string
+	}{}
+	if err := r.DB.Raw(`
+	select SUM(count), to_char(date, 'yyyy-MM') as month 
+	from daily_session_counts 
+	where project_id in (select id from projects where projects.workspace_id = ?) 
+	group by month;
+	`, workspaceID).Scan(&queriedMonths).Error; err != nil {
+		return nil, e.Errorf("error retrieving months: %v", err)
+	}
+
+	var queriedDays = []struct {
+		Sum int
+		Day string
+	}{}
+	if err := r.DB.Raw(`
+	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
+	from daily_session_counts
+	where project_id in (select id from projects where projects.workspace_id = ?) group by date;
+	`, workspaceID).Scan(&queriedDays).Error; err != nil {
+		return nil, e.Errorf("error retrieving days: %v", err)
+	}
+
+	sessionCountsPerMonth := []*modelInputs.NamedCount{}
+	sessionCountsPerDay := []*modelInputs.NamedCount{}
+	for _, s := range queriedMonths {
+		sessionCountsPerMonth = append(sessionCountsPerMonth, &modelInputs.NamedCount{Name: s.Month, Count: s.Sum})
+	}
+	for _, s := range queriedDays {
+		sessionCountsPerDay = append(sessionCountsPerDay, &modelInputs.NamedCount{Name: s.Day, Count: s.Sum})
+	}
+
+	details := &modelInputs.AccountDetails{
+		SessionCountPerMonth: sessionCountsPerMonth,
+		SessionCountPerDay:   sessionCountsPerDay,
+		Name:                 *workspace.Name,
+		ID:                   workspace.ID,
+	}
+	return details, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
@@ -2379,6 +2584,38 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	}
 	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
+}
+
+func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
+	}
+
+	var sessionIntervals []*model.SessionInterval
+	if res := r.DB.Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get session intervals")
+	}
+
+	return sessionIntervals, nil
+}
+
+func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
+	}
+
+	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
+	if res := r.DB.Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get timeline indicator events")
+	}
+
+	return timelineIndicatorEvents, nil
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
@@ -2787,7 +3024,8 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 	}
 
 	sessionComments := []*model.SessionComment{}
-	if err := r.DB.Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+
+	if err := r.DB.Preload("Attachments").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
@@ -2840,7 +3078,7 @@ func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorComments := []*model.ErrorComment{}
-	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments for error_group")
 	}
 	return errorComments, nil
@@ -2888,6 +3126,10 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 
 func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, nil
@@ -2922,8 +3164,28 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 	}
 
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
+		Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
+}
+
+func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	var count int64
+	if err := r.DB.Raw(`
+		SELECT COUNT(DISTINCT(COALESCE(identifier, CAST(fingerprint AS text))))
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil
@@ -2961,7 +3223,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Where("project_id = ?", projectID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
+	if err := r.DB.Raw("SELECT * FROM daily_session_counts_view WHERE date BETWEEN ? AND ? AND project_id = ?", startDateUTC, endDateUTC, projectID).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
 	}
 
@@ -4755,6 +5017,10 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 	return ch, nil
 }
 
+func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (interface{}, error) {
+	return obj.Data, nil
+}
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -4799,6 +5065,11 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
+// TimelineIndicatorEvent returns generated.TimelineIndicatorEventResolver implementation.
+func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventResolver {
+	return &timelineIndicatorEventResolver{r}
+}
+
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
@@ -4813,3 +5084,4 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+type timelineIndicatorEventResolver struct{ *Resolver }

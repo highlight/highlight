@@ -1,7 +1,12 @@
+import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
 import MenuItem from '@components/Menu/MenuItem';
+import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
 import { namedOperations } from '@graph/operations';
+import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getCommentMentionSuggestions } from '@util/comment/util';
+import { getErrorTitle } from '@util/errors/errorUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
 import { H } from 'highlight.run';
@@ -74,6 +79,9 @@ const ErrorComments = ({ parentRef }: Props) => {
                     tagged_admins: mentionedAdmins,
                     tagged_slack_users: mentionedSlackUsers,
                     author_name: admin?.name || admin?.email || 'Someone',
+                    integrations: [],
+                    issue_title: '',
+                    issue_description: '',
                 },
                 refetchQueries: [namedOperations.Query.GetErrorComments],
             });
@@ -231,21 +239,46 @@ const ErrorComments = ({ parentRef }: Props) => {
     );
 };
 
-export const ErrorCommentCard = ({ comment }: any) => (
+export const ErrorCommentCard = ({ comment, errorGroup }: any) => (
     <div className={styles.commentDiv}>
-        <ErrorCommentHeader comment={comment}>
+        <ErrorCommentHeader comment={comment} errorGroup={errorGroup}>
             <CommentTextBody commentText={comment.text} />
         </ErrorCommentHeader>
+        {comment.attachments.length > 0 && (
+            <AttachmentList attachments={comment.attachments} />
+        )}
     </div>
 );
 
-const ErrorCommentHeader = ({ comment, children }: any) => {
+const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
         refetchQueries: [namedOperations.Query.GetErrorComments],
     });
 
+    const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+
+    const defaultIssueTitle = useMemo(() => {
+        if (errorGroup?.error_group?.event) {
+            return getErrorTitle(errorGroup?.error_group?.event);
+        }
+        return `Issue from this bug error`;
+    }, [errorGroup]);
+
+    const createIssueMenuItem = (
+        <MenuItem
+            icon={<SvgFileText2Icon />}
+            onClick={() => {
+                H.track('Create Issue from Comment');
+                setShowNewIssueModal(true);
+            }}
+        >
+            Create Issue from Comment
+        </MenuItem>
+    );
+
     const moreMenu = (
         <Menu>
+            {createIssueMenuItem}
             <MenuItem
                 icon={<SvgTrashIcon />}
                 onClick={() => {
@@ -264,6 +297,15 @@ const ErrorCommentHeader = ({ comment, children }: any) => {
     return (
         <CommentHeader moreMenu={moreMenu} comment={comment}>
             {children}
+            <NewIssueModal
+                selectedIntegration={LINEAR_INTEGRATION}
+                visible={showNewIssueModal}
+                changeVisible={setShowNewIssueModal}
+                commentId={parseInt(comment.id, 10)}
+                commentText={comment.text}
+                commentType="ErrorComment"
+                defaultIssueTitle={defaultIssueTitle || ''}
+            />
         </CommentHeader>
     );
 };
