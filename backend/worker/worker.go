@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -301,11 +302,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
-	userInteractionEvents = append([]*parse.ReplayEvent{{
+	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
 		Timestamp: accumulator.FirstEventTimestamp,
-	}}, userInteractionEvents...)
-	userInteractionEvents = append(userInteractionEvents, &parse.ReplayEvent{
+	}, {
 		Timestamp: accumulator.LastEventTimestamp,
+	}}...)
+
+	// sort events by timestamp since calculations assume this
+	sort.Slice(userInteractionEvents, func(i, j int) bool {
+		return userInteractionEvents[i].Timestamp.UnixMilli() < userInteractionEvents[j].Timestamp.UnixMilli()
 	})
 
 	var allIntervals []model.SessionInterval
@@ -347,12 +352,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				activeInterval = model.F
 			}
 		}
-		if i == len(userInteractionEvents)-1 {
+		lastIntervalDuration := int(nextEvent.Timestamp.Sub(startTime).Milliseconds())
+		if i == len(userInteractionEvents)-1 && lastIntervalDuration > 0 {
 			allIntervals = append(allIntervals, model.SessionInterval{
 				SessionSecureID: s.SecureID,
 				StartTime:       startTime,
 				EndTime:         nextEvent.Timestamp,
-				Duration:        int(nextEvent.Timestamp.Sub(startTime).Milliseconds()),
+				Duration:        lastIntervalDuration,
 				Active:          activeInterval,
 			})
 		}
