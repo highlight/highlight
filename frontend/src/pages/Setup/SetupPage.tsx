@@ -87,7 +87,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             completed: integrated,
         });
         STEPS.push({
-            displayName: 'Backend SDK',
+            displayName: 'Backend SDK (Beta)',
             path: 'backend',
             action: () => {
                 history.push(`/${project_id}/setup/backend`);
@@ -473,7 +473,7 @@ const BackendSetup = ({
     return (
         <>
             <div className={styles.headingWrapper}>
-                <h2>Your Highlight Snippet</h2>
+                <h2>Your Backend Integrations</h2>
             </div>
             <p className={layoutStyles.subTitle}>
                 Setup Highlight in your backend!
