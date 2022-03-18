@@ -74,7 +74,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
+		&model.Session{ObjectStorageEnabled: &model.T, Chunked: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
