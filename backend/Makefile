@@ -26,3 +26,5 @@ backfill-stack-frames:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=backfill-stack-frames)
 refresh-materialized-views:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=refresh-materialized-views)
+delete-completed-sessions:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=delete-completed-sessions)
