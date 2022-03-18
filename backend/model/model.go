@@ -970,7 +970,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
-		CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+		CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
