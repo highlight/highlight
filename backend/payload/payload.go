@@ -192,6 +192,8 @@ type PayloadManager struct {
 	EventsCompressed    *CompressedJSONArrayWriter
 	ResourcesCompressed *CompressedJSONArrayWriter
 	MessagesCompressed  *CompressedJSONArrayWriter
+	EventsChunked       *CompressedJSONArrayWriter
+	ChunkOffset         int
 	files               map[FileType]*FileInfo
 }
 
@@ -204,6 +206,7 @@ const (
 	EventsCompressed    FileType = "EventsCompressed"
 	ResourcesCompressed FileType = "ResourcesCompressed"
 	MessagesCompressed  FileType = "MessagesCompressed"
+	EventsChunked       FileType = "EventsChunked"
 )
 
 type FileInfo struct {
@@ -289,7 +292,36 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		}
 	}
 
+	manager.ChunkOffset = -1
+	files[EventsChunked] = &FileInfo{
+		ddTag: "EventsChunked",
+		close: func() {},
+	}
+
 	return manager, nil
+}
+
+func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
+	fileInfo := pm.files[EventsChunked]
+	fileInfo.close()
+
+	pm.ChunkOffset += 1
+	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkOffset)
+	fileInfo.suffix = suffix
+	close, file, err := createFile(filenamePrefix + suffix)
+
+	if err != nil {
+		return errors.Wrapf(err, "error creating new EventsChunked file")
+	}
+	fileInfo.file = file
+	fileInfo.close = close
+
+	if pm.EventsChunked != nil {
+		pm.EventsChunked.Close()
+	}
+
+	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	return nil
 }
 
 func (pm *PayloadManager) Close() {
