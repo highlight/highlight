@@ -294,6 +294,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
+	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).Delete(&model.SessionInterval{}).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
+	}
+
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
 		Timestamp: accumulator.FirstEventTimestamp,
 	}, {
