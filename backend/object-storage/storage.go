@@ -46,6 +46,10 @@ const (
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 )
 
+func GetChunkedPayloadType(offset int) PayloadType {
+	return SessionContentsCompressed + PayloadType(fmt.Sprintf("-%04d", offset))
+}
+
 type StorageClient struct {
 	S3Client  *s3.Client
 	URLSigner *sign.URLSigner

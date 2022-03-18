@@ -1658,6 +1658,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'last_user_interaction_time'
             | 'length'
             | 'active_length'
+            | 'chunked'
         > & {
                 fields?: Types.Maybe<
                     Array<

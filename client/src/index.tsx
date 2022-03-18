@@ -938,7 +938,7 @@ export class Highlight {
                                 }
                             );
                             navigator.sendBeacon(`${this._backendUrl}`, blob);
-                            return Promise.resolve();
+                            return Promise.resolve(0);
                         },
                     });
                 }
@@ -1084,7 +1084,10 @@ export class Highlight {
             try {
                 await this._sendPayload({
                     isBeacon: false,
-                    sendFn: (payload) => this.graphqlSDK.PushPayload(payload),
+                    sendFn: (payload) =>
+                        this.graphqlSDK
+                            .PushPayload(payload)
+                            .then((res) => res.pushPayload ?? 0),
                 });
                 this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
@@ -1162,7 +1165,7 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
     }): Promise<void> {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
@@ -1209,13 +1212,8 @@ export class Highlight {
             // 4. this.events is cleared (we lose M events)
             this.events = this.events.slice(events.length);
 
-            // (This is probably expensive)
             this._eventBytesSinceSnapshot =
                 this._eventBytesSinceSnapshot + eventsSize;
-            console.log(
-                'this._eventBytesSinceSnapshot',
-                this._eventBytesSinceSnapshot
-            );
             const now = new Date().getTime();
             // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
             // take a full snapshot and reset the counters

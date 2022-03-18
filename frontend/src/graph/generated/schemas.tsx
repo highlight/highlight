@@ -70,6 +70,7 @@ export type Session = {
     messages_url?: Maybe<Scalars['String']>;
     deviceMemory?: Maybe<Scalars['Int']>;
     last_user_interaction_time: Scalars['Timestamp'];
+    chunked?: Maybe<Scalars['Boolean']>;
 };
 
 export type SessionInterval = {

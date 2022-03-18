@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -99,6 +100,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
@@ -111,11 +113,44 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
-		numberOfRows += 1
+		if writeChunks {
+			curChunkedFile := manager.GetFile(payload.EventsChunked)
+			if strings.Contains(eventObject.Events, `"type": 2`) {
+				sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+				if curChunkedFile != nil {
+					_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkOffset))
+					if err != nil {
+						return errors.Wrap(err, "error pushing event chunk file to s3")
+					}
+				}
+				if err := manager.NewChunkedFile(sessionIdString); err != nil {
+					return errors.Wrap(err, "error creating new chunked events file")
+				}
+			}
+			if curChunkedFile != nil {
+				if err := manager.EventsChunked.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
+					if err != nil {
+						return errors.Wrap(err, "error pushing event chunk file to s3")
+					}
+				}
+			}
+		}
 	}
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
+	}
+	if manager.EventsChunked != nil {
+		if err := manager.EventsChunked.Close(); err != nil {
+			return errors.Wrap(err, "error closing compressed events chunk writer")
+		}
+	}
+	fileToS3 := manager.GetFile(payload.EventsChunked)
+	if writeChunks && fileToS3 != nil {
+		_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkOffset))
+		if err != nil {
+			return errors.Wrap(err, "error pushing event chunk file to s3")
+		}
 	}
 
 	// Fetch/write resources.

@@ -2,6 +2,8 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
+    playerMetaData,
+    SessionInterval,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
 import {
@@ -24,6 +26,7 @@ import {
     OnSessionPayloadAppendedDocument,
     useGetEventChunksQuery,
     useGetEventChunkUrlQuery,
+    useGetSessionIntervalsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useGetTimelineIndicatorEventsQuery,
@@ -173,6 +176,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         loading: eventChunksLoading,
     } = useGetEventChunksQuery({
         variables: { secure_id: session_secure_id },
+    });
+
+    const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
+        variables: {
+            session_secure_id: session_secure_id,
+        },
     });
 
     const [chunkEvents, chunkEventsActions] = useMap<
@@ -394,7 +403,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
                     let fetchEvents;
                     // ZANETODO: if chunked (should be a session field)
-                    if (1 === 1) {
+                    if (data.session?.chunked) {
                         fetchEvents = fetchEventChunkURL({
                             secure_id: session_secure_id,
                             index: 0,
@@ -682,9 +691,46 @@ export const usePlayer = (): ReplayerContextInterface => {
             // if (eventsIndex >= events.length) {
             // cancelAnimationFrame(timerId);
 
+            // Preprocess session interval data from backend
+            const parsedSessionIntervalsData: SessionInterval[] =
+                sessionIntervalsData &&
+                sessionIntervalsData.session_intervals.length > 0
+                    ? sessionIntervalsData.session_intervals.map((interval) => {
+                          return {
+                              startTime: new Date(
+                                  interval.start_time
+                              ).getTime(),
+                              endTime: new Date(interval.end_time).getTime(),
+                              duration: interval.duration,
+                              active: interval.active,
+                          };
+                      })
+                    : replayer.getActivityIntervals();
+            const sessionMetadata: playerMetaData = parsedSessionIntervalsData
+                ? {
+                      startTime: new Date(
+                          parsedSessionIntervalsData[0].startTime
+                      ).getTime(),
+                      endTime: new Date(
+                          parsedSessionIntervalsData[
+                              parsedSessionIntervalsData.length - 1
+                          ].endTime
+                      ).getTime(),
+                      totalTime:
+                          new Date(
+                              parsedSessionIntervalsData[
+                                  parsedSessionIntervalsData.length - 1
+                              ].endTime
+                          ).getTime() -
+                          new Date(
+                              parsedSessionIntervalsData[0].startTime
+                          ).getTime(),
+                  }
+                : replayer.getMetaData();
+
             const sessionIntervals = getSessionIntervals(
-                replayer.getMetaData(),
-                replayer.getActivityIntervals()
+                sessionMetadata,
+                parsedSessionIntervalsData
             );
 
             // Inject the Material font icons into the player if it's a Boardgent session.

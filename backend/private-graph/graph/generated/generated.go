@@ -549,6 +549,7 @@ type ComplexityRoot struct {
 		AppVersion                     func(childComplexity int) int
 		BrowserName                    func(childComplexity int) int
 		BrowserVersion                 func(childComplexity int) int
+		Chunked                        func(childComplexity int) int
 		City                           func(childComplexity int) int
 		ClientConfig                   func(childComplexity int) int
 		ClientVersion                  func(childComplexity int) int
@@ -4218,6 +4219,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.BrowserVersion(childComplexity), true
 
+	case "Session.chunked":
+		if e.complexity.Session.Chunked == nil {
+			break
+		}
+
+		return e.complexity.Session.Chunked(childComplexity), true
+
 	case "Session.city":
 		if e.complexity.Session.City == nil {
 			break
@@ -5276,6 +5284,7 @@ type Session {
     messages_url: String
     deviceMemory: Int
     last_user_interaction_time: Timestamp!
+    chunked: Boolean
 }
 
 type SessionInterval {
@@ -25315,6 +25324,38 @@ func (ec *executionContext) _Session_last_user_interaction_time(ctx context.Cont
 	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_chunked(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Chunked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33491,6 +33532,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "chunked":
+			out.Values[i] = ec._Session_chunked(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

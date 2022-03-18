@@ -4286,6 +4286,7 @@ export const GetSessionDocument = gql`
             last_user_interaction_time
             length
             active_length
+            chunked
         }
     }
 `;
