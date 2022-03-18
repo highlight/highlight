@@ -460,7 +460,7 @@ type Session struct {
 
 type EventChunk struct {
 	Model
-	SessionID int
+	SessionID int `gorm:"index"`
 	Index     int
 	Timestamp int64
 }

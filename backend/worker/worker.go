@@ -11,7 +11,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -114,12 +113,27 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
+		numberOfRows += 1
 		if writeChunks {
-			curChunkedFile := manager.GetFile(payload.EventsChunked)
-			if strings.Contains(eventObject.Events, `"type": 2`) {
+			log.Info("going to write chunks")
+			events, err := parse.EventsFromString(eventObject.Events)
+			if err != nil {
+				return errors.Wrap(err, "error parsing events from string")
+			}
+			var timestamp int64
+			for _, event := range events.Events {
+				if event.Type == parse.FullSnapshot {
+					timestamp = int64(event.TimestampRaw)
+				}
+			}
+			if timestamp != 0 {
+				log.Info("matched!!")
 				sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+				curChunkedFile := manager.GetFile(payload.EventsChunked)
 				if curChunkedFile != nil {
-					_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkOffset))
+					curOffset := manager.ChunkOffset
+					log.Infof("pushing to s3")
+					_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
 					if err != nil {
 						return errors.Wrap(err, "error pushing event chunk file to s3")
 					}
@@ -127,11 +141,21 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 				if err := manager.NewChunkedFile(sessionIdString); err != nil {
 					return errors.Wrap(err, "error creating new chunked events file")
 				}
+				eventChunk := &model.EventChunk{
+					SessionID: s.ID,
+					Index:     manager.ChunkOffset,
+					Timestamp: int64(timestamp),
+				}
+				if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
+					return errors.Wrap(err, "error saving event chunk metadata")
+				}
 			}
-			if curChunkedFile != nil {
+			if manager.GetFile(payload.EventsChunked) != nil {
+				log.Infof("writing events")
+				log.Infof(manager.GetFile(payload.EventsChunked).Name())
 				if err := manager.EventsChunked.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 					if err != nil {
-						return errors.Wrap(err, "error pushing event chunk file to s3")
+						return errors.Wrap(err, "error writing chunked event")
 					}
 				}
 			}
@@ -249,6 +273,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error creating payload manager")
 	}
 	defer payloadManager.Close()
+
+	// Delete any event chunks which were previously written for this session
+	if err := w.Resolver.DB.Exec(`
+		DELETE 
+		FROM event_chunks
+		WHERE session_id = ?
+	`, s.ID).Error; err != nil {
+		return errors.Wrap(err, "failed to delete existing event chunks")
+	}
 
 	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
 		return errors.Wrap(err, "error scanning session payload")

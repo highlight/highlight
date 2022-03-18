@@ -334,6 +334,9 @@ func (pm *PayloadManager) Close() {
 
 func (pm *PayloadManager) ReportPayloadSizes() error {
 	for _, fileInfo := range pm.files {
+		if fileInfo.ddTag == "EventsChunked" {
+			continue
+		}
 		eventInfo, err := fileInfo.file.Stat()
 		if err != nil {
 			return errors.Wrap(err, "error getting file info")
