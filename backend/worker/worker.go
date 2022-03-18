@@ -241,6 +241,11 @@ func (w *Worker) isSessionIdentifierExcluded(ctx context.Context, s *model.Sessi
 	return false
 }
 
+// TODO:
+// Exclude live sessions
+// Align button correctly
+// Show confirm prompt
+
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
