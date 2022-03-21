@@ -348,13 +348,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				activeInterval = model.F
 			}
 		}
-		lastIntervalDuration := int(nextEvent.Timestamp.Sub(startTime).Milliseconds())
-		if i == len(userInteractionEvents)-1 && lastIntervalDuration > 0 {
+		if i == len(userInteractionEvents)-1 {
 			allIntervals = append(allIntervals, model.SessionInterval{
 				SessionSecureID: s.SecureID,
 				StartTime:       startTime,
 				EndTime:         nextEvent.Timestamp,
-				Duration:        lastIntervalDuration,
+				Duration:        int(nextEvent.Timestamp.Sub(startTime).Milliseconds()),
 				Active:          activeInterval,
 			})
 		}
