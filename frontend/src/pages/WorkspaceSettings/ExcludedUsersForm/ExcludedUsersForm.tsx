@@ -60,9 +60,9 @@ export const ExcludedUsersForm = () => {
     return (
         <form onSubmit={onSubmit} key={project_id}>
             <p>
-                Pick user identifiers to exclude from Highlight (regular
-                expressions are accepted). Sessions from these users will be
-                discarded once recorded.
+                Pick user identifiers or emails to exclude from Highlight
+                (regular expressions are accepted). Sessions from these users
+                will be excluded from your searches and quota going forward.
             </p>
             <Form.Item name={'excludedusers'}>
                 <Select
