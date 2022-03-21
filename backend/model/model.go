@@ -975,6 +975,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
+	if err := DB.Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
+		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
