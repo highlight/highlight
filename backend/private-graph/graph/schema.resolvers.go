@@ -291,7 +291,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, nil
 	}
 
-	trialEnd := time.Now().Add(30 * 24 * time.Hour) // Trial expires 30 days from current day
+	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
 
 	workspace := &model.Workspace{
 		Admins:                    []model.Admin{*admin},
