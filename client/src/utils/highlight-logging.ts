@@ -28,6 +28,8 @@ export const clearHighlightLogs = (logsToClear: string) => {
         highlightLogs = highlightLogs.slice(logsToClear.length);
         window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
     } else {
-        // logForHighlight('Unable to clear logs');
+        if (Math.floor(Math.random() * 100) === 1) {
+            logForHighlight('Unable to clear logs ' + logsToClear + ' from ' + highlightLogs);
+        }
     }
 }
