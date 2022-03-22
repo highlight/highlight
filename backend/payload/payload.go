@@ -316,10 +316,6 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	fileInfo.file = file
 	fileInfo.close = close
 
-	if pm.EventsChunked != nil {
-		pm.EventsChunked.Close()
-	}
-
 	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
 	return nil
 }

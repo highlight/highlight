@@ -115,7 +115,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 		numberOfRows += 1
 		if writeChunks {
-			log.Info("going to write chunks")
 			events, err := parse.EventsFromString(eventObject.Events)
 			if err != nil {
 				return errors.Wrap(err, "error parsing events from string")
@@ -124,15 +123,17 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			for _, event := range events.Events {
 				if event.Type == parse.FullSnapshot {
 					timestamp = int64(event.TimestampRaw)
+					break
 				}
 			}
 			if timestamp != 0 {
-				log.Info("matched!!")
 				sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+				if manager.EventsChunked != nil {
+					manager.EventsChunked.Close()
+				}
 				curChunkedFile := manager.GetFile(payload.EventsChunked)
 				if curChunkedFile != nil {
 					curOffset := manager.ChunkOffset
-					log.Infof("pushing to s3")
 					_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
 					if err != nil {
 						return errors.Wrap(err, "error pushing event chunk file to s3")
@@ -151,8 +152,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 				}
 			}
 			if manager.GetFile(payload.EventsChunked) != nil {
-				log.Infof("writing events")
-				log.Infof(manager.GetFile(payload.EventsChunked).Name())
 				if err := manager.EventsChunked.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 					if err != nil {
 						return errors.Wrap(err, "error writing chunked event")
