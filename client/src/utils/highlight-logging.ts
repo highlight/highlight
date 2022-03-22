@@ -24,12 +24,13 @@ export const clearHighlightLogs = (logsToClear: string) => {
     let highlightLogs = window.localStorage.getItem(
         HIGHLIGHT_LOGS_KEY
     ) || '';
+    if (!highlightLogs) {
+        return;
+    }
     if (highlightLogs.startsWith(logsToClear)) {
         highlightLogs = highlightLogs.slice(logsToClear.length);
         window.localStorage.setItem(HIGHLIGHT_LOGS_KEY, highlightLogs);
     } else {
-        if (Math.floor(Math.random() * 100) === 1) {
-            logForHighlight('Unable to clear logs ' + logsToClear + ' from ' + highlightLogs);
-        }
+        logForHighlight('Unable to clear logs ' + logsToClear.replace("\n", " ") + ' from ' + highlightLogs.replace("\n", " "));
     }
 }
