@@ -207,14 +207,6 @@
     background-size: var(--square-size) var(--square-size);
 }
 
-.commentModal {
-    > div {
-        border: 1px solid var(--color-gray-300);
-        border-radius: var(--size-xSmall);
-        box-shadow: var(--box-shadow);
-    }
-}
-
 .manuallyStoppedMessageContainer {
     align-items: center;
     display: flex;
