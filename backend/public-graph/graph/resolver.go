@@ -762,7 +762,13 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	fieldsToAppend := []*model.ErrorField{}
 	for _, f := range fields {
 		field := &model.ErrorField{}
-		res := r.DB.Where(f).First(&field)
+		res := r.DB.Debug().Raw(`
+			SELECT * FROM error_fields
+			WHERE project_id = ?
+			AND name = ?
+			AND value = ?
+			AND md5(value)::uuid = md5(?)::uuid
+			`, f.ProjectID, f.Name, f.Value, f.Value).First(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
