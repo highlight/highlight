@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -173,16 +174,12 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-// Every 5 minutes, delete data for any sessions created > 4 hours ago
+// Delete data for any sessions created > 4 hours ago
 // if all session data has been written to s3
-func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
-	lookbackPeriod := 4 * 60 // 4 hours
+func (w *Worker) DeleteCompletedSessions() {
+	lookbackPeriod := 4*60 + 10 // 4h10m
 
-	for {
-		func() {
-			defer util.Recover()
-
-			baseQuery := `
+	baseQuery := `
 				DELETE
 				FROM %s o
 				USING sessions s
@@ -192,17 +189,13 @@ func deleteCompletedSessions(ctx context.Context, db *gorm.DB) {
 				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
-			for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
-				deleteSpan, _ := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
-					tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
-				if err := db.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
-					log.Error(e.Wrapf(err, "error deleting expired objects from %s", table))
-				}
-				deleteSpan.Finish()
-			}
-
-			time.Sleep(5 * time.Minute)
-		}()
+	for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
+		deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteObjects",
+			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
+		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
+			log.Error(e.Wrapf(err, "error deleting expired objects from %s", table))
+		}
+		deleteSpan.Finish()
 	}
 }
 
@@ -341,11 +334,19 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
-	userInteractionEvents = append([]*parse.ReplayEvent{{
+	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).Delete(&model.SessionInterval{}).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
+	}
+
+	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
 		Timestamp: accumulator.FirstEventTimestamp,
-	}}, userInteractionEvents...)
-	userInteractionEvents = append(userInteractionEvents, &parse.ReplayEvent{
+	}, {
 		Timestamp: accumulator.LastEventTimestamp,
+	}}...)
+
+	// sort events by timestamp since calculations assume this
+	sort.Slice(userInteractionEvents, func(i, j int) bool {
+		return userInteractionEvents[i].Timestamp.UnixNano() < userInteractionEvents[j].Timestamp.UnixNano()
 	})
 
 	var allIntervals []model.SessionInterval
@@ -606,10 +607,9 @@ func (w *Worker) Start() {
 		lockPeriod = 1
 	}
 
-	go deleteCompletedSessions(ctx, w.Resolver.DB)
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
-	maxWorkerCount := 40
-	processSessionLimit := 10000
+	maxWorkerCount := 50
+	processSessionLimit := 1000
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
@@ -853,6 +853,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.BackfillStackFrames
 	case "refresh-materialized-views":
 		return w.RefreshMaterializedViews
+	case "delete-completed-sessions":
+		return w.DeleteCompletedSessions
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

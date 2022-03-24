@@ -248,7 +248,7 @@ func main() {
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
 		if !util.IsDevOrTestEnv() {
-			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile))
+			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -344,6 +344,13 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker {
+		if !util.IsDevOrTestEnv() {
+			err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer profiler.Stop()
+		}
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		if handlerFlag != nil && *handlerFlag != "" {
 			w.GetHandler(*handlerFlag)()

@@ -176,6 +176,12 @@ export const usePlayerCommands = (
             },
             name: `Download events`,
         },
+        {
+            command: () => {
+                document.location.search = 'downloadresources=1';
+            },
+            name: `Download resources (navigate to network tab first)`,
+        },
     ] as const;
 
     const [, , routeName, sessionId] = location.pathname.split('/');

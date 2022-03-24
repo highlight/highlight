@@ -201,7 +201,7 @@ const FreePlanBanner = () => {
                         >
                             Fill this out
                         </Link>{' '}
-                        before your trial ends to extend this by 1 month!
+                        before your trial ends to extend this by another week!
                     </>
                 );
             } else {
@@ -218,7 +218,7 @@ const FreePlanBanner = () => {
                         >
                             Integrate
                         </Link>{' '}
-                        before your trial ends to extend this by 1 month!
+                        before your trial ends to extend this by another week!
                     </>
                 );
             }
