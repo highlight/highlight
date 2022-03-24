@@ -219,32 +219,38 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 
 func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
 	var project model.Project
-	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project); err != nil {
+	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
 		return false
 	}
 	if project.ExcludedUsers == nil {
+		fmt.Println("Excluded users is nil")
 		return false
 	}
 	var email string
 	if s.UserProperties != "" {
 		encodedProperties := []byte(s.UserProperties)
 		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, decodedProperties)
+		err := json.Unmarshal(encodedProperties, &decodedProperties)
 		if err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s", s.UserProperties)
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
 			return false
 		}
 		email = decodedProperties["email"]
+		fmt.Println("Email: " + email)
+		avatar := decodedProperties["avatar"]
+		fmt.Println("Avatar: " + avatar)
 	}
+	fmt.Println("Identifier: " + s.Identifier)
 	for _, value := range []string{s.Identifier, email} {
 		if value == "" {
 			continue
 		}
 		for _, excludedExpr := range project.ExcludedUsers {
 			matched, err := regexp.MatchString(excludedExpr, value)
+			fmt.Println(value + " matching with " + excludedExpr + ": " + strconv.FormatBool(matched))
 			if err != nil {
-				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s", excludedExpr, value)
+				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
 				return false
 			} else if matched {
 				return true

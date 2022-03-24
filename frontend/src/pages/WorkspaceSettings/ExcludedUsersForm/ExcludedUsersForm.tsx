@@ -18,6 +18,9 @@ export const ExcludedUsersForm = () => {
         project_id: string;
     }>();
     const [excludedUsers, setExcludedUsers] = useState<string[]>([]);
+    const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
+        []
+    );
     const { data, loading } = useGetProjectQuery({
         variables: {
             id: project_id,
@@ -43,7 +46,14 @@ export const ExcludedUsersForm = () => {
                 excluded_users: excludedUsers,
             },
         }).then(() => {
-            message.success('Updated project fields!', 5);
+            if (invalidExcludedUsers.length == 0) {
+                message.success('Updated excluded sessions!', 5);
+            } else {
+                message.warn(
+                    'Updated excluded sessions, but the following were ignored: ' +
+                        JSON.stringify(invalidExcludedUsers)
+                );
+            }
         });
     };
 
@@ -60,19 +70,43 @@ export const ExcludedUsersForm = () => {
     return (
         <form onSubmit={onSubmit} key={project_id}>
             <p>
-                Pick user identifiers or emails to hide (regular expressions are
-                accepted). On completion, sessions from these users will be
+                Enter user identifiers or emails to hide (regular expressions
+                are accepted). On completion, sessions from these users will be
                 excluded from your searches and quota.
             </p>
             <div className={styles.inputAndButtonRow}>
                 <Select
                     size={'large'}
                     mode="tags"
-                    placeholder={`User identifiers that .`}
+                    placeholder={`.*@yourdomain.com`}
                     defaultValue={data?.project?.excluded_users || undefined}
-                    onChange={(excluded: string[]) =>
-                        setExcludedUsers(excluded)
-                    }
+                    onChange={(excluded: string[]) => {
+                        const validRegexes: string[] = [];
+                        const invalidRegexes: string[] = [];
+                        excluded.forEach((expression) => {
+                            try {
+                                new RegExp(expression);
+                                validRegexes.push(expression);
+                            } catch (e) {
+                                invalidRegexes.push(expression);
+                            }
+                        });
+                        if (
+                            excluded.length > 0 &&
+                            invalidRegexes.length > 0 &&
+                            excluded[excluded.length - 1] ===
+                                invalidRegexes[invalidRegexes.length - 1]
+                        ) {
+                            message.error(
+                                "'" +
+                                    excluded[excluded.length - 1] +
+                                    "' is not a valid regular expression",
+                                5
+                            );
+                        }
+                        setExcludedUsers(validRegexes);
+                        setInvalidExcludedUsers(invalidRegexes);
+                    }}
                 />
                 <Button
                     trackingId={`ExcludedUsersUpdate`}
@@ -95,6 +129,7 @@ export const ExcludedUsersForm = () => {
                     )}
                 </Button>
             </div>
+            {invalidExcludedUsers.length > 0 && <div></div>}
         </form>
     );
 };

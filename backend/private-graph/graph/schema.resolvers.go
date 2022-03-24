@@ -25,7 +25,7 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -332,6 +332,12 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
+	}
+	for _, expression := range excludedUsers {
+		_, err := regexp.Compile(expression)
+		if err != nil {
+			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
+		}
 	}
 	if err := r.DB.Model(project).Updates(&model.Project{
 		Name:          name,
