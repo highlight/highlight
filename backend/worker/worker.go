@@ -217,15 +217,35 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	return nil
 }
 
-func (w *Worker) isSessionIdentifierExcluded(ctx context.Context, s *model.Session) bool {
+func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
 	var project model.Project
 	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project); err != nil {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-	} else if s.Identifier != "" && project.ExcludedUsers != nil {
+		return false
+	}
+	if project.ExcludedUsers == nil {
+		return false
+	}
+	var email string
+	if s.UserProperties != "" {
+		encodedProperties := []byte(s.UserProperties)
+		decodedProperties := map[string]string{}
+		err := json.Unmarshal(encodedProperties, decodedProperties)
+		if err != nil {
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s", s.UserProperties)
+			return false
+		}
+		email = decodedProperties["email"]
+	}
+	for _, value := range []string{s.Identifier, email} {
+		if value == "" {
+			continue
+		}
 		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, s.Identifier)
+			matched, err := regexp.MatchString(excludedExpr, value)
 			if err != nil {
-				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error running regexp for excluded users: %s", excludedExpr)
+				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s", excludedExpr, value)
+				return false
 			} else if matched {
 				return true
 			}
@@ -233,9 +253,6 @@ func (w *Worker) isSessionIdentifierExcluded(ctx context.Context, s *model.Sessi
 	}
 	return false
 }
-
-// TODO:
-// Check email too
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
@@ -464,7 +481,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s)
 	}
 
-	if w.isSessionIdentifierExcluded(ctx, s) {
+	if w.isSessionUserExcluded(ctx, s) {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
 		return w.excludeSession(ctx, s)
 	}
