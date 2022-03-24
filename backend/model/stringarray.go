@@ -13,13 +13,6 @@ func MarshalStringArray(sa pq.StringArray) graphql.Marshaler {
 		return graphql.Null
 	}
 	return graphql.MarshalAny(sa)
-	// return graphql.WriterFunc(func(w io.Writer) {
-	// 	data, _ := json.Marshal(sa)
-	// 	_, err := io.WriteString(w, string(data))
-	// 	if err != nil {
-	// 		log.Error(e.Wrap(err, "error marshaling string array"))
-	// 	}
-	// })
 }
 
 func UnmarshalStringArray(i interface{}) (pq.StringArray, error) {

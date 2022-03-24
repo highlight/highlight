@@ -30,7 +30,7 @@ require (
 	github.com/jcmturner/gokrb5/v8 v8.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
-	github.com/lib/pq v1.10.4 // indirect
+	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2
