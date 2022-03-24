@@ -25,7 +25,7 @@ const ProjectSettings = () => {
                     <FieldsForm />
                 </div>
                 <div className={styles.fieldsBox}>
-                    <h3>Excluded Users</h3>
+                    <h3>Excluded Sessions</h3>
                     <ExcludedUsersForm />
                 </div>
                 <div className={styles.fieldsBox}>
