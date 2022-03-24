@@ -39,7 +39,6 @@ export const ExcludedUsersForm = () => {
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        console.log('Excluded users: ', excludedUsers);
         editProject({
             variables: {
                 id: project_id,

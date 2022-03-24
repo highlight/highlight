@@ -224,7 +224,6 @@ func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bo
 		return false
 	}
 	if project.ExcludedUsers == nil {
-		fmt.Println("Excluded users is nil")
 		return false
 	}
 	var email string
@@ -237,18 +236,13 @@ func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bo
 			return false
 		}
 		email = decodedProperties["email"]
-		fmt.Println("Email: " + email)
-		avatar := decodedProperties["avatar"]
-		fmt.Println("Avatar: " + avatar)
 	}
-	fmt.Println("Identifier: " + s.Identifier)
 	for _, value := range []string{s.Identifier, email} {
 		if value == "" {
 			continue
 		}
 		for _, excludedExpr := range project.ExcludedUsers {
 			matched, err := regexp.MatchString(excludedExpr, value)
-			fmt.Println(value + " matching with " + excludedExpr + ": " + strconv.FormatBool(matched))
 			if err != nil {
 				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
 				return false
