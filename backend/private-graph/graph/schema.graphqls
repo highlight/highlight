@@ -668,7 +668,7 @@ type MetricMonitor {
 
 type EventChunk {
     session_id: Int!
-    index: Int!
+    chunk_index: Int!
     timestamp: Int64!
 }
 

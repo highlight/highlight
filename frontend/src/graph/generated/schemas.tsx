@@ -733,7 +733,7 @@ export type MetricMonitor = {
 export type EventChunk = {
     __typename?: 'EventChunk';
     session_id: Scalars['Int'];
-    index: Scalars['Int'];
+    chunk_index: Scalars['Int'];
     timestamp: Scalars['Int64'];
 };
 

@@ -193,7 +193,7 @@ type PayloadManager struct {
 	ResourcesCompressed *CompressedJSONArrayWriter
 	MessagesCompressed  *CompressedJSONArrayWriter
 	EventsChunked       *CompressedJSONArrayWriter
-	ChunkOffset         int
+	ChunkIndex          int
 	files               map[FileType]*FileInfo
 }
 
@@ -292,7 +292,7 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		}
 	}
 
-	manager.ChunkOffset = -1
+	manager.ChunkIndex = -1
 	files[EventsChunked] = &FileInfo{
 		ddTag: "EventsChunked",
 		close: func() {},
@@ -305,8 +305,8 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	fileInfo := pm.files[EventsChunked]
 	fileInfo.close()
 
-	pm.ChunkOffset += 1
-	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkOffset)
+	pm.ChunkIndex += 1
+	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
 	fileInfo.suffix = suffix
 	close, file, err := createFile(filenamePrefix + suffix)
 

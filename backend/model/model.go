@@ -460,9 +460,9 @@ type Session struct {
 
 type EventChunk struct {
 	Model
-	SessionID int `gorm:"index"`
-	Index     int
-	Timestamp int64
+	SessionID  int `gorm:"index"`
+	ChunkIndex int
+	Timestamp  int64
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

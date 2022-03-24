@@ -257,9 +257,9 @@ type ComplexityRoot struct {
 	}
 
 	EventChunk struct {
-		Index     func(childComplexity int) int
-		SessionID func(childComplexity int) int
-		Timestamp func(childComplexity int) int
+		ChunkIndex func(childComplexity int) int
+		SessionID  func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
 	}
 
 	ExternalAttachment struct {
@@ -1915,12 +1915,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
 
-	case "EventChunk.index":
-		if e.complexity.EventChunk.Index == nil {
+	case "EventChunk.chunk_index":
+		if e.complexity.EventChunk.ChunkIndex == nil {
 			break
 		}
 
-		return e.complexity.EventChunk.Index(childComplexity), true
+		return e.complexity.EventChunk.ChunkIndex(childComplexity), true
 
 	case "EventChunk.session_id":
 		if e.complexity.EventChunk.SessionID == nil {
@@ -5899,7 +5899,7 @@ type MetricMonitor {
 
 type EventChunk {
     session_id: Int!
-    index: Int!
+    chunk_index: Int!
     timestamp: Int64!
 }
 
@@ -15362,7 +15362,7 @@ func (ec *executionContext) _EventChunk_session_id(ctx context.Context, field gr
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EventChunk_index(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
+func (ec *executionContext) _EventChunk_chunk_index(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15380,7 +15380,7 @@ func (ec *executionContext) _EventChunk_index(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Index, nil
+		return obj.ChunkIndex, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31344,8 +31344,8 @@ func (ec *executionContext) _EventChunk(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "index":
-			out.Values[i] = ec._EventChunk_index(ctx, field, obj)
+		case "chunk_index":
+			out.Values[i] = ec._EventChunk_chunk_index(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
