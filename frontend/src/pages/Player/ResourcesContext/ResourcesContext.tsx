@@ -5,6 +5,7 @@ import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { RequestResponsePair } from 'highlight.run/dist/client/src/listeners/network-listener/utils/models';
 import { useCallback, useEffect, useState } from 'react';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { createContext } from '../../../util/context/context';
 
@@ -25,6 +26,10 @@ export const useResources = (
 ): ResourcesContext => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [sessionSecureId, setSessionSecureId] = useState<string>();
+    const [downloadResources] = useQueryParam(
+        'downloadresources',
+        BooleanParam
+    );
 
     const { refetch: refetchSession } = useGetSessionQuery({
         fetchPolicy: 'no-cache',
@@ -73,6 +78,21 @@ export const useResources = (
                 })
         );
     }, [data?.resources]);
+
+    useEffect(() => {
+        if (downloadResources && resources.length > 0) {
+            const a = document.createElement('a');
+            const file = new Blob([JSON.stringify(resources)], {
+                type: 'application/json',
+            });
+
+            a.href = URL.createObjectURL(file);
+            a.download = `session-${session_secure_id}-resources.json`;
+            a.click();
+
+            URL.revokeObjectURL(a.href);
+        }
+    }, [downloadResources, resources, session_secure_id]);
 
     // If sessionSecureId is set and equals the current session's (ensures effect is run once)
     // and resources url is defined, fetch using resources url

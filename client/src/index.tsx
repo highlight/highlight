@@ -340,14 +340,6 @@ export class Highlight {
                         error?.response?.status >= 500) &&
                     retries < MAX_RETRIES
                 ) {
-                    logForHighlight(
-                        '[' +
-                            (this.sessionData?.sessionSecureID ||
-                                this.options?.sessionSecureID) +
-                            '] Retrying request after ' +
-                            retries +
-                            ' retries'
-                    );
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
