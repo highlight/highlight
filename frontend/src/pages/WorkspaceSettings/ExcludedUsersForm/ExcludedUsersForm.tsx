@@ -1,7 +1,7 @@
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
-import { Form, message, Select } from 'antd';
+import { message, Select } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useEffect, useState } from 'react';
 
@@ -64,9 +64,9 @@ export const ExcludedUsersForm = () => {
                 accepted). On completion, sessions from these users will be
                 excluded from your searches and quota.
             </p>
-            <Form.Item name={'excludedusers'}>
+            <div className={styles.inputAndButtonRow}>
                 <Select
-                    // className={styles.channelSelect}
+                    size={'large'}
                     mode="tags"
                     placeholder={`User identifiers that .`}
                     defaultValue={data?.project?.excluded_users || undefined}
@@ -74,9 +74,6 @@ export const ExcludedUsersForm = () => {
                         setExcludedUsers(excluded)
                     }
                 />
-            </Form.Item>
-            <div className={styles.fieldRow}>
-                <div className={styles.fieldKey} />
                 <Button
                     trackingId={`ExcludedUsersUpdate`}
                     htmlType="submit"

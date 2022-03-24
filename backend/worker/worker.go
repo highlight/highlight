@@ -235,7 +235,6 @@ func (w *Worker) isSessionIdentifierExcluded(ctx context.Context, s *model.Sessi
 }
 
 // TODO:
-// Align button correctly
 // Check email too
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
