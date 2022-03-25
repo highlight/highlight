@@ -144,7 +144,6 @@ var Models = []interface{}{
 	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
-	&EventChunk{},
 }
 
 func init() {
@@ -454,15 +453,6 @@ type Session struct {
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
-
-	Chunked *bool
-}
-
-type EventChunk struct {
-	Model
-	SessionID  int `gorm:"index"`
-	ChunkIndex int
-	Timestamp  int64
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
