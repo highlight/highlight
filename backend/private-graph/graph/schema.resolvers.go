@@ -32,6 +32,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -4745,6 +4746,39 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 	return metricMonitors, nil
 }
 
+func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, index int) (string, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return "", e.Wrap(err, "error fetching session for subscription")
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
+	if err != nil {
+		return "", e.Wrap(err, "error getting direct download URL")
+	}
+
+	if str == nil {
+		return "", e.Wrap(err, "nil direct download URL")
+	}
+
+	return *str, err
+}
+
+func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*model.EventChunk, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching session for subscription")
+	}
+
+	chunks := []*model.EventChunk{}
+	if err := r.DB.Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
+		Scan(&chunks).Error; err != nil {
+		return nil, e.Wrap(err, "fail")
+	}
+
+	return chunks, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -4766,7 +4800,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
@@ -4780,7 +4814,7 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources URL")
 	}
@@ -4794,7 +4828,7 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting messages URL")
 	}

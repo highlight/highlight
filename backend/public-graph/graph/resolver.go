@@ -1677,7 +1677,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	fieldsToUpdate := model.Session{
-		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Excluded: &model.F,
+		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
 	}
 
 	// We only want to update the `HasErrors` field if the session has errors.

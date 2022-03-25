@@ -46,6 +46,10 @@ const (
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 )
 
+func GetChunkedPayloadType(offset int) PayloadType {
+	return SessionContentsCompressed + PayloadType(fmt.Sprintf("-%04d", offset))
+}
+
 type StorageClient struct {
 	S3Client  *s3.Client
 	URLSigner *sign.URLSigner
@@ -84,12 +88,15 @@ func getURLSigner() *sign.URLSigner {
 }
 
 func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
+	log.Infof("[%d] pushFileToS3WithOptions", sessionId)
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
+	log.Infof("[%d] seeked", sessionId)
 
 	key := s.bucketKey(sessionId, projectId, payloadType)
+	log.Infof("[%d] generated bucket key", sessionId)
 
 	options.Bucket = &bucket
 	options.Key = key
@@ -99,14 +106,19 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 		return nil, err
 	}
 
+	log.Infof("[%d] put object", sessionId)
+
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
 	}
+
 	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
+	log.Infof("[%d] head object", sessionId)
+
 	return &result.ContentLength, nil
 }
 
@@ -135,6 +147,7 @@ func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId 
 
 	var totalSize int64
 	for fileType, payloadType := range payloadTypes {
+		log.Infof("[%d] pushing %s", sessionId, payloadType)
 		var size *int64
 		var err error
 		if payloadType == SessionContentsCompressed ||
@@ -146,9 +159,11 @@ func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId 
 		}
 
 		if err != nil {
+			log.Infof("[%d] error pushing %s", sessionId, payloadType)
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
 		}
 
+		log.Infof("[%d] success pushing %s", sessionId, payloadType)
 		if size != nil {
 			totalSize += *size
 		}
@@ -302,13 +317,18 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 	return buf.Bytes(), nil
 }
 
-func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, payloadType PayloadType) (*string, error) {
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error) {
 	if s.URLSigner == nil {
 		return nil, nil
 	}
 
 	key := s.bucketKey(sessionId, projectId, payloadType)
-	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	var unsignedURL string
+	if chunkId != nil {
+		unsignedURL = fmt.Sprintf("https://%s/%s-%04d", CloudfrontDomain, *key, *chunkId)
+	} else {
+		unsignedURL = fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	}
 	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 	if err != nil {
 		return nil, errors.Wrap(err, "error signing URL")
