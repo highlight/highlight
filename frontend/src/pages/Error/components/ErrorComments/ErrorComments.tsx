@@ -20,7 +20,7 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
     onClickCreateComment?: () => void;
 }
-const ErrorComments = ({ parentRef, onClickCreateComment }: Props) => {
+const ErrorComments = ({ onClickCreateComment }: Props) => {
     return (
         <>
             <div
