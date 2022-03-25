@@ -3,6 +3,7 @@ import {
     useAuthContext,
 } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
+import { ErrorCreateCommentModal } from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal';
 import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
@@ -137,6 +138,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
     const [searchQuery, setSearchQuery] = useState('');
+    const [
+        showCreateCommentModal,
+        setShowCreateCommentModal,
+    ] = useState<boolean>(false);
 
     return (
         <ErrorSearchContextProvider
@@ -170,6 +175,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 >
                     <ErrorSearchPanel />
                 </div>
+                <ErrorCreateCommentModal
+                    show={showCreateCommentModal}
+                    onClose={() => setShowCreateCommentModal(false)}
+                />
                 {error_secure_id && !errorQueryingErrorGroup ? (
                     <>
                         <Helmet>
@@ -198,6 +207,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 ) : (
                                     <ErrorTitle
                                         errorGroup={data?.error_group}
+                                        onClickCreateComment={() =>
+                                            setShowCreateCommentModal(true)
+                                        }
                                     />
                                 )}
                             </div>
@@ -346,6 +358,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             <ErrorRightPanel
                                 errorGroup={data}
                                 parentRef={newCommentModalRef}
+                                onClickCreateComment={() => {
+                                    setShowCreateCommentModal(true);
+                                }}
                             />
                         </div>
                     </>

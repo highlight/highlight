@@ -1,4 +1,5 @@
 import Tag from '@components/Tag/Tag';
+import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
 
@@ -12,9 +13,14 @@ interface Props {
         | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
         | undefined;
     showShareButton?: boolean;
+    onClickCreateComment?: () => void;
 }
 
-const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
+const ErrorTitle = ({
+    errorGroup,
+    showShareButton = true,
+    onClickCreateComment,
+}: Props) => {
     const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null);
 
     const headerText = getHeaderFromError(errorGroup?.event ?? []);
@@ -45,6 +51,10 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                 {showShareButton && (
                     <ErrorShareButton errorGroup={errorGroup} />
                 )}
+                <ErrorCommentButton
+                    onClick={onClickCreateComment ?? (() => {})}
+                    trackingId="CreateErrorCommentTop"
+                />
             </div>
             {errorGroup?.type && (
                 <Tag

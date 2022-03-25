@@ -1,0 +1,9 @@
+.button {
+    border-radius: var(--size-xSmall) !important;
+    column-gap: var(--size-small);
+    display: flex;
+    font-size: 14px !important;
+    height: 34px;
+    justify-content: center;
+    width: 140px;
+}

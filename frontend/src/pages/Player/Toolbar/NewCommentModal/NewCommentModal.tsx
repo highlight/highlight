@@ -16,6 +16,7 @@ interface Props {
     session?: Session;
     session_secure_id?: string;
     error_secure_id?: string;
+    mask?: boolean;
 }
 export function NewCommentModal({
     newCommentModalRef,
@@ -26,9 +27,11 @@ export function NewCommentModal({
     onCancel,
     session_secure_id,
     error_secure_id,
+    mask,
 }: Props) {
     return (
         <Modal
+            mask={!!mask}
             visible={commentModalPosition !== undefined}
             onCancel={onCancel}
             // Sets the Modal's mount node as the player center panel.
@@ -58,7 +61,6 @@ export function NewCommentModal({
                 ),
                 margin: 0,
             }}
-            mask={false}
             modalRender={(node) => (
                 <div className={styles.commentModal}>{node}</div>
             )}
