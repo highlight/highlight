@@ -86,7 +86,7 @@ export type Mutation = {
   identifySession?: Maybe<Scalars['ID']>;
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
-  pushPayload: Scalars['Int'];
+  pushPayload?: Maybe<Scalars['ID']>;
   pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
   addWebVitals: Scalars['ID'];

@@ -74,7 +74,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{ObjectStorageEnabled: &model.T, Chunked: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
+		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
@@ -90,53 +90,6 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
-	events, err := parse.EventsFromString(eventObject.Events)
-	if err != nil {
-		return errors.Wrap(err, "error parsing events from string")
-	}
-	var timestamp int64
-	for _, event := range events.Events {
-		if event.Type == parse.FullSnapshot {
-			timestamp = int64(event.TimestampRaw)
-			break
-		}
-	}
-	if timestamp != 0 {
-		sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
-		if manager.EventsChunked != nil {
-			manager.EventsChunked.Close()
-		}
-		curChunkedFile := manager.GetFile(payload.EventsChunked)
-		if curChunkedFile != nil {
-			curOffset := manager.ChunkIndex
-			_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
-			if err != nil {
-				return errors.Wrap(err, "error pushing event chunk file to s3")
-			}
-		}
-		if err := manager.NewChunkedFile(sessionIdString); err != nil {
-			return errors.Wrap(err, "error creating new chunked events file")
-		}
-		eventChunk := &model.EventChunk{
-			SessionID:  s.ID,
-			ChunkIndex: manager.ChunkIndex,
-			Timestamp:  int64(timestamp),
-		}
-		if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
-			return errors.Wrap(err, "error saving event chunk metadata")
-		}
-	}
-	if manager.GetFile(payload.EventsChunked) != nil {
-		if err := manager.EventsChunked.WriteObject(eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			if err != nil {
-				return errors.Wrap(err, "error writing chunked event")
-			}
-		}
-	}
-	return nil
-}
-
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).
@@ -147,7 +100,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
-	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
@@ -161,27 +113,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			return errors.Wrap(err, "error writing compressed event row")
 		}
 		numberOfRows += 1
-		if writeChunks {
-			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
-				return errors.Wrap(err, "error writing event chunk")
-			}
-		}
 	}
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
-	}
-	if manager.EventsChunked != nil {
-		if err := manager.EventsChunked.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed events chunk writer")
-		}
-	}
-	fileToS3 := manager.GetFile(payload.EventsChunked)
-	if writeChunks && fileToS3 != nil {
-		_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkIndex))
-		if err != nil {
-			return errors.Wrap(err, "error pushing event chunk file to s3")
-		}
 	}
 
 	// Fetch/write resources.
@@ -271,15 +206,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error creating payload manager")
 	}
 	defer payloadManager.Close()
-
-	// Delete any event chunks which were previously written for this session
-	if err := w.Resolver.DB.Exec(`
-		DELETE 
-		FROM event_chunks
-		WHERE session_id = ?
-	`, s.ID).Error; err != nil {
-		return errors.Wrap(err, "failed to delete existing event chunks")
-	}
 
 	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
 		return errors.Wrap(err, "error scanning session payload")
