@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { DangerForm } from './DangerForm/DangerForm';
+import { ExcludedUsersForm } from './ExcludedUsersForm/ExcludedUsersForm';
 import { FieldsForm } from './FieldsForm/FieldsForm';
 import styles from './WorkspaceSettings.module.scss';
 
@@ -22,6 +23,10 @@ const ProjectSettings = () => {
                 <div className={styles.fieldsBox}>
                     <h3>Project Properties</h3>
                     <FieldsForm />
+                </div>
+                <div className={styles.fieldsBox}>
+                    <h3>Excluded Sessions</h3>
+                    <ExcludedUsersForm />
                 </div>
                 <div className={styles.fieldsBox}>
                     <h3 className={classNames(styles.dangerTitle)}>

@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"time"
@@ -263,6 +264,61 @@ func (w *Worker) DeleteCompletedSessions() {
 	}
 }
 
+func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
+	s.Excluded = &model.T
+	s.Processed = &model.T
+	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"Excluded":  true,
+		"processed": true,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	return nil
+}
+
+func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
+	var project model.Project
+	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
+		return false
+	}
+	if project.ExcludedUsers == nil {
+		return false
+	}
+	var email string
+	if s.UserProperties != "" {
+		encodedProperties := []byte(s.UserProperties)
+		decodedProperties := map[string]string{}
+		err := json.Unmarshal(encodedProperties, &decodedProperties)
+		if err != nil {
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
+			return false
+		}
+		email = decodedProperties["email"]
+	}
+	for _, value := range []string{s.Identifier, email} {
+		if value == "" {
+			continue
+		}
+		for _, excludedExpr := range project.ExcludedUsers {
+			matched, err := regexp.MatchString(excludedExpr, value)
+			if err != nil {
+				log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
+				return false
+			} else if matched {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
@@ -505,21 +561,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if accumulator.ActiveDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		s.Excluded = &model.T
-		s.Processed = &model.T
-		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
-		}
+		return w.excludeSession(ctx, s)
+	}
 
-		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-			"Excluded":  true,
-			"processed": true,
-		}); err != nil {
-			return e.Wrap(err, "error updating session in opensearch")
-		}
-
-		return nil
+	if w.isSessionUserExcluded(ctx, s) {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
+		return w.excludeSession(ctx, s)
 	}
 
 	log.Infof("[%d] updates", s.ID)
