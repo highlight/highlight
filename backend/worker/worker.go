@@ -313,6 +313,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
+	log.Infof("[%d] seek start", s.ID)
+
 	var userInteractionEvents []*parse.ReplayEvent
 	accumulator := MakeEventProcessingAccumulator(s.SecureID)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
@@ -356,6 +358,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 		}
 	}
+
+	log.Infof("[%d] rage clicks", s.ID)
+
 	for i, r := range accumulator.RageClickSets {
 		r.SessionSecureID = s.SecureID
 		r.ProjectID = s.ProjectID
@@ -382,6 +387,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	sort.Slice(userInteractionEvents, func(i, j int) bool {
 		return userInteractionEvents[i].Timestamp.UnixNano() < userInteractionEvents[j].Timestamp.UnixNano()
 	})
+
+	log.Infof("[%d] intervals", s.ID)
 
 	var allIntervals []model.SessionInterval
 	startTime := userInteractionEvents[0].Timestamp
@@ -468,6 +475,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
+	log.Infof("[%d] event counts", s.ID)
+
 	var eventCountsLen int64 = 100
 	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
 	eventCounts := make([]int64, eventCountsLen)
@@ -513,6 +522,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
+	log.Infof("[%d] updates", s.ID)
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -538,6 +549,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
+	log.Infof("[%d] time/date", s.ID)
+
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	dailySession := &model.DailySessionCount{}
@@ -562,6 +575,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
+
+	log.Infof("[%d] goroutines", s.ID)
 
 	g.Go(func() error {
 		if len(accumulator.RageClickSets) < 1 {
@@ -624,10 +639,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	})
 
+	log.Infof("[%d] waits", s.ID)
+
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error sending slack alert"))
 	}
+
+	log.Infof("[%d] gonna push", s.ID)
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
@@ -636,6 +655,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
+	log.Infof("[%d] pushed", s.ID)
+
 	return nil
 }
 
@@ -730,6 +751,7 @@ func (w *Worker) Start() {
 			session := session
 			ctx := ctx
 			wp.SubmitRecover(func() {
+				log.Infof("[%d] starting processing", session.ID)
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
@@ -755,6 +777,7 @@ func (w *Worker) Start() {
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
+				log.Infof("[%d] finished processing", session.ID)
 				hlog.Incr("sessionsProcessed", nil, 1)
 				span.Finish()
 			})
