@@ -32,8 +32,9 @@
     display: flex;
     justify-content: center;
     margin: 8px 0;
-    min-height: 40px;
     outline: none;
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
     width: 100%;
 }
 

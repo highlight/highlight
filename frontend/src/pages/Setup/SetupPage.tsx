@@ -744,8 +744,9 @@ const MoreSetup = ({
                         </p>
                         <div className={styles.integrationContainer}>
                             <ButtonLink
-                                to="https://docs.highlight.run/proxying-highlight"
+                                href="https://docs.highlight.run/proxying-highlight"
                                 trackingId="ProxyDocsFromSetupPage"
+                                anchor
                             >
                                 Set Up Proxy
                             </ButtonLink>

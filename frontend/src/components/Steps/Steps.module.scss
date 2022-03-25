@@ -95,6 +95,8 @@
 
     > button {
         margin: 0 !important;
+        padding-bottom: var(--size-xxSmall);
+        padding-top: var(--size-xxSmall);
     }
 
     .nextButton {
