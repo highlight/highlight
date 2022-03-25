@@ -1,14 +1,18 @@
+import { LoadingOutlined } from '@ant-design/icons';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage';
 import { useGetProjectQuery } from '@graph/hooks';
 import { GetProjectQuery } from '@graph/operations';
 import { Admin } from '@graph/schemas';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import { Spin } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useEffect, useState } from 'react';
@@ -34,7 +38,8 @@ interface SetupStep {
     displayName: string;
     path: string;
     action?: () => void;
-    completed: boolean;
+    completed: boolean | undefined;
+    loading: boolean;
     tooltip?: string;
 }
 
@@ -76,6 +81,16 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         variables: { id: project_id },
     });
     const [steps, setSteps] = useState<SetupStep[]>([]);
+    const {
+        isSlackConnectedToWorkspace,
+        loading: isSlackConnectedLoading,
+    } = useSlackBot({
+        type: 'Organization',
+    });
+    const {
+        isLinearIntegratedWithProject,
+        loading: isLinearConnectedLoading,
+    } = useLinearIntegration();
 
     useEffect(() => {
         const STEPS: SetupStep[] = [];
@@ -85,6 +100,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             action: () => {
                 history.push(`/${project_id}/setup/client`);
             },
+            loading: !integrated && integrated !== false,
             completed: integrated,
         });
         STEPS.push({
@@ -93,18 +109,29 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             action: () => {
                 history.push(`/${project_id}/setup/backend`);
             },
+            loading: false,
             completed: false,
         });
         STEPS.push({
-            displayName: 'More Features',
+            displayName: 'Features/Integrations',
             path: 'more',
             action: () => {
                 history.push(`/${project_id}/setup/more`);
             },
-            completed: false,
+            loading: isSlackConnectedLoading || isLinearConnectedLoading,
+            completed:
+                isSlackConnectedToWorkspace || isLinearIntegratedWithProject,
         });
         setSteps(STEPS);
-    }, [history, integrated, project_id]);
+    }, [
+        history,
+        integrated,
+        isLinearConnectedLoading,
+        isLinearIntegratedWithProject,
+        isSlackConnectedLoading,
+        isSlackConnectedToWorkspace,
+        project_id,
+    ]);
 
     return (
         <>
@@ -133,16 +160,32 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                             className={classNames(
                                                 styles.checkWrapper,
                                                 {
+                                                    [styles.checkWrapperIncomplete]:
+                                                        s.completed == false,
                                                     [styles.checkWrapperCompleted]:
                                                         s.completed,
                                                 }
                                             )}
                                         >
-                                            <CheckIcon
-                                                className={classNames(
-                                                    styles.checkIcon
-                                                )}
-                                            />
+                                            {s.loading ? (
+                                                <div>
+                                                    <Spin
+                                                        indicator={
+                                                            <LoadingOutlined
+                                                                className={
+                                                                    styles.loadingIcon
+                                                                }
+                                                            />
+                                                        }
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <CheckIcon
+                                                    className={classNames(
+                                                        styles.checkIcon
+                                                    )}
+                                                />
+                                            )}
                                         </div>{' '}
                                         {s.displayName}
                                     </li>
@@ -631,6 +674,7 @@ const MoreSetup = ({
                             </span>
                         }
                         id="slackAlerts"
+                        defaultOpen
                     >
                         <p>
                             Get notified of different events happening in your
@@ -654,10 +698,67 @@ const MoreSetup = ({
                     <Section
                         title={
                             <span className={styles.sectionTitleWithIcon}>
+                                Integrations
+                            </span>
+                        }
+                        id="integrations"
+                        defaultOpen
+                    >
+                        <p>
+                            Supercharge your workflows and attach Highlight with
+                            the tools you use everyday such as:
+                        </p>
+                        <ul>
+                            <li>Slack</li>
+                            <li>Linear</li>
+                        </ul>
+                        <div className={styles.integrationContainer}>
+                            <ButtonLink
+                                to={`/${project_id}/integrations`}
+                                trackingId="ConfigureIntegrationsFromSetupPage"
+                            >
+                                Enable Integrations
+                            </ButtonLink>
+                        </div>
+                    </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Proxying Highlight
+                            </span>
+                        }
+                        id="proxying"
+                        defaultOpen
+                    >
+                        <p>
+                            If you're not seeing sessions or errors on
+                            Highlight, chances are that requests to Highlight
+                            are being blocked. This can happen for different
+                            reasons such as a third-party browser extensions,
+                            browser configuration, or VPN settings.
+                        </p>
+                        <p>
+                            One way we can avoid this is by setting up proxy
+                            from your domain to Highlight. To do this, you will
+                            need access to your domain's DNS settings.
+                        </p>
+                        <div className={styles.integrationContainer}>
+                            <ButtonLink
+                                to="https://docs.highlight.run/proxying-highlight"
+                                trackingId="ProxyDocsFromSetupPage"
+                            >
+                                Set Up Proxy
+                            </ButtonLink>
+                        </div>
+                    </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
                                 Read the Docs
                             </span>
                         }
-                        id="slackAlerts"
+                        id="docs"
+                        defaultOpen
                     >
                         <p>
                             Interested in learning how Highlight can help you

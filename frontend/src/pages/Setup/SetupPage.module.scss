@@ -75,12 +75,12 @@
 .fieldsBox {
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    padding: 30px;
     width: 100%;
 
     h3 {
+        border-bottom: 1px solid var(--color-gray-300);
         font-size: 18px;
-        margin-bottom: var(--size-large) !important;
+        padding: var(--size-small) var(--size-large);
     }
 }
 
@@ -90,12 +90,14 @@
 
 .leftColumn {
     flex: 0 0 300px;
+    height: 50vh;
     padding-right: var(--size-xLarge);
+    position: sticky;
+    top: 120px;
 }
 
 .checkWrapper {
     align-items: center;
-    background-color: var(--color-gray-400);
     border-radius: 50%;
     display: flex;
     height: 20px;
@@ -103,9 +105,24 @@
     padding: 3px;
     width: 20px;
 
+    &.checkWrapperIncomplete {
+        background-color: var(--color-gray-400);
+    }
+
     &.checkWrapperCompleted {
         background-color: var(--color-green-400);
     }
+}
+
+:global(.ant-spin),
+:global(svg),
+.loadingIcon {
+    height: var(--size);
+    width: var(--size);
+}
+
+.loadingIcon {
+    color: var(--color-gray-600);
 }
 
 .checkIcon {
@@ -120,9 +137,7 @@
     display: flex;
     flex-direction: column;
     list-style: none;
-    margin-bottom: var(--size-small);
-    margin-top: var(--size-medium);
-    padding: 0;
+    padding: var(--size-xSmall) var(--size-large);
     row-gap: var(--size-small);
 
     li {

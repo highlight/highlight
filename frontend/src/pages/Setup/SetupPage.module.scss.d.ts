@@ -1,6 +1,7 @@
 export const checkIcon: string;
 export const checkWrapper: string;
 export const checkWrapperCompleted: string;
+export const checkWrapperIncomplete: string;
 export const codeBlockBasic: string;
 export const codeBlockInlined: string;
 export const fieldsBox: string;
@@ -8,6 +9,7 @@ export const flexLayout: string;
 export const headingWrapper: string;
 export const integrationContainer: string;
 export const leftColumn: string;
+export const loadingIcon: string;
 export const platformOption: string;
 export const radioGroupWrapper: string;
 export const sectionTitleWithIcon: string;
