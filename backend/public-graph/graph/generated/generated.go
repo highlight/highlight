@@ -73,7 +73,7 @@ type MutationResolver interface {
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (*int, error)
+	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 	AddWebVitals(ctx context.Context, sessionID int, metric model.WebVitalMetricInput) (int, error)
@@ -401,7 +401,7 @@ type Mutation {
         is_beacon: Boolean
         has_session_unloaded: Boolean
         highlight_logs: String
-    ): ID
+    ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     addSessionFeedback(
         session_id: ID!
@@ -1050,11 +1050,14 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_pushBackendPayload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2912,6 +2915,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addSessionProperties(ctx, field)
 		case "pushPayload":
 			out.Values[i] = ec._Mutation_pushPayload(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pushBackendPayload":
 			out.Values[i] = ec._Mutation_pushBackendPayload(ctx, field)
 		case "addSessionFeedback":

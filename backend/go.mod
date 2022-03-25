@@ -10,6 +10,7 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
+	github.com/DmitriyVTitov/size v1.1.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/andybalholm/brotli v1.0.3
 	github.com/aws/aws-sdk-go-v2 v1.9.2
