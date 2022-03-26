@@ -415,6 +415,9 @@ export class Highlight {
                 this.addProperties({ event: 'Intercom onShow' });
             });
         }
+
+        this._eventBytesSinceSnapshot = 0;
+        this._lastSnapshotTime = new Date().getTime();
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -1211,7 +1214,7 @@ export class Highlight {
             // take a full snapshot and reset the counters
             if (
                 this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
-                this._lastSnapshotTime - now >= MIN_SNAPSHOT_TIME
+                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
             ) {
                 record.takeFullSnapshot();
                 this._eventBytesSinceSnapshot = 0;
