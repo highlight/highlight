@@ -1,4 +1,5 @@
 import Tag from '@components/Tag/Tag';
+import SvgBugIcon from '@icons/BugIcon';
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
@@ -53,8 +54,11 @@ const ErrorTitle = ({
                 )}
                 <ErrorCommentButton
                     onClick={onClickCreateComment ?? (() => {})}
-                    trackingId="CreateErrorCommentTop"
-                />
+                    trackingId="CreateErrorIssue"
+                >
+                    <SvgBugIcon />
+                    <span>Create an Issue</span>
+                </ErrorCommentButton>
             </div>
             {errorGroup?.type && (
                 <Tag

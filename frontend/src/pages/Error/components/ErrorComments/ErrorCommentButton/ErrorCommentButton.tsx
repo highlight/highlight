@@ -9,7 +9,18 @@ interface Props {
     trackingId?: string;
 }
 
-export function ErrorCommentButton({ onClick, trackingId }: Props) {
+export function ErrorCommentButton({
+    onClick,
+    trackingId,
+    children,
+}: React.PropsWithChildren<Props>) {
+    if (!children)
+        children = (
+            <>
+                <SvgAnnotationDotsIcon />
+                <span>Comment</span>
+            </>
+        );
     return (
         <Button
             type="primary"
@@ -17,8 +28,7 @@ export function ErrorCommentButton({ onClick, trackingId }: Props) {
             onClick={onClick}
             className={styles.button}
         >
-            <SvgAnnotationDotsIcon />
-            <span>Comment</span>
+            {children}
         </Button>
     );
 }
