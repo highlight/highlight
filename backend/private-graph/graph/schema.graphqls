@@ -54,6 +54,7 @@ type Session {
     messages_url: String
     deviceMemory: Int
     last_user_interaction_time: Timestamp!
+    chunked: Boolean
 }
 
 type SessionInterval {
@@ -667,6 +668,12 @@ type MetricMonitor {
     disabled: Boolean!
 }
 
+type EventChunk {
+    session_id: Int!
+    chunk_index: Int!
+    timestamp: Int64!
+}
+
 scalar Upload
 
 type Query {
@@ -829,6 +836,8 @@ type Query {
         aggregateFunction: String!
     ): [MetricPreview]!
     metric_monitors(project_id: ID!): [MetricMonitor]!
+    event_chunk_url(secure_id: String!, index: Int!): String!
+    event_chunks(secure_id: String!): [EventChunk!]!
 }
 
 type Mutation {
