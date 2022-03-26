@@ -149,6 +149,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+	log.Infof("[%d] iterating event rows", s.ID)
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
@@ -168,6 +169,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			}
 		}
 	}
+	log.Infof("[%d] done event rows", s.ID)
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
@@ -184,6 +186,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}
 	}
+	log.Infof("[%d] done pushing compressed file", s.ID)
 
 	// Fetch/write resources.
 	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
@@ -210,6 +213,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	if err := manager.ResourcesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed resources writer")
 	}
+	log.Infof("[%d] done writing resources", s.ID)
 
 	// Fetch/write messages.
 	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
@@ -236,6 +240,8 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	if err := manager.MessagesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed messages writer")
 	}
+	log.Infof("[%d] done writing messages", s.ID)
+
 	return nil
 }
 
