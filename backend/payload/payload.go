@@ -350,6 +350,9 @@ func (pm *PayloadManager) GetFile(fileType FileType) *os.File {
 func (pm *PayloadManager) SeekStart() {
 	for _, fileInfo := range pm.files {
 		file := fileInfo.file
+		if file == nil {
+			continue
+		}
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
 		}
