@@ -45,9 +45,11 @@ const SessionLevelBar = React.memo(() => {
                         {session.excluded ? (
                             <SessionToken
                                 icon={<SvgWarningTriangle />}
-                                tooltipTitle="The session is not included in search results due to an error."
+                                tooltipTitle="The session is not included in search results due to an error on our end."
                             >
-                                Not in Search Results
+                                <span className={styles.sessionExcluded}>
+                                    Not in Search Results
+                                </span>
                             </SessionToken>
                         ) : null}
                         <SessionToken
