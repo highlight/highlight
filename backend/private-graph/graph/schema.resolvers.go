@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -328,14 +329,21 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
+	for _, expression := range excludedUsers {
+		_, err := regexp.Compile(expression)
+		if err != nil {
+			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
+		}
+	}
 	if err := r.DB.Model(project).Updates(&model.Project{
-		Name:         name,
-		BillingEmail: billingEmail,
+		Name:          name,
+		BillingEmail:  billingEmail,
+		ExcludedUsers: excludedUsers,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}

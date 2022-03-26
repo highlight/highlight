@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go"
@@ -233,7 +234,8 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
-	FreeTier            bool `gorm:"default:false"`
+	FreeTier            bool           `gorm:"default:false"`
+	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 }
 
 type HasSecret interface {

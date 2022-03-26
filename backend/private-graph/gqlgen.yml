@@ -61,3 +61,6 @@ models:
   Timestamp:
     model:
       - github.com/highlight-run/highlight/backend/model.Timestamp
+  StringArray:
+    model:
+      - github.com/highlight-run/highlight/backend/model.StringArray

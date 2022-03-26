@@ -3,6 +3,7 @@
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar StringArray
 
 type Field {
     id: ID!
@@ -175,6 +176,7 @@ type Project {
     billing_email: String
     secret: String
     workspace_id: ID!
+    excluded_users: StringArray
 }
 
 type Account {
@@ -842,7 +844,12 @@ type Mutation {
     updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
-    editProject(id: ID!, name: String, billing_email: String): Project
+    editProject(
+        id: ID!
+        name: String
+        billing_email: String
+        excluded_users: StringArray
+    ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
     markSessionAsStarred(secure_id: String!, starred: Boolean): Session
