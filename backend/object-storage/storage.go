@@ -88,15 +88,12 @@ func getURLSigner() *sign.URLSigner {
 }
 
 func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
-	log.Infof("[%d] pushFileToS3WithOptions", sessionId)
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
-	log.Infof("[%d] seeked", sessionId)
 
 	key := s.bucketKey(sessionId, projectId, payloadType)
-	log.Infof("[%d] generated bucket key", sessionId)
 
 	options.Bucket = &bucket
 	options.Key = key
@@ -105,8 +102,6 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 	if err != nil {
 		return nil, err
 	}
-
-	log.Infof("[%d] put object", sessionId)
 
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),
@@ -117,7 +112,6 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
-	log.Infof("[%d] head object", sessionId)
 
 	return &result.ContentLength, nil
 }
@@ -147,7 +141,6 @@ func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId 
 
 	var totalSize int64
 	for fileType, payloadType := range payloadTypes {
-		log.Infof("[%d] pushing %s", sessionId, payloadType)
 		var size *int64
 		var err error
 		if payloadType == SessionContentsCompressed ||
@@ -159,11 +152,9 @@ func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId 
 		}
 
 		if err != nil {
-			log.Infof("[%d] error pushing %s", sessionId, payloadType)
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
 		}
 
-		log.Infof("[%d] success pushing %s", sessionId, payloadType)
 		if size != nil {
 			totalSize += *size
 		}
