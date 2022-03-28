@@ -120,6 +120,7 @@ const TimelineIndicators = React.memo(() => {
         rageClicks,
         sessionIntervals,
         pause,
+        sessionMetadata,
     } = useReplayerContext();
     const {
         selectedTimelineAnnotationTypes,
@@ -174,7 +175,7 @@ const TimelineIndicators = React.memo(() => {
                     selectedTimelineAnnotationTypes
                 }
                 rageClicks={rageClicks}
-                startTime={replayer?.getMetaData()?.startTime}
+                startTime={sessionMetadata.startTime}
                 pause={pause}
             />
         </>

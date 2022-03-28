@@ -25,7 +25,7 @@ type Props = {
 };
 
 const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
-    const { pause, session, replayer } = useReplayerContext();
+    const { pause, session, sessionMetadata } = useReplayerContext();
     const { errors, isPlayerReady } = useReplayerContext();
     const {
         resources,
@@ -137,10 +137,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                                     )}.`
                                 );
                             } else if (error) {
-                                const sessionTotalTime = replayer?.getMetaData()
-                                    .totalTime;
+                                const sessionTotalTime =
+                                    sessionMetadata.totalTime;
                                 const sessionStartTime =
-                                    replayer?.getMetaData().startTime || 0;
+                                    sessionMetadata.startTime;
 
                                 const relativeTime =
                                     new Date(error.timestamp).getTime() -

@@ -57,6 +57,7 @@ export const usePlayerKeyboardShortcuts = () => {
         time,
         replayer,
         sessionResults,
+        sessionMetadata,
     } = useReplayerContext();
     const { setIsPlayerFullscreen } = usePlayerUIContext();
     const {
@@ -160,7 +161,7 @@ export const usePlayerKeyboardShortcuts = () => {
                 H.track('PlayerSkipForwardsKeyboardShortcut');
                 moveFocusToDocument(e);
 
-                const totalTime = replayer?.getMetaData().totalTime;
+                const totalTime = sessionMetadata.totalTime;
                 const newTime = getNewTimeWithSkip({
                     time,
                     direction: 'forwards',

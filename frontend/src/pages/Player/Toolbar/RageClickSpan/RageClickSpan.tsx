@@ -18,7 +18,7 @@ interface Props {
 
 const RageClickSpan = ({ rageClick }: Props) => {
     const [isHovered, setIsHovered] = useState(false);
-    const { pause, replayer } = useReplayerContext();
+    const { pause, replayer, sessionMetadata } = useReplayerContext();
 
     return (
         <Popover
@@ -68,7 +68,7 @@ const RageClickSpan = ({ rageClick }: Props) => {
                                 if (replayer) {
                                     const newTime = moment(
                                         rageClick.startTimestamp
-                                    ).diff(replayer.getMetaData().startTime);
+                                    ).diff(sessionMetadata.startTime);
 
                                     pause(newTime);
                                     message.success(

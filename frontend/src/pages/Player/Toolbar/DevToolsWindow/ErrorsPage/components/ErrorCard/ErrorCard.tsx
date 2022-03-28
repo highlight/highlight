@@ -23,7 +23,10 @@ interface Props {
     setSelectedError: () => void;
     searchQuery: string;
     detailedPanel?: DetailedPanel;
-    replayerContext: Pick<ReplayerContextInterface, 'replayer' | 'setTime'>;
+    replayerContext: Pick<
+        ReplayerContextInterface,
+        'sessionMetadata' | 'setTime'
+    >;
 }
 
 const ErrorCard = React.memo(
@@ -33,7 +36,7 @@ const ErrorCard = React.memo(
         searchQuery,
         state,
         detailedPanel,
-        replayerContext: { replayer, setTime },
+        replayerContext: { sessionMetadata, setTime },
     }: Props) => {
         const [textAsJson, setTextAsJson] = useState<null | any>(null);
 
@@ -119,8 +122,7 @@ const ErrorCard = React.memo(
                                 const dateTimeErrorCreated = new Date(
                                     error.timestamp
                                 );
-                                const startTime = replayer?.getMetaData()
-                                    .startTime;
+                                const startTime = sessionMetadata.startTime;
                                 if (startTime) {
                                     const dateTimeSessionStart = new Date(
                                         startTime

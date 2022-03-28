@@ -24,6 +24,7 @@ interface Props {
     setCommentPosition: React.Dispatch<
         React.SetStateAction<Coordinates2D | undefined>
     >;
+    isLoadingEvents: boolean;
 }
 
 const PlayerCommentCanvas = React.memo(
@@ -32,6 +33,7 @@ const PlayerCommentCanvas = React.memo(
         isReplayerReady,
         modalPosition,
         setCommentPosition,
+        isLoadingEvents,
     }: Props) => {
         const { session_secure_id } = useParams<{
             session_secure_id: string;
@@ -119,6 +121,9 @@ const PlayerCommentCanvas = React.memo(
                 <button
                     style={{
                         visibility: isReplayerReady ? 'visible' : 'hidden',
+                        backdropFilter: isLoadingEvents
+                            ? 'blur(2px)'
+                            : undefined,
                     }}
                     className={classNames(playerStyles.rrwebPlayerDiv, {
                         [styles.commentButton]: isReplayerReady,

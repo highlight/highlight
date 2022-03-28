@@ -1,5 +1,6 @@
 import { Replayer } from '@highlight-run/rrweb';
 import {
+    playerMetaData,
     SessionInterval,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
@@ -111,6 +112,9 @@ export interface ReplayerContextInterface {
     setBrowserExtensionScriptURLs: React.Dispatch<
         React.SetStateAction<string[]>
     >;
+    isLoadingEvents: boolean;
+    setIsLoadingEvents: (isLoading: boolean) => void;
+    sessionMetadata: playerMetaData;
 }
 
 export const [

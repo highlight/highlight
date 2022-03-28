@@ -1591,6 +1591,29 @@ export type GetCommentTagsForProjectQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetEventChunkUrlQueryVariables = Types.Exact<{
+    secure_id: Types.Scalars['String'];
+    index: Types.Scalars['Int'];
+}>;
+
+export type GetEventChunkUrlQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'event_chunk_url'
+>;
+
+export type GetEventChunksQueryVariables = Types.Exact<{
+    secure_id: Types.Scalars['String'];
+}>;
+
+export type GetEventChunksQuery = { __typename?: 'Query' } & {
+    event_chunks: Array<
+        { __typename?: 'EventChunk' } & Pick<
+            Types.EventChunk,
+            'session_id' | 'chunk_index' | 'timestamp'
+        >
+    >;
+};
+
 export type GetSessionQueryVariables = Types.Exact<{
     secure_id: Types.Scalars['String'];
 }>;
@@ -1636,6 +1659,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'last_user_interaction_time'
             | 'length'
             | 'active_length'
+            | 'chunked'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -3485,6 +3509,8 @@ export const namedOperations = {
         GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
+        GetEventChunkURL: 'GetEventChunkURL' as const,
+        GetEventChunks: 'GetEventChunks' as const,
         GetSession: 'GetSession' as const,
         GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
         GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,

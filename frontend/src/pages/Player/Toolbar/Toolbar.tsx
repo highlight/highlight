@@ -74,6 +74,7 @@ export const Toolbar = React.memo(() => {
         sessionResults,
         session,
         sessionStartDateTime,
+        sessionMetadata,
     } = useReplayerContext();
     usePlayerKeyboardShortcuts();
     const {
@@ -98,7 +99,7 @@ export const Toolbar = React.memo(() => {
         project_id: string;
     }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
-    const max = replayer?.getMetaData().totalTime ?? 0;
+    const max = sessionMetadata.totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
@@ -229,7 +230,7 @@ export const Toolbar = React.memo(() => {
 
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton =
-        time >= (replayer?.getMetaData().totalTime ?? 0) && !isLiveMode;
+        time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode;
     const leftSidebarWidth = isPlayerFullscreen ? 0 : showLeftPanel ? 475 : 0;
     /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
     const staticSidebarWidth = isPlayerFullscreen
@@ -337,10 +338,8 @@ export const Toolbar = React.memo(() => {
                 {!isLiveMode && (
                     <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
                         <DevToolsWindow
-                            time={
-                                (replayer?.getMetaData().startTime ?? 0) + time
-                            }
-                            startTime={replayer?.getMetaData().startTime ?? 0}
+                            time={(sessionMetadata.startTime ?? 0) + time}
+                            startTime={sessionMetadata.startTime ?? 0}
                         />
                     </div>
                 )}
