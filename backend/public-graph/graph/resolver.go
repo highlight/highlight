@@ -1391,24 +1391,22 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 
 	putErrorsToDBSpan.Finish()
 
-	if events != nil {
-		// sets the backend_setup flag to true if no backend_setup flag exists
-		for _, eventObject := range events {
-			session := &model.Session{}
-			if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", eventObject.SessionSecureID).First(&session).Error; err != nil {
-				log.Error(e.Wrapf(err, "error reading from sessionSecureId"))
+	// sets the backend_setup flag to true if no backend_setup flag exists
+	for _, eventObject := range events {
+		session := &model.Session{}
+		if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", eventObject.SessionSecureID).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "error reading from sessionSecureId"))
+			return
+		}
+		var backendSetupCount int64
+		if err := r.DB.Model(&model.Session{}).Where("project_id = ? AND backend_setup=true", session.ProjectID).Count(&backendSetupCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying backend_setup flag"))
+			return
+		}
+		if backendSetupCount < 1 {
+			if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", eventObject.SessionSecureID).Updates(&model.Session{BackendSetup: &model.T}).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating backend_setup flag"))
 				return
-			}
-			var backendSetupCount int64
-			if err := r.DB.Model(&model.Session{}).Where("project_id = ? AND backend_setup=true", session.ProjectID).Count(&backendSetupCount).Error; err != nil {
-				log.Error(e.Wrap(err, "error querying backend_setup flag"))
-				return
-			}
-			if backendSetupCount < 1 {
-				if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", eventObject.SessionSecureID).Updates(&model.Session{BackendSetup: &model.T}).Error; err != nil {
-					log.Error(e.Wrap(err, "error updating backend_setup flag"))
-					return
-				}
 			}
 		}
 	}
