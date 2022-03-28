@@ -562,6 +562,7 @@ type ComplexityRoot struct {
 		EnableStrictPrivacy            func(childComplexity int) int
 		Environment                    func(childComplexity int) int
 		EventCounts                    func(childComplexity int) int
+		Excluded                       func(childComplexity int) int
 		FieldGroup                     func(childComplexity int) int
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
@@ -4305,6 +4306,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.EventCounts(childComplexity), true
 
+	case "Session.excluded":
+		if e.complexity.Session.Excluded == nil {
+			break
+		}
+
+		return e.complexity.Session.Excluded(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -5278,6 +5286,7 @@ type Session {
     viewed: Boolean
     starred: Boolean
     processed: Boolean
+    excluded: Boolean
     has_rage_clicks: Boolean
     has_errors: Boolean
     first_time: Boolean
@@ -24866,6 +24875,38 @@ func (ec *executionContext) _Session_processed(ctx context.Context, field graphq
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_excluded(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Excluded, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_has_rage_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33520,6 +33561,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_starred(ctx, field, obj)
 		case "processed":
 			out.Values[i] = ec._Session_processed(ctx, field, obj)
+		case "excluded":
+			out.Values[i] = ec._Session_excluded(ctx, field, obj)
 		case "has_rage_clicks":
 			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
 		case "has_errors":

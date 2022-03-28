@@ -1622,6 +1622,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'object_storage_enabled'
             | 'payload_size'
             | 'processed'
+            | 'excluded'
             | 'has_rage_clicks'
             | 'has_errors'
             | 'within_billing_quota'
