@@ -89,7 +89,7 @@ type Mutation {
         is_beacon: Boolean
         has_session_unloaded: Boolean
         highlight_logs: String
-    ): ID
+    ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     addSessionFeedback(
         session_id: ID!

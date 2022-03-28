@@ -10,7 +10,9 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
+	github.com/DmitriyVTitov/size v1.1.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5 // indirect
 	github.com/andybalholm/brotli v1.0.3
 	github.com/aws/aws-sdk-go-v2 v1.9.2
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
@@ -26,9 +28,10 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
+	github.com/jcmturner/gokrb5/v8 v8.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
-	github.com/lib/pq v1.6.0 // indirect
+	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2
@@ -52,6 +55,11 @@ require (
 	google.golang.org/api v0.31.0
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0
+	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
+	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
+	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
+	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
+	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect

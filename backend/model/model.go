@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go"
@@ -144,6 +145,7 @@ var Models = []interface{}{
 	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
+	&EventChunk{},
 }
 
 func init() {
@@ -232,7 +234,8 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
-	FreeTier            bool `gorm:"default:false"`
+	FreeTier            bool           `gorm:"default:false"`
+	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 }
 
 type HasSecret interface {
@@ -453,6 +456,15 @@ type Session struct {
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
+
+	Chunked *bool
+}
+
+type EventChunk struct {
+	Model
+	SessionID  int `gorm:"index"`
+	ChunkIndex int
+	Timestamp  int64
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

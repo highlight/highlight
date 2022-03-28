@@ -31,6 +31,8 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -327,14 +329,21 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
+	for _, expression := range excludedUsers {
+		_, err := regexp.Compile(expression)
+		if err != nil {
+			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
+		}
+	}
 	if err := r.DB.Model(project).Updates(&model.Project{
-		Name:         name,
-		BillingEmail: billingEmail,
+		Name:          name,
+		BillingEmail:  billingEmail,
+		ExcludedUsers: excludedUsers,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
@@ -4737,6 +4746,39 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 	return metricMonitors, nil
 }
 
+func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, index int) (string, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return "", e.Wrap(err, "error fetching session for subscription")
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
+	if err != nil {
+		return "", e.Wrap(err, "error getting direct download URL")
+	}
+
+	if str == nil {
+		return "", e.Wrap(err, "nil direct download URL")
+	}
+
+	return *str, err
+}
+
+func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*model.EventChunk, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching session for subscription")
+	}
+
+	chunks := []*model.EventChunk{}
+	if err := r.DB.Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
+		Scan(&chunks).Error; err != nil {
+		return nil, e.Wrap(err, "fail")
+	}
+
+	return chunks, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -4758,7 +4800,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
@@ -4772,7 +4814,7 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources URL")
 	}
@@ -4786,7 +4828,7 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting messages URL")
 	}

@@ -192,6 +192,8 @@ type PayloadManager struct {
 	EventsCompressed    *CompressedJSONArrayWriter
 	ResourcesCompressed *CompressedJSONArrayWriter
 	MessagesCompressed  *CompressedJSONArrayWriter
+	EventsChunked       *CompressedJSONArrayWriter
+	ChunkIndex          int
 	files               map[FileType]*FileInfo
 }
 
@@ -204,6 +206,7 @@ const (
 	EventsCompressed    FileType = "EventsCompressed"
 	ResourcesCompressed FileType = "ResourcesCompressed"
 	MessagesCompressed  FileType = "MessagesCompressed"
+	EventsChunked       FileType = "EventsChunked"
 )
 
 type FileInfo struct {
@@ -289,7 +292,32 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 		}
 	}
 
+	manager.ChunkIndex = -1
+	files[EventsChunked] = &FileInfo{
+		ddTag: "EventsChunked",
+		close: func() {},
+	}
+
 	return manager, nil
+}
+
+func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
+	fileInfo := pm.files[EventsChunked]
+	fileInfo.close()
+
+	pm.ChunkIndex += 1
+	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
+	fileInfo.suffix = suffix
+	close, file, err := createFile(filenamePrefix + suffix)
+
+	if err != nil {
+		return errors.Wrapf(err, "error creating new EventsChunked file")
+	}
+	fileInfo.file = file
+	fileInfo.close = close
+
+	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
+	return nil
 }
 
 func (pm *PayloadManager) Close() {
@@ -302,6 +330,9 @@ func (pm *PayloadManager) Close() {
 
 func (pm *PayloadManager) ReportPayloadSizes() error {
 	for _, fileInfo := range pm.files {
+		if fileInfo.ddTag == "EventsChunked" {
+			continue
+		}
 		eventInfo, err := fileInfo.file.Stat()
 		if err != nil {
 			return errors.Wrap(err, "error getting file info")
@@ -319,6 +350,9 @@ func (pm *PayloadManager) GetFile(fileType FileType) *os.File {
 func (pm *PayloadManager) SeekStart() {
 	for _, fileInfo := range pm.files {
 		file := fileInfo.file
+		if file == nil {
+			continue
+		}
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
 		}

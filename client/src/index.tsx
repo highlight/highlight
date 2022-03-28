@@ -211,6 +211,14 @@ const HIGHLIGHT_URL = 'app.highlight.run';
 
 const PROPERTY_MAX_LENGTH = 2000;
 
+/*
+ * Don't take another full snapshot unless it's been at least
+ * 4 minutes AND the cumulative payload size since the last
+ * snapshot is > 10MB.
+ */
+const MIN_SNAPSHOT_BYTES = 10e6;
+const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -243,6 +251,8 @@ export class Highlight {
     _isOnLocalHost!: boolean;
     _onToggleFeedbackFormVisibility!: () => void;
     _firstLoadListeners!: FirstLoadListeners;
+    _eventBytesSinceSnapshot!: number;
+    _lastSnapshotTime!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
@@ -405,6 +415,9 @@ export class Highlight {
                 this.addProperties({ event: 'Intercom onShow' });
             });
         }
+
+        this._eventBytesSinceSnapshot = 0;
+        this._lastSnapshotTime = new Date().getTime();
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -920,7 +933,7 @@ export class Highlight {
                                 }
                             );
                             navigator.sendBeacon(`${this._backendUrl}`, blob);
-                            return Promise.resolve();
+                            return Promise.resolve(0);
                         },
                     });
                 }
@@ -1066,7 +1079,10 @@ export class Highlight {
             try {
                 await this._sendPayload({
                     isBeacon: false,
-                    sendFn: (payload) => this.graphqlSDK.PushPayload(payload),
+                    sendFn: (payload) =>
+                        this.graphqlSDK
+                            .PushPayload(payload)
+                            .then((res) => res.pushPayload ?? 0),
                 });
                 this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
@@ -1144,7 +1160,7 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<any>;
+        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
     }): Promise<void> {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
@@ -1174,7 +1190,7 @@ export class Highlight {
             payload.highlight_logs = highlightLogs;
         }
 
-        await sendFn(payload);
+        const eventsSize = await sendFn(payload);
 
         // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
         // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
@@ -1190,6 +1206,21 @@ export class Highlight {
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
             this.events = this.events.slice(events.length);
+
+            this._eventBytesSinceSnapshot =
+                this._eventBytesSinceSnapshot + eventsSize;
+            const now = new Date().getTime();
+            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+            // take a full snapshot and reset the counters
+            if (
+                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
+                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
+            ) {
+                record.takeFullSnapshot();
+                this._eventBytesSinceSnapshot = 0;
+                this._lastSnapshotTime = now;
+            }
+
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
             );

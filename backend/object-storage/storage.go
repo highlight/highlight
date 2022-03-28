@@ -46,6 +46,10 @@ const (
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 )
 
+func GetChunkedPayloadType(offset int) PayloadType {
+	return SessionContentsCompressed + PayloadType(fmt.Sprintf("-%04d", offset))
+}
+
 type StorageClient struct {
 	S3Client  *s3.Client
 	URLSigner *sign.URLSigner
@@ -103,10 +107,12 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
 	}
+
 	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
+
 	return &result.ContentLength, nil
 }
 
@@ -302,13 +308,18 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 	return buf.Bytes(), nil
 }
 
-func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, payloadType PayloadType) (*string, error) {
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error) {
 	if s.URLSigner == nil {
 		return nil, nil
 	}
 
 	key := s.bucketKey(sessionId, projectId, payloadType)
-	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	var unsignedURL string
+	if chunkId != nil {
+		unsignedURL = fmt.Sprintf("https://%s/%s-%04d", CloudfrontDomain, *key, *chunkId)
+	} else {
+		unsignedURL = fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	}
 	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 	if err != nil {
 		return nil, errors.Wrap(err, "error signing URL")

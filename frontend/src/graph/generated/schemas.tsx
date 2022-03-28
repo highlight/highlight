@@ -16,6 +16,7 @@ export type Scalars = {
     Any: any;
     Timestamp: any;
     Int64: any;
+    StringArray: any;
     Upload: any;
 };
 
@@ -70,6 +71,7 @@ export type Session = {
     messages_url?: Maybe<Scalars['String']>;
     deviceMemory?: Maybe<Scalars['Int']>;
     last_user_interaction_time: Scalars['Timestamp'];
+    chunked?: Maybe<Scalars['Boolean']>;
 };
 
 export type SessionInterval = {
@@ -201,6 +203,7 @@ export type Project = {
     billing_email?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
+    excluded_users?: Maybe<Scalars['StringArray']>;
 };
 
 export type Account = {
@@ -729,6 +732,13 @@ export type MetricMonitor = {
     disabled: Scalars['Boolean'];
 };
 
+export type EventChunk = {
+    __typename?: 'EventChunk';
+    session_id: Scalars['Int'];
+    chunk_index: Scalars['Int'];
+    timestamp: Scalars['Int64'];
+};
+
 export type Query = {
     __typename?: 'Query';
     accounts?: Maybe<Array<Maybe<Account>>>;
@@ -813,6 +823,8 @@ export type Query = {
     web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
+    event_chunk_url: Scalars['String'];
+    event_chunks: Array<EventChunk>;
 };
 
 export type QueryAccount_DetailsArgs = {
@@ -1156,6 +1168,15 @@ export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryEvent_Chunk_UrlArgs = {
+    secure_id: Scalars['String'];
+    index: Scalars['Int'];
+};
+
+export type QueryEvent_ChunksArgs = {
+    secure_id: Scalars['String'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     updateAdminAboutYouDetails: Scalars['Boolean'];
@@ -1237,6 +1258,7 @@ export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
+    excluded_users?: Maybe<Scalars['StringArray']>;
 };
 
 export type MutationEditWorkspaceArgs = {

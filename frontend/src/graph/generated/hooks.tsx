@@ -983,11 +983,22 @@ export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateWorkspaceMutationVariables
 >;
 export const EditProjectDocument = gql`
-    mutation EditProject($id: ID!, $name: String, $billing_email: String) {
-        editProject(id: $id, name: $name, billing_email: $billing_email) {
+    mutation EditProject(
+        $id: ID!
+        $name: String
+        $billing_email: String
+        $excluded_users: StringArray
+    ) {
+        editProject(
+            id: $id
+            name: $name
+            billing_email: $billing_email
+            excluded_users: $excluded_users
+        ) {
             id
             name
             billing_email
+            excluded_users
         }
     }
 `;
@@ -1012,6 +1023,7 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
+ *      excluded_users: // value for 'excluded_users'
  *   },
  * });
  */
@@ -6269,6 +6281,7 @@ export const GetProjectDocument = gql`
             name
             verbose_id
             billing_email
+            excluded_users
         }
         workspace: workspace_for_project(project_id: $id) {
             id

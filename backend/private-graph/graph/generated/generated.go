@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	model1 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/lib/pq"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -256,6 +257,12 @@ type ComplexityRoot struct {
 		LinesBefore  func(childComplexity int) int
 	}
 
+	EventChunk struct {
+		ChunkIndex func(childComplexity int) int
+		SessionID  func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
+	}
+
 	ExternalAttachment struct {
 		ErrorCommentID   func(childComplexity int) int
 		ExternalID       func(childComplexity int) int
@@ -334,7 +341,7 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -381,12 +388,13 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
-		BillingEmail func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Name         func(childComplexity int) int
-		Secret       func(childComplexity int) int
-		VerboseID    func(childComplexity int) int
-		WorkspaceID  func(childComplexity int) int
+		BillingEmail  func(childComplexity int) int
+		ExcludedUsers func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Secret        func(childComplexity int) int
+		VerboseID     func(childComplexity int) int
+		WorkspaceID   func(childComplexity int) int
 	}
 
 	Query struct {
@@ -417,6 +425,8 @@ type ComplexityRoot struct {
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
+		EventChunkURL                func(childComplexity int, secureID string, index int) int
+		EventChunks                  func(childComplexity int, secureID string) int
 		Events                       func(childComplexity int, sessionSecureID string) int
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
 		FieldTypes                   func(childComplexity int, projectID int) int
@@ -541,6 +551,7 @@ type ComplexityRoot struct {
 		AppVersion                     func(childComplexity int) int
 		BrowserName                    func(childComplexity int) int
 		BrowserVersion                 func(childComplexity int) int
+		Chunked                        func(childComplexity int) int
 		City                           func(childComplexity int) int
 		ClientConfig                   func(childComplexity int) int
 		ClientVersion                  func(childComplexity int) int
@@ -773,7 +784,7 @@ type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -914,6 +925,8 @@ type QueryResolver interface {
 	WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) ([]*model.WebVitalDashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
+	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
+	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -1904,6 +1917,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
 
+	case "EventChunk.chunk_index":
+		if e.complexity.EventChunk.ChunkIndex == nil {
+			break
+		}
+
+		return e.complexity.EventChunk.ChunkIndex(childComplexity), true
+
+	case "EventChunk.session_id":
+		if e.complexity.EventChunk.SessionID == nil {
+			break
+		}
+
+		return e.complexity.EventChunk.SessionID(childComplexity), true
+
+	case "EventChunk.timestamp":
+		if e.complexity.EventChunk.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.EventChunk.Timestamp(childComplexity), true
+
 	case "ExternalAttachment.error_comment_id":
 		if e.complexity.ExternalAttachment.ErrorCommentID == nil {
 			break
@@ -2487,7 +2521,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -2869,6 +2903,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.BillingEmail(childComplexity), true
 
+	case "Project.excluded_users":
+		if e.complexity.Project.ExcludedUsers == nil {
+			break
+		}
+
+		return e.complexity.Project.ExcludedUsers(childComplexity), true
+
 	case "Project.id":
 		if e.complexity.Project.ID == nil {
 			break
@@ -3212,6 +3253,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Errors(childComplexity, args["session_secure_id"].(string)), true
+
+	case "Query.event_chunk_url":
+		if e.complexity.Query.EventChunkURL == nil {
+			break
+		}
+
+		args, err := ec.field_Query_event_chunk_url_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EventChunkURL(childComplexity, args["secure_id"].(string), args["index"].(int)), true
+
+	case "Query.event_chunks":
+		if e.complexity.Query.EventChunks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_event_chunks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EventChunks(childComplexity, args["secure_id"].(string)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -4162,6 +4227,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.BrowserVersion(childComplexity), true
+
+	case "Session.chunked":
+		if e.complexity.Session.Chunked == nil {
+			break
+		}
+
+		return e.complexity.Session.Chunked(childComplexity), true
 
 	case "Session.city":
 		if e.complexity.Session.City == nil {
@@ -5171,6 +5243,7 @@ var sources = []*ast.Source{
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar StringArray
 
 type Field {
     id: ID!
@@ -5221,6 +5294,7 @@ type Session {
     messages_url: String
     deviceMemory: Int
     last_user_interaction_time: Timestamp!
+    chunked: Boolean
 }
 
 type SessionInterval {
@@ -5342,6 +5416,7 @@ type Project {
     billing_email: String
     secret: String
     workspace_id: ID!
+    excluded_users: StringArray
 }
 
 type Account {
@@ -5833,6 +5908,12 @@ type MetricMonitor {
     disabled: Boolean!
 }
 
+type EventChunk {
+    session_id: Int!
+    chunk_index: Int!
+    timestamp: Int64!
+}
+
 scalar Upload
 
 type Query {
@@ -5995,13 +6076,20 @@ type Query {
         aggregateFunction: String!
     ): [MetricPreview]!
     metric_monitors(project_id: ID!): [MetricMonitor]!
+    event_chunk_url(secure_id: String!, index: Int!): String!
+    event_chunks(secure_id: String!): [EventChunk!]!
 }
 
 type Mutation {
     updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
     createProject(name: String!, workspace_id: ID!): Project
     createWorkspace(name: String!): Workspace
-    editProject(id: ID!, name: String, billing_email: String): Project
+    editProject(
+        id: ID!
+        name: String
+        billing_email: String
+        excluded_users: StringArray
+    ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
     markSessionAsStarred(secure_id: String!, starred: Boolean): Session
@@ -7875,6 +7963,15 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["billing_email"] = arg2
+	var arg3 pq.StringArray
+	if tmp, ok := rawArgs["excluded_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_users"))
+		arg3, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["excluded_users"] = arg3
 	return args, nil
 }
 
@@ -9618,6 +9715,45 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_event_chunk_url_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["secure_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["index"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("index"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["index"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_event_chunks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["secure_id"] = arg0
 	return args, nil
 }
 
@@ -15216,6 +15352,111 @@ func (ec *executionContext) _ErrorTrace_linesAfter(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EventChunk_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EventChunk",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EventChunk_chunk_index(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EventChunk",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChunkIndex, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EventChunk_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EventChunk",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ExternalAttachment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ExternalAttachment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16288,7 +16529,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string))
+		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18948,6 +19189,38 @@ func (ec *executionContext) _Project_workspace_id(ctx context.Context, field gra
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_excluded_users(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExcludedUsers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(pq.StringArray)
+	fc.Result = res
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22236,6 +22509,90 @@ func (ec *executionContext) _Query_metric_monitors(ctx context.Context, field gr
 	return ec.marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_event_chunk_url(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_event_chunk_url_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().EventChunkURL(rctx, args["secure_id"].(string), args["index"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_event_chunks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_event_chunks_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().EventChunks(rctx, args["secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.EventChunk)
+	fc.Result = res
+	return ec.marshalNEventChunk2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunkᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25022,6 +25379,38 @@ func (ec *executionContext) _Session_last_user_interaction_time(ctx context.Cont
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_chunked(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Chunked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
@@ -30996,6 +31385,43 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var eventChunkImplementors = []string{"EventChunk"}
+
+func (ec *executionContext) _EventChunk(ctx context.Context, sel ast.SelectionSet, obj *model1.EventChunk) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventChunkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EventChunk")
+		case "session_id":
+			out.Values[i] = ec._EventChunk_session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "chunk_index":
+			out.Values[i] = ec._EventChunk_chunk_index(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._EventChunk_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var externalAttachmentImplementors = []string{"ExternalAttachment"}
 
 func (ec *executionContext) _ExternalAttachment(ctx context.Context, sel ast.SelectionSet, obj *model1.ExternalAttachment) graphql.Marshaler {
@@ -31572,6 +31998,8 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "excluded_users":
+			out.Values[i] = ec._Project_excluded_users(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -32644,6 +33072,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "event_chunk_url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_event_chunk_url(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "event_chunks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_event_chunks(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -33135,6 +33591,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "chunked":
+			out.Values[i] = ec._Session_chunked(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34848,6 +35306,53 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNEventChunk2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunkᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.EventChunk) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEventChunk2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunk(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEventChunk2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunk(ctx context.Context, sel ast.SelectionSet, v *model1.EventChunk) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EventChunk(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐExternalAttachment(ctx context.Context, sel ast.SelectionSet, v []*model1.ExternalAttachment) graphql.Marshaler {
@@ -37702,6 +38207,21 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx context.Context, v interface{}) (pq.StringArray, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := model1.UnmarshalStringArray(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx context.Context, sel ast.SelectionSet, v pq.StringArray) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return model1.MarshalStringArray(v)
 }
 
 func (ec *executionContext) unmarshalOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
