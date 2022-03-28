@@ -444,6 +444,9 @@ type Session struct {
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
 
+	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
+	BackendSetup *bool `json:"backend_setup"`
+
 	// Excluded will be true when we would typically have deleted the session
 	Excluded *bool `gorm:"default:false"`
 

@@ -18,6 +18,10 @@ type BackendErrorObjectInput struct {
 	Payload         *string   `json:"payload"`
 }
 
+type BackendEventObjectInput struct {
+	SessionSecureID string `json:"session_secure_id"`
+}
+
 type DeviceMetricInput struct {
 	Name  string  `json:"name"`
 	Value float64 `json:"value"`

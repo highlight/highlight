@@ -11,6 +11,7 @@ export interface HighlightInterface {
         secureSessionId: string,
         requestId: string
     ) => void;
+    consumeEvent: (secureSessionId: string) => void;
 }
 
 var highlight_obj: Highlight;
@@ -19,7 +20,7 @@ export const H: HighlightInterface = {
         try {
             highlight_obj = new Highlight(options);
         } catch (e) {
-            console.log('highlight-next init error: ', e);
+            console.log('highlight-node init error: ', e);
         }
     },
     isInitialized: () => (highlight_obj ? true : false),
@@ -31,7 +32,14 @@ export const H: HighlightInterface = {
         try {
             highlight_obj.consumeCustomError(error, secureSessionId, requestId);
         } catch (e) {
-            console.log('highlight-next error: ', e);
+            console.log('highlight-node consumeError error: ', e);
+        }
+    },
+    consumeEvent: (secureSessionId: string) => {
+        try {
+            highlight_obj.consumeCustomEvent(secureSessionId);
+        } catch (e) {
+            console.log('highlight-node consumeEvent error: ', e);
         }
     },
 };

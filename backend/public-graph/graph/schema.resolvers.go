@@ -216,9 +216,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return size.Of(events), nil
 }
 
-func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput, events []*customModels.BackendEventObjectInput) (interface{}, error) {
 	r.PushPayloadWorkerPool.SubmitRecover(func() {
-		r.processBackendPayload(ctx, errors)
+		r.processBackendPayload(ctx, errors, events)
 	})
 	return nil, nil
 }

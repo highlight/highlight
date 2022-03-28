@@ -2943,6 +2943,15 @@ export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     'isIntegrated'
 >;
 
+export type IsBackendIntegratedQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'isBackendIntegrated'
+>;
+
 export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3535,6 +3544,7 @@ export const namedOperations = {
         GetSegments: 'GetSegments' as const,
         GetErrorSegments: 'GetErrorSegments' as const,
         IsIntegrated: 'IsIntegrated' as const,
+        IsBackendIntegrated: 'IsBackendIntegrated' as const,
         UnprocessedSessionsCount: 'UnprocessedSessionsCount' as const,
         GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
         GetReferrersCount: 'GetReferrersCount' as const,

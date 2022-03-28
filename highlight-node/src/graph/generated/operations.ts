@@ -32,6 +32,10 @@ export type BackendErrorObjectInput = {
   url: Scalars['String'];
 };
 
+export type BackendEventObjectInput = {
+  session_secure_id: Scalars['String'];
+};
+
 export type DeviceMetricInput = {
   name: Scalars['String'];
   value: Scalars['Float'];
@@ -59,7 +63,7 @@ export type Mutation = {
   identifySession?: Maybe<Scalars['ID']>;
   initializeSession?: Maybe<Session>;
   pushBackendPayload?: Maybe<Scalars['Any']>;
-  pushPayload?: Maybe<Scalars['ID']>;
+  pushPayload: Scalars['Int'];
 };
 
 
@@ -113,17 +117,21 @@ export type MutationInitializeSessionArgs = {
   fingerprint: Scalars['String'];
   firstloadVersion: Scalars['String'];
   organization_verbose_id: Scalars['String'];
+  session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 
 export type MutationPushBackendPayloadArgs = {
   errors: Array<InputMaybe<BackendErrorObjectInput>>;
+  events?: InputMaybe<Array<InputMaybe<BackendEventObjectInput>>>;
 };
 
 
 export type MutationPushPayloadArgs = {
   errors: Array<InputMaybe<ErrorObjectInput>>;
   events: ReplayEventsInput;
+  has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+  highlight_logs?: InputMaybe<Scalars['String']>;
   is_beacon?: InputMaybe<Scalars['Boolean']>;
   messages: Scalars['String'];
   resources: Scalars['String'];
@@ -170,15 +178,16 @@ export type WebVitalMetricInput = {
 
 export type PushBackendPayloadMutationVariables = Types.Exact<{
   errors: Array<Types.InputMaybe<Types.BackendErrorObjectInput>> | Types.InputMaybe<Types.BackendErrorObjectInput>;
+  events?: Types.InputMaybe<Array<Types.InputMaybe<Types.BackendEventObjectInput>> | Types.InputMaybe<Types.BackendEventObjectInput>>;
 }>;
 
 
-export type PushBackendPayloadMutation = { __typename?: 'Mutation', pushBackendPayload?: any | null | undefined };
+export type PushBackendPayloadMutation = { __typename?: 'Mutation', pushBackendPayload?: any | null };
 
 
 export const PushBackendPayloadDocument = gql`
-    mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
-  pushBackendPayload(errors: $errors)
+    mutation PushBackendPayload($errors: [BackendErrorObjectInput]!, $events: [BackendEventObjectInput]) {
+  pushBackendPayload(errors: $errors, events: $events)
 }
     `;
 

@@ -1066,6 +1066,10 @@ query IsIntegrated($project_id: ID!) {
     isIntegrated(project_id: $project_id)
 }
 
+query IsBackendIntegrated($project_id: ID!) {
+    isBackendIntegrated(project_id: $project_id)
+}
+
 query UnprocessedSessionsCount($project_id: ID!) {
     unprocessedSessionsCount(project_id: $project_id)
 }

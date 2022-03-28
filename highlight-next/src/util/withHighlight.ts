@@ -21,10 +21,11 @@ export const Highlight =
                     const [secureSessionId, requestId] =
                         `${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/');
                     if (secureSessionId && requestId) {
+                        if (!H.isInitialized()) {
+                            H.init(options);
+                        }
+                        H.consumeEvent(secureSessionId);
                         if (e instanceof Error) {
-                            if (!H.isInitialized()) {
-                                H.init(options);
-                            }
                             H.consumeError(e, secureSessionId, requestId);
                         }
                     }

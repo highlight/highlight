@@ -60,6 +60,10 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
+export type BackendEventObjectInput = {
+  session_secure_id: Scalars['String'];
+};
+
 export type WebVitalMetricInput = {
   name: Scalars['String'];
   value: Scalars['Float'];
@@ -135,6 +139,7 @@ export type MutationPushPayloadArgs = {
 
 export type MutationPushBackendPayloadArgs = {
   errors: Array<Maybe<BackendErrorObjectInput>>;
+  events?: Maybe<Array<Maybe<BackendEventObjectInput>>>;
 };
 
 

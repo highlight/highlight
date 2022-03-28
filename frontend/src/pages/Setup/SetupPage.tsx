@@ -10,6 +10,7 @@ import { GetProjectQuery } from '@graph/operations';
 import { Admin } from '@graph/schemas';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import useLocalStorage from '@rehooks/local-storage';
+import { useBackendIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Spin } from 'antd';
@@ -82,6 +83,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     });
     const [steps, setSteps] = useState<SetupStep[]>([]);
     const {
+        integrated: isBackendIntegrated,
+        loading: isBackendIntegratedLoading,
+    } = useBackendIntegrated();
+    const {
         isSlackConnectedToWorkspace,
         loading: isSlackConnectedLoading,
     } = useSlackBot({
@@ -109,8 +114,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             action: () => {
                 history.push(`/${project_id}/setup/backend`);
             },
-            loading: false,
-            completed: false,
+            loading: isBackendIntegratedLoading,
+            completed: isBackendIntegrated,
         });
         STEPS.push({
             displayName: 'Features/Integrations',
@@ -126,6 +131,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     }, [
         history,
         integrated,
+        isBackendIntegrated,
+        isBackendIntegratedLoading,
         isLinearConnectedLoading,
         isLinearIntegratedWithProject,
         isSlackConnectedLoading,
@@ -212,7 +219,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 setBackendPlatform={setBackendPlatform}
                                 projectData={data}
                                 projectLoading={loading}
-                                integrated={integrated}
+                                integrated={isBackendIntegrated}
                             />
                         )}
                         {step === 'more' && (
@@ -508,6 +515,7 @@ const BackendSetup = ({
     setBackendPlatform,
     projectData,
     projectLoading,
+    integrated,
 }: {
     admin: Admin | undefined;
     backendPlatform: BackendPlatformType;
@@ -551,6 +559,33 @@ const BackendSetup = ({
                     ) : (
                         <GoBackendInstructions />
                     )}
+                    <Section
+                        defaultOpen
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Verify Backend Installation
+                                {integrated && (
+                                    <IntegrationDetector
+                                        verbose={false}
+                                        integrated={integrated}
+                                    />
+                                )}
+                            </span>
+                        }
+                        id="highlightIntegration"
+                    >
+                        <p>
+                            Please follow the setup instructions above to
+                            install Highlight on your backend. It should take
+                            less than a minute for us to detect installation.
+                        </p>
+                        <div className={styles.integrationContainer}>
+                            <IntegrationDetector
+                                integrated={integrated}
+                                verbose={true}
+                            />
+                        </div>
+                    </Section>
                     <Section
                         title={
                             <span className={styles.sectionTitleWithIcon}>

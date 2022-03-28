@@ -3167,6 +3167,21 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	return &model.F, nil
 }
 
+func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, nil
+	}
+	var count int64
+	err := r.DB.Model(&model.Session{}).Where("project_id = ? AND backend_setup=true", projectID).Count(&count).Error
+	if err != nil {
+		return nil, e.Wrap(err, "error getting associated admins")
+	}
+	if count > 0 {
+		return &model.T, nil
+	}
+	return &model.F, nil
+}
+
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")

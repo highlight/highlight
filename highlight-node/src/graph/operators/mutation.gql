@@ -1,3 +1,6 @@
-mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
-    pushBackendPayload(errors: $errors)
+mutation PushBackendPayload(
+    $errors: [BackendErrorObjectInput]!
+    $events: [BackendEventObjectInput]
+) {
+    pushBackendPayload(errors: $errors, events: $events)
 }

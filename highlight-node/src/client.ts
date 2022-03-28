@@ -9,22 +9,25 @@ import ErrorStackParser from 'error-stack-parser';
 import { GraphQLClient } from 'graphql-request';
 import { NodeOptions } from './types';
 import { ErrorContext } from './errorContext';
+import { BackendEventObjectInput } from './graph/generated/schemas';
 
 // Represents a stack frame with added lines of source code
 // before, after, and for the line of the current error
-export interface StackFrameWithSource extends Pick<
-    StackFrame, 
-    | 'args' 
-    | 'evalOrigin'
-    | 'isConstructor' 
-    | 'isEval' 
-    | 'isNative' 
-    | 'isToplevel' 
-    | 'columnNumber' 
-    | 'lineNumber' 
-    | 'fileName' 
-    | 'functionName' 
-    | 'source'> {
+export interface StackFrameWithSource
+    extends Pick<
+        StackFrame,
+        | 'args'
+        | 'evalOrigin'
+        | 'isConstructor'
+        | 'isEval'
+        | 'isNative'
+        | 'isToplevel'
+        | 'columnNumber'
+        | 'lineNumber'
+        | 'fileName'
+        | 'functionName'
+        | 'source'
+    > {
     lineContent?: string;
     linesBefore?: string;
     linesAfter?: string;
@@ -32,10 +35,13 @@ export interface StackFrameWithSource extends Pick<
 
 export class Highlight {
     readonly FLUSH_TIMEOUT = 10;
+    readonly BACKEND_SETUP_TIMEOUT = 15 * 60 * 1000;
     _graphqlSdk: Sdk;
     _backendUrl: string;
     _intervalFunction: ReturnType<typeof setInterval>;
     errors: Array<InputMaybe<BackendErrorObjectInput>> = [];
+    events: Array<InputMaybe<BackendEventObjectInput>> = [];
+    lastBackendSetupEvent: number = 0;
     _errorContext: ErrorContext | undefined;
 
     constructor(options: NodeOptions) {
@@ -50,7 +56,7 @@ export class Highlight {
         );
         if (!options.disableErrorSourceContext) {
             this._errorContext = new ErrorContext({
-                sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB
+                sourceContextCacheSizeMB: options.errorSourceContextCacheSizeMB,
             });
         }
     }
@@ -65,17 +71,24 @@ export class Highlight {
             res = ErrorStackParser.parse(error);
             res = res.map((frame) => {
                 try {
-                    if (frame.fileName !== undefined && frame.lineNumber !== undefined) {
-                        const context = this._errorContext?.getStackFrameContext(frame.fileName, frame.lineNumber);
+                    if (
+                        frame.fileName !== undefined &&
+                        frame.lineNumber !== undefined
+                    ) {
+                        const context =
+                            this._errorContext?.getStackFrameContext(
+                                frame.fileName,
+                                frame.lineNumber
+                            );
                         return { ...frame, ...context };
                     }
                 } catch {}
 
-                // If the frame doesn't have filename or line number defined, or 
+                // If the frame doesn't have filename or line number defined, or
                 // an error was thrown while getting the stack frame context, return
                 // the original frame.
                 return frame;
-            })
+            });
         } catch {}
         this.errors.push({
             event: error.message
@@ -91,14 +104,27 @@ export class Highlight {
         });
     }
 
+    consumeCustomEvent(secureSessionId: string) {
+        const sendBackendSetup =
+            Date.now() - this.lastBackendSetupEvent >
+            this.BACKEND_SETUP_TIMEOUT;
+        if (sendBackendSetup) {
+            this.events.push({
+                session_secure_id: secureSessionId,
+            });
+        }
+    }
+
     flush() {
-        if (this.errors.length === 0) {
+        if (this.events.length === 0 && this.errors.length === 0) {
             return;
         }
         const variables: PushBackendPayloadMutationVariables = {
             errors: this.errors,
+            events: this.events,
         };
         this.errors = [];
+        this.events = [];
         this._graphqlSdk
             .PushBackendPayload(variables)
             .then(() => {})

@@ -432,6 +432,7 @@ type ComplexityRoot struct {
 		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		IdentifierSuggestion         func(childComplexity int, projectID int) int
+		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
 		JoinableWorkspaces           func(childComplexity int) int
@@ -869,6 +870,7 @@ type QueryResolver interface {
 	WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model1.Admin, error)
 	WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, projectID int) (*bool, error)
+	IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
 	LiveUsersCount(ctx context.Context, projectID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
@@ -3337,6 +3339,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IdentifierSuggestion(childComplexity, args["project_id"].(int)), true
+
+	case "Query.isBackendIntegrated":
+		if e.complexity.Query.IsBackendIntegrated == nil {
+			break
+		}
+
+		args, err := ec.field_Query_isBackendIntegrated_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsBackendIntegrated(childComplexity, args["project_id"].(int)), true
 
 	case "Query.isIntegrated":
 		if e.complexity.Query.IsIntegrated == nil {
@@ -5956,6 +5970,7 @@ type Query {
     workspace_admins(workspace_id: ID!): [Admin]!
     workspace_admins_by_project_id(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
+    isBackendIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     liveUsersCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -9872,6 +9887,21 @@ func (ec *executionContext) field_Query_fields_opensearch_args(ctx context.Conte
 }
 
 func (ec *executionContext) field_Query_identifier_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_isBackendIntegrated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -20251,6 +20281,45 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().IsIntegrated(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_isBackendIntegrated(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_isBackendIntegrated_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsBackendIntegrated(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32358,6 +32427,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isIntegrated(ctx, field)
+				return res
+			})
+		case "isBackendIntegrated":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_isBackendIntegrated(ctx, field)
 				return res
 			})
 		case "unprocessedSessionsCount":
