@@ -1010,8 +1010,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	if err := DB.Exec(`
 		SELECT
 		CASE
-			WHEN not exists(SELECT last_value FROM sessions_id_seq WHERE last_value >= %d)
-				THEN setval('sessions_id_seq', %d)
+			WHEN not exists(SELECT last_value FROM sessions_id_seq WHERE last_value >= ?)
+				THEN setval('sessions_id_seq', ?)
 			ELSE 0
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
