@@ -172,11 +172,13 @@
         position: absolute;
         top: 0;
         transition: opacity 0.1s ease-in;
-        width: 6px;
+        width: 8px;
         z-index: 99;
     }
 
     &.selected {
+        border: 1px solid var(--color-purple);
+        box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
         &::before {
             opacity: 1;
         }
