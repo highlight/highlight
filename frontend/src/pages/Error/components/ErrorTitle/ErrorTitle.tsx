@@ -49,25 +49,31 @@ const ErrorTitle = ({
                 ) : (
                     <h2>{headerTextAsJson || headerText}</h2>
                 )}
-                {showShareButton && (
-                    <ErrorShareButton errorGroup={errorGroup} />
-                )}
-                <ErrorCommentButton
-                    onClick={onClickCreateComment ?? (() => {})}
-                    trackingId="CreateErrorIssue"
-                >
-                    <SvgBugIcon />
-                    <span>Create an Issue</span>
-                </ErrorCommentButton>
             </div>
-            {errorGroup?.type && (
-                <Tag
-                    infoTooltipText="This is where the error was thrown."
-                    backgroundColor="var(--color-orange-300)"
-                >
-                    {errorGroup.type}
-                </Tag>
-            )}
+            <div className={styles.secondRow}>
+                {errorGroup?.type && (
+                    <Tag
+                        infoTooltipText="This is where the error was thrown."
+                        backgroundColor="var(--color-orange-300)"
+                    >
+                        {errorGroup.type}
+                    </Tag>
+                )}
+                <div className={styles.createIssueContainer}>
+                    <div style={{ marginRight: '1em' }}>
+                        <ErrorCommentButton
+                            onClick={onClickCreateComment ?? (() => {})}
+                            trackingId="CreateErrorIssue"
+                        >
+                            <SvgBugIcon />
+                            <span>Create an Issue</span>
+                        </ErrorCommentButton>
+                    </div>
+                    {showShareButton && (
+                        <ErrorShareButton errorGroup={errorGroup} />
+                    )}
+                </div>
+            </div>
         </header>
     );
 };

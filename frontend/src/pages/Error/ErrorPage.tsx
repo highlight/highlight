@@ -178,6 +178,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 <ErrorCreateCommentModal
                     show={showCreateCommentModal}
                     onClose={() => setShowCreateCommentModal(false)}
+                    data={data}
                 />
                 {error_secure_id && !errorQueryingErrorGroup ? (
                     <>

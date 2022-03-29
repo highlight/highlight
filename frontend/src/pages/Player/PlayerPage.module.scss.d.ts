@@ -3,7 +3,6 @@ export const accountIconWrapper: string;
 export const appBody: string;
 export const browserHeader: string;
 export const center: string;
-export const commentModal: string;
 export const emptySessionCard: string;
 export const gridBackground: string;
 export const header: string;

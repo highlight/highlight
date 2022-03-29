@@ -56,6 +56,7 @@ interface Props {
     session?: Session;
     session_secure_id?: string;
     error_secure_id?: string;
+    errorTitle?: string;
 }
 
 enum CommentFormSection {
@@ -71,6 +72,7 @@ export const NewCommentForm = ({
     session,
     session_secure_id,
     error_secure_id,
+    errorTitle,
 }: Props) => {
     const [createComment] = useCreateSessionCommentMutation();
     const [createErrorComment] = useCreateErrorCommentMutation();
@@ -130,6 +132,9 @@ export const NewCommentForm = ({
     >([]);
 
     const defaultIssueTitle = useMemo(() => {
+        if (errorTitle) {
+            return errorTitle;
+        }
         if (session?.identifier) {
             return `Issue with ${session?.identifier}'s session`;
         }
@@ -137,7 +142,7 @@ export const NewCommentForm = ({
             return `Issue with session with fingerprint #${session?.fingerprint}`;
         }
         return `Issue with this Highlight session`;
-    }, [session]);
+    }, [session, errorTitle]);
 
     const sessionUrl = `${
         window.location.port !== ''
@@ -151,6 +156,12 @@ export const NewCommentForm = ({
             numSlackMentions: mentionedSlackUsers.length,
         });
         setIsCreatingComment(true);
+
+        const { issueTitle, issueDescription } = form.getFieldsValue([
+            'issueTitle',
+            'issueDescription',
+        ]);
+
         try {
             await createErrorComment({
                 variables: {
@@ -162,9 +173,13 @@ export const NewCommentForm = ({
                     tagged_admins: mentionedAdmins,
                     tagged_slack_users: mentionedSlackUsers,
                     author_name: admin?.name || admin?.email || 'Someone',
-                    integrations: [],
-                    issue_title: '',
-                    issue_description: '',
+                    integrations: selectedIssueService
+                        ? [selectedIssueService]
+                        : [],
+                    issue_title: selectedIssueService ? issueTitle : null,
+                    issue_description: selectedIssueService
+                        ? issueDescription
+                        : null,
                 },
                 refetchQueries: [namedOperations.Query.GetErrorComments],
             });

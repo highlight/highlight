@@ -1,6 +1,7 @@
 @import 'src/static/shared.scss';
 
 .errorPageCenterColumn {
+    @include hide-scrollbar;
     flex: 1;
     height: calc(100vh - var(--top-padding));
     overflow-y: auto;

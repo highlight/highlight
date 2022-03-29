@@ -17,6 +17,8 @@ interface Props {
     session_secure_id?: string;
     error_secure_id?: string;
     mask?: boolean;
+    title?: string;
+    errorTitle?: string;
 }
 export function NewCommentModal({
     newCommentModalRef,
@@ -28,6 +30,8 @@ export function NewCommentModal({
     session_secure_id,
     error_secure_id,
     mask,
+    title,
+    errorTitle,
 }: Props) {
     return (
         <Modal
@@ -52,7 +56,7 @@ export function NewCommentModal({
             destroyOnClose
             minimal
             minimalPaddingSize="var(--size-large)"
-            width="400px"
+            width="500px"
             style={{
                 ...getNewCommentFormCoordinates(
                     400,
@@ -66,6 +70,7 @@ export function NewCommentModal({
             )}
         >
             <div ref={newCommentModalRef}>
+                {title ? <h1 className={styles.title}>{title}</h1> : null}
                 <NewCommentForm
                     commentTime={Math.floor(commentTime)}
                     onCloseHandler={onCancel}
@@ -74,6 +79,7 @@ export function NewCommentModal({
                     session={session}
                     error_secure_id={error_secure_id}
                     session_secure_id={session_secure_id}
+                    errorTitle={errorTitle}
                 />
             </div>
         </Modal>
