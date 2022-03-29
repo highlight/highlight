@@ -673,6 +673,18 @@ func (m *EventsObject) Contents() string {
 	return m.Events
 }
 
+const PARTITION_SESSION_ID = 30000000
+
+func EventsObjectTable(sessionID int) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if sessionID >= PARTITION_SESSION_ID {
+			return tx.Table("events_objects_partitioned")
+		} else {
+			return tx.Table("events_objects")
+		}
+	}
+}
+
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
 	TotalCount  int64
@@ -992,6 +1004,56 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
+	}
+
+	// If sessions_id_seq is not greater than 30000000, set it
+	if err := DB.Exec(`
+		SELECT
+		CASE
+			WHEN not exists(SELECT last_value FROM sessions_id_seq WHERE last_value >= %d)
+				THEN setval('sessions_id_seq', %d)
+			ELSE 0
+		END;
+	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
+		return nil, e.Wrap(err, "Error setting session id sequence to 30000000")
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS events_objects_partitioned
+		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY RANGE (session_id);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating events_objects_partitioned")
+	}
+
+	if err := DB.Exec(`
+		CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
+		ON events_objects_partitioned (session_id);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
+	}
+
+	var lastVal int
+	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
+		return nil, e.Wrap(err, "Error selecting max session id")
+	}
+	partitionSize := 100000
+	start := lastVal / partitionSize * partitionSize
+
+	// Make sure partitions are created for the next 1m sessions
+	for i := 0; i < 10; i++ {
+		end := start + partitionSize
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
+			PARTITION OF events_objects_partitioned
+			FOR VALUES FROM (%d) TO (%d);
+		`, start, start, end)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
+		}
+
+		start = end
 	}
 
 	sqlDB, err := DB.DB()
