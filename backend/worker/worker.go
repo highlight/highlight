@@ -733,7 +733,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Debug().Error; err != nil {
+					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
 				}
