@@ -297,8 +297,6 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		}
 	}
 
-	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
-
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
 	for i, field := range fieldsToAppend {
 		openSearchFields[i] = opensearch.OpenSearchField{
@@ -762,7 +760,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	fieldsToAppend := []*model.ErrorField{}
 	for _, f := range fields {
 		field := &model.ErrorField{}
-		res := r.DB.Debug().Raw(`
+		res := r.DB.Raw(`
 			SELECT * FROM error_fields
 			WHERE project_id = ?
 			AND name = ?
