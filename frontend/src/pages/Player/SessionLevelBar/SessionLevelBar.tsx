@@ -1,4 +1,5 @@
 import Dot, { CustomDotColor } from '@components/Dot/Dot';
+import SvgWarningTriangle from '@icons/WarningTriangle';
 import { motion } from 'framer-motion';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -41,6 +42,16 @@ const SessionLevelBar = React.memo(() => {
                 ) : (
                     <>
                         <CurrentUrlBar url={currentUrl ?? ''} />
+                        {session.excluded ? (
+                            <SessionToken
+                                icon={<SvgWarningTriangle />}
+                                tooltipTitle="The session is not included in search results due to an error on our end."
+                            >
+                                <span className={styles.sessionExcluded}>
+                                    Not in Search Results
+                                </span>
+                            </SessionToken>
+                        ) : null}
                         <SessionToken
                             icon={<SvgDimensionsIcon />}
                             tooltipTitle="The user's current viewport size in pixels."

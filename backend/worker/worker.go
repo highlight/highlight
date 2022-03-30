@@ -140,7 +140,7 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).
+	eventRows, err := w.Resolver.DB.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
 		Where(&model.EventsObject{SessionID: s.ID}).
 		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 	if err != nil {
@@ -733,7 +733,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Debug().Error; err != nil {
+					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
 				}

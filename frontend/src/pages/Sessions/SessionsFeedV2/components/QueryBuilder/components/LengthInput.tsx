@@ -65,6 +65,9 @@ export const LengthInput = ({ start, end, onChange }: LengthInputProps) => {
                     range
                     className={styles.slider}
                     tooltipPlacement={'bottom'}
+                    getTooltipPopupContainer={() =>
+                        document.querySelector('.ant-slider-step')!
+                    }
                     disabled={false}
                     min={0}
                     max={60}

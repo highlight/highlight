@@ -297,8 +297,6 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		}
 	}
 
-	log.Infof("about to append %v fields [%v] to session %v \n", len(fieldsToAppend), fieldsToAppend, session.ID)
-
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
 	for i, field := range fieldsToAppend {
 		openSearchFields[i] = opensearch.OpenSearchField{
@@ -762,7 +760,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	fieldsToAppend := []*model.ErrorField{}
 	for _, f := range fields {
 		field := &model.ErrorField{}
-		res := r.DB.Debug().Raw(`
+		res := r.DB.Raw(`
 			SELECT * FROM error_fields
 			WHERE project_id = ?
 			AND name = ?
@@ -1441,7 +1439,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
-			r.DB.Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+			r.DB.Scopes(model.EventsObjectTable(sessionID)).Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -1490,8 +1488,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
+			if err := r.DB.Scopes(model.EventsObjectTable(sessionID)).Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
+			}
+			// Do a dual write to the original table as well.
+			// To remove after deploying the partitioned changes once it's confirmed everything is fine.
+			if sessionID >= model.PARTITION_SESSION_ID {
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating events object")
+				}
 			}
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {

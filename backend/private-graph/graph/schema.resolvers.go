@@ -3072,8 +3072,11 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return sessionComments, nil
 	}
-
-	if err := r.DB.Model(model.SessionComment{}).Where("project_id = ?", projectID).Find(&sessionComments).Error; err != nil {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	if err := r.DB.Model(model.SessionComment{}).Where("project_id = ? AND admin_id != ?", projectID, admin.ID).Find(&sessionComments).Error; err != nil {
 		return sessionComments, e.Wrap(err, "error getting session comments for project")
 	}
 
@@ -3112,7 +3115,11 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 		return errorComments, nil
 	}
 
-	if err := r.DB.Model(model.ErrorComment{}).Where("project_id = ?", projectID).Find(&errorComments).Error; err != nil {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	if err := r.DB.Model(model.ErrorComment{}).Where("project_id = ? AND admin_id != ?", projectID, admin.ID).Find(&errorComments).Error; err != nil {
 		return errorComments, e.Wrap(err, "error getting error comments for project")
 	}
 
