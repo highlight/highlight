@@ -73,6 +73,7 @@ const EMPTY_SESSION_METADATA = {
     endTime: 0,
     totalTime: 0,
 };
+const CHUNKING_ENABLED_PROJECTS = ['1'];
 
 export enum SessionViewability {
     VIEWABLE,
@@ -95,8 +96,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         viewingUnauthorizedSession,
         setViewingUnauthorizedSession,
     ] = useState(false);
-    // const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    // old sessions are represented by a single chunk
 
     const [performancePayloads, setPerformancePayloads] = useState<
         Array<HighlightPerformancePayload>
@@ -193,6 +192,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         HighlightEvent[]
     >();
 
+    const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
+
     const events: HighlightEvent[] = [];
     let eventsKey = '';
     const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
@@ -256,7 +257,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                     chunkEventsActions.set(i, []);
 
                     needsLoad = true;
-                    // setIsLoadingEvents(true);
                     fetchEventChunkURL({
                         secure_id: session_secure_id,
                         index: i,
@@ -268,7 +268,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         .then((data) => {
                             chunkEventsActions.set(i, toHighlightEvents(data));
                         })
-                        .then(() => callback && callback())
+                        .then(() => setOnEventsLoaded(callback))
                         .catch((e) => {
                             chunkEventsActions.set(i, []);
                             H.consumeError(
@@ -398,7 +398,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                     });
 
                     let fetchEvents;
-                    if (data.session?.chunked) {
+                    if (
+                        data.session?.chunked &&
+                        CHUNKING_ENABLED_PROJECTS.includes(project_id)
+                    ) {
                         fetchEvents = fetchEventChunkURL({
                             secure_id: session_secure_id,
                             index: 0,
@@ -728,29 +731,26 @@ export const usePlayer = (): ReplayerContextInterface => {
                           timelineIndicatorEventsData.timeline_indicator_events
                       )
                     : events;
-            console.log('[Highlight] Session Metadata:', sessionMetadata);
-            setSessionIntervals(
-                getCommentsInSessionIntervalsRelative(
-                    addEventsToSessionIntervals(
-                        addErrorsToSessionIntervals(
-                            sessionIntervals,
-                            errors,
-                            sessionMetadata.startTime
-                        ),
-                        parsedTimelineIndicatorEvents,
+            const si = getCommentsInSessionIntervalsRelative(
+                addEventsToSessionIntervals(
+                    addErrorsToSessionIntervals(
+                        sessionIntervals,
+                        errors,
                         sessionMetadata.startTime
                     ),
-                    sessionComments,
-                    sessionMetadata.startTime
-                )
-            );
-            setEventsForTimelineIndicator(
-                getEventsForTimelineIndicator(
                     parsedTimelineIndicatorEvents,
-                    sessionMetadata.startTime,
-                    sessionMetadata.totalTime
-                )
+                    sessionMetadata.startTime
+                ),
+                sessionComments,
+                sessionMetadata.startTime
             );
+            setSessionIntervals(si);
+            const test = getEventsForTimelineIndicator(
+                parsedTimelineIndicatorEvents,
+                sessionMetadata.startTime,
+                sessionMetadata.totalTime
+            );
+            setEventsForTimelineIndicator(test);
             setSessionEndTime(sessionMetadata.endTime);
 
             if (eventsData?.rage_clicks) {
@@ -845,9 +845,12 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setSelectedErrorId
             );
             setSessionMetadata(sessionMetadata);
-            if (state > ReplayerState.Loading) {
-                // play(); ZANETODO
+            if (isLiveMode && state > ReplayerState.Loading) {
+                // Resynchronize player timestamp after each batch of events
+                play();
             }
+            // If there is a callback set to run on load, invoke it
+            onEventsLoaded && onEventsLoaded();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [errors, eventsKey, hasSearchParam, replayer, eventsDataLoaded]);
@@ -857,10 +860,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
             const frameAction = () => {
                 if (replayer) {
-                    setTime(replayer.getCurrentTime());
+                    // The player may start later than the session if earlier events are unloaded
+                    const timeOffset =
+                        replayer.getMetaData().startTime -
+                        sessionMetadata.startTime;
+
+                    setTime(replayer.getCurrentTime() + timeOffset);
 
                     if (
-                        replayer.getCurrentTime() >= sessionMetadata.totalTime
+                        replayer.getCurrentTime() + timeOffset >=
+                        sessionMetadata.totalTime
                     ) {
                         setState(
                             isLiveMode
@@ -950,17 +959,21 @@ export const usePlayer = (): ReplayerContextInterface => {
         setTime(newTime ?? time);
 
         const newTs = (newTime ?? time ?? 0) + (sessionMetadata.startTime ?? 0);
+        const newTimeWithOffset =
+            replayer === undefined || newTime === undefined
+                ? undefined
+                : newTime -
+                  replayer.getMetaData().startTime +
+                  sessionMetadata.startTime;
         const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
-            replayer?.play(newTime)
+            replayer?.play(newTimeWithOffset)
         );
         if (needsLoad) {
             replayer?.pause();
             setIsLoadingEvents(true);
         } else {
-            replayer?.play(newTime);
+            replayer?.play(newTimeWithOffset);
         }
-
-        console.log('play', newTime, newTs);
 
         // Log how long it took to move to the new time.
         const timelineChangeTime = timerEnd('timelineChangeTime');
@@ -980,16 +993,21 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
 
             const newTs = (newTime ?? 0) + sessionMetadata.startTime;
+            const newTimeWithOffset =
+                replayer === undefined || newTime === undefined
+                    ? undefined
+                    : newTime -
+                      replayer.getMetaData().startTime +
+                      sessionMetadata.startTime;
             const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
-                replayer?.pause(newTime)
+                replayer?.pause(newTimeWithOffset)
             );
             if (needsLoad) {
                 replayer?.pause();
                 setIsLoadingEvents(true);
             } else {
-                replayer?.pause(newTime);
+                replayer?.pause(newTimeWithOffset);
             }
-            console.log('pause', newTime, newTs);
 
             // Log how long it took to move to the new time.
             const timelineChangeTime = timerEnd('timelineChangeTime');

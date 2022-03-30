@@ -35,7 +35,7 @@ const EventStream = () => {
     const {
         sessionMetadata,
         time,
-        events: replayerEvents,
+        eventsForTimelineIndicator: replayerEvents,
         state,
         replayer,
     } = useReplayerContext();
