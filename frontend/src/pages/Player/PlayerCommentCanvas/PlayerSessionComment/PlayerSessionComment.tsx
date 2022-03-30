@@ -33,6 +33,7 @@ interface Props {
             | 'session_secure_id'
             | 'tags'
             | 'attachments'
+            | 'replies'
         > & {
                 author?: Maybe<
                     { __typename?: 'SanitizedAdmin' } & Pick<

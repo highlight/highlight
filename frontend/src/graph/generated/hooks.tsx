@@ -1,7 +1,8 @@
 import * as Types from './operations';
 
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import { gql } from '@apollo/client';
+
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
         events
@@ -4397,6 +4398,18 @@ export const GetSessionCommentsDocument = gql`
                 external_id
                 title
             }
+            replies {
+                id
+                created_at
+                updated_at
+                author {
+                    id
+                    name
+                    email
+                    photo_url
+                }
+                text
+            }
         }
     }
 `;
@@ -4737,6 +4750,18 @@ export const GetErrorCommentsDocument = gql`
                 integration_type
                 external_id
                 title
+            }
+            replies {
+                id
+                created_at
+                updated_at
+                author {
+                    id
+                    name
+                    email
+                    photo_url
+                }
+                text
             }
         }
     }

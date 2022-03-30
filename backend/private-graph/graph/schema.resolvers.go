@@ -44,6 +44,15 @@ import (
 	"gorm.io/gorm"
 )
 
+func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin author for comment reply")
+	}
+
+	return r.formatSanitizedAuthor(admin), nil
+}
+
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }
@@ -89,28 +98,7 @@ func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComme
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 
-	name := ""
-	email := ""
-	photo_url := ""
-
-	if admin.Name != nil {
-		name = *admin.Name
-	}
-	if admin.Email != nil {
-		email = *admin.Email
-	}
-	if admin.PhotoURL != nil {
-		photo_url = *admin.PhotoURL
-	}
-
-	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:       admin.ID,
-		Name:     &name,
-		Email:    email,
-		PhotoURL: &photo_url,
-	}
-
-	return sanitizedAdmin, nil
+	return r.formatSanitizedAuthor(admin), nil
 }
 
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
@@ -924,16 +912,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		return nil, err
 	}
 
-	admins := []model.Admin{}
-	if !isGuestCreatingSession {
-		for _, a := range taggedAdmins {
-			admins = append(admins,
-				model.Admin{
-					Model: model.Model{ID: a.ID},
-				},
-			)
-		}
-	}
+	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
 
 	sessionComment := &model.SessionComment{
 		Admins:          admins,
@@ -1122,6 +1101,37 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
+func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+	var sessionComment model.SessionComment
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comment")
+	}
+
+	// All viewers can leave a comment reply, including guests
+	_, err := r.canAdminViewSession(ctx, sessionComment.SessionSecureId)
+	if err != nil {
+		return nil, e.Wrap(err, "admin cannot leave a comment reply")
+	}
+
+	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
+	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
+
+	commentReply := &model.CommentReply{
+		SessionCommentID: sessionComment.ID,
+		Admins:           admins,
+		AdminId:          admin.ID,
+		Text:             text,
+	}
+	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createCommentReply",
+		tracer.ResourceName("db.createCommentReply"), tracer.Tag("project_id", sessionComment.ProjectID))
+	if err := r.DB.Create(commentReply).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	createSessionCommentSpan.Finish()
+
+	return commentReply, nil
+}
+
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
@@ -1290,6 +1300,10 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 		return nil, e.Wrap(err, "error deleting session comment attachments")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error) {
@@ -3034,7 +3048,7 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 
 	sessionComments := []*model.SessionComment{}
 
-	if err := r.DB.Preload("Attachments").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
@@ -4948,28 +4962,7 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 
-	name := ""
-	email := ""
-	photo_url := ""
-
-	if admin.Name != nil {
-		name = *admin.Name
-	}
-	if admin.Email != nil {
-		email = *admin.Email
-	}
-	if admin.PhotoURL != nil {
-		photo_url = *admin.PhotoURL
-	}
-
-	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:       admin.ID,
-		Name:     &name,
-		Email:    email,
-		PhotoURL: &photo_url,
-	}
-
-	return sanitizedAdmin, nil
+	return r.formatSanitizedAuthor(admin), nil
 }
 
 func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionComment) (modelInputs.SessionCommentType, error) {
@@ -5070,6 +5063,9 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
+// CommentReply returns generated.CommentReplyResolver implementation.
+func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -5119,6 +5115,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
+type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }

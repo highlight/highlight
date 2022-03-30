@@ -1732,6 +1732,21 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                             >
                         >
                     >;
+                    replies: Array<
+                        Types.Maybe<
+                            { __typename?: 'CommentReply' } & Pick<
+                                Types.CommentReply,
+                                'id' | 'created_at' | 'updated_at' | 'text'
+                            > & {
+                                    author: {
+                                        __typename?: 'SanitizedAdmin';
+                                    } & Pick<
+                                        Types.SanitizedAdmin,
+                                        'id' | 'name' | 'email' | 'photo_url'
+                                    >;
+                                }
+                        >
+                    >;
                 }
         >
     >;
@@ -1880,6 +1895,21 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                                 Types.ExternalAttachment,
                                 'integration_type' | 'external_id' | 'title'
                             >
+                        >
+                    >;
+                    replies: Array<
+                        Types.Maybe<
+                            { __typename?: 'CommentReply' } & Pick<
+                                Types.CommentReply,
+                                'id' | 'created_at' | 'updated_at' | 'text'
+                            > & {
+                                    author: {
+                                        __typename?: 'SanitizedAdmin';
+                                    } & Pick<
+                                        Types.SanitizedAdmin,
+                                        'id' | 'name' | 'email' | 'photo_url'
+                                    >;
+                                }
                         >
                     >;
                 }

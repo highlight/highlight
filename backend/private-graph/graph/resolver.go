@@ -102,6 +102,44 @@ func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, erro
 	return domain, nil
 }
 
+func (r *Resolver) getTaggedAdmins(taggedAdmins []*modelInputs.SanitizedAdminInput, isGuestCreatingSession bool) (admins []model.Admin) {
+	if !isGuestCreatingSession {
+		for _, a := range taggedAdmins {
+			admins = append(admins,
+				model.Admin{
+					Model: model.Model{ID: a.ID},
+				},
+			)
+		}
+	}
+	return
+}
+
+func (r *Resolver) formatSanitizedAuthor(admin *model.Admin) *modelInputs.SanitizedAdmin {
+	name := ""
+	email := ""
+	photo_url := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
+	}
+
+	return sanitizedAdmin
+}
+
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
