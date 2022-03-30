@@ -1305,7 +1305,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	var errorComment model.ErrorComment
 	if err := r.DB.Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session comment")
+		return nil, e.Wrap(err, "error querying error comment")
 	}
 
 	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId, false)
