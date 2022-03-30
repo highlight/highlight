@@ -10,6 +10,7 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -225,6 +226,19 @@ export const ResourcePage = React.memo(
             state,
         ]);
 
+        useEffect(() => {
+            // scroll network events on player timeline click
+            if (!isInteractingWithResources && state === ReplayerState.Paused) {
+                scrollFunction(currentResource);
+            }
+        }, [
+            currentResource,
+            scrollFunction,
+            isInteractingWithResources,
+            state,
+            time,
+        ]);
+
         const resourcesToRender = useMemo(() => {
             setCurrentActiveIndex(0);
             if (!allResources) {
@@ -332,6 +346,7 @@ export const ResourcePage = React.memo(
                                 </div>
                                 <div className={styles.networkColumn}>Type</div>
                                 <div className={styles.networkColumn}>Name</div>
+                                <div className={styles.networkColumn}>Time</div>
                                 <div
                                     className={classNames(
                                         styles.networkColumn,
@@ -386,6 +401,10 @@ export const ResourcePage = React.memo(
                                                             resource
                                                         );
                                                     }}
+                                                    playerStartTime={startTime}
+                                                    playerRelTime={
+                                                        time - startTime
+                                                    }
                                                     hasError={!!error}
                                                     networkRequestAndResponseRecordingEnabled={
                                                         session.enable_recording_network_contents ||
@@ -451,23 +470,29 @@ export type NetworkResource = NetworkResourceWithID & {
     offsetStartTime?: number;
 };
 
+interface ResourceRowProps {
+    resource: NetworkResource;
+    networkRange: number;
+    currentResource: number;
+    searchTerm: string;
+    onClickHandler: () => void;
+    networkRequestAndResponseRecordingEnabled: boolean;
+    playerStartTime: number;
+    playerRelTime: number;
+    hasError?: boolean;
+}
+
 const ResourceRow = ({
     resource,
     networkRange,
     currentResource,
     searchTerm,
     onClickHandler,
-    hasError,
     networkRequestAndResponseRecordingEnabled,
-}: {
-    resource: NetworkResource;
-    networkRange: number;
-    currentResource: number;
-    searchTerm: string;
-    onClickHandler: () => void;
-    hasError?: boolean;
-    networkRequestAndResponseRecordingEnabled: boolean;
-}) => {
+    playerStartTime,
+    playerRelTime,
+    hasError,
+}: ResourceRowProps) => {
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
@@ -475,7 +500,12 @@ const ResourceRow = ({
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
-    const isCurrentResource = resource.id === currentResource;
+    const isCurrentResource =
+        resource.id === currentResource ||
+        (playerRelTime >= resource.startTime &&
+            playerRelTime <= resource.startTime + 1000) ||
+        (playerRelTime >= resource.startTime &&
+            playerRelTime <= resource.responseEnd);
 
     return (
         <div key={resource.id.toString()} onClick={onClickHandler}>
@@ -519,6 +549,12 @@ const ResourceRow = ({
                         textToHighlight={resource.displayName || resource.name}
                     />
                 </Tooltip>
+                <div className={styles.typeSection}>
+                    {playerTimeToSessionAbsoluteTime({
+                        sessionStartTime: playerStartTime,
+                        relativeTime: resource.startTime,
+                    })}
+                </div>
                 <div className={styles.timingBarWrapper}>
                     <div
                         style={{
