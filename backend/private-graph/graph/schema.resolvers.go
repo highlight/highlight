@@ -1122,12 +1122,12 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 		AdminId:          admin.ID,
 		Text:             text,
 	}
-	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createCommentReply",
-		tracer.ResourceName("db.createCommentReply"), tracer.Tag("project_id", sessionComment.ProjectID))
+	createSessionCommentReplySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionCommentReply",
+		tracer.ResourceName("db.createSessionCommentReply"), tracer.Tag("project_id", sessionComment.ProjectID))
 	if err := r.DB.Create(commentReply).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session comment")
+		return nil, e.Wrap(err, "error creating session comment reply")
 	}
-	createSessionCommentSpan.Finish()
+	createSessionCommentReplySpan.Finish()
 
 	return commentReply, nil
 }
@@ -1303,7 +1303,33 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
-	panic(fmt.Errorf("not implemented"))
+	var errorComment model.ErrorComment
+	if err := r.DB.Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comment")
+	}
+
+	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to view error group")
+	}
+
+	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
+	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
+
+	commentReply := &model.CommentReply{
+		ErrorCommentID: errorComment.ID,
+		Admins:         admins,
+		AdminId:        admin.ID,
+		Text:           text,
+	}
+	createErrorCommentReplySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorCommentReply",
+		tracer.ResourceName("db.createErrorCommentReply"), tracer.Tag("project_id", errorComment.ProjectID))
+	if err := r.DB.Create(commentReply).Error; err != nil {
+		return nil, e.Wrap(err, "error creating error comment reply")
+	}
+	createErrorCommentReplySpan.Finish()
+
+	return commentReply, nil
 }
 
 func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error) {
@@ -3104,7 +3130,7 @@ func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorComments := []*model.ErrorComment{}
-	if err := r.DB.Preload("Attachments").Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments for error_group")
 	}
 	return errorComments, nil
