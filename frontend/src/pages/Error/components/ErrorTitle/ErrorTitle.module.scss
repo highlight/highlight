@@ -31,10 +31,15 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        margin-top: 8px;
     }
 }
 
-.createIssueContainer {
+.rightButtonsContainer {
     align-items: right;
     display: flex;
+}
+
+.createIssueContainer {
+    margin-right: 20px;
 }

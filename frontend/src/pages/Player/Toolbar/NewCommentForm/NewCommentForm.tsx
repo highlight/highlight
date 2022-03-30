@@ -57,6 +57,7 @@ interface Props {
     session_secure_id?: string;
     error_secure_id?: string;
     errorTitle?: string;
+    modalHeader?: string;
 }
 
 enum CommentFormSection {
@@ -73,6 +74,7 @@ export const NewCommentForm = ({
     session_secure_id,
     error_secure_id,
     errorTitle,
+    modalHeader,
 }: Props) => {
     const [createComment] = useCreateSessionCommentMutation();
     const [createErrorComment] = useCreateErrorCommentMutation();
@@ -457,6 +459,7 @@ export const NewCommentForm = ({
                                 section !== CommentFormSection.CommentForm,
                         })}
                     >
+                        <h3>{modalHeader}</h3>
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
                                 commentText={commentText}

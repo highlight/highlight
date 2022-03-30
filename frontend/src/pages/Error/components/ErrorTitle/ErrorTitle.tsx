@@ -59,8 +59,8 @@ const ErrorTitle = ({
                         {errorGroup.type}
                     </Tag>
                 )}
-                <div className={styles.createIssueContainer}>
-                    <div style={{ marginRight: '1em' }}>
+                <div className={styles.rightButtonsContainer}>
+                    <div className={styles.createIssueContainer}>
                         <ErrorCommentButton
                             onClick={onClickCreateComment ?? (() => {})}
                             trackingId="CreateErrorIssue"

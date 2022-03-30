@@ -25,7 +25,7 @@ export const ErrorCreateCommentModal = ({
     return (
         <NewCommentModal
             mask={true}
-            title={'Write a comment'}
+            title={'Write a Comment'}
             newCommentModalRef={parentRef ?? pRef}
             commentModalPosition={
                 show

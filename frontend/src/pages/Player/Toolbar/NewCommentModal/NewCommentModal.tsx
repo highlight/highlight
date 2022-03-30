@@ -70,7 +70,6 @@ export function NewCommentModal({
             )}
         >
             <div ref={newCommentModalRef}>
-                {title ? <h1 className={styles.title}>{title}</h1> : null}
                 <NewCommentForm
                     commentTime={Math.floor(commentTime)}
                     onCloseHandler={onCancel}
@@ -80,6 +79,7 @@ export function NewCommentModal({
                     error_secure_id={error_secure_id}
                     session_secure_id={session_secure_id}
                     errorTitle={errorTitle}
+                    modalHeader={title}
                 />
             </div>
         </Modal>
