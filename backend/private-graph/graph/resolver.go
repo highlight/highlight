@@ -1775,7 +1775,7 @@ func (r *Resolver) sendCommentSlackNotification(ctx context.Context, admin *mode
 	})
 }
 
-func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, projectID int, textForEmail string, viewLink string, sessionImage *string) {
+func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -1798,6 +1798,18 @@ func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *mode
 			log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 		}
 	})
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
+			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, "error")
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+		}
+	})
+
 }
 
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {

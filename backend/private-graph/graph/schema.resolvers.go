@@ -974,7 +974,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
@@ -1098,7 +1098,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
@@ -1152,7 +1152,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentEmailNotification(ctx, admin, authorName, taggedAdmins, projectID, textForEmail, viewLink, nil)
+		r.sendCommentEmailNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, textForEmail, viewLink, nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, projectID, textForEmail, viewLink, nil)
@@ -1274,7 +1274,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
