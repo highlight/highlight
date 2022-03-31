@@ -837,6 +837,7 @@ type SessionInterval struct {
 
 type TimelineIndicatorEvent struct {
 	Model
+	ID              int    `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionSecureID string `gorm:"index" json:"secure_id"`
 	Timestamp       float64
 	Type            int
