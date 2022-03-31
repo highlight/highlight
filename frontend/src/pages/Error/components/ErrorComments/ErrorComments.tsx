@@ -1,6 +1,8 @@
 import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
+import { CommentHeader } from '@components/Comment/CommentHeader';
 import MenuItem from '@components/Menu/MenuItem';
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
+import { useDeleteErrorCommentMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
@@ -11,8 +13,6 @@ import { Menu } from 'antd';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
 
-import { CommentHeader } from '../../../../components/Comment/CommentHeader';
-import { useDeleteErrorCommentMutation } from '../../../../graph/generated/hooks';
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from '../../ErrorPage.module.scss';
 
@@ -20,6 +20,7 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
     onClickCreateComment?: () => void;
 }
+
 const ErrorComments = ({ onClickCreateComment }: Props) => {
     return (
         <>

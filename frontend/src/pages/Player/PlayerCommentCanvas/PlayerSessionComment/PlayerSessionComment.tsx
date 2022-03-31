@@ -1,8 +1,9 @@
+import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
 import {
     Maybe,
@@ -11,7 +12,6 @@ import {
     SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { useReplayerContext } from '../../ReplayerContext';
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import styles from './PlayerSessionComment.module.scss';
@@ -52,6 +52,7 @@ interface Props {
 const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useReplayerContext();
     const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id);
+    const commentCardParentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (deepLinkedCommentId) {
@@ -98,8 +99,12 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             <TransparentPopover
                 placement="right"
                 content={
-                    <div className={styles.sessionCommentCardContainer}>
+                    <div
+                        className={styles.sessionCommentCardContainer}
+                        ref={commentCardParentRef}
+                    >
                         <SessionCommentCard
+                            parentRef={commentCardParentRef}
                             comment={comment}
                             deepLinkedCommentId={deepLinkedCommentId}
                             hasShadow
@@ -139,7 +144,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                         styles.commentPinButton
                     )}
                 >
-                    <img src={CommentPinIcon} />
+                    <img src={CommentPinIcon} alt={'comment pin icon'} />
                 </button>
             </TransparentPopover>
         </div>

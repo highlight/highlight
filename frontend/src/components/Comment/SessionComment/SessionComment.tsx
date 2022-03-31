@@ -1,6 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
+import CommentReplyForm, {
+    SessionCommentReplyAction,
+} from '@components/Comment/CommentReplyForm/CommentReplyForm';
+import ReplyList from '@components/Comment/ReplyList/ReplyList';
 import SplitButton from '@components/SplitButton/SplitButton';
 import Tag from '@components/Tag/Tag';
 import SvgHeartIcon from '@icons/HeartIcon';
@@ -24,6 +28,7 @@ interface Props {
     hasShadow?: boolean;
     menuItems?: CommentHeaderMenuItem[];
     footer?: React.ReactNode;
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const SessionCommentCard = ({
@@ -32,6 +37,7 @@ export const SessionCommentCard = ({
     hasShadow,
     menuItems,
     footer,
+    parentRef,
 }: Props) => {
     return (
         <div
@@ -45,12 +51,13 @@ export const SessionCommentCard = ({
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
                 footer={footer}
+                parentRef={parentRef}
             />
         </div>
     );
 };
 
-export const SessionComment = ({ comment, menuItems }: Props) => {
+export const SessionComment = ({ comment, menuItems, parentRef }: Props) => {
     return (
         <>
             <SessionCommentHeader
@@ -63,6 +70,14 @@ export const SessionComment = ({ comment, menuItems }: Props) => {
             {comment.attachments.length > 0 && (
                 <AttachmentList attachments={comment.attachments} />
             )}
+            {comment.replies.length > 0 && (
+                <ReplyList replies={comment.replies} />
+            )}
+            <CommentReplyForm<SessionCommentReplyAction>
+                action={new SessionCommentReplyAction()}
+                commentID={comment.id}
+                parentRef={parentRef}
+            />
         </>
     );
 };
