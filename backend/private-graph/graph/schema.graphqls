@@ -953,6 +953,7 @@ type Mutation {
         comment_id: ID!
         text: String!
         text_for_email: String!
+        sessionURL: String!
         tagged_admins: [SanitizedAdminInput]!
         tagged_slack_users: [SanitizedSlackChannelInput]!
     ): CommentReply
@@ -984,6 +985,7 @@ type Mutation {
         comment_id: ID!
         text: String!
         text_for_email: String!
+        errorURL: String!
         tagged_admins: [SanitizedAdminInput]!
         tagged_slack_users: [SanitizedSlackChannelInput]!
     ): CommentReply

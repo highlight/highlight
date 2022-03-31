@@ -360,8 +360,8 @@ type ComplexityRoot struct {
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
-		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
-		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
@@ -827,11 +827,11 @@ type MutationResolver interface {
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
-	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
+	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
-	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
+	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddIntegrationToProject(ctx context.Context, integrationType *model.IntegrationType, projectID int, code string) (bool, error)
 	RemoveIntegrationFromProject(ctx context.Context, integrationType *model.IntegrationType, projectID int) (bool, error)
@@ -2690,7 +2690,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ReplyToErrorComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
+		return e.complexity.Mutation.ReplyToErrorComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["errorURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
 
 	case "Mutation.replyToSessionComment":
 		if e.complexity.Mutation.ReplyToSessionComment == nil {
@@ -2702,7 +2702,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ReplyToSessionComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
+		return e.complexity.Mutation.ReplyToSessionComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["sessionURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
 
 	case "Mutation.sendAdminProjectInvite":
 		if e.complexity.Mutation.SendAdminProjectInvite == nil {
@@ -6292,6 +6292,7 @@ type Mutation {
         comment_id: ID!
         text: String!
         text_for_email: String!
+        sessionURL: String!
         tagged_admins: [SanitizedAdminInput]!
         tagged_slack_users: [SanitizedSlackChannelInput]!
     ): CommentReply
@@ -6323,6 +6324,7 @@ type Mutation {
         comment_id: ID!
         text: String!
         text_for_email: String!
+        errorURL: String!
         tagged_admins: [SanitizedAdminInput]!
         tagged_slack_users: [SanitizedSlackChannelInput]!
     ): CommentReply
@@ -8322,24 +8324,33 @@ func (ec *executionContext) field_Mutation_replyToErrorComment_args(ctx context.
 		}
 	}
 	args["text_for_email"] = arg2
-	var arg3 []*model.SanitizedAdminInput
+	var arg3 string
+	if tmp, ok := rawArgs["errorURL"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorURL"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["errorURL"] = arg3
+	var arg4 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg3, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg3
-	var arg4 []*model.SanitizedSlackChannelInput
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
-		arg4, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_slack_users"] = arg4
+	args["tagged_slack_users"] = arg5
 	return args, nil
 }
 
@@ -8373,24 +8384,33 @@ func (ec *executionContext) field_Mutation_replyToSessionComment_args(ctx contex
 		}
 	}
 	args["text_for_email"] = arg2
-	var arg3 []*model.SanitizedAdminInput
+	var arg3 string
+	if tmp, ok := rawArgs["sessionURL"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionURL"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionURL"] = arg3
+	var arg4 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg3, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg3
-	var arg4 []*model.SanitizedSlackChannelInput
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
-		arg4, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_slack_users"] = arg4
+	args["tagged_slack_users"] = arg5
 	return args, nil
 }
 
@@ -17986,7 +18006,7 @@ func (ec *executionContext) _Mutation_replyToSessionComment(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReplyToSessionComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
+		return ec.resolvers.Mutation().ReplyToSessionComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["sessionURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18142,7 +18162,7 @@ func (ec *executionContext) _Mutation_replyToErrorComment(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReplyToErrorComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
+		return ec.resolvers.Mutation().ReplyToErrorComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["errorURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

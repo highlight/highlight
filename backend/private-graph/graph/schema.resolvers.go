@@ -22,7 +22,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
-	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
@@ -35,7 +34,6 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -894,7 +892,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
-	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
@@ -912,7 +910,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		return nil, err
 	}
 
-	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
+	admins := r.getTaggedAdmins(taggedAdmins, isGuest)
 
 	sessionComment := &model.SessionComment{
 		Admins:          admins,
@@ -975,54 +973,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
-
-		tos := []*mail.Email{}
-		ccs := []*mail.Email{}
-		var adminIds []int
-
-		if admin.Email != nil {
-			ccs = append(ccs, &mail.Email{Address: *admin.Email})
-		}
-		for _, admin := range taggedAdmins {
-			tos = append(tos, &mail.Email{Address: admin.Email})
-			adminIds = append(adminIds, admin.ID)
-		}
-
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
-			defer commentMentionEmailSpan.Finish()
-
-			err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
-			}
-		})
-
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
-			defer commentMentionSlackSpan.Finish()
-
-			err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, "session")
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
-			}
-		})
+	if len(taggedAdmins) > 0 && !isGuest {
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
 	}
-
-	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
-			defer commentMentionSlackSpan.Finish()
-
-			err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, "session", sessionImage)
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
-			}
-		})
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
 	}
 
 	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1101,7 +1056,9 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+
 	var sessionComment model.SessionComment
 	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
@@ -1113,8 +1070,17 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 		return nil, e.Wrap(err, "admin cannot leave a comment reply")
 	}
 
-	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
-	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: sessionComment.ProjectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admins := r.getTaggedAdmins(taggedAdmins, isGuest)
 
 	commentReply := &model.CommentReply{
 		SessionCommentID: sessionComment.ID,
@@ -1128,6 +1094,15 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 		return nil, e.Wrap(err, "error creating session comment reply")
 	}
 	createSessionCommentReplySpan.Finish()
+
+	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
+
+	if len(taggedAdmins) > 0 && !isGuest {
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
+	}
 
 	return commentReply, nil
 }
@@ -1177,54 +1152,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		tos := []*mail.Email{}
-		var adminIds []int
-
-		for _, admin := range taggedAdmins {
-			tos = append(tos, &mail.Email{Address: admin.Email})
-			adminIds = append(adminIds, admin.ID)
-		}
-
-		ccs := []*mail.Email{}
-
-		if admin.Email != nil {
-			ccs = append(ccs, &mail.Email{Address: *admin.Email})
-		}
-
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
-			defer commentMentionEmailSpan.Finish()
-
-			err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridErrorCommentEmailTemplateId, nil)
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
-			}
-		})
-
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
-			defer commentMentionSlackSpan.Finish()
-
-			err = r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, "error")
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
-			}
-		})
-
+		r.sendCommentEmailNotification(ctx, admin, authorName, taggedAdmins, projectID, textForEmail, viewLink, nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
-			defer commentMentionSlackSpan.Finish()
-
-			err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, "error", nil)
-			if err != nil {
-				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
-			}
-		})
+		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, projectID, textForEmail, viewLink, nil)
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1302,7 +1233,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	var errorComment model.ErrorComment
 	if err := r.DB.Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
@@ -1313,8 +1244,19 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
 
-	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
-	admins := r.getTaggedAdmins(taggedAdmins, isGuestCreatingSession)
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	admins := r.getTaggedAdmins(taggedAdmins, isGuest)
 
 	commentReply := &model.CommentReply{
 		ErrorCommentID: errorComment.ID,
@@ -1328,6 +1270,15 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		return nil, e.Wrap(err, "error creating error comment reply")
 	}
 	createErrorCommentReplySpan.Finish()
+
+	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+
+	if len(taggedAdmins) > 0 && !isGuest {
+		r.sendCommentEmailNotification(ctx, admin, *admin.Name, taggedAdmins, project.ID, textForEmail, viewLink, nil)
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		r.sendCommentSlackNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil)
+	}
 
 	return commentReply, nil
 }

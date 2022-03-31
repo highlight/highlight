@@ -1762,6 +1762,44 @@ func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
 	return nil
 }
 
+func (r *Resolver) sendCommentSlackNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string) {
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, "session", sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
+		}
+	})
+}
+
+func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, projectID int, textForEmail string, viewLink string, sessionImage *string) {
+	var tos []*mail.Email
+	var ccs []*mail.Email
+	var adminIds []int
+
+	if admin.Email != nil {
+		ccs = append(ccs, &mail.Email{Address: *admin.Email})
+	}
+	for _, admin := range taggedAdmins {
+		tos = append(tos, &mail.Email{Address: admin.Email})
+		adminIds = append(adminIds, admin.ID)
+	}
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
+		defer commentMentionEmailSpan.Finish()
+
+		err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
+		}
+	})
+}
+
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
 	if inviteLink == nil {
 		return true
