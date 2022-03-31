@@ -13,7 +13,6 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems';
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
-import { useParams } from '@util/react-router/useParams';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
@@ -21,7 +20,6 @@ import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
@@ -36,13 +34,7 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { usePlayerUIContext } from '../context/PlayerUIContext';
-import {
-    changeSession,
-    EventsForTimeline,
-    EventsForTimelineKeys,
-    findNextSessionInList,
-    findPreviousSessionInList,
-} from '../PlayerHook/utils';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import {
@@ -71,7 +63,6 @@ export const Toolbar = React.memo(() => {
         isLiveMode,
         setIsLiveMode,
         lastActiveString,
-        sessionResults,
         session,
         sessionStartDateTime,
     } = useReplayerContext();
@@ -90,13 +81,8 @@ export const Toolbar = React.memo(() => {
         enableInspectElement,
         showPlayerAbsoluteTime,
     } = usePlayerConfiguration();
-    const history = useHistory();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
-    const { session_secure_id, project_id } = useParams<{
-        session_secure_id: string;
-        project_id: string;
-    }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -358,16 +344,8 @@ export const Toolbar = React.memo(() => {
                         )}
                         onClick={() => {
                             H.track('PlayerSkipToPreviousSession');
-                            const nextSession = findPreviousSessionInList(
-                                sessionResults.sessions,
-                                session_secure_id
-                            );
-                            changeSession(
-                                project_id,
-                                history,
-                                nextSession,
-                                'Playing the previous session.'
-                            );
+                            const prevTime = Math.max(time - 5000, 0);
+                            setTime(prevTime);
                         }}
                     >
                         <SvgSkipBackIcon
@@ -421,11 +399,8 @@ export const Toolbar = React.memo(() => {
                         onClick={() => {
                             H.track('PlayerSkipToNextSession');
 
-                            const nextSession = findNextSessionInList(
-                                sessionResults.sessions,
-                                session_secure_id
-                            );
-                            changeSession(project_id, history, nextSession);
+                            const nextTime = Math.min(time + 5000, max);
+                            setTime(nextTime);
                         }}
                     >
                         <SvgSkipForwardIcon
