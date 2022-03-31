@@ -145,6 +145,9 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	var eventRows *sql.Rows
 	var err error
+	var numberOfRows int64 = 0
+	eventsWriter := manager.Events.Writer()
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
 	// Fetch/write events.
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
@@ -157,34 +160,32 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			return errors.Wrap(err, "error retrieving events objects")
 		}
 
+		for eventRows.Next() {
+			eventObject := model.EventsObject{}
+			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+			if err != nil {
+				return errors.Wrap(err, "error scanning event row")
+			}
+			if err := eventsWriter.Write(&eventObject); err != nil {
+				return errors.Wrap(err, "error writing event row")
+			}
+			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
+				return errors.Wrap(err, "error writing compressed event row")
+			}
+			numberOfRows += 1
+			if writeChunks {
+				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+					return errors.Wrap(err, "error writing event chunk")
+				}
+			}
+		}
+
 		return nil
 
 	}); err != nil {
 		return e.Wrap(err, "error reading events_objects")
 	}
 
-	var numberOfRows int64 = 0
-	eventsWriter := manager.Events.Writer()
-	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-	for eventRows.Next() {
-		eventObject := model.EventsObject{}
-		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
-		if err != nil {
-			return errors.Wrap(err, "error scanning event row")
-		}
-		if err := eventsWriter.Write(&eventObject); err != nil {
-			return errors.Wrap(err, "error writing event row")
-		}
-		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
-		}
-		numberOfRows += 1
-		if writeChunks {
-			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
-				return errors.Wrap(err, "error writing event chunk")
-			}
-		}
-	}
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
