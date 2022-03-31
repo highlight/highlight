@@ -1491,6 +1491,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			if err := r.DB.Scopes(model.EventsObjectTable(sessionID)).Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
+			// Do a dual write to the original table as well.
+			// To remove after deploying the partitioned changes once it's confirmed everything is fine.
+			if sessionID >= model.PARTITION_SESSION_ID {
+				if err := r.DB.Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating events object")
+				}
+			}
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
