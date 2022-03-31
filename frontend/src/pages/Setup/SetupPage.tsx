@@ -559,6 +559,24 @@ const BackendSetup = ({
                     ) : (
                         <GoBackendInstructions />
                     )}
+                    <Section title="Frontend Configuration" defaultOpen>
+                        <p>
+                            Ensure that your client Highlight snippet is
+                            initialized with the below settings included.{' '}
+                        </p>
+                        <CodeBlock
+                            text={`H.init("<YOUR_PROJECT_ID>", {
+    ...
+    tracingOrigins: true,
+    networkRecording: {
+        enabled: true,
+        recordHeadersAndBody: true
+    },
+    ...
+});`}
+                            language="javascript"
+                        />
+                    </Section>
                     <Section
                         defaultOpen
                         title={
