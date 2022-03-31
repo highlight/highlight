@@ -1,29 +1,29 @@
 @import 'src/static/shared.scss';
 
 .actionButtons {
-  display: flex;
-  gap: var(--size-xSmall);
-  justify-content: flex-end;
+    display: flex;
+    gap: var(--size-xSmall);
+    justify-content: flex-end;
 }
 
 .actionButtonsContainer {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .commentInputContainer {
-  padding: 0 var(--size-xSmall);
+    padding: 0 var(--size-xSmall);
 }
 
 .intercomLink {
-  cursor: pointer;
-  text-decoration: underline;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 .commentInputDiv {
-  @include rounded-border;
-  margin-top: 10px;
-  padding: 0;
-  height: 40px;
-  align-items: center;
-  display: flex;
+    @include rounded-border;
+    align-items: center;
+    display: flex;
+    height: 40px;
+    margin-top: 10px;
+    padding: 0;
 }
