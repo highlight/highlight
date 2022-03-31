@@ -1428,6 +1428,7 @@ export type MutationReplyToSessionCommentArgs = {
     comment_id: Scalars['ID'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
+    sessionURL: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
     tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
 };
@@ -1465,6 +1466,7 @@ export type MutationReplyToErrorCommentArgs = {
     comment_id: Scalars['ID'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
+    errorURL: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
     tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
 };

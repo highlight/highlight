@@ -1762,20 +1762,20 @@ func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
 	return nil
 }
 
-func (r *Resolver) sendCommentSlackNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string) {
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, subjectScope string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
+			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, "session", sessionImage)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, subjectScope, sessionImage)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
 
-func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string) {
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, subjectScope string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -1789,24 +1789,24 @@ func (r *Resolver) sendCommentEmailNotification(ctx context.Context, admin *mode
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
 
 		err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, "error")
+		err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, subjectScope)
 		if err != nil {
-			log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
 	})
 
