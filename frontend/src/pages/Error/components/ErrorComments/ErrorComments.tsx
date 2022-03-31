@@ -1,9 +1,14 @@
 import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
 import { CommentHeader } from '@components/Comment/CommentHeader';
+import CommentReplyForm, {
+    ErrorCommentReplyAction,
+} from '@components/Comment/CommentReplyForm/CommentReplyForm';
+import ReplyList from '@components/Comment/ReplyList/ReplyList';
 import MenuItem from '@components/Menu/MenuItem';
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
 import { useDeleteErrorCommentMutation } from '@graph/hooks';
-import { namedOperations } from '@graph/operations';
+import { GetErrorGroupQuery, namedOperations } from '@graph/operations';
+import { ErrorComment, Maybe } from '@graph/schemas';
 import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
@@ -39,16 +44,34 @@ const ErrorComments = ({ onClickCreateComment }: Props) => {
     );
 };
 
-export const ErrorCommentCard = ({ comment, errorGroup }: any) => (
-    <div className={styles.commentDiv}>
-        <ErrorCommentHeader comment={comment} errorGroup={errorGroup}>
-            <CommentTextBody commentText={comment.text} />
-        </ErrorCommentHeader>
-        {comment.attachments.length > 0 && (
-            <AttachmentList attachments={comment.attachments} />
-        )}
-    </div>
-);
+interface Props {
+    comment?: Maybe<ErrorComment>;
+    errorGroup?: GetErrorGroupQuery;
+    footer?: React.ReactNode;
+    parentRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const ErrorCommentCard = ({ comment, errorGroup, parentRef }: Props) => {
+    if (!comment) return null;
+    return (
+        <div className={styles.commentDiv}>
+            <ErrorCommentHeader comment={comment} errorGroup={errorGroup}>
+                <CommentTextBody commentText={comment.text} />
+            </ErrorCommentHeader>
+            {comment?.attachments.length > 0 && (
+                <AttachmentList attachments={comment.attachments} />
+            )}
+            {comment?.replies.length > 0 && (
+                <ReplyList replies={comment.replies} />
+            )}
+            <CommentReplyForm<ErrorCommentReplyAction>
+                action={new ErrorCommentReplyAction()}
+                commentID={comment?.id}
+                parentRef={parentRef}
+            />
+        </div>
+    );
+};
 
 const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
