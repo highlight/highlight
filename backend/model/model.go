@@ -1027,12 +1027,12 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error creating events_objects_partitioned")
 	}
 
-	if err := DB.Exec(`
-		CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
-		ON events_objects_partitioned (session_id);
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
-	}
+	// if err := DB.Exec(`
+	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
+	// 	ON events_objects_partitioned (session_id);
+	// `).Error; err != nil {
+	// 	return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
+	// }
 
 	var lastVal int
 	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
