@@ -1575,6 +1575,82 @@ export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionCommentMutation,
     Types.DeleteSessionCommentMutationVariables
 >;
+export const ReplyToSessionCommentDocument = gql`
+    mutation ReplyToSessionComment(
+        $comment_id: ID!
+        $text: String!
+        $text_for_email: String!
+        $sessionURL: String!
+        $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
+    ) {
+        replyToSessionComment(
+            comment_id: $comment_id
+            text: $text
+            text_for_email: $text_for_email
+            sessionURL: $sessionURL
+            tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
+        ) {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            text
+        }
+    }
+`;
+export type ReplyToSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.ReplyToSessionCommentMutation,
+    Types.ReplyToSessionCommentMutationVariables
+>;
+
+/**
+ * __useReplyToSessionCommentMutation__
+ *
+ * To run a mutation, you first call `useReplyToSessionCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplyToSessionCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replyToSessionCommentMutation, { data, loading, error }] = useReplyToSessionCommentMutation({
+ *   variables: {
+ *      comment_id: // value for 'comment_id'
+ *      text: // value for 'text'
+ *      text_for_email: // value for 'text_for_email'
+ *      sessionURL: // value for 'sessionURL'
+ *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
+ *   },
+ * });
+ */
+export function useReplyToSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ReplyToSessionCommentMutation,
+        Types.ReplyToSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ReplyToSessionCommentMutation,
+        Types.ReplyToSessionCommentMutationVariables
+    >(ReplyToSessionCommentDocument, baseOptions);
+}
+export type ReplyToSessionCommentMutationHookResult = ReturnType<
+    typeof useReplyToSessionCommentMutation
+>;
+export type ReplyToSessionCommentMutationResult = Apollo.MutationResult<Types.ReplyToSessionCommentMutation>;
+export type ReplyToSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.ReplyToSessionCommentMutation,
+    Types.ReplyToSessionCommentMutationVariables
+>;
 export const CreateErrorCommentDocument = gql`
     mutation CreateErrorComment(
         $project_id: ID!
@@ -1797,6 +1873,82 @@ export type DeleteErrorCommentMutationResult = Apollo.MutationResult<Types.Delet
 export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteErrorCommentMutation,
     Types.DeleteErrorCommentMutationVariables
+>;
+export const ReplyToErrorCommentDocument = gql`
+    mutation ReplyToErrorComment(
+        $comment_id: ID!
+        $text: String!
+        $text_for_email: String!
+        $errorURL: String!
+        $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
+    ) {
+        replyToErrorComment(
+            comment_id: $comment_id
+            text: $text
+            text_for_email: $text_for_email
+            errorURL: $errorURL
+            tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
+        ) {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            text
+        }
+    }
+`;
+export type ReplyToErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.ReplyToErrorCommentMutation,
+    Types.ReplyToErrorCommentMutationVariables
+>;
+
+/**
+ * __useReplyToErrorCommentMutation__
+ *
+ * To run a mutation, you first call `useReplyToErrorCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplyToErrorCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replyToErrorCommentMutation, { data, loading, error }] = useReplyToErrorCommentMutation({
+ *   variables: {
+ *      comment_id: // value for 'comment_id'
+ *      text: // value for 'text'
+ *      text_for_email: // value for 'text_for_email'
+ *      errorURL: // value for 'errorURL'
+ *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
+ *   },
+ * });
+ */
+export function useReplyToErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ReplyToErrorCommentMutation,
+        Types.ReplyToErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ReplyToErrorCommentMutation,
+        Types.ReplyToErrorCommentMutationVariables
+    >(ReplyToErrorCommentDocument, baseOptions);
+}
+export type ReplyToErrorCommentMutationHookResult = ReturnType<
+    typeof useReplyToErrorCommentMutation
+>;
+export type ReplyToErrorCommentMutationResult = Apollo.MutationResult<Types.ReplyToErrorCommentMutation>;
+export type ReplyToErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.ReplyToErrorCommentMutation,
+    Types.ReplyToErrorCommentMutationVariables
 >;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
