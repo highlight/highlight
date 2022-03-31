@@ -3,6 +3,7 @@ package worker
 import (
 	"container/list"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,6 +47,9 @@ const INACTIVE_THRESHOLD = 0.02
 
 // Stop trying to reprocess a session if its retry count exceeds this
 const MAX_RETRIES = 5
+
+// cancel events_objects reads after 5 minutes
+const EVENTS_READ_TIMEOUT = 300000
 
 type Worker struct {
 	Resolver *mgraph.Resolver
@@ -139,13 +143,26 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	var eventRows *sql.Rows
+	var err error
+
 	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
-		Where(&model.EventsObject{SessionID: s.ID}).
-		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving events objects")
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
+
+		eventRows, err = tx.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
+			Where(&model.EventsObject{SessionID: s.ID}).
+			Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
+		if err != nil {
+			return errors.Wrap(err, "error retrieving events objects")
+		}
+
+		return nil
+
+	}); err != nil {
+		return e.Wrap(err, "error reading events_objects")
 	}
+
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
