@@ -1,8 +1,8 @@
+import { ConsoleListener } from './console-listener';
 import {
     ALL_CONSOLE_METHODS,
-    ConsoleListener,
     ConsoleMethods,
-} from './console-listener';
+} from '../../../firstload/src/types/client';
 import { ErrorListener } from './error-listener';
 
 import {

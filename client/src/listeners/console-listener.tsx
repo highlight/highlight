@@ -1,6 +1,7 @@
 import { ConsoleMessage } from '../../../frontend/src/util/shared-types';
 import { patch, stringify } from '../utils/utils';
 import ErrorStackParser from 'error-stack-parser';
+import { ConsoleMethods } from '../../../firstload/src/types/client';
 
 export type StringifyOptions = {
     // limit of string length
@@ -44,29 +45,6 @@ type Logger = {
     trace?: typeof console.trace;
     warn?: typeof console.warn;
 };
-
-export const ALL_CONSOLE_METHODS = [
-    'assert',
-    'count',
-    'countReset',
-    'debug',
-    'dir',
-    'dirxml',
-    'error',
-    'group',
-    'groupCollapsed',
-    'groupEnd',
-    'info',
-    'log',
-    'table',
-    'time',
-    'timeEnd',
-    'timeLog',
-    'trace',
-    'warn',
-] as const;
-type ConsoleMethodsTuple = typeof ALL_CONSOLE_METHODS;
-export type ConsoleMethods = ConsoleMethodsTuple[number];
 
 export function ConsoleListener(
     callback: (c: ConsoleMessage) => void,

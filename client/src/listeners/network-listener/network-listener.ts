@@ -1,4 +1,4 @@
-import { NetworkRecordingOptions } from '../../index';
+import { NetworkRecordingOptions } from '../../../../firstload/src/types/client';
 import { FetchListener } from './utils/fetch-listener';
 import { RequestResponsePair } from './utils/models';
 import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer';
