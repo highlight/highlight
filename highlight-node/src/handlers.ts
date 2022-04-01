@@ -36,10 +36,11 @@ export function errorHandler(
                 const [secureSessionId, requestId] =
                     `${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/');
                 if (secureSessionId && requestId) {
+                    if (!H.isInitialized()) {
+                        H.init(options);
+                    }
+                    H.consumeEvent(secureSessionId);
                     if (error instanceof Error) {
-                        if (!H.isInitialized()) {
-                            H.init(options);
-                        }
                         H.consumeError(error, secureSessionId, requestId);
                     }
                 }

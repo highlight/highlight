@@ -7624,6 +7624,60 @@ export type IsIntegratedQueryResult = Apollo.QueryResult<
     Types.IsIntegratedQuery,
     Types.IsIntegratedQueryVariables
 >;
+export const IsBackendIntegratedDocument = gql`
+    query IsBackendIntegrated($project_id: ID!) {
+        isBackendIntegrated(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useIsBackendIntegratedQuery__
+ *
+ * To run a query within a React component, call `useIsBackendIntegratedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useIsBackendIntegratedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useIsBackendIntegratedQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useIsBackendIntegratedQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.IsBackendIntegratedQuery,
+        Types.IsBackendIntegratedQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.IsBackendIntegratedQuery,
+        Types.IsBackendIntegratedQueryVariables
+    >(IsBackendIntegratedDocument, baseOptions);
+}
+export function useIsBackendIntegratedLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.IsBackendIntegratedQuery,
+        Types.IsBackendIntegratedQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.IsBackendIntegratedQuery,
+        Types.IsBackendIntegratedQueryVariables
+    >(IsBackendIntegratedDocument, baseOptions);
+}
+export type IsBackendIntegratedQueryHookResult = ReturnType<
+    typeof useIsBackendIntegratedQuery
+>;
+export type IsBackendIntegratedLazyQueryHookResult = ReturnType<
+    typeof useIsBackendIntegratedLazyQuery
+>;
+export type IsBackendIntegratedQueryResult = Apollo.QueryResult<
+    Types.IsBackendIntegratedQuery,
+    Types.IsBackendIntegratedQueryVariables
+>;
 export const UnprocessedSessionsCountDocument = gql`
     query UnprocessedSessionsCount($project_id: ID!) {
         unprocessedSessionsCount(project_id: $project_id)

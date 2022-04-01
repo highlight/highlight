@@ -223,6 +223,23 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 	return nil, nil
 }
 
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).First(&session).Error; err != nil {
+		return -1, e.Wrapf(err, "error reading from sessionSecureId")
+	}
+	var backendSetupCount int64
+	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", session.ProjectID).Count(&backendSetupCount).Error; err != nil {
+		return -1, e.Wrap(err, "error querying backend_setup flag")
+	}
+	if backendSetupCount < 1 {
+		if err := r.DB.Model(&model.Project{}).Where("id = ?", session.ProjectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+			return -1, e.Wrap(err, "error updating backend_setup flag")
+		}
+	}
+	return session.ProjectID, nil
+}
+
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
 	metadata := make(map[string]interface{})
 

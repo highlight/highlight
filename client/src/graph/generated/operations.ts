@@ -88,6 +88,7 @@ export type Mutation = {
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload: Scalars['Int'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
+  markBackendSetup: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
   addWebVitals: Scalars['ID'];
   addDeviceMetric: Scalars['ID'];
@@ -141,6 +142,11 @@ export type MutationPushPayloadArgs = {
 
 export type MutationPushBackendPayloadArgs = {
   errors: Array<Maybe<BackendErrorObjectInput>>;
+};
+
+
+export type MutationMarkBackendSetupArgs = {
+  session_secure_id: Scalars['String'];
 };
 
 

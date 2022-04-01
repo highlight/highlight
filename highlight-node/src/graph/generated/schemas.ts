@@ -53,8 +53,9 @@ export type Mutation = {
   addWebVitals: Scalars['ID'];
   identifySession?: Maybe<Scalars['ID']>;
   initializeSession?: Maybe<Session>;
+  markBackendSetup: Scalars['ID'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
-  pushPayload?: Maybe<Scalars['ID']>;
+  pushPayload: Scalars['Int'];
 };
 
 
@@ -108,6 +109,12 @@ export type MutationInitializeSessionArgs = {
   fingerprint: Scalars['String'];
   firstloadVersion: Scalars['String'];
   organization_verbose_id: Scalars['String'];
+  session_secure_id?: InputMaybe<Scalars['String']>;
+};
+
+
+export type MutationMarkBackendSetupArgs = {
+  session_secure_id: Scalars['String'];
 };
 
 
@@ -119,6 +126,8 @@ export type MutationPushBackendPayloadArgs = {
 export type MutationPushPayloadArgs = {
   errors: Array<InputMaybe<ErrorObjectInput>>;
   events: ReplayEventsInput;
+  has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+  highlight_logs?: InputMaybe<Scalars['String']>;
   is_beacon?: InputMaybe<Scalars['Boolean']>;
   messages: Scalars['String'];
   resources: Scalars['String'];
