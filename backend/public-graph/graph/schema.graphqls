@@ -46,10 +46,6 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-input BackendEventObjectInput {
-    session_secure_id: String!
-}
-
 input WebVitalMetricInput {
     name: String!
     value: Float!
@@ -94,10 +90,8 @@ type Mutation {
         has_session_unloaded: Boolean
         highlight_logs: String
     ): Int!
-    pushBackendPayload(
-        errors: [BackendErrorObjectInput]!
-        events: [BackendEventObjectInput]
-    ): Any
+    pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+    markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
         session_id: ID!
         user_name: String

@@ -3172,9 +3172,9 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 		return nil, nil
 	}
 	var count int64
-	err := r.DB.Model(&model.Session{}).Where("project_id = ? AND backend_setup=true", projectID).Count(&count).Error
+	err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&count).Error
 	if err != nil {
-		return nil, e.Wrap(err, "error getting associated admins")
+		return nil, e.Wrap(err, "error getting projects with backend flag")
 	}
 	if count > 0 {
 		return &model.T, nil

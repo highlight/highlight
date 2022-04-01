@@ -52,7 +52,8 @@ type ComplexityRoot struct {
 		AddWebVitals         func(childComplexity int, sessionID int, metric model.WebVitalMetricInput) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) int
-		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput, events []*model.BackendEventObjectInput) int
+		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
+		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
 		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
 	}
 
@@ -74,7 +75,8 @@ type MutationResolver interface {
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
-	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput, events []*model.BackendEventObjectInput) (interface{}, error)
+	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
+	MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error)
 	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 	AddWebVitals(ctx context.Context, sessionID int, metric model.WebVitalMetricInput) (int, error)
 	AddDeviceMetric(ctx context.Context, sessionID int, metric model.DeviceMetricInput) (int, error)
@@ -182,6 +184,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string)), true
 
+	case "Mutation.markBackendSetup":
+		if e.complexity.Mutation.MarkBackendSetup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markBackendSetup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkBackendSetup(childComplexity, args["session_secure_id"].(string)), true
+
 	case "Mutation.pushBackendPayload":
 		if e.complexity.Mutation.PushBackendPayload == nil {
 			break
@@ -192,7 +206,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushBackendPayload(childComplexity, args["errors"].([]*model.BackendErrorObjectInput), args["events"].([]*model.BackendEventObjectInput)), true
+		return e.complexity.Mutation.PushBackendPayload(childComplexity, args["errors"].([]*model.BackendErrorObjectInput)), true
 
 	case "Mutation.pushPayload":
 		if e.complexity.Mutation.PushPayload == nil {
@@ -358,10 +372,6 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-input BackendEventObjectInput {
-    session_secure_id: String!
-}
-
 input WebVitalMetricInput {
     name: String!
     value: Float!
@@ -406,10 +416,8 @@ type Mutation {
         has_session_unloaded: Boolean
         highlight_logs: String
     ): Int!
-    pushBackendPayload(
-        errors: [BackendErrorObjectInput]!
-        events: [BackendEventObjectInput]
-    ): Any
+    pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+    markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
         session_id: ID!
         user_name: String
@@ -708,6 +716,21 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_markBackendSetup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_pushBackendPayload_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -720,15 +743,6 @@ func (ec *executionContext) field_Mutation_pushBackendPayload_args(ctx context.C
 		}
 	}
 	args["errors"] = arg0
-	var arg1 []*model.BackendEventObjectInput
-	if tmp, ok := rawArgs["events"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
-		arg1, err = ec.unmarshalOBackendEventObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendEventObjectInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["events"] = arg1
 	return args, nil
 }
 
@@ -1101,7 +1115,7 @@ func (ec *executionContext) _Mutation_pushBackendPayload(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushBackendPayload(rctx, args["errors"].([]*model.BackendErrorObjectInput), args["events"].([]*model.BackendEventObjectInput))
+		return ec.resolvers.Mutation().PushBackendPayload(rctx, args["errors"].([]*model.BackendErrorObjectInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1113,6 +1127,48 @@ func (ec *executionContext) _Mutation_pushBackendPayload(ctx context.Context, fi
 	res := resTmp.(interface{})
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_markBackendSetup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markBackendSetup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkBackendSetup(rctx, args["session_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2662,26 +2718,6 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputBackendEventObjectInput(ctx context.Context, obj interface{}) (model.BackendEventObjectInput, error) {
-	var it model.BackendEventObjectInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "session_secure_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-			it.SessionSecureID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputDeviceMetricInput(ctx context.Context, obj interface{}) (model.DeviceMetricInput, error) {
 	var it model.DeviceMetricInput
 	var asMap = obj.(map[string]interface{})
@@ -2956,6 +2992,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "pushBackendPayload":
 			out.Values[i] = ec._Mutation_pushBackendPayload(ctx, field)
+		case "markBackendSetup":
+			out.Values[i] = ec._Mutation_markBackendSetup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addSessionFeedback":
 			out.Values[i] = ec._Mutation_addSessionFeedback(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -3793,38 +3834,6 @@ func (ec *executionContext) unmarshalOBackendErrorObjectInput2ᚖgithubᚗcomᚋ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputBackendErrorObjectInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOBackendEventObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendEventObjectInput(ctx context.Context, v interface{}) ([]*model.BackendEventObjectInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*model.BackendEventObjectInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBackendEventObjectInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendEventObjectInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOBackendEventObjectInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendEventObjectInput(ctx context.Context, v interface{}) (*model.BackendEventObjectInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputBackendEventObjectInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

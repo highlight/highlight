@@ -32,10 +32,6 @@ export type BackendErrorObjectInput = {
   url: Scalars['String'];
 };
 
-export type BackendEventObjectInput = {
-  session_secure_id: Scalars['String'];
-};
-
 export type DeviceMetricInput = {
   name: Scalars['String'];
   value: Scalars['Float'];
@@ -62,6 +58,7 @@ export type Mutation = {
   addWebVitals: Scalars['ID'];
   identifySession?: Maybe<Scalars['ID']>;
   initializeSession?: Maybe<Session>;
+  markBackendSetup: Scalars['ID'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
   pushPayload: Scalars['Int'];
 };
@@ -121,9 +118,13 @@ export type MutationInitializeSessionArgs = {
 };
 
 
+export type MutationMarkBackendSetupArgs = {
+  session_secure_id: Scalars['String'];
+};
+
+
 export type MutationPushBackendPayloadArgs = {
   errors: Array<InputMaybe<BackendErrorObjectInput>>;
-  events?: InputMaybe<Array<InputMaybe<BackendEventObjectInput>>>;
 };
 
 
@@ -178,16 +179,27 @@ export type WebVitalMetricInput = {
 
 export type PushBackendPayloadMutationVariables = Types.Exact<{
   errors: Array<Types.InputMaybe<Types.BackendErrorObjectInput>> | Types.InputMaybe<Types.BackendErrorObjectInput>;
-  events?: Types.InputMaybe<Array<Types.InputMaybe<Types.BackendEventObjectInput>> | Types.InputMaybe<Types.BackendEventObjectInput>>;
 }>;
 
 
 export type PushBackendPayloadMutation = { __typename?: 'Mutation', pushBackendPayload?: any | null };
 
+export type MarkBackendSetupMutationVariables = Types.Exact<{
+  session_secure_id: Types.Scalars['String'];
+}>;
+
+
+export type MarkBackendSetupMutation = { __typename?: 'Mutation', markBackendSetup: string };
+
 
 export const PushBackendPayloadDocument = gql`
-    mutation PushBackendPayload($errors: [BackendErrorObjectInput]!, $events: [BackendEventObjectInput]) {
-  pushBackendPayload(errors: $errors, events: $events)
+    mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
+  pushBackendPayload(errors: $errors)
+}
+    `;
+export const MarkBackendSetupDocument = gql`
+    mutation MarkBackendSetup($session_secure_id: String!) {
+  markBackendSetup(session_secure_id: $session_secure_id)
 }
     `;
 
@@ -200,6 +212,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
   return {
     PushBackendPayload(variables: PushBackendPayloadMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushBackendPayloadMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<PushBackendPayloadMutation>(PushBackendPayloadDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'PushBackendPayload');
+    },
+    MarkBackendSetup(variables: MarkBackendSetupMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<MarkBackendSetupMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<MarkBackendSetupMutation>(MarkBackendSetupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'MarkBackendSetup');
     }
   };
 }

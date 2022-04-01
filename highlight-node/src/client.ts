@@ -9,7 +9,6 @@ import ErrorStackParser from 'error-stack-parser';
 import { GraphQLClient } from 'graphql-request';
 import { NodeOptions } from './types';
 import { ErrorContext } from './errorContext';
-import { BackendEventObjectInput } from './graph/generated/schemas';
 
 // Represents a stack frame with added lines of source code
 // before, after, and for the line of the current error
@@ -40,7 +39,6 @@ export class Highlight {
     _backendUrl: string;
     _intervalFunction: ReturnType<typeof setInterval>;
     errors: Array<InputMaybe<BackendErrorObjectInput>> = [];
-    events: Array<InputMaybe<BackendEventObjectInput>> = [];
     lastBackendSetupEvent: number = 0;
     _errorContext: ErrorContext | undefined;
 
@@ -109,22 +107,27 @@ export class Highlight {
             Date.now() - this.lastBackendSetupEvent >
             this.BACKEND_SETUP_TIMEOUT;
         if (sendBackendSetup) {
-            this.events.push({
-                session_secure_id: secureSessionId,
-            });
+            this._graphqlSdk
+                .MarkBackendSetup({
+                    session_secure_id: secureSessionId,
+                })
+                .then(() => {
+                    this.lastBackendSetupEvent = Date.now();
+                })
+                .catch((e) => {
+                    console.log('highlight-node error: ', e);
+                });
         }
     }
 
     flush() {
-        if (this.events.length === 0 && this.errors.length === 0) {
+        if (this.errors.length === 0) {
             return;
         }
         const variables: PushBackendPayloadMutationVariables = {
             errors: this.errors,
-            events: this.events,
         };
         this.errors = [];
-        this.events = [];
         this._graphqlSdk
             .PushBackendPayload(variables)
             .then(() => {})
