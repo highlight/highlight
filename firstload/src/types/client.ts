@@ -19,14 +19,14 @@ export const ALL_CONSOLE_METHODS = [
     'warn',
 ] as const;
 type ConsoleMethodsTuple = typeof ALL_CONSOLE_METHODS;
-export type ConsoleMethods = ConsoleMethodsTuple[number];
+export declare type ConsoleMethods = ConsoleMethodsTuple[number];
 
-export type DebugOptions = {
+export declare type DebugOptions = {
     clientInteractions?: boolean;
     domRecording?: boolean;
 };
 
-export type NetworkRecordingOptions = {
+export declare type NetworkRecordingOptions = {
     /**
      * Enables recording of network requests.
      * The data includes the URLs, the size of the request, and how long the request took.
@@ -83,12 +83,12 @@ export type NetworkRecordingOptions = {
     bodyKeysToRecord?: string[];
 };
 
-export type IntegrationOptions = {
+export declare type IntegrationOptions = {
     mixpanel?: MixpanelIntegrationOptions;
     amplitude?: AmplitudeIntegrationOptions;
 };
 
-export type SessionShortcutOptions = false | string;
+export declare type SessionShortcutOptions = false | string;
 
 export declare interface FeedbackWidgetOptions {
     title?: string;

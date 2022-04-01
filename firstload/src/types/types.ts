@@ -7,11 +7,11 @@ import {
     SessionShortcutOptions,
 } from './client';
 
-export interface Metadata {
+export declare interface Metadata {
     [key: string]: string | boolean | number;
 }
 
-export type HighlightOptions = {
+export declare type HighlightOptions = {
     /**
      * Do not use this.
      * @private
@@ -101,7 +101,7 @@ export type HighlightOptions = {
     feedbackWidget?: FeedbackWidgetOptions;
 };
 
-export interface HighlightPublicInterface {
+export declare interface HighlightPublicInterface {
     init: (projectID?: string | number, debug?: HighlightOptions) => void;
     /**
      * Calling this will assign an identifier to the session.
@@ -148,14 +148,14 @@ export interface HighlightPublicInterface {
     toggleSessionFeedbackModal: () => void;
 }
 
-export interface SessionDetails {
+export declare interface SessionDetails {
     /** The URL to view the session. */
     url: string;
     /** The URL to view the session at the time getSessionDetails was called during the session recording. */
     urlWithTimestamp: string;
 }
 
-export type Integration = (integrationOptions?: any) => void;
+export declare type Integration = (integrationOptions?: any) => void;
 
 interface SessionFeedbackOptions {
     verbatim: string;
