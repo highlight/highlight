@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
@@ -27,6 +29,7 @@ interface Props {
     rageClicks: RageClick[];
     startTime: number | undefined;
     pause: (time?: number | undefined) => void;
+    activeEvent: HighlightEvent | undefined;
 }
 
 const TimelineIndicatorsMemoized = React.memo(
@@ -37,6 +40,7 @@ const TimelineIndicatorsMemoized = React.memo(
         rageClicks,
         startTime,
         pause,
+        activeEvent,
     }: Props) => {
         return (
             <AnimatePresence presenceAffectsLayout>
@@ -68,6 +72,7 @@ const TimelineIndicatorsMemoized = React.memo(
                                     }
                                     pause={pause}
                                     key={`${event.timestamp}-${event.identifier}`}
+                                    activeEvent={activeEvent}
                                 />
                             ))}
                             {selectedTimelineAnnotationTypes.includes(
@@ -129,6 +134,7 @@ const TimelineIndicators = React.memo(() => {
     const refContainer = useRef<HTMLDivElement>(null);
 
     const { isHighlightAdmin } = useAuthContext();
+    const { activeEvent } = usePlayerUIContext();
 
     useEffect(() => {
         if (
@@ -176,6 +182,7 @@ const TimelineIndicators = React.memo(() => {
                 rageClicks={rageClicks}
                 startTime={replayer?.getMetaData()?.startTime}
                 pause={pause}
+                activeEvent={activeEvent}
             />
         </>
     );

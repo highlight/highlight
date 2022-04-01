@@ -2620,7 +2620,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
-	if res := r.DB.Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
+	if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get timeline indicator events")
 	}
 
