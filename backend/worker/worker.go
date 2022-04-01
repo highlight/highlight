@@ -3,6 +3,7 @@ package worker
 import (
 	"container/list"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,6 +47,9 @@ const INACTIVE_THRESHOLD = 0.02
 
 // Stop trying to reprocess a session if its retry count exceeds this
 const MAX_RETRIES = 5
+
+// cancel events_objects reads after 5 minutes
+const EVENTS_READ_TIMEOUT = 300000
 
 type Worker struct {
 	Resolver *mgraph.Resolver
@@ -139,35 +143,49 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
-	// Fetch/write events.
-	eventRows, err := w.Resolver.DB.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
-		Where(&model.EventsObject{SessionID: s.ID}).
-		Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving events objects")
-	}
+	var eventRows *sql.Rows
+	var err error
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-	for eventRows.Next() {
-		eventObject := model.EventsObject{}
-		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+
+	// Fetch/write events.
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
+
+		eventRows, err = tx.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
+			Where(&model.EventsObject{SessionID: s.ID}).
+			Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 		if err != nil {
-			return errors.Wrap(err, "error scanning event row")
+			return errors.Wrap(err, "error retrieving events objects")
 		}
-		if err := eventsWriter.Write(&eventObject); err != nil {
-			return errors.Wrap(err, "error writing event row")
-		}
-		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
-		}
-		numberOfRows += 1
-		if writeChunks {
-			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
-				return errors.Wrap(err, "error writing event chunk")
+
+		for eventRows.Next() {
+			eventObject := model.EventsObject{}
+			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+			if err != nil {
+				return errors.Wrap(err, "error scanning event row")
+			}
+			if err := eventsWriter.Write(&eventObject); err != nil {
+				return errors.Wrap(err, "error writing event row")
+			}
+			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
+				return errors.Wrap(err, "error writing compressed event row")
+			}
+			numberOfRows += 1
+			if writeChunks {
+				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+					return errors.Wrap(err, "error writing event chunk")
+				}
 			}
 		}
+
+		return nil
+
+	}); err != nil {
+		return e.Wrap(err, "error reading events_objects")
 	}
+
 	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")

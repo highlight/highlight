@@ -2620,7 +2620,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
-	if res := r.DB.Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
+	if res := r.DB.Order("timestamp ASC").Where(&model.TimelineIndicatorEvent{SessionSecureID: sessionSecureID}).Find(&timelineIndicatorEvents); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get timeline indicator events")
 	}
 
@@ -3167,6 +3167,21 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
+	}
+	if count > 0 {
+		return &model.T, nil
+	}
+	return &model.F, nil
+}
+
+func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, nil
+	}
+	var count int64
+	err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&count).Error
+	if err != nil {
+		return nil, e.Wrap(err, "error getting projects with backend flag")
 	}
 	if count > 0 {
 		return &model.T, nil

@@ -1,7 +1,5 @@
-import {
-    getFullScreenPopoverGetPopupContainer,
-    usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext';
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -25,6 +23,7 @@ interface Props {
     startTime: number | undefined;
     selectedTimelineAnnotationTypes: string[];
     pause: (time?: number | undefined) => void;
+    activeEvent: HighlightEvent | undefined;
 }
 
 const TimelineEventAnnotation = ({
@@ -32,10 +31,10 @@ const TimelineEventAnnotation = ({
     startTime,
     selectedTimelineAnnotationTypes,
     pause,
+    activeEvent,
 }: Props) => {
     const details = getEventRenderDetails(event);
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-    const { activeEvent } = usePlayerUIContext();
 
     const Icon = getPlayerEventIcon(details.title || '', details.payload);
 

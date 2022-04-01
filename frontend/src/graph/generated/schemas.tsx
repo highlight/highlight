@@ -768,6 +768,7 @@ export type Query = {
     workspace_admins: Array<Maybe<Admin>>;
     workspace_admins_by_project_id: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
+    isBackendIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     liveUsersCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -922,6 +923,10 @@ export type QueryWorkspace_Admins_By_Project_IdArgs = {
 };
 
 export type QueryIsIntegratedArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryIsBackendIntegratedArgs = {
     project_id: Scalars['ID'];
 };
 

@@ -1,6 +1,6 @@
 {
     "name": "@highlight-run/node",
-    "version": "1.0.10",
+    "version": "1.0.12",
     "license": "MIT",
     "main": "dist/index.js",
     "module": "esm/index.js",

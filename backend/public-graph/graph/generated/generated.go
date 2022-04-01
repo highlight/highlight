@@ -52,6 +52,7 @@ type ComplexityRoot struct {
 		AddWebVitals         func(childComplexity int, sessionID int, metric model.WebVitalMetricInput) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) int
+		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
 		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
 		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
 	}
@@ -75,6 +76,7 @@ type MutationResolver interface {
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
+	MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error)
 	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 	AddWebVitals(ctx context.Context, sessionID int, metric model.WebVitalMetricInput) (int, error)
 	AddDeviceMetric(ctx context.Context, sessionID int, metric model.DeviceMetricInput) (int, error)
@@ -181,6 +183,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string)), true
+
+	case "Mutation.markBackendSetup":
+		if e.complexity.Mutation.MarkBackendSetup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markBackendSetup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkBackendSetup(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Mutation.pushBackendPayload":
 		if e.complexity.Mutation.PushBackendPayload == nil {
@@ -403,6 +417,7 @@ type Mutation {
         highlight_logs: String
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+    markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
         session_id: ID!
         user_name: String
@@ -698,6 +713,21 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["session_secure_id"] = arg9
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markBackendSetup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -1097,6 +1127,48 @@ func (ec *executionContext) _Mutation_pushBackendPayload(ctx context.Context, fi
 	res := resTmp.(interface{})
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_markBackendSetup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markBackendSetup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkBackendSetup(rctx, args["session_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2920,6 +2992,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "pushBackendPayload":
 			out.Values[i] = ec._Mutation_pushBackendPayload(ctx, field)
+		case "markBackendSetup":
+			out.Values[i] = ec._Mutation_markBackendSetup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addSessionFeedback":
 			out.Values[i] = ec._Mutation_addSessionFeedback(ctx, field)
 			if out.Values[i] == graphql.Null {
