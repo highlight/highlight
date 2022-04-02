@@ -35,6 +35,7 @@ import styles from './ResourcePage.module.scss';
 export const ResourcePage = React.memo(
     ({ time, startTime }: { time: number; startTime: number }) => {
         const {
+            pause,
             state,
             session,
             isPlayerReady,
@@ -291,6 +292,23 @@ export const ResourcePage = React.memo(
             resourcesToRender,
             resourcesToRender.length,
             setResourcePanel,
+        ]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const pauseFunction = useCallback(
+            _.debounce((t: number) => {
+                pause(t);
+            }, 300),
+            []
+        );
+
+        useEffect(() => {
+            pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
+        }, [
+            pauseFunction,
+            currentActiveIndex,
+            resourcesToRender,
+            resourcesToRender.length,
         ]);
 
         return (
