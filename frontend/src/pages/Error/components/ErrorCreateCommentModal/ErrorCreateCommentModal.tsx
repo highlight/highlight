@@ -4,12 +4,18 @@ import useWindowSize from '@rehooks/window-size';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
+export enum CreateModalType {
+    None,
+    Comment,
+    Issue,
+}
 interface Props {
     onClose: () => void;
-    show?: boolean;
+    show: CreateModalType;
     parentRef?: React.RefObject<HTMLDivElement>;
     data?: GetErrorGroupQuery;
 }
+
 export const ErrorCreateCommentModal = ({
     onClose,
     show,
@@ -25,10 +31,14 @@ export const ErrorCreateCommentModal = ({
     return (
         <NewCommentModal
             mask={true}
-            title={'Write a Comment'}
+            title={
+                show === CreateModalType.Comment
+                    ? 'Write a Comment'
+                    : 'Create an Issue'
+            }
             newCommentModalRef={parentRef ?? pRef}
             commentModalPosition={
-                show
+                show !== CreateModalType.None
                     ? {
                           x: innerWidth / 2 - 250,
                           y: innerHeight / 2 - 210,

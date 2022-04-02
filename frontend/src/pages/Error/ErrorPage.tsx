@@ -2,9 +2,22 @@ import {
     queryBuilderEnabled,
     useAuthContext,
 } from '@authentication/AuthContext';
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { ErrorState } from '@components/ErrorState/ErrorState';
-import { ErrorCreateCommentModal } from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal';
+import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import {
+    useGetDailyErrorFrequencyQuery,
+    useGetErrorGroupQuery,
+} from '@graph/hooks';
+import { ErrorGroup, Maybe } from '@graph/schemas';
+import SvgBugIcon from '@icons/BugIcon';
+import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
+import {
+    CreateModalType,
+    ErrorCreateCommentModal,
+} from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal';
 import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart';
+import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -30,14 +43,7 @@ import {
 } from 'recharts';
 
 import Button from '../../components/Button/Button/Button';
-import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
-import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
-import {
-    useGetDailyErrorFrequencyQuery,
-    useGetErrorGroupQuery,
-} from '../../graph/generated/hooks';
-import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import {
     ErrorSearchContextProvider,
@@ -141,7 +147,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [
         showCreateCommentModal,
         setShowCreateCommentModal,
-    ] = useState<boolean>(false);
+    ] = useState<CreateModalType>(CreateModalType.None);
 
     return (
         <ErrorSearchContextProvider
@@ -177,7 +183,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 </div>
                 <ErrorCreateCommentModal
                     show={showCreateCommentModal}
-                    onClose={() => setShowCreateCommentModal(false)}
+                    onClose={() =>
+                        setShowCreateCommentModal(CreateModalType.None)
+                    }
                     data={data}
                 />
                 {error_secure_id && !errorQueryingErrorGroup ? (
@@ -208,9 +216,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 ) : (
                                     <ErrorTitle
                                         errorGroup={data?.error_group}
-                                        onClickCreateComment={() =>
-                                            setShowCreateCommentModal(true)
-                                        }
                                     />
                                 )}
                             </div>
@@ -352,6 +357,23 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             })}
                             ref={newCommentModalRef}
                         >
+                            <div className={styles.rightButtonsContainer}>
+                                <ErrorCommentButton
+                                    onClick={() =>
+                                        setShowCreateCommentModal(
+                                            CreateModalType.Issue
+                                        )
+                                    }
+                                    trackingId="CreateErrorIssue"
+                                >
+                                    <SvgBugIcon />
+                                    <span>Issue</span>
+                                </ErrorCommentButton>
+                                <ErrorShareButton
+                                    errorGroup={data?.error_group}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
                             <ErrorAffectedUsers
                                 errorGroup={data}
                                 loading={loading}
@@ -360,7 +382,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 errorGroup={data}
                                 parentRef={newCommentModalRef}
                                 onClickCreateComment={() => {
-                                    setShowCreateCommentModal(true);
+                                    setShowCreateCommentModal(
+                                        CreateModalType.Comment
+                                    );
                                 }}
                             />
                         </div>

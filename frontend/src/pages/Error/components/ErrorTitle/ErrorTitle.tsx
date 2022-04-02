@@ -1,12 +1,9 @@
 import Tag from '@components/Tag/Tag';
-import SvgBugIcon from '@icons/BugIcon';
-import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
+import { ErrorGroup, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
 
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import { getHeaderFromError } from '../../ErrorPage';
-import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
 import styles from './ErrorTitle.module.scss';
 
 interface Props {
@@ -14,14 +11,9 @@ interface Props {
         | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
         | undefined;
     showShareButton?: boolean;
-    onClickCreateComment?: () => void;
 }
 
-const ErrorTitle = ({
-    errorGroup,
-    showShareButton = true,
-    onClickCreateComment,
-}: Props) => {
+const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
     const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null);
 
     const headerText = getHeaderFromError(errorGroup?.event ?? []);
@@ -59,20 +51,6 @@ const ErrorTitle = ({
                         {errorGroup.type}
                     </Tag>
                 )}
-                <div className={styles.rightButtonsContainer}>
-                    <div className={styles.createIssueContainer}>
-                        <ErrorCommentButton
-                            onClick={onClickCreateComment ?? (() => {})}
-                            trackingId="CreateErrorIssue"
-                        >
-                            <SvgBugIcon />
-                            <span>Create an Issue</span>
-                        </ErrorCommentButton>
-                    </div>
-                    {showShareButton && (
-                        <ErrorShareButton errorGroup={errorGroup} />
-                    )}
-                </div>
             </div>
         </header>
     );

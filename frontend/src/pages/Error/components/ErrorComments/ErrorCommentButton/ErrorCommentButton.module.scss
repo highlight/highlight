@@ -1,9 +1,15 @@
 .button {
-    border-radius: var(--size-xSmall) !important;
+    background-color: var(--color-green-700) !important;
+    border: 0;
     column-gap: var(--size-small);
     display: flex;
     font-size: 14px !important;
     height: 34px;
     justify-content: center;
+    padding: 0;
     width: 100%;
+
+    &:focus &:hover {
+        background-color: var(--color-green-700) !important;
+    }
 }

@@ -4,19 +4,20 @@ import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import Switch from '@components/Switch/Switch';
 import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks';
+import { ErrorGroup } from '@graph/schemas';
 import SvgShareIcon from '@icons/ShareIcon';
 import { Maybe } from 'graphql/jsutils/Maybe';
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 
 import ShareButton from '../../../../components/Button/ShareButton/ShareButton';
-import { ErrorGroup } from '../../../../graph/generated/schemas';
 import styles from './ErrorShareButton.module.scss';
 
 interface Props {
     errorGroup: Maybe<Pick<ErrorGroup, 'secure_id' | 'is_public'>> | undefined;
+    style?: CSSProperties;
 }
 
-const ErrorShareButton = ({ errorGroup }: Props) => {
+const ErrorShareButton = ({ errorGroup, style }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const [showModal, setShowModal] = useState(false);
 
@@ -27,6 +28,7 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
                 onClick={() => {
                     setShowModal(true);
                 }}
+                style={style}
             >
                 <SvgShareIcon />
                 Share
