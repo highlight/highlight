@@ -11,6 +11,7 @@ import {
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -26,7 +27,6 @@ import Skeleton from 'react-loading-skeleton';
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
@@ -228,16 +228,10 @@ export const ResourcePage = React.memo(
 
         useEffect(() => {
             // scroll network events on player timeline click
-            if (!isInteractingWithResources && state === ReplayerState.Paused) {
+            if (state === ReplayerState.Paused) {
                 scrollFunction(currentResource);
             }
-        }, [
-            currentResource,
-            scrollFunction,
-            isInteractingWithResources,
-            state,
-            time,
-        ]);
+        }, [currentResource, scrollFunction, state, time]);
 
         const resourcesToRender = useMemo(() => {
             setCurrentActiveIndex(0);

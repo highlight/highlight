@@ -15,9 +15,6 @@ $right-padding: 12px;
     width: 100%;
 
     &.current {
-        border: 1px solid var(--color-green-500);
-        border-radius: 8px;
-        margin-bottom: 1px;
         p,
         div,
         span {
