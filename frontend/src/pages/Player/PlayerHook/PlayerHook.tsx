@@ -166,6 +166,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [sessionMetadata, setSessionMetadata] = useState<playerMetaData>(
         EMPTY_SESSION_METADATA
     );
+    const [events, setEvents] = useState<HighlightEvent[]>([]);
 
     const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
         variables: {
@@ -194,7 +195,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
-    const events: HighlightEvent[] = [];
+    // const events: HighlightEvent[] = [];
     let eventsKey = '';
     const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
     for (const [k, v] of sortedChunks) {
@@ -202,9 +203,9 @@ export const usePlayer = (): ReplayerContextInterface => {
             eventsKey += k + ',';
         }
 
-        for (const val of v) {
-            events.push(val);
-        }
+        // for (const val of v) {
+        //     events.push(val);
+        // }
     }
 
     const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
@@ -621,17 +622,17 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Handle data in playback mode.
     useEffect(() => {
-        const events: HighlightEvent[] = [];
+        const nextEvents: HighlightEvent[] = [];
         for (const v of chunkEvents.values()) {
             for (const val of v) {
-                events.push(val);
+                nextEvents.push(val);
             }
         }
 
-        if (!events || events.length === 0) return;
+        if (!nextEvents || nextEvents.length === 0) return;
 
         setIsLiveMode(sessionData?.session?.processed === false);
-        if (events.length < 2) {
+        if (nextEvents.length < 2) {
             if (!(sessionData?.session?.processed === false)) {
                 setSessionViewability(SessionViewability.EMPTY_SESSION);
             }
@@ -642,8 +643,10 @@ export const usePlayer = (): ReplayerContextInterface => {
         // Add an id field to each event so it can be referenced.
 
         if (replayer === undefined) {
-            initReplayer(events);
+            initReplayer(nextEvents);
         }
+
+        setEvents(nextEvents);
 
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -669,6 +672,12 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Loads the remaining events into Replayer.
     useEffect(() => {
         if (replayer && eventsDataLoaded) {
+            const events: HighlightEvent[] = [];
+            for (const [, v] of sortedChunks) {
+                for (const val of v) {
+                    events.push(val);
+                }
+            }
             replayer.replaceEvents(events);
 
             // Preprocess session interval data from backend
