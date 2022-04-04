@@ -503,6 +503,7 @@ const ResourceRow = ({
     playerRelTime,
     hasError,
 }: ResourceRowProps) => {
+    const ActiveNetworkRequestRangeMillis = 1000;
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
@@ -512,10 +513,12 @@ const ResourceRow = ({
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
     const isCurrentResource =
         resource.id === currentResource ||
-        (playerRelTime >= resource.startTime &&
-            playerRelTime <= resource.startTime + 1000) ||
-        (playerRelTime >= resource.startTime &&
-            playerRelTime <= resource.responseEnd);
+        (resource?.responseEnd
+            ? playerRelTime >= resource.startTime &&
+              playerRelTime <= resource.responseEnd
+            : playerRelTime >= resource.startTime &&
+              playerRelTime <=
+                  resource.startTime + ActiveNetworkRequestRangeMillis);
 
     return (
         <div key={resource.id.toString()} onClick={onClickHandler}>
