@@ -52,6 +52,7 @@ interface Props {
 const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useReplayerContext();
     const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id);
+    const [clicked, setClicked] = useState(deepLinkedCommentId === comment?.id);
     const commentCardParentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -59,6 +60,19 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             setVisible(deepLinkedCommentId === comment?.id);
         }
     }, [comment?.id, deepLinkedCommentId]);
+
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            console.log('keydown', e.key);
+            if (e.key == 'Escape') {
+                setVisible(false);
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, []);
 
     if (!comment) {
         return null;
@@ -88,12 +102,15 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             }}
             onClick={(e) => {
                 e.stopPropagation();
+                setClicked(true);
             }}
             onMouseEnter={() => {
                 setVisible(true);
             }}
             onMouseLeave={() => {
-                setVisible(false);
+                if (!clicked) {
+                    setVisible(false);
+                }
             }}
         >
             <TransparentPopover
@@ -106,6 +123,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                         <SessionCommentCard
                             parentRef={commentCardParentRef}
                             comment={comment}
+                            onClose={() => setVisible(false)}
                             deepLinkedCommentId={deepLinkedCommentId}
                             hasShadow
                         />

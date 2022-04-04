@@ -1,5 +1,7 @@
+import { CommentHeader } from '@components/Comment/CommentHeader';
 import MenuItem from '@components/Menu/MenuItem';
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
+import { useDeleteSessionCommentMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
 import SvgBallotBoxIcon from '@icons/BallotBoxIcon';
@@ -10,26 +12,24 @@ import SvgReferrer from '@icons/Referrer';
 import SvgTrashIcon from '@icons/TrashIcon';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import {
+    ParsedSessionComment,
+    useReplayerContext,
+} from '@pages/Player/ReplayerContext';
+import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { useDeleteSessionCommentMutation } from '../../../graph/generated/hooks';
-import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
-import {
-    ParsedSessionComment,
-    useReplayerContext,
-} from '../../../pages/Player/ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
-import { MillisToMinutesAndSeconds } from '../../../util/time';
-import { CommentHeader } from '../CommentHeader';
-
 interface Props {
     comment: ParsedSessionComment;
     menuItems?: CommentHeaderMenuItem[];
     footer?: React.ReactNode;
+    onClose?: () => void;
 }
 
 export interface CommentHeaderMenuItem {
@@ -41,6 +41,7 @@ const SessionCommentHeader = ({
     comment,
     children,
     menuItems,
+    onClose,
     footer,
 }: PropsWithChildren<Props>) => {
     const { pause, session, replayer } = useReplayerContext();
@@ -235,6 +236,7 @@ const SessionCommentHeader = ({
             moreMenu={moreMenu}
             footer={footer}
             shareMenu={shareMenu}
+            onClose={onClose}
         >
             {children}
             <NewIssueModal

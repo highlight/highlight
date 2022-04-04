@@ -27,6 +27,7 @@ interface Props {
     deepLinkedCommentId?: string | null;
     hasShadow?: boolean;
     menuItems?: CommentHeaderMenuItem[];
+    onClose?: () => void;
     footer?: React.ReactNode;
     parentRef?: React.RefObject<HTMLDivElement>;
 }
@@ -36,6 +37,7 @@ export const SessionCommentCard = ({
     deepLinkedCommentId,
     hasShadow,
     menuItems,
+    onClose,
     footer,
     parentRef,
 }: Props) => {
@@ -50,6 +52,7 @@ export const SessionCommentCard = ({
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
+                onClose={onClose}
                 footer={footer}
                 parentRef={parentRef}
             />
@@ -57,20 +60,26 @@ export const SessionCommentCard = ({
     );
 };
 
-export const SessionComment = ({ comment, menuItems, parentRef }: Props) => {
+export const SessionComment = ({
+    comment,
+    menuItems,
+    onClose,
+    parentRef,
+}: Props) => {
     return (
         <>
             <SessionCommentHeader
                 key={comment.id}
                 comment={comment}
                 menuItems={menuItems}
+                onClose={onClose}
             >
                 <SessionCommentTextBody comment={comment} />
             </SessionCommentHeader>
-            {comment.attachments.length > 0 && (
+            {comment?.attachments?.length > 0 && (
                 <AttachmentList attachments={comment.attachments} />
             )}
-            {comment.replies.length > 0 && (
+            {comment?.replies?.length > 0 && (
                 <ReplyList replies={comment.replies} />
             )}
             <CommentReplyForm<SessionCommentReplyAction>

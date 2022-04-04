@@ -17,10 +17,7 @@ const ReplyList: React.FC<ReplyListProps> = ({ replies }) => {
                     record && (
                         <div className={styles.record} key={record.id}>
                             <div>
-                                <CommentHeader
-                                    comment={record}
-                                    moreMenu={<div></div>}
-                                >
+                                <CommentHeader comment={record}>
                                     <CommentTextBody
                                         commentText={record.text}
                                     />

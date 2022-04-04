@@ -1,15 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import CloseButton from '@components/CloseButton/CloseButton';
+import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas';
 import SvgShare2Icon from '@icons/Share2Icon';
 import { CommentSuggestion } from '@util/comment/util';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import {
-    Admin,
-    SanitizedAdminInput,
-    SessionCommentType,
-} from '../../graph/generated/schemas';
 import { AdminAvatar, Avatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
@@ -63,10 +60,12 @@ export const CommentHeader = ({
     children,
     footer,
     shareMenu,
+    onClose,
 }: PropsWithChildren<{
     comment: any;
-    moreMenu: JSX.Element;
+    moreMenu?: JSX.Element;
     shareMenu?: JSX.Element;
+    onClose?: () => void;
     footer?: React.ReactNode;
 }>) => {
     const { isLoggedIn } = useAuthContext();
@@ -109,10 +108,18 @@ export const CommentHeader = ({
                                     icon={<SvgShare2Icon />}
                                 />
                             )}
-                            <DotsMenu
-                                menu={moreMenu}
-                                trackingId="CommentsHeader"
-                            />
+                            {moreMenu && (
+                                <DotsMenu
+                                    menu={moreMenu}
+                                    trackingId="CommentsHeader"
+                                />
+                            )}
+                            {onClose && (
+                                <CloseButton
+                                    onClick={onClose}
+                                    trackingId={'CommentsClose'}
+                                />
+                            )}
                         </>
                     )}
                 </span>
