@@ -1,6 +1,7 @@
 @import 'src/static/shared.scss';
 
 .errorPageCenterColumn {
+    @include hide-scrollbar;
     flex: 1;
     height: calc(100vh - var(--top-padding));
     overflow-y: auto;
@@ -273,7 +274,7 @@
 .actionButtons {
     display: flex;
     gap: var(--size-xSmall);
-    justify-content: flex-end;
+    justify-content: space-around;
 }
 
 .actionButtonsContainer {
@@ -318,4 +319,10 @@
 
 .titleContainer {
     margin-bottom: var(--size-large);
+}
+
+.rightButtonsContainer {
+    display: grid;
+    grid-column-gap: 10px;
+    grid-template-columns: auto auto;
 }

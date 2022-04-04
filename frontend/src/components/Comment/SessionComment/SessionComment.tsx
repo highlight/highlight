@@ -5,13 +5,13 @@ import SplitButton from '@components/SplitButton/SplitButton';
 import Tag from '@components/Tag/Tag';
 import SvgHeartIcon from '@icons/HeartIcon';
 import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon';
+import { ParsedSessionComment } from '@pages/Player/ReplayerContext';
 import { message } from 'antd';
 import Menu from 'antd/lib/menu';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 
-import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from './SessionComment.module.scss';
 import SessionCommentHeader, {
@@ -50,7 +50,7 @@ export const SessionCommentCard = ({
     );
 };
 
-export const SessionComment = ({ comment, menuItems, footer }: Props) => {
+export const SessionComment = ({ comment, menuItems }: Props) => {
     return (
         <>
             <SessionCommentHeader
@@ -63,7 +63,6 @@ export const SessionComment = ({ comment, menuItems, footer }: Props) => {
             {comment.attachments.length > 0 && (
                 <AttachmentList attachments={comment.attachments} />
             )}
-            {footer}
         </>
     );
 };

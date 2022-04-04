@@ -26,4 +26,11 @@
     > button {
         margin-left: auto;
     }
+
+    > .secondRow {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 8px;
+    }
 }

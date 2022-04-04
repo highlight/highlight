@@ -11,7 +11,7 @@ type Props = {} & Pick<React.HTMLAttributes<HTMLButtonElement>, 'onClick'> &
 const ShareButton = (props: Props) => {
     return (
         <Button
-            type="primary"
+            type="link"
             {...props}
             className={classNames(props.className, styles.button)}
         >

@@ -1,4 +1,6 @@
 .button {
+    background-color: var(--color-gray-400) !important;
+    border: var(--color-gray-400);
     border-radius: var(--size-xSmall) !important;
     column-gap: var(--size-small);
     display: flex;
@@ -6,4 +8,9 @@
     height: 34px;
     justify-content: center;
     width: 113px;
+
+    &:focus &:hover {
+        background-color: var(--color-gray-400) !important;
+        border: var(--color-gray-400) !important;
+    }
 }

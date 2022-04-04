@@ -17,6 +17,7 @@ type Props = Pick<
     | 'destroyOnClose'
     | 'centered'
     | 'mask'
+    | 'maskStyle'
     | 'getContainer'
     | 'className'
 > & {

@@ -12,9 +12,14 @@ import styles from './ErrorRightPanel.module.scss';
 interface Props {
     errorGroup?: GetErrorGroupQuery;
     parentRef?: React.RefObject<HTMLDivElement>;
+    onClickCreateComment?: () => void;
 }
 
-const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
+const ErrorRightPanel = ({
+    errorGroup,
+    parentRef,
+    onClickCreateComment,
+}: Props) => {
     return (
         <Card noPadding className={styles.rightPanel}>
             <Tabs
@@ -43,7 +48,12 @@ const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
                             <div className={styles.commentsTabContainer}>
                                 <ErrorFullCommentList errorGroup={errorGroup} />
                                 <div className={styles.createCommentContainer}>
-                                    <ErrorComments parentRef={parentRef} />
+                                    <ErrorComments
+                                        parentRef={parentRef}
+                                        onClickCreateComment={
+                                            onClickCreateComment
+                                        }
+                                    />
                                 </div>
                             </div>
                         ),
