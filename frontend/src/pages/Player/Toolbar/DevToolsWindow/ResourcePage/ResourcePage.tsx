@@ -10,8 +10,6 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -27,6 +25,7 @@ import Skeleton from 'react-loading-skeleton';
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
+import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
@@ -35,7 +34,6 @@ import styles from './ResourcePage.module.scss';
 export const ResourcePage = React.memo(
     ({ time, startTime }: { time: number; startTime: number }) => {
         const {
-            pause,
             state,
             session,
             isPlayerReady,
@@ -227,13 +225,6 @@ export const ResourcePage = React.memo(
             state,
         ]);
 
-        useEffect(() => {
-            // scroll network events on player timeline click
-            if (state === ReplayerState.Paused) {
-                scrollFunction(currentResource);
-            }
-        }, [currentResource, scrollFunction, state, time]);
-
         const resourcesToRender = useMemo(() => {
             setCurrentActiveIndex(0);
             if (!allResources) {
@@ -294,23 +285,6 @@ export const ResourcePage = React.memo(
             setResourcePanel,
         ]);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const pauseFunction = useCallback(
-            _.debounce((t: number) => {
-                pause(t);
-            }, 300),
-            []
-        );
-
-        useEffect(() => {
-            pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
-        }, [
-            pauseFunction,
-            currentActiveIndex,
-            resourcesToRender,
-            resourcesToRender.length,
-        ]);
-
         return (
             <div className={styles.resourcePageWrapper}>
                 <div className={devStyles.topBar}>
@@ -358,7 +332,6 @@ export const ResourcePage = React.memo(
                                 </div>
                                 <div className={styles.networkColumn}>Type</div>
                                 <div className={styles.networkColumn}>Name</div>
-                                <div className={styles.networkColumn}>Time</div>
                                 <div
                                     className={classNames(
                                         styles.networkColumn,
@@ -413,10 +386,6 @@ export const ResourcePage = React.memo(
                                                             resource
                                                         );
                                                     }}
-                                                    playerStartTime={startTime}
-                                                    playerRelTime={
-                                                        time - startTime
-                                                    }
                                                     hasError={!!error}
                                                     networkRequestAndResponseRecordingEnabled={
                                                         session.enable_recording_network_contents ||
@@ -482,29 +451,23 @@ export type NetworkResource = NetworkResourceWithID & {
     offsetStartTime?: number;
 };
 
-interface ResourceRowProps {
-    resource: NetworkResource;
-    networkRange: number;
-    currentResource: number;
-    searchTerm: string;
-    onClickHandler: () => void;
-    networkRequestAndResponseRecordingEnabled: boolean;
-    playerStartTime: number;
-    playerRelTime: number;
-    hasError?: boolean;
-}
-
 const ResourceRow = ({
     resource,
     networkRange,
     currentResource,
     searchTerm,
     onClickHandler,
-    networkRequestAndResponseRecordingEnabled,
-    playerStartTime,
-    playerRelTime,
     hasError,
-}: ResourceRowProps) => {
+    networkRequestAndResponseRecordingEnabled,
+}: {
+    resource: NetworkResource;
+    networkRange: number;
+    currentResource: number;
+    searchTerm: string;
+    onClickHandler: () => void;
+    hasError?: boolean;
+    networkRequestAndResponseRecordingEnabled: boolean;
+}) => {
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
@@ -512,12 +475,7 @@ const ResourceRow = ({
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
-    const isCurrentResource =
-        resource.id === currentResource ||
-        (playerRelTime >= resource.startTime &&
-            playerRelTime <= resource.startTime + 1000) ||
-        (playerRelTime >= resource.startTime &&
-            playerRelTime <= resource.responseEnd);
+    const isCurrentResource = resource.id === currentResource;
 
     return (
         <div key={resource.id.toString()} onClick={onClickHandler}>
@@ -561,12 +519,6 @@ const ResourceRow = ({
                         textToHighlight={resource.displayName || resource.name}
                     />
                 </Tooltip>
-                <div className={styles.typeSection}>
-                    {playerTimeToSessionAbsoluteTime({
-                        sessionStartTime: playerStartTime,
-                        relativeTime: resource.startTime,
-                    })}
-                </div>
                 <div className={styles.timingBarWrapper}>
                     <div
                         style={{
