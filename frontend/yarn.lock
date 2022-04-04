@@ -3115,8 +3115,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@file:.yalc/@highlight-run/rrweb":
-  version "1.1.14"
+"@highlight-run/rrweb@1.1.17":
+  version "1.1.17"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.1.17.tgz#f68800bc905a3c56a3d1a575dedd7db7ea5e4311"
+  integrity sha512-ZG1STNa+FJKnkAYp33+NjpiRzpaY81HTy0pWtmJH78n+wZiKS8mhhrzc44OR3dH2YPU4p9EJtygG5m4mcU5PJg==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
