@@ -31,6 +31,7 @@ import {
     parseAdminSuggestions,
 } from '../../../../components/Comment/CommentHeader';
 import {
+    useCreateErrorCommentMutation,
     useCreateSessionCommentMutation,
     useGetCommentMentionSuggestionsQuery,
     useGetCommentTagsForProjectQuery,
@@ -41,17 +42,22 @@ import {
     IntegrationType,
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
+    Session,
 } from '../../../../graph/generated/schemas';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
-import { useReplayerContext } from '../../ReplayerContext';
 import styles from './NewCommentForm.module.scss';
 
 interface Props {
-    currentTime: number;
+    commentTime: number;
     onCloseHandler: () => void;
     commentPosition: Coordinates2D | undefined;
     parentRef?: React.RefObject<HTMLDivElement>;
+    session?: Session;
+    session_secure_id?: string;
+    error_secure_id?: string;
+    errorTitle?: string;
+    modalHeader?: string;
 }
 
 enum CommentFormSection {
@@ -60,18 +66,20 @@ enum CommentFormSection {
 }
 
 export const NewCommentForm = ({
-    currentTime,
+    commentTime,
     onCloseHandler,
     commentPosition,
     parentRef,
+    session,
+    session_secure_id,
+    error_secure_id,
+    errorTitle,
+    modalHeader,
 }: Props) => {
-    const { time, session } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
+    const [createErrorComment] = useCreateErrorCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
-    const { session_secure_id, project_id } = useParams<{
-        session_secure_id: string;
-        project_id: string;
-    }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
         variables: { project_id },
         fetchPolicy: 'network-only',
@@ -126,6 +134,9 @@ export const NewCommentForm = ({
     >([]);
 
     const defaultIssueTitle = useMemo(() => {
+        if (errorTitle) {
+            return errorTitle;
+        }
         if (session?.identifier) {
             return `Issue with ${session?.identifier}'s session`;
         }
@@ -133,7 +144,7 @@ export const NewCommentForm = ({
             return `Issue with session with fingerprint #${session?.fingerprint}`;
         }
         return `Issue with this Highlight session`;
-    }, [session]);
+    }, [session, errorTitle]);
 
     const sessionUrl = `${
         window.location.port !== ''
@@ -141,7 +152,68 @@ export const NewCommentForm = ({
             : window.location.origin
     }${window.location.pathname}`;
 
-    const onFinish = async () => {
+    const onCreateErrorComment = async () => {
+        H.track('Create Error Comment', {
+            numHighlightAdminMentions: mentionedAdmins.length,
+            numSlackMentions: mentionedSlackUsers.length,
+        });
+        setIsCreatingComment(true);
+
+        const { issueTitle, issueDescription } = form.getFieldsValue([
+            'issueTitle',
+            'issueDescription',
+        ]);
+
+        try {
+            await createErrorComment({
+                variables: {
+                    project_id,
+                    error_group_secure_id: error_secure_id || '',
+                    text: commentText.trim(),
+                    text_for_email: commentTextForEmail.trim(),
+                    error_url: `${window.location.origin}${window.location.pathname}`,
+                    tagged_admins: mentionedAdmins,
+                    tagged_slack_users: mentionedSlackUsers,
+                    author_name: admin?.name || admin?.email || 'Someone',
+                    integrations: selectedIssueService
+                        ? [selectedIssueService]
+                        : [],
+                    issue_title: selectedIssueService ? issueTitle : null,
+                    issue_description: selectedIssueService
+                        ? issueDescription
+                        : null,
+                },
+                refetchQueries: [namedOperations.Query.GetErrorComments],
+            });
+            form.resetFields();
+            setCommentText('');
+            onCloseHandler();
+        } catch (_e) {
+            const e = _e as Error;
+            H.track('Create Error Comment Failed', { error: e.toString() });
+            message.error(
+                <>
+                    Failed to post a comment, please try again. If this keeps
+                    failing please message us on{' '}
+                    <span
+                        className={styles.intercomLink}
+                        onClick={() => {
+                            window.Intercom(
+                                'showNewMessage',
+                                `I can't create a comment. This is the error I'm getting: "${e}"`
+                            );
+                        }}
+                    >
+                        Intercom
+                    </span>
+                    .
+                </>
+            );
+        }
+        setIsCreatingComment(false);
+    };
+
+    const onCreateSessionComment = async () => {
         H.track('Create Comment', {
             numHighlightAdminMentions: mentionedAdmins.length,
             numSlackMentions: mentionedSlackUsers.length,
@@ -184,8 +256,8 @@ export const NewCommentForm = ({
             await createComment({
                 variables: {
                     project_id,
-                    session_secure_id,
-                    session_timestamp: Math.floor(currentTime),
+                    session_secure_id: session_secure_id || '',
+                    session_timestamp: Math.floor(commentTime),
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),
                     x_coordinate: commentPosition?.x || 0,
@@ -193,7 +265,7 @@ export const NewCommentForm = ({
                     session_url: sessionUrl,
                     tagged_admins: mentionedAdmins,
                     tagged_slack_users: mentionedSlackUsers,
-                    time: time / 1000,
+                    time: commentTime / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     session_image,
                     tags: getTags(tags, commentTagsData),
@@ -245,6 +317,16 @@ export const NewCommentForm = ({
             );
         }
         setIsCreatingComment(false);
+    };
+
+    const onFinish = () => {
+        if (session_secure_id?.length) {
+            return onCreateSessionComment();
+        } else if (error_secure_id?.length) {
+            return onCreateErrorComment();
+        } else {
+            throw new Error('comment form should have session or error id set');
+        }
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(
@@ -377,6 +459,7 @@ export const NewCommentForm = ({
                                 section !== CommentFormSection.CommentForm,
                         })}
                     >
+                        <h3>{modalHeader}</h3>
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
                                 commentText={commentText}

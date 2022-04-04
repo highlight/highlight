@@ -8,7 +8,6 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
-import Modal from '@components/Modal/Modal';
 import { Session } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard';
@@ -38,10 +37,9 @@ import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
-import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
+import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal';
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
-import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
@@ -464,54 +462,17 @@ const Player = ({ integrated }: Props) => {
                     ) : (
                         <NoActiveSessionCard />
                     )}
-                    <Modal
-                        visible={commentModalPosition !== undefined}
+                    <NewCommentModal
+                        newCommentModalRef={newCommentModalRef}
+                        commentModalPosition={commentModalPosition}
+                        commentPosition={commentPosition}
+                        commentTime={time}
+                        session={session}
+                        session_secure_id={session_secure_id}
                         onCancel={() => {
                             setCommentModalPosition(undefined);
                         }}
-                        // Sets the Modal's mount node as the player center panel.
-                        // The default is document.body
-                        // We override here to be able to show the comments when the player is in fullscreen
-                        // Without this, the new comment modal would be below the fullscreen view.
-                        getContainer={() => {
-                            const playerCenterPanel = document.getElementById(
-                                'playerCenterPanel'
-                            );
-
-                            if (playerCenterPanel) {
-                                return playerCenterPanel;
-                            }
-
-                            return document.body;
-                        }}
-                        destroyOnClose
-                        minimal
-                        minimalPaddingSize="var(--size-large)"
-                        width="400px"
-                        style={{
-                            ...getNewCommentFormCoordinates(
-                                400,
-                                commentModalPosition?.x,
-                                commentModalPosition?.y
-                            ),
-                            margin: 0,
-                        }}
-                        mask={false}
-                        modalRender={(node) => (
-                            <div className={styles.commentModal}>{node}</div>
-                        )}
-                    >
-                        <div ref={newCommentModalRef}>
-                            <NewCommentForm
-                                currentTime={Math.floor(time)}
-                                onCloseHandler={() => {
-                                    setCommentModalPosition(undefined);
-                                }}
-                                commentPosition={commentPosition}
-                                parentRef={newCommentModalRef}
-                            />
-                        </div>
-                    </Modal>
+                    />
                 </div>
             </ReplayerContextProvider>
         </PlayerUIContextProvider>

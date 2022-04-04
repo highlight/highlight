@@ -1,10 +1,9 @@
 import Tag from '@components/Tag/Tag';
+import { ErrorGroup, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
 
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import { getHeaderFromError } from '../../ErrorPage';
-import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
 import styles from './ErrorTitle.module.scss';
 
 interface Props {
@@ -42,18 +41,17 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                 ) : (
                     <h2>{headerTextAsJson || headerText}</h2>
                 )}
-                {showShareButton && (
-                    <ErrorShareButton errorGroup={errorGroup} />
+            </div>
+            <div className={styles.secondRow}>
+                {errorGroup?.type && (
+                    <Tag
+                        infoTooltipText="This is where the error was thrown."
+                        backgroundColor="var(--color-orange-300)"
+                    >
+                        {errorGroup.type}
+                    </Tag>
                 )}
             </div>
-            {errorGroup?.type && (
-                <Tag
-                    infoTooltipText="This is where the error was thrown."
-                    backgroundColor="var(--color-orange-300)"
-                >
-                    {errorGroup.type}
-                </Tag>
-            )}
         </header>
     );
 };

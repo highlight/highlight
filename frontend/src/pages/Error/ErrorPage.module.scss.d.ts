@@ -26,6 +26,7 @@ export const hidden: string;
 export const icon: string;
 export const iconWrapper: string;
 export const intercomLink: string;
+export const rightButtonsContainer: string;
 export const section: string;
 export const sectionItem: string;
 export const sectionRow: string;
