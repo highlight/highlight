@@ -188,10 +188,13 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: { secure_id: session_secure_id },
     });
 
-    const [chunkEvents, chunkEventsActions] = useMap<
-        number,
-        HighlightEvent[]
-    >();
+    const [
+        chunkEvents,
+        chunkEventsSet,
+        ,
+        chunkEventsRemove,
+        chunkEventsReset,
+    ] = useMap<number, HighlightEvent[]>();
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
@@ -216,21 +219,21 @@ export const usePlayer = (): ReplayerContextInterface => {
     // If events are returned by getSessionPayloadQuery, set the events payload
     useEffect(() => {
         if (!!eventsData?.events && chunkEvents.size === 0) {
-            chunkEventsActions.set(0, toHighlightEvents(eventsData?.events));
+            chunkEventsSet(0, toHighlightEvents(eventsData?.events));
             setIsLoadingEvents(false);
         }
-    }, [eventsData?.events, chunkEvents.size, chunkEventsActions]);
+    }, [eventsData?.events, chunkEvents.size, chunkEventsSet]);
 
     useEffect(() => {
         if (subscriptionEventsPayload?.length) {
-            chunkEventsActions.set(0, [
+            chunkEventsSet(0, [
                 ...(chunkEvents.get(0) ?? []),
                 ...toHighlightEvents(subscriptionEventsPayload),
             ]);
             setIsLoadingEvents(false);
             setSubscriptionEventsPayload([]);
         }
-    }, [chunkEvents, chunkEventsActions, subscriptionEventsPayload]);
+    }, [chunkEvents, chunkEventsSet, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -255,7 +258,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             let needsLoad = false;
             for (let i = startIdx; i <= endIdx; i++) {
                 if (!chunkEvents.has(i)) {
-                    chunkEventsActions.set(i, []);
+                    chunkEventsSet(i, []);
 
                     needsLoad = true;
                     fetchEventChunkURL({
@@ -267,11 +270,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                         )
                         .then((response) => response.json())
                         .then((data) => {
-                            chunkEventsActions.set(i, toHighlightEvents(data));
+                            chunkEventsSet(i, toHighlightEvents(data));
                         })
                         .then(() => setOnEventsLoaded(callback))
                         .catch((e) => {
-                            chunkEventsActions.set(i, []);
+                            chunkEventsSet(i, []);
                             H.consumeError(
                                 e,
                                 'Error direct downloading session payload'
@@ -287,7 +290,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         },
         [
             chunkEvents,
-            chunkEventsActions,
+            chunkEventsSet,
             fetchEventChunkURL,
             getChunkIdx,
             session_secure_id,
@@ -325,7 +328,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
 
         if (toRemove !== undefined) {
-            chunkEventsActions.remove(toRemove);
+            chunkEventsRemove(toRemove);
         }
 
         ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
@@ -417,13 +420,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                     fetchEvents
                         .then((response) => response.json())
                         .then((data) => {
-                            chunkEventsActions.set(
-                                0,
-                                toHighlightEvents(data || [])
-                            );
+                            chunkEventsSet(0, toHighlightEvents(data || []));
                         })
                         .catch((e) => {
-                            chunkEventsActions.set(0, []);
+                            chunkEventsSet(0, []);
                             H.consumeError(
                                 e,
                                 'Error direct downloading session payload'
@@ -458,7 +458,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         (nextState?: ReplayerState) => {
             setState(nextState || ReplayerState.Empty);
             setErrors([]);
-            chunkEventsActions.reset();
+            chunkEventsReset();
             setScale(1);
             setSessionComments([]);
             setReplayer(undefined);
@@ -473,8 +473,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setLastActiveString(null);
             setSessionMetadata(EMPTY_SESSION_METADATA);
         },
-        // ZANETODO: add chunkEventsActions as a dependency without circular reference
-        [setPlayerTimeToPersistance]
+        [setPlayerTimeToPersistance, chunkEventsReset]
     );
 
     // Initializes the session state and fetches the session data
@@ -1026,6 +1025,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionId: session?.secure_id,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             ensureChunksLoaded,
             replayer,
@@ -1070,7 +1070,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                 );
             }
         } else {
-            setLastActiveString(null);
+            if (lastActiveString !== null) {
+                setLastActiveString(null);
+            }
         }
     };
 

@@ -13,7 +13,11 @@ export interface Actions<K, V> {
 // We hide some setters from the returned map to disable autocompletion
 type Return<K, V> = [
     Omit<Map<K, V>, 'set' | 'clear' | 'delete'>,
-    Actions<K, V>
+    // Actions<K, V>
+    (key: K, value: V) => void,
+    (entries: MapOrEntries<K, V>) => void,
+    (key: K) => void,
+    Map<K, V>['clear']
 ];
 
 function useMap<K, V>(
@@ -21,33 +25,40 @@ function useMap<K, V>(
 ): Return<K, V> {
     const [map, setMap] = useState(new Map(initialState));
 
-    const actions: Actions<K, V> = {
-        set: useCallback((key, value) => {
-            setMap((prev) => {
-                const copy = new Map(prev);
-                copy.set(key, value);
-                return copy;
-            });
-        }, []),
+    const set = useCallback((key, value) => {
+        setMap((prev) => {
+            const copy = new Map(prev);
+            copy.set(key, value);
+            return copy;
+        });
+    }, []);
 
-        setAll: useCallback((entries) => {
-            setMap(() => new Map(entries));
-        }, []),
+    const setAll = useCallback((entries) => {
+        setMap(() => new Map(entries));
+    }, []);
 
-        remove: useCallback((key) => {
-            setMap((prev) => {
-                const copy = new Map(prev);
-                copy.delete(key);
-                return copy;
-            });
-        }, []),
+    const remove = useCallback((key) => {
+        setMap((prev) => {
+            const copy = new Map(prev);
+            copy.delete(key);
+            return copy;
+        });
+    }, []);
 
-        reset: useCallback(() => {
-            setMap(() => new Map());
-        }, []),
-    };
+    const reset = useCallback(() => {
+        setMap(() => new Map());
+    }, []);
 
-    return [map, actions];
+    // const actions = useCallback(() => {
+    //     return {
+    //         set,
+    //         setAll,
+    //         remove,
+    //         reset,
+    //     };
+    // }, [remove, reset, set, setAll])();
+
+    return [map, set, setAll, remove, reset];
 }
 
 export default useMap;
