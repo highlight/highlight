@@ -1,7 +1,8 @@
 .button {
-    background-color: var(--color-gray-400) !important;
-    border: var(--color-gray-400);
+    background-color: var(--color-purple) !important;
+    border: var(--color-purple);
     border-radius: var(--size-xSmall) !important;
+    color: var(--color-white) !important;
     column-gap: var(--size-small);
     display: flex;
     font-size: 14px !important;
@@ -10,7 +11,7 @@
     width: 113px;
 
     &:focus &:hover {
-        background-color: var(--color-gray-400) !important;
-        border: var(--color-gray-400) !important;
+        background-color: var(--color-purple) !important;
+        border: var(--color-purple) !important;
     }
 }
