@@ -19,6 +19,7 @@ import {
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '@graph/schemas';
+import SvgArrowRightIcon from '@icons/ArrowRightIcon';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
@@ -212,12 +213,17 @@ function CommentReplyForm<T extends CommentReplyAction>({
                         <div className={styles.actionButtons}>
                             <Button
                                 trackingId="CreateCommentReply"
+                                className={styles.createButton}
                                 type="primary"
                                 htmlType="submit"
                                 disabled={commentText.length === 0}
                                 loading={isReplying}
                             >
-                                Reply
+                                <SvgArrowRightIcon
+                                    width={16}
+                                    height={16}
+                                    transform={'rotate(-90)'}
+                                />
                             </Button>
                         </div>
                     )}

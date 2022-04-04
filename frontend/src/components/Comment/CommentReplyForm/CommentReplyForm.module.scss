@@ -23,7 +23,13 @@
     @include rounded-border;
     align-items: center;
     display: flex;
-    height: 40px;
     margin-top: 10px;
-    padding: 0;
+    padding: 1px 0;
+}
+
+.createButton {
+    border-radius: 16px;
+    height: 32px;
+    padding: 8px;
+    width: 32px;
 }
