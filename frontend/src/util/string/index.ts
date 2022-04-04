@@ -19,6 +19,13 @@ export const getDisplayNameFromEmail = (email: string) => {
     return titleCaseString(email.split('@')[0]);
 };
 
+export const validateEmail = (email: string) => {
+    // https://stackoverflow.com/a/46181
+    return !!email.match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
 export const bytesToPrettyString = (
     bytes: number,
     use1024 = false,
