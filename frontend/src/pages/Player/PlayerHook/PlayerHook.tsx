@@ -198,17 +198,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
-    // const events: HighlightEvent[] = [];
     let eventsKey = '';
     const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
     for (const [k, v] of sortedChunks) {
         if (v.length !== 0) {
             eventsKey += k + ',';
         }
-
-        // for (const val of v) {
-        //     events.push(val);
-        // }
     }
 
     const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
@@ -946,51 +941,68 @@ export const usePlayer = (): ReplayerContextInterface => {
         state,
     ]);
 
-    const play = (newTime?: number) => {
-        if (isLiveMode) {
-            const desiredTime =
-                Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
-            // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
-            // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
-            // the last UI the user idled in is displayed.
-            if (desiredTime - time > 5000 || state != ReplayerState.Playing) {
-                newTime = Math.min(desiredTime, sessionEndTime - 1);
-            } else {
+    const play = useCallback(
+        (newTime?: number) => {
+            if (isLiveMode) {
+                const desiredTime =
+                    Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
+                // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+                // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+                // the last UI the user idled in is displayed.
+                if (
+                    desiredTime - time > 5000 ||
+                    state != ReplayerState.Playing
+                ) {
+                    newTime = Math.min(desiredTime, sessionEndTime - 1);
+                } else {
+                    return;
+                }
+            }
+            // Don't play the session if the player is already at the end of the session.
+            if ((newTime ?? time) >= sessionEndTime) {
                 return;
             }
-        }
-        // Don't play the session if the player is already at the end of the session.
-        if ((newTime ?? time) >= sessionEndTime) {
-            return;
-        }
-        setState(ReplayerState.Playing);
-        setTime(newTime ?? time);
+            setState(ReplayerState.Playing);
+            setTime(newTime ?? time);
 
-        const newTs = (newTime ?? time ?? 0) + (sessionMetadata.startTime ?? 0);
-        const newTimeWithOffset =
-            replayer === undefined || newTime === undefined
-                ? undefined
-                : newTime -
-                  replayer.getMetaData().startTime +
-                  sessionMetadata.startTime;
-        const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
-            replayer?.play(newTimeWithOffset)
-        );
-        if (needsLoad) {
-            replayer?.pause();
-            setIsLoadingEvents(true);
-        } else {
-            replayer?.play(newTimeWithOffset);
-        }
+            const newTs =
+                (newTime ?? time ?? 0) + (sessionMetadata.startTime ?? 0);
+            const newTimeWithOffset =
+                replayer === undefined || newTime === undefined
+                    ? undefined
+                    : newTime -
+                      replayer.getMetaData().startTime +
+                      sessionMetadata.startTime;
+            const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
+                replayer?.play(newTimeWithOffset)
+            );
+            if (needsLoad) {
+                replayer?.pause();
+                setIsLoadingEvents(true);
+            } else {
+                replayer?.play(newTimeWithOffset);
+            }
 
-        // Log how long it took to move to the new time.
-        const timelineChangeTime = timerEnd('timelineChangeTime');
-        console.log({ timelineChangeTime });
-        datadogLogs.logger.info('Timeline Change Time', {
-            duration: timelineChangeTime,
-            sessionId: session?.secure_id,
-        });
-    };
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
+            });
+        },
+        [
+            ensureChunksLoaded,
+            events,
+            isLiveMode,
+            replayer,
+            session?.secure_id,
+            sessionEndTime,
+            sessionMetadata.startTime,
+            state,
+            time,
+        ]
+    );
 
     const pause = useCallback(
         (newTime?: number) => {

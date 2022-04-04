@@ -17,7 +17,7 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 
@@ -143,76 +143,91 @@ export const Toolbar = React.memo(() => {
         isLiveMode,
     ]);
 
-    const endLogger = (e: any) => {
-        let newTime = (e.x / wrapperWidth) * max;
-        newTime = Math.max(0, newTime);
-        newTime = Math.min(max, newTime);
+    const endLogger = useCallback(
+        (e: any) => {
+            let newTime = (e.x / wrapperWidth) * max;
+            newTime = Math.max(0, newTime);
+            newTime = Math.min(max, newTime);
 
-        setLastCanvasPreview(e.x);
+            setLastCanvasPreview(e.x);
 
-        if (isPaused) {
-            pause(newTime);
-        } else {
-            play(newTime);
-        }
-    };
+            if (isPaused) {
+                pause(newTime);
+            } else {
+                play(newTime);
+            }
+        },
+        [isPaused, max, pause, play, wrapperWidth]
+    );
 
-    const startDraggable = (e: any, data: any) => {
-        setLastCanvasPreview(data.x);
-        if (!isPaused) {
-            pause();
-        }
-    };
-
-    const onDraggable = (e: any, data: any) => {
-        const sliderPercent = data.x / wrapperWidth;
-        const newTime = getSliderTime(sliderPercent);
-        setTime(newTime);
-
-        // TODO: Add Math.abs to enable both forward and backward scrolling
-        // Only forward is supported due as going backwards creates a time heavy operation
-        if (data.x - lastCanvasPreview > 10) {
+    const startDraggable = useCallback(
+        (e: any, data: any) => {
             setLastCanvasPreview(data.x);
-        }
-    };
-
-    const getSliderPercent = (time: number) => {
-        let sliderPercent = 0;
-        for (const interval of sessionIntervals) {
-            if (time < interval.endTime && time >= interval.startTime) {
-                const segmentPercent =
-                    (time - interval.startTime) /
-                    (interval.endTime - interval.startTime);
-                sliderPercent =
-                    segmentPercent *
-                        (interval.endPercent - interval.startPercent) +
-                    interval.startPercent;
-                return sliderPercent;
+            if (!isPaused) {
+                pause();
             }
-        }
-        return sliderPercent;
-    };
+        },
+        [isPaused, pause]
+    );
 
-    const getSliderTime = (sliderPercent: number) => {
-        let newTime = 0;
-        for (const interval of sessionIntervals) {
-            if (
-                sliderPercent < interval.endPercent &&
-                sliderPercent >= interval.startPercent
-            ) {
-                if (!interval.active) {
-                    return interval.endTime;
+    const getSliderTime = useCallback(
+        (sliderPercent: number) => {
+            let newTime = 0;
+            for (const interval of sessionIntervals) {
+                if (
+                    sliderPercent < interval.endPercent &&
+                    sliderPercent >= interval.startPercent
+                ) {
+                    if (!interval.active) {
+                        return interval.endTime;
+                    }
+                    const segmentPercent =
+                        (sliderPercent - interval.startPercent) /
+                        (interval.endPercent - interval.startPercent);
+                    newTime =
+                        segmentPercent * interval.duration + interval.startTime;
+                    return newTime;
                 }
-                const segmentPercent =
-                    (sliderPercent - interval.startPercent) /
-                    (interval.endPercent - interval.startPercent);
-                newTime =
-                    segmentPercent * interval.duration + interval.startTime;
-                return newTime;
             }
-        }
-        return newTime;
-    };
+            return newTime;
+        },
+        [sessionIntervals]
+    );
+
+    const onDraggable = useCallback(
+        (e: any, data: any) => {
+            const sliderPercent = data.x / wrapperWidth;
+            const newTime = getSliderTime(sliderPercent);
+            setTime(newTime);
+
+            // TODO: Add Math.abs to enable both forward and backward scrolling
+            // Only forward is supported due as going backwards creates a time heavy operation
+            if (data.x - lastCanvasPreview > 10) {
+                setLastCanvasPreview(data.x);
+            }
+        },
+        [getSliderTime, lastCanvasPreview, setTime, wrapperWidth]
+    );
+
+    const getSliderPercent = useCallback(
+        (time: number) => {
+            let sliderPercent = 0;
+            for (const interval of sessionIntervals) {
+                if (time < interval.endTime && time >= interval.startTime) {
+                    const segmentPercent =
+                        (time - interval.startTime) /
+                        (interval.endTime - interval.startTime);
+                    sliderPercent =
+                        segmentPercent *
+                            (interval.endPercent - interval.startPercent) +
+                        interval.startPercent;
+                    return sliderPercent;
+                }
+            }
+            return sliderPercent;
+        },
+        [sessionIntervals]
+    );
 
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton =
@@ -529,122 +544,131 @@ export const Toolbar = React.memo(() => {
     );
 });
 
-const SessionSegment = ({
-    interval,
-    sliderClientX,
-    wrapperWidth,
-    getSliderTime,
-    isLastSegment,
-}: {
-    interval: ParsedSessionInterval;
-    sliderClientX: number;
-    wrapperWidth: number;
-    getSliderTime: (sliderTime: number) => number;
-    isLastSegment: boolean;
-}) => {
-    const { time, sessionStartDateTime } = useReplayerContext();
-    const { showPlayerAbsoluteTime } = usePlayerConfiguration();
-    const playedColor = interval.active
-        ? 'var(--color-purple)'
-        : 'var(--color-gray-500)';
-    const unplayedColor = interval.active
-        ? 'var(--color-purple-200)'
-        : 'var(--color-gray-400)';
-    const currentRawPercent =
-        (time - interval.startTime) / (interval.endTime - interval.startTime);
-    const isPercentInInterval = (
-        sliderPercent: number,
-        interval: ParsedSessionInterval
-    ) =>
-        sliderPercent >= interval.startPercent &&
-        sliderPercent < interval.endPercent;
+const SessionSegment = React.memo(
+    ({
+        interval,
+        sliderClientX,
+        wrapperWidth,
+        getSliderTime,
+        isLastSegment,
+    }: {
+        interval: ParsedSessionInterval;
+        sliderClientX: number;
+        wrapperWidth: number;
+        getSliderTime: (sliderTime: number) => number;
+        isLastSegment: boolean;
+    }) => {
+        const { time, sessionStartDateTime } = useReplayerContext();
+        const { showPlayerAbsoluteTime } = usePlayerConfiguration();
+        const playedColor = interval.active
+            ? 'var(--color-purple)'
+            : 'var(--color-gray-500)';
+        const unplayedColor = interval.active
+            ? 'var(--color-purple-200)'
+            : 'var(--color-gray-400)';
+        const currentRawPercent =
+            (time - interval.startTime) /
+            (interval.endTime - interval.startTime);
+        const isPercentInInterval = (
+            sliderPercent: number,
+            interval: ParsedSessionInterval
+        ) =>
+            sliderPercent >= interval.startPercent &&
+            sliderPercent < interval.endPercent;
 
-    return (
-        <div
-            className={styles.sliderSegment}
-            style={{
-                width: `${
-                    (interval.endPercent - interval.startPercent) * 100
-                }%`,
-            }}
-        >
+        return (
             <div
-                className={classNames(styles.sliderPopover, {
-                    [styles.inactive]: !interval.active,
-                })}
+                className={styles.sliderSegment}
                 style={{
-                    left: interval.active
-                        ? `${Math.min(
-                              Math.max(sliderClientX - 40, 0),
-                              wrapperWidth - 80
-                          )}px`
-                        : `${Math.min(
-                              Math.max(sliderClientX - 150, 0),
-                              wrapperWidth - 75
-                          )}px`,
-                    display: isPercentInInterval(
-                        sliderClientX / wrapperWidth,
-                        interval
-                    )
-                        ? 'block'
-                        : 'none',
-                }}
-            >
-                <div>{interval.active ? 'Active' : 'Inactive'}</div>
-                {!interval.active && (
-                    <div className={styles.sliderPopoverDescription}>
-                        Inactivity represents time where the user isn't
-                        scrolling, clicking or interacting with your
-                        application.
-                    </div>
-                )}
-                <div className={styles.sliderPopoverTime}>
-                    {interval.active
-                        ? MillisToMinutesAndSeconds(
-                              getSliderTime(sliderClientX / wrapperWidth)
-                          )
-                        : MillisToMinutesAndSecondsVerbose(interval.duration)}
-                    {showPlayerAbsoluteTime && interval.active && (
-                        <div>
-                            (
-                            {playerTimeToSessionAbsoluteTime({
-                                sessionStartTime: sessionStartDateTime,
-                                relativeTime: getSliderTime(
-                                    sliderClientX / wrapperWidth
-                                ),
-                            })}
-                            )
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div
-                className={classNames(
-                    // todo
-                    styles.sliderRail,
-                    { [styles.firstSegment]: interval.startPercent === 0 },
-                    { [styles.lastSegment]: isLastSegment },
-                    isPercentInInterval(sliderClientX / wrapperWidth, interval)
-                        ? styles.segmentHover
-                        : ''
-                )}
-                style={{
-                    backgroundColor: unplayedColor,
+                    width: `${
+                        (interval.endPercent - interval.startPercent) * 100
+                    }%`,
                 }}
             >
                 <div
+                    className={classNames(styles.sliderPopover, {
+                        [styles.inactive]: !interval.active,
+                    })}
                     style={{
-                        backgroundColor: playedColor,
-                        height: '100%',
-                        width: `${
-                            Math.min(Math.max(currentRawPercent, 0), 1) * 100
-                        }%`,
+                        left: interval.active
+                            ? `${Math.min(
+                                  Math.max(sliderClientX - 40, 0),
+                                  wrapperWidth - 80
+                              )}px`
+                            : `${Math.min(
+                                  Math.max(sliderClientX - 150, 0),
+                                  wrapperWidth - 75
+                              )}px`,
+                        display: isPercentInInterval(
+                            sliderClientX / wrapperWidth,
+                            interval
+                        )
+                            ? 'block'
+                            : 'none',
                     }}
-                ></div>
+                >
+                    <div>{interval.active ? 'Active' : 'Inactive'}</div>
+                    {!interval.active && (
+                        <div className={styles.sliderPopoverDescription}>
+                            Inactivity represents time where the user isn't
+                            scrolling, clicking or interacting with your
+                            application.
+                        </div>
+                    )}
+                    <div className={styles.sliderPopoverTime}>
+                        {interval.active
+                            ? MillisToMinutesAndSeconds(
+                                  getSliderTime(sliderClientX / wrapperWidth)
+                              )
+                            : MillisToMinutesAndSecondsVerbose(
+                                  interval.duration
+                              )}
+                        {showPlayerAbsoluteTime && interval.active && (
+                            <div>
+                                (
+                                {playerTimeToSessionAbsoluteTime({
+                                    sessionStartTime: sessionStartDateTime,
+                                    relativeTime: getSliderTime(
+                                        sliderClientX / wrapperWidth
+                                    ),
+                                })}
+                                )
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div
+                    className={classNames(
+                        // todo
+                        styles.sliderRail,
+                        { [styles.firstSegment]: interval.startPercent === 0 },
+                        { [styles.lastSegment]: isLastSegment },
+                        isPercentInInterval(
+                            sliderClientX / wrapperWidth,
+                            interval
+                        )
+                            ? styles.segmentHover
+                            : ''
+                    )}
+                    style={{
+                        backgroundColor: unplayedColor,
+                    }}
+                >
+                    <div
+                        style={{
+                            backgroundColor: playedColor,
+                            height: '100%',
+                            width: `${
+                                Math.min(Math.max(currentRawPercent, 0), 1) *
+                                100
+                            }%`,
+                        }}
+                    ></div>
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
+);
 
 export const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
