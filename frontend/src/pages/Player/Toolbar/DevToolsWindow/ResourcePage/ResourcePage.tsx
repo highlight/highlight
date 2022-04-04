@@ -113,16 +113,37 @@ export const ResourcePage = React.memo(
             }
         }, [parsedResources]);
 
+        const resourcesToRender = useMemo(() => {
+            setCurrentActiveIndex(0);
+            if (!allResources) {
+                return [];
+            }
+
+            if (filterSearchTerm !== '') {
+                return allResources.filter((resource) => {
+                    if (!resource.name) {
+                        return false;
+                    }
+
+                    return (resource.displayName || resource.name)
+                        .toLocaleLowerCase()
+                        .includes(filterSearchTerm.toLocaleLowerCase());
+                });
+            }
+
+            return allResources;
+        }, [allResources, filterSearchTerm]);
+
         useEffect(() => {
-            if (allResources?.length) {
+            if (resourcesToRender?.length) {
                 let msgIndex = 0;
                 const relativeTime = time - startTime;
                 let msgDiff: number = Math.abs(
-                    relativeTime - allResources[0].startTime
+                    relativeTime - resourcesToRender[0].startTime
                 );
-                for (let i = 0; i < allResources.length; i++) {
+                for (let i = 0; i < resourcesToRender.length; i++) {
                     const currentDiff: number = Math.abs(
-                        relativeTime - allResources[i].startTime
+                        relativeTime - resourcesToRender[i].startTime
                     );
                     if (currentDiff < msgDiff) {
                         msgIndex = i;
@@ -133,7 +154,7 @@ export const ResourcePage = React.memo(
                     setCurrentResource(msgIndex);
                 }
             }
-        }, [allResources, startTime, time, currentResource]);
+        }, [resourcesToRender, startTime, time, currentResource]);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         const scrollFunction = useCallback(
@@ -154,8 +175,8 @@ export const ResourcePage = React.memo(
                 errorId &&
                 !loading &&
                 !!session &&
-                !!allResources &&
-                allResources.length > 0 &&
+                !!resourcesToRender &&
+                resourcesToRender.length > 0 &&
                 !!errors &&
                 errors.length > 0 &&
                 isPlayerReady
@@ -164,12 +185,12 @@ export const ResourcePage = React.memo(
                 if (matchingError && matchingError.request_id) {
                     const resource = findResourceWithMatchingHighlightHeader(
                         matchingError.request_id,
-                        allResources
+                        resourcesToRender
                     );
                     if (resource) {
                         setResourcePanel(resource);
                         setTime(resource.startTime);
-                        scrollFunction(allResources.indexOf(resource));
+                        scrollFunction(resourcesToRender.indexOf(resource));
                         message.success(
                             `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
                                 resource.startTime
@@ -200,7 +221,7 @@ export const ResourcePage = React.memo(
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [
-            allResources,
+            resourcesToRender,
             errors,
             isPlayerReady,
             loading,
@@ -233,27 +254,6 @@ export const ResourcePage = React.memo(
                 scrollFunction(currentResource);
             }
         }, [currentResource, scrollFunction, state, time]);
-
-        const resourcesToRender = useMemo(() => {
-            setCurrentActiveIndex(0);
-            if (!allResources) {
-                return [];
-            }
-
-            if (filterSearchTerm !== '') {
-                return allResources.filter((resource) => {
-                    if (!resource.name) {
-                        return false;
-                    }
-
-                    return (resource.displayName || resource.name)
-                        .toLocaleLowerCase()
-                        .includes(filterSearchTerm.toLocaleLowerCase());
-                });
-            }
-
-            return allResources;
-        }, [allResources, filterSearchTerm]);
 
         // Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
         useEffect(() => {
@@ -297,19 +297,17 @@ export const ResourcePage = React.memo(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         const pauseFunction = useCallback(
             _.debounce((t: number) => {
+                console.log(t);
                 pause(t);
             }, 300),
             []
         );
 
         useEffect(() => {
-            pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
-        }, [
-            pauseFunction,
-            currentActiveIndex,
-            resourcesToRender,
-            resourcesToRender.length,
-        ]);
+            if (resourcesToRender?.length) {
+                pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
+            }
+        }, [pauseFunction, resourcesToRender, currentActiveIndex]);
 
         return (
             <div className={styles.resourcePageWrapper}>
