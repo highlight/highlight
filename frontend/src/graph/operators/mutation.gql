@@ -322,6 +322,35 @@ mutation DeleteSessionComment($id: ID!) {
     deleteSessionComment(id: $id)
 }
 
+mutation ReplyToSessionComment(
+    $comment_id: ID!
+    $text: String!
+    $text_for_email: String!
+    $sessionURL: String!
+    $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
+) {
+    replyToSessionComment(
+        comment_id: $comment_id
+        text: $text
+        text_for_email: $text_for_email
+        sessionURL: $sessionURL
+        tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
+    ) {
+        id
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+        text
+    }
+}
+
 mutation CreateErrorComment(
     $project_id: ID!
     $error_group_secure_id: String!
@@ -399,6 +428,35 @@ mutation CreateIssueForErrorComment(
 
 mutation DeleteErrorComment($id: ID!) {
     deleteErrorComment(id: $id)
+}
+
+mutation ReplyToErrorComment(
+    $comment_id: ID!
+    $text: String!
+    $text_for_email: String!
+    $errorURL: String!
+    $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
+) {
+    replyToErrorComment(
+        comment_id: $comment_id
+        text: $text
+        text_for_email: $text_for_email
+        errorURL: $errorURL
+        tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
+    ) {
+        id
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+        text
+    }
 }
 
 mutation DeleteErrorSegment($segment_id: ID!) {

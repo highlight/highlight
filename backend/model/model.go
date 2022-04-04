@@ -38,8 +38,8 @@ import (
 var (
 	DB     *gorm.DB
 	HashID *hashids.HashID
-	F      bool = false
-	T      bool = true
+	F      = false
+	T      = true
 )
 
 const (
@@ -133,6 +133,7 @@ var Models = []interface{}{
 	&SessionComment{},
 	&SessionCommentTag{},
 	&ErrorComment{},
+	&CommentReply{},
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
@@ -815,6 +816,7 @@ type SessionComment struct {
 	Metadata        JSONB                 `json:"metadata" gorm:"type:jsonb"`
 	Tags            []*SessionCommentTag  `json:"tags" gorm:"many2many:session_tags;"`
 	Attachments     []*ExternalAttachment `gorm:"foreignKey:SessionCommentID"`
+	Replies         []*CommentReply       `gorm:"foreignKey:SessionCommentID"`
 }
 
 type ErrorComment struct {
@@ -827,6 +829,17 @@ type ErrorComment struct {
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
 	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
+	Replies        []*CommentReply       `gorm:"foreignKey:ErrorCommentID"`
+}
+
+type CommentReply struct {
+	Model
+	SessionCommentID int `gorm:"index"`
+	ErrorCommentID   int `gorm:"index"`
+
+	Admins  []Admin `gorm:"many2many:comment_reply_admins;"`
+	AdminId int
+	Text    string
 }
 
 type SessionInterval struct {

@@ -503,6 +503,7 @@ type SessionComment {
     metadata: Any
     tags: [String]!
     attachments: [ExternalAttachment]!
+    replies: [CommentReply]!
 }
 
 type SlackSyncResponse {
@@ -530,6 +531,16 @@ type ErrorComment {
     author: SanitizedAdmin!
     text: String!
     attachments: [ExternalAttachment]!
+    replies: [CommentReply]!
+}
+
+type CommentReply {
+    id: ID!
+    created_at: Timestamp!
+    updated_at: Timestamp!
+
+    author: SanitizedAdmin!
+    text: String!
 }
 
 enum SessionLifecycle {
@@ -939,6 +950,14 @@ type Mutation {
         integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
+    replyToSessionComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        sessionURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
     createErrorComment(
         project_id: ID!
         error_group_secure_id: String!
@@ -963,6 +982,14 @@ type Mutation {
         integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    replyToErrorComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        errorURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
     openSlackConversation(
         project_id: ID!
         code: String!

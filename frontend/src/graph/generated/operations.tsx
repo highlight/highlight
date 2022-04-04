@@ -412,6 +412,33 @@ export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
     'deleteSessionComment'
 >;
 
+export type ReplyToSessionCommentMutationVariables = Types.Exact<{
+    comment_id: Types.Scalars['ID'];
+    text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
+    sessionURL: Types.Scalars['String'];
+    tagged_admins:
+        | Array<Types.Maybe<Types.SanitizedAdminInput>>
+        | Types.Maybe<Types.SanitizedAdminInput>;
+    tagged_slack_users:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type ReplyToSessionCommentMutation = { __typename?: 'Mutation' } & {
+    replyToSessionComment?: Types.Maybe<
+        { __typename?: 'CommentReply' } & Pick<
+            Types.CommentReply,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email' | 'photo_url'
+                >;
+            }
+    >;
+};
+
 export type CreateErrorCommentMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     error_group_secure_id: Types.Scalars['String'];
@@ -489,6 +516,33 @@ export type DeleteErrorCommentMutation = { __typename?: 'Mutation' } & Pick<
     Types.Mutation,
     'deleteErrorComment'
 >;
+
+export type ReplyToErrorCommentMutationVariables = Types.Exact<{
+    comment_id: Types.Scalars['ID'];
+    text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
+    errorURL: Types.Scalars['String'];
+    tagged_admins:
+        | Array<Types.Maybe<Types.SanitizedAdminInput>>
+        | Types.Maybe<Types.SanitizedAdminInput>;
+    tagged_slack_users:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+}>;
+
+export type ReplyToErrorCommentMutation = { __typename?: 'Mutation' } & {
+    replyToErrorComment?: Types.Maybe<
+        { __typename?: 'CommentReply' } & Pick<
+            Types.CommentReply,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email' | 'photo_url'
+                >;
+            }
+    >;
+};
 
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
     segment_id: Types.Scalars['ID'];
@@ -1732,6 +1786,21 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                             >
                         >
                     >;
+                    replies: Array<
+                        Types.Maybe<
+                            { __typename?: 'CommentReply' } & Pick<
+                                Types.CommentReply,
+                                'id' | 'created_at' | 'updated_at' | 'text'
+                            > & {
+                                    author: {
+                                        __typename?: 'SanitizedAdmin';
+                                    } & Pick<
+                                        Types.SanitizedAdmin,
+                                        'id' | 'name' | 'email' | 'photo_url'
+                                    >;
+                                }
+                        >
+                    >;
                 }
         >
     >;
@@ -1880,6 +1949,21 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                                 Types.ExternalAttachment,
                                 'integration_type' | 'external_id' | 'title'
                             >
+                        >
+                    >;
+                    replies: Array<
+                        Types.Maybe<
+                            { __typename?: 'CommentReply' } & Pick<
+                                Types.CommentReply,
+                                'id' | 'created_at' | 'updated_at' | 'text'
+                            > & {
+                                    author: {
+                                        __typename?: 'SanitizedAdmin';
+                                    } & Pick<
+                                        Types.SanitizedAdmin,
+                                        'id' | 'name' | 'email' | 'photo_url'
+                                    >;
+                                }
                         >
                     >;
                 }
@@ -3593,9 +3677,11 @@ export const namedOperations = {
         CreateSessionComment: 'CreateSessionComment' as const,
         CreateIssueForSessionComment: 'CreateIssueForSessionComment' as const,
         DeleteSessionComment: 'DeleteSessionComment' as const,
+        ReplyToSessionComment: 'ReplyToSessionComment' as const,
         CreateErrorComment: 'CreateErrorComment' as const,
         CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
         DeleteErrorComment: 'DeleteErrorComment' as const,
+        ReplyToErrorComment: 'ReplyToErrorComment' as const,
         DeleteErrorSegment: 'DeleteErrorSegment' as const,
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,

@@ -550,6 +550,7 @@ export type SessionComment = {
     metadata?: Maybe<Scalars['Any']>;
     tags: Array<Maybe<Scalars['String']>>;
     attachments: Array<Maybe<ExternalAttachment>>;
+    replies: Array<Maybe<CommentReply>>;
 };
 
 export type SlackSyncResponse = {
@@ -580,6 +581,16 @@ export type ErrorComment = {
     author: SanitizedAdmin;
     text: Scalars['String'];
     attachments: Array<Maybe<ExternalAttachment>>;
+    replies: Array<Maybe<CommentReply>>;
+};
+
+export type CommentReply = {
+    __typename?: 'CommentReply';
+    id: Scalars['ID'];
+    created_at: Scalars['Timestamp'];
+    updated_at: Scalars['Timestamp'];
+    author: SanitizedAdmin;
+    text: Scalars['String'];
 };
 
 export enum SessionLifecycle {
@@ -1214,9 +1225,11 @@ export type Mutation = {
     createSessionComment?: Maybe<SessionComment>;
     createIssueForSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
+    replyToSessionComment?: Maybe<CommentReply>;
     createErrorComment?: Maybe<ErrorComment>;
     createIssueForErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
+    replyToErrorComment?: Maybe<CommentReply>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addIntegrationToProject: Scalars['Boolean'];
     removeIntegrationFromProject: Scalars['Boolean'];
@@ -1416,6 +1429,15 @@ export type MutationDeleteSessionCommentArgs = {
     id: Scalars['ID'];
 };
 
+export type MutationReplyToSessionCommentArgs = {
+    comment_id: Scalars['ID'];
+    text: Scalars['String'];
+    text_for_email: Scalars['String'];
+    sessionURL: Scalars['String'];
+    tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
+};
+
 export type MutationCreateErrorCommentArgs = {
     project_id: Scalars['ID'];
     error_group_secure_id: Scalars['String'];
@@ -1443,6 +1465,15 @@ export type MutationCreateIssueForErrorCommentArgs = {
 
 export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationReplyToErrorCommentArgs = {
+    comment_id: Scalars['ID'];
+    text: Scalars['String'];
+    text_for_email: Scalars['String'];
+    errorURL: Scalars['String'];
+    tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
 };
 
 export type MutationOpenSlackConversationArgs = {

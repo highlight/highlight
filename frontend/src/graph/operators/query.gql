@@ -256,6 +256,18 @@ query GetSessionComments($session_secure_id: String!) {
             external_id
             title
         }
+        replies {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            text
+        }
     }
 }
 
@@ -350,6 +362,18 @@ query GetErrorComments($error_group_secure_id: String!) {
             integration_type
             external_id
             title
+        }
+        replies {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            text
         }
     }
 }
