@@ -1,17 +1,19 @@
+import { useGetErrorCommentsQuery } from '@graph/hooks';
 import { GetErrorGroupQuery } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import React from 'react';
 
 import FullCommentList from '../../../../../../components/FullCommentList/FullCommentList';
-import { useGetErrorCommentsQuery } from '../../../../../../graph/generated/hooks';
-import { MillisToMinutesAndSeconds } from '../../../../../../util/time';
 import { ErrorCommentCard } from '../../../ErrorComments/ErrorComments';
 import styles from './ErrorFullCommentList.module.scss';
 
 const ErrorFullCommentList = ({
     errorGroup,
+    deepLinkedCommentId,
 }: {
     errorGroup?: GetErrorGroupQuery;
+    deepLinkedCommentId?: string | null;
 }) => {
     const { error_secure_id } = useParams<{
         error_secure_id: string;
@@ -29,6 +31,7 @@ const ErrorFullCommentList = ({
             comments={[...(errorCommentsData?.error_comments || [])].reverse()}
             commentRender={(comment) => (
                 <ErrorCommentCard
+                    deepLinked={comment.id === deepLinkedCommentId}
                     comment={comment}
                     errorGroup={errorGroup}
                     footer={

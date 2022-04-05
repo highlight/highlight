@@ -1947,7 +1947,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 			suffix += fmt.Sprintf("%s=%s", k, v)
 		}
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|Visit Session>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View Thread>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	identifier := input.UserIdentifier
@@ -1979,7 +1979,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|Visit Error>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View Thread>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil && *input.URL != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))

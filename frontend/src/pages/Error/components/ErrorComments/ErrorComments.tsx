@@ -15,6 +15,7 @@ import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorC
 import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import { Menu } from 'antd';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
 
@@ -49,12 +50,22 @@ interface Props {
     errorGroup?: GetErrorGroupQuery;
     footer?: React.ReactNode;
     parentRef?: React.RefObject<HTMLDivElement>;
+    deepLinked?: boolean;
 }
 
-export const ErrorCommentCard = ({ comment, errorGroup, parentRef }: Props) => {
+export const ErrorCommentCard = ({
+    comment,
+    errorGroup,
+    deepLinked,
+    parentRef,
+}: Props) => {
     if (!comment) return null;
     return (
-        <div className={styles.commentDiv}>
+        <div
+            className={classNames(styles.commentDiv, {
+                [styles.deepLinked]: !!deepLinked,
+            })}
+        >
             <ErrorCommentHeader comment={comment} errorGroup={errorGroup}>
                 <CommentTextBody commentText={comment.text} />
             </ErrorCommentHeader>
