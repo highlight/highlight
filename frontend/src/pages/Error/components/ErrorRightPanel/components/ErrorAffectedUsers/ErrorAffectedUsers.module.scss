@@ -32,9 +32,9 @@
     }
 
     .actionsContainer {
+        column-gap: var(--size-medium);
         display: flex;
-        flex-direction: column;
-        row-gap: var(--size-medium);
+        flex-direction: row;
     }
 
     .button {

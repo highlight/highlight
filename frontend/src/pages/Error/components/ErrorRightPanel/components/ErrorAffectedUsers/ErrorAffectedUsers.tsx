@@ -1,18 +1,18 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import { Avatar } from '@components/Avatar/Avatar';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { GetErrorGroupQuery } from '@graph/operations';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
-import { Avatar } from '../../../../../../components/Avatar/Avatar';
 import ButtonLink from '../../../../../../components/Button/ButtonLink/ButtonLink';
 import Card from '../../../../../../components/Card/Card';
 import RelativeTime from '../../../../../../components/RelativeTime/RelativeTime';
-import { GetErrorGroupQuery } from '../../../../../../graph/generated/operations';
 import SvgPlaySolidIcon from '../../../../../../static/PlaySolidIcon';
 import { ErrorStateSelect } from '../../../../ErrorStateSelect/ErrorStateSelect';
 import styles from './ErrorAffectedUsers.module.scss';
@@ -120,7 +120,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                                 mostRecentAffectedSession === undefined
                             }
                         >
-                            Most Recent Session
+                            Session
                         </ButtonLink>
                         <ErrorStateSelect
                             state={errorGroup?.error_group?.state}
