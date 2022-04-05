@@ -27,7 +27,7 @@ interface Props {
     sessionIntervals: ParsedSessionInterval[];
     selectedTimelineAnnotationTypes: string[];
     rageClicks: RageClick[];
-    startTime: number | undefined;
+    startTime: number;
     pause: (time?: number | undefined) => void;
     activeEvent: HighlightEvent | undefined;
 }
@@ -63,18 +63,35 @@ const TimelineIndicatorsMemoized = React.memo(
                                 }%`,
                             }}
                         >
-                            {sessionInterval.sessionEvents.map((event) => (
-                                <TimelineEventAnnotation
-                                    event={event}
-                                    startTime={startTime}
-                                    selectedTimelineAnnotationTypes={
-                                        selectedTimelineAnnotationTypes
-                                    }
-                                    pause={pause}
-                                    key={`${event.timestamp}-${event.identifier}`}
-                                    activeEvent={activeEvent}
-                                />
-                            ))}
+                            {sessionInterval.sessionEvents.map((event) => {
+                                const intervalWidth = sessionInterval.active
+                                    ? sessionInterval.endPercent -
+                                      sessionInterval.startPercent
+                                    : 0.01;
+                                // calculate the event position percentage, relative to the entire timeline.
+                                // i.e. each event start is weighted relative to the size of the interval it is in,
+                                // since inactive intervals have a fixed small size.
+                                const relativeStart =
+                                    sessionInterval.startPercent +
+                                    intervalWidth *
+                                        ((event.timestamp -
+                                            startTime -
+                                            sessionIntervals[index].startTime) /
+                                            sessionInterval.duration);
+                                return (
+                                    <TimelineEventAnnotation
+                                        event={event}
+                                        startTime={startTime}
+                                        relativeStartPercent={relativeStart}
+                                        selectedTimelineAnnotationTypes={
+                                            selectedTimelineAnnotationTypes
+                                        }
+                                        pause={pause}
+                                        key={`${event.timestamp}-${event.identifier}`}
+                                        activeEvent={activeEvent}
+                                    />
+                                );
+                            })}
                             {selectedTimelineAnnotationTypes.includes(
                                 'Errors'
                             ) &&
@@ -180,7 +197,7 @@ const TimelineIndicators = React.memo(() => {
                     selectedTimelineAnnotationTypes
                 }
                 rageClicks={rageClicks}
-                startTime={replayer?.getMetaData()?.startTime}
+                startTime={replayer?.getMetaData()?.startTime || 0}
                 pause={pause}
                 activeEvent={activeEvent}
             />
