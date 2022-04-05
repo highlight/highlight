@@ -163,6 +163,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTimestamp,
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
+    // Tracks the start/end/total time for a session. Using replayer.getMetaData is
+    // no longer accurate because the first or last event chunks might not be loaded.
     const [sessionMetadata, setSessionMetadata] = useState<playerMetaData>(
         EMPTY_SESSION_METADATA
     );
@@ -201,6 +203,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
+    // eventsKey represents the chunk index for all loaded chunks. This is
+    // subscribed to for knowing when new chunks have been loaded in or removed.
     let eventsKey = '';
     const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
     for (const [k, v] of sortedChunks) {
@@ -620,19 +624,45 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
-        if (download && (chunkEvents.get(0)?.length ?? 0) > 0) {
-            const a = document.createElement('a');
-            const file = new Blob([JSON.stringify(chunkEvents.get(0))], {
-                type: 'application/json',
-            });
+        if (download) {
+            const directDownloadUrl = sessionData?.session?.direct_download_url;
 
-            a.href = URL.createObjectURL(file);
-            a.download = `session-${session_secure_id}.json`;
-            a.click();
+            if (directDownloadUrl) {
+                const handleDownload = (events: HighlightEvent[]): void => {
+                    const a = document.createElement('a');
+                    const file = new Blob([JSON.stringify(events)], {
+                        type: 'application/json',
+                    });
 
-            URL.revokeObjectURL(a.href);
+                    a.href = URL.createObjectURL(file);
+                    a.download = `session-${session_secure_id}.json`;
+                    a.click();
+
+                    URL.revokeObjectURL(a.href);
+                };
+
+                fetch(directDownloadUrl)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        return toHighlightEvents(data || []);
+                    })
+                    .then(handleDownload)
+                    .catch((e) => {
+                        H.consumeError(
+                            e,
+                            'Error direct downloading session payload for download'
+                        );
+                    })
+                    .finally(() => {
+                        setIsLoadingEvents(false);
+                    });
+            }
         }
-    }, [chunkEvents, download, session_secure_id]);
+    }, [
+        download,
+        sessionData?.session?.direct_download_url,
+        session_secure_id,
+    ]);
 
     // Handle data in playback mode.
     useEffect(() => {
