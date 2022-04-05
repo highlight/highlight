@@ -7,9 +7,10 @@ import styles from './ReplyList.module.scss';
 
 interface ReplyListProps {
     replies: Maybe<CommentReply>[];
+    errorComment?: boolean;
 }
 
-const ReplyList: React.FC<ReplyListProps> = ({ replies }) => {
+const ReplyList: React.FC<ReplyListProps> = ({ replies, errorComment }) => {
     return (
         <div className={styles.repliesList}>
             {replies.map((record) => {
@@ -17,7 +18,10 @@ const ReplyList: React.FC<ReplyListProps> = ({ replies }) => {
                     record && (
                         <div className={styles.record} key={record.id}>
                             <div>
-                                <CommentHeader comment={record} small>
+                                <CommentHeader
+                                    comment={record}
+                                    small={!errorComment}
+                                >
                                     <CommentTextBody
                                         commentText={record.text}
                                     />

@@ -73,7 +73,7 @@ export const ErrorCommentCard = ({
                 <AttachmentList attachments={comment.attachments} />
             )}
             {comment?.replies.length > 0 && (
-                <ReplyList replies={comment.replies} />
+                <ReplyList replies={comment.replies} errorComment={true} />
             )}
             <CommentReplyForm<ErrorCommentReplyAction>
                 action={new ErrorCommentReplyAction()}
