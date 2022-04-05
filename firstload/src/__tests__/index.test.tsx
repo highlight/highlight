@@ -1,4 +1,5 @@
-import { H, HighlightPublicInterface } from '..';
+import { H } from '..';
+import { HighlightPublicInterface } from '../types/types';
 
 // Don't run tests for now. Need to move code from firstload to client for backend errors.
 describe.skip('should work outside of the browser in unit test', () => {

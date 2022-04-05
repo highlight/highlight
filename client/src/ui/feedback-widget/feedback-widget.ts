@@ -1,14 +1,8 @@
-import { SESSION_STORAGE_KEYS } from "../../utils/sessionStorage/sessionStorageKeys";
+import { SESSION_STORAGE_KEYS } from '../../utils/sessionStorage/sessionStorageKeys';
+import { FeedbackWidgetOptions } from '../../../../firstload/src/types/client';
 
 const CONTAINER_ID = 'highlight-feedback-container';
 const FORM_CONTAINER_ID = 'highlight-form-container';
-
-export interface FeedbackWidgetOptions {
-    title?: string;
-    subTitle?: string;
-    submitButtonLabel?: string;
-    enabled?: boolean;
-}
 
 export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
     const {
@@ -307,7 +301,7 @@ const getUserDataFromIdentify = () => {
     let userEmail = '';
 
     const identifierFromSessionStorage = window.sessionStorage.getItem(
-        SESSION_STORAGE_KEYS.USER_IDENTIFIER,
+        SESSION_STORAGE_KEYS.USER_IDENTIFIER
     );
 
     if (
@@ -318,7 +312,7 @@ const getUserDataFromIdentify = () => {
     }
 
     const userObjectFromSessionStorage = window.sessionStorage.getItem(
-        SESSION_STORAGE_KEYS.USER_OBJECT,
+        SESSION_STORAGE_KEYS.USER_OBJECT
     );
     if (userObjectFromSessionStorage) {
         try {
