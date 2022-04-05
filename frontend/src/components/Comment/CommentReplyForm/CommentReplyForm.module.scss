@@ -22,6 +22,7 @@
 .commentInputDiv {
     @include rounded-border;
     align-items: center;
+    background-color: var(--color-gray-100);
     display: flex;
     margin-top: 10px;
     padding: 1px 0;
@@ -29,7 +30,13 @@
 
 .createButton {
     border-radius: 16px;
-    height: 32px;
-    padding: 8px;
-    width: 32px;
+    height: 24px;
+    margin-right: 8px;
+    padding: 6px;
+    width: 24px;
+
+    &:disabled {
+        background-color: var(--color-gray-400);
+        border: var(--color-gray-400);
+    }
 }

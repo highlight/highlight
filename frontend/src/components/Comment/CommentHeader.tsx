@@ -61,18 +61,24 @@ export const CommentHeader = ({
     footer,
     shareMenu,
     onClose,
+    small,
 }: PropsWithChildren<{
     comment: any;
     moreMenu?: JSX.Element;
     shareMenu?: JSX.Element;
     onClose?: () => void;
     footer?: React.ReactNode;
+    small?: boolean;
 }>) => {
     const { isLoggedIn } = useAuthContext();
 
     return (
         <>
-            <div className={classNames(styles.commentHeader)}>
+            <div
+                className={classNames(styles.commentHeader, {
+                    [styles.small]: !!small,
+                })}
+            >
                 {comment?.type === SessionCommentType.Feedback ? (
                     <Avatar
                         seed={
@@ -85,7 +91,11 @@ export const CommentHeader = ({
                 ) : (
                     <AdminAvatar adminInfo={comment.author} size={30} />
                 )}
-                <div className={styles.textContainer}>
+                <div
+                    className={classNames(styles.textContainer, {
+                        [styles.small]: !!small,
+                    })}
+                >
                     <p className={styles.commentAuthor}>
                         {comment?.type === SessionCommentType.Feedback
                             ? comment?.metadata?.name ||
@@ -99,7 +109,7 @@ export const CommentHeader = ({
                     </span>
                 </div>
                 <span className={styles.endActions}>
-                    {isLoggedIn && (
+                    {isLoggedIn && !small && (
                         <>
                             {shareMenu && (
                                 <DotsMenu
@@ -123,7 +133,13 @@ export const CommentHeader = ({
                         </>
                     )}
                 </span>
-                <div className={styles.childrenContainer}>{children}</div>
+                <div
+                    className={classNames(styles.childrenContainer, {
+                        [styles.small]: !!small,
+                    })}
+                >
+                    {children}
+                </div>
                 {footer && <div className={styles.footer}>{footer}</div>}
             </div>
         </>
