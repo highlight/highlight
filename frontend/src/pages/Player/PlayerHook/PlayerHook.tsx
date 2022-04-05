@@ -167,6 +167,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         EMPTY_SESSION_METADATA
     );
     const [events, setEvents] = useState<HighlightEvent[]>([]);
+    // Incremented whenever events are received in live mode. This is subscribed
+    // to for knowing when new live events are available to add to the player.
+    const [liveEventCount, setLiveEventCount] = useState<number>(0);
 
     const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
         variables: {
@@ -225,6 +228,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 ...(chunkEvents.get(0) ?? []),
                 ...toHighlightEvents(subscriptionEventsPayload),
             ]);
+            setLiveEventCount((cur) => cur + 1);
             setIsLoadingEvents(false);
             setSubscriptionEventsPayload([]);
         }
@@ -245,6 +249,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         [eventChunksData?.event_chunks]
     );
 
+    // Ensure all chunks between startTs and endTs are loaded. If a callback
+    // is passed in, invoke it once the chunks are loaded.
     const ensureChunksLoaded = useCallback(
         (startTs: number, endTs?: number, callback?: () => void) => {
             const startIdx = getChunkIdx(startTs);
@@ -292,42 +298,56 @@ export const usePlayer = (): ReplayerContextInterface => {
         ]
     );
 
-    if (sessionMetadata.startTime !== 0) {
-        const timestamp = sessionMetadata.startTime + time;
-        const curIdx = getChunkIdx(timestamp);
-        let toRemove: number | undefined = undefined;
+    useEffect(() => {
+        if (sessionMetadata.startTime !== 0) {
+            const timestamp = sessionMetadata.startTime + time;
+            const curIdx = getChunkIdx(timestamp);
 
-        let minIdx: number | undefined = undefined;
-        let maxIdx: number | undefined = undefined;
-        let count = 0;
-        for (const [k, v] of chunkEvents) {
-            if (v.length !== 0) {
-                count++;
+            // Get the count of non-empty chunks, as well as the
+            // min and max idx of non-empty chunks.
+            let minIdx: number | undefined = undefined;
+            let maxIdx: number | undefined = undefined;
+            let count = 0;
+            for (const [k, v] of chunkEvents) {
+                if (v.length !== 0) {
+                    count++;
+
+                    if (minIdx === undefined || k < minIdx) {
+                        minIdx = k;
+                    }
+
+                    if (maxIdx === undefined || k > maxIdx) {
+                        maxIdx = k;
+                    }
+                }
             }
 
-            if (minIdx === undefined || k < minIdx) {
-                minIdx = k;
+            // If there are more than the max chunks loaded, try removing
+            // the earliest. If we're currently playing the earliest chunk,
+            // remove the latest instead.
+            let toRemove: number | undefined = undefined;
+            if (count > MAX_CHUNK_COUNT) {
+                if (minIdx !== undefined && curIdx !== minIdx) {
+                    toRemove = minIdx;
+                } else if (maxIdx !== undefined) {
+                    toRemove = maxIdx;
+                }
             }
 
-            if (maxIdx === undefined || k > maxIdx) {
-                maxIdx = k;
+            if (toRemove !== undefined) {
+                chunkEventsRemove(toRemove);
             }
+
+            ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
         }
-
-        if (count > MAX_CHUNK_COUNT) {
-            if (minIdx !== undefined && curIdx !== minIdx) {
-                toRemove = minIdx;
-            } else if (maxIdx !== undefined) {
-                toRemove = maxIdx;
-            }
-        }
-
-        if (toRemove !== undefined) {
-            chunkEventsRemove(toRemove);
-        }
-
-        ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
-    }
+    }, [
+        chunkEvents,
+        chunkEventsRemove,
+        ensureChunksLoaded,
+        getChunkIdx,
+        sessionMetadata.startTime,
+        time,
+    ]);
 
     const onevent = (e: any) => {
         const event = e as HighlightEvent;
@@ -856,7 +876,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             onEventsLoaded && onEventsLoaded();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [errors, eventsKey, hasSearchParam, replayer, eventsDataLoaded]);
+    }, [
+        errors,
+        eventsKey,
+        hasSearchParam,
+        replayer,
+        eventsDataLoaded,
+        liveEventCount,
+    ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
@@ -973,9 +1000,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                     : newTime -
                       replayer.getMetaData().startTime +
                       sessionMetadata.startTime;
-            const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
-                replayer?.play(newTimeWithOffset)
-            );
+
+            const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                replayer?.play(newTimeWithOffset);
+            });
             if (needsLoad) {
                 replayer?.pause();
                 setIsLoadingEvents(true);
@@ -1019,9 +1047,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                     : newTime -
                       replayer.getMetaData().startTime +
                       sessionMetadata.startTime;
-            const needsLoad = ensureChunksLoaded(newTs, undefined, () =>
-                replayer?.pause(newTimeWithOffset)
-            );
+
+            const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                replayer?.pause(newTimeWithOffset);
+            });
             if (needsLoad) {
                 replayer?.pause();
                 setIsLoadingEvents(true);
@@ -1037,7 +1066,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionId: session?.secure_id,
             });
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             ensureChunksLoaded,
             replayer,
