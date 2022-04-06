@@ -999,6 +999,20 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
+	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	for _, f := range newFollowers {
+		f.SessionCommentID = sessionComment.ID
+	}
+	if len(newFollowers) > 0 {
+		if err := r.DB.Create(&newFollowers).Error; err != nil {
+			log.Error("Failed to create new session comment followers", err)
+		}
+	}
+
 	return sessionComment, nil
 }
 
@@ -1121,7 +1135,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new session followers", err)
+			log.Error("Failed to create new session reply followers", err)
 		}
 	}
 
@@ -1195,6 +1209,21 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 		}
 	}
+
+	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	for _, f := range newFollowers {
+		f.ErrorCommentID = errorComment.ID
+	}
+	if len(newFollowers) > 0 {
+		if err := r.DB.Create(&newFollowers).Error; err != nil {
+			log.Error("Failed to create new session comment followers", err)
+		}
+	}
+
 	return errorComment, nil
 }
 
@@ -1316,7 +1345,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 	if len(newFollowers) > 0 {
 		if err := r.DB.Create(&newFollowers).Error; err != nil {
-			log.Error("Failed to create new session followers", err)
+			log.Error("Failed to create new error reply followers", err)
 		}
 	}
 
