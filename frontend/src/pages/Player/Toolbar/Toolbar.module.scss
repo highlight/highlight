@@ -201,16 +201,15 @@
     display: flex;
     flex-direction: row-reverse;
     flex-wrap: wrap;
-    height: 42px;
+    height: 100%;
     justify-content: flex-start;
     margin-left: auto;
     overflow-y: hidden;
 
-    > * {
+    button {
         height: fit-content;
         margin-left: var(--size-xxSmall);
         margin-right: var(--size-xxSmall);
-        margin-top: 8px;
     }
 }
 
