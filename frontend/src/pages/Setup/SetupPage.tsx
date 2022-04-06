@@ -1102,7 +1102,7 @@ func main() {
 
 func main() {
     //...
-    r := chi.NewMux()
+    r := chi.NewRouter()
     r.Use(highlightChi.Middleware)
     //...
 }`}
@@ -1120,11 +1120,24 @@ func main() {
 
 func main() {
     //...
-    r := gin.New()
+    r := gin.Default()
     r.Use(highlightGin.Middleware())
     //...
 }`}
                     />
+                </p>
+                <p>
+                    You'll need to instrument your endpoint handlers to specify
+                    how you want to track errors or other events.
+                    <div className={styles.integrationContainer}>
+                        <ButtonLink
+                            anchor
+                            href="https://docs.highlight.run/go-backend"
+                            trackingId="SetupPageBackend"
+                        >
+                            See an Example
+                        </ButtonLink>
+                    </div>
                 </p>
             </Section>
         </>
