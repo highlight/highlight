@@ -1,10 +1,12 @@
 import { LoadingOutlined } from '@ant-design/icons';
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage';
+import { RadioGroup } from '@components/RadioGroup/RadioGroup';
 import { useGetProjectQuery } from '@graph/hooks';
 import { GetProjectQuery } from '@graph/operations';
 import { Admin } from '@graph/schemas';
@@ -13,6 +15,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useBackendIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import { GetBaseURL } from '@util/window';
 import { Spin } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -21,15 +24,12 @@ import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
-import { GetBaseURL } from '../../util/window';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { GatsbySetup } from './Gatsby/GatsbySetup';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
@@ -390,47 +390,59 @@ phone: '867-5309'
 });`}
                         />
                     </Section>
-                    {platform === PlatformType.React && (
-                        <Section title="React Error Boundary">
-                            <p>
-                                Highlight's <code>@highlight-run/react</code>{' '}
-                                package includes React components to improve
-                                both the developer and customer experience. We
-                                recommend using our{' '}
-                                <code>{'<ErrorBoundary/>'}</code> to catch
-                                errors and provide an error recovery mechanism
-                                for your users.
-                            </p>
-                            <CodeBlock
-                                language="javascript"
-                                onCopy={() => {
-                                    H.track(
-                                        'Copied Code Snippet (Highlight Event)',
-                                        { copied: 'code snippet' }
-                                    );
-                                }}
-                                text={`import { ErrorBoundary } from '@highlight-run/react';
+                    {platform === PlatformType.React ||
+                        (platform === PlatformType.NextJs && (
+                            <Section title="React Error Boundary">
+                                <p>
+                                    Highlight's{' '}
+                                    <code>@highlight-run/react</code> package
+                                    includes React components to improve both
+                                    the developer and customer experience. We
+                                    recommend using our{' '}
+                                    <code>{'<ErrorBoundary/>'}</code> to catch
+                                    errors and provide an error recovery
+                                    mechanism for your users.
+                                </p>
+                                <CodeBlock
+                                    language="javascript"
+                                    onCopy={() => {
+                                        H.track(
+                                            'Copied Code Snippet (Highlight Event)',
+                                            { copied: 'code snippet' }
+                                        );
+                                    }}
+                                    text={`import { ErrorBoundary } from '@highlight-run/react';
 
 const App = () => {
-return (
-<ErrorBoundary showDialog>
-<YourMainAppComponent />
-</ErrorBoundary>
-);
+  return (
+    <ErrorBoundary showDialog>
+      <YourMainAppComponent />
+    </ErrorBoundary>
+  );
 };`}
-                            />
+                                />
+                                <p>
+                                    You can test your{' '}
+                                    <code>{'<ErrorBoundary/>'}</code> by using
+                                    the <code>{'<SampleBuggyButton/>'}</code>{' '}
+                                    imported from the
+                                    <code>@highlight-run/react</code> package.
+                                    Adding the button to your page and clicking
+                                    it should show you the error recovery dialog
+                                    if configured correctly.
+                                </p>
 
-                            <div className={styles.integrationContainer}>
-                                <ButtonLink
-                                    anchor
-                                    href="https://docs.highlight.run/reactjs-integration"
-                                    trackingId="SetupPageDocsReact"
-                                >
-                                    Learn More about the React Package
-                                </ButtonLink>
-                            </div>
-                        </Section>
-                    )}
+                                <div className={styles.integrationContainer}>
+                                    <ButtonLink
+                                        anchor
+                                        href="https://docs.highlight.run/reactjs-integration"
+                                        trackingId="SetupPageDocsReact"
+                                    >
+                                        Learn More about the React Package
+                                    </ButtonLink>
+                                </div>
+                            </Section>
+                        ))}
                     <Section
                         title={
                             <span className={styles.sectionTitleWithIcon}>
@@ -1090,7 +1102,7 @@ func main() {
 
 func main() {
     //...
-    r := chi.NewMux()
+    r := chi.NewRouter()
     r.Use(highlightChi.Middleware)
     //...
 }`}
@@ -1108,11 +1120,24 @@ func main() {
 
 func main() {
     //...
-    r := gin.New()
+    r := gin.Default()
     r.Use(highlightGin.Middleware())
     //...
 }`}
                     />
+                </p>
+                <p>
+                    You'll need to instrument your endpoint handlers to specify
+                    how you want to track errors or other events.
+                    <div className={styles.integrationContainer}>
+                        <ButtonLink
+                            anchor
+                            href="https://docs.highlight.run/go-backend"
+                            trackingId="SetupPageBackend"
+                        >
+                            See an Example
+                        </ButtonLink>
+                    </div>
                 </p>
             </Section>
         </>
@@ -1129,7 +1154,8 @@ const JsAppInstructions = ({
     return (
         <>
             <Section title="Installing the SDK" defaultOpen>
-                {platform === PlatformType.React ? (
+                {platform === PlatformType.React ||
+                platform === PlatformType.NextJs ? (
                     <>
                         <p>
                             Install the <code>highlight.run</code> and{' '}
