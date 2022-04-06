@@ -1062,7 +1062,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	var sessionComment model.SessionComment
-	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Preload("Followers").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1104,6 +1104,25 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "session")
+	}
+	if len(sessionComment.Followers) > 0 && !isGuest {
+		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "session")
+	}
+
+	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
+	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, existingAdminIDs, existingSlackChannelIDs)
+	for _, f := range newFollowers {
+		f.SessionCommentID = commentID
+	}
+
+	if len(newFollowers) > 0 {
+		if err := r.DB.Create(&newFollowers).Error; err != nil {
+			log.Error("Failed to create new session followers", err)
+		}
 	}
 
 	return commentReply, nil
@@ -1237,7 +1256,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 
 func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	var errorComment model.ErrorComment
-	if err := r.DB.Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
+	if err := r.DB.Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
@@ -1280,6 +1299,25 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
 		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+	}
+	if len(errorComment.Followers) > 0 && !isGuest {
+		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+	}
+
+	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, errorComment.Followers)
+	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		Name:  admin.Name,
+		Email: *admin.Email,
+	})
+	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, existingAdminIDs, existingSlackChannelIDs)
+	for _, f := range newFollowers {
+		f.ErrorCommentID = commentID
+	}
+
+	if len(newFollowers) > 0 {
+		if err := r.DB.Create(&newFollowers).Error; err != nil {
+			log.Error("Failed to create new session followers", err)
+		}
 	}
 
 	return commentReply, nil
