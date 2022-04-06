@@ -11,9 +11,11 @@ import styles from './ErrorFullCommentList.module.scss';
 const ErrorFullCommentList = ({
     errorGroup,
     deepLinkedCommentId,
+    parentRef,
 }: {
     errorGroup?: GetErrorGroupQuery;
     deepLinkedCommentId?: string | null;
+    parentRef?: React.RefObject<HTMLDivElement>;
 }) => {
     const { error_secure_id } = useParams<{
         error_secure_id: string;
@@ -34,6 +36,7 @@ const ErrorFullCommentList = ({
                     deepLinked={comment.id === deepLinkedCommentId}
                     comment={comment}
                     errorGroup={errorGroup}
+                    parentRef={parentRef}
                     footer={
                         <p className={styles.timestamp}>
                             {MillisToMinutesAndSeconds(comment?.timestamp || 0)}

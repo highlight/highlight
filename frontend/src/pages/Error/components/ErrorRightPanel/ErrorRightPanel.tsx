@@ -22,6 +22,7 @@ const ErrorRightPanel = ({
     onClickCreateComment,
     deepLinkedCommentId,
 }: Props) => {
+    const errorCommentsRef = React.useRef(null);
     return (
         <Card noPadding className={styles.rightPanel}>
             <Tabs
@@ -47,9 +48,13 @@ const ErrorRightPanel = ({
                     {
                         key: 'Comments',
                         panelContent: (
-                            <div className={styles.commentsTabContainer}>
+                            <div
+                                className={styles.commentsTabContainer}
+                                ref={errorCommentsRef}
+                            >
                                 <ErrorFullCommentList
                                     errorGroup={errorGroup}
+                                    parentRef={errorCommentsRef}
                                     deepLinkedCommentId={deepLinkedCommentId}
                                 />
                                 <div className={styles.createCommentContainer}>
