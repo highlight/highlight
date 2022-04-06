@@ -1762,6 +1762,100 @@ func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
 	return nil
 }
 
+func (r *Resolver) getCommentFollowers(ctx context.Context, followers []*model.CommentFollower) (existingAdmins []int, existingSlackChannelIDs []string) {
+	for _, f := range followers {
+		if f.AdminId > 0 {
+			existingAdmins = append(existingAdmins, f.AdminId)
+		} else if len(f.SlackChannelID) > 0 {
+			existingSlackChannelIDs = append(existingSlackChannelIDs, f.SlackChannelID)
+		}
+	}
+	return
+}
+
+func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, existingAdminIDs []int, existingSlackChannelIDs []string) (newFollowers []*model.CommentFollower) {
+	for _, a := range taggedAdmins {
+		exists := false
+		for _, id := range existingAdminIDs {
+			if id == a.ID {
+				exists = true
+				break
+			}
+		}
+		if a.ID > 0 && !exists {
+			newCommentFollow := model.CommentFollower{
+				AdminId: a.ID,
+			}
+			newFollowers = append(newFollowers, &newCommentFollow)
+		}
+	}
+	for _, s := range taggedSlackUsers {
+		exists := false
+		for _, id := range existingSlackChannelIDs {
+			if id == *s.WebhookChannelID {
+				exists = true
+				break
+			}
+		}
+		if len(*s.WebhookChannelID) > 0 && !exists {
+			newCommentFollow := model.CommentFollower{
+				SlackChannelName: *s.WebhookChannelName,
+				SlackChannelID:   *s.WebhookChannelID,
+			}
+			newFollowers = append(newFollowers, &newCommentFollow)
+		}
+	}
+	return
+}
+
+func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+	var tos []*mail.Email
+	var ccs []*mail.Email
+	if admin.Email != nil {
+		ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
+	}
+
+	var taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput
+	for _, f := range followers {
+		if len(f.SlackChannelID) > 0 {
+			s := modelInputs.SanitizedSlackChannelInput{
+				WebhookChannelName: &f.SlackChannelName,
+				WebhookChannelID:   &f.SlackChannelID,
+			}
+			taggedSlackUsers = append(taggedSlackUsers, &s)
+		} else if f.AdminId > 0 {
+			a := &model.Admin{}
+			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
+				log.Error(err, "Error finding follower admin object")
+				continue
+			}
+			tos = append(tos, &mail.Email{Name: *admin.Name, Address: *a.Email})
+		}
+	}
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+			tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
+		}
+	})
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+			tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionEmailSpan.Finish()
+
+		err := r.SendEmailAlert(tos, ccs, *admin.Name, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+		}
+	})
+}
+
 func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
