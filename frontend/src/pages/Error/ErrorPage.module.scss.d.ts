@@ -5,6 +5,7 @@ export const collapsible: string;
 export const commentDiv: string;
 export const commentInputContainer: string;
 export const commentInputDiv: string;
+export const deepLinked: string;
 export const empty: string;
 export const errorLogButton: string;
 export const errorLogCell: string;

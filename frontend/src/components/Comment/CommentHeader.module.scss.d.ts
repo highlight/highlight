@@ -5,4 +5,5 @@ export const commentUpdatedTime: string;
 export const ellipsisButton: string;
 export const endActions: string;
 export const footer: string;
+export const small: string;
 export const textContainer: string;

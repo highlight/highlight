@@ -18,6 +18,7 @@ import {
 } from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal';
 import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart';
 import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
@@ -99,6 +100,19 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const dateFromSearchParams = new URLSearchParams(location.search).get(
         SessionPageSearchParams.date
     );
+    const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+        new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        )
+    );
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+        setDeepLinkedCommentId(commentId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
@@ -380,6 +394,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             />
                             <ErrorRightPanel
                                 errorGroup={data}
+                                deepLinkedCommentId={deepLinkedCommentId}
                                 parentRef={newCommentModalRef}
                                 onClickCreateComment={() => {
                                     setShowCreateCommentModal(

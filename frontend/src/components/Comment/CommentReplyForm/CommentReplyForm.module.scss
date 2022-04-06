@@ -1,0 +1,42 @@
+@import 'src/static/shared.scss';
+
+.actionButtons {
+    display: flex;
+    gap: var(--size-xSmall);
+    justify-content: flex-end;
+}
+
+.actionButtonsContainer {
+    margin-bottom: 0;
+}
+
+.commentInputContainer {
+    padding: 0 var(--size-xSmall);
+}
+
+.intercomLink {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.commentInputDiv {
+    @include rounded-border;
+    align-items: center;
+    background-color: var(--color-gray-100);
+    display: flex;
+    margin-top: 10px;
+    padding: 1px 0;
+}
+
+.createButton {
+    border-radius: 16px;
+    height: 24px;
+    margin-right: 8px;
+    padding: 6px;
+    width: 24px;
+
+    &:disabled {
+        background-color: var(--color-gray-400);
+        border: var(--color-gray-400);
+    }
+}

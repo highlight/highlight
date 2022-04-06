@@ -1,6 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import AttachmentList from '@components/Comment/AttachmentList/AttachmentList';
+import CommentReplyForm, {
+    SessionCommentReplyAction,
+} from '@components/Comment/CommentReplyForm/CommentReplyForm';
+import ReplyList from '@components/Comment/ReplyList/ReplyList';
 import SplitButton from '@components/SplitButton/SplitButton';
 import Tag from '@components/Tag/Tag';
 import SvgHeartIcon from '@icons/HeartIcon';
@@ -23,7 +27,9 @@ interface Props {
     deepLinkedCommentId?: string | null;
     hasShadow?: boolean;
     menuItems?: CommentHeaderMenuItem[];
+    onClose?: () => void;
     footer?: React.ReactNode;
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const SessionCommentCard = ({
@@ -31,7 +37,9 @@ export const SessionCommentCard = ({
     deepLinkedCommentId,
     hasShadow,
     menuItems,
+    onClose,
     footer,
+    parentRef,
 }: Props) => {
     return (
         <div
@@ -44,25 +52,41 @@ export const SessionCommentCard = ({
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
+                onClose={onClose}
                 footer={footer}
+                parentRef={parentRef}
             />
         </div>
     );
 };
 
-export const SessionComment = ({ comment, menuItems }: Props) => {
+export const SessionComment = ({
+    comment,
+    menuItems,
+    onClose,
+    parentRef,
+}: Props) => {
     return (
         <>
             <SessionCommentHeader
                 key={comment.id}
                 comment={comment}
                 menuItems={menuItems}
+                onClose={onClose}
             >
                 <SessionCommentTextBody comment={comment} />
             </SessionCommentHeader>
-            {comment.attachments.length > 0 && (
+            {comment?.attachments?.length > 0 && (
                 <AttachmentList attachments={comment.attachments} />
             )}
+            {comment?.replies?.length > 0 && (
+                <ReplyList replies={comment.replies} />
+            )}
+            <CommentReplyForm<SessionCommentReplyAction>
+                action={new SessionCommentReplyAction()}
+                commentID={comment.id}
+                parentRef={parentRef}
+            />
         </>
     );
 };

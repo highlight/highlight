@@ -725,7 +725,7 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			"View Thread",
 			false,
 			false,
 		),
@@ -778,7 +778,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			"View Thread",
 			false,
 			false,
 		),

@@ -81,6 +81,7 @@ const RightPlayerPanel = React.memo(() => {
 export default RightPlayerPanel;
 
 const RightPlayerPanelTabs = React.memo(() => {
+    const sessionCommentsRef = React.useRef(null);
     return (
         <Tabs
             centered
@@ -96,8 +97,13 @@ const RightPlayerPanelTabs = React.memo(() => {
                 {
                     key: 'Comments',
                     panelContent: (
-                        <div className={styles.tabContentContainer}>
-                            <SessionFullCommentList />
+                        <div
+                            className={styles.tabContentContainer}
+                            ref={sessionCommentsRef}
+                        >
+                            <SessionFullCommentList
+                                parentRef={sessionCommentsRef}
+                            />
                         </div>
                     ),
                 },

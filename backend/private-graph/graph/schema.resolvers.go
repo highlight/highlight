@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -1445,9 +1447,10 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 		return nil, err
 	}
 
+	caser := cases.Title(language.AmericanEnglish)
 	var sessionAlerts []*model.SessionAlert
 	for _, alertType := range alertTypes {
-		name := strings.Title(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
+		name := caser.String(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
 		alertType := alertType
 		newAlert := model.Alert{
 			ProjectID:         projectID,

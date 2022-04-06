@@ -1,15 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import CloseButton from '@components/CloseButton/CloseButton';
+import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas';
 import SvgShare2Icon from '@icons/Share2Icon';
 import { CommentSuggestion } from '@util/comment/util';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import {
-    Admin,
-    SanitizedAdminInput,
-    SessionCommentType,
-} from '../../graph/generated/schemas';
 import { AdminAvatar, Avatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
@@ -63,17 +60,25 @@ export const CommentHeader = ({
     children,
     footer,
     shareMenu,
+    onClose,
+    small,
 }: PropsWithChildren<{
     comment: any;
-    moreMenu: JSX.Element;
+    moreMenu?: JSX.Element;
     shareMenu?: JSX.Element;
+    onClose?: () => void;
     footer?: React.ReactNode;
+    small?: boolean;
 }>) => {
     const { isLoggedIn } = useAuthContext();
 
     return (
         <>
-            <div className={classNames(styles.commentHeader)}>
+            <div
+                className={classNames(styles.commentHeader, {
+                    [styles.small]: !!small,
+                })}
+            >
                 {comment?.type === SessionCommentType.Feedback ? (
                     <Avatar
                         seed={
@@ -86,7 +91,11 @@ export const CommentHeader = ({
                 ) : (
                     <AdminAvatar adminInfo={comment.author} size={30} />
                 )}
-                <div className={styles.textContainer}>
+                <div
+                    className={classNames(styles.textContainer, {
+                        [styles.small]: !!small,
+                    })}
+                >
                     <p className={styles.commentAuthor}>
                         {comment?.type === SessionCommentType.Feedback
                             ? comment?.metadata?.name ||
@@ -100,7 +109,7 @@ export const CommentHeader = ({
                     </span>
                 </div>
                 <span className={styles.endActions}>
-                    {isLoggedIn && (
+                    {isLoggedIn && !small && (
                         <>
                             {shareMenu && (
                                 <DotsMenu
@@ -109,14 +118,28 @@ export const CommentHeader = ({
                                     icon={<SvgShare2Icon />}
                                 />
                             )}
-                            <DotsMenu
-                                menu={moreMenu}
-                                trackingId="CommentsHeader"
-                            />
+                            {moreMenu && (
+                                <DotsMenu
+                                    menu={moreMenu}
+                                    trackingId="CommentsHeader"
+                                />
+                            )}
+                            {onClose && (
+                                <CloseButton
+                                    onClick={onClose}
+                                    trackingId={'CommentsClose'}
+                                />
+                            )}
                         </>
                     )}
                 </span>
-                <div className={styles.childrenContainer}>{children}</div>
+                <div
+                    className={classNames(styles.childrenContainer, {
+                        [styles.small]: !!small,
+                    })}
+                >
+                    {children}
+                </div>
                 {footer && <div className={styles.footer}>{footer}</div>}
             </div>
         </>

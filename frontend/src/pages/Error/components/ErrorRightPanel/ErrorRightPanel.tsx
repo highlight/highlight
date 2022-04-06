@@ -1,8 +1,8 @@
+import { GetErrorGroupQuery } from '@graph/operations';
 import React from 'react';
 
 import Card from '../../../../components/Card/Card';
 import Tabs from '../../../../components/Tabs/Tabs';
-import { GetErrorGroupQuery } from '../../../../graph/generated/operations';
 import ErrorComments from '../ErrorComments/ErrorComments';
 import ErrorFullCommentList from './components/ErrorFullCommentList/ErrorFullCommentList';
 import ErrorMetadata from './components/ErrorMetadata/ErrorMetadata';
@@ -13,13 +13,16 @@ interface Props {
     errorGroup?: GetErrorGroupQuery;
     parentRef?: React.RefObject<HTMLDivElement>;
     onClickCreateComment?: () => void;
+    deepLinkedCommentId?: string | null;
 }
 
 const ErrorRightPanel = ({
     errorGroup,
     parentRef,
     onClickCreateComment,
+    deepLinkedCommentId,
 }: Props) => {
+    const errorCommentsRef = React.useRef(null);
     return (
         <Card noPadding className={styles.rightPanel}>
             <Tabs
@@ -45,8 +48,15 @@ const ErrorRightPanel = ({
                     {
                         key: 'Comments',
                         panelContent: (
-                            <div className={styles.commentsTabContainer}>
-                                <ErrorFullCommentList errorGroup={errorGroup} />
+                            <div
+                                className={styles.commentsTabContainer}
+                                ref={errorCommentsRef}
+                            >
+                                <ErrorFullCommentList
+                                    errorGroup={errorGroup}
+                                    parentRef={errorCommentsRef}
+                                    deepLinkedCommentId={deepLinkedCommentId}
+                                />
                                 <div className={styles.createCommentContainer}>
                                     <ErrorComments
                                         parentRef={parentRef}

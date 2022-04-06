@@ -1,8 +1,9 @@
+import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
 import {
     Maybe,
@@ -11,7 +12,6 @@ import {
     SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { useReplayerContext } from '../../ReplayerContext';
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import styles from './PlayerSessionComment.module.scss';
@@ -52,12 +52,27 @@ interface Props {
 const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useReplayerContext();
     const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id);
+    const [clicked, setClicked] = useState(deepLinkedCommentId === comment?.id);
+    const commentCardParentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (deepLinkedCommentId) {
             setVisible(deepLinkedCommentId === comment?.id);
         }
     }, [comment?.id, deepLinkedCommentId]);
+
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            console.log('keydown', e.key);
+            if (e.key == 'Escape') {
+                setVisible(false);
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, []);
 
     if (!comment) {
         return null;
@@ -87,20 +102,28 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             }}
             onClick={(e) => {
                 e.stopPropagation();
+                setClicked(true);
             }}
             onMouseEnter={() => {
                 setVisible(true);
             }}
             onMouseLeave={() => {
-                setVisible(false);
+                if (!clicked) {
+                    setVisible(false);
+                }
             }}
         >
             <TransparentPopover
                 placement="right"
                 content={
-                    <div className={styles.sessionCommentCardContainer}>
+                    <div
+                        className={styles.sessionCommentCardContainer}
+                        ref={commentCardParentRef}
+                    >
                         <SessionCommentCard
+                            parentRef={commentCardParentRef}
                             comment={comment}
+                            onClose={() => setVisible(false)}
                             deepLinkedCommentId={deepLinkedCommentId}
                             hasShadow
                         />
@@ -139,7 +162,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                         styles.commentPinButton
                     )}
                 >
-                    <img src={CommentPinIcon} />
+                    <img src={CommentPinIcon} alt={'comment pin icon'} />
                 </button>
             </TransparentPopover>
         </div>

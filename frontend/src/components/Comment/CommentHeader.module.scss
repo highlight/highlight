@@ -9,11 +9,20 @@
     display: grid;
     gap: var(--size-xSmall) var(--size-small);
     grid-template-columns: 30px auto auto;
+
+    &.small {
+        gap: 0 var(--size-small);
+        grid-template-columns: 30px 1fr;
+    }
 }
 
 .childrenContainer {
     grid-column-end: 4;
     grid-column-start: 2;
+
+    &.small {
+        margin-top: calc(-1 * var(--size-xSmall));
+    }
 }
 
 .commentAuthor {
@@ -30,6 +39,11 @@
 .textContainer {
     display: flex;
     flex-direction: column;
+
+    &.small {
+        flex-direction: row;
+        gap: 0.5em;
+    }
 }
 
 .ellipsisButton {
