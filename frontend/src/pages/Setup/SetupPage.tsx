@@ -1141,7 +1141,8 @@ const JsAppInstructions = ({
     return (
         <>
             <Section title="Installing the SDK" defaultOpen>
-                {platform === PlatformType.React ? (
+                {platform === PlatformType.React ||
+                platform === PlatformType.NextJs ? (
                     <>
                         <p>
                             Install the <code>highlight.run</code> and{' '}
