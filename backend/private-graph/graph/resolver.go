@@ -1811,9 +1811,8 @@ func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminIn
 func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
-	var adminIds []int
 	if admin.Email != nil {
-		ccs = append(ccs, &mail.Email{Address: *admin.Email})
+		ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
 	}
 
 	var taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput
@@ -1830,8 +1829,7 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				log.Error(err, "Error finding follower admin object")
 				continue
 			}
-			tos = append(tos, &mail.Email{Address: *a.Email})
-			adminIds = append(adminIds, f.AdminId)
+			tos = append(tos, &mail.Email{Name: *admin.Name, Address: *a.Email})
 		}
 	}
 

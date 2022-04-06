@@ -1000,6 +1000,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 
 	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
@@ -1125,6 +1126,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
 	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
@@ -1211,6 +1213,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 
 	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
@@ -1335,6 +1338,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, errorComment.Followers)
 	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
