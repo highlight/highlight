@@ -33,8 +33,8 @@ export const ErrorCreateCommentModal = ({
             mask={true}
             title={
                 show === CreateModalType.Comment
-                    ? 'Write a Comment'
-                    : 'Create an Issue'
+                    ? 'Add a Comment'
+                    : 'Attach an Issue'
             }
             newCommentModalRef={parentRef ?? pRef}
             commentModalPosition={

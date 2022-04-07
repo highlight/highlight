@@ -1,10 +1,29 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import {
+    AdminSuggestion,
+    parseAdminSuggestions,
+} from '@components/Comment/CommentHeader';
 import Input from '@components/Input/Input';
 import Select from '@components/Select/Select';
 import TextArea from '@components/TextArea/TextArea';
 import {
+    useCreateErrorCommentMutation,
+    useCreateSessionCommentMutation,
+    useGetCommentMentionSuggestionsQuery,
+    useGetCommentTagsForProjectQuery,
+    useGetWorkspaceAdminsByProjectIdQuery,
+} from '@graph/hooks';
+import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
+import {
+    Admin,
+    IntegrationType,
+    SanitizedAdminInput,
+    SanitizedSlackChannelInput,
+    Session,
+} from '@graph/schemas';
 import ArrowLeftIcon from '@icons/ArrowLeftIcon';
 import ArrowRightIcon from '@icons/ArrowRightIcon';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
@@ -24,26 +43,7 @@ import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { Link } from 'react-router-dom';
 
-import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
-import {
-    AdminSuggestion,
-    parseAdminSuggestions,
-} from '../../../../components/Comment/CommentHeader';
-import {
-    useCreateErrorCommentMutation,
-    useCreateSessionCommentMutation,
-    useGetCommentMentionSuggestionsQuery,
-    useGetCommentTagsForProjectQuery,
-    useGetWorkspaceAdminsByProjectIdQuery,
-} from '../../../../graph/generated/hooks';
-import {
-    Admin,
-    IntegrationType,
-    SanitizedAdminInput,
-    SanitizedSlackChannelInput,
-    Session,
-} from '../../../../graph/generated/schemas';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './NewCommentForm.module.scss';
@@ -459,7 +459,7 @@ export const NewCommentForm = ({
                                 section !== CommentFormSection.CommentForm,
                         })}
                     >
-                        <h3>{modalHeader}</h3>
+                        <h3>{modalHeader ?? 'Add a  Comment'}</h3>
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
                                 commentText={commentText}
@@ -477,7 +477,7 @@ export const NewCommentForm = ({
                                 aria-label="Comment tags"
                                 allowClear={true}
                                 defaultActiveFirstOption
-                                placeholder={'Create an issue'}
+                                placeholder={'Attach an issue'}
                                 options={issueIntegrationsOptions}
                                 onChange={setSelectedIssueService}
                                 notFoundContent={
