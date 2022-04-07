@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import { AdminAvatar } from '@components/Avatar/Avatar';
 import Button from '@components/Button/Button/Button';
 import {
     AdminSuggestion,
@@ -101,6 +102,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
                     tagged_slack_users: mentionedSlackUsers,
                 },
                 refetchQueries: [action.query],
+                awaitRefetchQueries: true,
             });
             form.resetFields();
             setCommentText('');
@@ -183,51 +185,61 @@ function CommentReplyForm<T extends CommentReplyAction>({
             form={form}
             onKeyDown={onFormChangeHandler}
         >
-            <div className={styles.commentInputDiv}>
-                <Form.Item
-                    name="commentText"
-                    wrapperCol={{ span: 24 }}
-                    style={{ margin: 0, flexGrow: 1 }}
-                >
-                    <div className={styles.commentInputContainer}>
-                        <CommentTextBody
-                            commentText={commentText}
-                            onChangeHandler={onChangeHandler}
-                            placeholder={`Add a reply...`}
-                            suggestions={adminSuggestions}
-                            onDisplayTransformHandler={onDisplayTransform}
-                            suggestionsPortalHost={
-                                parentRef?.current as Element
-                            }
-                        />
-                    </div>
-                </Form.Item>
-                <Form.Item
-                    shouldUpdate
-                    wrapperCol={{ span: 24 }}
-                    className={styles.actionButtonsContainer}
-                    style={{ margin: 0 }}
-                >
-                    {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
-                    {() => (
-                        <div className={styles.actionButtons}>
-                            <Button
-                                trackingId="CreateCommentReply"
-                                className={styles.createButton}
-                                type="primary"
-                                htmlType="submit"
-                                disabled={commentText.length === 0}
-                                loading={isReplying}
-                            >
-                                <SvgArrowRightIcon
-                                    width={16}
-                                    height={16}
-                                    transform={'rotate(-90)'}
-                                />
-                            </Button>
+            <div className={styles.commentAlignDiv}>
+                <AdminAvatar
+                    size={30}
+                    adminInfo={{
+                        name: admin?.name,
+                        email: admin?.email,
+                        photo_url: admin?.photo_url ?? '',
+                    }}
+                />
+                <div className={styles.commentInputDiv}>
+                    <Form.Item
+                        name="commentText"
+                        wrapperCol={{ span: 24 }}
+                        style={{ margin: 0, flexGrow: 1 }}
+                    >
+                        <div className={styles.commentInputContainer}>
+                            <CommentTextBody
+                                commentText={commentText}
+                                onChangeHandler={onChangeHandler}
+                                placeholder={`Add a reply...`}
+                                suggestions={adminSuggestions}
+                                onDisplayTransformHandler={onDisplayTransform}
+                                suggestionsPortalHost={
+                                    parentRef?.current as Element
+                                }
+                            />
                         </div>
-                    )}
-                </Form.Item>
+                    </Form.Item>
+                    <Form.Item
+                        shouldUpdate
+                        wrapperCol={{ span: 24 }}
+                        className={styles.actionButtonsContainer}
+                        style={{ margin: 0 }}
+                    >
+                        {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
+                        {() => (
+                            <div className={styles.actionButtons}>
+                                <Button
+                                    trackingId="CreateCommentReply"
+                                    className={styles.createButton}
+                                    type="primary"
+                                    htmlType="submit"
+                                    disabled={commentText.length === 0}
+                                    loading={isReplying}
+                                >
+                                    <SvgArrowRightIcon
+                                        width={16}
+                                        height={16}
+                                        transform={'rotate(-90)'}
+                                    />
+                                </Button>
+                            </div>
+                        )}
+                    </Form.Item>
+                </div>
             </div>
         </Form>
     );

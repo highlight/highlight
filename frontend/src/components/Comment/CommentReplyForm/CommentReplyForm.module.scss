@@ -10,8 +10,16 @@
     margin-bottom: 0;
 }
 
+.commentAlignDiv {
+    align-items: flex-start;
+    display: grid;
+    grid-gap: 12px;
+    grid-template-columns: 30px 1fr;
+    padding-top: 10px;
+}
+
 .commentInputContainer {
-    padding: 0 var(--size-xSmall);
+    padding: var(--size-xxSmall) var(--size-xSmall);
 }
 
 .intercomLink {
@@ -24,8 +32,6 @@
     align-items: center;
     background-color: var(--color-gray-100);
     display: flex;
-    margin-top: 10px;
-    padding: 1px 0;
 }
 
 .createButton {
