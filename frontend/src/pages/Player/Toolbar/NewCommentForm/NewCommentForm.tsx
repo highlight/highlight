@@ -434,7 +434,8 @@ export const NewCommentForm = ({
     }, [isLinearIntegratedWithProject, integrationMap]);
 
     useEffect(() => {
-        if (modalHeader?.toLowerCase().indexOf('issue') !== -1) {
+        const idx = modalHeader?.toLowerCase().indexOf('issue') || -1;
+        if (idx !== -1) {
             setSelectedIssueService(IntegrationType.Linear);
         }
     }, [modalHeader, isLinearIntegratedWithProject]);
