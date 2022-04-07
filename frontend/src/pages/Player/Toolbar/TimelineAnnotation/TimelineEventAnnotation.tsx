@@ -1,11 +1,12 @@
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
+import { TooltipPlacement } from 'antd/lib/tooltip';
 import React, { useState } from 'react';
 
 import Popover from '../../../../components/Popover/Popover';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import { ParsedHighlightEvent } from '../../ReplayerContext';
 import {
@@ -21,6 +22,7 @@ import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 interface Props {
     event: ParsedHighlightEvent;
     startTime: number | undefined;
+    relativeStartPercent: number;
     selectedTimelineAnnotationTypes: string[];
     pause: (time?: number | undefined) => void;
     activeEvent: HighlightEvent | undefined;
@@ -29,6 +31,7 @@ interface Props {
 const TimelineEventAnnotation = ({
     event,
     startTime,
+    relativeStartPercent,
     selectedTimelineAnnotationTypes,
     pause,
     activeEvent,
@@ -38,8 +41,26 @@ const TimelineEventAnnotation = ({
 
     const Icon = getPlayerEventIcon(details.title || '', details.payload);
 
+    let offset = [-10, -10];
+    let placement: TooltipPlacement = 'topLeft';
+    if (relativeStartPercent > 0.67) {
+        offset = [18, -10];
+        placement = 'topRight';
+    } else if (relativeStartPercent > 0.33) {
+        offset = [0, -10];
+        placement = 'top';
+    }
+
     return (
         <Popover
+            align={{
+                overflow: {
+                    adjustY: false,
+                    adjustX: false,
+                },
+                offset: offset,
+            }}
+            placement={placement}
             getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={event.identifier}
             popoverClassName={timelineAnnotationStyles.popover}
