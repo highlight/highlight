@@ -39,7 +39,7 @@ import { Form, message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { Link } from 'react-router-dom';
 
@@ -433,6 +433,12 @@ export const NewCommentForm = ({
         return integrations;
     }, [isLinearIntegratedWithProject, integrationMap]);
 
+    useEffect(() => {
+        if (modalHeader?.toLowerCase().indexOf('issue') !== -1) {
+            setSelectedIssueService(IntegrationType.Linear);
+        }
+    }, [modalHeader, isLinearIntegratedWithProject]);
+
     return (
         <Form
             name="newComment"
@@ -480,6 +486,7 @@ export const NewCommentForm = ({
                                 placeholder={'Attach an issue'}
                                 options={issueIntegrationsOptions}
                                 onChange={setSelectedIssueService}
+                                value={selectedIssueService}
                                 notFoundContent={
                                     <p>
                                         <Link to="../integrations">
