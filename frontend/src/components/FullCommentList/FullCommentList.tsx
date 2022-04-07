@@ -1,5 +1,6 @@
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
+import classNames from 'classnames';
 import React, { useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -44,7 +45,9 @@ const FullCommentList = ({
                         itemContent={(index, comment: any) => (
                             <div
                                 key={comment.id || index}
-                                className={styles.comment}
+                                className={classNames(styles.comment, {
+                                    [styles.firstComment]: index === 0,
+                                })}
                             >
                                 {commentRender(comment)}
                             </div>
