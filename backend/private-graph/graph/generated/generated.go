@@ -39,6 +39,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
 	ErrorGroup() ErrorGroupResolver
@@ -96,6 +97,14 @@ type ComplexityRoot struct {
 		Meter              func(childComplexity int) int
 		Plan               func(childComplexity int) int
 		SessionsOutOfQuota func(childComplexity int) int
+	}
+
+	CommentReply struct {
+		Author    func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Text      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	DailyErrorCount struct {
@@ -157,6 +166,7 @@ type ComplexityRoot struct {
 		ErrorSecureId func(childComplexity int) int
 		ID            func(childComplexity int) int
 		ProjectID     func(childComplexity int) int
+		Replies       func(childComplexity int) int
 		Text          func(childComplexity int) int
 		UpdatedAt     func(childComplexity int) int
 	}
@@ -350,6 +360,8 @@ type ComplexityRoot struct {
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
+		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
@@ -618,6 +630,7 @@ type ComplexityRoot struct {
 		ID              func(childComplexity int) int
 		Metadata        func(childComplexity int) int
 		ProjectID       func(childComplexity int) int
+		Replies         func(childComplexity int) int
 		SessionId       func(childComplexity int) int
 		SessionSecureId func(childComplexity int) int
 		Tags            func(childComplexity int) int
@@ -745,6 +758,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type CommentReplyResolver interface {
+	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
+}
 type ErrorAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model.SanitizedSlackChannel, error)
 	EmailsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
@@ -812,9 +828,11 @@ type MutationResolver interface {
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
+	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
+	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddIntegrationToProject(ctx context.Context, integrationType *model.IntegrationType, projectID int, code string) (bool, error)
 	RemoveIntegrationFromProject(ctx context.Context, integrationType *model.IntegrationType, projectID int) (bool, error)
@@ -1143,6 +1161,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BillingDetails.SessionsOutOfQuota(childComplexity), true
 
+	case "CommentReply.author":
+		if e.complexity.CommentReply.Author == nil {
+			break
+		}
+
+		return e.complexity.CommentReply.Author(childComplexity), true
+
+	case "CommentReply.created_at":
+		if e.complexity.CommentReply.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CommentReply.CreatedAt(childComplexity), true
+
+	case "CommentReply.id":
+		if e.complexity.CommentReply.ID == nil {
+			break
+		}
+
+		return e.complexity.CommentReply.ID(childComplexity), true
+
+	case "CommentReply.text":
+		if e.complexity.CommentReply.Text == nil {
+			break
+		}
+
+		return e.complexity.CommentReply.Text(childComplexity), true
+
+	case "CommentReply.updated_at":
+		if e.complexity.CommentReply.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CommentReply.UpdatedAt(childComplexity), true
+
 	case "DailyErrorCount.count":
 		if e.complexity.DailyErrorCount.Count == nil {
 			break
@@ -1422,6 +1475,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorComment.ProjectID(childComplexity), true
+
+	case "ErrorComment.replies":
+		if e.complexity.ErrorComment.Replies == nil {
+			break
+		}
+
+		return e.complexity.ErrorComment.Replies(childComplexity), true
 
 	case "ErrorComment.text":
 		if e.complexity.ErrorComment.Text == nil {
@@ -2621,6 +2681,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveIntegrationFromProject(childComplexity, args["integration_type"].(*model.IntegrationType), args["project_id"].(int)), true
+
+	case "Mutation.replyToErrorComment":
+		if e.complexity.Mutation.ReplyToErrorComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_replyToErrorComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ReplyToErrorComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["errorURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
+
+	case "Mutation.replyToSessionComment":
+		if e.complexity.Mutation.ReplyToSessionComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_replyToSessionComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ReplyToSessionComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["sessionURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
 
 	case "Mutation.sendAdminProjectInvite":
 		if e.complexity.Mutation.SendAdminProjectInvite == nil {
@@ -4663,6 +4747,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.ProjectID(childComplexity), true
 
+	case "SessionComment.replies":
+		if e.complexity.SessionComment.Replies == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.Replies(childComplexity), true
+
 	case "SessionComment.session_id":
 		if e.complexity.SessionComment.SessionId == nil {
 			break
@@ -5765,6 +5856,7 @@ type SessionComment {
     metadata: Any
     tags: [String]!
     attachments: [ExternalAttachment]!
+    replies: [CommentReply]!
 }
 
 type SlackSyncResponse {
@@ -5792,6 +5884,16 @@ type ErrorComment {
     author: SanitizedAdmin!
     text: String!
     attachments: [ExternalAttachment]!
+    replies: [CommentReply]!
+}
+
+type CommentReply {
+    id: ID!
+    created_at: Timestamp!
+    updated_at: Timestamp!
+
+    author: SanitizedAdmin!
+    text: String!
 }
 
 enum SessionLifecycle {
@@ -6201,6 +6303,14 @@ type Mutation {
         integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
+    replyToSessionComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        sessionURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
     createErrorComment(
         project_id: ID!
         error_group_secure_id: String!
@@ -6225,6 +6335,14 @@ type Mutation {
         integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    replyToErrorComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        errorURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
     openSlackConversation(
         project_id: ID!
         code: String!
@@ -8188,6 +8306,126 @@ func (ec *executionContext) field_Mutation_removeIntegrationFromProject_args(ctx
 		}
 	}
 	args["project_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_replyToErrorComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["comment_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["comment_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["text"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text_for_email"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["errorURL"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorURL"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["errorURL"] = arg3
+	var arg4 []*model.SanitizedAdminInput
+	if tmp, ok := rawArgs["tagged_admins"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_slack_users"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_replyToSessionComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["comment_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["comment_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["text"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text_for_email"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["sessionURL"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionURL"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionURL"] = arg3
+	var arg4 []*model.SanitizedAdminInput
+	if tmp, ok := rawArgs["tagged_admins"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_slack_users"] = arg5
 	return args, nil
 }
 
@@ -11641,6 +11879,181 @@ func (ec *executionContext) _BillingDetails_sessionsOutOfQuota(ctx context.Conte
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _CommentReply_id(ctx context.Context, field graphql.CollectedField, obj *model1.CommentReply) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentReply",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentReply_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.CommentReply) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentReply",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentReply_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.CommentReply) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentReply",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentReply_author(ctx context.Context, field graphql.CollectedField, obj *model1.CommentReply) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentReply",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CommentReply().Author(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedAdmin)
+	fc.Result = res
+	return ec.marshalNSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentReply_text(ctx context.Context, field graphql.CollectedField, obj *model1.CommentReply) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentReply",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Text, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DailyErrorCount_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.DailyErrorCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13076,6 +13489,41 @@ func (ec *executionContext) _ErrorComment_attachments(ctx context.Context, field
 	res := resTmp.([]*model1.ExternalAttachment)
 	fc.Result = res
 	return ec.marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐExternalAttachment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorComment_replies(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Replies, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.CommentReply)
+	fc.Result = res
+	return ec.marshalNCommentReply2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorDistributionItem_name(ctx context.Context, field graphql.CollectedField, obj *model.ErrorDistributionItem) (ret graphql.Marshaler) {
@@ -17563,6 +18011,45 @@ func (ec *executionContext) _Mutation_deleteSessionComment(ctx context.Context, 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_replyToSessionComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_replyToSessionComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ReplyToSessionComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["sessionURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.CommentReply)
+	fc.Result = res
+	return ec.marshalOCommentReply2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17678,6 +18165,45 @@ func (ec *executionContext) _Mutation_deleteErrorComment(ctx context.Context, fi
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_replyToErrorComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_replyToErrorComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ReplyToErrorComment(rctx, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["errorURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.CommentReply)
+	fc.Result = res
+	return ec.marshalOCommentReply2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -26552,6 +27078,41 @@ func (ec *executionContext) _SessionComment_attachments(ctx context.Context, fie
 	return ec.marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐExternalAttachment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionComment_replies(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Replies, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.CommentReply)
+	fc.Result = res
+	return ec.marshalNCommentReply2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionCommentTag_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionCommentTag) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -30588,6 +31149,62 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var commentReplyImplementors = []string{"CommentReply"}
+
+func (ec *executionContext) _CommentReply(ctx context.Context, sel ast.SelectionSet, obj *model1.CommentReply) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, commentReplyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CommentReply")
+		case "id":
+			out.Values[i] = ec._CommentReply_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "created_at":
+			out.Values[i] = ec._CommentReply_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+			out.Values[i] = ec._CommentReply_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "author":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CommentReply_author(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "text":
+			out.Values[i] = ec._CommentReply_text(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var dailyErrorCountImplementors = []string{"DailyErrorCount"}
 
 func (ec *executionContext) _DailyErrorCount(ctx context.Context, sel ast.SelectionSet, obj *model1.DailyErrorCount) graphql.Marshaler {
@@ -30959,6 +31576,11 @@ func (ec *executionContext) _ErrorComment(ctx context.Context, sel ast.Selection
 			}
 		case "attachments":
 			out.Values[i] = ec._ErrorComment_attachments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "replies":
+			out.Values[i] = ec._ErrorComment_replies(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -31890,12 +32512,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createIssueForSessionComment(ctx, field)
 		case "deleteSessionComment":
 			out.Values[i] = ec._Mutation_deleteSessionComment(ctx, field)
+		case "replyToSessionComment":
+			out.Values[i] = ec._Mutation_replyToSessionComment(ctx, field)
 		case "createErrorComment":
 			out.Values[i] = ec._Mutation_createErrorComment(ctx, field)
 		case "createIssueForErrorComment":
 			out.Values[i] = ec._Mutation_createIssueForErrorComment(ctx, field)
 		case "deleteErrorComment":
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
+		case "replyToErrorComment":
+			out.Values[i] = ec._Mutation_replyToErrorComment(ctx, field)
 		case "openSlackConversation":
 			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
 		case "addIntegrationToProject":
@@ -33988,6 +34614,11 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "replies":
+			out.Values[i] = ec._SessionComment_replies(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35044,6 +35675,43 @@ func (ec *executionContext) marshalNBoolean2ᚖbool(ctx context.Context, sel ast
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCommentReply2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx context.Context, sel ast.SelectionSet, v []*model1.CommentReply) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCommentReply2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNDailyErrorCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDailyErrorCount(ctx context.Context, sel ast.SelectionSet, v []*model1.DailyErrorCount) graphql.Marshaler {
@@ -37457,6 +38125,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) marshalOCommentReply2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx context.Context, sel ast.SelectionSet, v *model1.CommentReply) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CommentReply(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalODailyErrorCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDailyErrorCount(ctx context.Context, sel ast.SelectionSet, v *model1.DailyErrorCount) graphql.Marshaler {

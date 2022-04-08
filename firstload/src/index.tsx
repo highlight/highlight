@@ -1,13 +1,5 @@
-import {
-    DebugOptions,
-    Highlight,
-    HighlightClassOptions,
-    IntegrationOptions,
-    NetworkRecordingOptions,
-    SessionShortcutOptions,
-} from '../../client/src/index';
+import { Highlight, HighlightClassOptions } from '../../client/src/index';
 import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners';
-import { FeedbackWidgetOptions } from '../../client/src/ui/feedback-widget/feedback-widget';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import {
@@ -16,171 +8,20 @@ import {
 } from './integrations/amplitude';
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { initializeFetchListener } from './listeners/fetch';
-import { SessionDetails } from './types/types';
+import {
+    Metadata,
+    HighlightOptions,
+    HighlightPublicInterface,
+    SessionDetails,
+} from './types/types';
 import HighlightSegmentMiddleware from './integrations/segment';
-import { ConsoleMethods } from '../../client/src/listeners/console-listener';
 import { GenerateSecureID } from '../../client/src/utils/secure-id';
 
 initializeFetchListener();
 
-export type HighlightOptions = {
-    /**
-     * Do not use this.
-     * @private
-     */
-    debug?: boolean | DebugOptions;
-    /**
-     * Do not use this.
-     * @private
-     */
-    scriptUrl?: string;
-    /**
-     * Specifies where to send Highlight session data.
-     * You should not have to set this unless you are running an on-premise instance.
-     */
-    backendUrl?: string;
-    /**
-     * Specifies where the backend of the app lives. If specified, Highlight will attach the
-     * X-Highlight-Request header to outgoing requests whose destination URLs match a substring
-     * or regexp from this list, so that backend errors can be linked back to the session.
-     * If 'true' is specified, all requests to the current domain will be matched.
-     * @example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']
-     */
-    tracingOrigins?: boolean | (string | RegExp)[];
-    /**
-     * Specifies if Highlight should not automatically start recording when the app starts.
-     * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.
-     * @default false
-     */
-    manualStart?: boolean;
-    /**
-     * This disables recording network requests.
-     * The data includes the URLs, the size of the request, and how long the request took.
-     * @default false
-     * @deprecated Use `networkRecording` instead.
-     */
-    disableNetworkRecording?: boolean;
-    /**
-     * Specifies how and what Highlight records from network requests and responses.
-     */
-    networkRecording?: boolean | NetworkRecordingOptions;
-    /**
-     * Specifies whether Highlight will record console messages.
-     * @default false
-     */
-    disableConsoleRecording?: boolean;
-    /**
-     * Specifies which console methods to record.
-     * The value here will be ignored if `disabledConsoleRecording` is `true`.
-     * @default All console methods.
-     * @example consoleMethodsToRecord: ['log', 'info', 'error']
-     */
-    consoleMethodsToRecord?: ConsoleMethods[];
-    enableSegmentIntegration?: boolean;
-    /**
-     * Specifies the environment your application is running in.
-     * This is useful to distinguish whether your session was recorded on localhost or in production.
-     * @default 'production'
-     */
-    environment?: 'development' | 'staging' | 'production' | string;
-    /**
-     * Specifies the version of your application.
-     * This is commonly a Git hash or a semantic version.
-     */
-    version?: string;
-    /**
-     * Specifies whether Highlight should redact data during recording.
-     * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
-     * @example
-     * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
-     * @see {@link https://docs.highlight.run/docs/privacy} for more information.
-     */
-    enableStrictPrivacy?: boolean;
-    /**
-     * Specifies whether to record canvas elements or not.
-     * @default false
-     */
-    enableCanvasRecording?: boolean;
-    integrations?: IntegrationOptions;
-    /**
-     * Specifies the keyboard shortcut to open the current session in Highlight.
-     * @see {@link https://docs.highlight.run/session-shortcut} for more information.
-     */
-    sessionShortcut?: SessionShortcutOptions;
-    /**
-     * Specifies whether to show the Highlight feedback widget. This allows users to submit feedback for their current session.
-     */
-    feedbackWidget?: FeedbackWidgetOptions;
-};
-
-interface SessionFeedbackOptions {
-    verbatim: string;
-    userName?: string;
-    userEmail?: string;
-    timestampOverride?: string;
-}
-
 const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
-
-export interface HighlightPublicInterface {
-    init: (projectID?: string | number, debug?: HighlightOptions) => void;
-    /**
-     * Calling this will assign an identifier to the session.
-     * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
-     * @param identifier Is commonly set as an email or UUID.
-     * @param metadata Additional details you want to associate to the user.
-     */
-    identify: (identifier: string, metadata?: Metadata) => void;
-    /**
-     * Call this to record when you want to track a specific event happening in your application.
-     * @example track('startedCheckoutProcess', { cartSize: 10, value: 85 })
-     * @param event The name of the event.
-     * @param metadata Additional details you want to associate to the event.
-     */
-    track: (event: string, metadata?: Metadata) => void;
-    /**
-     * @deprecated with replacement by `consumeError` for an in-app stacktrace.
-     */
-    error: (message: string, payload?: { [key: string]: string }) => void;
-    /**
-     * Calling this method will report an error in Highlight and map it to the current session being recorded.
-     * A common use case for `H.error` is calling it right outside of an error boundary.
-     * @see {@link https://docs.highlight.run/docs/error-handling} for more information.
-     */
-    consumeError: (
-        error: Error,
-        message?: string,
-        payload?: { [key: string]: string }
-    ) => void;
-    getSessionURL: () => Promise<string>;
-    getSessionDetails: () => Promise<SessionDetails>;
-    start: (options?: StartOptions) => void;
-    /** Stops the session and error recording. */
-    stop: () => void;
-    onHighlightReady: (func: () => void) => void;
-    options: HighlightOptions | undefined;
-    /**
-     * Calling this will add a feedback comment to the session.
-     */
-    addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void;
-    /**
-     * Calling this will toggle the visibility of the feedback modal.
-     */
-    toggleSessionFeedbackModal: () => void;
-}
-
-interface StartOptions {
-    /**
-     * Specifies whether console warn messages should not be created.
-     */
-    silent?: boolean;
-}
-
-interface Metadata {
-    [key: string]: string | boolean | number;
-}
 
 interface HighlightWindow extends Window {
     Highlight: new (

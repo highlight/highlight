@@ -1,3 +1,5 @@
+import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment';
+import { useGetSessionCommentsQuery } from '@graph/hooks';
 import { SessionCommentType } from '@graph/schemas';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
@@ -5,13 +7,15 @@ import { useParams } from '@util/react-router/useParams';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import React, { useEffect, useState } from 'react';
 
-import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import FullCommentList from '../../../components/FullCommentList/FullCommentList';
-import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { PlayerSearchParameters } from '../PlayerHook/utils';
 import styles from './SessionFullCommentList.module.scss';
 
-const SessionFullCommentList = () => {
+const SessionFullCommentList = ({
+    parentRef,
+}: {
+    parentRef?: React.RefObject<HTMLDivElement>;
+}) => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
         variables: {
@@ -56,6 +60,7 @@ const SessionFullCommentList = () => {
             comments={sessionCommentsData?.session_comments}
             commentRender={(comment) => (
                 <SessionCommentCard
+                    parentRef={parentRef}
                     deepLinkedCommentId={deepLinkedCommentId}
                     comment={comment}
                     footer={

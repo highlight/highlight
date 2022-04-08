@@ -1,4 +1,5 @@
-import { H, HighlightPublicInterface } from '.';
+import { H } from '.';
+import { HighlightPublicInterface } from './types/types';
 
 describe('should work outside of the browser in unit test', () => {
     let highlight: HighlightPublicInterface;

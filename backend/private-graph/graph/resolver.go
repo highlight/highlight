@@ -102,6 +102,44 @@ func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, erro
 	return domain, nil
 }
 
+func (r *Resolver) getTaggedAdmins(taggedAdmins []*modelInputs.SanitizedAdminInput, isGuestCreatingSession bool) (admins []model.Admin) {
+	if !isGuestCreatingSession {
+		for _, a := range taggedAdmins {
+			admins = append(admins,
+				model.Admin{
+					Model: model.Model{ID: a.ID},
+				},
+			)
+		}
+	}
+	return
+}
+
+func (r *Resolver) formatSanitizedAuthor(admin *model.Admin) *modelInputs.SanitizedAdmin {
+	name := ""
+	email := ""
+	photo_url := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
+	}
+
+	return sanitizedAdmin
+}
+
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
@@ -651,7 +689,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	return nil
 }
 
-func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *model.Admin, adminIds []int, viewLink, commentText, action string, subjectScope string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -673,12 +711,12 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 	if subjectScope == "error" {
 		determiner = "an"
 	}
-	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
+	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
+		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
 	}
 	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
+		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
 	}
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
 
@@ -687,7 +725,7 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			"View Thread",
 			false,
 			false,
 		),
@@ -714,7 +752,7 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string, base64Image *string) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -726,12 +764,12 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	if subjectScope == "error" {
 		determiner = "an"
 	}
-	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
+	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
+		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
 	}
 	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
+		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
 	}
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
 
@@ -740,7 +778,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			"View Thread",
 			false,
 			false,
 		),
@@ -1722,6 +1760,150 @@ func (r *Resolver) RevokeLinearAccessToken(accessToken string) error {
 	}
 
 	return nil
+}
+
+func (r *Resolver) getCommentFollowers(ctx context.Context, followers []*model.CommentFollower) (existingAdmins []int, existingSlackChannelIDs []string) {
+	for _, f := range followers {
+		if f.AdminId > 0 {
+			existingAdmins = append(existingAdmins, f.AdminId)
+		} else if len(f.SlackChannelID) > 0 {
+			existingSlackChannelIDs = append(existingSlackChannelIDs, f.SlackChannelID)
+		}
+	}
+	return
+}
+
+func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, existingAdminIDs []int, existingSlackChannelIDs []string) (newFollowers []*model.CommentFollower) {
+	for _, a := range taggedAdmins {
+		exists := false
+		for _, id := range existingAdminIDs {
+			if id == a.ID {
+				exists = true
+				break
+			}
+		}
+		if a.ID > 0 && !exists {
+			newCommentFollow := model.CommentFollower{
+				AdminId: a.ID,
+			}
+			newFollowers = append(newFollowers, &newCommentFollow)
+		}
+	}
+	for _, s := range taggedSlackUsers {
+		exists := false
+		for _, id := range existingSlackChannelIDs {
+			if id == *s.WebhookChannelID {
+				exists = true
+				break
+			}
+		}
+		if len(*s.WebhookChannelID) > 0 && !exists {
+			newCommentFollow := model.CommentFollower{
+				SlackChannelName: *s.WebhookChannelName,
+				SlackChannelID:   *s.WebhookChannelID,
+			}
+			newFollowers = append(newFollowers, &newCommentFollow)
+		}
+	}
+	return
+}
+
+func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+	var tos []*mail.Email
+	var ccs []*mail.Email
+	if admin.Email != nil {
+		ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
+	}
+
+	var taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput
+	for _, f := range followers {
+		if len(f.SlackChannelID) > 0 {
+			s := modelInputs.SanitizedSlackChannelInput{
+				WebhookChannelName: &f.SlackChannelName,
+				WebhookChannelID:   &f.SlackChannelID,
+			}
+			taggedSlackUsers = append(taggedSlackUsers, &s)
+		} else if f.AdminId > 0 {
+			a := &model.Admin{}
+			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
+				log.Error(err, "Error finding follower admin object")
+				continue
+			}
+			tos = append(tos, &mail.Email{Name: *admin.Name, Address: *a.Email})
+		}
+	}
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+			tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
+		}
+	})
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+			tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionEmailSpan.Finish()
+
+		err := r.SendEmailAlert(tos, ccs, *admin.Name, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+		}
+	})
+}
+
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
+			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
+		}
+	})
+}
+
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+	var tos []*mail.Email
+	var ccs []*mail.Email
+	var adminIds []int
+
+	if admin.Email != nil {
+		ccs = append(ccs, &mail.Email{Address: *admin.Email})
+	}
+	for _, admin := range taggedAdmins {
+		tos = append(tos, &mail.Email{Address: admin.Email})
+		adminIds = append(adminIds, admin.ID)
+	}
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionEmailSpan.Finish()
+
+		err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+		}
+	})
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		defer commentMentionSlackSpan.Finish()
+
+		err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, action, subjectScope)
+		if err != nil {
+			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
+		}
+	})
+
 }
 
 func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {

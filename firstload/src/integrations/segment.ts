@@ -1,4 +1,4 @@
-import { HighlightPublicInterface } from '..';
+import { HighlightPublicInterface } from '../types/types';
 
 interface SegmentContext {
     payload: any;
@@ -16,6 +16,10 @@ const HighlightSegmentMiddleware = ({ next, payload }: SegmentContext) => {
             const trackEventName = payload.obj.event;
             const trackEventProperties = payload.obj.properties;
             window.H.track(trackEventName, trackEventProperties);
+        } else if (payload.obj.type === 'identify') {
+            const identifier = payload.obj.userId;
+            const identifyMetadata = payload.obj.traits;
+            window.H.identify(identifier, identifyMetadata);
         }
     }
 
