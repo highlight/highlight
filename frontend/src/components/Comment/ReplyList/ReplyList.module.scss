@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .repliesList {
     margin-bottom: 1rem;
     margin-top: 1rem;
@@ -6,4 +8,9 @@
 .record {
     margin-bottom: 10px;
     margin-top: 10px;
+}
+
+.scrollReplies {
+    max-height: 200px;
+    overflow-y: auto;
 }
