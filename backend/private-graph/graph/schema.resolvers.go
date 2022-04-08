@@ -4858,7 +4858,7 @@ func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*mo
 	}
 
 	chunks := []*model.EventChunk{}
-	if err := r.DB.Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
+	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
 		Scan(&chunks).Error; err != nil {
 		return nil, e.Wrap(err, "fail")
 	}
