@@ -6,18 +6,27 @@ import styles from './index.module.scss';
 
 interface GoToButtonComponentProps {
     label?: string;
+    small?: boolean;
 }
 
 type GoToButtonProps = GoToButtonComponentProps &
     React.HTMLAttributes<HTMLButtonElement>;
 
-const GoToButton = ({ label = 'Goto', ...props }: GoToButtonProps) => {
+const GoToButton = ({ label = 'Goto', small, ...props }: GoToButtonProps) => {
     return (
         <button
             {...props}
-            className={classNames(styles.goToButton, props.className)}
+            className={classNames(styles.goToButton, {
+                [props.className!]: true,
+                [styles.smallIconContainer]: small,
+            })}
         >
-            {label} <ReferrerIcon className={styles.icon} />
+            {!small && `${label} `}
+            <ReferrerIcon
+                className={classNames(styles.icon, {
+                    [styles.small]: small,
+                })}
+            />
         </button>
     );
 };

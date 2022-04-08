@@ -1,3 +1,4 @@
+import GoToButton from '@components/Button/GoToButton';
 import { CommentHeader } from '@components/Comment/CommentHeader';
 import MenuItem from '@components/Menu/MenuItem';
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal';
@@ -236,6 +237,22 @@ const SessionCommentHeader = ({
             moreMenu={moreMenu}
             footer={footer}
             shareMenu={shareMenu}
+            gotoButton={
+                <GoToButton
+                    small
+                    onClick={() => {
+                        const startTime = replayer?.getMetaData().startTime;
+                        if (comment.timestamp && startTime) {
+                            pause(comment.timestamp);
+                            message.success(
+                                `Changed player time to when comment was written at ${MillisToMinutesAndSeconds(
+                                    comment.timestamp
+                                )}.`
+                            );
+                        }
+                    }}
+                />
+            }
             onClose={onClose}
         >
             {children}

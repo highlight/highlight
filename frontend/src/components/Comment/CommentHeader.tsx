@@ -60,12 +60,14 @@ export const CommentHeader = ({
     children,
     footer,
     shareMenu,
+    gotoButton,
     onClose,
     small,
 }: PropsWithChildren<{
     comment: any;
     moreMenu?: JSX.Element;
     shareMenu?: JSX.Element;
+    gotoButton?: JSX.Element;
     onClose?: () => void;
     footer?: React.ReactNode;
     small?: boolean;
@@ -74,6 +76,38 @@ export const CommentHeader = ({
 
     return (
         <>
+            {!small && (
+                <div className={styles.topBar}>
+                    <span className={styles.startActions}>
+                        {moreMenu && (
+                            <DotsMenu
+                                menu={moreMenu}
+                                trackingId="CommentsHeader"
+                            />
+                        )}
+                    </span>
+                    <span className={styles.endActions}>
+                        {isLoggedIn && !small && (
+                            <>
+                                {shareMenu && (
+                                    <DotsMenu
+                                        menu={shareMenu}
+                                        trackingId="CommentsShare"
+                                        icon={<SvgShare2Icon />}
+                                    />
+                                )}
+                                {gotoButton!}
+                                {onClose && (
+                                    <CloseButton
+                                        onClick={onClose}
+                                        trackingId={'CommentsClose'}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </span>
+                </div>
+            )}
             <div
                 className={classNames(styles.commentHeader, {
                     [styles.small]: !!small,
@@ -108,31 +142,6 @@ export const CommentHeader = ({
                         <RelativeTime datetime={comment.updated_at} />
                     </span>
                 </div>
-                <span className={styles.endActions}>
-                    {isLoggedIn && !small && (
-                        <>
-                            {shareMenu && (
-                                <DotsMenu
-                                    menu={shareMenu}
-                                    trackingId="CommentsShare"
-                                    icon={<SvgShare2Icon />}
-                                />
-                            )}
-                            {moreMenu && (
-                                <DotsMenu
-                                    menu={moreMenu}
-                                    trackingId="CommentsHeader"
-                                />
-                            )}
-                            {onClose && (
-                                <CloseButton
-                                    onClick={onClose}
-                                    trackingId={'CommentsClose'}
-                                />
-                            )}
-                        </>
-                    )}
-                </span>
                 <div
                     className={classNames(styles.childrenContainer, {
                         [styles.small]: !!small,

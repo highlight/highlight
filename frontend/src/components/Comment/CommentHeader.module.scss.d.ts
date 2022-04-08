@@ -6,4 +6,6 @@ export const ellipsisButton: string;
 export const endActions: string;
 export const footer: string;
 export const small: string;
+export const startActions: string;
 export const textContainer: string;
+export const topBar: string;
