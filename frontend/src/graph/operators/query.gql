@@ -148,6 +148,18 @@ query GetCommentTagsForProject($project_id: ID!) {
     }
 }
 
+query GetEventChunkURL($secure_id: String!, $index: Int!) {
+    event_chunk_url(secure_id: $secure_id, index: $index)
+}
+
+query GetEventChunks($secure_id: String!) {
+    event_chunks(secure_id: $secure_id) {
+        session_id
+        chunk_index
+        timestamp
+    }
+}
+
 query GetSession($secure_id: String!) {
     session(secure_id: $secure_id) {
         secure_id
@@ -193,6 +205,7 @@ query GetSession($secure_id: String!) {
         last_user_interaction_time
         length
         active_length
+        chunked
     }
 }
 

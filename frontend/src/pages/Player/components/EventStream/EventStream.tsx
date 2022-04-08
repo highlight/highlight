@@ -33,10 +33,11 @@ const EventStream = () => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [debug] = useQueryParam('debug', BooleanParam);
     const {
-        replayer,
+        sessionMetadata,
         time,
-        events: replayerEvents,
+        eventsForTimelineIndicator: replayerEvents,
         state,
+        replayer,
     } = useReplayerContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [currEvent, setCurrEvent] = useState('');
@@ -226,11 +227,11 @@ const EventStream = () => {
                                 <StreamElement
                                     e={event}
                                     key={index}
-                                    start={replayer.getMetaData().startTime}
+                                    start={sessionMetadata.startTime}
                                     isFirstCard={index === 0}
                                     isCurrent={
                                         event.timestamp -
-                                            replayer.getMetaData().startTime ===
+                                            sessionMetadata.startTime ===
                                             time ||
                                         event.identifier === currEvent
                                     }

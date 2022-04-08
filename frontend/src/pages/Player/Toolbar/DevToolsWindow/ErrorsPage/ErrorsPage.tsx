@@ -28,9 +28,9 @@ const ErrorsPage = React.memo(() => {
         errors: allErrors,
         state,
         time,
-        replayer,
         session,
         setTime,
+        sessionMetadata,
     } = useReplayerContext();
     const { setErrorPanel } = useResourceOrErrorDetailPanel();
     const { detailedPanel } = usePlayerUIContext();
@@ -42,15 +42,25 @@ const ErrorsPage = React.memo(() => {
         !loading && allErrors?.every((error) => !!error.timestamp);
 
     useEffect(() => {
-        if (!isInteractingWithErrors && hasTimestamp && replayer) {
+        if (
+            !isInteractingWithErrors &&
+            hasTimestamp &&
+            sessionMetadata.startTime
+        ) {
             const index = findLastActiveEventIndex(
                 time,
-                replayer.getMetaData().startTime,
+                sessionMetadata.startTime,
                 allErrors
             );
             setLastActiveErrorIndex(index);
         }
-    }, [allErrors, hasTimestamp, isInteractingWithErrors, replayer, time]);
+    }, [
+        allErrors,
+        hasTimestamp,
+        isInteractingWithErrors,
+        sessionMetadata.startTime,
+        time,
+    ]);
 
     useEffect(() => {
         if (virtuoso.current) {
@@ -142,7 +152,7 @@ const ErrorsPage = React.memo(() => {
                             <ErrorCard
                                 searchQuery={filterSearchTerm}
                                 key={error?.id}
-                                replayerContext={{ replayer, setTime }}
+                                replayerContext={{ sessionMetadata, setTime }}
                                 error={error}
                                 state={
                                     hasTimestamp

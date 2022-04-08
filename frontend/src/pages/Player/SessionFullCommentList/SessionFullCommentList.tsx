@@ -22,7 +22,7 @@ const SessionFullCommentList = ({
             session_secure_id: session_secure_id,
         },
     });
-    const { replayer } = useReplayerContext();
+    const { sessionMetadata } = useReplayerContext();
     const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
         new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
@@ -39,7 +39,7 @@ const SessionFullCommentList = ({
 
     const getCommentTimestamp = (comment: any) => {
         if (comment.type === SessionCommentType.Feedback) {
-            const sessionStartTime = replayer?.getMetaData().startTime;
+            const sessionStartTime = sessionMetadata.startTime;
 
             if (sessionStartTime) {
                 const deltaMilliseconds = getFeedbackCommentSessionTimestamp(

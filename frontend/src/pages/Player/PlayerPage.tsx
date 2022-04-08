@@ -79,6 +79,7 @@ const Player = ({ integrated }: Props) => {
         sessionViewability,
         isPlayerReady,
         session,
+        isLoadingEvents,
     } = player;
     const resources = useResources(session);
     const {
@@ -396,6 +397,9 @@ const Player = ({ integrated }: Props) => {
                                                     }
                                                     setCommentPosition={
                                                         setCommentPosition
+                                                    }
+                                                    isLoadingEvents={
+                                                        isLoadingEvents
                                                     }
                                                 />
                                             )}

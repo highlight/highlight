@@ -44,7 +44,7 @@ const SessionCommentHeader = ({
     onClose,
     footer,
 }: PropsWithChildren<Props>) => {
-    const { pause, session, replayer } = useReplayerContext();
+    const { pause, session, sessionMetadata } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: [namedOperations.Query.GetSessionComments],
     });
@@ -128,8 +128,7 @@ const SessionCommentHeader = ({
                     let commentTimestamp = comment.timestamp || 0;
 
                     if (comment.type === SessionCommentType.Feedback) {
-                        const sessionStartTime = replayer?.getMetaData()
-                            .startTime;
+                        const sessionStartTime = sessionMetadata.startTime;
 
                         if (sessionStartTime) {
                             commentTimestamp = getFeedbackCommentSessionTimestamp(

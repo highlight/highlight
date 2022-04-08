@@ -25,7 +25,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     const errorId = new URLSearchParams(location.search).get(
         PlayerSearchParameters.errorId
     );
-    const { pause, replayer } = useReplayerContext();
+    const { pause, replayer, sessionMetadata } = useReplayerContext();
     const {
         setShowDevTools,
         setSelectedDevToolsTab,
@@ -90,7 +90,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                     if (replayer) {
                         const newTime =
                             new Date(error.timestamp).getTime() -
-                            replayer.getMetaData().startTime;
+                            sessionMetadata.startTime;
 
                         pause(newTime);
                         message.success(

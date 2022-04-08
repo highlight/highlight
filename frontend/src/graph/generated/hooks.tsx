@@ -4292,6 +4292,119 @@ export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<
     Types.GetCommentTagsForProjectQuery,
     Types.GetCommentTagsForProjectQueryVariables
 >;
+export const GetEventChunkUrlDocument = gql`
+    query GetEventChunkURL($secure_id: String!, $index: Int!) {
+        event_chunk_url(secure_id: $secure_id, index: $index)
+    }
+`;
+
+/**
+ * __useGetEventChunkUrlQuery__
+ *
+ * To run a query within a React component, call `useGetEventChunkUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEventChunkUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEventChunkUrlQuery({
+ *   variables: {
+ *      secure_id: // value for 'secure_id'
+ *      index: // value for 'index'
+ *   },
+ * });
+ */
+export function useGetEventChunkUrlQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEventChunkUrlQuery,
+        Types.GetEventChunkUrlQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEventChunkUrlQuery,
+        Types.GetEventChunkUrlQueryVariables
+    >(GetEventChunkUrlDocument, baseOptions);
+}
+export function useGetEventChunkUrlLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEventChunkUrlQuery,
+        Types.GetEventChunkUrlQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEventChunkUrlQuery,
+        Types.GetEventChunkUrlQueryVariables
+    >(GetEventChunkUrlDocument, baseOptions);
+}
+export type GetEventChunkUrlQueryHookResult = ReturnType<
+    typeof useGetEventChunkUrlQuery
+>;
+export type GetEventChunkUrlLazyQueryHookResult = ReturnType<
+    typeof useGetEventChunkUrlLazyQuery
+>;
+export type GetEventChunkUrlQueryResult = Apollo.QueryResult<
+    Types.GetEventChunkUrlQuery,
+    Types.GetEventChunkUrlQueryVariables
+>;
+export const GetEventChunksDocument = gql`
+    query GetEventChunks($secure_id: String!) {
+        event_chunks(secure_id: $secure_id) {
+            session_id
+            chunk_index
+            timestamp
+        }
+    }
+`;
+
+/**
+ * __useGetEventChunksQuery__
+ *
+ * To run a query within a React component, call `useGetEventChunksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEventChunksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEventChunksQuery({
+ *   variables: {
+ *      secure_id: // value for 'secure_id'
+ *   },
+ * });
+ */
+export function useGetEventChunksQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEventChunksQuery,
+        Types.GetEventChunksQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEventChunksQuery,
+        Types.GetEventChunksQueryVariables
+    >(GetEventChunksDocument, baseOptions);
+}
+export function useGetEventChunksLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEventChunksQuery,
+        Types.GetEventChunksQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEventChunksQuery,
+        Types.GetEventChunksQueryVariables
+    >(GetEventChunksDocument, baseOptions);
+}
+export type GetEventChunksQueryHookResult = ReturnType<
+    typeof useGetEventChunksQuery
+>;
+export type GetEventChunksLazyQueryHookResult = ReturnType<
+    typeof useGetEventChunksLazyQuery
+>;
+export type GetEventChunksQueryResult = Apollo.QueryResult<
+    Types.GetEventChunksQuery,
+    Types.GetEventChunksQueryVariables
+>;
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
         session(secure_id: $secure_id) {
@@ -4338,6 +4451,7 @@ export const GetSessionDocument = gql`
             last_user_interaction_time
             length
             active_length
+            chunked
         }
     }
 `;

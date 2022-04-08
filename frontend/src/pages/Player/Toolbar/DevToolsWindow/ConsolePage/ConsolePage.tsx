@@ -38,7 +38,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
-    const { pause, replayer, state, session } = useReplayerContext();
+    const { pause, sessionMetadata, state, session } = useReplayerContext();
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
     >([]);
@@ -301,14 +301,14 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                                         onClick={() => {
                                             pause(
                                                 message.time -
-                                                    (replayer?.getMetaData()
-                                                        .startTime ?? 0)
+                                                    (sessionMetadata.startTime ??
+                                                        0)
                                             );
                                             AntDesignMessage.success(
                                                 `Changed player time to when console message was created at ${MillisToMinutesAndSeconds(
                                                     message.time -
-                                                        (replayer?.getMetaData()
-                                                            .startTime ?? 0)
+                                                        (sessionMetadata.startTime ??
+                                                            0)
                                                 )}.`
                                             );
                                         }}

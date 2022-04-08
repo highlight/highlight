@@ -354,7 +354,9 @@ const assignEventToSessionIntervalRelative = (
         const relativeTimestamp = relativeTime
             ? event.timestamp
             : new Date(event.timestamp).getTime() - sessionStartTime;
-        if (
+        if (relativeTimestamp < currentSessionInterval.startTime) {
+            eventIndex++;
+        } else if (
             relativeTimestamp >= currentSessionInterval.startTime &&
             relativeTimestamp <= currentSessionInterval.endTime
         ) {

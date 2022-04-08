@@ -14,6 +14,7 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { timerEnd } from '@util/timer/timer';
+import useMap from '@util/useMap';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -23,6 +24,8 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     OnSessionPayloadAppendedDocument,
+    useGetEventChunksQuery,
+    useGetEventChunkUrlQuery,
     useGetSessionIntervalsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
@@ -63,6 +66,14 @@ const EVENTS_CHUNK_SIZE = parseInt(
     urlSearchParams.get('chunkSize') || '100000',
     10
 );
+const LOOKAHEAD_MS = 30000;
+const MAX_CHUNK_COUNT = 5;
+const EMPTY_SESSION_METADATA = {
+    startTime: 0,
+    endTime: 0,
+    totalTime: 0,
+};
+const CHUNKING_ENABLED_PROJECTS = ['1'];
 
 export enum SessionViewability {
     VIEWABLE,
@@ -85,7 +96,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         viewingUnauthorizedSession,
         setViewingUnauthorizedSession,
     ] = useState(false);
-    const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+
     const [performancePayloads, setPerformancePayloads] = useState<
         Array<HighlightPerformancePayload>
     >([]);
@@ -101,13 +112,13 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessions: [],
         totalCount: -1,
     });
-    const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
     // Browser extension script URLs that are in the session.
     const [
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
     ] = useState<string[]>([]);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(true);
     const [
         unsubscribeSessionPayloadFn,
         setUnsubscribeSessionPayloadFn,
@@ -152,6 +163,15 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTimestamp,
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
+    // Tracks the start/end/total time for a session. Using replayer.getMetaData is
+    // no longer accurate because the first or last event chunks might not be loaded.
+    const [sessionMetadata, setSessionMetadata] = useState<playerMetaData>(
+        EMPTY_SESSION_METADATA
+    );
+    const [events, setEvents] = useState<HighlightEvent[]>([]);
+    // Incremented whenever events are received in live mode. This is subscribed
+    // to for knowing when new live events are available to add to the player.
+    const [liveEventCount, setLiveEventCount] = useState<number>(0);
 
     const { data: sessionIntervalsData } = useGetSessionIntervalsQuery({
         variables: {
@@ -168,25 +188,188 @@ export const usePlayer = (): ReplayerContextInterface => {
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
     });
-    const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
-        undefined
-    );
+
+    const { data: eventChunksData } = useGetEventChunksQuery({
+        variables: { secure_id: session_secure_id },
+    });
+
+    const [
+        chunkEvents,
+        chunkEventsSet,
+        ,
+        chunkEventsRemove,
+        chunkEventsReset,
+    ] = useMap<number, HighlightEvent[]>();
+
+    const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
+
+    // eventsKey represents the chunk index for all loaded chunks. This is
+    // subscribed to for knowing when new chunks have been loaded in or removed.
+    let eventsKey = '';
+    const sortedChunks = [...chunkEvents.entries()].sort((a, b) => a[0] - b[0]);
+    for (const [k, v] of sortedChunks) {
+        if (v.length !== 0) {
+            eventsKey += k + ',';
+        }
+    }
+
+    const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
+        fetchPolicy: 'no-cache',
+        skip: true,
+    });
 
     // If events are returned by getSessionPayloadQuery, set the events payload
     useEffect(() => {
-        if (eventsData?.events) {
-            setEventsPayload(eventsData?.events);
+        if (!!eventsData?.events && chunkEvents.size === 0) {
+            chunkEventsSet(0, toHighlightEvents(eventsData?.events));
+            setIsLoadingEvents(false);
         }
-    }, [eventsData?.events]);
+    }, [eventsData?.events, chunkEvents.size, chunkEventsSet]);
 
     useEffect(() => {
-        if (subscriptionEventsPayload?.length && eventsPayload) {
-            setEventsPayload([...eventsPayload, ...subscriptionEventsPayload]);
+        if (subscriptionEventsPayload?.length) {
+            chunkEventsSet(0, [
+                ...(chunkEvents.get(0) ?? []),
+                ...toHighlightEvents(subscriptionEventsPayload),
+            ]);
+            setLiveEventCount((cur) => cur + 1);
+            setIsLoadingEvents(false);
             setSubscriptionEventsPayload([]);
         }
-    }, [eventsPayload, subscriptionEventsPayload]);
+    }, [chunkEvents, chunkEventsSet, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+
+    const getChunkIdx = useCallback(
+        (ts: number) => {
+            let idx = 0;
+            eventChunksData?.event_chunks?.forEach((chunk, i) => {
+                if (chunk.timestamp <= ts) {
+                    idx = i;
+                }
+            });
+            return idx;
+        },
+        [eventChunksData?.event_chunks]
+    );
+
+    // Ensure all chunks between startTs and endTs are loaded. If a callback
+    // is passed in, invoke it once the chunks are loaded.
+    const ensureChunksLoaded = useCallback(
+        (startTs: number, endTs?: number, callback?: () => void) => {
+            const startIdx = getChunkIdx(startTs);
+            const endIdx = endTs ? getChunkIdx(endTs) : startIdx;
+
+            let needsLoad = false;
+            for (let i = startIdx; i <= endIdx; i++) {
+                if (!chunkEvents.has(i)) {
+                    chunkEventsSet(i, []);
+
+                    needsLoad = true;
+                    fetchEventChunkURL({
+                        secure_id: session_secure_id,
+                        index: i,
+                    })
+                        .then((response) =>
+                            fetch(response.data.event_chunk_url)
+                        )
+                        .then((response) => response.json())
+                        .then((data) => {
+                            chunkEventsSet(i, toHighlightEvents(data));
+                        })
+                        .then(() => setOnEventsLoaded(callback))
+                        .catch((e) => {
+                            chunkEventsSet(i, []);
+                            H.consumeError(
+                                e,
+                                'Error direct downloading session payload'
+                            );
+                        })
+                        .finally(() => {
+                            setIsLoadingEvents(false);
+                        });
+                }
+            }
+
+            return needsLoad;
+        },
+        [
+            chunkEvents,
+            chunkEventsSet,
+            fetchEventChunkURL,
+            getChunkIdx,
+            session_secure_id,
+        ]
+    );
+
+    useEffect(() => {
+        if (sessionMetadata.startTime !== 0) {
+            const timestamp = sessionMetadata.startTime + time;
+            const curIdx = getChunkIdx(timestamp);
+
+            // Get the count of non-empty chunks, as well as the
+            // min and max idx of non-empty chunks.
+            let minIdx: number | undefined = undefined;
+            let maxIdx: number | undefined = undefined;
+            let count = 0;
+            for (const [k, v] of chunkEvents) {
+                if (v.length !== 0) {
+                    count++;
+
+                    if (minIdx === undefined || k < minIdx) {
+                        minIdx = k;
+                    }
+
+                    if (maxIdx === undefined || k > maxIdx) {
+                        maxIdx = k;
+                    }
+                }
+            }
+
+            // If there are more than the max chunks loaded, try removing
+            // the earliest. If we're currently playing the earliest chunk,
+            // remove the latest instead.
+            let toRemove: number | undefined = undefined;
+            if (count > MAX_CHUNK_COUNT) {
+                if (minIdx !== undefined && curIdx !== minIdx) {
+                    toRemove = minIdx;
+                } else if (maxIdx !== undefined) {
+                    toRemove = maxIdx;
+                }
+            }
+
+            if (toRemove !== undefined) {
+                chunkEventsRemove(toRemove);
+            }
+
+            ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
+        }
+    }, [
+        chunkEvents,
+        chunkEventsRemove,
+        ensureChunksLoaded,
+        getChunkIdx,
+        sessionMetadata.startTime,
+        time,
+    ]);
+
+    const onevent = (e: any) => {
+        const event = e as HighlightEvent;
+
+        if ((event as customEvent)?.data?.tag === 'Stop') {
+            setState(ReplayerState.SessionRecordingStopped);
+        }
+        if (event.type === 5) {
+            switch (event.data.tag) {
+                case 'Navigate':
+                case 'Reload':
+                    setCurrentUrl(event.data.payload as string);
+                    return;
+                default:
+                    return;
+            }
+        }
+    };
 
     const {
         data: timelineIndicatorEventsData,
@@ -236,17 +419,37 @@ export const usePlayer = (): ReplayerContextInterface => {
                             skip_events: true,
                         },
                     });
-                    fetch(directDownloadUrl)
+
+                    let fetchEvents;
+                    if (
+                        data.session?.chunked &&
+                        CHUNKING_ENABLED_PROJECTS.includes(project_id)
+                    ) {
+                        fetchEvents = fetchEventChunkURL({
+                            secure_id: session_secure_id,
+                            index: 0,
+                        }).then((response) =>
+                            fetch(response.data.event_chunk_url)
+                        );
+                    } else {
+                        fetchEvents = fetch(directDownloadUrl);
+                    }
+
+                    setIsLoadingEvents(true);
+                    fetchEvents
                         .then((response) => response.json())
                         .then((data) => {
-                            setEventsPayload(data || []);
+                            chunkEventsSet(0, toHighlightEvents(data || []));
                         })
                         .catch((e) => {
-                            setEventsPayload([]);
+                            chunkEventsSet(0, []);
                             H.consumeError(
                                 e,
                                 'Error direct downloading session payload'
                             );
+                        })
+                        .finally(() => {
+                            setIsLoadingEvents(false);
                         });
                 } else {
                     setEventsDataLoaded(false);
@@ -274,7 +477,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         (nextState?: ReplayerState) => {
             setState(nextState || ReplayerState.Empty);
             setErrors([]);
-            setEvents([]);
+            chunkEventsReset();
             setScale(1);
             setSessionComments([]);
             setReplayer(undefined);
@@ -284,12 +487,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionEndTime(0);
             setSessionIntervals([]);
             setSessionViewability(SessionViewability.VIEWABLE);
-            setLoadedEventsIndex(0);
             setIsLiveMode(false);
             lastActiveTimestampRef.current = 0;
             setLastActiveString(null);
+            setSessionMetadata(EMPTY_SESSION_METADATA);
         },
-        [setPlayerTimeToPersistance]
+        [setPlayerTimeToPersistance, chunkEventsReset]
     );
 
     // Initializes the session state and fetches the session data
@@ -366,28 +569,114 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     }, [setShowLeftPanel, setShowRightPanel]);
 
+    const initReplayer = (newEvents: HighlightEvent[]) => {
+        setState(ReplayerState.Loading);
+        // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+        const playerMountingRoot = document.getElementById(
+            'player'
+        ) as HTMLElement;
+        // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+        // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+        if (playerMountingRoot?.childNodes?.length > 0) {
+            while (playerMountingRoot.firstChild) {
+                playerMountingRoot.removeChild(playerMountingRoot.firstChild);
+            }
+        }
+
+        const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+            root: playerMountingRoot,
+            triggerFocus: false,
+            mouseTail: showPlayerMouseTail,
+            UNSAFE_replayCanvas: true,
+            liveMode: isLiveMode,
+        });
+
+        const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
+        setBrowserExtensionScriptURLs(onlyScriptEvents);
+
+        const onlyUrlEvents = getAllUrlEvents(newEvents);
+        if (onlyUrlEvents.length >= 1) {
+            setCurrentUrl(onlyUrlEvents[0].data.payload);
+        }
+        setPerformancePayloads(getAllPerformanceEvents(newEvents));
+        r.on('event-cast', onevent);
+        r.on('resize', (_e) => {
+            const e = _e as viewportResizeDimension;
+            setViewport(e);
+        });
+        r.on('pause', () => {
+            setCurrentUrl(
+                findLatestUrl(
+                    onlyUrlEvents,
+                    r.getCurrentTime() + r.getMetaData().startTime
+                )
+            );
+        });
+        r.on('start', () => {
+            const newTs = r.getCurrentTime() + r.getMetaData().startTime;
+            setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs));
+        });
+        setReplayer(r);
+        if (isLiveMode) {
+            r.startLive(newEvents[0].timestamp);
+        }
+    };
+
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
-        if (download && eventsPayload) {
-            const a = document.createElement('a');
-            const file = new Blob([JSON.stringify(eventsPayload)], {
-                type: 'application/json',
-            });
+        if (download) {
+            const directDownloadUrl = sessionData?.session?.direct_download_url;
 
-            a.href = URL.createObjectURL(file);
-            a.download = `session-${session_secure_id}.json`;
-            a.click();
+            if (directDownloadUrl) {
+                const handleDownload = (events: HighlightEvent[]): void => {
+                    const a = document.createElement('a');
+                    const file = new Blob([JSON.stringify(events)], {
+                        type: 'application/json',
+                    });
 
-            URL.revokeObjectURL(a.href);
+                    a.href = URL.createObjectURL(file);
+                    a.download = `session-${session_secure_id}.json`;
+                    a.click();
+
+                    URL.revokeObjectURL(a.href);
+                };
+
+                fetch(directDownloadUrl)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        return toHighlightEvents(data || []);
+                    })
+                    .then(handleDownload)
+                    .catch((e) => {
+                        H.consumeError(
+                            e,
+                            'Error direct downloading session payload for download'
+                        );
+                    })
+                    .finally(() => {
+                        setIsLoadingEvents(false);
+                    });
+            }
         }
-    }, [download, eventsPayload, session_secure_id]);
+    }, [
+        download,
+        sessionData?.session?.direct_download_url,
+        session_secure_id,
+    ]);
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (!eventsPayload) return;
+        const nextEvents: HighlightEvent[] = [];
+        for (const v of chunkEvents.values()) {
+            for (const val of v) {
+                nextEvents.push(val);
+            }
+        }
+
+        if (!nextEvents || nextEvents.length === 0) return;
 
         setIsLiveMode(sessionData?.session?.processed === false);
-        if (eventsPayload.length < 2) {
+        if (nextEvents.length < 2) {
             if (!(sessionData?.session?.processed === false)) {
                 setSessionViewability(SessionViewability.EMPTY_SESSION);
             }
@@ -396,85 +685,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 
         setSessionViewability(SessionViewability.VIEWABLE);
         // Add an id field to each event so it can be referenced.
-        const newEvents: HighlightEvent[] = toHighlightEvents(eventsPayload);
-        if (loadedEventsIndex <= 0) {
-            setState(ReplayerState.Loading);
-            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-            const playerMountingRoot = document.getElementById(
-                'player'
-            ) as HTMLElement;
-            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
-            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
-            if (playerMountingRoot?.childNodes?.length > 0) {
-                while (playerMountingRoot.firstChild) {
-                    playerMountingRoot.removeChild(
-                        playerMountingRoot.firstChild
-                    );
-                }
-            }
 
-            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                root: playerMountingRoot,
-                triggerFocus: false,
-                mouseTail: showPlayerMouseTail,
-                UNSAFE_replayCanvas: true,
-                liveMode: isLiveMode,
-            });
-            setLoadedEventsIndex(Math.min(EVENTS_CHUNK_SIZE, newEvents.length));
-
-            r.on('event-cast', (e: any) => {
-                const event = e as HighlightEvent;
-                if ((event as customEvent)?.data?.tag === 'Stop') {
-                    setState(ReplayerState.SessionRecordingStopped);
-                }
-                if (event.type === 5) {
-                    switch (event.data.tag) {
-                        case 'Navigate':
-                        case 'Reload':
-                            setCurrentUrl(event.data.payload as string);
-                            return;
-                        default:
-                            return;
-                    }
-                }
-            });
-            const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
-            setBrowserExtensionScriptURLs(onlyScriptEvents);
-
-            const onlyUrlEvents = getAllUrlEvents(newEvents);
-            if (onlyUrlEvents.length >= 1) {
-                setCurrentUrl(onlyUrlEvents[0].data.payload);
-            }
-            setPerformancePayloads(getAllPerformanceEvents(newEvents));
-            r.on('resize', (_e) => {
-                const e = _e as viewportResizeDimension;
-                setViewport(e);
-            });
-            r.on('pause', () => {
-                setCurrentUrl(
-                    findLatestUrl(
-                        onlyUrlEvents,
-                        r.getCurrentTime() + r.getMetaData().startTime
-                    )
-                );
-            });
-            r.on('start', () => {
-                setCurrentUrl(
-                    findLatestUrl(
-                        onlyUrlEvents,
-                        r.getCurrentTime() + r.getMetaData().startTime
-                    )
-                );
-            });
-            setReplayer(r);
-            if (isLiveMode) {
-                r.startLive(newEvents[0].timestamp);
-            }
+        if (replayer === undefined) {
+            initReplayer(nextEvents);
         }
-        setEvents(newEvents);
+
+        setEvents(nextEvents);
+
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [eventsPayload, setPlayerTimeToPersistance]);
+    }, [chunkEvents, eventChunksData]);
 
     const [eventsDataLoaded, setEventsDataLoaded] = useState(false);
     useEffect(() => {
@@ -496,241 +716,203 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Loads the remaining events into Replayer.
     useEffect(() => {
         if (replayer && eventsDataLoaded) {
-            let timerId = 0;
-            let eventsIndex = loadedEventsIndex;
+            const events: HighlightEvent[] = [];
+            for (const [, v] of sortedChunks) {
+                for (const val of v) {
+                    events.push(val);
+                }
+            }
+            replayer.replaceEvents(events);
 
-            const addEventsWorker = () => {
-                events
-                    .slice(eventsIndex, eventsIndex + EVENTS_CHUNK_SIZE)
-                    .forEach((event) => {
-                        replayer.addEvent(event);
+            // Preprocess session interval data from backend
+            const parsedSessionIntervalsData: SessionInterval[] =
+                sessionIntervalsData &&
+                sessionIntervalsData.session_intervals.length > 0
+                    ? sessionIntervalsData.session_intervals.map((interval) => {
+                          return {
+                              startTime: new Date(
+                                  interval.start_time
+                              ).getTime(),
+                              endTime: new Date(interval.end_time).getTime(),
+                              duration: interval.duration,
+                              active: interval.active,
+                          };
+                      })
+                    : replayer.getActivityIntervals();
+            const sessionMetadata: playerMetaData = parsedSessionIntervalsData
+                ? {
+                      startTime: new Date(
+                          parsedSessionIntervalsData[0].startTime
+                      ).getTime(),
+                      endTime: new Date(
+                          parsedSessionIntervalsData[
+                              parsedSessionIntervalsData.length - 1
+                          ].endTime
+                      ).getTime(),
+                      totalTime:
+                          new Date(
+                              parsedSessionIntervalsData[
+                                  parsedSessionIntervalsData.length - 1
+                              ].endTime
+                          ).getTime() -
+                          new Date(
+                              parsedSessionIntervalsData[0].startTime
+                          ).getTime(),
+                  }
+                : replayer.getMetaData();
+
+            const sessionIntervals = getSessionIntervals(
+                sessionMetadata,
+                parsedSessionIntervalsData
+            );
+
+            // Inject the Material font icons into the player if it's a Boardgent session.
+            // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
+            if (project_id === '669' && replayer.iframe.contentDocument) {
+                const cssLink = document.createElement('link');
+                cssLink.href =
+                    'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
+                cssLink.rel = 'stylesheet';
+                cssLink.type = 'text/css';
+                replayer.iframe.contentDocument.head.appendChild(cssLink);
+            }
+
+            const parsedTimelineIndicatorEvents =
+                timelineIndicatorEventsData &&
+                timelineIndicatorEventsData.timeline_indicator_events.length > 0
+                    ? toHighlightEvents(
+                          timelineIndicatorEventsData.timeline_indicator_events
+                      )
+                    : events;
+            const si = getCommentsInSessionIntervalsRelative(
+                addEventsToSessionIntervals(
+                    addErrorsToSessionIntervals(
+                        sessionIntervals,
+                        errors,
+                        sessionMetadata.startTime
+                    ),
+                    parsedTimelineIndicatorEvents,
+                    sessionMetadata.startTime
+                ),
+                sessionComments,
+                sessionMetadata.startTime
+            );
+            setSessionIntervals(si);
+            const test = getEventsForTimelineIndicator(
+                parsedTimelineIndicatorEvents,
+                sessionMetadata.startTime,
+                sessionMetadata.totalTime
+            );
+            setEventsForTimelineIndicator(test);
+            setSessionEndTime(sessionMetadata.endTime);
+
+            if (eventsData?.rage_clicks) {
+                setSessionIntervals((sessionIntervals) => {
+                    const allClickEvents: (ParsedHighlightEvent & {
+                        sessionIndex: number;
+                    })[] = [];
+
+                    sessionIntervals.forEach((interval, sessionIndex) => {
+                        interval.sessionEvents.forEach((event) => {
+                            if (
+                                event.type === 5 &&
+                                event.data.tag === 'Click'
+                            ) {
+                                allClickEvents.push({
+                                    ...event,
+                                    sessionIndex,
+                                });
+                            }
+                        });
                     });
 
-                eventsIndex = Math.min(
-                    events.length,
-                    eventsIndex + EVENTS_CHUNK_SIZE
-                );
+                    const rageClicksWithRelativePositions: RageClick[] = [];
 
-                if (eventsIndex >= events.length) {
-                    setLoadedEventsIndex(eventsIndex);
-                    cancelAnimationFrame(timerId);
-                    // Preprocess session interval data from backend
-                    const parsedSessionIntervalsData: SessionInterval[] =
-                        sessionIntervalsData &&
-                        sessionIntervalsData.session_intervals.length > 0
-                            ? sessionIntervalsData.session_intervals.map(
-                                  (interval) => {
-                                      return {
-                                          startTime: new Date(
-                                              interval.start_time
-                                          ).getTime(),
-                                          endTime: new Date(
-                                              interval.end_time
-                                          ).getTime(),
-                                          duration: interval.duration,
-                                          active: interval.active,
-                                      };
-                                  }
-                              )
-                            : replayer.getActivityIntervals();
-                    const sessionMetadata: playerMetaData = parsedSessionIntervalsData
-                        ? {
-                              startTime: new Date(
-                                  parsedSessionIntervalsData[0].startTime
-                              ).getTime(),
-                              endTime: new Date(
-                                  parsedSessionIntervalsData[
-                                      parsedSessionIntervalsData.length - 1
-                                  ].endTime
-                              ).getTime(),
-                              totalTime:
-                                  new Date(
-                                      parsedSessionIntervalsData[
-                                          parsedSessionIntervalsData.length - 1
-                                      ].endTime
-                                  ).getTime() -
-                                  new Date(
-                                      parsedSessionIntervalsData[0].startTime
-                                  ).getTime(),
-                          }
-                        : replayer.getMetaData();
+                    eventsData.rage_clicks.forEach((rageClick) => {
+                        const rageClickStartUnixTimestamp = new Date(
+                            rageClick.start_timestamp
+                        ).getTime();
+                        const rageClickEndUnixTimestamp = new Date(
+                            rageClick.end_timestamp
+                        ).getTime();
+                        /**
+                         * We have this tolerance because time reporting for milliseconds precision is slightly off.
+                         */
+                        const DIFFERENCE_TOLERANCE = 100;
 
-                    const sessionIntervals = getSessionIntervals(
-                        sessionMetadata,
-                        parsedSessionIntervalsData
-                    );
-
-                    // Inject the Material font icons into the player if it's a Boardgent session.
-                    // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
-                    if (
-                        project_id === '669' &&
-                        replayer.iframe.contentDocument
-                    ) {
-                        const cssLink = document.createElement('link');
-                        cssLink.href =
-                            'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
-                        cssLink.rel = 'stylesheet';
-                        cssLink.type = 'text/css';
-                        replayer.iframe.contentDocument.head.appendChild(
-                            cssLink
-                        );
-                    }
-
-                    const parsedTimelineIndicatorEvents =
-                        timelineIndicatorEventsData &&
-                        timelineIndicatorEventsData.timeline_indicator_events
-                            .length > 0
-                            ? toHighlightEvents(
-                                  timelineIndicatorEventsData.timeline_indicator_events
-                              )
-                            : events;
-                    console.log(
-                        '[Highlight] Session Metadata:',
-                        replayer.getMetaData()
-                    );
-                    setSessionIntervals(
-                        getCommentsInSessionIntervalsRelative(
-                            addEventsToSessionIntervals(
-                                addErrorsToSessionIntervals(
-                                    sessionIntervals,
-                                    errors,
-                                    replayer.getMetaData().startTime
-                                ),
-                                parsedTimelineIndicatorEvents,
-                                replayer.getMetaData().startTime
-                            ),
-                            sessionComments,
-                            replayer.getMetaData().startTime
-                        )
-                    );
-                    setEventsForTimelineIndicator(
-                        getEventsForTimelineIndicator(
-                            parsedTimelineIndicatorEvents,
-                            replayer.getMetaData().startTime,
-                            replayer.getMetaData().totalTime
-                        )
-                    );
-                    setSessionEndTime(replayer.getMetaData().totalTime);
-                    if (eventsData?.rage_clicks) {
-                        setSessionIntervals((sessionIntervals) => {
-                            const allClickEvents: (ParsedHighlightEvent & {
-                                sessionIndex: number;
-                            })[] = [];
-
-                            sessionIntervals.forEach(
-                                (interval, sessionIndex) => {
-                                    interval.sessionEvents.forEach((event) => {
-                                        if (
-                                            event.type === 5 &&
-                                            event.data.tag === 'Click'
-                                        ) {
-                                            allClickEvents.push({
-                                                ...event,
-                                                sessionIndex,
-                                            });
-                                        }
-                                    });
-                                }
-                            );
-
-                            const rageClicksWithRelativePositions: RageClick[] = [];
-
-                            eventsData.rage_clicks.forEach((rageClick) => {
-                                const rageClickStartUnixTimestamp = new Date(
-                                    rageClick.start_timestamp
-                                ).getTime();
-                                const rageClickEndUnixTimestamp = new Date(
-                                    rageClick.end_timestamp
-                                ).getTime();
-                                /**
-                                 * We have this tolerance because time reporting for milliseconds precision is slightly off.
-                                 */
-                                const DIFFERENCE_TOLERANCE = 100;
-
-                                const matchingStartClickEvent = allClickEvents.find(
-                                    (clickEvent) => {
-                                        if (
-                                            Math.abs(
-                                                clickEvent.timestamp -
-                                                    rageClickStartUnixTimestamp
-                                            ) < DIFFERENCE_TOLERANCE
-                                        ) {
-                                            return true;
-                                        }
-                                    }
-                                );
-                                const matchingEndClickEvent = allClickEvents.find(
-                                    (clickEvent) => {
-                                        if (
-                                            Math.abs(
-                                                clickEvent.timestamp -
-                                                    rageClickEndUnixTimestamp
-                                            ) < DIFFERENCE_TOLERANCE
-                                        ) {
-                                            return true;
-                                        }
-                                    }
-                                );
-
+                        const matchingStartClickEvent = allClickEvents.find(
+                            (clickEvent) => {
                                 if (
-                                    matchingStartClickEvent &&
-                                    matchingEndClickEvent
+                                    Math.abs(
+                                        clickEvent.timestamp -
+                                            rageClickStartUnixTimestamp
+                                    ) < DIFFERENCE_TOLERANCE
                                 ) {
-                                    rageClicksWithRelativePositions.push({
-                                        endTimestamp: rageClick.end_timestamp,
-                                        startTimestamp:
-                                            rageClick.start_timestamp,
-                                        totalClicks: rageClick.total_clicks,
-                                        startPercentage:
-                                            matchingStartClickEvent.relativeIntervalPercentage,
-                                        endPercentage:
-                                            matchingEndClickEvent.relativeIntervalPercentage,
-                                        sessionIntervalIndex:
-                                            matchingStartClickEvent.sessionIndex,
-                                    } as RageClick);
+                                    return true;
                                 }
-                            });
-
-                            setRageClicks(rageClicksWithRelativePositions);
-                            return sessionIntervals;
-                        });
-                    }
-                    if (state <= ReplayerState.Loading) {
-                        setState(
-                            hasSearchParam
-                                ? ReplayerState.LoadedWithDeepLink
-                                : ReplayerState.LoadedAndUntouched
+                            }
                         );
-                    }
-                    setPlayerTimestamp(
-                        replayer.getMetaData().totalTime,
-                        replayer.getMetaData().startTime,
-                        errors,
-                        setSelectedErrorId
-                    );
-                    if (isLiveMode && state > ReplayerState.Loading) {
-                        // Resynchronize player timestamp after each batch of events
-                        play();
-                    }
-                } else {
-                    timerId = requestAnimationFrame(addEventsWorker);
-                }
-            };
+                        const matchingEndClickEvent = allClickEvents.find(
+                            (clickEvent) => {
+                                if (
+                                    Math.abs(
+                                        clickEvent.timestamp -
+                                            rageClickEndUnixTimestamp
+                                    ) < DIFFERENCE_TOLERANCE
+                                ) {
+                                    return true;
+                                }
+                            }
+                        );
 
-            setTimeout(addEventsWorker, 0);
+                        if (matchingStartClickEvent && matchingEndClickEvent) {
+                            rageClicksWithRelativePositions.push({
+                                endTimestamp: rageClick.end_timestamp,
+                                startTimestamp: rageClick.start_timestamp,
+                                totalClicks: rageClick.total_clicks,
+                                startPercentage:
+                                    matchingStartClickEvent.relativeIntervalPercentage,
+                                endPercentage:
+                                    matchingEndClickEvent.relativeIntervalPercentage,
+                                sessionIntervalIndex:
+                                    matchingStartClickEvent.sessionIndex,
+                            } as RageClick);
+                        }
+                    });
 
-            return () => {
-                cancelAnimationFrame(timerId);
-            };
+                    setRageClicks(rageClicksWithRelativePositions);
+                    return sessionIntervals;
+                });
+            }
+            if (state <= ReplayerState.Loading) {
+                setState(
+                    hasSearchParam
+                        ? ReplayerState.LoadedWithDeepLink
+                        : ReplayerState.LoadedAndUntouched
+                );
+            }
+            setPlayerTimestamp(
+                sessionMetadata.totalTime,
+                sessionMetadata.startTime,
+                errors,
+                setSelectedErrorId
+            );
+            setSessionMetadata(sessionMetadata);
+            if (isLiveMode && state > ReplayerState.Loading) {
+                // Resynchronize player timestamp after each batch of events
+                play();
+            }
+            // If there is a callback set to run on load, invoke it
+            onEventsLoaded && onEventsLoaded();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         errors,
-        events,
-        events.length,
+        eventsKey,
         hasSearchParam,
         replayer,
         eventsDataLoaded,
+        liveEventCount,
     ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
@@ -738,11 +920,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
             const frameAction = () => {
                 if (replayer) {
-                    setTime(replayer.getCurrentTime());
+                    // The player may start later than the session if earlier events are unloaded
+                    const timeOffset =
+                        replayer.getMetaData().startTime -
+                        sessionMetadata.startTime;
+
+                    setTime(replayer.getCurrentTime() + timeOffset);
 
                     if (
-                        replayer.getCurrentTime() >=
-                        replayer.getMetaData().totalTime
+                        replayer.getCurrentTime() + timeOffset >=
+                        sessionMetadata.totalTime
                     ) {
                         setState(
                             isLiveMode
@@ -811,44 +998,48 @@ export const usePlayer = (): ReplayerContextInterface => {
         state,
     ]);
 
-    const play = (newTime?: number) => {
-        if (isLiveMode) {
-            const desiredTime =
-                Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
-            // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
-            // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
-            // the last UI the user idled in is displayed.
-            if (desiredTime - time > 5000 || state != ReplayerState.Playing) {
-                newTime = Math.min(desiredTime, sessionEndTime - 1);
-            } else {
+    const play = useCallback(
+        (newTime?: number) => {
+            if (isLiveMode) {
+                const desiredTime =
+                    Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
+                // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+                // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+                // the last UI the user idled in is displayed.
+                if (
+                    desiredTime - time > 5000 ||
+                    state != ReplayerState.Playing
+                ) {
+                    newTime = Math.min(desiredTime, sessionEndTime - 1);
+                } else {
+                    return;
+                }
+            }
+            // Don't play the session if the player is already at the end of the session.
+            if ((newTime ?? time) >= sessionEndTime) {
                 return;
             }
-        }
-        // Don't play the session if the player is already at the end of the session.
-        if ((newTime ?? time) >= sessionEndTime) {
-            return;
-        }
-        setState(ReplayerState.Playing);
-        setTime(newTime ?? time);
-        replayer?.play(newTime);
+            setState(ReplayerState.Playing);
+            setTime(newTime ?? time);
 
-        // Log how long it took to move to the new time.
-        const timelineChangeTime = timerEnd('timelineChangeTime');
-        console.log({ timelineChangeTime });
-        datadogLogs.logger.info('Timeline Change Time', {
-            duration: timelineChangeTime,
-            sessionId: session?.secure_id,
-        });
-    };
+            const newTs =
+                (newTime ?? time ?? 0) + (sessionMetadata.startTime ?? 0);
+            const newTimeWithOffset =
+                replayer === undefined || newTime === undefined
+                    ? undefined
+                    : newTime -
+                      replayer.getMetaData().startTime +
+                      sessionMetadata.startTime;
 
-    const pause = useCallback(
-        (newTime?: number) => {
-            setIsLiveMode(false);
-            setState(ReplayerState.Paused);
-            if (newTime !== undefined) {
-                setTime(newTime);
+            const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                replayer?.play(newTimeWithOffset);
+            });
+            if (needsLoad) {
+                replayer?.pause();
+                setIsLoadingEvents(true);
+            } else {
+                replayer?.play(newTimeWithOffset);
             }
-            replayer?.pause(newTime);
 
             // Log how long it took to move to the new time.
             const timelineChangeTime = timerEnd('timelineChangeTime');
@@ -858,7 +1049,59 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionId: session?.secure_id,
             });
         },
-        [replayer, session?.secure_id]
+        [
+            ensureChunksLoaded,
+            events,
+            isLiveMode,
+            replayer,
+            session?.secure_id,
+            sessionEndTime,
+            sessionMetadata.startTime,
+            state,
+            time,
+        ]
+    );
+
+    const pause = useCallback(
+        (newTime?: number) => {
+            setIsLiveMode(false);
+            setState(ReplayerState.Paused);
+            if (newTime !== undefined) {
+                setTime(newTime);
+            }
+
+            const newTs = (newTime ?? 0) + sessionMetadata.startTime;
+            const newTimeWithOffset =
+                replayer === undefined || newTime === undefined
+                    ? undefined
+                    : newTime -
+                      replayer.getMetaData().startTime +
+                      sessionMetadata.startTime;
+
+            const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                replayer?.pause(newTimeWithOffset);
+            });
+            if (needsLoad) {
+                replayer?.pause();
+                setIsLoadingEvents(true);
+            } else {
+                replayer?.pause(newTimeWithOffset);
+            }
+
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
+            });
+        },
+        [
+            ensureChunksLoaded,
+            replayer,
+            session?.secure_id,
+            sessionMetadata.startTime,
+        ]
     );
 
     /**
@@ -897,7 +1140,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                 );
             }
         } else {
-            setLastActiveString(null);
+            if (lastActiveString !== null) {
+                setLastActiveString(null);
+            }
         }
     };
 
@@ -930,9 +1175,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setIsLiveMode,
         lastActiveString,
         session,
-        playerProgress: replayer
-            ? time / replayer.getMetaData().totalTime
-            : null,
+        playerProgress: replayer ? time / sessionMetadata.totalTime : null,
         viewport,
         currentUrl,
         sessionStartDateTime: events.length > 0 ? events[0].timestamp : 0,
@@ -940,6 +1183,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         setViewingUnauthorizedSession,
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
+        isLoadingEvents,
+        setIsLoadingEvents,
+        sessionMetadata,
     };
 };
 

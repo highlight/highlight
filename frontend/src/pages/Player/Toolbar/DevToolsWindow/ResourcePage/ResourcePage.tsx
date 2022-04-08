@@ -42,6 +42,7 @@ export const ResourcePage = React.memo(
             errors,
             replayer,
             setTime,
+            sessionMetadata,
         } = useReplayerContext();
         const {
             setShowDevTools,
@@ -199,7 +200,7 @@ export const ResourcePage = React.memo(
                     } else {
                         setSelectedDevToolsTab(DevToolTabType.Errors);
                         setErrorPanel(matchingError);
-                        const startTime = replayer?.getMetaData().startTime;
+                        const startTime = sessionMetadata.startTime;
                         if (startTime && matchingError.timestamp) {
                             const errorDateTime = new Date(
                                 matchingError.timestamp
