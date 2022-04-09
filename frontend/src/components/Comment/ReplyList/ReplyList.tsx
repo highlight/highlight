@@ -12,11 +12,7 @@ interface ReplyListProps {
     scrollReplies?: boolean;
 }
 
-const ReplyList: React.FC<ReplyListProps> = ({
-    replies,
-    errorComment,
-    scrollReplies,
-}) => {
+const ReplyList: React.FC<ReplyListProps> = ({ replies, scrollReplies }) => {
     return (
         <div
             className={classNames(styles.repliesList, {
@@ -28,10 +24,7 @@ const ReplyList: React.FC<ReplyListProps> = ({
                     record && (
                         <div className={styles.record} key={record.id}>
                             <div>
-                                <CommentHeader
-                                    comment={record}
-                                    small={!errorComment}
-                                >
+                                <CommentHeader comment={record} small>
                                     <CommentTextBody
                                         commentText={record.text}
                                     />

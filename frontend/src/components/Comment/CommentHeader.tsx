@@ -63,6 +63,7 @@ export const CommentHeader = ({
     gotoButton,
     onClose,
     small,
+    errorComment,
 }: PropsWithChildren<{
     comment: any;
     moreMenu?: JSX.Element;
@@ -71,13 +72,18 @@ export const CommentHeader = ({
     onClose?: () => void;
     footer?: React.ReactNode;
     small?: boolean;
+    errorComment?: boolean;
 }>) => {
     const { isLoggedIn } = useAuthContext();
 
     return (
         <>
             {!small && (
-                <div className={styles.topBar}>
+                <div
+                    className={classNames(styles.topBar, {
+                        [styles.errorTopBar]: errorComment,
+                    })}
+                >
                     <span className={styles.startActions}>
                         {moreMenu && (
                             <DotsMenu

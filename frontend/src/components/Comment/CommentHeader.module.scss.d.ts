@@ -4,6 +4,7 @@ export const commentHeader: string;
 export const commentUpdatedTime: string;
 export const ellipsisButton: string;
 export const endActions: string;
+export const errorTopBar: string;
 export const footer: string;
 export const small: string;
 export const startActions: string;
