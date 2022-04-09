@@ -1,9 +1,12 @@
+@import 'src/static/shared.scss';
+
 .distributionSection {
     height: 100%;
     width: 100%;
 }
 
 .distributionChart {
+    @include hide-scrollbar;
     max-height: 160px;
     overflow: auto;
 }

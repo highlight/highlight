@@ -72,7 +72,18 @@ const CommentTextBody = ({
             listHeader={
                 <div className={styles.suggestionHeader}>
                     {isSlackIntegrated ? (
-                        <p>Tag a user or Slack account</p>
+                        <>
+                            <p>Tag a user or Slack account</p>
+                            <SyncWithSlackButton
+                                isSlackIntegrated={isSlackIntegrated}
+                                slackUrl={slackUrl}
+                                small
+                                refetchQueries={[
+                                    namedOperations.Query
+                                        .GetCommentMentionSuggestions,
+                                ]}
+                            />
+                        </>
                     ) : (
                         <p>
                             Tag a user (

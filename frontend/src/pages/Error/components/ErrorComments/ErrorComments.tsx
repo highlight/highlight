@@ -73,7 +73,7 @@ export const ErrorCommentCard = ({
                 <AttachmentList attachments={comment.attachments} />
             )}
             {comment?.replies.length > 0 && (
-                <ReplyList replies={comment.replies} errorComment={true} />
+                <ReplyList replies={comment.replies} />
             )}
             <CommentReplyForm<ErrorCommentReplyAction>
                 action={new ErrorCommentReplyAction()}
@@ -95,7 +95,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
         if (errorGroup?.error_group?.event) {
             return getErrorTitle(errorGroup?.error_group?.event);
         }
-        return `Issue from this bug error`;
+        return `Issue from this bug`;
     }, [errorGroup]);
 
     const createIssueMenuItem = (
@@ -129,7 +129,11 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
     );
 
     return (
-        <CommentHeader moreMenu={moreMenu} comment={comment}>
+        <CommentHeader
+            moreMenu={moreMenu}
+            comment={comment}
+            errorComment={true}
+        >
             {children}
             <NewIssueModal
                 selectedIntegration={LINEAR_INTEGRATION}

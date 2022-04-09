@@ -76,10 +76,35 @@
     margin-right: calc(-1 * var(--size-xSmall));
 }
 
+.startActions {
+    align-self: flex-start;
+    display: flex;
+}
+
 .footer {
     grid-column-end: -1;
     grid-column-start: 1;
     grid-row-start: 3;
     justify-self: flex-end;
     width: 100%;
+}
+
+.topBar {
+    align-items: flex-start;
+    border-bottom: var(--color-gray-300) solid 1px;
+    display: flex;
+    height: 28px;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+    margin-left: -20px;
+    padding-left: 20px;
+    padding-right: 26px;
+    width: 115%;
+}
+
+.errorTopBar {
+    margin-left: -12px;
+    padding-left: 20px;
+    padding-right: 26px;
+    width: 109%;
 }

@@ -30,6 +30,7 @@ interface Props {
     onClose?: () => void;
     footer?: React.ReactNode;
     parentRef?: React.RefObject<HTMLDivElement>;
+    scrollReplies?: boolean;
 }
 
 export const SessionCommentCard = ({
@@ -40,6 +41,7 @@ export const SessionCommentCard = ({
     onClose,
     footer,
     parentRef,
+    scrollReplies,
 }: Props) => {
     return (
         <div
@@ -55,6 +57,7 @@ export const SessionCommentCard = ({
                 onClose={onClose}
                 footer={footer}
                 parentRef={parentRef}
+                scrollReplies={scrollReplies}
             />
         </div>
     );
@@ -65,6 +68,7 @@ export const SessionComment = ({
     menuItems,
     onClose,
     parentRef,
+    scrollReplies,
 }: Props) => {
     return (
         <>
@@ -80,7 +84,10 @@ export const SessionComment = ({
                 <AttachmentList attachments={comment.attachments} />
             )}
             {comment?.replies?.length > 0 && (
-                <ReplyList replies={comment.replies} />
+                <ReplyList
+                    replies={comment.replies}
+                    scrollReplies={scrollReplies}
+                />
             )}
             <CommentReplyForm<SessionCommentReplyAction>
                 action={new SessionCommentReplyAction()}

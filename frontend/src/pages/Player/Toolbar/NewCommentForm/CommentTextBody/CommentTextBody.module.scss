@@ -49,6 +49,9 @@
     border-bottom: 0;
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
+    display: flex;
+    height: 50px;
+    justify-content: space-between;
     padding: var(--size-medium) var(--size-small);
 
     p {
