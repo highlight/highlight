@@ -1059,7 +1059,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const getInactivityEnd = useCallback(
         (time: number): number | undefined => {
             for (const interval of sessionIntervals) {
-                if (time > interval.startTime && time < interval.endTime) {
+                if (time >= interval.startTime && time < interval.endTime) {
                     if (!interval.active) {
                         return interval.endTime;
                     } else {
