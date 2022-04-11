@@ -118,7 +118,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
     ] = useState<string[]>([]);
-    const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
     const [
         unsubscribeSessionPayloadFn,
         setUnsubscribeSessionPayloadFn,
@@ -224,7 +224,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (!!eventsData?.events && chunkEvents.size === 0) {
             chunkEventsSet(0, toHighlightEvents(eventsData?.events));
-            setIsLoadingEvents(false);
         }
     }, [eventsData?.events, chunkEvents.size, chunkEventsSet]);
 
@@ -235,7 +234,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 ...toHighlightEvents(subscriptionEventsPayload),
             ]);
             setLiveEventCount((cur) => cur + 1);
-            setIsLoadingEvents(false);
             setSubscriptionEventsPayload([]);
         }
     }, [chunkEvents, chunkEventsSet, subscriptionEventsPayload]);
@@ -286,9 +284,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                                 e,
                                 'Error direct downloading session payload'
                             );
-                        })
-                        .finally(() => {
-                            setIsLoadingEvents(false);
                         });
                 }
             }
@@ -386,7 +381,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         fetchEvents = fetch(directDownloadUrl);
                     }
 
-                    setIsLoadingEvents(true);
                     fetchEvents
                         .then((response) => response.json())
                         .then((data) => {
@@ -398,9 +392,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                                 e,
                                 'Error direct downloading session payload'
                             );
-                        })
-                        .finally(() => {
-                            setIsLoadingEvents(false);
                         });
                 } else {
                     setEventsDataLoaded(false);
@@ -603,9 +594,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                             e,
                             'Error direct downloading session payload for download'
                         );
-                    })
-                    .finally(() => {
-                        setIsLoadingEvents(false);
                     });
             }
         }
@@ -983,11 +971,12 @@ export const usePlayer = (): ReplayerContextInterface => {
                       sessionMetadata.startTime;
 
             const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                setIsLoadingEvents(false);
                 replayer?.play(newTimeWithOffset);
             });
             if (needsLoad) {
-                replayer?.pause();
                 setIsLoadingEvents(true);
+                replayer?.pause();
             } else {
                 replayer?.play(newTimeWithOffset);
             }
@@ -1030,11 +1019,12 @@ export const usePlayer = (): ReplayerContextInterface => {
                       sessionMetadata.startTime;
 
             const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+                setIsLoadingEvents(false);
                 replayer?.pause(newTimeWithOffset);
             });
             if (needsLoad) {
-                replayer?.pause();
                 setIsLoadingEvents(true);
+                replayer?.pause();
             } else {
                 replayer?.pause(newTimeWithOffset);
             }
@@ -1122,7 +1112,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     inactivityEnd !== undefined &&
                     state === ReplayerState.Playing
                 ) {
+                    setIsLoadingEvents(true);
                     play(inactivityEnd);
+                    setInterval(() => setIsLoadingEvents(false));
                 }
             }
         }
@@ -1219,7 +1211,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
         isLoadingEvents,
-        setIsLoadingEvents,
         sessionMetadata,
     };
 };
