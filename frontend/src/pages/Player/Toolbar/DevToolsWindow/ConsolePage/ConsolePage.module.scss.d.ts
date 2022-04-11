@@ -12,3 +12,5 @@ export const filterContainer: string;
 export const goToButton: string;
 export const icon: string;
 export const messageText: string;
+export const small: string;
+export const smallIconContainer: string;

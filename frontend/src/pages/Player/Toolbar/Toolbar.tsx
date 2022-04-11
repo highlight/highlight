@@ -70,7 +70,6 @@ export const Toolbar = React.memo(() => {
     usePlayerKeyboardShortcuts();
     const {
         playerSpeed,
-        skipInactive,
         showLeftPanel,
         showDevTools,
         setShowDevTools,
@@ -108,11 +107,11 @@ export const Toolbar = React.memo(() => {
 
     useEffect(() => {
         if (!isLiveMode) {
-            replayer?.setConfig({ skipInactive, speed: playerSpeed });
+            replayer?.setConfig({ speed: playerSpeed });
         } else {
-            replayer?.setConfig({ skipInactive: false, speed: 1 });
+            replayer?.setConfig({ speed: 1 });
         }
-    }, [replayer, skipInactive, playerSpeed, isLiveMode]);
+    }, [replayer, playerSpeed, isLiveMode]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {

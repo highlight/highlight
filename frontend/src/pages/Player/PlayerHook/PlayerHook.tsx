@@ -154,6 +154,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         showPlayerMouseTail,
         setShowLeftPanel,
         setShowRightPanel,
+        skipInactive,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -301,57 +302,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             session_secure_id,
         ]
     );
-
-    useEffect(() => {
-        if (sessionMetadata.startTime !== 0) {
-            const timestamp = sessionMetadata.startTime + time;
-            const curIdx = getChunkIdx(timestamp);
-
-            // Get the count of non-empty chunks, as well as the
-            // min and max idx of non-empty chunks.
-            let minIdx: number | undefined = undefined;
-            let maxIdx: number | undefined = undefined;
-            let count = 0;
-            for (const [k, v] of chunkEvents) {
-                if (v.length !== 0) {
-                    count++;
-
-                    if (minIdx === undefined || k < minIdx) {
-                        minIdx = k;
-                    }
-
-                    if (maxIdx === undefined || k > maxIdx) {
-                        maxIdx = k;
-                    }
-                }
-            }
-
-            // If there are more than the max chunks loaded, try removing
-            // the earliest. If we're currently playing the earliest chunk,
-            // remove the latest instead.
-            let toRemove: number | undefined = undefined;
-            if (count > MAX_CHUNK_COUNT) {
-                if (minIdx !== undefined && curIdx !== minIdx) {
-                    toRemove = minIdx;
-                } else if (maxIdx !== undefined) {
-                    toRemove = maxIdx;
-                }
-            }
-
-            if (toRemove !== undefined) {
-                chunkEventsRemove(toRemove);
-            }
-
-            ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
-        }
-    }, [
-        chunkEvents,
-        chunkEventsRemove,
-        ensureChunksLoaded,
-        getChunkIdx,
-        sessionMetadata.startTime,
-        time,
-    ]);
 
     const onevent = (e: any) => {
         const event = e as HighlightEvent;
@@ -1103,6 +1053,90 @@ export const usePlayer = (): ReplayerContextInterface => {
             sessionMetadata.startTime,
         ]
     );
+
+    // Returns the player-relative timestamp of the end of the current inactive interval.
+    // Returns undefined if not in an interval or the interval is marked as active.
+    const getInactivityEnd = useCallback(
+        (time: number): number | undefined => {
+            for (const interval of sessionIntervals) {
+                if (time > interval.startTime && time < interval.endTime) {
+                    if (!interval.active) {
+                        return interval.endTime;
+                    } else {
+                        return undefined;
+                    }
+                }
+            }
+            return undefined;
+        },
+        [sessionIntervals]
+    );
+
+    useEffect(() => {
+        if (sessionMetadata.startTime !== 0) {
+            const timestamp = sessionMetadata.startTime + time;
+            const curIdx = getChunkIdx(timestamp);
+
+            // Get the count of non-empty chunks, as well as the
+            // min and max idx of non-empty chunks.
+            let minIdx: number | undefined = undefined;
+            let maxIdx: number | undefined = undefined;
+            let count = 0;
+            for (const [k, v] of chunkEvents) {
+                if (v.length !== 0) {
+                    count++;
+
+                    if (minIdx === undefined || k < minIdx) {
+                        minIdx = k;
+                    }
+
+                    if (maxIdx === undefined || k > maxIdx) {
+                        maxIdx = k;
+                    }
+                }
+            }
+
+            // If there are more than the max chunks loaded, try removing
+            // the earliest. If we're currently playing the earliest chunk,
+            // remove the latest instead.
+            let toRemove: number | undefined = undefined;
+            if (count > MAX_CHUNK_COUNT) {
+                if (minIdx !== undefined && curIdx !== minIdx) {
+                    toRemove = minIdx;
+                } else if (maxIdx !== undefined) {
+                    toRemove = maxIdx;
+                }
+            }
+
+            if (toRemove !== undefined) {
+                chunkEventsRemove(toRemove);
+            }
+
+            ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
+
+            // If the player is in an inactive interval, skip to the end of it
+            if (skipInactive) {
+                const inactivityEnd = getInactivityEnd(time);
+                if (
+                    inactivityEnd !== undefined &&
+                    state === ReplayerState.Playing
+                ) {
+                    play(inactivityEnd);
+                }
+            }
+        }
+    }, [
+        chunkEvents,
+        chunkEventsRemove,
+        ensureChunksLoaded,
+        getChunkIdx,
+        time,
+        state,
+        play,
+        getInactivityEnd,
+        sessionMetadata.startTime,
+        skipInactive,
+    ]);
 
     /**
      * Wraps the setTime call so we can also forward the setTime request to the Replayer. Without forwarding time and Replayer.getCurrentTime() would be out of sync.
