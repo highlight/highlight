@@ -191,6 +191,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const { data: eventChunksData } = useGetEventChunksQuery({
         variables: { secure_id: session_secure_id },
+        skip: !CHUNKING_ENABLED_PROJECTS.includes(project_id),
     });
 
     const [
