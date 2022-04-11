@@ -45,7 +45,7 @@ const SessionCommentHeader = ({
     onClose,
     footer,
 }: PropsWithChildren<Props>) => {
-    const { pause, session, sessionMetadata } = useReplayerContext();
+    const { pause, session, sessionMetadata, replayer } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: [namedOperations.Query.GetSessionComments],
     });
