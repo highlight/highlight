@@ -8,8 +8,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -40,6 +38,8 @@ import (
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
@@ -4836,7 +4836,7 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, index int) (string, error) {
 	session, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
-		return "", e.Wrap(err, "error fetching session for subscription")
+		return "", nil
 	}
 
 	str, err := r.StorageClient.GetDirectDownloadURL(session.ProjectID, session.ID, storage.SessionContentsCompressed, pointy.Int(index))
@@ -4854,13 +4854,13 @@ func (r *queryResolver) EventChunkURL(ctx context.Context, secureID string, inde
 func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*model.EventChunk, error) {
 	session, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
-		return nil, e.Wrap(err, "error fetching session for subscription")
+		return nil, nil
 	}
 
 	chunks := []*model.EventChunk{}
 	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: session.ID}).
 		Scan(&chunks).Error; err != nil {
-		return nil, e.Wrap(err, "fail")
+		return nil, e.Wrap(err, "error retrieving event chunks from DB")
 	}
 
 	return chunks, nil
