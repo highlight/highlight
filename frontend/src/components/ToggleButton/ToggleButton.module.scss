@@ -5,21 +5,18 @@
     column-gap: var(--size-xSmall);
     display: flex;
     font-size: 12px;
-    height: 32px !important;
+    height: 32px;
+    padding-bottom: 8px;
+    padding-top: 8px;
 
     &:hover {
-        background-color: var(--color-gray-200) !important;
-        border-color: var(--color-gray-300) !important;
+        background-color: var(--color-primary-background);
+        border-color: var(--color-purple);
     }
 
     &.toggled {
         background: var(--color-purple-200) !important;
         color: var(--color-purple);
-    }
-
-    svg {
-        height: var(--size-medium);
-        width: var(--size-medium);
     }
 
     &.iconButton {
