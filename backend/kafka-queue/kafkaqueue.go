@@ -3,7 +3,6 @@ package kafka_queue
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/DmitriyVTitov/size"
 	"github.com/andybalholm/brotli"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
@@ -178,8 +177,6 @@ func (p *Queue) serializeTask(task Message) (compressed []byte) {
 	}
 
 	compressed = out.Bytes()
-	log.Warnf("serialized task %v to %v", size.Of(task), size.Of(compressed))
-
 	return
 }
 
@@ -197,6 +194,5 @@ func (p *Queue) deserializeTask(compressed []byte) (task Message) {
 		log.Errorf("error deserializing task %v", err)
 	}
 
-	log.Warnf("deserialized task %v to %v", size.Of(compressed), size.Of(task))
 	return
 }
