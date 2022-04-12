@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const Partitions = 64
+
 type Queue struct {
 	topic         string
 	producerQueue chan kafka.Event
@@ -89,10 +91,16 @@ func (p *Queue) Stop() {
 	}
 }
 
-func (p *Queue) Submit(task Message) {
+func (p *Queue) Submit(task Message, partitionKey int) {
+	var partition int32
+	if partitionKey == 0 {
+		partition = kafka.PartitionAny
+	} else {
+		partition = int32(partitionKey % Partitions)
+	}
 	msg := p.serializeTask(task)
 	err := p.kafkaP.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: partition},
 		Value:          []byte(msg)},
 		p.producerQueue,
 	)
