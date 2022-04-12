@@ -257,6 +257,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     // is passed in, invoke it once the chunks are loaded.
     const ensureChunksLoaded = useCallback(
         (startTs: number, endTs?: number, callback?: () => void) => {
+            if (!CHUNKING_ENABLED_PROJECTS.includes(project_id)) {
+                return false;
+            }
+
             const startIdx = getChunkIdx(startTs);
             const endIdx = endTs ? getChunkIdx(endTs) : startIdx;
 
