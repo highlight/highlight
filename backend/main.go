@@ -387,7 +387,7 @@ func main() {
 			"group.id":                        "group-default",
 			"auto.offset.reset":               "smallest",
 			"go.application.rebalance.enable": true,
-			"queued.min.messages":             32,
+			"queued.min.messages":             kafka_queue.LocalConsumerPrefetch,
 			"fetch.message.max.bytes":         prefetchSize,
 			"message.max.bytes":               messageSize,
 			"receive.message.max.bytes":       messageSize + 1*1024*1024,
@@ -417,6 +417,7 @@ func main() {
 			go func() {
 				w.Start()
 			}()
+			go w.PublicWorker()
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
 	} else {

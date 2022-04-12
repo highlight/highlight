@@ -264,27 +264,32 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 
 func (w *Worker) PublicWorker() {
 	ctx := context.Background()
-	for {
-		task := w.KafkaQueue.Receive()
-		switch task.Type {
-		case kafka_queue.PushPayload:
-			if task.PushPayload == nil {
-				break
+	wp := workerpool.New(kafka_queue.ConsumerWorkers * kafka_queue.LocalConsumerPrefetch)
+	wp.SetPanicHandler(util.Recover)
+	wp.SubmitRecover(func() {
+		for {
+			task := w.KafkaQueue.Receive()
+			switch task.Type {
+			case kafka_queue.PushPayload:
+				if task.PushPayload == nil {
+					break
+				}
+				w.PublicResolver.ProcessPayload(
+					ctx,
+					task.PushPayload.SessionID,
+					task.PushPayload.Events,
+					task.PushPayload.Messages,
+					task.PushPayload.Resources,
+					task.PushPayload.Errors,
+					task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
+					task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
+					task.PushPayload.HighlightLogs)
+			default:
+				log.Errorf("Unknown task type %+v", task.Type)
 			}
-			w.PublicResolver.ProcessPayload(
-				ctx,
-				task.PushPayload.SessionID,
-				task.PushPayload.Events,
-				task.PushPayload.Messages,
-				task.PushPayload.Resources,
-				task.PushPayload.Errors,
-				task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
-				task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-				task.PushPayload.HighlightLogs)
-		default:
-			log.Errorf("Unknown task type %+v", task.Type)
 		}
-	}
+	})
+	wp.StopWait()
 }
 
 // Delete data for any sessions created > 4 hours ago
@@ -748,7 +753,6 @@ func (w *Worker) Start() {
 	}
 
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
-	go w.PublicWorker()
 	maxWorkerCount := 10
 	processSessionLimit := 1000
 	for {
