@@ -11,13 +11,21 @@ import (
 	"time"
 )
 
-const Partitions = 64
+// LocalConsumerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
+const LocalConsumerPrefetch = 16
+
+// LocalProducerBuffer Number of Messages that can be queued up for producing before Submit blocks.
+const LocalProducerBuffer = 10000
+const KafkaOperationTimeoutMs = 15 * 1000
+
+// ConsumerWorkers Number of kafka Consumer workers. Recommended = # of goroutines calling `Receive()`
+const ConsumerWorkers = 1
 
 type Queue struct {
 	topic         string
-	producerQueue chan kafka.Event
 	consumerQueue chan Message
 	workers       int
+	partitions    int
 	run           bool
 
 	kafkaP *kafka.Producer
@@ -25,42 +33,106 @@ type Queue struct {
 
 	producerWg sync.WaitGroup
 	consumerWg sync.WaitGroup
+
+	numSubmitted int64
+	numDelivered int64
+
+	numReceived int64
+	numConsumed int64
+
+	consumerQueueBlocked time.Duration
 }
 
-func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer, workers int) *Queue {
-	// There must be at least one worker.
-	if workers < 1 {
-		workers = 1
-	}
-
+func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queue {
 	pool := &Queue{
-		topic:         topic,
-		workers:       workers,
-		run:           true,
-		producerQueue: make(chan kafka.Event, 10000),
-		consumerQueue: make(chan Message, 10000),
-		kafkaP:        producer,
-		kafkaC:        consumer,
+		topic:   topic,
+		workers: ConsumerWorkers,
+		run:     true,
+		kafkaP:  producer,
+		kafkaC:  consumer,
 	}
 
+	var metadata *kafka.Metadata
+	var err error
 	if consumer != nil {
 		err := consumer.Subscribe(topic, pool.rebalance)
 		if err != nil {
 			log.Fatalf("error subscribing consumer to topic %v: %v", topic, err)
 		}
-		pool.consumerWg.Add(workers)
-		for i := 0; i < workers; i++ {
+
+		metadata, err = consumer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
+	} else if producer != nil {
+		metadata, err = producer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
+	}
+	if err != nil {
+		log.Fatalf("error getting consumer metadata for topic %v: %v", topic, err)
+	}
+	pool.partitions = len(metadata.Topics[pool.topic].Partitions)
+	log.Infof("established kafka topic %s with %d partitions", pool.topic, pool.partitions)
+
+	if consumer != nil {
+		pool.consumerQueue = make(chan Message, pool.workers*LocalConsumerPrefetch)
+		pool.consumerWg.Add(pool.workers)
+		for i := 0; i < pool.workers; i++ {
 			go pool.runConsumer()
 		}
 	}
 	if producer != nil {
-		pool.producerWg.Add(workers)
-		for i := 0; i < workers; i++ {
-			go pool.runProducer()
-		}
+		pool.producerWg.Add(1)
+		go pool.runProducer()
 	}
+	go func() {
+		for pool.run {
+			pool.LogStats()
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	return pool
+}
+
+func (p *Queue) Stop() {
+	p.run = false
+	if p.kafkaC != nil {
+		p.producerWg.Wait()
+		_ = p.kafkaC.Close()
+	}
+	if p.kafkaP != nil {
+		p.consumerWg.Wait()
+		p.kafkaP.Close()
+	}
+}
+
+func (p *Queue) Submit(task Message, partitionKey int) {
+	var partition int32
+	if partitionKey == 0 {
+		partition = kafka.PartitionAny
+	} else {
+		partition = int32(partitionKey % p.partitions)
+	}
+	msg := p.serializeTask(task)
+	err := p.kafkaP.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: partition},
+		Value:          []byte(msg)}, nil,
+	)
+	if err != nil {
+		log.Errorf("an error occured while adding message to producer queue %+v", err)
+	}
+	p.numSubmitted += 1
+}
+
+func (p *Queue) Receive() (task Message) {
+	task = <-p.consumerQueue
+	p.numReceived += 1
+	return
+}
+
+func (p *Queue) LogStats() {
+	if p.kafkaP != nil {
+		log.Infof("Kafka Producer Stats: %d submitted, %d delivered", p.numSubmitted, p.numDelivered)
+	} else {
+		log.Infof("Kafka Consumer Stats: %d consumed, %d received, %s consumer blocked", p.numConsumed, p.numReceived, p.consumerQueueBlocked)
+	}
 }
 
 func (p *Queue) rebalance(c *kafka.Consumer, event kafka.Event) (err error) {
@@ -82,41 +154,6 @@ func (p *Queue) rebalance(c *kafka.Consumer, event kafka.Event) (err error) {
 	return
 }
 
-func (p *Queue) Stop() {
-	p.run = false
-	if p.kafkaC != nil {
-		p.producerWg.Wait()
-		_ = p.kafkaC.Close()
-	}
-	if p.kafkaP != nil {
-		p.consumerWg.Wait()
-		p.kafkaP.Close()
-	}
-}
-
-func (p *Queue) Submit(task Message, partitionKey int) {
-	var partition int32
-	if partitionKey == 0 {
-		partition = kafka.PartitionAny
-	} else {
-		partition = int32(partitionKey % Partitions)
-	}
-	msg := p.serializeTask(task)
-	err := p.kafkaP.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: partition},
-		Value:          []byte(msg)},
-		p.producerQueue,
-	)
-	if err != nil {
-		log.Errorf("an error occured while adding message to producer queue %+v", err)
-	}
-}
-
-func (p *Queue) Receive() (task Message) {
-	task = <-p.consumerQueue
-	return
-}
-
 func (p *Queue) runProducer() {
 	for e := range p.kafkaP.Events() {
 		if !p.run {
@@ -126,6 +163,8 @@ func (p *Queue) runProducer() {
 		case *kafka.Message:
 			if ev.TopicPartition.Error != nil {
 				log.Errorf("Failed to deliver message: %v", ev.TopicPartition)
+			} else {
+				p.numDelivered += 1
 			}
 		}
 	}
@@ -135,7 +174,7 @@ func (p *Queue) runProducer() {
 func (p *Queue) runConsumer() {
 	for p.run {
 		var err error
-		ev := p.kafkaC.Poll(1000)
+		ev := p.kafkaC.Poll(KafkaOperationTimeoutMs)
 		switch e := ev.(type) {
 		case kafka.AssignedPartitions:
 			log.Infof("Assigned Partition %v", e)
@@ -145,7 +184,10 @@ func (p *Queue) runConsumer() {
 			err = p.kafkaC.Unassign()
 		case *kafka.Message:
 			task := p.deserializeTask(e.Value)
+			start := time.Now()
 			p.consumerQueue <- task
+			p.numConsumed += 1
+			p.consumerQueueBlocked += time.Now().Sub(start)
 		case kafka.PartitionEOF:
 			log.Infof("Reached %v", e)
 		case kafka.Error:

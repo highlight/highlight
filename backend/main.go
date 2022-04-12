@@ -58,6 +58,7 @@ var (
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
+	prefetchSize        = 32 * 1024 * 1024
 	messageSize         = 512 * 1024 * 1024
 )
 
@@ -290,7 +291,7 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
-						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafkaP, nil, 1),
+						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafkaP, nil),
 						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
@@ -386,14 +387,15 @@ func main() {
 			"group.id":                        "group-default",
 			"auto.offset.reset":               "smallest",
 			"go.application.rebalance.enable": true,
+			"queued.min.messages":             32,
+			"fetch.message.max.bytes":         prefetchSize,
 			"message.max.bytes":               messageSize,
-			"fetch.message.max.bytes":         messageSize,
 			"receive.message.max.bytes":       messageSize + 1*1024*1024,
 		})
 		if err != nil {
 			log.Fatalf("error setting up kafka-queue consumer: %v", err)
 		}
-		consumerQueue := kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC, 1)
+		consumerQueue := kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC)
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage, KafkaQueue: consumerQueue}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
