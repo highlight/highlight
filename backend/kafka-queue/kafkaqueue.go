@@ -14,8 +14,6 @@ import (
 // LocalConsumerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
 const LocalConsumerPrefetch = 16
 
-// LocalProducerBuffer Number of Messages that can be queued up for producing before Submit blocks.
-const LocalProducerBuffer = 10000
 const KafkaOperationTimeoutMs = 15 * 1000
 
 // ConsumerWorkers Number of kafka Consumer workers. Recommended = # of goroutines calling `Receive()`
@@ -139,17 +137,17 @@ func (p *Queue) rebalance(c *kafka.Consumer, event kafka.Event) (err error) {
 	switch e := event.(type) {
 	case kafka.AssignedPartitions:
 		log.Infof("Assigned Partition %v", e)
-		err = p.kafkaC.Assign(e.Partitions)
+		err = c.Assign(e.Partitions)
 	case kafka.RevokedPartitions:
 		log.Infof("Revoked Partition %v", e)
-		err = p.kafkaC.Unassign()
+		err = c.Unassign()
 	case nil:
 	default:
 		log.Infof("Ignored %v", e)
 	}
 
 	if err != nil {
-		log.Errorf("Kafka consumer encountered error %v", err)
+		log.Errorf("Kafka consumer encountered error on rebalance %v", err)
 	}
 	return
 }
@@ -187,7 +185,7 @@ func (p *Queue) runConsumer() {
 			start := time.Now()
 			p.consumerQueue <- task
 			p.numConsumed += 1
-			p.consumerQueueBlocked += time.Now().Sub(start)
+			p.consumerQueueBlocked += time.Since(start)
 		case kafka.PartitionEOF:
 			log.Infof("Reached %v", e)
 		case kafka.Error:
