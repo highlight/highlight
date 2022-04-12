@@ -51,7 +51,6 @@ func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queu
 	}
 
 	var metadata *kafka.Metadata
-	var err error
 	if consumer != nil {
 		err := consumer.Subscribe(topic, pool.rebalance)
 		if err != nil {
@@ -59,11 +58,15 @@ func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queu
 		}
 
 		metadata, err = consumer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
+		if err != nil {
+			log.Fatalf("error getting consumer metadata for topic %v: %v", topic, err)
+		}
 	} else if producer != nil {
+		var err error
 		metadata, err = producer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
-	}
-	if err != nil {
-		log.Fatalf("error getting consumer metadata for topic %v: %v", topic, err)
+		if err != nil {
+			log.Fatalf("error getting producer metadata for topic %v: %v", topic, err)
+		}
 	}
 	pool.partitions = len(metadata.Topics[pool.topic].Partitions)
 	log.Infof("established kafka topic %s with %d partitions", pool.topic, pool.partitions)
