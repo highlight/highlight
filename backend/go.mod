@@ -21,6 +21,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/aws/smithy-go v1.8.0
 	github.com/clearbit/clearbit-go v1.0.1
+	github.com/confluentinc/confluent-kafka-go v1.8.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
@@ -51,7 +52,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.7
 	google.golang.org/api v0.31.0
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0

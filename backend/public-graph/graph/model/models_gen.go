@@ -35,8 +35,15 @@ type ErrorObjectInput struct {
 	Payload      *string            `json:"payload"`
 }
 
+type ReplayEventInput struct {
+	Type      int         `json:"type"`
+	Timestamp float64     `json:"timestamp"`
+	Sid       float64     `json:"_sid"`
+	Data      interface{} `json:"data"`
+}
+
 type ReplayEventsInput struct {
-	Events []interface{} `json:"events"`
+	Events []*ReplayEventInput `json:"events"`
 }
 
 type StackFrameInput struct {

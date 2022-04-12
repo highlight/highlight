@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+
 	"github.com/gorilla/websocket"
 	H "github.com/highlight-run/highlight-go"
 	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
@@ -55,6 +58,7 @@ var (
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
+	messageSize         = 512 * 1024 * 1024
 )
 
 //  we inject this value at build time for on-prem
@@ -266,10 +270,27 @@ func main() {
 			alertWorkerpool := workerpool.New(40)
 			alertWorkerpool.SetPanicHandler(util.Recover)
 
+			kafkaProducerID, err := os.Hostname()
+			if err != nil {
+				kafkaProducerID = "public-unknown"
+			}
+			kafkaP, err := kafka.NewProducer(&kafka.ConfigMap{
+				"sasl.mechanism":    "SCRAM-SHA-512",
+				"security.protocol": "sasl_ssl",
+				"bootstrap.servers": os.Getenv("KAFKA_SERVERS"),
+				"sasl.username":     os.Getenv("KAFKA_SASL_USERNAME"),
+				"sasl.password":     os.Getenv("KAFKA_SASL_PASSWORD"),
+				"client.id":         kafkaProducerID,
+				"message.max.bytes": messageSize,
+				"acks":              1})
+			if err != nil {
+				log.Fatalf("error setting up kafka-queue producer: %v", err)
+			}
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
+						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafkaP, nil, 1),
 						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
@@ -343,29 +364,59 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
-	if runtimeParsed == util.Worker {
-		if !util.IsDevOrTestEnv() {
-			err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer profiler.Stop()
+	if runtimeParsed == util.Worker || runtimeParsed == util.All {
+		pushPayloadWorkerPool := workerpool.New(80)
+		pushPayloadWorkerPool.SetPanicHandler(util.Recover)
+		alertWorkerpool := workerpool.New(40)
+		alertWorkerpool.SetPanicHandler(util.Recover)
+		publicResolver := &public.Resolver{
+			DB:                    db,
+			MailClient:            sendgrid.NewSendClient(sendgridKey),
+			StorageClient:         storage,
+			PushPayloadWorkerPool: pushPayloadWorkerPool,
+			AlertWorkerPool:       alertWorkerpool,
+			OpenSearch:            opensearchClient,
 		}
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		if handlerFlag != nil && *handlerFlag != "" {
-			w.GetHandler(*handlerFlag)()
+		kafkaC, err := kafka.NewConsumer(&kafka.ConfigMap{
+			"sasl.mechanism":                  "SCRAM-SHA-512",
+			"security.protocol":               "sasl_ssl",
+			"bootstrap.servers":               os.Getenv("KAFKA_SERVERS"),
+			"sasl.username":                   os.Getenv("KAFKA_SASL_USERNAME"),
+			"sasl.password":                   os.Getenv("KAFKA_SASL_PASSWORD"),
+			"group.id":                        "group-default",
+			"auto.offset.reset":               "smallest",
+			"go.application.rebalance.enable": true,
+			"message.max.bytes":               messageSize,
+			"fetch.message.max.bytes":         messageSize,
+			"receive.message.max.bytes":       messageSize + 1*1024*1024,
+		})
+		if err != nil {
+			log.Fatalf("error setting up kafka-queue consumer: %v", err)
+		}
+		consumerQueue := kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC, 1)
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage, KafkaQueue: consumerQueue}
+		if runtimeParsed == util.Worker {
+			if !util.IsDevOrTestEnv() {
+				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer profiler.Stop()
+			}
+			if handlerFlag != nil && *handlerFlag != "" {
+				w.GetHandler(*handlerFlag)()
+			} else {
+				go func() {
+					w.Start()
+				}()
+				log.Fatal(http.ListenAndServe(":"+port, r))
+			}
 		} else {
 			go func() {
 				w.Start()
 			}()
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
-	} else if runtimeParsed == util.All {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		go func() {
-			w.Start()
-		}()
-		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}

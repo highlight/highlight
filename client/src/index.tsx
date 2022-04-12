@@ -50,6 +50,7 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
+import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -1118,7 +1119,7 @@ export class Highlight {
         const messagesString = stringify({ messages: messages });
         let payload: PushPayloadMutationVariables = {
             session_id: this.sessionData.sessionID.toString(),
-            events: { events },
+            events: { events } as ReplayEventsInput,
             messages: messagesString,
             resources: resourcesString,
             errors,
