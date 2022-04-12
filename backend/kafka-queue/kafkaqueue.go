@@ -1,9 +1,13 @@
 package kafka_queue
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/DmitriyVTitov/size"
+	"github.com/andybalholm/brotli"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"sync"
 	"time"
 )
@@ -157,20 +161,42 @@ func (p *Queue) runConsumer() {
 	p.consumerWg.Done()
 }
 
-func (p *Queue) serializeTask(task Message) []byte {
-	// TODO(vkorolik) compress task body
+func (p *Queue) serializeTask(task Message) (compressed []byte) {
 	b, err := json.Marshal(&task)
 	if err != nil {
 		log.Errorf("error serializing task %v", err)
 	}
-	return b
+
+	in := bytes.NewReader(b)
+	out := new(bytes.Buffer)
+	brWriter := brotli.NewWriterLevel(out, 9)
+	if _, err = io.Copy(brWriter, in); err != nil {
+		log.Errorf("error compressing task %v", err)
+	}
+	if err = brWriter.Close(); err != nil {
+		log.Errorf("error compressing task %v", err)
+	}
+
+	compressed = out.Bytes()
+	log.Warnf("serialized task %v to %v", size.Of(task), size.Of(compressed))
+
+	return
 }
 
-func (p *Queue) deserializeTask(data []byte) (task Message) {
-	// TODO(vkorolik) decompress task body
-	err := json.Unmarshal(data, &task)
+func (p *Queue) deserializeTask(compressed []byte) (task Message) {
+	in := bytes.NewReader(compressed)
+	out := new(bytes.Buffer)
+	brReader := brotli.NewReader(in)
+
+	if _, err := io.Copy(out, brReader); err != nil {
+		log.Errorf("error decompressing task %v", err)
+	}
+
+	err := json.Unmarshal(out.Bytes(), &task)
 	if err != nil {
 		log.Errorf("error deserializing task %v", err)
 	}
+
+	log.Warnf("deserialized task %v to %v", size.Of(compressed), size.Of(task))
 	return
 }
