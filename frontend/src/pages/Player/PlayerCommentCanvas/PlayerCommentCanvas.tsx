@@ -121,12 +121,10 @@ const PlayerCommentCanvas = React.memo(
                 <button
                     style={{
                         visibility: isReplayerReady ? 'visible' : 'hidden',
-                        backdropFilter: isLoadingEvents
-                            ? 'blur(2px)'
-                            : undefined,
                     }}
                     className={classNames(playerStyles.rrwebPlayerDiv, {
                         [styles.commentButton]: isReplayerReady,
+                        [styles.blurBackground]: isLoadingEvents,
                     })}
                     onClick={(e) => {
                         if (buttonRef?.current) {
@@ -181,6 +179,8 @@ const PlayerCommentCanvas = React.memo(
                                 />
                             )
                     )}
+                    {/* needed because the backdrop-filter doesn't take effect if this button has no children */}
+                    &nbsp;
                 </button>
             </>
         );
