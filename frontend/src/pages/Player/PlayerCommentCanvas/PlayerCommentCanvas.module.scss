@@ -29,3 +29,7 @@
         transform: scale(1);
     }
 }
+
+.blurBackground {
+    backdrop-filter: blur(2px);
+}
