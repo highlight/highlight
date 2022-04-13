@@ -1,3 +1,4 @@
+import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
 import React from 'react';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
@@ -17,6 +18,14 @@ const WorkspaceSettings = () => {
             </div>
             <div className={styles.fieldsBox}>
                 <FieldsForm />
+            </div>
+            <div className={styles.fieldsBox}>
+                <h3>Auto Join</h3>
+                <p>
+                    Enable auto join to allow anyone with an approved email
+                    origin join.
+                </p>
+                <AutoJoinForm />
             </div>
         </>
     );
