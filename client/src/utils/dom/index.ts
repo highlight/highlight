@@ -38,9 +38,6 @@ export function getElementSelector(input: Element, options?: Partial<Options>) {
         return getElementSelectorFallback(input);
     }
 
-    return getElementSelectorNew(input, options)
-}
-export function getElementSelectorNew(input: Element, options?: Partial<Options>) {
     if ('html' === input.tagName.toLowerCase()) {
         return 'html';
     }
