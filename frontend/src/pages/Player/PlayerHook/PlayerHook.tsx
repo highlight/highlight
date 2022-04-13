@@ -949,6 +949,11 @@ export const usePlayer = (): ReplayerContextInterface => {
     const play = useCallback(
         (newTime?: number) => {
             if (isLiveMode) {
+                // Return if no events
+                if (events.length === 0) {
+                    return;
+                }
+
                 const desiredTime =
                     Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
                 // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
