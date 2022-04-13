@@ -812,7 +812,7 @@ export class Highlight {
                         );
                     }
                     highlightThis.addProperties(
-                        { click: clickTarget, selector: selector },
+                        { clickTarget: clickTarget, clickSelector: selector },
                         { type: 'session' }
                     );
                 })
