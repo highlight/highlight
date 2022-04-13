@@ -22,6 +22,7 @@ export type Options = {
     optimizedMinLength: number;
     threshold: number;
     maxNumberOfTries: number;
+    optimized: boolean;
 };
 
 let config: Options;
@@ -38,9 +39,13 @@ export function getElementSelector(input: Element, options?: Partial<Options>) {
         return getElementSelectorFallback(input);
     }
 
-    return getElementSelectorNew(input, options)
+    return getElementSelectorNew(input, options);
 }
-export function getElementSelectorNew(input: Element, options?: Partial<Options>) {
+
+export function getElementSelectorNew(
+    input: Element,
+    options?: Partial<Options>
+) {
     if ('html' === input.tagName.toLowerCase()) {
         return 'html';
     }
@@ -56,6 +61,7 @@ export function getElementSelectorNew(input: Element, options?: Partial<Options>
             optimizedMinLength: 2,
             threshold: 50,
             maxNumberOfTries: 1000,
+            optimized: true,
         };
 
         config = { ...defaults, ...options };
@@ -69,10 +75,12 @@ export function getElementSelectorNew(input: Element, options?: Partial<Options>
         );
 
         if (path) {
-            const optimized = sort(optimize(path, input));
+            if (config.optimized) {
+                const optimized = sort(optimize(path, input));
 
-            if (optimized.length > 0) {
-                path = optimized[0];
+                if (optimized.length > 0) {
+                    path = optimized[0];
+                }
             }
 
             return selector(path);

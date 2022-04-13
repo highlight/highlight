@@ -808,7 +808,8 @@ export class Highlight {
                     let selector = null;
                     if (event && event.target) {
                         selector = getElementSelectorNew(
-                            event.target as Element
+                            event.target as Element,
+                            { optimized: false }
                         );
                     }
                     highlightThis.addProperties(
