@@ -199,51 +199,73 @@ const SegmentPickerForPlayer = () => {
             </Select>
 
             {selectedSegment?.id !== STARRED_SEGMENT_ID && (
-                <Button
-                    trackingId="CreateSessionSegment"
-                    onClick={() => {
-                        if (showUpdateSegmentOption && selectedSegment) {
-                            editSegment({
-                                variables: {
-                                    project_id,
-                                    id: selectedSegment.id,
-                                    params: searchParams,
-                                },
-                            })
-                                .then(() => {
-                                    message.success(
-                                        `Updated '${selectedSegment.value}'`,
-                                        5
-                                    );
-                                    setExistingParams(searchParams);
+                <>
+                    <Button
+                        trackingId="CreateSessionSegment"
+                        onClick={() => {
+                            if (showUpdateSegmentOption && selectedSegment) {
+                                editSegment({
+                                    variables: {
+                                        project_id,
+                                        id: selectedSegment.id,
+                                        params: searchParams,
+                                    },
                                 })
-                                .catch(() => {
-                                    message.error('Error updating segment!', 5);
-                                });
-                        } else {
-                            setShowCreateSegmentModal(true);
-                        }
-                    }}
-                    type="ghost"
-                    small
-                    className={classNames(
-                        styles.segmentButton,
-                        styles.createOrUpdateButton
+                                    .then(() => {
+                                        message.success(
+                                            `Updated '${selectedSegment.value}'`,
+                                            5
+                                        );
+                                        setExistingParams(searchParams);
+                                    })
+                                    .catch(() => {
+                                        message.error(
+                                            'Error updating segment!',
+                                            5
+                                        );
+                                    });
+                            } else {
+                                setShowCreateSegmentModal(true);
+                            }
+                        }}
+                        type="ghost"
+                        small
+                        className={classNames(
+                            styles.segmentButton,
+                            styles.createOrUpdateButton
+                        )}
+                    >
+                        {showUpdateSegmentOption ? (
+                            <SvgEditIcon />
+                        ) : (
+                            <SvgPlusIcon />
+                        )}
+                        <span>
+                            <TextTransition
+                                text={
+                                    showUpdateSegmentOption
+                                        ? 'Update'
+                                        : 'Create'
+                                }
+                                inline
+                            />{' '}
+                            Segment
+                        </span>
+                    </Button>
+                    {showUpdateSegmentOption && (
+                        <Button
+                            trackingId="CreateSessionSegment"
+                            onClick={() => {
+                                setShowCreateSegmentModal(true);
+                            }}
+                            type="ghost"
+                            small
+                            className={classNames(styles.segmentButton)}
+                        >
+                            <SvgPlusIcon />
+                        </Button>
                     )}
-                >
-                    {showUpdateSegmentOption ? (
-                        <SvgEditIcon />
-                    ) : (
-                        <SvgPlusIcon />
-                    )}
-                    <span>
-                        <TextTransition
-                            text={showUpdateSegmentOption ? 'Update' : 'Create'}
-                            inline
-                        />{' '}
-                        Segment
-                    </span>
-                </Button>
+                </>
             )}
             <CreateSegmentModal
                 showModal={showCreateSegmentModal}
