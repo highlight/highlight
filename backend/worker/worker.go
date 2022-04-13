@@ -262,33 +262,37 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) PublicWorker() {
+func (w *Worker) publicWorkerLoop() {
 	ctx := context.Background()
+	for {
+		task := w.KafkaQueue.Receive()
+		switch task.Type {
+		case kafka_queue.PushPayload:
+			if task.PushPayload == nil {
+				break
+			}
+			w.PublicResolver.ProcessPayload(
+				ctx,
+				task.PushPayload.SessionID,
+				task.PushPayload.Events,
+				task.PushPayload.Messages,
+				task.PushPayload.Resources,
+				task.PushPayload.Errors,
+				task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
+				task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
+				task.PushPayload.HighlightLogs)
+		default:
+			log.Errorf("Unknown task type %+v", task.Type)
+		}
+	}
+}
+
+func (w *Worker) PublicWorker() {
 	wp := workerpool.New(kafka_queue.ConsumerWorkers * kafka_queue.LocalConsumerPrefetch)
 	wp.SetPanicHandler(util.Recover)
-	wp.SubmitRecover(func() {
-		for {
-			task := w.KafkaQueue.Receive()
-			switch task.Type {
-			case kafka_queue.PushPayload:
-				if task.PushPayload == nil {
-					break
-				}
-				w.PublicResolver.ProcessPayload(
-					ctx,
-					task.PushPayload.SessionID,
-					task.PushPayload.Events,
-					task.PushPayload.Messages,
-					task.PushPayload.Resources,
-					task.PushPayload.Errors,
-					task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
-					task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-					task.PushPayload.HighlightLogs)
-			default:
-				log.Errorf("Unknown task type %+v", task.Type)
-			}
-		}
-	})
+	for i := 0; i < wp.Size(); i++ {
+		wp.SubmitRecover(w.publicWorkerLoop)
+	}
 	wp.StopWait()
 }
 
