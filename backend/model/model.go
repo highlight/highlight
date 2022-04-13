@@ -811,6 +811,7 @@ type SessionComment struct {
 	AdminId         int
 	SessionId       int
 	SessionSecureId string `gorm:"index;not null;default:''"`
+	SessionImage    string
 	Timestamp       int
 	Text            string
 	XCoordinate     float64

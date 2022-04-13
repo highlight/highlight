@@ -920,6 +920,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		AdminId:         admin.Model.ID,
 		SessionId:       session.ID,
 		SessionSecureId: session.SecureID,
+		SessionImage:    *sessionImage,
 		Timestamp:       sessionTimestamp,
 		Text:            text,
 		XCoordinate:     xCoordinate,
@@ -976,10 +977,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil, "tagged", "session")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "tagged", "session")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
 	}
 
 	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1115,13 +1116,13 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "session")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "session")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 	if len(sessionComment.Followers) > 0 && !isGuest {
-		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "session")
+		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
