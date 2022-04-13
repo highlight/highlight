@@ -10,6 +10,7 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
+import useLocalStorage from '@rehooks/local-storage';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
@@ -49,7 +50,10 @@ export const ResourcePage = React.memo(
             setSelectedDevToolsTab,
         } = usePlayerConfiguration();
         const [options, setOptions] = useState<Array<string>>([]);
-        const [currentOption, setCurrentOption] = useState('All');
+        const [currentOption, setCurrentOption] = useLocalStorage(
+            'tabs-DevTools-ResourcePage-active-tab',
+            'All'
+        );
         const [filterSearchTerm, setFilterSearchTerm] = useState('');
         const [currentResource, setCurrentResource] = useState(0);
         const [networkRange, setNetworkRange] = useState(0);

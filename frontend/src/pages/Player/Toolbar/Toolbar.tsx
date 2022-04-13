@@ -1,5 +1,6 @@
 import Switch from '@components/Switch/Switch';
 import ActivityIcon from '@icons/ActivityIcon';
+import SvgReload from '@icons/Reload';
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
 import {
     AutoPlayToolbarItem,
@@ -375,17 +376,30 @@ export const Toolbar = React.memo(() => {
                             styles.playSection,
                             styles.button
                         )}
-                        disabled={disableControls || disablePlayButton}
+                        disabled={disableControls}
                         onClick={() => {
                             H.track('Player Play/Pause Button');
-                            if (isPaused) {
+                            if (disablePlayButton) {
+                                pause(time);
+                                const newTime = 0;
+                                setTime(newTime);
+                                play(newTime);
+                            } else if (isPaused && !isLiveMode) {
                                 play(time);
                             } else {
                                 pause(time);
                             }
                         }}
                     >
-                        {isPaused && !isLiveMode ? (
+                        {isPaused && time >= max && !isLiveMode ? (
+                            <SvgReload
+                                fill="inherit"
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        ) : isPaused && !isLiveMode ? (
                             <SvgPlayIcon
                                 fill="inherit"
                                 className={classNames(
