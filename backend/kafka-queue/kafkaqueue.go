@@ -14,10 +14,11 @@ import (
 // LocalConsumerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
 const LocalConsumerPrefetch = 8
 
-const KafkaOperationTimeoutMs = 15 * 1000
-
 // ConsumerWorkers Number of kafka Consumer workers.
 const ConsumerWorkers = 8
+
+// KafkaOperationTimeoutMs How long to wait for Kafka operations before polling again.
+const KafkaOperationTimeoutMs = 15 * 1000
 
 type Queue struct {
 	topic         string
@@ -126,7 +127,9 @@ func (p *Queue) Submit(task Message, partitionKey int) {
 		log.Errorf("an error occured while adding message to producer queue %+v", err)
 		return
 	}
+	p.producerStatMutex.Lock()
 	p.numSubmitted += 1
+	p.producerStatMutex.Unlock()
 }
 
 func (p *Queue) Receive() (task Message) {
@@ -182,7 +185,9 @@ func (p *Queue) runProducer() {
 			if ev.TopicPartition.Error != nil {
 				log.Errorf("Failed to deliver message: %v", ev.TopicPartition)
 			} else {
+				p.producerStatMutex.Lock()
 				p.numDelivered += 1
+				p.producerStatMutex.Unlock()
 			}
 		}
 	}
