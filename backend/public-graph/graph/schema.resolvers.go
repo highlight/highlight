@@ -216,7 +216,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 	if session.ProjectID == 1 {
-		r.ProducerQueue.Submit(kafka_queue.Message{
+		r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushPayload,
 			PushPayload: &kafka_queue.PushPayloadArgs{
 				SessionID:          sessionID,

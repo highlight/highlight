@@ -7,12 +7,13 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"os"
 	"sync"
 	"time"
 )
 
 // LocalConsumerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
-const LocalConsumerPrefetch = 8
+const LocalConsumerPrefetch = 1024
 
 // ConsumerWorkers Number of kafka Consumer workers.
 const ConsumerWorkers = 8
@@ -20,9 +21,14 @@ const ConsumerWorkers = 8
 // KafkaOperationTimeoutMs How long to wait for Kafka operations before polling again.
 const KafkaOperationTimeoutMs = 15 * 1000
 
+const (
+	prefetchSizeBytes = 8 * 1024 * 1024
+	messageSizeBytes  = 512 * 1024 * 1024
+)
+
 type Queue struct {
 	topic         string
-	consumerQueue chan Message
+	consumerQueue chan *Message
 	workers       int
 	partitions    int
 	run           bool
@@ -42,6 +48,44 @@ type Queue struct {
 	numConsumed          int64
 	consumerLoopTime     time.Duration
 	consumerQueueBlocked time.Duration
+}
+
+func MakeConsumer() (*kafka.Consumer, error) {
+	kafkaC, err := kafka.NewConsumer(&kafka.ConfigMap{
+		"sasl.mechanism":                  "SCRAM-SHA-512",
+		"security.protocol":               "sasl_ssl",
+		"bootstrap.servers":               os.Getenv("KAFKA_SERVERS"),
+		"sasl.username":                   os.Getenv("KAFKA_SASL_USERNAME"),
+		"sasl.password":                   os.Getenv("KAFKA_SASL_PASSWORD"),
+		"group.id":                        "group-default",
+		"auto.offset.reset":               "smallest",
+		"go.application.rebalance.enable": true,
+		"queued.min.messages":             LocalConsumerPrefetch * ConsumerWorkers,
+		"statistics.interval.ms":          5000,
+		"fetch.message.max.bytes":         prefetchSizeBytes,
+		"message.max.bytes":               messageSizeBytes,
+		"receive.message.max.bytes":       messageSizeBytes + 1*1024*1024,
+	})
+	return kafkaC, err
+}
+
+func MakeProducer() (*kafka.Producer, error) {
+	kafkaProducerID, err := os.Hostname()
+	if err != nil {
+		kafkaProducerID = "public-unknown"
+	}
+
+	kafkaP, err := kafka.NewProducer(&kafka.ConfigMap{
+		"sasl.mechanism":         "SCRAM-SHA-512",
+		"security.protocol":      "sasl_ssl",
+		"bootstrap.servers":      os.Getenv("KAFKA_SERVERS"),
+		"sasl.username":          os.Getenv("KAFKA_SASL_USERNAME"),
+		"sasl.password":          os.Getenv("KAFKA_SASL_PASSWORD"),
+		"client.id":              kafkaProducerID,
+		"message.max.bytes":      messageSizeBytes,
+		"queue.buffering.max.ms": 100,
+		"acks":                   1})
+	return kafkaP, err
 }
 
 func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queue {
@@ -75,7 +119,7 @@ func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queu
 	log.Infof("established kafka topic %s with %d partitions", pool.topic, pool.partitions)
 
 	if consumer != nil {
-		pool.consumerQueue = make(chan Message, pool.workers*LocalConsumerPrefetch)
+		pool.consumerQueue = make(chan *Message, pool.workers*LocalConsumerPrefetch)
 		pool.consumerWg.Add(pool.workers)
 		for i := 0; i < pool.workers; i++ {
 			go pool.runConsumer()
@@ -96,25 +140,27 @@ func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queu
 }
 
 func (p *Queue) Stop() {
-	p.run = false
 	if p.kafkaC != nil {
+		p.run = false
 		p.producerWg.Wait()
 		_ = p.kafkaC.Close()
 	}
 	if p.kafkaP != nil {
+		p.kafkaP.Flush(KafkaOperationTimeoutMs)
+		p.run = false
 		p.consumerWg.Wait()
 		p.kafkaP.Close()
 	}
 }
 
-func (p *Queue) Submit(task Message, partitionKey int) {
+func (p *Queue) Submit(task *Message, partitionKey int) {
 	var partition int32
 	if partitionKey == 0 {
 		partition = kafka.PartitionAny
 	} else {
 		partition = int32(partitionKey % p.partitions)
 	}
-	msg, err := p.serializeTask(&task)
+	msg, err := p.serializeTask(task)
 	if err != nil {
 		log.Errorf("an error occured while adding message to producer queue %+v", err)
 		return
@@ -132,7 +178,7 @@ func (p *Queue) Submit(task Message, partitionKey int) {
 	p.producerStatMutex.Unlock()
 }
 
-func (p *Queue) Receive() (task Message) {
+func (p *Queue) Receive() (task *Message) {
 	task = <-p.consumerQueue
 	p.consumerStatMutex.Lock()
 	p.numReceived += 1
@@ -177,7 +223,7 @@ func (p *Queue) rebalance(c *kafka.Consumer, event kafka.Event) (err error) {
 
 func (p *Queue) runProducer() {
 	for e := range p.kafkaP.Events() {
-		if !p.run {
+		if !p.run && p.kafkaP.Len() == 0 {
 			break
 		}
 		switch ev := e.(type) {
@@ -213,7 +259,7 @@ func (p *Queue) runConsumer() {
 				continue
 			}
 			start := time.Now()
-			p.consumerQueue <- *task
+			p.consumerQueue <- task
 			p.consumerStatMutex.Lock()
 			p.numConsumed += 1
 			p.consumerQueueBlocked += time.Since(start)

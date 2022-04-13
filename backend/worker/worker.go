@@ -288,7 +288,7 @@ func (w *Worker) publicWorkerLoop() {
 }
 
 func (w *Worker) PublicWorker() {
-	wp := workerpool.New(kafka_queue.ConsumerWorkers * kafka_queue.LocalConsumerPrefetch)
+	wp := workerpool.New(80)
 	wp.SetPanicHandler(util.Recover)
 	for i := 0; i < wp.Size(); i++ {
 		wp.SubmitRecover(w.publicWorkerLoop)

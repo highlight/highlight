@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"github.com/gorilla/websocket"
@@ -58,8 +57,6 @@ var (
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
-	prefetchSize        = 8 * 1024 * 1024
-	messageSize         = 512 * 1024 * 1024
 )
 
 //  we inject this value at build time for on-prem
@@ -271,20 +268,7 @@ func main() {
 			alertWorkerpool := workerpool.New(40)
 			alertWorkerpool.SetPanicHandler(util.Recover)
 
-			kafkaProducerID, err := os.Hostname()
-			if err != nil {
-				kafkaProducerID = "public-unknown"
-			}
-			kafkaP, err := kafka.NewProducer(&kafka.ConfigMap{
-				"sasl.mechanism":         "SCRAM-SHA-512",
-				"security.protocol":      "sasl_ssl",
-				"bootstrap.servers":      os.Getenv("KAFKA_SERVERS"),
-				"sasl.username":          os.Getenv("KAFKA_SASL_USERNAME"),
-				"sasl.password":          os.Getenv("KAFKA_SASL_PASSWORD"),
-				"client.id":              kafkaProducerID,
-				"message.max.bytes":      messageSize,
-				"queue.buffering.max.ms": 100,
-				"acks":                   1})
+			kafkaP, err := kafka_queue.MakeProducer()
 			if err != nil {
 				log.Fatalf("error setting up kafka-queue producer: `%v", err)
 			}
@@ -379,21 +363,7 @@ func main() {
 			AlertWorkerPool:       alertWorkerpool,
 			OpenSearch:            opensearchClient,
 		}
-		kafkaC, err := kafka.NewConsumer(&kafka.ConfigMap{
-			"sasl.mechanism":                  "SCRAM-SHA-512",
-			"security.protocol":               "sasl_ssl",
-			"bootstrap.servers":               os.Getenv("KAFKA_SERVERS"),
-			"sasl.username":                   os.Getenv("KAFKA_SASL_USERNAME"),
-			"sasl.password":                   os.Getenv("KAFKA_SASL_PASSWORD"),
-			"group.id":                        "group-default",
-			"auto.offset.reset":               "smallest",
-			"go.application.rebalance.enable": true,
-			"queued.min.messages":             kafka_queue.LocalConsumerPrefetch * kafka_queue.ConsumerWorkers,
-			"statistics.interval.ms":          5000,
-			"fetch.message.max.bytes":         prefetchSize,
-			"message.max.bytes":               messageSize,
-			"receive.message.max.bytes":       messageSize + 1*1024*1024,
-		})
+		kafkaC, err := kafka_queue.MakeConsumer()
 		if err != nil {
 			log.Fatalf("error setting up kafka-queue consumer: %v", err)
 		}
