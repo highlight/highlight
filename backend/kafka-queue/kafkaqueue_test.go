@@ -62,7 +62,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			}
 		}()
 		go func() {
-			for true {
+			for {
 				msg := k.Receive()
 				if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
