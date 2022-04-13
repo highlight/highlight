@@ -253,56 +253,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         [eventChunksData?.event_chunks]
     );
 
-    // Ensure all chunks between startTs and endTs are loaded. If a callback
-    // is passed in, invoke it once the chunks are loaded.
-    const ensureChunksLoaded = useCallback(
-        (startTs: number, endTs?: number, callback?: () => void) => {
-            if (!CHUNKING_ENABLED_PROJECTS.includes(project_id)) {
-                return false;
-            }
-
-            const startIdx = getChunkIdx(startTs);
-            const endIdx = endTs ? getChunkIdx(endTs) : startIdx;
-
-            let needsLoad = false;
-            for (let i = startIdx; i <= endIdx; i++) {
-                if (!chunkEvents.has(i)) {
-                    chunkEventsSet(i, []);
-
-                    needsLoad = true;
-                    fetchEventChunkURL({
-                        secure_id: session_secure_id,
-                        index: i,
-                    })
-                        .then((response) =>
-                            fetch(response.data.event_chunk_url)
-                        )
-                        .then((response) => response.json())
-                        .then((data) => {
-                            chunkEventsSet(i, toHighlightEvents(data));
-                        })
-                        .then(() => setOnEventsLoaded(callback))
-                        .catch((e) => {
-                            chunkEventsSet(i, []);
-                            H.consumeError(
-                                e,
-                                'Error direct downloading session payload'
-                            );
-                        });
-                }
-            }
-
-            return needsLoad;
-        },
-        [
-            chunkEvents,
-            chunkEventsSet,
-            fetchEventChunkURL,
-            getChunkIdx,
-            session_secure_id,
-        ]
-    );
-
     const onevent = (e: any) => {
         const event = e as HighlightEvent;
 
@@ -418,6 +368,61 @@ export const usePlayer = (): ReplayerContextInterface => {
         skip: !session_secure_id,
         fetchPolicy: 'network-only',
     });
+
+    // Ensure all chunks between startTs and endTs are loaded. If a callback
+    // is passed in, invoke it once the chunks are loaded.
+    const ensureChunksLoaded = useCallback(
+        (startTs: number, endTs?: number, callback?: () => void) => {
+            if (
+                !CHUNKING_ENABLED_PROJECTS.includes(project_id) ||
+                !sessionData?.session?.chunked
+            ) {
+                return false;
+            }
+
+            const startIdx = getChunkIdx(startTs);
+            const endIdx = endTs ? getChunkIdx(endTs) : startIdx;
+
+            let needsLoad = false;
+            for (let i = startIdx; i <= endIdx; i++) {
+                if (!chunkEvents.has(i)) {
+                    chunkEventsSet(i, []);
+
+                    needsLoad = true;
+                    fetchEventChunkURL({
+                        secure_id: session_secure_id,
+                        index: i,
+                    })
+                        .then((response) =>
+                            fetch(response.data.event_chunk_url)
+                        )
+                        .then((response) => response.json())
+                        .then((data) => {
+                            chunkEventsSet(i, toHighlightEvents(data));
+                        })
+                        .then(() => setOnEventsLoaded(callback))
+                        .catch((e) => {
+                            chunkEventsSet(i, []);
+                            H.consumeError(
+                                e,
+                                'Error direct downloading session payload'
+                            );
+                        });
+                }
+            }
+
+            return needsLoad;
+        },
+        [
+            chunkEvents,
+            chunkEventsSet,
+            fetchEventChunkURL,
+            getChunkIdx,
+            project_id,
+            sessionData?.session?.chunked,
+            session_secure_id,
+        ]
+    );
 
     const resetPlayer = useCallback(
         (nextState?: ReplayerState) => {
