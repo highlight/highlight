@@ -12,12 +12,12 @@ import (
 )
 
 // LocalConsumerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
-const LocalConsumerPrefetch = 16
+const LocalConsumerPrefetch = 8
 
 const KafkaOperationTimeoutMs = 15 * 1000
 
-// ConsumerWorkers Number of kafka Consumer workers. Recommended = # of goroutines calling `Receive()`
-const ConsumerWorkers = 1
+// ConsumerWorkers Number of kafka Consumer workers.
+const ConsumerWorkers = 8
 
 type Queue struct {
 	topic         string
@@ -32,12 +32,14 @@ type Queue struct {
 	producerWg sync.WaitGroup
 	consumerWg sync.WaitGroup
 
-	numSubmitted int64
-	numDelivered int64
+	producerStatMutex sync.Mutex
+	numSubmitted      int64
+	numDelivered      int64
 
-	numReceived int64
-	numConsumed int64
-
+	consumerStatMutex    sync.Mutex
+	numReceived          int64
+	numConsumed          int64
+	consumerLoopTime     time.Duration
 	consumerQueueBlocked time.Duration
 }
 
@@ -111,20 +113,27 @@ func (p *Queue) Submit(task Message, partitionKey int) {
 	} else {
 		partition = int32(partitionKey % p.partitions)
 	}
-	msg := p.serializeTask(task)
-	err := p.kafkaP.Produce(&kafka.Message{
+	msg, err := p.serializeTask(&task)
+	if err != nil {
+		log.Errorf("an error occured while adding message to producer queue %+v", err)
+		return
+	}
+	err = p.kafkaP.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: partition},
 		Value:          []byte(msg)}, nil,
 	)
 	if err != nil {
 		log.Errorf("an error occured while adding message to producer queue %+v", err)
+		return
 	}
 	p.numSubmitted += 1
 }
 
 func (p *Queue) Receive() (task Message) {
 	task = <-p.consumerQueue
+	p.consumerStatMutex.Lock()
 	p.numReceived += 1
+	p.consumerStatMutex.Unlock()
 	return
 }
 
@@ -132,7 +141,15 @@ func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
 		log.Infof("Kafka Producer Stats: %d submitted, %d delivered", p.numSubmitted, p.numDelivered)
 	} else {
-		log.Infof("Kafka Consumer Stats: %d consumed, %d received, %s consumer blocked", p.numConsumed, p.numReceived, p.consumerQueueBlocked)
+		blockPercent := 0.
+		if p.consumerLoopTime > 0 {
+			blockPercent = 100. * float64(p.consumerQueueBlocked.Nanoseconds()) / float64(p.consumerLoopTime.Nanoseconds())
+		}
+		log.Infof("Kafka Consumer Stats: %d consumed, %d received, %s consumer blocked, %.2f%% of loop", p.numConsumed, p.numReceived, p.consumerQueueBlocked, blockPercent)
+		p.consumerStatMutex.Lock()
+		p.consumerQueueBlocked = time.Duration(0)
+		p.consumerLoopTime = time.Duration(0)
+		p.consumerStatMutex.Unlock()
 	}
 }
 
@@ -174,6 +191,7 @@ func (p *Queue) runProducer() {
 
 func (p *Queue) runConsumer() {
 	for p.run {
+		loopStart := time.Now()
 		var err error
 		ev := p.kafkaC.Poll(KafkaOperationTimeoutMs)
 		switch e := ev.(type) {
@@ -184,29 +202,41 @@ func (p *Queue) runConsumer() {
 			log.Infof("Revoked Partition %v", e)
 			err = p.kafkaC.Unassign()
 		case *kafka.Message:
-			task := p.deserializeTask(e.Value)
+			var task *Message
+			task, err = p.deserializeTask(e.Value)
+			if err != nil {
+				continue
+			}
 			start := time.Now()
-			p.consumerQueue <- task
+			p.consumerQueue <- *task
+			p.consumerStatMutex.Lock()
 			p.numConsumed += 1
 			p.consumerQueueBlocked += time.Since(start)
+			p.consumerStatMutex.Unlock()
 		case kafka.PartitionEOF:
 			log.Infof("Reached %v", e)
 		case kafka.Error:
 			log.Errorf("Error: %v", e)
 			time.Sleep(time.Second)
+		case *kafka.Stats:
+			var stats map[string]interface{}
+			_ = json.Unmarshal([]byte(e.String()), &stats)
+			log.Infof("Kafka Consumer librdkafka Stats: rxmsgs %+v, rxmsg_bytes %+v, replyq %+v", stats["rxmsgs"], stats["rxmsg_bytes"], stats["replyq"])
 		}
 		if err != nil {
 			log.Errorf("Kafka consumer encountered error %v", err)
 			err = nil
 		}
+		p.consumerLoopTime += time.Since(loopStart)
 	}
 	p.consumerWg.Done()
 }
 
-func (p *Queue) serializeTask(task Message) (compressed []byte) {
+func (p *Queue) serializeTask(task *Message) (compressed []byte, err error) {
 	b, err := json.Marshal(&task)
 	if err != nil {
 		log.Errorf("error serializing task %v", err)
+		return nil, err
 	}
 
 	in := bytes.NewReader(b)
@@ -214,28 +244,32 @@ func (p *Queue) serializeTask(task Message) (compressed []byte) {
 	brWriter := brotli.NewWriterLevel(out, 9)
 	if _, err = io.Copy(brWriter, in); err != nil {
 		log.Errorf("error compressing task %v", err)
+		return nil, err
 	}
 	if err = brWriter.Close(); err != nil {
 		log.Errorf("error compressing task %v", err)
+		return nil, err
 	}
 
-	compressed = out.Bytes()
-	return
+	return out.Bytes(), nil
 }
 
-func (p *Queue) deserializeTask(compressed []byte) (task Message) {
+func (p *Queue) deserializeTask(compressed []byte) (*Message, error) {
 	in := bytes.NewReader(compressed)
 	out := new(bytes.Buffer)
 	brReader := brotli.NewReader(in)
 
 	if _, err := io.Copy(out, brReader); err != nil {
 		log.Errorf("error decompressing task %v", err)
+		return nil, err
 	}
 
+	var task Message
 	err := json.Unmarshal(out.Bytes(), &task)
 	if err != nil {
 		log.Errorf("error deserializing task %v", err)
+		return nil, err
 	}
 
-	return
+	return &task, nil
 }
