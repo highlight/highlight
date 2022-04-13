@@ -12,7 +12,6 @@ import (
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -211,7 +210,8 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
-	session := &model.Session{}
+	// TODO(vkorolik) enable kafka for project 1 in separate PR
+	/*session := &model.Session{}
 	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
@@ -232,7 +232,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		r.PushPayloadWorkerPool.SubmitRecover(func() {
 			r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
 		})
-	}
+	}*/
+	r.PushPayloadWorkerPool.SubmitRecover(func() {
+		r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
+	})
 	return size.Of(events), nil
 }
 

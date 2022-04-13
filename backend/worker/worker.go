@@ -262,38 +262,45 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) publicWorkerLoop() {
+func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 	ctx := context.Background()
-	for {
-		task := w.KafkaQueue.Receive()
-		switch task.Type {
-		case kafka_queue.PushPayload:
-			if task.PushPayload == nil {
-				break
-			}
-			w.PublicResolver.ProcessPayload(
-				ctx,
-				task.PushPayload.SessionID,
-				task.PushPayload.Events,
-				task.PushPayload.Messages,
-				task.PushPayload.Resources,
-				task.PushPayload.Errors,
-				task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
-				task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-				task.PushPayload.HighlightLogs)
-		default:
-			log.Errorf("Unknown task type %+v", task.Type)
+	switch task.Type {
+	case kafka_queue.PushPayload:
+		if task.PushPayload == nil {
+			break
 		}
+		w.PublicResolver.ProcessPayload(
+			ctx,
+			task.PushPayload.SessionID,
+			task.PushPayload.Events,
+			task.PushPayload.Messages,
+			task.PushPayload.Resources,
+			task.PushPayload.Errors,
+			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
+			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
+			task.PushPayload.HighlightLogs)
+	default:
+		log.Errorf("Unknown task type %+v", task.Type)
 	}
 }
 
 func (w *Worker) PublicWorker() {
+	if w.KafkaQueue == nil {
+		kafkaC, err := kafka_queue.MakeConsumer()
+		if err != nil {
+			log.Fatalf("error setting up kafka-queue consumer: %v", err)
+		}
+		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC)
+	}
+
 	wp := workerpool.New(80)
 	wp.SetPanicHandler(util.Recover)
-	for i := 0; i < wp.Size(); i++ {
-		wp.SubmitRecover(w.publicWorkerLoop)
+
+	// receive messages and submit them to worker pool for processing
+	for {
+		task := w.KafkaQueue.Receive()
+		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
 	}
-	wp.StopWait()
 }
 
 // Delete data for any sessions created > 4 hours ago

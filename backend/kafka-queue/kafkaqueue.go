@@ -50,6 +50,13 @@ type Queue struct {
 	consumerQueueBlocked time.Duration
 }
 
+type MessageQueue interface {
+	Stop()
+	Receive() *Message
+	Submit(*Message, int)
+	LogStats()
+}
+
 func MakeConsumer() (*kafka.Consumer, error) {
 	kafkaC, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"sasl.mechanism":                  "SCRAM-SHA-512",
@@ -286,19 +293,16 @@ func (p *Queue) runConsumer() {
 func (p *Queue) serializeTask(task *Message) (compressed []byte, err error) {
 	b, err := json.Marshal(&task)
 	if err != nil {
-		log.Errorf("error serializing task %v", err)
 		return nil, err
 	}
 
-	in := bytes.NewReader(b)
 	out := new(bytes.Buffer)
 	brWriter := brotli.NewWriterLevel(out, 9)
-	if _, err = io.Copy(brWriter, in); err != nil {
+	if _, err = brWriter.Write(b); err != nil {
 		log.Errorf("error compressing task %v", err)
 		return nil, err
 	}
 	if err = brWriter.Close(); err != nil {
-		log.Errorf("error compressing task %v", err)
 		return nil, err
 	}
 
@@ -307,9 +311,9 @@ func (p *Queue) serializeTask(task *Message) (compressed []byte, err error) {
 
 func (p *Queue) deserializeTask(compressed []byte) (*Message, error) {
 	in := bytes.NewReader(compressed)
-	out := new(bytes.Buffer)
 	brReader := brotli.NewReader(in)
 
+	out := new(bytes.Buffer)
 	if _, err := io.Copy(out, brReader); err != nil {
 		log.Errorf("error decompressing task %v", err)
 		return nil, err

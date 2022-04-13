@@ -363,12 +363,7 @@ func main() {
 			AlertWorkerPool:       alertWorkerpool,
 			OpenSearch:            opensearchClient,
 		}
-		kafkaC, err := kafka_queue.MakeConsumer()
-		if err != nil {
-			log.Fatalf("error setting up kafka-queue consumer: %v", err)
-		}
-		consumerQueue := kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC)
-		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage, KafkaQueue: consumerQueue}
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
 				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
@@ -389,6 +384,7 @@ func main() {
 			go func() {
 				w.Start()
 			}()
+			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
