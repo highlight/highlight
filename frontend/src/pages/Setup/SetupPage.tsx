@@ -385,8 +385,8 @@ const ClientSetup = ({
                             }H.identify('${
                                 admin?.email || 'eliza@gmail.com'
                             }', {
-id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
-phone: '867-5309'
+  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
+  phone: '867-5309'
 });`}
                         />
                     </Section>
