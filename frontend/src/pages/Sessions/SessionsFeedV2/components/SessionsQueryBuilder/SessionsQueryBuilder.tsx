@@ -198,6 +198,13 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
     if (params.first_time) {
         rules.push(deserializeGroup('custom_first_time', 'is', ['true']));
     }
+    if (!params.show_live_sessions) {
+        rules.push(deserializeGroup('custom_processed', 'is', ['true']));
+    } else {
+        rules.push(
+            deserializeGroup('custom_processed', 'is', ['true', 'false'])
+        );
+    }
     return {
         isAnd: true,
         rules: serializeRules(rules),
