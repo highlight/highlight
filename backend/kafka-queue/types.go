@@ -21,3 +21,8 @@ type Message struct {
 	Type        int // PayloadType
 	PushPayload *PushPayloadArgs
 }
+
+type PartitionMessage struct {
+	Message   *Message
+	Partition int32
+}

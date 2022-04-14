@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"testing"
+	"time"
 )
 
 const (
@@ -73,5 +74,6 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			}
 		}()
 	}
+	time.Sleep(16 * time.Second)
 	k.Stop()
 }
