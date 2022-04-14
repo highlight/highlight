@@ -52,8 +52,8 @@ const basicPlan: BillingPlan = {
 const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
-    monthlyPrice: 250,
-    annualPrice: 200,
+    monthlyPrice: 300,
+    annualPrice: 240,
     advertisedFeatures: [
         {
             text: '80,000 free sessions / mo',
