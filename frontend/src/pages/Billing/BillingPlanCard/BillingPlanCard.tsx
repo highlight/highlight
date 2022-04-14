@@ -1,3 +1,4 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
@@ -112,15 +113,32 @@ export const BillingPlanCard = ({
                     </li>
                 ))}
             </ul>
-            <Button
-                trackingId="ChangeBillingPlan"
-                disabled={current || disabled}
-                onClick={onSelect}
-                className={styles.button}
-                loading={loading}
-            >
-                {current ? 'Current plan' : `Select ${billingPlan.name} Plan`}
-            </Button>
+            {billingPlan.type === PlanType.Enterprise ? (
+                <ButtonLink
+                    trackingId="ChangeBillingPlan"
+                    disabled={disabled}
+                    onClick={onSelect}
+                    className={styles.button}
+                    anchor
+                    href="mailto:sales@highlight.run"
+                    type="default"
+                    fullWidth
+                >
+                    Contact Sales
+                </ButtonLink>
+            ) : (
+                <Button
+                    trackingId="ChangeBillingPlan"
+                    disabled={current || disabled}
+                    onClick={onSelect}
+                    className={styles.button}
+                    loading={loading}
+                >
+                    {current
+                        ? 'Current plan'
+                        : `Select ${billingPlan.name} Plan`}
+                </Button>
+            )}
         </div>
     );
 };
