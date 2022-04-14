@@ -24,7 +24,6 @@ interface QuickSearchOption {
     __typename: string;
 }
 
-const DEFAULT_TYPE = 'field';
 const ERROR_TYPE = 'error-field';
 const RESULT_COUNT = 10;
 
@@ -231,13 +230,14 @@ const QuickSearch = () => {
 
     const getDefaultField = () => {
         const field = {
+            type: 'user',
             name: 'identifier',
             value: query,
-            type: DEFAULT_TYPE,
             __typename: '',
         } as QuickSearchOption;
         // simple pattern matching for the default
         if (validateEmail(query)) {
+            field.type = 'user';
             field.name = 'email';
         }
         return field;
