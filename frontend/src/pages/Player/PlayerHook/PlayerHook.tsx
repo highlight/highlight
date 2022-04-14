@@ -58,14 +58,6 @@ import {
 } from './utils';
 import usePlayerConfiguration from './utils/usePlayerConfiguration';
 
-const urlSearchParams = new URLSearchParams(window.location.search);
-/**
- * The number of events to add to Replayer in a frame.
- */
-const EVENTS_CHUNK_SIZE = parseInt(
-    urlSearchParams.get('chunkSize') || '100000',
-    10
-);
 const LOOKAHEAD_MS = 30000;
 const MAX_CHUNK_COUNT = 5;
 const EMPTY_SESSION_METADATA = {
@@ -198,7 +190,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [
         chunkEvents,
         chunkEventsSet,
-        ,
+        chunkEventsSetMulti,
         chunkEventsRemove,
         chunkEventsReset,
     ] = useMap<number, HighlightEvent[]>();
@@ -369,6 +361,52 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'network-only',
     });
 
+    const getChunkToRemove = useCallback(
+        (
+            chunkEvents: Omit<
+                Map<number, HighlightEvent[]>,
+                'set' | 'clear' | 'delete'
+            >
+        ): number | undefined => {
+            const timestamp = sessionMetadata.startTime + time;
+            const curIdx = getChunkIdx(timestamp);
+
+            // Get the count of non-empty chunks, as well as the
+            // min and max idx of non-empty chunks.
+            let minIdx: number | undefined = undefined;
+            let maxIdx: number | undefined = undefined;
+            let count = 0;
+            for (const [k, v] of chunkEvents) {
+                if (v.length !== 0) {
+                    count++;
+
+                    if (minIdx === undefined || k < minIdx) {
+                        minIdx = k;
+                    }
+
+                    if (maxIdx === undefined || k > maxIdx) {
+                        maxIdx = k;
+                    }
+                }
+            }
+
+            // If there are more than the max chunks loaded, try removing
+            // the earliest. If we're currently playing the earliest chunk,
+            // remove the latest instead.
+            let toRemove: number | undefined = undefined;
+            if (count > MAX_CHUNK_COUNT - 1) {
+                if (minIdx !== undefined && curIdx !== minIdx) {
+                    toRemove = minIdx;
+                } else if (maxIdx !== undefined) {
+                    toRemove = maxIdx;
+                }
+            }
+
+            return toRemove;
+        },
+        [getChunkIdx, sessionMetadata.startTime, time]
+    );
+
     // Ensure all chunks between startTs and endTs are loaded. If a callback
     // is passed in, invoke it once the chunks are loaded.
     const ensureChunksLoaded = useCallback(
@@ -398,7 +436,15 @@ export const usePlayer = (): ReplayerContextInterface => {
                         )
                         .then((response) => response.json())
                         .then((data) => {
-                            chunkEventsSet(i, toHighlightEvents(data));
+                            const toRemove = getChunkToRemove(chunkEvents);
+                            const toSet: [
+                                number,
+                                HighlightEvent[] | undefined
+                            ][] = [[i, toHighlightEvents(data)]];
+                            if (toRemove !== undefined) {
+                                toSet.push([toRemove, undefined]);
+                            }
+                            chunkEventsSetMulti(toSet);
                         })
                         .then(() => setOnEventsLoaded(callback))
                         .catch((e) => {
@@ -414,13 +460,15 @@ export const usePlayer = (): ReplayerContextInterface => {
             return needsLoad;
         },
         [
+            project_id,
+            sessionData?.session?.chunked,
+            getChunkIdx,
             chunkEvents,
             chunkEventsSet,
             fetchEventChunkURL,
-            getChunkIdx,
-            project_id,
-            sessionData?.session?.chunked,
             session_secure_id,
+            getChunkToRemove,
+            chunkEventsSetMulti,
         ]
     );
 
@@ -534,7 +582,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
         }
 
-        const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+        const r = new Replayer(newEvents, {
             root: playerMountingRoot,
             triggerFocus: false,
             mouseTail: showPlayerMouseTail,
@@ -663,7 +711,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Loads the remaining events into Replayer.
     useEffect(() => {
-        if (replayer && eventsDataLoaded) {
+        if (replayer && eventsDataLoaded && eventsKey !== '') {
             const events: HighlightEvent[] = [];
             for (const [, v] of sortedChunks) {
                 for (const val of v) {
@@ -1080,42 +1128,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (sessionMetadata.startTime !== 0) {
             const timestamp = sessionMetadata.startTime + time;
-            const curIdx = getChunkIdx(timestamp);
-
-            // Get the count of non-empty chunks, as well as the
-            // min and max idx of non-empty chunks.
-            let minIdx: number | undefined = undefined;
-            let maxIdx: number | undefined = undefined;
-            let count = 0;
-            for (const [k, v] of chunkEvents) {
-                if (v.length !== 0) {
-                    count++;
-
-                    if (minIdx === undefined || k < minIdx) {
-                        minIdx = k;
-                    }
-
-                    if (maxIdx === undefined || k > maxIdx) {
-                        maxIdx = k;
-                    }
-                }
-            }
-
-            // If there are more than the max chunks loaded, try removing
-            // the earliest. If we're currently playing the earliest chunk,
-            // remove the latest instead.
-            let toRemove: number | undefined = undefined;
-            if (count > MAX_CHUNK_COUNT) {
-                if (minIdx !== undefined && curIdx !== minIdx) {
-                    toRemove = minIdx;
-                } else if (maxIdx !== undefined) {
-                    toRemove = maxIdx;
-                }
-            }
-
-            if (toRemove !== undefined) {
-                chunkEventsRemove(toRemove);
-            }
 
             ensureChunksLoaded(timestamp, timestamp + LOOKAHEAD_MS);
 

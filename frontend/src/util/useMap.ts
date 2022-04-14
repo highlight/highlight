@@ -5,7 +5,7 @@ export type MapOrEntries<K, V> = Map<K, V> | [K, V][];
 type Return<K, V> = [
     Omit<Map<K, V>, 'set' | 'clear' | 'delete'>,
     (key: K, value: V) => void,
-    (entries: MapOrEntries<K, V>) => void,
+    (entries: [K, V | undefined][]) => void,
     (key: K) => void,
     Map<K, V>['clear']
 ];
@@ -23,8 +23,18 @@ function useMap<K, V>(
         });
     }, []);
 
-    const setAll = useCallback((entries) => {
-        setMap(() => new Map(entries));
+    const setMulti = useCallback((entries: [K, V | undefined][]) => {
+        setMap((prev) => {
+            const copy = new Map(prev);
+            for (const [k, v] of entries) {
+                if (v === undefined) {
+                    copy.delete(k);
+                } else {
+                    copy.set(k, v);
+                }
+            }
+            return copy;
+        });
     }, []);
 
     const remove = useCallback((key) => {
@@ -39,7 +49,7 @@ function useMap<K, V>(
         setMap(() => new Map());
     }, []);
 
-    return [map, set, setAll, remove, reset];
+    return [map, set, setMulti, remove, reset];
 }
 
 export default useMap;
