@@ -117,7 +117,6 @@ export const BillingPlanCard = ({
                 <ButtonLink
                     trackingId="ChangeBillingPlan"
                     disabled={disabled}
-                    onClick={onSelect}
                     className={styles.button}
                     anchor
                     href="mailto:sales@highlight.run"
