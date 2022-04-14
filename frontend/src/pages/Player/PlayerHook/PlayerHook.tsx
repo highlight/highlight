@@ -366,7 +366,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             chunkEvents: Omit<
                 Map<number, HighlightEvent[]>,
                 'set' | 'clear' | 'delete'
-            >
+            >,
+            time: number
         ): number | undefined => {
             const timestamp = sessionMetadata.startTime + time;
             const curIdx = getChunkIdx(timestamp);
@@ -404,7 +405,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             return toRemove;
         },
-        [getChunkIdx, sessionMetadata.startTime, time]
+        [getChunkIdx, sessionMetadata.startTime]
     );
 
     // Ensure all chunks between startTs and endTs are loaded. If a callback
@@ -436,7 +437,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                         )
                         .then((response) => response.json())
                         .then((data) => {
-                            const toRemove = getChunkToRemove(chunkEvents);
+                            const toRemove = getChunkToRemove(
+                                chunkEvents,
+                                startTs
+                            );
                             const toSet: [
                                 number,
                                 HighlightEvent[] | undefined
