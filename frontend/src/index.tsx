@@ -3,7 +3,15 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
+import {
+    AuthContextProvider,
+    AuthRole,
+    isAuthLoading,
+    isHighlightAdmin,
+    isLoggedIn,
+} from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import { LoadingPage } from '@components/Loading/Loading';
 import {
     AppLoadingContext,
@@ -11,7 +19,11 @@ import {
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { datadogLogs } from '@datadog/browser-logs';
+import { useGetAdminLazyQuery } from '@graph/hooks';
 import { ErrorBoundary } from '@highlight-run/react';
+import { auth } from '@util/auth';
+import { showHiringMessage } from '@util/console/hiringMessage';
+import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -22,20 +34,8 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
 import packageJson from '../package.json';
-import {
-    AuthContextProvider,
-    AuthRole,
-    isAuthLoading,
-    isHighlightAdmin,
-    isLoggedIn,
-} from './authentication/AuthContext';
-import { ErrorState } from './components/ErrorState/ErrorState';
-import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
-import { auth } from './util/auth';
-import { showHiringMessage } from './util/console/hiringMessage';
-import { client } from './util/graph';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {

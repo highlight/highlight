@@ -1,11 +1,16 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { ErrorState } from '@components/ErrorState/ErrorState';
+import { Header } from '@components/Header/Header';
+import { Sidebar } from '@components/Sidebar/Sidebar';
 import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { useGetProjectDropdownOptionsQuery } from '@graph/hooks';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
     QueryBuilderInput,
@@ -14,6 +19,7 @@ import {
 } from '@pages/Sessions/SearchContext/SearchContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
+import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
@@ -31,14 +37,8 @@ import {
     useQueryParams,
 } from 'use-query-params';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
-import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
-import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { useGetProjectDropdownOptionsQuery } from '../../graph/generated/hooks';
-import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
 
@@ -71,13 +71,17 @@ export const ProjectRouter = () => {
     );
 
     useEffect(() => {
-        data?.workspace?.id &&
+        if (data?.workspace?.id) {
             window.Intercom('update', {
                 company: {
                     id: data?.workspace.id,
                     name: data?.workspace.name,
                 },
             });
+            window.rudderanalytics.group(data?.workspace.id, {
+                name: data?.workspace.name,
+            });
+        }
     }, [data?.workspace]);
 
     useEffect(() => {
