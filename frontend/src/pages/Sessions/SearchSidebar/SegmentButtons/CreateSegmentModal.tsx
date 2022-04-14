@@ -77,6 +77,7 @@ const CreateSegmentModal = ({
                 `Created '${r.data?.createSegment?.name}' segment`,
                 5
             );
+            setName('');
         });
     };
 
