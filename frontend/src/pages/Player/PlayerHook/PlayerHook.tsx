@@ -65,7 +65,7 @@ const EMPTY_SESSION_METADATA = {
     endTime: 0,
     totalTime: 0,
 };
-const CHUNKING_ENABLED_PROJECTS = ['1'];
+const CHUNKING_DISABLED_PROJECTS: string[] = [];
 
 export enum SessionViewability {
     VIEWABLE,
@@ -184,7 +184,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const { data: eventChunksData } = useGetEventChunksQuery({
         variables: { secure_id: session_secure_id },
-        skip: !CHUNKING_ENABLED_PROJECTS.includes(project_id),
+        skip: CHUNKING_DISABLED_PROJECTS.includes(project_id),
     });
 
     const [
@@ -315,7 +315,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     let fetchEvents;
                     if (
                         data.session?.chunked &&
-                        CHUNKING_ENABLED_PROJECTS.includes(project_id)
+                        !CHUNKING_DISABLED_PROJECTS.includes(project_id)
                     ) {
                         fetchEvents = fetchEventChunkURL({
                             secure_id: session_secure_id,
@@ -413,7 +413,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const ensureChunksLoaded = useCallback(
         (startTs: number, endTs?: number, callback?: () => void) => {
             if (
-                !CHUNKING_ENABLED_PROJECTS.includes(project_id) ||
+                CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
                 !sessionData?.session?.chunked
             ) {
                 return false;
