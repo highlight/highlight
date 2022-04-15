@@ -564,20 +564,16 @@ const BackendSetup = ({
                 />
             ) : (
                 <div className={styles.stepsContainer}>
-                    {backendPlatform === BackendPlatformType.NextJs ? (
-                        <NextBackendInstructions />
-                    ) : backendPlatform === BackendPlatformType.Express ? (
-                        <ExpressBackendInstructions />
-                    ) : (
-                        <GoBackendInstructions />
-                    )}
                     <Section title="Frontend Configuration" defaultOpen>
                         <p>
                             Ensure that your client Highlight snippet is
-                            initialized with the below settings included.{' '}
+                            initialized with the below settings included. You
+                            need the Frontend to be configured correctly for
+                            your backend error handing to work (backend errors
+                            are associated with frontend sessions).
                         </p>
                         <CodeBlock
-                            text={`H.init("<YOUR_PROJECT_ID>", {
+                            text={`H.init("${projectData?.project?.verbose_id}", {
     ...
     tracingOrigins: true,
     networkRecording: {
@@ -589,6 +585,13 @@ const BackendSetup = ({
                             language="javascript"
                         />
                     </Section>
+                    {backendPlatform === BackendPlatformType.NextJs ? (
+                        <NextBackendInstructions />
+                    ) : backendPlatform === BackendPlatformType.Express ? (
+                        <ExpressBackendInstructions />
+                    ) : (
+                        <GoBackendInstructions />
+                    )}
                     <Section
                         defaultOpen
                         title={
@@ -1013,7 +1016,9 @@ const ExpressBackendInstructions = () => {
             <Section title="Initializing Highlight on the Backend" defaultOpen>
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock
-                    text={`import { Highlight } from '@highlight-run/node';`}
+                    text={`import { Highlight } from '@highlight-run/node';
+// or like this with commonjs
+const Highlight = require("@highlight-run/node");`}
                     language="javascript"
                 />
                 <p>
@@ -1039,9 +1044,7 @@ const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
                 <p>
                     <CodeBlock
                         language="javascript"
-                        text={`import { Highlight } from "@highlight-run/node";
-
-const app = express();
+                        text={`const app = express();
 
 const highlightOptions = {}; 
 const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
@@ -1049,6 +1052,25 @@ const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 // This should be before any other error middleware and after all controllers
 app.use(highlightHandler);`}
                     />
+                </p>
+
+                <p>
+                    To validate your Highlight backend setup, you'll need to
+                    setup up a testing route handler that throws an error. You
+                    can do this by adding:
+                </p>
+                <CodeBlock
+                    text={`app.use("/error", (req, res) => {
+  throw new Error("a fake failure was thrown");
+});`}
+                    language={'javascript'}
+                />
+
+                <p>
+                    Now, add some code to your frontend to make an HTTP request
+                    to <code>/error</code>. You should be able to view your
+                    frontend session making the request and find the error
+                    traceback in the errors page.
                 </p>
             </Section>
         </>
