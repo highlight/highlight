@@ -1,16 +1,25 @@
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import { Resizable } from 're-resizable';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import styles from './DetailPanel.module.scss';
 
 const DetailPanel = () => {
     const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
     const { showBanner } = useGlobalContext();
+    const { session_secure_id } = useParams<{
+        session_secure_id: string;
+    }>();
+
+    useEffect(() => {
+        setDetailedPanel(undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session_secure_id]);
 
     return (
         <AnimatePresence presenceAffectsLayout>
