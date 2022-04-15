@@ -2,6 +2,7 @@ package kafka_queue
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	workers          = 8
+	workers          = 1024
 	submitsPerWorker = 1024
 )
 
@@ -26,24 +27,15 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		b.Fatalf("error unmarshaling: %v", err)
 	}
 
-	kafkaP, err := MakeProducer()
-	if err != nil {
-		b.Fatalf("error creating producer: %v", err)
-	}
-	kafkaC, err := MakeConsumer()
-	if err != nil {
-		b.Fatalf("error creating consumer: %v", err)
-	}
-
-	k := New("dev", kafkaP, kafkaC)
+	k := New("dev")
 
 	for i := 0; i < workers; i++ {
-		go func() {
+		go func(w int) {
 			for j := 0; j < submitsPerWorker; j++ {
 				k.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
-						SessionID: 0,
+						SessionID: -1,
 						Events: model.ReplayEventsInput{
 							Events: []*model.ReplayEventInput{{
 								Type:      0,
@@ -59,12 +51,16 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						HasSessionUnloaded: nil,
 						HighlightLogs:      nil,
 					},
-				}, 0)
+				}, fmt.Sprintf("test-%d", w))
 			}
-		}()
+		}(i)
 		go func() {
 			for {
 				msg := k.Receive()
+				if msg == nil {
+					b.Errorf("expected to get a message")
+					continue
+				}
 				if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
 				}

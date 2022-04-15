@@ -1,40 +1,41 @@
 package kafka_queue
 
 import (
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"context"
+	"crypto/tls"
+	"encoding/json"
+	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/pkg/errors"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
-	"sync"
+	"os"
+	"strings"
 	"time"
 )
 
 // WorkerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
 const WorkerPrefetch = 1024
 
-// KafkaOperationTimeoutMs How long to wait for Kafka operations before polling again.
-const KafkaOperationTimeoutMs = 15 * 1000
+// KafkaOperationTimeout How long to wait for Kafka operations before polling again.
+const KafkaOperationTimeout = 15 * time.Second
 
 const (
-	prefetchSizeBytes = 8 * 1024 * 1024
-	messageSizeBytes  = 512 * 1024 * 1024
+	prefetchSizeBytes = 8 * 1024 * 1024   // 8 MB
+	messageSizeBytes  = 512 * 1024 * 1024 // 512 MB
 )
 
 type Queue struct {
-	topic         string
-	producerQueue chan *PartitionMessage
-	consumerQueue chan *Message
-	partitions    int
-	run           bool
+	Topic string
 
-	kafkaP *kafka.Producer
-	kafkaC *kafka.Consumer
-
-	producers  []queueProducer
-	producerWg sync.WaitGroup
-	consumers  []queueConsumer
-	consumerWg sync.WaitGroup
+	kafkaP *kafka.Writer
+	kafkaC *kafka.Reader
 
 	numSubmitted int64
 	numReceived  int64
+
+	submitTime  []time.Duration
+	receiveTime []time.Duration
 }
 
 type MessageQueue interface {
@@ -44,66 +45,53 @@ type MessageQueue interface {
 	LogStats()
 }
 
-func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queue {
+func New(topic string) *Queue {
+	servers := os.Getenv("KAFKA_SERVERS")
+	brokers := strings.Split(servers, ",")
+	mechanism, err := scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
+	}
+
+	tlsConfig := &tls.Config{}
 	pool := &Queue{
-		topic:  topic,
-		run:    true,
-		kafkaP: producer,
-		kafkaC: consumer,
+		Topic: topic,
+		kafkaP: &kafka.Writer{
+			Addr: kafka.TCP(brokers[0]),
+			Transport: &kafka.Transport{
+				SASL: mechanism,
+				TLS:  tlsConfig,
+			},
+			Topic:        topic,
+			Balancer:     &kafka.Hash{},
+			RequiredAcks: kafka.RequireOne,
+			Compression:  kafka.Zstd,
+			// synchronous mode so that we can ensure messages are sent before we return
+			Async:     false,
+			BatchSize: 1000,
+			// low timeout because we don't want to block WriteMessage calls since we are sync mode
+			BatchTimeout: 10 * time.Millisecond,
+		},
+		kafkaC: kafka.NewReader(kafka.ReaderConfig{
+			Brokers: brokers,
+			Dialer: &kafka.Dialer{
+				Timeout:       KafkaOperationTimeout,
+				DualStack:     true,
+				SASLMechanism: mechanism,
+				TLS:           tlsConfig,
+			},
+			Topic:          topic,
+			GroupID:        "group-default", // all partitions for this group, auto balanced
+			MinBytes:       prefetchSizeBytes,
+			MaxBytes:       messageSizeBytes,
+			CommitInterval: 10 * time.Millisecond,
+			// this means we commit very often to avoid repeating tasks on worker restart.
+			// in the future, we would commit only on successful processing of a message.
+		}),
 	}
 
-	var metadata *kafka.Metadata
-	if consumer != nil {
-		err := consumer.Subscribe(topic, pool.rebalance)
-		if err != nil {
-			log.Fatalf("error subscribing consumer to topic %v: %v", topic, err)
-		}
-
-		metadata, err = consumer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
-		if err != nil {
-			log.Fatalf("error getting consumer metadata for topic %v: %v", topic, err)
-		}
-	} else if producer != nil {
-		var err error
-		metadata, err = producer.GetMetadata(&pool.topic, false, KafkaOperationTimeoutMs)
-		if err != nil {
-			log.Fatalf("error getting producer metadata for topic %v: %v", topic, err)
-		}
-	}
-	pool.partitions = len(metadata.Topics[pool.topic].Partitions)
-	log.Infof("established kafka topic %s with %d partitions", pool.topic, pool.partitions)
-
-	if consumer != nil {
-		pool.consumerQueue = make(chan *Message, ConsumerWorkers*WorkerPrefetch)
-		pool.consumerWg.Add(ConsumerWorkers)
-		pool.consumers = make([]queueConsumer, ConsumerWorkers)
-		for i := 0; i < ConsumerWorkers; i++ {
-			pool.consumers[i] = queueConsumer{
-				run:           &pool.run,
-				kafkaC:        pool.kafkaC,
-				consumerQueue: pool.consumerQueue,
-				consumerWg:    &pool.consumerWg,
-			}
-			go pool.consumers[i].runConsumer()
-		}
-	}
-	if producer != nil {
-		pool.producerQueue = make(chan *PartitionMessage, ProducerWorkers*WorkerPrefetch)
-		pool.producerWg.Add(ProducerWorkers)
-		pool.producers = make([]queueProducer, ProducerWorkers)
-		for i := 0; i < ProducerWorkers; i++ {
-			pool.producers[i] = queueProducer{
-				topic:         pool.topic,
-				kafkaP:        pool.kafkaP,
-				run:           &pool.run,
-				producerQueue: pool.producerQueue,
-				producerWg:    &pool.producerWg,
-			}
-			go pool.producers[i].runProducer()
-		}
-	}
 	go func() {
-		for pool.run {
+		for {
 			pool.LogStats()
 			time.Sleep(5 * time.Second)
 		}
@@ -114,64 +102,88 @@ func New(topic string, producer *kafka.Producer, consumer *kafka.Consumer) *Queu
 
 func (p *Queue) Stop() {
 	if p.kafkaC != nil {
-		p.run = false
-		p.consumerWg.Wait()
-		_ = p.kafkaC.Close()
-	}
-	if p.kafkaP != nil {
-		p.kafkaP.Flush(KafkaOperationTimeoutMs)
-		p.run = false
-		close(p.producerQueue)
-		p.producerWg.Wait()
-		p.kafkaP.Close()
+		if err := p.kafkaC.Close(); err != nil {
+			log.Error(errors.Wrap(err, "failed to close reader"))
+		}
 	}
 }
 
-func (p *Queue) Submit(msg *Message, partitionKey int) {
-	var partition int32
-	if partitionKey == 0 {
-		partition = kafka.PartitionAny
-	} else {
-		partition = int32(partitionKey % p.partitions)
+func (p *Queue) Submit(msg *Message, partitionKey string) {
+	start := time.Now()
+	msgBytes, err := p.serializeMessage(msg)
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to serialize message"))
 	}
-	p.producerQueue <- &PartitionMessage{
-		Message:   msg,
-		Partition: partition,
+	err = p.kafkaP.WriteMessages(context.Background(),
+		kafka.Message{
+			Key:   []byte(partitionKey),
+			Value: msgBytes,
+		},
+	)
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to send message"))
 	}
 
 	p.numSubmitted += 1
+	p.submitTime = append(p.submitTime, time.Since(start))
 }
 
 func (p *Queue) Receive() (msg *Message) {
-	msg = <-p.consumerQueue
+	start := time.Now()
+	m, err := p.kafkaC.ReadMessage(context.Background())
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to deserialize message"))
+		return nil
+	}
+	msgBytes := m.Value
+	msg, err = p.deserializeMessage(msgBytes)
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to deserialize message"))
+		return nil
+	}
 	p.numReceived += 1
+	p.receiveTime = append(p.receiveTime, time.Since(start))
 	return
 }
 
 func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
-		numDelivered := 0
-		for _, producer := range p.producers {
-			numDelivered += producer.numDelivered
+		avgSubmit := time.Duration(0)
+		if p.numSubmitted > 0 {
+			for _, t := range p.submitTime {
+				avgSubmit += t
+			}
+			avgSubmit = time.Duration(avgSubmit.Nanoseconds() / p.numSubmitted)
 		}
-		log.Infof("Kafka Producer Stats: %d submitted, %d delivered", p.numSubmitted, numDelivered)
+		log.Infof("Kafka Producer Stats: %d submitted. avg %s", p.numSubmitted, avgSubmit)
+		hlog.Histogram("worker.kafka.produceMessageCount", float64(p.numSubmitted), nil, 0.2)
+		hlog.Histogram("worker.kafka.produceMessageAvgSec", avgSubmit.Seconds(), nil, 0.2)
 	}
 	if p.kafkaC != nil {
-		blockPercent := 0.
-		numConsumed := 0
-		consumerLoopTime := time.Duration(0)
-		consumerQueueBlocked := time.Duration(0)
-
-		for _, consumer := range p.consumers {
-			numConsumed += consumer.numConsumed
-			consumerLoopTime += consumer.consumerLoopTime
-			consumerQueueBlocked += consumer.consumerQueueBlocked
-			consumer.consumerLoopTime = time.Duration(0)
-			consumer.consumerQueueBlocked = time.Duration(0)
+		avgReceive := time.Duration(0)
+		if p.numReceived > 0 {
+			for _, t := range p.receiveTime {
+				avgReceive += t
+			}
+			avgReceive = time.Duration(avgReceive.Nanoseconds() / p.numReceived)
 		}
-		if consumerLoopTime > 0 {
-			blockPercent = 100. * float64(consumerQueueBlocked.Nanoseconds()) / float64(consumerLoopTime.Nanoseconds())
-		}
-		log.Infof("Kafka Consumer Stats: %d consumed, %d received, %s consumer blocked, %.2f%% of loop", numConsumed, p.numReceived, consumerQueueBlocked, blockPercent)
+		log.Infof("Kafka Consumer Stats: %d received.  avg %s", p.numReceived, avgReceive)
+		hlog.Histogram("worker.kafka.consumeMessageCount", float64(p.numReceived), nil, 0.2)
+		hlog.Histogram("worker.kafka.consumeMessageAvgSec", avgReceive.Seconds(), nil, 0.2)
 	}
+}
+
+func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
+	compressed, err = json.Marshal(&msg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshall json")
+	}
+	return
+}
+
+func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error) {
+	if err := json.Unmarshal(compressed, &msg); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshall msg")
+	}
+	return
 }

@@ -286,11 +286,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 
 func (w *Worker) PublicWorker() {
 	if w.KafkaQueue == nil {
-		kafkaC, err := kafka_queue.MakeConsumer()
-		if err != nil {
-			log.Fatalf("error setting up kafka-queue consumer: %v", err)
-		}
-		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), nil, kafkaC)
+		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"))
 	}
 
 	wp := workerpool.New(80)
@@ -299,6 +295,10 @@ func (w *Worker) PublicWorker() {
 	// receive messages and submit them to worker pool for processing
 	for {
 		task := w.KafkaQueue.Receive()
+		if task == nil {
+			log.Errorf("worker retrieved empty message from kafka")
+			continue
+		}
 		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
 	}
 }

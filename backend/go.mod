@@ -20,7 +20,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/aws/smithy-go v1.8.0
 	github.com/clearbit/clearbit-go v1.0.1
-	github.com/confluentinc/confluent-kafka-go v1.8.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
@@ -38,6 +37,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.2.1
+	github.com/segmentio/kafka-go v0.4.31
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/sirupsen/logrus v1.6.0

@@ -227,7 +227,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				IsBeacon:           isBeacon,
 				HasSessionUnloaded: hasSessionUnloaded,
 				HighlightLogs:      highlightLogs,
-			}}, sessionID)
+			}}, strconv.Itoa(sessionID))
 	} else {
 		r.PushPayloadWorkerPool.SubmitRecover(func() {
 			r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)

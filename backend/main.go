@@ -268,15 +268,11 @@ func main() {
 			alertWorkerpool := workerpool.New(40)
 			alertWorkerpool.SetPanicHandler(util.Recover)
 
-			kafkaP, err := kafka_queue.MakeProducer()
-			if err != nil {
-				log.Fatalf("error setting up kafka-queue producer: `%v", err)
-			}
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
-						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafkaP, nil),
+						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC")),
 						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
