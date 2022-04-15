@@ -914,13 +914,17 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	admins := r.getTaggedAdmins(taggedAdmins, isGuest)
 
+	sessionImageStr := ""
+	if sessionImage != nil {
+		sessionImageStr = *sessionImage
+	}
 	sessionComment := &model.SessionComment{
 		Admins:          admins,
 		ProjectID:       projectID,
 		AdminId:         admin.Model.ID,
 		SessionId:       session.ID,
 		SessionSecureId: session.SecureID,
-		SessionImage:    *sessionImage,
+		SessionImage:    sessionImageStr,
 		Timestamp:       sessionTimestamp,
 		Text:            text,
 		XCoordinate:     xCoordinate,
