@@ -3276,7 +3276,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 
 	var count int64
 	if err := r.DB.Raw(`
-		SELECT COUNT(DISTINCT(COALESCE(identifier, CAST(fingerprint AS text))))
+		SELECT COUNT(DISTINCT(COALESCE(NULLIF(identifier, ''), CAST(fingerprint AS text))))
 		FROM sessions
 		WHERE project_id = ?
 		AND processed = false
