@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Input from '@components/Input/Input';
 import {
     AppLoadingState,
@@ -5,18 +6,17 @@ import {
 } from '@context/AppLoadingContext';
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import useLocalStorage from '@rehooks/local-storage';
+import { AppRouter } from '@routers/AppRouter/AppRouter';
+import { auth, googleProvider } from '@util/auth';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
-import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
 import styles from './Login.module.scss';
 
@@ -46,6 +46,13 @@ export const AuthAdminRouter = () => {
             H.identify(email, identifyMetadata);
             H.getSessionURL()
                 .then((sessionUrl) => {
+                    window.rudderanalytics.identify(identifyMetadata.id, {
+                        ...identifyMetadata,
+                        email: admin?.email,
+                        user_id: admin?.uid,
+                        sessionUrl,
+                        role: admin?.role,
+                    });
                     window.Intercom('boot', {
                         app_id: 'gm6369ty',
                         alignment: 'right',

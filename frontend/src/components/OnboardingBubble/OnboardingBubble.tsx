@@ -1,6 +1,7 @@
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import PopConfirm from '@components/PopConfirm/PopConfirm';
+import { useGetAdminQuery, useGetOnboardingStepsQuery } from '@graph/hooks';
 import SvgCloseIcon from '@icons/CloseIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -12,10 +13,6 @@ import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
 import useSessionStorage from 'react-use/lib/useSessionStorage';
 
-import {
-    useGetAdminQuery,
-    useGetOnboardingStepsQuery,
-} from '../../graph/generated/hooks';
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
@@ -89,6 +86,9 @@ const OnboardingBubble = () => {
                     id: data.workspace.id,
                     is_integrated: data.isIntegrated,
                 },
+            });
+            window.rudderanalytics.group(data.workspace.id, {
+                is_integrated: data.isIntegrated,
             });
         }
     }, [data]);
