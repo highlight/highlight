@@ -50,7 +50,7 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { getElementSelectorNew } from './utils/dom';
+import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -807,10 +807,8 @@ export class Highlight {
                     }
                     let selector = null;
                     if (event && event.target) {
-                        selector = getElementSelectorNew(
-                            event.target as Element,
-                            { optimized: false }
-                        );
+                        const t = event.target as HTMLElement;
+                        selector = getSimpleSelector(t);
                     }
                     highlightThis.addProperties(
                         { clickTarget: clickTarget, clickSelector: selector },

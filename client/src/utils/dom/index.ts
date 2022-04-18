@@ -42,6 +42,25 @@ export function getElementSelector(input: Element, options?: Partial<Options>) {
     return getElementSelectorNew(input, options);
 }
 
+/*
+ * Create a simple selector string for the element using its id or class names if available.
+ * Defaults to generic nodeName for the element if not.
+ * This does not attempt to create the 'best' selector but should be used
+ * when a general identified of an Element is necessary.
+ */
+export function getSimpleSelector(input: Element) {
+    if (input.id.length) {
+        return `#${input.id}`;
+    } else if (input.classList.length) {
+        let classes = [];
+        for (const c of input.classList) {
+            classes.push(`.${c}`);
+        }
+        return `${input.nodeName.toLowerCase()}${classes.join(',')}`;
+    }
+    return input.nodeName.toLowerCase();
+}
+
 export function getElementSelectorNew(
     input: Element,
     options?: Partial<Options>
