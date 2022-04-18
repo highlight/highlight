@@ -225,9 +225,10 @@ export const NewCommentForm = ({
             const iframe = document.querySelector(
                 '.replayer-wrapper iframe'
             ) as HTMLIFrameElement;
-            const canvas = await html2canvas(
-                iframe.contentDocument!.documentElement,
-                {
+            const canvas = await new Promise((resolve) =>
+                setTimeout(resolve, 300)
+            ).then(() =>
+                html2canvas(iframe.contentDocument!.documentElement, {
                     allowTaint: true,
                     logging: false,
                     backgroundColor: null,
@@ -240,7 +241,7 @@ export const NewCommentForm = ({
                     width: Number(iframe.width),
                     scrollY:
                         iframe.contentDocument?.firstElementChild?.scrollTop,
-                }
+                })
             );
             session_image = canvas
                 .toDataURL()
@@ -588,6 +589,9 @@ export const NewCommentForm = ({
                                         ? 'button'
                                         : 'submit'
                                 }
+                                className={classNames(styles.submitButton, {
+                                    [styles.loading]: isCreatingComment,
+                                })}
                                 disabled={commentText.length === 0}
                                 onClick={(e) => {
                                     if (
@@ -617,7 +621,6 @@ export const NewCommentForm = ({
                                         }
                                     }
                                 }}
-                                loading={isCreatingComment}
                             >
                                 {selectedIssueService &&
                                 section === CommentFormSection.CommentForm ? (

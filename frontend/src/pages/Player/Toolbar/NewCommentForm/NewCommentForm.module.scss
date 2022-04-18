@@ -115,3 +115,19 @@
     padding-right: var(--size-large);
     padding-top: var(--size-xSmall);
 }
+
+.submitButton {
+    transition: background-color 0.3s ease;
+}
+
+.loading {
+    background-color: var(--color-gray-400);
+    border: solid 1px var(--color-gray-400);
+
+    &:hover,
+    &:active,
+    &:focus-within {
+        background-color: var(--color-gray-400);
+        border: solid 1px var(--color-gray-400);
+    }
+}
