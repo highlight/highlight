@@ -286,7 +286,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 
 func (w *Worker) PublicWorker() {
 	if w.KafkaQueue == nil {
-		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"))
+		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Consumer)
 	}
 
 	wp := workerpool.New(80)

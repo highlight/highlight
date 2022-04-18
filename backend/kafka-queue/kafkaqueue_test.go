@@ -27,12 +27,13 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		b.Fatalf("error unmarshaling: %v", err)
 	}
 
-	k := New("dev")
+	writer := New("dev", Producer)
+	reader := New("dev", Consumer)
 
 	for i := 0; i < workers; i++ {
 		go func(w int) {
 			for j := 0; j < submitsPerWorker; j++ {
-				k.Submit(&Message{
+				writer.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						SessionID: -1,
@@ -56,7 +57,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		}(i)
 		go func() {
 			for {
-				msg := k.Receive()
+				msg := reader.Receive()
 				if msg == nil {
 					b.Errorf("expected to get a message")
 					continue
@@ -71,5 +72,6 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		}()
 	}
 	time.Sleep(16 * time.Second)
-	k.Stop()
+	writer.Stop()
+	reader.Stop()
 }

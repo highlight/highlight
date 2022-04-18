@@ -4,30 +4,37 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
-
-// WorkerPrefetch Number of Messages to retrieve per worker (populating local consumerQueue)
-const WorkerPrefetch = 1024
 
 // KafkaOperationTimeout How long to wait for Kafka operations before polling again.
 const KafkaOperationTimeout = 15 * time.Second
 
 const (
-	prefetchSizeBytes = 8 * 1024 * 1024   // 8 MB
-	messageSizeBytes  = 512 * 1024 * 1024 // 512 MB
+	prefetchSizeBytes = 8 * 1000 * 1000   // 8 MB
+	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
+)
+
+type Mode int
+
+const (
+	Producer Mode = iota
+	Consumer Mode = iota
 )
 
 type Queue struct {
 	Topic string
 
+	client *kafka.Client
 	kafkaP *kafka.Writer
 	kafkaC *kafka.Reader
 
@@ -45,7 +52,7 @@ type MessageQueue interface {
 	LogStats()
 }
 
-func New(topic string) *Queue {
+func New(topic string, mode Mode) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
 	mechanism, err := scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
@@ -54,9 +61,32 @@ func New(topic string) *Queue {
 	}
 
 	tlsConfig := &tls.Config{}
-	pool := &Queue{
-		Topic: topic,
-		kafkaP: &kafka.Writer{
+	pool := &Queue{Topic: topic, client: &kafka.Client{
+		Addr: kafka.TCP(brokers[0]),
+		Transport: &kafka.Transport{
+			SASL: mechanism,
+			TLS:  tlsConfig,
+		},
+		Timeout: KafkaOperationTimeout,
+	}}
+
+	_, err = pool.client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+		Resources: []kafka.AlterConfigRequestResource{{
+			ResourceType: kafka.ResourceTypeTopic,
+			ResourceName: topic,
+			Configs: []kafka.AlterConfigRequestConfig{{
+				Name:  "max.message.bytes",
+				Value: strconv.Itoa(messageSizeBytes),
+			},
+			},
+		}},
+	})
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "failed to set topic message max bytes"))
+	}
+
+	if mode == Producer {
+		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers[0]),
 			Transport: &kafka.Transport{
 				SASL: mechanism,
@@ -67,12 +97,15 @@ func New(topic string) *Queue {
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
 			// synchronous mode so that we can ensure messages are sent before we return
-			Async:     false,
-			BatchSize: 1000,
+			Async: false,
+			// override batch limit to be our message max size
+			BatchBytes: messageSizeBytes,
+			BatchSize:  1000,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 10 * time.Millisecond,
-		},
-		kafkaC: kafka.NewReader(kafka.ReaderConfig{
+		}
+	} else if mode == Consumer {
+		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
 				Timeout:       KafkaOperationTimeout,
@@ -84,10 +117,11 @@ func New(topic string) *Queue {
 			GroupID:        "group-default", // all partitions for this group, auto balanced
 			MinBytes:       prefetchSizeBytes,
 			MaxBytes:       messageSizeBytes,
-			CommitInterval: 10 * time.Millisecond,
+			QueueCapacity:  1000,
+			CommitInterval: 100 * time.Millisecond,
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			// in the future, we would commit only on successful processing of a message.
-		}),
+		})
 	}
 
 	go func() {
@@ -121,7 +155,7 @@ func (p *Queue) Submit(msg *Message, partitionKey string) {
 		},
 	)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to send message"))
+		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
 	}
 
 	p.numSubmitted += 1
@@ -156,6 +190,7 @@ func (p *Queue) LogStats() {
 			avgSubmit = time.Duration(avgSubmit.Nanoseconds() / p.numSubmitted)
 		}
 		log.Infof("Kafka Producer Stats: %d submitted. avg %s", p.numSubmitted, avgSubmit)
+		log.Infof("Kafka Producer Stats Detailed: %+v", p.kafkaP.Stats())
 		hlog.Histogram("worker.kafka.produceMessageCount", float64(p.numSubmitted), nil, 0.2)
 		hlog.Histogram("worker.kafka.produceMessageAvgSec", avgSubmit.Seconds(), nil, 0.2)
 	}
@@ -168,6 +203,7 @@ func (p *Queue) LogStats() {
 			avgReceive = time.Duration(avgReceive.Nanoseconds() / p.numReceived)
 		}
 		log.Infof("Kafka Consumer Stats: %d received.  avg %s", p.numReceived, avgReceive)
+		log.Infof("Kafka Consumer Stats Detailed: %+v", p.kafkaC.Stats())
 		hlog.Histogram("worker.kafka.consumeMessageCount", float64(p.numReceived), nil, 0.2)
 		hlog.Histogram("worker.kafka.consumeMessageAvgSec", avgReceive.Seconds(), nil, 0.2)
 	}

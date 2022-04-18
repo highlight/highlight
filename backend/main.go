@@ -272,7 +272,7 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
-						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC")),
+						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
