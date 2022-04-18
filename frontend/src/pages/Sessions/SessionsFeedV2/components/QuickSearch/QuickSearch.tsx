@@ -24,6 +24,12 @@ interface QuickSearchOption {
     __typename: string;
 }
 
+interface Suggestion {
+    label: string;
+    tooltip: string | React.ReactNode;
+    options: QuickSearchOption[];
+}
+
 const ERROR_TYPE = 'error-field';
 const RESULT_COUNT = 10;
 
@@ -177,18 +183,17 @@ const QuickSearch = () => {
         );
     };
 
-    const getValueOptions = (input: string, callback: any) => {
+    const getValueOptions = (
+        input: string,
+        callback: (s: Suggestion[]) => void
+    ) => {
         refetch({
             project_id,
             count: RESULT_COUNT,
             query: input,
-        }).then((fetched) => {
+        })?.then((fetched) => {
             setLastLoadedQuery(input);
-            const suggestions: {
-                label: string;
-                tooltip: string | React.ReactNode;
-                options: QuickSearchOption[];
-            }[] = [];
+            const suggestions: Suggestion[] = [];
 
             const sessionOptions: QuickSearchOption[] = [];
             const errorOptions: QuickSearchOption[] = [];
@@ -228,15 +233,15 @@ const QuickSearch = () => {
         });
     };
 
-    const getDefaultField = () => {
+    const getDefaultField = (q: string): QuickSearchOption => {
         const field = {
             type: 'user',
             name: 'identifier',
-            value: query,
+            value: q,
             __typename: '',
         } as QuickSearchOption;
         // simple pattern matching for the default
-        if (validateEmail(query)) {
+        if (validateEmail(q)) {
             field.type = 'user';
             field.name = 'email';
         }
@@ -248,7 +253,7 @@ const QuickSearch = () => {
         // in case this was a quick copy-paste-enter
         // and we haven't had a chance to load the quick-fields match
         if (lastLoadedQuery !== query) {
-            field = getDefaultField();
+            field = getDefaultField(query);
         }
 
         if (field.type === ERROR_TYPE) {
@@ -295,7 +300,19 @@ const QuickSearch = () => {
             <DropdownIndicator isLoading={isLoading} />
             <AsyncSelect
                 ref={selectRef}
-                loadOptions={loadOptions}
+                loadOptions={(input, callback) => {
+                    loadOptions(input, (options) => {
+                        const def = getDefaultField(input);
+                        if (def.value.length) {
+                            options.unshift({
+                                label: 'Default',
+                                tooltip: 'Search by user identifier.',
+                                options: [def],
+                            });
+                        }
+                        callback(options);
+                    });
+                }}
                 // @ts-expect-error
                 styles={styleProps}
                 isLoading={isLoading}
