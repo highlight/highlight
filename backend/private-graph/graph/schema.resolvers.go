@@ -918,6 +918,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if sessionImage != nil {
 		sessionImageStr = *sessionImage
 	}
+	if sessionTimestamp >= math.MaxInt32 {
+		log.Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
+		sessionTimestamp = 0
+	}
 	sessionComment := &model.SessionComment{
 		Admins:          admins,
 		ProjectID:       projectID,
