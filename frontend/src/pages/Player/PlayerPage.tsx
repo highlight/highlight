@@ -470,7 +470,7 @@ const Player = ({ integrated }: Props) => {
                         newCommentModalRef={newCommentModalRef}
                         commentModalPosition={commentModalPosition}
                         commentPosition={commentPosition}
-                        commentTime={time}
+                        commentTime={time || 0}
                         session={session}
                         session_secure_id={session_secure_id}
                         onCancel={() => {
