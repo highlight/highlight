@@ -1,15 +1,19 @@
+import '@highlight-run/react/dist/highlight.css';
+
+import {
+    useGetCommentTagsForProjectQuery,
+    useGetWorkspaceAdminsByProjectIdLazyQuery,
+    useSendEmailSignupMutation,
+} from '@graph/hooks';
+import { SampleBuggyButton } from '@highlight-run/react';
 import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
-import {
-    useGetCommentTagsForProjectQuery,
-    useGetWorkspaceAdminsByProjectIdLazyQuery,
-    useSendEmailSignupMutation,
-} from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
 import { CustomError, DefaultError, RandomError } from './ButtonsHelper';
+
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
     const [sendEmail, { loading }] = useSendEmailSignupMutation();
@@ -123,6 +127,7 @@ export const Buttons = () => {
                 >
                     Track
                 </button>
+                <SampleBuggyButton />
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
