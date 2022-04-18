@@ -103,6 +103,7 @@ func New(topic string, mode Mode) *Queue {
 			BatchSize:  1000,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 10 * time.Millisecond,
+			MaxAttempts:  10,
 		}
 	} else if mode == Consumer {
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
@@ -113,14 +114,15 @@ func New(topic string, mode Mode) *Queue {
 				SASLMechanism: mechanism,
 				TLS:           tlsConfig,
 			},
-			Topic:          topic,
-			GroupID:        "group-default", // all partitions for this group, auto balanced
-			MinBytes:       prefetchSizeBytes,
-			MaxBytes:       messageSizeBytes,
-			QueueCapacity:  1000,
-			CommitInterval: 100 * time.Millisecond,
-			// this means we commit very often to avoid repeating tasks on worker restart.
+			Topic:         topic,
+			GroupID:       "group-default", // all partitions for this group, auto balanced
+			MinBytes:      prefetchSizeBytes,
+			MaxBytes:      messageSizeBytes,
+			QueueCapacity: 1000,
 			// in the future, we would commit only on successful processing of a message.
+			// this means we commit very often to avoid repeating tasks on worker restart.
+			CommitInterval: 100 * time.Millisecond,
+			MaxAttempts:    10,
 		})
 	}
 
@@ -190,9 +192,15 @@ func (p *Queue) LogStats() {
 			avgSubmit = time.Duration(avgSubmit.Nanoseconds() / p.numSubmitted)
 		}
 		log.Infof("Kafka Producer Stats: %d submitted. avg %s", p.numSubmitted, avgSubmit)
-		log.Infof("Kafka Producer Stats Detailed: %+v", p.kafkaP.Stats())
+		p.submitTime = []time.Duration{}
+		p.numSubmitted = 0
+
 		hlog.Histogram("worker.kafka.produceMessageCount", float64(p.numSubmitted), nil, 0.2)
 		hlog.Histogram("worker.kafka.produceMessageAvgSec", avgSubmit.Seconds(), nil, 0.2)
+		stats := p.kafkaP.Stats()
+		hlog.Histogram("worker.kafka.produceBatchAvgSec", float64(stats.BatchTime.Avg), nil, 0.2)
+		hlog.Histogram("worker.kafka.produceWriteAvgSec", float64(stats.WriteTime.Avg), nil, 0.2)
+		hlog.Histogram("worker.kafka.produceWaitAvgSec", float64(stats.WaitTime.Avg), nil, 0.2)
 	}
 	if p.kafkaC != nil {
 		avgReceive := time.Duration(0)
@@ -203,9 +211,14 @@ func (p *Queue) LogStats() {
 			avgReceive = time.Duration(avgReceive.Nanoseconds() / p.numReceived)
 		}
 		log.Infof("Kafka Consumer Stats: %d received.  avg %s", p.numReceived, avgReceive)
-		log.Infof("Kafka Consumer Stats Detailed: %+v", p.kafkaC.Stats())
+		p.receiveTime = []time.Duration{}
+		p.numReceived = 0
+
 		hlog.Histogram("worker.kafka.consumeMessageCount", float64(p.numReceived), nil, 0.2)
 		hlog.Histogram("worker.kafka.consumeMessageAvgSec", avgReceive.Seconds(), nil, 0.2)
+		stats := p.kafkaC.Stats()
+		hlog.Histogram("worker.kafka.consumeReadAvgSec", float64(stats.ReadTime.Avg), nil, 0.2)
+		hlog.Histogram("worker.kafka.consumeWaitAvgSec", float64(stats.WaitTime.Avg), nil, 0.2)
 	}
 }
 
