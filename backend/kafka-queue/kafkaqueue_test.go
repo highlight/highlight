@@ -6,13 +6,13 @@ import (
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"sync"
 	"testing"
-	"time"
 )
 
 const (
 	workers          = 1024
-	submitsPerWorker = 1024
+	submitsPerWorker = 128
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
@@ -29,6 +29,13 @@ func BenchmarkQueue_Submit(b *testing.B) {
 
 	writer := New("dev", Producer)
 	reader := New("dev", Consumer)
+
+	sendWg := sync.WaitGroup{}
+	sendWg.Add(workers)
+
+	recWg := sync.WaitGroup{}
+	recWg.Add(workers)
+	receive := true
 
 	for i := 0; i < workers; i++ {
 		go func(w int) {
@@ -54,9 +61,10 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					},
 				}, fmt.Sprintf("test-%d", w))
 			}
+			sendWg.Done()
 		}(i)
 		go func() {
-			for {
+			for receive {
 				msg := reader.Receive()
 				if msg == nil {
 					b.Errorf("expected to get a message")
@@ -69,9 +77,12 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					b.Errorf("expected to consume dummy session -1")
 				}
 			}
+			recWg.Done()
 		}()
 	}
-	time.Sleep(16 * time.Second)
+	sendWg.Wait()
 	writer.Stop()
+	receive = false
+	recWg.Wait()
 	reader.Stop()
 }
