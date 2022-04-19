@@ -2673,11 +2673,17 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 		sessionCountsPerDay = append(sessionCountsPerDay, &modelInputs.NamedCount{Name: s.Day, Count: s.Sum})
 	}
 
+	var stripeCustomerId string
+	if workspace.StripeCustomerID != nil {
+		stripeCustomerId = *workspace.StripeCustomerID
+	}
+
 	details := &modelInputs.AccountDetails{
 		SessionCountPerMonth: sessionCountsPerMonth,
 		SessionCountPerDay:   sessionCountsPerDay,
 		Name:                 *workspace.Name,
 		ID:                   workspace.ID,
+		StripeCustomerID:     stripeCustomerId,
 	}
 	return details, nil
 }

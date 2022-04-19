@@ -6,7 +6,7 @@ replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/99designs/gqlgen v0.13.0
+	github.com/99designs/gqlgen v0.17.2
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
 	github.com/andybalholm/brotli v1.0.3
@@ -24,7 +24,7 @@ require (
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/mapstructure v1.2.3
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2
 	github.com/opensearch-project/opensearch-go v1.0.0
@@ -37,7 +37,7 @@ require (
 	github.com/slack-go/slack v0.9.1
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v72 v72.73.1
-	github.com/vektah/gqlparser/v2 v2.1.0
+	github.com/vektah/gqlparser/v2 v2.4.0
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.7
@@ -55,7 +55,7 @@ require (
 	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/agnivade/levenshtein v1.0.3 // indirect
+	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 // indirect
@@ -99,7 +99,7 @@ require (
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
-	golang.org/x/tools v0.1.8-0.20211029000441-d6a9af8af023 // indirect
+	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect

@@ -62,7 +62,7 @@ export const Account = () => {
                         </a>
                     </h1>
                     <h1>
-                        Stripe customer:
+                        Stripe customer:{' '}
                         <a
                             href={`https://dashboard.stripe.com/customers/${accountData?.account_details?.stripe_customer_id}`}
                         >
