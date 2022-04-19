@@ -65,6 +65,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.2.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.2.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
@@ -89,10 +90,13 @@ require (
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
+	github.com/matryer/moq v0.2.3 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/tinylib/msgp v1.1.2 // indirect
+	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.opencensus.io v0.22.4 // indirect
