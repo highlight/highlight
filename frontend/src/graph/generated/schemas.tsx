@@ -211,7 +211,18 @@ export type Account = {
     __typename?: 'Account';
     id: Scalars['ID'];
     name: Scalars['String'];
-    session_count: Scalars['Int'];
+    session_count_cur: Scalars['Int'];
+    session_count_prev: Scalars['Int'];
+    session_count_prev_prev: Scalars['Int'];
+    session_limit: Scalars['Int'];
+    paid_prev: Scalars['Int'];
+    paid_prev_prev: Scalars['Int'];
+    email: Scalars['String'];
+    subscription_start?: Maybe<Scalars['Timestamp']>;
+    plan_tier: Scalars['String'];
+    stripe_customer_id: Scalars['String'];
+    member_count: Scalars['Int'];
+    member_limit: Scalars['Int'];
 };
 
 export type AccountDetails = {
@@ -220,6 +231,7 @@ export type AccountDetails = {
     name: Scalars['String'];
     session_count_per_month?: Maybe<Array<Maybe<NamedCount>>>;
     session_count_per_day?: Maybe<Array<Maybe<NamedCount>>>;
+    stripe_customer_id: Scalars['String'];
 };
 
 export type NamedCount = {
