@@ -6,8 +6,10 @@ package graph
 import (
 	"context"
 	"fmt"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"net/mail"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -210,9 +212,28 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
-	r.PushPayloadWorkerPool.SubmitRecover(func() {
-		r.processPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
-	})
+	session := &model.Session{}
+	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
+	}
+	if session.ProjectID == 1 {
+		r.ProducerQueue.Submit(&kafka_queue.Message{
+			Type: kafka_queue.PushPayload,
+			PushPayload: &kafka_queue.PushPayloadArgs{
+				SessionID:          sessionID,
+				Events:             events,
+				Messages:           messages,
+				Resources:          resources,
+				Errors:             errors,
+				IsBeacon:           isBeacon,
+				HasSessionUnloaded: hasSessionUnloaded,
+				HighlightLogs:      highlightLogs,
+			}}, strconv.Itoa(sessionID))
+	} else {
+		r.PushPayloadWorkerPool.SubmitRecover(func() {
+			r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
+		})
+	}
 	return size.Of(events), nil
 }
 

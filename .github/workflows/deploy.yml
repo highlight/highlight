@@ -86,3 +86,17 @@ jobs:
                 task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
                 service: metric-monitor
                 cluster: highlight-production-cluster
+          # Edit and deploy public worker
+            - name: Replace image label for public worker service
+              id: image-public-worker
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/public-worker-service.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS public worker service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
+                service: public-worker-service
+                cluster: highlight-production-cluster

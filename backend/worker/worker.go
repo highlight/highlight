@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io"
 	"math"
 	"math/rand"
@@ -34,6 +35,7 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -52,8 +54,10 @@ const MAX_RETRIES = 5
 const EVENTS_READ_TIMEOUT = 300000
 
 type Worker struct {
-	Resolver *mgraph.Resolver
-	S3Client *storage.StorageClient
+	Resolver       *mgraph.Resolver
+	PublicResolver *pubgraph.Resolver
+	S3Client       *storage.StorageClient
+	KafkaQueue     *kafka_queue.Queue
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -258,6 +262,47 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
+func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
+	ctx := context.Background()
+	switch task.Type {
+	case kafka_queue.PushPayload:
+		if task.PushPayload == nil {
+			break
+		}
+		w.PublicResolver.ProcessPayload(
+			ctx,
+			task.PushPayload.SessionID,
+			task.PushPayload.Events,
+			task.PushPayload.Messages,
+			task.PushPayload.Resources,
+			task.PushPayload.Errors,
+			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
+			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
+			task.PushPayload.HighlightLogs)
+	default:
+		log.Errorf("Unknown task type %+v", task.Type)
+	}
+}
+
+func (w *Worker) PublicWorker() {
+	if w.KafkaQueue == nil {
+		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Consumer)
+	}
+
+	wp := workerpool.New(80)
+	wp.SetPanicHandler(util.Recover)
+
+	// receive messages and submit them to worker pool for processing
+	for {
+		task := w.KafkaQueue.Receive()
+		if task == nil {
+			log.Errorf("worker retrieved empty message from kafka")
+			continue
+		}
+		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
+	}
+}
+
 // Delete data for any sessions created > 4 hours ago
 // if all session data has been written to s3
 func (w *Worker) DeleteCompletedSessions() {
@@ -415,7 +460,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 					var parsedData model.JSONB
 					err = json.Unmarshal(customEvent.Data, &parsedData)
 					if err != nil {
-						return e.Wrap(err, "error processing event chunk")
+						return e.Wrap(err, "error unmarshalling event chunk")
 					}
 					eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
 						SessionSecureID: s.SecureID,
@@ -966,6 +1011,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.RefreshMaterializedViews
 	case "delete-completed-sessions":
 		return w.DeleteCompletedSessions
+	case "public-worker":
+		return w.PublicWorker
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
@@ -1097,15 +1144,10 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				a.ClickEventQueue.Remove(elem)
 			}
 
-			var mouseInteractionEventData parse.MouseInteractionEventData
-			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
+			mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 			if err != nil {
 				a.Error = err
 				return a
-			}
-			if mouseInteractionEventData.Source == nil {
-				// all user interaction events must have a source
-				continue
 			}
 			if _, ok := map[parse.EventSource]bool{
 				parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
@@ -1149,8 +1191,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				if el == event {
 					continue
 				}
-				var prev *parse.MouseInteractionEventData
-				err = json.Unmarshal(el.Data, &prev)
+				prev, err := parse.UnmarshallMouseInteractionEvent(el.Data)
 				if err != nil {
 					a.Error = err
 					return a

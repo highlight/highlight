@@ -1,7 +1,7 @@
 import {
     addCustomEvent as rrwebAddCustomEvent,
-    record,
     getRecordSequentialIdPlugin,
+    record,
 } from '@highlight-run/rrweb';
 import {
     eventWithTime,
@@ -11,6 +11,7 @@ import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
     DebugOptions,
+    FeedbackWidgetOptions,
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../firstload/src/types/client';
@@ -18,10 +19,10 @@ import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
 import ErrorStackParser from 'error-stack-parser';
 import {
-    Sdk,
     getSdk,
-    PushPayloadMutationVariables,
     PushPayloadDocument,
+    PushPayloadMutationVariables,
+    Sdk,
 } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
@@ -37,7 +38,6 @@ import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
-import { FeedbackWidgetOptions } from '../../firstload/src/types/client';
 import { getPerformanceMethods } from './utils/performance/performance';
 import {
     PerformanceListener,
@@ -50,15 +50,20 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
+import { ReplayEventsInput } from './graph/generated/schemas';
+import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
 };
+
 class Logger {
     debug: boolean | undefined;
+
     constructor(debug?: boolean) {
         this.debug = debug;
     }
+
     log(...data: any[]) {
         if (this.debug) {
             console.log.apply(console, [`[${Date.now()}]`, ...data]);
@@ -559,6 +564,7 @@ export class Highlight {
             }
         }
     }
+
     async initialize() {
         if (
             navigator?.webdriver ||
@@ -796,10 +802,19 @@ export class Highlight {
                 })
             );
             this.listeners.push(
-                ClickListener((clickTarget) => {
+                ClickListener((clickTarget, event) => {
                     if (clickTarget) {
                         this.addCustomEvent('Click', clickTarget);
                     }
+                    let selector = null;
+                    if (event && event.target) {
+                        const t = event.target as HTMLElement;
+                        selector = getSimpleSelector(t);
+                    }
+                    highlightThis.addProperties(
+                        { clickTarget: clickTarget, clickSelector: selector },
+                        { type: 'session' }
+                    );
                 })
             );
             this.listeners.push(
@@ -1104,7 +1119,7 @@ export class Highlight {
         const messagesString = stringify({ messages: messages });
         let payload: PushPayloadMutationVariables = {
             session_id: this.sessionData.sessionID.toString(),
-            events: { events },
+            events: { events } as ReplayEventsInput,
             messages: messagesString,
             resources: resourcesString,
             errors,
@@ -1159,6 +1174,7 @@ export class Highlight {
 }
 
 (window as any).Highlight = Highlight;
+
 interface HighlightWindow extends Window {
     Highlight: Highlight;
     Intercom?: any;

@@ -6,7 +6,7 @@
         "@apollo/client": "^3.1.4",
         "@craco/craco": "^6.1.1",
         "@datadog/browser-logs": "^4.0.1",
-        "@highlight-run/react": "1.0.5",
+        "@highlight-run/react": "^1.1.6",
         "@highlight-run/react-mentions": "4.4.1",
         "@highlight-run/react-select": "^5.2.2",
         "@highlight-run/react-virtuoso": "^2.2.7",

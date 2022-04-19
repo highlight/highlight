@@ -32,6 +32,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.2.1
 	github.com/samber/lo v1.13.0
+	github.com/segmentio/kafka-go v0.4.31
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.9.1
@@ -86,11 +87,14 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
+	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/tinylib/msgp v1.1.2 // indirect
+	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
+	github.com/xdg/stringprep v1.0.0 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
