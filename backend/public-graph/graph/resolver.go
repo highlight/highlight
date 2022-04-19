@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -44,6 +45,7 @@ type Resolver struct {
 	PushPayloadWorkerPool *workerpool.WorkerPool
 	AlertWorkerPool       *workerpool.WorkerPool
 	DB                    *gorm.DB
+	ProducerQueue         *kafka_queue.Queue
 	MailClient            *sendgrid.Client
 	StorageClient         *storage.StorageClient
 	OpenSearch            *opensearch.Client
@@ -1396,7 +1398,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 }
 
-func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1459,18 +1461,14 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					// If we see a snapshot event, attempt to inject CORS stylesheets.
 					d, err := parse.InjectStylesheets(event.Data)
 					if err != nil {
+						log.Error(e.Wrap(err, "Error unmarshalling full snapshot"))
 						continue
 					}
 					event.Data = d
 				} else if event.Type == parse.IncrementalSnapshot {
-					var mouseInteractionEventData parse.MouseInteractionEventData
-					err = json.Unmarshal(event.Data, &mouseInteractionEventData)
+					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 					if err != nil {
 						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
-						continue
-					}
-					if mouseInteractionEventData.Source == nil {
-						// all user interaction events must have a source
 						continue
 					}
 					if _, ok := map[parse.EventSource]bool{
@@ -1666,7 +1664,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	sessionHasErrors := len(errors) > 0
 	// We care about if the session in it's entirety has errors or not.
-	// `processPayload` is run on chunks of a session so we need to check if we've seen any errors
+	// `ProcessPayload` is run on chunks of a session so we need to check if we've seen any errors
 	// in previous chunks.
 	if sessionObj != nil && sessionObj.HasErrors != nil {
 		if *sessionObj.HasErrors {

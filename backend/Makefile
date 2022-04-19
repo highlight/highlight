@@ -28,3 +28,5 @@ refresh-materialized-views:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=refresh-materialized-views)
 delete-completed-sessions:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=delete-completed-sessions)
+public-worker:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=public-worker)

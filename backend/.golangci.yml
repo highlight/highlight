@@ -30,20 +30,20 @@ linters:
 linters-settings:
   gosimple:
     # Select the Go version to target. The default is '1.13'.
-    go: "1.14"
+    go: "1.15"
 
   staticcheck:
     # Select the Go version to target. The default is '1.13'.
-    go: "1.14"
+    go: "1.15"
     checks: ["all"]
 
   stylecheck:
     # Select the Go version to target. The default is '1.13'.
-    go: "1.14"
+    go: "1.15"
 
   unused:
     # Select the Go version to target. The default is '1.13'.
-    go: "1.14"
+    go: "1.15"
 
   depguard:
     list-type: blacklist

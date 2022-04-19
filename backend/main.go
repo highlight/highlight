@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/sendgrid/sendgrid-go"
 	"html/template"
 	"io"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"github.com/gorilla/websocket"
 	H "github.com/highlight-run/highlight-go"
@@ -25,7 +28,6 @@ import (
 	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
-	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/v72/client"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 
@@ -270,6 +272,7 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
+						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 						MailClient:            sendgrid.NewSendClient(sendgridKey),
 						StorageClient:         storage,
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
@@ -343,29 +346,44 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
-	if runtimeParsed == util.Worker {
-		if !util.IsDevOrTestEnv() {
-			err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer profiler.Stop()
+	if runtimeParsed == util.Worker || runtimeParsed == util.All {
+		pushPayloadWorkerPool := workerpool.New(80)
+		pushPayloadWorkerPool.SetPanicHandler(util.Recover)
+		alertWorkerpool := workerpool.New(40)
+		alertWorkerpool.SetPanicHandler(util.Recover)
+		publicResolver := &public.Resolver{
+			DB:                    db,
+			MailClient:            sendgrid.NewSendClient(sendgridKey),
+			StorageClient:         storage,
+			PushPayloadWorkerPool: pushPayloadWorkerPool,
+			AlertWorkerPool:       alertWorkerpool,
+			OpenSearch:            opensearchClient,
 		}
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		if handlerFlag != nil && *handlerFlag != "" {
-			w.GetHandler(*handlerFlag)()
+		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
+		if runtimeParsed == util.Worker {
+			if !util.IsDevOrTestEnv() {
+				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer profiler.Stop()
+			}
+			if handlerFlag != nil && *handlerFlag != "" {
+				w.GetHandler(*handlerFlag)()
+			} else {
+				go func() {
+					w.Start()
+				}()
+				log.Fatal(http.ListenAndServe(":"+port, r))
+			}
 		} else {
 			go func() {
 				w.Start()
 			}()
+			// for the 'All' worker, explicitly run the PublicWorker as well
+			go w.PublicWorker()
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
-	} else if runtimeParsed == util.All {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		go func() {
-			w.Start()
-		}()
-		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}

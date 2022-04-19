@@ -229,3 +229,16 @@ func javascriptToGolangTime(t float64) time.Time {
 	tInt := int64(t)
 	return time.Unix(tInt/1000, (tInt%1000)*1000*1000).UTC()
 }
+
+func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEventData, error) {
+	aux := MouseInteractionEventData{}
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
+		return nil, err
+	}
+
+	if aux.Source == nil {
+		return nil, errors.New("all user interaction events must have a source")
+	}
+	return &aux, nil
+}
