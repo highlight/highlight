@@ -31,3 +31,8 @@ func Timing(name string, value time.Duration, tags []string, rate float64) {
 func Incr(name string, tags []string, rate float64) {
 	logIfError(name, dd.StatsD.Incr(name, tags, rate))
 }
+
+// Gauge measures the value of a metric at a particular time.
+func Gauge(name string, value float64, tags []string, rate float64) {
+	logIfError(name, dd.StatsD.Gauge(name, value, tags, rate))
+}
