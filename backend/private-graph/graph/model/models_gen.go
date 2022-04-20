@@ -289,16 +289,18 @@ type IntegrationType string
 const (
 	IntegrationTypeSlack  IntegrationType = "Slack"
 	IntegrationTypeLinear IntegrationType = "Linear"
+	IntegrationTypeZapier IntegrationType = "Zapier"
 )
 
 var AllIntegrationType = []IntegrationType{
 	IntegrationTypeSlack,
 	IntegrationTypeLinear,
+	IntegrationTypeZapier,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier:
 		return true
 	}
 	return false

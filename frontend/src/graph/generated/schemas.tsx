@@ -173,6 +173,7 @@ export enum SocialType {
 export enum IntegrationType {
     Slack = 'Slack',
     Linear = 'Linear',
+    Zapier = 'Zapier',
 }
 
 export enum ErrorState {
@@ -822,6 +823,7 @@ export type Query = {
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
+    generate_zapier_access_token: Scalars['String'];
     is_integrated_with: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
@@ -1124,6 +1126,10 @@ export type QuerySlack_Channel_SuggestionArgs = {
 };
 
 export type QuerySlack_MembersArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryGenerate_Zapier_Access_TokenArgs = {
     project_id: Scalars['ID'];
 };
 

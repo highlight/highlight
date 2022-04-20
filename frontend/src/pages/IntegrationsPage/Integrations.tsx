@@ -1,6 +1,7 @@
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig';
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig';
+import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig';
 import React from 'react';
 
 export interface Integration {
@@ -36,6 +37,20 @@ export const LINEAR_INTEGRATION: Integration = {
     configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
 };
 
-const INTEGRATIONS: Integration[] = [SLACK_INTEGRATION, LINEAR_INTEGRATION];
+export const ZAPIER_INTEGRATION: Integration = {
+    key: 'zapier',
+    name: 'Zapier',
+    configurationPath: 'zapier',
+    description:
+        'Use Highlight alerts and comments to trigger a Zapier workflow.',
+    icon: '/images/integrations/zapier.png',
+    configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
+};
+
+const INTEGRATIONS: Integration[] = [
+    SLACK_INTEGRATION,
+    LINEAR_INTEGRATION,
+    ZAPIER_INTEGRATION,
+];
 
 export default INTEGRATIONS;

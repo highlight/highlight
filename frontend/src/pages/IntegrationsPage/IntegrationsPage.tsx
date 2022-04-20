@@ -3,6 +3,7 @@ import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import Integration from '@pages/IntegrationsPage/components/Integration';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils';
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
@@ -17,14 +18,21 @@ const IntegrationsPage = () => {
 
     const { isLinearIntegratedWithProject } = useLinearIntegration();
 
+    const { isZapierIntegratedWithProject } = useZapierIntegration();
+
     const integrations = useMemo(() => {
         return INTEGRATIONS.map((inter) => ({
             ...inter,
             defaultEnable:
                 (inter.key === 'slack' && isSlackConnectedToWorkspace) ||
-                (inter.key === 'linear' && isLinearIntegratedWithProject),
+                (inter.key === 'linear' && isLinearIntegratedWithProject) ||
+                (inter.key === 'zapier' && isZapierIntegratedWithProject),
         }));
-    }, [isSlackConnectedToWorkspace, isLinearIntegratedWithProject]);
+    }, [
+        isSlackConnectedToWorkspace,
+        isLinearIntegratedWithProject,
+        isZapierIntegratedWithProject,
+    ]);
 
     return (
         <>

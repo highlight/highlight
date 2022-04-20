@@ -8818,6 +8818,117 @@ export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
     Types.GetWorkspaceIsIntegratedWithLinearQuery,
     Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
 >;
+export const GetWorkspaceIsIntegratedWithZapierDocument = gql`
+    query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
+        is_integrated_with_linear: is_integrated_with(
+            integration_type: Zapier
+            project_id: $project_id
+        )
+    }
+`;
+
+/**
+ * __useGetWorkspaceIsIntegratedWithZapierQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithZapierQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithZapierQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithZapierQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithZapierQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithZapierQuery,
+        Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithZapierQuery,
+        Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+    >(GetWorkspaceIsIntegratedWithZapierDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithZapierLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithZapierQuery,
+        Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithZapierQuery,
+        Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+    >(GetWorkspaceIsIntegratedWithZapierDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithZapierQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithZapierQuery
+>;
+export type GetWorkspaceIsIntegratedWithZapierLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithZapierLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithZapierQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithZapierQuery,
+    Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+>;
+export const GenerateNewZapierAccessTokenJwtDocument = gql`
+    query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
+        generate_zapier_access_token(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGenerateNewZapierAccessTokenJwtQuery__
+ *
+ * To run a query within a React component, call `useGenerateNewZapierAccessTokenJwtQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGenerateNewZapierAccessTokenJwtQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGenerateNewZapierAccessTokenJwtQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGenerateNewZapierAccessTokenJwtQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GenerateNewZapierAccessTokenJwtQuery,
+        Types.GenerateNewZapierAccessTokenJwtQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GenerateNewZapierAccessTokenJwtQuery,
+        Types.GenerateNewZapierAccessTokenJwtQueryVariables
+    >(GenerateNewZapierAccessTokenJwtDocument, baseOptions);
+}
+export function useGenerateNewZapierAccessTokenJwtLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GenerateNewZapierAccessTokenJwtQuery,
+        Types.GenerateNewZapierAccessTokenJwtQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GenerateNewZapierAccessTokenJwtQuery,
+        Types.GenerateNewZapierAccessTokenJwtQueryVariables
+    >(GenerateNewZapierAccessTokenJwtDocument, baseOptions);
+}
+export type GenerateNewZapierAccessTokenJwtQueryHookResult = ReturnType<
+    typeof useGenerateNewZapierAccessTokenJwtQuery
+>;
+export type GenerateNewZapierAccessTokenJwtLazyQueryHookResult = ReturnType<
+    typeof useGenerateNewZapierAccessTokenJwtLazyQuery
+>;
+export type GenerateNewZapierAccessTokenJwtQueryResult = Apollo.QueryResult<
+    Types.GenerateNewZapierAccessTokenJwtQuery,
+    Types.GenerateNewZapierAccessTokenJwtQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
         is_integrated_with_slack: is_integrated_with(
