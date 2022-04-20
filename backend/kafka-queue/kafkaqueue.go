@@ -17,7 +17,7 @@ import (
 )
 
 // KafkaOperationTimeout How long to wait for Kafka operations before polling again.
-const KafkaOperationTimeout = 15 * time.Second
+const KafkaOperationTimeout = 10 * time.Second
 
 const (
 	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
@@ -93,8 +93,10 @@ func New(topic string, mode Mode) *Queue {
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async: false,
 			// override batch limit to be our message max size
-			BatchBytes: messageSizeBytes,
-			BatchSize:  10000,
+			BatchBytes:   messageSizeBytes,
+			BatchSize:    10000,
+			ReadTimeout:  KafkaOperationTimeout,
+			WriteTimeout: KafkaOperationTimeout,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 10 * time.Millisecond,
 			MaxAttempts:  10,
@@ -108,11 +110,14 @@ func New(topic string, mode Mode) *Queue {
 				SASLMechanism: mechanism,
 				TLS:           tlsConfig,
 			},
-			Topic:         topic,
-			GroupID:       "group-default", // all partitions for this group, auto balanced
-			MinBytes:      prefetchSizeBytes,
-			MaxBytes:      messageSizeBytes,
-			QueueCapacity: 10000,
+			HeartbeatInterval: time.Second,
+			SessionTimeout:    KafkaOperationTimeout,
+			RebalanceTimeout:  KafkaOperationTimeout,
+			Topic:             topic,
+			GroupID:           "group-default", // all partitions for this group, auto balanced
+			MinBytes:          prefetchSizeBytes,
+			MaxBytes:          messageSizeBytes,
+			QueueCapacity:     10000,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: 100 * time.Millisecond,
