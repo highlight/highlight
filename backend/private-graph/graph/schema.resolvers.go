@@ -2587,16 +2587,45 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		Status: string(stripe.SubscriptionStatusActive),
 	}
 	subListParams.AddExpand("data.customer")
-	subs := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList().Data
-	subsByCustomer := lo.GroupBy(subs, func(sub *stripe.Subscription) string {
+	subListParams.Filters.AddFilter("limit", "", "100")
+	var startingAfter *string
+	var allSubs []*stripe.Subscription
+	for {
+		subListParams.StartingAfter = startingAfter
+		subList := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList()
+		allSubs = append(allSubs, subList.Data...)
+
+		if !subList.HasMore {
+			break
+		}
+
+		startingAfter = &subList.Data[len(subList.Data)-1].ID
+	}
+	subsByCustomer := lo.GroupBy(allSubs, func(sub *stripe.Subscription) string {
 		return sub.Customer.ID
 	})
 
 	invoiceListParams := stripe.InvoiceListParams{
 		Status: stripe.String(string(stripe.InvoiceStatusPaid)),
+		CreatedRange: &stripe.RangeQueryParams{
+			GreaterThan: time.Now().Add(-3 * 30 * 24 * time.Hour).Unix(),
+		},
 	}
-	invoices := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList().Data
-	invoicesByCustomer := lo.GroupBy(invoices, func(invoice *stripe.Invoice) string {
+	invoiceListParams.Filters.AddFilter("limit", "", "100")
+	var allInvoices []*stripe.Invoice
+	startingAfter = nil
+	for {
+		invoiceListParams.StartingAfter = startingAfter
+		invoiceList := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList()
+		allInvoices = append(allInvoices, invoiceList.Data...)
+
+		if !invoiceList.HasMore {
+			break
+		}
+
+		startingAfter = &invoiceList.Data[len(invoiceList.Data)-1].ID
+	}
+	invoicesByCustomer := lo.GroupBy(allInvoices, func(invoice *stripe.Invoice) string {
 		return invoice.Customer.ID
 	})
 
