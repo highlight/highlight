@@ -216,7 +216,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
-	if session.ProjectID == 1 {
+	// rollout for Highlight,Porter, Basedash, Cabal
+	if session.ProjectID == 1 || session.ProjectID == 24 || session.ProjectID == 162 || session.ProjectID == 754 {
 		r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushPayload,
 			PushPayload: &kafka_queue.PushPayloadArgs{
