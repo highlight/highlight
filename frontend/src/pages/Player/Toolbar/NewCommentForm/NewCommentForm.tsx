@@ -38,7 +38,6 @@ import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import html2canvas from 'html2canvas';
 import React, { useEffect, useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { Link } from 'react-router-dom';
@@ -222,30 +221,57 @@ export const NewCommentForm = ({
         let session_image: undefined | string = undefined;
 
         if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
-            const iframe = document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement;
-            const canvas = await new Promise((resolve) =>
-                setTimeout(resolve, 300)
-            ).then(() =>
-                html2canvas(iframe.contentDocument!.documentElement, {
-                    allowTaint: true,
-                    logging: false,
-                    backgroundColor: null,
-                    foreignObjectRendering: false,
-                    useCORS: false,
-                    proxy: 'https://html2imageproxy.highlightrun.workers.dev',
-                    windowHeight: Number(iframe.height),
-                    windowWidth: Number(iframe.width),
-                    height: Number(iframe.height),
-                    width: Number(iframe.width),
-                    scrollY:
-                        iframe.contentDocument?.firstElementChild?.scrollTop,
-                })
-            );
-            session_image = canvas
-                .toDataURL()
-                .replace('data:image/png;base64,', '');
+            // only for Highlight and Impira
+            if (new Set([1, 122, 172]).has(Number(project_id))) {
+                // close the comment before taking the screenshot
+                onCloseHandler();
+
+                let captureStream = null;
+
+                try {
+                    captureStream = await navigator.mediaDevices.getDisplayMedia(
+                        {
+                            video: true,
+                        }
+                    );
+                } catch (err) {
+                    console.error('Error: ' + err);
+                }
+
+                if (captureStream) {
+                    const iframe = document.querySelector(
+                        '.replayer-wrapper iframe'
+                    ) as HTMLIFrameElement;
+                    const box = iframe.getBoundingClientRect();
+
+                    const tracks = captureStream.getVideoTracks();
+                    const imageCapture = new ImageCapture(tracks[0]);
+                    const photo = await imageCapture.grabFrame();
+
+                    const canvas = document.createElement(
+                        'CANVAS'
+                    ) as HTMLCanvasElement;
+                    canvas.height = box.height;
+                    canvas.width = box.width;
+                    canvas
+                        .getContext('2d')
+                        ?.drawImage(
+                            photo,
+                            box.x,
+                            box.y,
+                            box.width,
+                            box.height,
+                            0,
+                            0,
+                            canvas.width,
+                            canvas.height
+                        );
+                    session_image = canvas
+                        .toDataURL('image/png', 0.9)
+                        .replace('data:image/png;base64,', '');
+                    tracks.forEach((track) => track.stop());
+                }
+            }
         }
 
         const { issueTitle, issueDescription } = form.getFieldsValue([
