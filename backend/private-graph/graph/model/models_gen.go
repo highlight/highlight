@@ -10,9 +10,20 @@ import (
 )
 
 type Account struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	SessionCount int    `json:"session_count"`
+	ID                   int        `json:"id"`
+	Name                 string     `json:"name"`
+	SessionCountCur      int        `json:"session_count_cur"`
+	SessionCountPrev     int        `json:"session_count_prev"`
+	SessionCountPrevPrev int        `json:"session_count_prev_prev"`
+	SessionLimit         int        `json:"session_limit"`
+	PaidPrev             int        `json:"paid_prev"`
+	PaidPrevPrev         int        `json:"paid_prev_prev"`
+	Email                string     `json:"email"`
+	SubscriptionStart    *time.Time `json:"subscription_start"`
+	PlanTier             string     `json:"plan_tier"`
+	StripeCustomerID     string     `json:"stripe_customer_id"`
+	MemberCount          int        `json:"member_count"`
+	MemberLimit          int        `json:"member_limit"`
 }
 
 type AccountDetails struct {
@@ -20,6 +31,7 @@ type AccountDetails struct {
 	Name                 string        `json:"name"`
 	SessionCountPerMonth []*NamedCount `json:"session_count_per_month"`
 	SessionCountPerDay   []*NamedCount `json:"session_count_per_day"`
+	StripeCustomerID     string        `json:"stripe_customer_id"`
 }
 
 type AdminAboutYouDetails struct {

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +35,7 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -2563,19 +2565,75 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
 	}
+
 	accounts := []*modelInputs.Account{}
 	if err := r.DB.Raw(`
-	SELECT id, name, 
-	(select COALESCE(SUM(count), 0) as currentPeriodSessionCount
-	  from daily_session_counts_view
-		  where
-			  project_id in (SELECT id FROM projects WHERE workspace_id=workspaces.id)
-		  AND date >=  now() - interval '1 month'
-  	) as last_month_session_count , id, plan_tier, stripe_customer_id
-	FROM workspaces
+		SELECT w.id, w.name, w.plan_tier, w.stripe_customer_id,
+		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then count else 0 end), 0) as session_count_cur,
+		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '1 month' and sc.date < COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then count else 0 end), 0) as session_count_prev,
+		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '2 months' and sc.date < COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '1 month' then count else 0 end), 0) as session_count_prev_prev,
+		(select count(*) from workspace_admins wa where wa.workspace_id = w.id) as member_count
+		FROM workspaces w
+		INNER JOIN projects p
+		ON p.workspace_id = w.id
+		INNER JOIN daily_session_counts_view sc
+		ON sc.project_id = p.id
+		group by 1, 2
 	`).Scan(&accounts).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving accounts for project")
 	}
+
+	subListParams := stripe.SubscriptionListParams{
+		Status: string(stripe.SubscriptionStatusActive),
+	}
+	subListParams.AddExpand("data.customer")
+	subs := r.StripeClient.Subscriptions.List(&subListParams).SubscriptionList().Data
+	subsByCustomer := lo.GroupBy(subs, func(sub *stripe.Subscription) string {
+		return sub.Customer.ID
+	})
+
+	invoiceListParams := stripe.InvoiceListParams{
+		Status: stripe.String(string(stripe.InvoiceStatusPaid)),
+	}
+	invoices := r.StripeClient.Invoices.List(&invoiceListParams).InvoiceList().Data
+	invoicesByCustomer := lo.GroupBy(invoices, func(invoice *stripe.Invoice) string {
+		return invoice.Customer.ID
+	})
+
+	for _, account := range accounts {
+		subs, ok := subsByCustomer[account.StripeCustomerID]
+		if ok {
+			sort.Slice(subs, func(i, j int) bool {
+				return subs[i].StartDate < subs[j].StartDate
+			})
+			start := time.Unix(subs[0].StartDate, 0)
+			account.SubscriptionStart = &start
+			account.Email = subs[0].Customer.Email
+		}
+
+		invoices, ok := invoicesByCustomer[account.StripeCustomerID]
+		if ok {
+			sort.Slice(invoices, func(i, j int) bool {
+				return invoices[i].DueDate > invoices[j].DueDate
+			})
+			start := time.Unix(subs[0].StartDate, 0)
+			account.SubscriptionStart = &start
+			account.PaidPrev = int(invoices[0].AmountPaid)
+			if len(invoices) > 1 {
+				account.PaidPrevPrev = int(invoices[1].AmountPaid)
+			}
+		}
+
+		planTier := modelInputs.PlanType(account.PlanTier)
+		if account.SessionLimit == 0 {
+			account.SessionLimit = pricing.TypeToQuota(planTier)
+		}
+
+		if account.MemberLimit == 0 {
+			account.MemberLimit = pricing.TypeToMemberLimit(planTier)
+		}
+	}
+
 	return accounts, nil
 }
 
@@ -2619,11 +2677,17 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 		sessionCountsPerDay = append(sessionCountsPerDay, &modelInputs.NamedCount{Name: s.Day, Count: s.Sum})
 	}
 
+	var stripeCustomerId string
+	if workspace.StripeCustomerID != nil {
+		stripeCustomerId = *workspace.StripeCustomerID
+	}
+
 	details := &modelInputs.AccountDetails{
 		SessionCountPerMonth: sessionCountsPerMonth,
 		SessionCountPerDay:   sessionCountsPerDay,
 		Name:                 *workspace.Name,
 		ID:                   workspace.ID,
+		StripeCustomerID:     stripeCustomerId,
 	}
 	return details, nil
 }

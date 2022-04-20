@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sendgrid/sendgrid-go"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/sendgrid/sendgrid-go"
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
@@ -44,6 +45,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
+	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
 )
 

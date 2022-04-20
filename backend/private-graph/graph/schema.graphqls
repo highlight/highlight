@@ -183,7 +183,18 @@ type Project {
 type Account {
     id: ID!
     name: String!
-    session_count: Int!
+    session_count_cur: Int!
+    session_count_prev: Int!
+    session_count_prev_prev: Int!
+    session_limit: Int!
+    paid_prev: Int!
+    paid_prev_prev: Int!
+    email: String!
+    subscription_start: Timestamp
+    plan_tier: String!
+    stripe_customer_id: String!
+    member_count: Int!
+    member_limit: Int!
 }
 
 type AccountDetails {
@@ -191,6 +202,7 @@ type AccountDetails {
     name: String!
     session_count_per_month: [NamedCount]
     session_count_per_day: [NamedCount]
+    stripe_customer_id: String!
 }
 
 type NamedCount {
