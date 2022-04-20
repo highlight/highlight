@@ -20,7 +20,7 @@ import (
 const KafkaOperationTimeout = 15 * time.Second
 
 const (
-	prefetchSizeBytes = 8 * 1000 * 1000   // 8 MB
+	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -179,18 +179,24 @@ func (p *Queue) LogStats() {
 		stats := p.kafkaP.Stats()
 		log.Debugf("Kafka Producer Stats: count %d. batchAvg %s. writeAvg %s. waitAvg %s", stats.Messages, stats.BatchTime.Avg, stats.WriteTime.Avg, stats.WaitTime.Avg)
 
-		hlog.Histogram("worker.kafka.produceMessageCountSum", float64(stats.Messages), nil, 1)
 		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram("worker.kafka.produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.produceBytes", float64(stats.Bytes), nil, 1)
+		hlog.Histogram("worker.kafka.produceErrors", float64(stats.Errors), nil, 1)
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
 		log.Debugf("Kafka Consumer Stats: count %d. readAvg %s. waitAvg %s", stats.Messages, stats.ReadTime.Avg, stats.WaitTime.Avg)
 
-		hlog.Histogram("worker.kafka.consumeMessageCountSum", float64(stats.Messages), nil, 1)
 		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram("worker.kafka.consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.consumeBytes", float64(stats.Bytes), nil, 1)
+		hlog.Histogram("worker.kafka.consumeErrors", float64(stats.Errors), nil, 1)
 	}
 }
 
