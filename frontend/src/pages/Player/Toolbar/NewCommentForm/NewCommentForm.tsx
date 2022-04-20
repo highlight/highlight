@@ -267,7 +267,7 @@ export const NewCommentForm = ({
                             canvas.height
                         );
                     session_image = canvas
-                        .toDataURL('image/png', 0.9)
+                        .toDataURL('image/png', 1.0)
                         .replace('data:image/png;base64,', '');
                     tracks.forEach((track) => track.stop());
                 }
