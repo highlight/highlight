@@ -94,7 +94,7 @@ func New(topic string, mode Mode) *Queue {
 			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes: messageSizeBytes,
-			BatchSize:  1000,
+			BatchSize:  10000,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 10 * time.Millisecond,
 			MaxAttempts:  10,
@@ -112,7 +112,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:       "group-default", // all partitions for this group, auto balanced
 			MinBytes:      prefetchSizeBytes,
 			MaxBytes:      messageSizeBytes,
-			QueueCapacity: 1000,
+			QueueCapacity: 10000,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: 100 * time.Millisecond,
