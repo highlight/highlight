@@ -12,6 +12,7 @@ import { Spin } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AnimateHeight from 'react-animate-height';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 
@@ -130,6 +131,7 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
+    const [lastTyped, setLastTyped] = useState('');
     const [lastLoadedQuery, setLastLoadedQuery] = useState<string>();
     const [isTyping, setIsTyping] = useState(false);
     const {
@@ -340,6 +342,7 @@ const QuickSearch = () => {
                         setQuery('');
                     }
                     setIsTyping(newValue !== '');
+                    setLastTyped(newValue);
                 }}
                 components={{
                     DropdownIndicator: () => (
@@ -359,9 +362,32 @@ const QuickSearch = () => {
                     LoadingIndicator: () => {
                         return <></>;
                     },
+                    MenuList: (props: any) => {
+                        let height = 0;
+                        if (Array.isArray(props.children)) {
+                            for (const c of props.children || []) {
+                                height += 35 + 35 * c.props.children.length;
+                            }
+                        }
+                        return (
+                            <AnimateHeight
+                                key={'animatedMenu'}
+                                duration={300}
+                                height={height || 'auto'}
+                            >
+                                {props.children}
+                            </AnimateHeight>
+                        );
+                    },
                 }}
                 isSearchable
-                defaultOptions
+                defaultOptions={[
+                    {
+                        label: 'Default',
+                        tooltip: 'Search by user identifier.',
+                        options: [getDefaultField(lastTyped)],
+                    },
+                ]}
                 maxMenuHeight={500}
                 menuIsOpen={isMenuOpen === true ? true : undefined}
             />
