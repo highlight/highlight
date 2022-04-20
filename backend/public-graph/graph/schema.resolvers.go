@@ -212,8 +212,8 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
-	// use kafka for 1% of all sessions
-	useKafka := sessionID%100 == 37
+	// use kafka for 10% of all sessions
+	useKafka := sessionID%10 == 7
 
 	var err error = nil
 	if useKafka {
