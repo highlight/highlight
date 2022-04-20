@@ -35,6 +35,7 @@ jobs:
               uses: actions/setup-go@v3
               with:
                 go-version: '>=1.18.x'
+            - run: go version
     code-quality-check:
         needs: code-setup
         runs-on: ubuntu-latest
