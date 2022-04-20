@@ -135,6 +135,7 @@ export const Accounts = () => {
                             },
                         };
                     }}
+                    size="small"
                     columns={[
                         {
                             title: 'Name',
@@ -144,8 +145,15 @@ export const Accounts = () => {
                                     {record.name}
                                 </a>
                             ),
+                            sorter: (a, b) =>
+                                (a.name ?? '').localeCompare(b.name ?? ''),
                         },
-                        { title: 'Email', dataIndex: 'email' },
+                        {
+                            title: 'Email',
+                            dataIndex: 'email',
+                            sorter: (a, b) =>
+                                (a.email ?? '').localeCompare(b.email ?? ''),
+                        },
                         {
                             title: 'Stripe Customer ID',
                             dataIndex: 'stripe_customer_id',
@@ -156,21 +164,47 @@ export const Accounts = () => {
                                     {value}
                                 </a>
                             ),
+                            sorter: (a, b) =>
+                                (a.stripe_customer_id ?? '').localeCompare(
+                                    b.stripe_customer_id ?? ''
+                                ),
                         },
                         {
                             title: 'Subscription Start',
                             dataIndex: 'subscription_start',
                             render: (value) => moment(value).format('MM/DD/YY'),
+                            sorter: (a, b) =>
+                                (a.subscription_start ?? '').localeCompare(
+                                    b.subscription_start ?? ''
+                                ),
                         },
-                        { title: 'Plan Tier', dataIndex: 'plan_tier' },
-                        { title: 'Session Limit', dataIndex: 'session_limit' },
+                        {
+                            title: 'Plan Tier',
+                            dataIndex: 'plan_tier',
+                            sorter: (a, b) =>
+                                (a.plan_tier ?? '').localeCompare(
+                                    b.plan_tier ?? ''
+                                ),
+                        },
+                        {
+                            title: 'Session Limit',
+                            dataIndex: 'session_limit',
+                            sorter: (a, b) =>
+                                (a.session_limit ?? 0) - (b.session_limit ?? 0),
+                        },
                         {
                             title: 'Sessions This Month',
                             dataIndex: 'session_count_cur',
+                            sorter: (a, b) =>
+                                (a.session_count_cur ?? 0) -
+                                (b.session_count_cur ?? 0),
                         },
                         {
                             title: 'Sessions Last Month',
                             dataIndex: 'session_count_prev',
+                            sorter: (a, b) =>
+                                (a.session_count_prev ?? 0) -
+                                (b.session_count_prev ?? 0),
                         },
                         {
                             title: 'Paid Last Month',
@@ -188,10 +222,15 @@ export const Accounts = () => {
                                     })
                                 );
                             },
+                            sorter: (a, b) =>
+                                (a.paid_prev ?? 0) - (b.paid_prev ?? 0),
                         },
                         {
                             title: 'Sessions Two Months Ago',
                             dataIndex: 'session_count_prev_prev',
+                            sorter: (a, b) =>
+                                (a.session_count_prev_prev ?? 0) -
+                                (b.session_count_prev_prev ?? 0),
                         },
                         {
                             title: 'Paid Two Months Ago',
@@ -209,14 +248,21 @@ export const Accounts = () => {
                                     })
                                 );
                             },
+                            sorter: (a, b) =>
+                                (a.paid_prev_prev ?? 0) -
+                                (b.paid_prev_prev ?? 0),
                         },
                         {
                             title: 'Member Count',
                             dataIndex: 'member_count',
+                            sorter: (a, b) =>
+                                (a.member_count ?? 0) - (b.member_count ?? 0),
                         },
                         {
                             title: 'Member Limit',
                             dataIndex: 'member_limit',
+                            sorter: (a, b) =>
+                                (a.member_limit ?? 0) - (b.member_limit ?? 0),
                         },
                     ]}
                     dataSource={accountData?.accounts?.map((a, i) => {
