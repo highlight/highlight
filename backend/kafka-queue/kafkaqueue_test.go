@@ -40,7 +40,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	for i := 0; i < workers; i++ {
 		go func(w int) {
 			for j := 0; j < submitsPerWorker; j++ {
-				writer.Submit(&Message{
+				_ = writer.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						SessionID: -1,
