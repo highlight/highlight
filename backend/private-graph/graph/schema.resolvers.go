@@ -2616,8 +2616,6 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 			sort.Slice(invoices, func(i, j int) bool {
 				return invoices[i].DueDate > invoices[j].DueDate
 			})
-			start := time.Unix(subs[0].StartDate, 0)
-			account.SubscriptionStart = &start
 			account.PaidPrev = int(invoices[0].AmountPaid)
 			if len(invoices) > 1 {
 				account.PaidPrevPrev = int(invoices[1].AmountPaid)
