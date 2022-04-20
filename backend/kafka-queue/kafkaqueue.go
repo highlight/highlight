@@ -138,11 +138,11 @@ func (p *Queue) Stop() {
 	}
 }
 
-func (p *Queue) Submit(msg *Message, partitionKey string) {
+func (p *Queue) Submit(msg *Message, partitionKey string) error {
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
-		return
+		return err
 	}
 	err = p.kafkaP.WriteMessages(context.Background(),
 		kafka.Message{
@@ -152,9 +152,10 @@ func (p *Queue) Submit(msg *Message, partitionKey string) {
 	)
 	if err != nil {
 		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
-		return
+		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
+	return nil
 }
 
 func (p *Queue) Receive() (msg *Message) {
@@ -178,6 +179,7 @@ func (p *Queue) LogStats() {
 		stats := p.kafkaP.Stats()
 		log.Debugf("Kafka Producer Stats: count %d. batchAvg %s. writeAvg %s. waitAvg %s", stats.Messages, stats.BatchTime.Avg, stats.WriteTime.Avg, stats.WaitTime.Avg)
 
+		hlog.Histogram("worker.kafka.produceMessageCountSum", float64(stats.Messages), nil, 1)
 		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
@@ -186,6 +188,7 @@ func (p *Queue) LogStats() {
 		stats := p.kafkaC.Stats()
 		log.Debugf("Kafka Consumer Stats: count %d. readAvg %s. waitAvg %s", stats.Messages, stats.ReadTime.Avg, stats.WaitTime.Avg)
 
+		hlog.Histogram("worker.kafka.consumeMessageCountSum", float64(stats.Messages), nil, 1)
 		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
 	}
