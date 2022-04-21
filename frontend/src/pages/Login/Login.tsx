@@ -288,11 +288,12 @@ const LoginForm = () => {
                             </div>
                         )}
                         <p
-                            className={classNames(styles.resetPasswordText, {
-                                [styles.canResetPasswordText]: email.length,
-                            })}
+                            className={styles.resetPasswordText}
                             onClick={() => {
-                                if (!email.length) return;
+                                if (!email.length) {
+                                    message.warning('Please enter your email.');
+                                    return;
+                                }
                                 auth.sendPasswordResetEmail(email)
                                     .then(() => {
                                         message.success(

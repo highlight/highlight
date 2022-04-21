@@ -1,4 +1,3 @@
-export const canResetPasswordText: string;
 export const googleButton: string;
 export const googleLogoStyle: string;
 export const googleText: string;
