@@ -6,10 +6,8 @@ package graph
 import (
 	"context"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"net/mail"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -212,19 +210,10 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
-	err := r.ProducerQueue.Submit(&kafka_queue.Message{
-		Type: kafka_queue.PushPayload,
-		PushPayload: &kafka_queue.PushPayloadArgs{
-			SessionID:          sessionID,
-			Events:             events,
-			Messages:           messages,
-			Resources:          resources,
-			Errors:             errors,
-			IsBeacon:           isBeacon,
-			HasSessionUnloaded: hasSessionUnloaded,
-			HighlightLogs:      highlightLogs,
-		}}, strconv.Itoa(sessionID))
-	return size.Of(events), err
+	r.PushPayloadWorkerPool.SubmitRecover(func() {
+		r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
+	})
+	return size.Of(events), nil
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
