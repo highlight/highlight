@@ -77,3 +77,13 @@
     row-gap: var(--size-medium);
     width: 100%;
 }
+
+.resetPasswordText {
+    margin: 0.75em !important;
+    text-align: left;
+    width: 100%;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

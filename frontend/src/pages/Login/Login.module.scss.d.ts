@@ -11,3 +11,4 @@ export const loginSubTitle: string;
 export const loginTitle: string;
 export const loginTitleWrapper: string;
 export const otherSigninText: string;
+export const resetPasswordText: string;

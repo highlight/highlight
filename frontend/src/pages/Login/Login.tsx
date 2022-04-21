@@ -8,6 +8,7 @@ import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmail
 import useLocalStorage from '@rehooks/local-storage';
 import { AppRouter } from '@routers/AppRouter/AppRouter';
 import { auth, googleProvider } from '@util/auth';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -286,6 +287,28 @@ const LoginForm = () => {
                                 {error}
                             </div>
                         )}
+                        <p
+                            className={styles.resetPasswordText}
+                            onClick={() => {
+                                if (!email.length) {
+                                    message.warning('Please enter your email.');
+                                    return;
+                                }
+                                auth.sendPasswordResetEmail(email)
+                                    .then(() => {
+                                        message.success(
+                                            'Password reset email sent!'
+                                        );
+                                    })
+                                    .catch((error) => {
+                                        message.error(
+                                            `Failed to send password reset email. ${error}`
+                                        );
+                                    });
+                            }}
+                        >
+                            Forgot password?
+                        </p>
                         <Button
                             trackingId="LoginSignInUp"
                             className={commonStyles.submitButton}
