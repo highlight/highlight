@@ -14,12 +14,16 @@ export interface IntegrationConfigProps {
 
 interface Props {
     integration: IntegrationType;
+    showModalDefault?: boolean;
 }
 
 const Integration = ({
     integration: { icon, name, description, configurationPage, defaultEnable },
+    showModalDefault,
 }: Props) => {
-    const [showConfiguration, setShowConfiguration] = useState(false);
+    const [showConfiguration, setShowConfiguration] = useState(
+        showModalDefault && !defaultEnable
+    );
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable);
 

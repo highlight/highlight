@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import PlugIcon from '@icons/PlugIcon';
+import Sparkles2Icon from '@icons/Sparkles2Icon';
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils';
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock';
@@ -87,7 +88,7 @@ const ZapierIntegrationConfig: React.FC<IntegrationConfigProps> = ({
             />
             <footer>
                 <Button
-                    trackingId={`IntegrationConfigurationCancel-Slack`}
+                    trackingId={`IntegrationConfigurationCancel-Zapier`}
                     className={styles.modalBtn}
                     onClick={() => {
                         setModelOpen(false);
@@ -95,6 +96,16 @@ const ZapierIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                     }}
                 >
                     Cancel
+                </Button>
+                <Button
+                    trackingId={`IntegrationConfigurationSave-Zapier`}
+                    className={styles.modalBtn}
+                    type="primary"
+                    target="_blank"
+                    href="https://zapier.com/app/zaps" // TODO: change to Highlight Zap URL
+                >
+                    <Sparkles2Icon className={styles.modalBtnIcon} /> Create a
+                    Zap
                 </Button>
             </footer>
         </>

@@ -6,8 +6,9 @@ import Integration from '@pages/IntegrationsPage/components/Integration';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils';
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet';
+import { StringParam, useQueryParam } from 'use-query-params';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './IntegrationsPage.module.scss';
@@ -16,6 +17,8 @@ const IntegrationsPage = () => {
     const { isSlackConnectedToWorkspace, loading } = useSlackBot({
         type: 'Organization',
     });
+
+    const [popUpModal] = useQueryParam('enable', StringParam);
 
     const { isHighlightAdmin } = useAuthContext();
 
@@ -40,10 +43,6 @@ const IntegrationsPage = () => {
         isHighlightAdmin,
     ]);
 
-    useEffect(() => {
-        console.log({ isHighlightAdmin });
-    }, [isHighlightAdmin]);
-
     return (
         <>
             <Helmet>
@@ -63,6 +62,9 @@ const IntegrationsPage = () => {
                             <Integration
                                 integration={integration}
                                 key={integration.key}
+                                showModalDefault={
+                                    popUpModal === integration.key
+                                }
                             />
                         )
                     )}
