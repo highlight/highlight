@@ -166,8 +166,7 @@ const FreePlanBanner = () => {
     }
 
     if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-        toggleShowBanner(false);
-        return null;
+        return <ProductHuntBanner />;
     }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
@@ -313,17 +312,16 @@ const ProductHuntBanner = () => {
 
     const bannerMessage = (
         <span>
-            Highlight has been nominated for “Best Developer Tool of the Year”
-            by Product Hunt. Vote for us{' '}
+            Highlight is live on Product Hunt 🎉‍{' '}
             <a
                 target="_blank"
-                href="https://www.producthunt.com/golden-kitty-awards-2021/developer-tool"
+                href="https://www.producthunt.com/posts/comments-by-highlight"
                 className={styles.trialLink}
                 rel="noreferrer"
             >
-                here
-            </a>
-            !
+                Support us
+            </a>{' '}
+            and we'll be forever grateful ❤️
         </span>
     );
 
