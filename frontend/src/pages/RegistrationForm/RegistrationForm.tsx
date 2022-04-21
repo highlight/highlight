@@ -92,11 +92,11 @@ const RegistrationForm = () => {
             <div className={styles.box} key={workspace_id}>
                 <form onSubmit={onSubmit}>
                     <h2 className={styles.title}>
-                        Sign up for 1 month of Free Highlight!
+                        Sign up for 1 week of Free Highlight!
                     </h2>
                     <p className={styles.subTitle}>
                         Looks like you’ve integrated Highlight; congrats! Fill
-                        out the form below to get 1 month of free Highlight. If
+                        out the form below to get 1 extra week of free Highlight. If
                         you’re eligible, we’ll be in touch{' '}
                         <strong>within 2 days with confirmation</strong>!{' '}
                     </p>
