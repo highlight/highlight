@@ -142,6 +142,22 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
+                        const controller = new AbortController();
+                        setTimeout(() => controller.abort(), 1000);
+
+                        fetch(
+                            'https://javascript.info/article/fetch-abort/demo/hang',
+                            {
+                                signal: controller.signal,
+                            }
+                        );
+                    }}
+                >
+                    Abort!
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
                         H.track('thisIsInvalid', {
                             // @ts-expect-error
                             invalidProperty: { nestedProperty: true },
