@@ -14,7 +14,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './IntegrationsPage.module.scss';
 
 const IntegrationsPage = () => {
-    const { isSlackConnectedToWorkspace, loading } = useSlackBot({
+    const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot({
         type: 'Organization',
     });
 
@@ -22,9 +22,20 @@ const IntegrationsPage = () => {
 
     const { isHighlightAdmin } = useAuthContext();
 
-    const { isLinearIntegratedWithProject } = useLinearIntegration();
+    const {
+        isLinearIntegratedWithProject,
+        loading: loadingLinear,
+    } = useLinearIntegration();
 
-    const { isZapierIntegratedWithProject } = useZapierIntegration();
+    const {
+        isZapierIntegratedWithProject,
+        loading: loadingZapier,
+    } = useZapierIntegration();
+
+    const loading = useMemo(
+        () => loadingLinear || loadingSlack || loadingZapier,
+        [loadingLinear, loadingSlack, loadingZapier]
+    );
 
     const integrations = useMemo(() => {
         return INTEGRATIONS.filter((inter) =>
