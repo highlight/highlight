@@ -1,31 +1,25 @@
 package kafka_queue
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"math/rand"
 	"sync"
 	"testing"
+	"time"
 )
 
 const (
-	workers          = 1024
-	submitsPerWorker = 128
+	workers          = 24
+	submitsPerWorker = 4
+	msgSizeBytes     = 1 * 1000 * 1000
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
 	log.Infof("Starting benchmark")
-	inputBytes, err := ioutil.ReadFile("../event-parse/sample-events/input.json")
-	if err != nil {
-		b.Fatalf("error reading: %v", err)
-	}
-	var inputMsg json.RawMessage
-	err = json.Unmarshal(inputBytes, &inputMsg)
-	if err != nil {
-		b.Fatalf("error unmarshaling: %v", err)
-	}
+
+	rand.Seed(time.Now().UnixNano())
 
 	writer := New("dev", Producer)
 	reader := New("dev", Consumer)
@@ -39,8 +33,10 @@ func BenchmarkQueue_Submit(b *testing.B) {
 
 	for i := 0; i < workers; i++ {
 		go func(w int) {
+			dataBytes := make([]byte, msgSizeBytes)
 			for j := 0; j < submitsPerWorker; j++ {
-				_ = writer.Submit(&Message{
+				rand.Read(dataBytes)
+				err := writer.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						SessionID: -1,
@@ -49,7 +45,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 								Type:      0,
 								Timestamp: 0,
 								Sid:       0,
-								Data:      inputMsg,
+								Data:      dataBytes,
 							}},
 						},
 						Messages:           "",
@@ -60,6 +56,9 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						HighlightLogs:      nil,
 					},
 				}, fmt.Sprintf("test-%d", w))
+				if err != nil {
+					log.Error(err)
+				}
 			}
 			sendWg.Done()
 		}(i)
@@ -80,9 +79,14 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			recWg.Done()
 		}()
 	}
+	log.Infof("Waiting for senders to finish.")
 	sendWg.Wait()
+	log.Infof("Senders finished. Stopping writer.")
 	writer.Stop()
+	log.Infof("Stopping receiving.")
 	receive = false
+	log.Infof("Waiting for receivers to finish.")
 	recWg.Wait()
+	log.Infof("Receivers finished. Stopping reader.")
 	reader.Stop()
 }
