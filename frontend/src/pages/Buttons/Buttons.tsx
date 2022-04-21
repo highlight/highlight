@@ -150,7 +150,9 @@ export const Buttons = () => {
                             {
                                 signal: controller.signal,
                             }
-                        );
+                        ).catch(() => {
+                            console.log('abort caught!');
+                        });
                     }}
                 >
                     Abort!
