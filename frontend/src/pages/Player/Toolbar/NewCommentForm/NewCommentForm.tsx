@@ -229,10 +229,11 @@ export const NewCommentForm = ({
                 let captureStream = null;
 
                 try {
+                    // prefer current tab if possible
                     captureStream = await navigator.mediaDevices.getDisplayMedia(
-                        {
-                            video: true,
-                        }
+                        ({
+                            preferCurrentTab: true,
+                        } as unknown) as any
                     );
                 } catch (err) {
                     console.error('Error: ' + err);
