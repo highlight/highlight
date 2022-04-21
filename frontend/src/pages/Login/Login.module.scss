@@ -77,3 +77,23 @@
     row-gap: var(--size-medium);
     width: 100%;
 }
+
+.resetPasswordText {
+    margin: 0.75em !important;
+    opacity: 0;
+    text-align: left;
+    transition: opacity 1.0s ease-in-out;
+    width: 100%;
+}
+
+.canResetPasswordText {
+    opacity: 1;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
+    &:active &:focus {
+        border: #1d4ed8 1px solid;
+    }
+}
