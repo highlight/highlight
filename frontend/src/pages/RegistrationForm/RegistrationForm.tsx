@@ -96,8 +96,8 @@ const RegistrationForm = () => {
                     </h2>
                     <p className={styles.subTitle}>
                         Looks like you’ve integrated Highlight; congrats! Fill
-                        out the form below to get 1 extra week of free Highlight. If
-                        you’re eligible, we’ll be in touch{' '}
+                        out the form below to get 1 extra week of free{' '}
+                        Highlight. If you’re eligible, we’ll be in touch{' '}
                         <strong>within 2 days with confirmation</strong>!{' '}
                     </p>
                     {error && (
