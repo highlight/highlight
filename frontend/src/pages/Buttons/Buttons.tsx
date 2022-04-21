@@ -1,5 +1,3 @@
-import '@highlight-run/react/dist/highlight.css';
-
 import {
     useGetCommentTagsForProjectQuery,
     useGetWorkspaceAdminsByProjectIdLazyQuery,

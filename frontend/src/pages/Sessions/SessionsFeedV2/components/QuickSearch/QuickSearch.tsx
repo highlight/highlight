@@ -12,6 +12,7 @@ import { Spin } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AnimateHeight from 'react-animate-height';
 import { useHistory } from 'react-router-dom';
 import { components, Styles } from 'react-select';
 
@@ -22,6 +23,12 @@ interface QuickSearchOption {
     name: string;
     value: string;
     __typename: string;
+}
+
+interface Suggestion {
+    label: string;
+    tooltip: string | React.ReactNode;
+    options: QuickSearchOption[];
 }
 
 const ERROR_TYPE = 'error-field';
@@ -124,6 +131,7 @@ const QuickSearch = () => {
         project_id: string;
     }>();
     const [query, setQuery] = useState('');
+    const [lastTyped, setLastTyped] = useState('');
     const [lastLoadedQuery, setLastLoadedQuery] = useState<string>();
     const [isTyping, setIsTyping] = useState(false);
     const {
@@ -177,18 +185,17 @@ const QuickSearch = () => {
         );
     };
 
-    const getValueOptions = (input: string, callback: any) => {
+    const getValueOptions = (
+        input: string,
+        callback: (s: Suggestion[]) => void
+    ) => {
         refetch({
             project_id,
             count: RESULT_COUNT,
             query: input,
-        }).then((fetched) => {
+        })?.then((fetched) => {
             setLastLoadedQuery(input);
-            const suggestions: {
-                label: string;
-                tooltip: string | React.ReactNode;
-                options: QuickSearchOption[];
-            }[] = [];
+            const suggestions: Suggestion[] = [];
 
             const sessionOptions: QuickSearchOption[] = [];
             const errorOptions: QuickSearchOption[] = [];
@@ -228,15 +235,15 @@ const QuickSearch = () => {
         });
     };
 
-    const getDefaultField = () => {
+    const getDefaultField = (q: string): QuickSearchOption => {
         const field = {
             type: 'user',
             name: 'identifier',
-            value: query,
+            value: q,
             __typename: '',
         } as QuickSearchOption;
         // simple pattern matching for the default
-        if (validateEmail(query)) {
+        if (validateEmail(q)) {
             field.type = 'user';
             field.name = 'email';
         }
@@ -248,7 +255,7 @@ const QuickSearch = () => {
         // in case this was a quick copy-paste-enter
         // and we haven't had a chance to load the quick-fields match
         if (lastLoadedQuery !== query) {
-            field = getDefaultField();
+            field = getDefaultField(query);
         }
 
         if (field.type === ERROR_TYPE) {
@@ -295,7 +302,19 @@ const QuickSearch = () => {
             <DropdownIndicator isLoading={isLoading} />
             <AsyncSelect
                 ref={selectRef}
-                loadOptions={loadOptions}
+                loadOptions={(input, callback) => {
+                    loadOptions(input, (options) => {
+                        const def = getDefaultField(input);
+                        if (def.value.length) {
+                            options.unshift({
+                                label: 'Default',
+                                tooltip: 'Search by user identifier.',
+                                options: [def],
+                            });
+                        }
+                        callback(options);
+                    });
+                }}
                 // @ts-expect-error
                 styles={styleProps}
                 isLoading={isLoading}
@@ -323,6 +342,7 @@ const QuickSearch = () => {
                         setQuery('');
                     }
                     setIsTyping(newValue !== '');
+                    setLastTyped(newValue);
                 }}
                 components={{
                     DropdownIndicator: () => (
@@ -342,9 +362,32 @@ const QuickSearch = () => {
                     LoadingIndicator: () => {
                         return <></>;
                     },
+                    MenuList: (props: any) => {
+                        let height = 0;
+                        if (Array.isArray(props.children)) {
+                            for (const c of props.children || []) {
+                                height += 35 + 35 * c.props.children.length;
+                            }
+                        }
+                        return (
+                            <AnimateHeight
+                                key={'animatedMenu'}
+                                duration={300}
+                                height={height || 'auto'}
+                            >
+                                {props.children}
+                            </AnimateHeight>
+                        );
+                    },
                 }}
                 isSearchable
-                defaultOptions
+                defaultOptions={[
+                    {
+                        label: 'Default',
+                        tooltip: 'Search by user identifier.',
+                        options: [getDefaultField(lastTyped)],
+                    },
+                ]}
                 maxMenuHeight={500}
                 menuIsOpen={isMenuOpen === true ? true : undefined}
             />
