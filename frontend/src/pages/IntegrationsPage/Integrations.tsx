@@ -42,6 +42,7 @@ export const ZAPIER_INTEGRATION: Integration = {
     key: 'zapier',
     name: 'Zapier',
     configurationPath: 'zapier',
+    onlyShowForHighlightAdmin: true,
     description: 'Use Highlight alerts to trigger a Zap.',
     icon: '/images/integrations/zapier.png',
     configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,

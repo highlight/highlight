@@ -6,7 +6,7 @@ import Integration from '@pages/IntegrationsPage/components/Integration';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils';
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
@@ -39,6 +39,10 @@ const IntegrationsPage = () => {
         isZapierIntegratedWithProject,
         isHighlightAdmin,
     ]);
+
+    useEffect(() => {
+        console.log({ isHighlightAdmin });
+    }, [isHighlightAdmin]);
 
     return (
         <>
