@@ -16,8 +16,7 @@ import (
 	"time"
 )
 
-// KafkaOperationTimeout How long to wait for Kafka operations before polling again.
-const KafkaOperationTimeout = 10 * time.Second
+const KafkaOperationTimeout = 30 * time.Second
 
 const (
 	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
@@ -56,10 +55,12 @@ func New(topic string, mode Mode) *Queue {
 
 	tlsConfig := &tls.Config{}
 	pool := &Queue{Topic: topic, client: &kafka.Client{
-		Addr: kafka.TCP(brokers[0]),
+		Addr: kafka.TCP(brokers...),
 		Transport: &kafka.Transport{
-			SASL: mechanism,
-			TLS:  tlsConfig,
+			SASL:        mechanism,
+			TLS:         tlsConfig,
+			DialTimeout: KafkaOperationTimeout,
+			IdleTimeout: KafkaOperationTimeout,
 		},
 		Timeout: KafkaOperationTimeout,
 	}}
@@ -81,10 +82,14 @@ func New(topic string, mode Mode) *Queue {
 
 	if mode == Producer {
 		pool.kafkaP = &kafka.Writer{
-			Addr: kafka.TCP(brokers[0]),
+			Logger:      kafka.LoggerFunc(log.Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.Warnf),
+			Addr:        kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
-				SASL: mechanism,
-				TLS:  tlsConfig,
+				SASL:        mechanism,
+				TLS:         tlsConfig,
+				DialTimeout: KafkaOperationTimeout,
+				IdleTimeout: KafkaOperationTimeout,
 			},
 			Topic:        topic,
 			Balancer:     &kafka.Hash{},
@@ -96,14 +101,16 @@ func New(topic string, mode Mode) *Queue {
 			BatchBytes:   messageSizeBytes,
 			BatchSize:    10000,
 			ReadTimeout:  KafkaOperationTimeout,
-			WriteTimeout: KafkaOperationTimeout,
+			WriteTimeout: 5 * time.Minute,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 10 * time.Millisecond,
 			MaxAttempts:  10,
 		}
 	} else if mode == Consumer {
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
-			Brokers: brokers,
+			Logger:      kafka.LoggerFunc(log.Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.Warnf),
+			Brokers:     brokers,
 			Dialer: &kafka.Dialer{
 				Timeout:       KafkaOperationTimeout,
 				DualStack:     true,
@@ -111,8 +118,8 @@ func New(topic string, mode Mode) *Queue {
 				TLS:           tlsConfig,
 			},
 			HeartbeatInterval: time.Second,
-			SessionTimeout:    KafkaOperationTimeout,
-			RebalanceTimeout:  KafkaOperationTimeout,
+			SessionTimeout:    10 * time.Second,
+			RebalanceTimeout:  10 * time.Second,
 			Topic:             topic,
 			GroupID:           "group-default", // all partitions for this group, auto balanced
 			MinBytes:          prefetchSizeBytes,
@@ -144,6 +151,7 @@ func (p *Queue) Stop() {
 }
 
 func (p *Queue) Submit(msg *Message, partitionKey string) error {
+	start := time.Now()
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
@@ -160,10 +168,12 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
+	hlog.Histogram("worker.kafka.submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
 func (p *Queue) Receive() (msg *Message) {
+	start := time.Now()
 	m, err := p.kafkaC.ReadMessage(context.Background())
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
@@ -176,6 +186,7 @@ func (p *Queue) Receive() (msg *Message) {
 		return nil
 	}
 	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
+	hlog.Histogram("worker.kafka.receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
