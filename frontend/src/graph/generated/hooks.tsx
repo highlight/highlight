@@ -4882,7 +4882,18 @@ export const GetAccountsDocument = gql`
         accounts {
             id
             name
-            session_count
+            session_count_cur
+            session_count_prev
+            session_count_prev_prev
+            session_limit
+            paid_prev
+            paid_prev_prev
+            email
+            subscription_start
+            plan_tier
+            stripe_customer_id
+            member_count
+            member_limit
         }
     }
 `;
@@ -4945,6 +4956,7 @@ export const GetAccountDetailsDocument = gql`
                 name
                 count
             }
+            stripe_customer_id
         }
     }
 `;

@@ -1913,7 +1913,20 @@ export type GetAccountsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'Account' } & Pick<
                     Types.Account,
-                    'id' | 'name' | 'session_count'
+                    | 'id'
+                    | 'name'
+                    | 'session_count_cur'
+                    | 'session_count_prev'
+                    | 'session_count_prev_prev'
+                    | 'session_limit'
+                    | 'paid_prev'
+                    | 'paid_prev_prev'
+                    | 'email'
+                    | 'subscription_start'
+                    | 'plan_tier'
+                    | 'stripe_customer_id'
+                    | 'member_count'
+                    | 'member_limit'
                 >
             >
         >
@@ -1927,7 +1940,7 @@ export type GetAccountDetailsQueryVariables = Types.Exact<{
 export type GetAccountDetailsQuery = { __typename?: 'Query' } & {
     account_details: { __typename?: 'AccountDetails' } & Pick<
         Types.AccountDetails,
-        'id' | 'name'
+        'id' | 'name' | 'stripe_customer_id'
     > & {
             session_count_per_month?: Types.Maybe<
                 Array<

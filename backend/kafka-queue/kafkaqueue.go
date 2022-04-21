@@ -37,12 +37,6 @@ type Queue struct {
 	client *kafka.Client
 	kafkaP *kafka.Writer
 	kafkaC *kafka.Reader
-
-	numSubmitted int64
-	numReceived  int64
-
-	submitTime  []time.Duration
-	receiveTime []time.Duration
 }
 
 type MessageQueue interface {
@@ -144,11 +138,11 @@ func (p *Queue) Stop() {
 	}
 }
 
-func (p *Queue) Submit(msg *Message, partitionKey string) {
-	start := time.Now()
+func (p *Queue) Submit(msg *Message, partitionKey string) error {
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
+		return err
 	}
 	err = p.kafkaP.WriteMessages(context.Background(),
 		kafka.Message{
@@ -158,14 +152,13 @@ func (p *Queue) Submit(msg *Message, partitionKey string) {
 	)
 	if err != nil {
 		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
+		return err
 	}
-
-	p.numSubmitted += 1
-	p.submitTime = append(p.submitTime, time.Since(start))
+	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
+	return nil
 }
 
 func (p *Queue) Receive() (msg *Message) {
-	start := time.Now()
 	m, err := p.kafkaC.ReadMessage(context.Background())
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
@@ -177,52 +170,27 @@ func (p *Queue) Receive() (msg *Message) {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
-	p.numReceived += 1
-	p.receiveTime = append(p.receiveTime, time.Since(start))
+	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
 	return
 }
 
 func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
-		avgSubmit := time.Duration(0)
-		if p.numSubmitted > 0 {
-			for _, t := range p.submitTime {
-				avgSubmit += t
-				hlog.Histogram("worker.kafka.produceMessageSec", t.Seconds(), nil, 1)
-			}
-			avgSubmit = time.Duration(avgSubmit.Nanoseconds() / p.numSubmitted)
-		}
-		log.Debugf("Kafka Producer Stats: %d submitted. avg %s", p.numSubmitted, avgSubmit)
-
-		hlog.Gauge("worker.kafka.produceMessageCount", float64(p.numSubmitted), nil, 1)
-		hlog.Gauge("worker.kafka.produceMessageAvgSec", avgSubmit.Seconds(), nil, 1)
 		stats := p.kafkaP.Stats()
-		hlog.Gauge("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
-		hlog.Gauge("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
-		hlog.Gauge("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		log.Debugf("Kafka Producer Stats: count %d. batchAvg %s. writeAvg %s. waitAvg %s", stats.Messages, stats.BatchTime.Avg, stats.WriteTime.Avg, stats.WaitTime.Avg)
 
-		p.submitTime = []time.Duration{}
-		p.numSubmitted = 0
+		hlog.Histogram("worker.kafka.produceMessageCountSum", float64(stats.Messages), nil, 1)
+		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
 	}
 	if p.kafkaC != nil {
-		avgReceive := time.Duration(0)
-		if p.numReceived > 0 {
-			for _, t := range p.receiveTime {
-				avgReceive += t
-				hlog.Histogram("worker.kafka.consumeMessageSec", t.Seconds(), nil, 1)
-			}
-			avgReceive = time.Duration(avgReceive.Nanoseconds() / p.numReceived)
-		}
-		log.Debugf("Kafka Consumer Stats: %d received.  avg %s", p.numReceived, avgReceive)
-
-		hlog.Gauge("worker.kafka.consumeMessageCount", float64(p.numReceived), nil, 1)
-		hlog.Gauge("worker.kafka.consumeMessageAvgSec", avgReceive.Seconds(), nil, 1)
 		stats := p.kafkaC.Stats()
-		hlog.Gauge("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
-		hlog.Gauge("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		log.Debugf("Kafka Consumer Stats: count %d. readAvg %s. waitAvg %s", stats.Messages, stats.ReadTime.Avg, stats.WaitTime.Avg)
 
-		p.receiveTime = []time.Duration{}
-		p.numReceived = 0
+		hlog.Histogram("worker.kafka.consumeMessageCountSum", float64(stats.Messages), nil, 1)
+		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
 	}
 }
 

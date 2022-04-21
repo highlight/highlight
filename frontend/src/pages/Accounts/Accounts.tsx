@@ -2,8 +2,11 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { USD } from '@dinero.js/currencies';
 import { useParams } from '@util/react-router/useParams';
 import { Table } from 'antd';
+import { dinero, down, toUnit } from 'dinero.js';
+import moment from 'moment';
 import React, { useEffect } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import {
@@ -53,6 +56,19 @@ export const Account = () => {
                 <div>loading</div>
             ) : (
                 <>
+                    <h1>
+                        <a href={`/w/${account_id}/team`}>
+                            {accountData?.account_details?.name}
+                        </a>
+                    </h1>
+                    <h1>
+                        Stripe customer:{' '}
+                        <a
+                            href={`https://dashboard.stripe.com/customers/${accountData?.account_details?.stripe_customer_id}`}
+                        >
+                            {accountData?.account_details?.stripe_customer_id}
+                        </a>
+                    </h1>
                     <h1>Daily Session Count</h1>
                     <BarChart
                         width={1000}
@@ -120,19 +136,106 @@ export const Accounts = () => {
                         };
                     }}
                     columns={[
-                        { title: 'Name', dataIndex: 'name' },
-                        { title: 'ID', dataIndex: 'id' },
                         {
-                            title: 'Last Month Count',
-                            dataIndex: 'session_count',
+                            title: 'Name',
+                            dataIndex: 'name',
+                            render: (value, record) => (
+                                <a href={`/w/${record.id}/team`}>
+                                    {record.name}
+                                </a>
+                            ),
+                        },
+                        { title: 'Email', dataIndex: 'email' },
+                        {
+                            title: 'Stripe Customer ID',
+                            dataIndex: 'stripe_customer_id',
+                            render: (value, record) => (
+                                <a
+                                    href={`https://dashboard.stripe.com/customers/${record.stripe_customer_id}`}
+                                >
+                                    {value}
+                                </a>
+                            ),
+                        },
+                        {
+                            title: 'Subscription Start',
+                            dataIndex: 'subscription_start',
+                            render: (value) => moment(value).format('MM/DD/YY'),
+                        },
+                        { title: 'Plan Tier', dataIndex: 'plan_tier' },
+                        { title: 'Session Limit', dataIndex: 'session_limit' },
+                        {
+                            title: 'Sessions This Month',
+                            dataIndex: 'session_count_cur',
+                        },
+                        {
+                            title: 'Sessions Last Month',
+                            dataIndex: 'session_count_prev',
+                        },
+                        {
+                            title: 'Paid Last Month',
+                            dataIndex: 'paid_prev',
+                            render: (value) => {
+                                const baseAmount = dinero({
+                                    amount: value,
+                                    currency: USD,
+                                });
+                                return (
+                                    '$' +
+                                    toUnit(baseAmount, {
+                                        digits: 2,
+                                        round: down,
+                                    })
+                                );
+                            },
+                        },
+                        {
+                            title: 'Sessions Two Months Ago',
+                            dataIndex: 'session_count_prev_prev',
+                        },
+                        {
+                            title: 'Paid Two Months Ago',
+                            dataIndex: 'paid_prev_prev',
+                            render: (value) => {
+                                const baseAmount = dinero({
+                                    amount: value,
+                                    currency: USD,
+                                });
+                                return (
+                                    '$' +
+                                    toUnit(baseAmount, {
+                                        digits: 2,
+                                        round: down,
+                                    })
+                                );
+                            },
+                        },
+                        {
+                            title: 'Member Count',
+                            dataIndex: 'member_count',
+                        },
+                        {
+                            title: 'Member Limit',
+                            dataIndex: 'member_limit',
                         },
                     ]}
                     dataSource={accountData?.accounts?.map((a, i) => {
                         return {
                             key: i,
-                            name: a?.name,
+                            email: a?.email,
                             id: a?.id,
-                            session_count: a?.session_count,
+                            member_count: a?.member_count,
+                            member_limit: a?.member_limit,
+                            name: a?.name,
+                            plan_tier: a?.plan_tier,
+                            paid_prev: a?.paid_prev,
+                            paid_prev_prev: a?.paid_prev_prev,
+                            session_count_cur: a?.session_count_cur,
+                            session_count_prev: a?.session_count_prev,
+                            session_count_prev_prev: a?.session_count_prev_prev,
+                            session_limit: a?.session_limit,
+                            stripe_customer_id: a?.stripe_customer_id,
+                            subscription_start: a?.subscription_start,
                         };
                     })}
                 />

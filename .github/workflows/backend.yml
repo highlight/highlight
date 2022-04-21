@@ -17,7 +17,11 @@ jobs:
             public-graph: ${{ steps.filter.outputs.public-graph }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
             - uses: dorny/paths-filter@v2
               id: filter
               with:
@@ -30,16 +34,21 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
             - name: Setup Go
-              uses: actions/setup-go@v2
-
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
     code-quality-check:
         needs: code-setup
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.4
               with:
@@ -57,7 +66,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
             - name: copy backend
               run: |
                 mkdir tmp
@@ -80,7 +93,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
             - name: Build binary
               run: cd backend/ && go build .
     test:
@@ -109,6 +126,10 @@ jobs:
           ENVIRONMENT: "test"
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version: '>=1.18.x'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v

@@ -216,8 +216,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
-	if session.ProjectID == 1 {
-		r.ProducerQueue.Submit(&kafka_queue.Message{
+	var err error = nil
+	// rollout for Highlight, Porter, Basedash, Cabal
+	if session.ProjectID == 1 || session.ProjectID == 24 || session.ProjectID == 162 || session.ProjectID == 754 {
+		err = r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushPayload,
 			PushPayload: &kafka_queue.PushPayloadArgs{
 				SessionID:          sessionID,
@@ -234,7 +236,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			r.ProcessPayload(ctx, sessionID, events, messages, resources, errors, isBeacon != nil && *isBeacon, hasSessionUnloaded != nil && *hasSessionUnloaded, highlightLogs)
 		})
 	}
-	return size.Of(events), nil
+	return size.Of(events), err
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
