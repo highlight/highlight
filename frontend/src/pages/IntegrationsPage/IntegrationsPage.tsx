@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { Skeleton } from '@components/Skeleton/Skeleton';
@@ -16,12 +17,16 @@ const IntegrationsPage = () => {
         type: 'Organization',
     });
 
+    const { isHighlightAdmin } = useAuthContext();
+
     const { isLinearIntegratedWithProject } = useLinearIntegration();
 
     const { isZapierIntegratedWithProject } = useZapierIntegration();
 
     const integrations = useMemo(() => {
-        return INTEGRATIONS.map((inter) => ({
+        return INTEGRATIONS.filter((inter) =>
+            inter.onlyShowForHighlightAdmin ? isHighlightAdmin : true
+        ).map((inter) => ({
             ...inter,
             defaultEnable:
                 (inter.key === 'slack' && isSlackConnectedToWorkspace) ||
@@ -32,6 +37,7 @@ const IntegrationsPage = () => {
         isSlackConnectedToWorkspace,
         isLinearIntegratedWithProject,
         isZapierIntegratedWithProject,
+        isHighlightAdmin,
     ]);
 
     return (

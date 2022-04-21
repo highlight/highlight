@@ -72,8 +72,8 @@ const ZapierIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     return (
         <>
             <p className={styles.modalSubTitle}>
-                Connect Highlight with Zapier to use alerts and comments as
-                triggers for your workflows.
+                Connect Highlight with Zapier to use alerts as triggers for your
+                Zaps.
             </p>
             <p className={styles.modalSubTitle}>
                 In order to connect, you'll need to create a Zap in Zapier and

@@ -12,6 +12,7 @@ export interface Integration {
     description: string;
     defaultEnable?: boolean;
     icon: string;
+    onlyShowForHighlightAdmin?: boolean;
     /**
      * The page to configure the integration. This can be rendered in a modal or on a different page.
      */
@@ -41,8 +42,7 @@ export const ZAPIER_INTEGRATION: Integration = {
     key: 'zapier',
     name: 'Zapier',
     configurationPath: 'zapier',
-    description:
-        'Use Highlight alerts and comments to trigger a Zapier workflow.',
+    description: 'Use Highlight alerts to trigger a Zap.',
     icon: '/images/integrations/zapier.png',
     configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
 };
