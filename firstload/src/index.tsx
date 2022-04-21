@@ -340,4 +340,4 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage();
 
-export { HighlightSegmentMiddleware };
+export { HighlightSegmentMiddleware, HighlightOptions };

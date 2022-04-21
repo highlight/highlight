@@ -194,5 +194,6 @@ const logRequest = (
             callback(event);
         }
     };
-    responsePromise.then(onPromiseResolveHandler);
+    // Swallow any error thrown by responsePromise
+    responsePromise.then(onPromiseResolveHandler).catch(() => {});
 };
