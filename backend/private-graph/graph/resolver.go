@@ -1431,6 +1431,14 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 	return nil
 }
 
+func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
+	if err := r.DB.Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing zapier access token in project model")
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		LINEAR_CLIENT_ID     string

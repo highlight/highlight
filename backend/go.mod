@@ -16,14 +16,17 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/aws/smithy-go v1.8.0
 	github.com/clearbit/clearbit-go v1.0.1
+	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/websocket v1.4.2
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
+	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2

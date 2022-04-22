@@ -1251,6 +1251,17 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
     )
 }
 
+query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
+    is_integrated_with_linear: is_integrated_with(
+        integration_type: Zapier
+        project_id: $project_id
+    )
+}
+
+query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
+    generate_zapier_access_token(project_id: $project_id)
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
     is_integrated_with_slack: is_integrated_with(
         integration_type: Slack

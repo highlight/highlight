@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -1466,6 +1467,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeZapier {
+		if err := r.RemoveZapierFromWorkspace(project); err != nil {
 			return false, err
 		}
 	} else {
@@ -4558,6 +4563,24 @@ func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*mod
 	return ret, nil
 }
 
+func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return "", e.Wrap(err, "error querying project")
+	}
+
+	if project.ZapierAccessToken != nil {
+		return "", e.New("zapier access token already exists, can't generate another jwt")
+	}
+
+	token, err := zapier.GenerateZapierAccessToken(project.ID)
+	if err != nil {
+		return "", e.Wrap(err, "error generating zapier access token")
+	}
+
+	return token, nil
+}
+
 func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
@@ -4574,6 +4597,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.LinearAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeSlack {
 		return workspace.SlackAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeZapier {
+		return project.ZapierAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

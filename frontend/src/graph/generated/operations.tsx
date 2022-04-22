@@ -3283,6 +3283,22 @@ export type GetWorkspaceIsIntegratedWithLinearQuery = {
     __typename?: 'Query';
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
 
+export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceIsIntegratedWithZapierQuery = {
+    __typename?: 'Query';
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
+
+export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GenerateNewZapierAccessTokenJwtQuery = {
+    __typename?: 'Query';
+} & Pick<Types.Query, 'generate_zapier_access_token'>;
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3683,6 +3699,8 @@ export const namedOperations = {
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
         GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
+        GetWorkspaceIsIntegratedWithZapier: 'GetWorkspaceIsIntegratedWithZapier' as const,
+        GenerateNewZapierAccessTokenJwt: 'GenerateNewZapierAccessTokenJwt' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,

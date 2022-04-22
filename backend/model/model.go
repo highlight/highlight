@@ -6,8 +6,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"net/url"
 	"os"
 	"reflect"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -228,13 +229,14 @@ type WorkspaceInviteLink struct {
 
 type Project struct {
 	Model
-	Name             *string
-	StripeCustomerID *string
-	StripePriceID    *string
-	BillingEmail     *string
-	Secret           *string    `json:"-"`
-	Admins           []Admin    `gorm:"many2many:project_admins;"`
-	TrialEndDate     *time.Time `json:"trial_end_date"`
+	Name              *string
+	StripeCustomerID  *string
+	StripePriceID     *string
+	ZapierAccessToken *string
+	BillingEmail      *string
+	Secret            *string    `json:"-"`
+	Admins            []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate      *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int

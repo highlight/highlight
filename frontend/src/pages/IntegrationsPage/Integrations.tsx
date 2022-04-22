@@ -1,6 +1,7 @@
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig';
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig';
+import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig';
 import React from 'react';
 
 export interface Integration {
@@ -11,6 +12,7 @@ export interface Integration {
     description: string;
     defaultEnable?: boolean;
     icon: string;
+    onlyShowForHighlightAdmin?: boolean;
     /**
      * The page to configure the integration. This can be rendered in a modal or on a different page.
      */
@@ -36,6 +38,20 @@ export const LINEAR_INTEGRATION: Integration = {
     configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
 };
 
-const INTEGRATIONS: Integration[] = [SLACK_INTEGRATION, LINEAR_INTEGRATION];
+export const ZAPIER_INTEGRATION: Integration = {
+    key: 'zapier',
+    name: 'Zapier',
+    configurationPath: 'zapier',
+    onlyShowForHighlightAdmin: true,
+    description: 'Use Highlight alerts to trigger a Zap.',
+    icon: '/images/integrations/zapier.png',
+    configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
+};
+
+const INTEGRATIONS: Integration[] = [
+    SLACK_INTEGRATION,
+    LINEAR_INTEGRATION,
+    ZAPIER_INTEGRATION,
+];
 
 export default INTEGRATIONS;

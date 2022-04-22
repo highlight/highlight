@@ -26,6 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -209,6 +210,9 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
+		r.Route("/zapier", func(r chi.Router) {
+			zapier.CreateZapierRoutes(r, db)
+		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(slackSigningSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
