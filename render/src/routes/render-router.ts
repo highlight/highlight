@@ -13,7 +13,8 @@ export const p = {
 } as const;
 
 router.get(p.get, async (_: Request, res: Response) => {
-    const preview = await renderService.render();
+    const path = '/home/vkorolik/work/highlight/render/sample.json'
+    const preview = await renderService.render(path);
     return res.sendFile(preview[4])
 });
 

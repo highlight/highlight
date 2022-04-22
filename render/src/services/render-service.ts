@@ -5,17 +5,31 @@ import { tmpdir } from 'os';
 import puppeteer from 'puppeteer';
 
 const getHtml = (): string => {
-    return `<html lang="en"><head><title></title></head><body>
-        <div id="player" style="width: 1920px; height: 1280px; padding: 0; margin: 0"></div>
+    return `<html lang="en"><head><title></title><style>
+.rrwebPlayerWrapper {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+}
+.rrwebPlayerDiv {
+    height: 100%;
+    position: relative;
+}
+</style></head><body style="padding: 0; margin: 0">
+  <div id="player" class="rrwebPlayerWrapper">
+    <div id="player" class="rrwebPlayerDiv"></div>
+  </div>
 </body></html>
     `;
 };
 
-async function render() {
-    let data = readFileSync(
-        '/home/vkorolik/work/highlight/render/sample.json',
-        'utf8'
-    );
+async function render(p: string) {
+    let data = readFileSync(p, 'utf8');
     data = data.replace(/\\/g, '\\\\');
 
     const browser = await puppeteer.launch({
