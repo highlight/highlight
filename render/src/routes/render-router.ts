@@ -14,9 +14,7 @@ export const p = {
 
 router.get(p.get, async (_: Request, res: Response) => {
     const preview = await renderService.render();
-    // return res.status(OK).json({ previews });
-    console.warn(preview);
-    return res.sendFile(preview)
+    return res.sendFile(preview[4])
 });
 
 // Export default
