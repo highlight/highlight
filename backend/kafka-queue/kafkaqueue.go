@@ -99,7 +99,7 @@ func New(topic string, mode Mode) *Queue {
 			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
-			BatchSize:    10000,
+			BatchSize:    1000,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: 5 * time.Minute,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
@@ -124,7 +124,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           "group-default", // all partitions for this group, auto balanced
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     10000,
+			QueueCapacity:     1000,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: 100 * time.Millisecond,
