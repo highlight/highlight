@@ -96,9 +96,9 @@ func New(topic string, mode Mode) *Queue {
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
 	if mode == Producer {
 		pool.kafkaP = &kafka.Writer{
-			Logger:                 kafka.LoggerFunc(log.Debugf),
-			ErrorLogger:            kafka.LoggerFunc(log.Warnf),
-			Addr:                   kafka.TCP(brokers...),
+			Logger:      kafka.LoggerFunc(log.Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.Warnf),
+			Addr:        kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
 				SASL:        mechanism,
 				TLS:         tlsConfig,
