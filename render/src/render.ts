@@ -28,9 +28,8 @@ const getHtml = (): string => {
     `;
 };
 
-async function render(p: string) {
-    let data = readFileSync(p, 'utf8');
-    data = data.replace(/\\/g, '\\\\');
+export async function render(events: string) {
+    events = events.replace(/\\/g, '\\\\');
 
     const browser = await puppeteer.launch({
         headless: true,
@@ -48,7 +47,7 @@ async function render(p: string) {
 
     const js = readFileSync(
         path.join(
-            path.dirname(path.dirname(__dirname)),
+            path.dirname(__dirname),
             'node_modules',
             '@highlight-run',
             'rrweb',
@@ -65,7 +64,7 @@ async function render(p: string) {
         );
         const events = JSON.parse(` +
             '`' +
-            data +
+            events +
             '`' +
             `);
         const r = new rrweb.Replayer(events, {
@@ -86,7 +85,8 @@ async function render(p: string) {
         endTime: number;
         totalTime: number;
     };
-    const interval = 1000;
+    const screenshots = 100;
+    const interval = Math.round(meta.totalTime / screenshots);
 
     const files: string[] = [];
     const prefix = path.join(tmpdir(), 'render_');
@@ -102,8 +102,3 @@ async function render(p: string) {
     await browser.close();
     return files;
 }
-
-// Export default
-export default {
-    render,
-} as const;
