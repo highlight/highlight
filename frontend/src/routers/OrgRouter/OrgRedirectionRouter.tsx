@@ -41,7 +41,9 @@ export const ProjectRedirectionRouter = () => {
     if (adminAboutYouData?.admin?.user_defined_role == null) {
         redirectTo = '/about-you';
     } else if (data?.projects?.length) {
-        redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}`;
+        redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}${
+            history.location.search
+        }`;
     } else if (data?.workspaces?.length) {
         redirectTo = `/w/${data!.workspaces[0]!.id}/new`;
     } else {
