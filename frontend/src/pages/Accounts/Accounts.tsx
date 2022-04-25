@@ -128,6 +128,7 @@ export const Accounts = () => {
             ) : (
                 <Table
                     pagination={false}
+                    sticky={true}
                     onRow={(record) => {
                         return {
                             onClick: () => {
