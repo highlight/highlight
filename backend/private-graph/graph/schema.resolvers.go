@@ -2774,7 +2774,7 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 	}
 
 	var sessionIntervals []*model.SessionInterval
-	if res := r.DB.Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
+	if res := r.DB.Order("start_time ASC").Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get session intervals")
 	}
 
