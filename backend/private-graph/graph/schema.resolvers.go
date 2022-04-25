@@ -2681,9 +2681,10 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	}{}
 	if err := r.DB.Raw(`
 	select SUM(count), to_char(date, 'yyyy-MM') as month 
-	from daily_session_counts 
+	from daily_session_counts_view 
 	where project_id in (select id from projects where projects.workspace_id = ?) 
-	group by month;
+	group by month
+	order by month
 	`, workspaceID).Scan(&queriedMonths).Error; err != nil {
 		return nil, e.Errorf("error retrieving months: %v", err)
 	}
@@ -2694,8 +2695,10 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	}{}
 	if err := r.DB.Raw(`
 	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
-	from daily_session_counts
-	where project_id in (select id from projects where projects.workspace_id = ?) group by date;
+	from daily_session_counts_view
+	where project_id in (select id from projects where projects.workspace_id = ?) 
+	group by date
+	order by date
 	`, workspaceID).Scan(&queriedDays).Error; err != nil {
 		return nil, e.Errorf("error retrieving days: %v", err)
 	}
