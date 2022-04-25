@@ -28,8 +28,18 @@ const getHtml = (): string => {
     `;
 };
 
-export async function render(events: string) {
+export async function render(
+    events: string,
+    worker: number,
+    workers: number,
+    fps: number,
+    dir?: string
+) {
     events = events.replace(/\\/g, '\\\\');
+    if (!dir?.length) {
+        const prefix = path.join(tmpdir(), 'render_');
+        dir = await promisify(mkdtemp)(prefix);
+    }
 
     const browser = await puppeteer.launch({
         headless: true,
@@ -38,7 +48,6 @@ export async function render(events: string) {
             height: 1080,
         },
         args: ['--no-sandbox'],
-        dumpio: true,
     });
 
     const page = await browser.newPage();
@@ -85,17 +94,15 @@ export async function render(events: string) {
         endTime: number;
         totalTime: number;
     };
-    const screenshots = 100;
-    const interval = Math.round(meta.totalTime / screenshots);
+    const interval = Math.round(1000 / fps);
+    const start = Math.floor((meta.totalTime / workers) * worker);
+    const end = Math.floor((meta.totalTime / workers) * (worker + 1));
 
     const files: string[] = [];
-    const prefix = path.join(tmpdir(), 'render_');
-    const dir = await promisify(mkdtemp)(prefix);
-    for (let i = 0; i < meta.totalTime; i += interval) {
+    for (let i = start; i <= end; i += interval) {
         const file = path.join(dir, `${i}.png`);
         await page.evaluate(`r.pause(${i})`);
         await page.screenshot({ path: file });
-        console.log(`made ${file}`);
         files.push(file);
     }
 
