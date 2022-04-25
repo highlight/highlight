@@ -302,10 +302,14 @@ export const ResourcePage = React.memo(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         const pauseFunction = useCallback(
             _.debounce((t: number) => {
-                console.log(t);
-                pause(t);
+                if (
+                    state != ReplayerState.Empty &&
+                    state != ReplayerState.Loading
+                ) {
+                    pause(t);
+                }
             }, 300),
-            []
+            [state]
         );
 
         useEffect(() => {
@@ -598,6 +602,7 @@ const ResourceRow = ({
         </div>
     );
 };
+
 interface Request {
     url: string;
     verb: string;
