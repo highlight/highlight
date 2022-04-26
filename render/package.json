@@ -4,7 +4,8 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "build": "tsc --build ./",
-    "publish": "zip -r function.zip node_modules && cd dist && zip -r ../function.zip ./* && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+    "dev": "DEV=true nodemon",
+    "publish": "zip -r function.zip dist node_modules && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
   },
   "nodemonConfig": {
     "watch": [
@@ -68,6 +69,7 @@
     "find": "^0.3.0",
     "fs-extra": "^10.1.0",
     "nodemon": "^2.0.15",
+    "puppeteer": "^13.6.0",
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.14.1",
     "typescript": "^4.6.3"

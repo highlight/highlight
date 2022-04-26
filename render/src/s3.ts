@@ -12,7 +12,6 @@ const west_client = new S3Client({
         httpsAgent: new https.Agent({ secureProtocol: 'TLSv1_2_method' }),
     }),
     maxAttempts: 2,
-    logger: console,
 });
 
 export async function compressedStreamToString(
@@ -21,10 +20,7 @@ export async function compressedStreamToString(
     return await new Promise((resolve, reject) => {
         const chunks: Uint8Array[] = [];
         stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('error', (err) => {
-            console.error(`failed to read from s3: ${err}`);
-            reject();
-        });
+        stream.on('error', reject);
         stream.on('end', () =>
             resolve(
                 zlib

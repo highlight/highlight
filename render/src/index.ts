@@ -25,3 +25,13 @@ export const handler = async (event?: APIGatewayEvent) => {
         },
     };
 };
+
+if (process.env.DEV?.length) {
+    handler(({
+        queryStringParameters: {
+            project: '1',
+            session: '33618264',
+            ts: '1000',
+        },
+    } as unknown) as APIGatewayEvent).then(console.info);
+}

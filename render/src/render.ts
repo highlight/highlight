@@ -61,7 +61,7 @@ export async function render(
     await page.setContent(getHtml());
 
     const jsPath = path.join(
-        __dirname,
+        path.dirname(__dirname),
         'node_modules',
         '@highlight-run',
         'rrweb',
