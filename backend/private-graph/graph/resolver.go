@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -54,6 +55,7 @@ type Resolver struct {
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          *storage.StorageClient
+	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
@@ -868,6 +870,21 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	}
 
 	return nil
+}
+
+func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts float64) ([]byte, error) {
+	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to make screenshot render request")
+	}
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", res.StatusCode))
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read body of screenshot render response")
+	}
+	return b, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest

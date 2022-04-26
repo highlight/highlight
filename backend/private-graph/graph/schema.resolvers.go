@@ -896,7 +896,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, t float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -921,6 +921,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if sessionImage != nil {
 		sessionImageStr = *sessionImage
 	}
+
 	if sessionTimestamp >= math.MaxInt32 {
 		log.Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
 		sessionTimestamp = 0
@@ -985,14 +986,31 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
-	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, t)
 
-	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
-	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
-	}
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		c := context.Background()
+		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, t)
+		if err != nil {
+			log.Errorf("failed to render screenshot for %d %d %f %s", projectID, session.ID, t, err)
+		} else {
+			if err := r.DB.Model(&model.SessionComment{}).Where(
+				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
+			).Updates(
+				model.SessionComment{
+					SessionImage: string(imageBytes),
+				},
+			).Error; err != nil {
+				log.Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
+			}
+		}
+		if len(taggedAdmins) > 0 && !isGuest {
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+		}
+		if len(taggedSlackUsers) > 0 && !isGuest {
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+		}
+	})
 
 	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 		for _, s := range integrations {
