@@ -19,7 +19,7 @@ export const handler = async (event?: APIGatewayEvent) => {
     return {
         statusCode: 200,
         isBase64Encoded: true,
-        body: new Buffer(file).toString('base64'),
+        body: Buffer.from(file).toString('base64'),
         headers: {
             'content-type': 'image/png',
         },
