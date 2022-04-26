@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"net/mail"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -27,9 +27,15 @@ import (
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, sessionSecureID)
+	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
+	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
 
-	projectID, _ := model.FromVerboseID(organizationVerboseID)
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.initializeSessionMinimal")
+	querySessionSpan.SetTag("projectVerboseID", organizationVerboseID)
+	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, sessionSecureID)
+	querySessionSpan.Finish()
+
+	projectID := session.ProjectID
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if !util.IsDevEnv() && err != nil {
@@ -44,6 +50,14 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
 		}
 	}
+
+	ip := ctx.Value(model.ContextKeys.IP).(string)
+	err = r.ProducerQueue.Submit(&kafka_queue.Message{
+		Type: kafka_queue.InitializeSession,
+		InitializeSession: &kafka_queue.InitializeSessionArgs{
+			SessionID: session.ID,
+			IP:        ip,
+		}}, *sessionSecureID)
 
 	return session, err
 }
@@ -212,6 +226,11 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Select("secure_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return -1, e.Wrap(err, "error querying session by sessionID for PushPayload")
+	}
+
 	err := r.ProducerQueue.Submit(&kafka_queue.Message{
 		Type: kafka_queue.PushPayload,
 		PushPayload: &kafka_queue.PushPayloadArgs{
@@ -223,7 +242,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			IsBeacon:           isBeacon,
 			HasSessionUnloaded: hasSessionUnloaded,
 			HighlightLogs:      highlightLogs,
-		}}, strconv.Itoa(sessionID))
+		}}, session.SecureID)
 	return size.Of(events), err
 }
 

@@ -3,7 +3,8 @@ package kafka_queue
 import customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 
 const (
-	PushPayload = iota
+	PushPayload       = iota
+	InitializeSession = iota
 )
 
 type PushPayloadArgs struct {
@@ -17,9 +18,15 @@ type PushPayloadArgs struct {
 	HighlightLogs      *string
 }
 
+type InitializeSessionArgs struct {
+	SessionID int
+	IP        string
+}
+
 type Message struct {
-	Type        int // PayloadType
-	PushPayload *PushPayloadArgs
+	Type              int // PayloadType
+	PushPayload       *PushPayloadArgs
+	InitializeSession *InitializeSessionArgs
 }
 
 type PartitionMessage struct {

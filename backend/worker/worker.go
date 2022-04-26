@@ -280,6 +280,16 @@ func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs)
+	case kafka_queue.InitializeSession:
+		if task.InitializeSession == nil {
+			break
+		}
+		_, err := w.PublicResolver.InitializeSessionImplementation(
+			task.InitializeSession.SessionID,
+			task.InitializeSession.IP)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}

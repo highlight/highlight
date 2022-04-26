@@ -99,6 +99,10 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+// SessionReinitializeExpiry is the interval between two InitializeSession calls with
+// the same secureSessionID that should be treated as different sessions
+const SessionReinitializeExpiry = time.Minute * 15
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -851,7 +855,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, sessionSecureID *string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -861,60 +865,22 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "project doesn't exist")
 	}
 
-	// Get the user's ip, get geolocation data
-	location := &Location{
-		City:      "",
-		Postal:    "",
-		Latitude:  0.0,
-		Longitude: 0.0,
-		State:     "",
-	}
-	ip, ok := ctx.Value(model.ContextKeys.IP).(string)
-	if ok {
-		fetchedLocation, err := GetLocationFromIP(ip)
-		if err != nil || fetchedLocation == nil {
-			log.Errorf("error getting user's location: %v", err)
-		} else {
-			location = fetchedLocation
-		}
-	}
-
-	// Parse the user-agent string
-	var userAgentString string
-	var deviceDetails DeviceDetails
-	if userAgentString, ok = ctx.Value(model.ContextKeys.UserAgent).(string); ok {
-		deviceDetails = GetDeviceDetails(userAgentString)
-	}
-
-	// Get the language from the request header
-	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
-	n := time.Now()
 	var fingerprintInt int = 0
 	if val, err := strconv.Atoi(fingerprint); err == nil {
 		fingerprintInt = val
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
-	}
-	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, n)
-
+	deviceDetails := GetDeviceDetails(userAgent)
+	n := time.Now()
 	session := &model.Session{
-		Fingerprint:                    fingerprintInt,
 		ProjectID:                      projectID,
-		City:                           location.City,
-		State:                          location.State,
-		Postal:                         location.Postal,
-		Latitude:                       location.Latitude.(float64),
-		Longitude:                      location.Longitude.(float64),
+		Fingerprint:                    fingerprintInt,
 		OSName:                         deviceDetails.OSName,
 		OSVersion:                      deviceDetails.OSVersion,
 		BrowserName:                    deviceDetails.BrowserName,
 		BrowserVersion:                 deviceDetails.BrowserVersion,
-		Language:                       acceptLanguageString,
-		WithinBillingQuota:             &withinBillingQuota,
+		Language:                       acceptLanguage,
+		WithinBillingQuota:             &model.T,
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
 		PayloadUpdatedAt:               &n,
@@ -944,10 +910,55 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
-		if time.Now().After(sessionObj.CreatedAt.Add(time.Minute*15)) || projectID != sessionObj.ProjectID || location.Latitude.(float64) != sessionObj.Latitude || location.Longitude.(float64) != sessionObj.Longitude {
-			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgentString))
+		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
 		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
+	}
+	return session, nil
+}
+
+func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*model.Session, error) {
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "session doesn't exist")
+	}
+	project := &model.Project{}
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "project doesn't exist")
+	}
+
+	// Get the user's ip, get geolocation data
+	location := &Location{
+		City:      "",
+		Postal:    "",
+		Latitude:  0.0,
+		Longitude: 0.0,
+		State:     "",
+	}
+	fetchedLocation, err := GetLocationFromIP(ip)
+	if err != nil || fetchedLocation == nil {
+		log.Errorf("error getting user's location: %v", err)
+	} else {
+		location = fetchedLocation
+	}
+
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
+	}
+	// determine if session is within billing quota
+	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+
+	session.City = location.City
+	session.State = location.State
+	session.Postal = location.Postal
+	session.Latitude = location.Latitude.(float64)
+	session.Longitude = location.Longitude.(float64)
+	session.WithinBillingQuota = &withinBillingQuota
+
+	if err := r.DB.Save(session).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session")
 	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
@@ -958,11 +969,11 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		Infof("initialized session: %s", session.Identifier)
 
 	sessionProperties := map[string]string{
-		"os_name":         deviceDetails.OSName,
-		"os_version":      deviceDetails.OSVersion,
-		"browser_name":    deviceDetails.BrowserName,
-		"browser_version": deviceDetails.BrowserVersion,
-		"environment":     environment,
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
@@ -980,9 +991,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		r.AlertWorkerPool.SubmitRecover(func() {
 			// Sending session init alert
 			var sessionAlerts []*model.SessionAlert
-			if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
+			if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
 				Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
+				log.Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
 				return
 			}
 
@@ -997,7 +1008,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 				// check if session was produced from an excluded environment
 				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 				if err != nil {
-					log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID))
+					log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", project.ID))
 					return
 				}
 
@@ -1015,7 +1026,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 				// check if session was created by a should-ignore identifier
 				excludedIdentifiers, err := sessionAlert.GetExcludeRules()
 				if err != nil {
-					log.Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID))
+					log.Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", project.ID))
 					return
 				}
 				isSessionByExcludedIdentifier := false
