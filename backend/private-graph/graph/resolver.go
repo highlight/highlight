@@ -872,7 +872,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	return nil
 }
 
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts float64) ([]byte, error) {
+func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int) ([]byte, error) {
 	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make screenshot render request")
