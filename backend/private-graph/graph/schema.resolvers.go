@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -897,7 +897,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, t float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -987,13 +987,13 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
-	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, t)
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		c := context.Background()
 		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, sessionTimestamp)
 		if err != nil {
-			log.Errorf("failed to render screenshot for %d %d %f %s", projectID, session.ID, t, err)
+			log.Errorf("failed to render screenshot for %d %d %f %s", projectID, session.ID, time, err)
 		} else {
 			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
 			sessionImage = &sessionImageStr
