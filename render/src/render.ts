@@ -66,7 +66,7 @@ export async function render(
         '@highlight-run',
         'rrweb',
         'dist',
-        'rrweb.js'
+        'rrweb.min.js'
     );
     const js = readFileSync(jsPath, 'utf8');
     await page.evaluate(js);
