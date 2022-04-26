@@ -1,10 +1,27 @@
-import { render } from './render';
-import { getEvents } from './s3';
-import { parallelRender } from './parallel';
+import { APIGatewayEvent } from 'aws-lambda';
+import { serialRender } from './serial';
+import { readFileSync } from 'fs';
 
-export async function serialRender(project: number, session: number) {
-    const events = await getEvents(project, session);
-    return await render(events, 0, 1, 1);
+interface Args {
+    project?: string;
+    session?: string;
+    ts?: string;
 }
 
-parallelRender(1, 33249519).then(console.warn).catch(console.error);
+export const handler = async (event?: APIGatewayEvent) => {
+    const args = (event?.queryStringParameters as unknown) as Args | undefined;
+    const files = await serialRender(
+        Number(args?.project),
+        Number(args?.session),
+        Number(args?.ts)
+    );
+    const file = readFileSync(files[0]);
+    return {
+        statusCode: 200,
+        isBase64Encoded: true,
+        body: new Buffer(file).toString('base64'),
+        headers: {
+            'content-type': 'image/png',
+        },
+    };
+};

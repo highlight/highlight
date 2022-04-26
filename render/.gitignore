@@ -5,3 +5,4 @@
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+function.zip

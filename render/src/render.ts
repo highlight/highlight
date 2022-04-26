@@ -2,7 +2,7 @@ import { mkdtemp, readFileSync } from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { tmpdir } from 'os';
-import puppeteer from 'puppeteer';
+import chromium from 'chrome-aws-lambda';
 
 const getHtml = (): string => {
     return `<html lang="en"><head><title></title><style>
@@ -32,39 +32,43 @@ export async function render(
     events: string,
     worker: number,
     workers: number,
-    fps: number,
+    fps?: number,
+    ts?: number,
     dir?: string
 ) {
+    if (!ts && !fps) {
+        throw new Error('timestamp or fps must be provided');
+    }
     events = events.replace(/\\/g, '\\\\');
     if (!dir?.length) {
         const prefix = path.join(tmpdir(), 'render_');
         dir = await promisify(mkdtemp)(prefix);
     }
 
-    const browser = await puppeteer.launch({
-        headless: true,
+    const browser = await chromium.puppeteer.launch({
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
         defaultViewport: {
             width: 1920,
             height: 1080,
         },
-        args: ['--no-sandbox'],
+        args: chromium.args,
+        executablePath: await chromium.executablePath,
     });
 
     const page = await browser.newPage();
     await page.goto('about:blank');
     await page.setContent(getHtml());
 
-    const js = readFileSync(
-        path.join(
-            path.dirname(__dirname),
-            'node_modules',
-            '@highlight-run',
-            'rrweb',
-            'dist',
-            'rrweb.js'
-        ),
-        'utf8'
+    const jsPath = path.join(
+        __dirname,
+        'node_modules',
+        '@highlight-run',
+        'rrweb',
+        'dist',
+        'rrweb.js'
     );
+    const js = readFileSync(jsPath, 'utf8');
     await page.evaluate(js);
     await page.evaluate(
         `
@@ -94,9 +98,15 @@ export async function render(
         endTime: number;
         totalTime: number;
     };
-    const interval = Math.round(1000 / fps);
-    const start = Math.floor((meta.totalTime / workers) * worker);
-    const end = Math.floor((meta.totalTime / workers) * (worker + 1));
+
+    let interval = 1000;
+    let start = ts || meta.startTime;
+    let end = ts || meta.endTime;
+    if (fps) {
+        interval = Math.round(1000 / fps);
+        start = Math.floor((meta.totalTime / workers) * worker);
+        end = Math.floor((meta.totalTime / workers) * (worker + 1));
+    }
 
     const files: string[] = [];
     for (let i = start; i <= end; i += interval) {

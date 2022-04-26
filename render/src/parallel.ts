@@ -8,22 +8,29 @@ import { promisify } from 'util';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const WORKERS = 24;
+const WORKERS = 8;
 
 export async function parallelRender(project: number, session: number) {
     const dir = path.join(tmpdir(), `render_${project}_${session}`);
+    if (!(await promisify(exists)(dir))) {
+        await promisify(mkdir)(dir);
+    }
+    const sessionFile = path.join(dir, 'session.json');
+    let events: string;
+    if (!(await promisify(exists)(sessionFile))) {
+        events = await getEvents(project, session);
+        writeFileSync(sessionFile, events);
+    } else {
+        events = readFileSync(sessionFile, 'utf8');
+    }
+
     if (cluster.isPrimary) {
-        if (!(await promisify(exists)(dir))) {
-            await promisify(mkdir)(dir);
-        }
-        const events = await getEvents(project, session);
-        writeFileSync(path.join(dir, 'session.json'), events);
+        await delay(100);
         for (let i = 0; i < WORKERS; i++) {
             cluster.fork();
         }
     } else {
-        const events = readFileSync(path.join(dir, 'session.json'), 'utf8');
-        await render(events, cluster.worker?.id || 0, WORKERS, 30, dir);
+        await render(events, cluster.worker?.id || 0, WORKERS, 1, undefined, dir);
         process.exit(0);
     }
     let workersFinished = 0;
@@ -36,4 +43,5 @@ export async function parallelRender(project: number, session: number) {
         }
         await delay(100);
     }
+    return dir;
 }

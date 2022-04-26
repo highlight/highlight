@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "render": "nodemon"
+    "build": "tsc --build ./",
+    "publish": "zip -r function.zip node_modules && cd dist && zip -r ../function.zip ./* && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
   },
   "nodemonConfig": {
     "watch": [
@@ -53,9 +54,11 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.76.0",
     "@highlight-run/rrweb": "^1.1.20",
-    "puppeteer": "^13.6.0"
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^10.1.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.95",
     "@types/find": "^0.2.1",
     "@types/fs-extra": "^9.0.13",
     "@types/node": "^17.0.25",
