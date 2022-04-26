@@ -994,11 +994,13 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		if err != nil {
 			log.Errorf("failed to render screenshot for %d %d %f %s", projectID, session.ID, t, err)
 		} else {
+			sessionImageStr = string(imageBytes)
+			sessionImage = &sessionImageStr
 			if err := r.DB.Model(&model.SessionComment{}).Where(
 				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
 			).Updates(
 				model.SessionComment{
-					SessionImage: string(imageBytes),
+					SessionImage: sessionImageStr,
 				},
 			).Error; err != nil {
 				log.Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
