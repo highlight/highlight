@@ -27,6 +27,5 @@ jobs:
               run: |
                 cd render/
                 yarn workspaces focus --production
-                yarn install
                 yarn run build
                 yarn run publish
