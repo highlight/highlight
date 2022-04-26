@@ -2,7 +2,7 @@ name: Deploy Screenshots Render Lambda to AWS
 on:
     push:
         branches:
-            - '**'
+            - 'master'
         paths:
             - 'render/**'
             - '.github/workflows/deploy-render.yml'
