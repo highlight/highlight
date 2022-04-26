@@ -385,7 +385,9 @@ const QuickSearch = () => {
                     {
                         label: 'Default',
                         tooltip: 'Search by user identifier.',
-                        options: [getDefaultField(lastTyped)],
+                        options: lastTyped.length
+                            ? [getDefaultField(lastTyped)]
+                            : [],
                     },
                 ]}
                 maxMenuHeight={500}
