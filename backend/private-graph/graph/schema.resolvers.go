@@ -896,7 +896,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, t float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -921,6 +921,13 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if sessionImage != nil {
 		sessionImageStr = *sessionImage
 	}
+	imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, t)
+	if err != nil {
+		log.Errorf("failed to get screenshot %s", err)
+	} else {
+		sessionImageStr = string(imageBytes)
+	}
+
 	if sessionTimestamp >= math.MaxInt32 {
 		log.Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
 		sessionTimestamp = 0
@@ -985,7 +992,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
-	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, t)
 
 	if len(taggedAdmins) > 0 && !isGuest {
 		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
