@@ -26,6 +26,7 @@ jobs:
             - name: Build and push lambda
               run: |
                 cd render/
-                yarn
+                yarn workspaces focus --production
+                yarn install
                 yarn run build
                 yarn run publish
