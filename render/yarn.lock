@@ -1096,9 +1096,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@highlight-run/rrweb@npm:^1.1.20":
-  version: 1.1.20
-  resolution: "@highlight-run/rrweb@npm:1.1.20"
+"@highlight-run/rrweb@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@highlight-run/rrweb@npm:1.2.0"
   dependencies:
     "@types/css-font-loading-module": 0.0.4
     "@xstate/fsm": ^1.4.0
@@ -1106,7 +1106,7 @@ __metadata:
     fflate: ^0.4.4
     identity-obj-proxy: ^3.0.0
     mitt: ^1.1.3
-  checksum: 7f60dcb4b0ca2b8c9899e0b8cacfd1d8d0ff3b7db12d01349850c64e7bef6c232876e5a82921c0a052f8d32531d17eb8a3e632fec3ee80a33b57c743ba74c22d
+  checksum: 2ed1dbd7250c6cdb4264986a37899565db57545422a91abd9818283b2e8a2dd13d4094096b9459a6f2a8deca1ef7a2ac3d5aa2c086cb90b97ceb6e2c22a9f7f3
   languageName: node
   linkType: hard
 
@@ -3686,7 +3686,7 @@ __metadata:
   resolution: "render@workspace:."
   dependencies:
     "@aws-sdk/client-s3": ^3.76.0
-    "@highlight-run/rrweb": ^1.1.20
+    "@highlight-run/rrweb": ^1.2.0
     "@types/aws-lambda": ^8.10.95
     "@types/find": ^0.2.1
     "@types/fs-extra": ^9.0.13
