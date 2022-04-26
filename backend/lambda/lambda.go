@@ -47,8 +47,8 @@ func NewLambdaClient() (*Client, error) {
 	}, nil
 }
 
-func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts float64) (*http.Response, error) {
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://zbty37wu02.execute-api.us-east-2.amazonaws.com/default/session-screenshots?project=%d&session=%d&ts=%f", projectID, sessionID, ts), nil)
+func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int) (*http.Response, error) {
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://zbty37wu02.execute-api.us-east-2.amazonaws.com/default/session-screenshots?project=%d&session=%d&ts=%d", projectID, sessionID, ts), nil)
 	req = req.WithContext(ctx)
 
 	signer := v4.NewSigner()
