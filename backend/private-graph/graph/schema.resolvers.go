@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3388,6 +3388,11 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var count int64
 	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
 		Count(&count).Error; err != nil {
@@ -3400,6 +3405,11 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
 	}
 
 	var count int64
@@ -3443,6 +3453,11 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	dailySessions := []*model.DailySessionCount{}
 
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
@@ -3458,6 +3473,11 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
 	}
 
 	dailyErrors := []*model.DailyErrorCount{}
@@ -3563,6 +3583,11 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var count int64
 	if err := r.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE project_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", projectID, lookBackPeriod)).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of first time users")
@@ -3649,6 +3674,12 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var length float64
 	if err := r.DB.Raw(`
 		SELECT
@@ -3669,6 +3700,11 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
 	}
 
 	var count int64

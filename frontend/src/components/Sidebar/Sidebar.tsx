@@ -10,6 +10,7 @@ import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useAuthorization } from '@util/authorization/authorization';
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
+import { DEMO_WORKSPACE_NAME } from '@util/constants/constants';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -39,13 +40,14 @@ export const Sidebar = () => {
     const { currentProject } = useApplicationContext();
     const { checkPolicyAccess } = useAuthorization();
     const { isLoggedIn } = useAuthContext();
-    const isWorkspace = !currentProject;
+    const isWorkspace = currentProject === undefined;
     const { project_id } = useParams<{ project_id: string }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const isInDemoProject = projectIdRemapped === DEMO_WORKSPACE_APPLICATION_ID;
+    const isInDemoProject =
+        projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID;
 
     const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         {
@@ -128,8 +130,12 @@ export const Sidebar = () => {
                     styles.sideBar
                 )}
             >
-                {!isWorkspace && (
-                    <MiniWorkspaceIcon projectName={currentProject.name} />
+                {(!isWorkspace || isInDemoProject) && (
+                    <MiniWorkspaceIcon
+                        projectName={
+                            currentProject?.name ?? DEMO_WORKSPACE_NAME
+                        }
+                    />
                 )}
                 {LEAD_NAVIGATION_ITEMS.filter(({ hidden }) => !hidden).map(
                     ({ Icon, displayName, route, className }) => (

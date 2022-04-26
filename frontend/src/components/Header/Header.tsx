@@ -291,7 +291,7 @@ const DemoWorkspaceBanner = () => {
         <div
             className={styles.trialWrapper}
             style={{
-                background: 'var(--color-primary-inverted-background)',
+                background: 'var(--color-green-600)',
             }}
         >
             <div className={classNames(styles.trialTimeText)}>
