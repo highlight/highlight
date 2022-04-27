@@ -79,11 +79,8 @@
 }
 
 .resetPasswordText {
-    margin: 0.75em !important;
+    align-self: flex-start;
+    margin: 0.5em 0;
+    padding: 0;
     text-align: left;
-    width: 100%;
-
-    &:hover {
-        text-decoration: underline;
-    }
 }
