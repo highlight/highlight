@@ -302,20 +302,20 @@ export const ResourcePage = React.memo(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         const pauseFunction = useCallback(
             _.debounce((t: number) => {
-                if (
-                    state != ReplayerState.Empty &&
-                    state != ReplayerState.Loading
-                ) {
-                    pause(t);
-                }
+                pause(t);
             }, 300),
-            [state]
+            []
         );
 
         useEffect(() => {
             if (resourcesToRender?.length) {
-                pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
+                if (state == ReplayerState.Paused) {
+                    pauseFunction(
+                        resourcesToRender[currentActiveIndex]?.startTime
+                    );
+                }
             }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [pauseFunction, resourcesToRender, currentActiveIndex]);
 
         return (
