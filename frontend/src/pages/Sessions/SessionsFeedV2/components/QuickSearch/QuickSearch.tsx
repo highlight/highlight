@@ -6,6 +6,7 @@ import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { Spin } from 'antd';
@@ -32,6 +33,8 @@ interface Suggestion {
 }
 
 const ERROR_TYPE = 'error-field';
+// keys where we should use the 'contains' verb rather than the 'is' default
+const CONTAINS_KEYS = new Set<string>(['email', 'identifier']);
 const RESULT_COUNT = 10;
 
 const getQueryFieldKey = (input: QuickSearchOption) => {
@@ -147,6 +150,9 @@ const QuickSearch = () => {
         isQuickSearchOpen: isMenuOpen,
         setIsQuickSearchOpen: setIsMenuOpen,
     } = useSearchContext();
+    const [lastSearch, setLastSearch] = useLocalStorage<QuickSearchOption>(
+        'highlightQuickSearchLastSearch'
+    );
 
     const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
         variables: {
@@ -257,6 +263,11 @@ const QuickSearch = () => {
         if (lastLoadedQuery !== query) {
             field = getDefaultField(query);
         }
+        if (field.value.length) {
+            setLastSearch(field);
+        } else if (lastSearch) {
+            field = lastSearch;
+        }
 
         if (field.type === ERROR_TYPE) {
             setQueryBuilderInput({
@@ -266,11 +277,15 @@ const QuickSearch = () => {
             });
             history.push(`/${project_id}/errors`);
         } else {
+            let verb = 'is';
+            if (CONTAINS_KEYS.has(field.name)) {
+                verb = 'contains';
+            }
             const searchParams = {
                 ...EmptySessionsSearchParams,
                 query: JSON.stringify({
                     isAnd: true,
-                    rules: [[getQueryFieldKey(field), 'is', field.value]],
+                    rules: [[getQueryFieldKey(field), verb, field.value]],
                 }),
             };
             history.push(`/${project_id}/sessions`);
@@ -387,6 +402,8 @@ const QuickSearch = () => {
                         tooltip: 'Search by user identifier.',
                         options: lastTyped.length
                             ? [getDefaultField(lastTyped)]
+                            : lastSearch?.name
+                            ? [lastSearch]
                             : [],
                     },
                 ]}
