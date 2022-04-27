@@ -164,13 +164,14 @@ func TestHideViewedSessions(t *testing.T) {
 
 func TestResolver_GetSessionChunk(t *testing.T) {
 	timestamps := []int64{
-		1650666776139,
-		1650666799399,
-		1650666809450,
-		1650667660054,
-		1650667900790,
-		1650668142399,
-		1650668382573,
+		1651073243208,
+		1651073392851,
+		1651073564534,
+		1651073772378,
+		1651074011838,
+		1651074045741,
+		1651074284153,
+		1651074417161,
 	}
 	util.RunTestWithDBWipe(t, "Test Chunk", DB, func(t *testing.T) {
 		// inserting the data
@@ -194,11 +195,11 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 
 		// test logic
 		r := &queryResolver{Resolver: &Resolver{DB: DB}}
-		chunkIdx, chunkTs := r.GetSessionChunk(sessionsToInsert[0].ID, 1092307)
-		if chunkIdx != 3 {
+		chunkIdx, chunkTs := r.GetSessionChunk(sessionsToInsert[0].ID, 792248)
+		if chunkIdx != 4 {
 			t.Fatalf("received incorrect chunk idx %d", chunkIdx)
 		}
-		if chunkTs != 208392 {
+		if chunkTs != 23618 {
 			t.Fatalf("received incorrect chunk ts %d", chunkTs)
 		}
 	})
