@@ -1000,12 +1000,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const play = useCallback(
         (newTime?: number) => {
-            if (isLiveMode) {
-                // Return if no events
-                if (events.length === 0) {
-                    return;
-                }
+            // Return if no events
+            if (events.length === 0) {
+                return;
+            }
+            const endTimeOffset = sessionEndTime - events[0].timestamp;
 
+            if (isLiveMode) {
                 const desiredTime =
                     Date.now() - LIVE_MODE_DELAY - events[0].timestamp;
                 // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
@@ -1015,16 +1016,18 @@ export const usePlayer = (): ReplayerContextInterface => {
                     desiredTime - time > 5000 ||
                     state != ReplayerState.Playing
                 ) {
-                    newTime = Math.min(desiredTime, sessionEndTime - 1);
+                    newTime = Math.min(desiredTime, endTimeOffset - 1);
                 } else {
                     return;
                 }
             }
+
             // Don't play the session if the player is already at the end of the session.
-            if ((newTime ?? time) >= sessionEndTime) {
-                return;
+            if ((newTime ?? time) >= endTimeOffset) {
+                setState(ReplayerState.SessionEnded);
+            } else {
+                setState(ReplayerState.Playing);
             }
-            setState(ReplayerState.Playing);
             setTime(newTime ?? time);
 
             const newTs =
