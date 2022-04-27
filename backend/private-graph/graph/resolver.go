@@ -873,8 +873,8 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 }
 
 // GetSessionChunk Given a session and session-relative timestamp, finds the chunk and chunk-relative timestamp.
-func (r *Resolver) GetSessionChunk(sessionID int, ts float64) (chunkIdx int, chunkTs int64) {
-	chunkTs = int64(ts)
+func (r *Resolver) GetSessionChunk(sessionID int, ts int) (chunkIdx int, chunkTs int) {
+	chunkTs = ts
 	var chunks []*model.EventChunk
 	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: sessionID}).
 		Scan(&chunks).Error; err != nil {
@@ -882,16 +882,16 @@ func (r *Resolver) GetSessionChunk(sessionID int, ts float64) (chunkIdx int, chu
 		return
 	}
 	if len(chunks) > 1 {
-		chunkTs = chunks[0].Timestamp
-		absTime := chunkTs + int64(ts)
+		t := chunks[0].Timestamp
+		absTime := t + int64(ts)
 		for i, chunk := range chunks[1:] {
 			if chunk.Timestamp > absTime {
 				break
 			}
 			chunkIdx = i + 1
-			chunkTs = chunk.Timestamp
+			t = chunk.Timestamp
 		}
-		chunkTs = absTime - chunkTs
+		chunkTs = int(absTime - t)
 	}
 	return
 }
