@@ -1038,7 +1038,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
                 setIsLoadingEvents(false);
-                replayer?.play(newTimeWithOffset);
+                if (replayer?.iframe.contentWindow !== null) {
+                    replayer?.play(newTimeWithOffset);
+                }
             });
             if (needsLoad) {
                 setIsLoadingEvents(true);
@@ -1086,7 +1088,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
                 setIsLoadingEvents(false);
-                replayer?.pause(newTimeWithOffset);
+                if (replayer?.iframe.contentWindow !== null) {
+                    replayer?.pause(newTimeWithOffset);
+                }
             });
             if (needsLoad) {
                 setIsLoadingEvents(true);
