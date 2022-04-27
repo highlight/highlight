@@ -1,25 +1,29 @@
+import { SessionComment } from '@components/Comment/SessionComment/SessionComment';
 import { SessionCommentType } from '@graph/schemas';
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import React, { ReactElement, useState } from 'react';
 
-import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 import Popover from '../../../../components/Popover/Popover';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import {
     ParsedSessionComment,
     useReplayerContext,
 } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
-import TimelineAnnotation from './TimelineAnnotation';
+import TimelineAnnotation, { getPopoverPlacement } from './TimelineAnnotation';
 import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     comment: ParsedSessionComment;
+    relativeStartPercent: number;
 }
 
-function TimelineCommentAnnotation({ comment }: Props): ReactElement {
+function TimelineCommentAnnotation({
+    comment,
+    relativeStartPercent,
+}: Props): ReactElement {
     const { pause, replayer } = useReplayerContext();
     const commentId = new URLSearchParams(location.search).get(
         PlayerSearchParameters.commentId
@@ -29,8 +33,17 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
         comment.type === SessionCommentType.Feedback && commentId === comment.id
     );
 
+    const { offset, placement } = getPopoverPlacement(relativeStartPercent);
     return (
         <Popover
+            align={{
+                overflow: {
+                    adjustY: false,
+                    adjustX: false,
+                },
+                offset: offset,
+            }}
+            placement={placement}
             getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={comment.id}
             content={
