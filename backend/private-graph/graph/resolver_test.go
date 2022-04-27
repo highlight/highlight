@@ -3,13 +3,12 @@ package graph
 import (
 	"context"
 	"fmt"
-	"os"
-	"testing"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
+	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -161,4 +160,46 @@ func TestHideViewedSessions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResolver_GetSessionChunk(t *testing.T) {
+	timestamps := []int64{
+		1650666776139,
+		1650666799399,
+		1650666809450,
+		1650667660054,
+		1650667900790,
+		1650668142399,
+		1650668382573,
+	}
+	util.RunTestWithDBWipe(t, "Test Chunk", DB, func(t *testing.T) {
+		// inserting the data
+		sessionsToInsert := []model.Session{
+			{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
+		}
+		if err := DB.Create(&sessionsToInsert).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+		chunksToInsert := []model.EventChunk{}
+		for idx, ts := range timestamps {
+			chunksToInsert = append(chunksToInsert, model.EventChunk{
+				SessionID:  sessionsToInsert[0].ID,
+				ChunkIndex: idx,
+				Timestamp:  ts,
+			})
+		}
+		if err := DB.Create(&chunksToInsert).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+
+		// test logic
+		r := &queryResolver{Resolver: &Resolver{DB: DB}}
+		chunkIdx, chunkTs := r.GetSessionChunk(sessionsToInsert[0].ID, 1092307)
+		if chunkIdx != 3 {
+			t.Fatalf("received incorrect chunk idx %d", chunkIdx)
+		}
+		if chunkTs != 208392 {
+			t.Fatalf("received incorrect chunk ts %d", chunkTs)
+		}
+	})
 }
