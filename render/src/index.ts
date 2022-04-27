@@ -6,6 +6,7 @@ interface Args {
     project?: string;
     session?: string;
     ts?: string;
+    chunk?: string;
 }
 
 export const handler = async (event?: APIGatewayEvent) => {
@@ -13,7 +14,8 @@ export const handler = async (event?: APIGatewayEvent) => {
     const files = await serialRender(
         Number(args?.project),
         Number(args?.session),
-        Number(args?.ts)
+        Number(args?.ts),
+        args?.chunk?.length ? Number(args?.chunk) : undefined
     );
     const file = readFileSync(files[0]);
     return {
@@ -29,9 +31,10 @@ export const handler = async (event?: APIGatewayEvent) => {
 if (process.env.DEV?.length) {
     handler(({
         queryStringParameters: {
-            project: '1',
-            session: '33618264',
-            ts: '1000',
-        },
+            project: '122',
+            session: '33249578',
+            ts: '208392',
+            chunk: '3'
+        }
     } as unknown) as APIGatewayEvent).then(console.info);
 }

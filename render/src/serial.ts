@@ -4,9 +4,10 @@ import { getEvents } from './s3';
 export async function serialRender(
     project: number,
     session: number,
-    ts: number
+    ts: number,
+    chunk?: number
 ) {
-    console.log(`starting serial render for ${project} ${session} ${ts}`)
-    const events = await getEvents(project, session);
+    console.log(`starting serial render for ${project} ${session} ${ts}`);
+    const events = await getEvents(project, session, chunk);
     return await render(events, 0, 1, undefined, ts);
 }
