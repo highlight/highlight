@@ -42,93 +42,114 @@ const TimelineIndicatorsMemoized = React.memo(
         pause,
         activeEvent,
     }: Props) => {
+        const getRelativeStart = (
+            sessionInterval: ParsedSessionInterval,
+            ts: number
+        ) => {
+            const intervalWidth = sessionInterval.active
+                ? sessionInterval.endPercent - sessionInterval.startPercent
+                : 0.01;
+            // calculate the event position percentage, relative to the entire timeline.
+            // i.e. each event start is weighted relative to the size of the interval it is in,
+            // since inactive intervals have a fixed small size.
+            return (
+                sessionInterval.startPercent +
+                intervalWidth *
+                    ((ts - startTime - sessionInterval.startTime) /
+                        sessionInterval.duration)
+            );
+        };
         return (
             <AnimatePresence presenceAffectsLayout>
                 <aside
                     className={classNames(styles.container)}
                     ref={refContainer}
                 >
-                    {sessionIntervals.map((sessionInterval, index) => (
-                        <div
-                            key={`${sessionInterval.startPercent}-${index}`}
-                            className={classNames(styles.sessionInterval, {
-                                [styles.active]: sessionInterval.active,
-                            })}
-                            style={{
-                                left: `${sessionInterval.startPercent * 100}%`,
-                                width: `${
-                                    (sessionInterval.endPercent -
-                                        sessionInterval.startPercent) *
-                                    100
-                                }%`,
-                            }}
-                        >
-                            {sessionInterval.sessionEvents.map((event) => {
-                                const intervalWidth = sessionInterval.active
-                                    ? sessionInterval.endPercent -
-                                      sessionInterval.startPercent
-                                    : 0.01;
-                                // calculate the event position percentage, relative to the entire timeline.
-                                // i.e. each event start is weighted relative to the size of the interval it is in,
-                                // since inactive intervals have a fixed small size.
-                                const relativeStart =
-                                    sessionInterval.startPercent +
-                                    intervalWidth *
-                                        ((event.timestamp -
-                                            startTime -
-                                            sessionIntervals[index].startTime) /
-                                            sessionInterval.duration);
-                                return (
-                                    <TimelineEventAnnotation
-                                        event={event}
-                                        startTime={startTime}
-                                        relativeStartPercent={relativeStart}
-                                        selectedTimelineAnnotationTypes={
-                                            selectedTimelineAnnotationTypes
-                                        }
-                                        pause={pause}
-                                        key={`${event.timestamp}-${event.identifier}`}
-                                        activeEvent={activeEvent}
-                                    />
-                                );
-                            })}
-                            {selectedTimelineAnnotationTypes.includes(
-                                'Errors'
-                            ) &&
-                                sessionInterval.errors.map((error) => (
-                                    <TimelineErrorAnnotation
-                                        error={error}
-                                        key={`${error.timestamp}-${error.id}`}
-                                    />
-                                ))}
-                            {selectedTimelineAnnotationTypes.includes(
-                                'Comments'
-                            ) &&
-                                sessionInterval.comments.map((comment) => {
+                    {sessionIntervals.map((sessionInterval, index) => {
+                        return (
+                            <div
+                                key={`${sessionInterval.startPercent}-${index}`}
+                                className={classNames(styles.sessionInterval, {
+                                    [styles.active]: sessionInterval.active,
+                                })}
+                                style={{
+                                    left: `${
+                                        sessionInterval.startPercent * 100
+                                    }%`,
+                                    width: `${
+                                        (sessionInterval.endPercent -
+                                            sessionInterval.startPercent) *
+                                        100
+                                    }%`,
+                                }}
+                            >
+                                {sessionInterval.sessionEvents.map((event) => {
                                     return (
-                                        <TimelineCommentAnnotation
-                                            comment={comment}
-                                            key={comment.id}
+                                        <TimelineEventAnnotation
+                                            event={event}
+                                            startTime={startTime}
+                                            relativeStartPercent={getRelativeStart(
+                                                sessionInterval,
+                                                event.timestamp
+                                            )}
+                                            selectedTimelineAnnotationTypes={
+                                                selectedTimelineAnnotationTypes
+                                            }
+                                            pause={pause}
+                                            key={`${event.timestamp}-${event.identifier}`}
+                                            activeEvent={activeEvent}
                                         />
                                     );
                                 })}
-                            {selectedTimelineAnnotationTypes.includes(
-                                'Click'
-                            ) &&
-                                rageClicks
-                                    .filter(
-                                        (rageClick) =>
-                                            rageClick.sessionIntervalIndex ===
-                                            index
-                                    )
-                                    .map((rageClick) => (
-                                        <RageClickSpan
-                                            rageClick={rageClick}
-                                            key={rageClick.startTimestamp}
+                                {selectedTimelineAnnotationTypes.includes(
+                                    'Errors'
+                                ) &&
+                                    sessionInterval.errors.map((error) => (
+                                        <TimelineErrorAnnotation
+                                            error={error}
+                                            key={`${error.timestamp}-${error.id}}`}
+                                            relativeStartPercent={getRelativeStart(
+                                                sessionInterval,
+                                                new Date(
+                                                    error.timestamp
+                                                ).getTime()
+                                            )}
                                         />
                                     ))}
-                        </div>
-                    ))}
+                                {selectedTimelineAnnotationTypes.includes(
+                                    'Comments'
+                                ) &&
+                                    sessionInterval.comments.map((comment) => {
+                                        return (
+                                            <TimelineCommentAnnotation
+                                                comment={comment}
+                                                key={comment.id}
+                                                relativeStartPercent={getRelativeStart(
+                                                    sessionInterval,
+                                                    startTime +
+                                                        (comment.timestamp || 0)
+                                                )}
+                                            />
+                                        );
+                                    })}
+                                {selectedTimelineAnnotationTypes.includes(
+                                    'Click'
+                                ) &&
+                                    rageClicks
+                                        .filter(
+                                            (rageClick) =>
+                                                rageClick.sessionIntervalIndex ===
+                                                index
+                                        )
+                                        .map((rageClick) => (
+                                            <RageClickSpan
+                                                rageClick={rageClick}
+                                                key={rageClick.startTimestamp}
+                                            />
+                                        ))}
+                            </div>
+                        );
+                    })}
                 </aside>
             </AnimatePresence>
         );
