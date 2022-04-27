@@ -19,7 +19,7 @@ export async function compressedStreamToString(
 ): Promise<string> {
     return await new Promise((resolve, reject) => {
         const chunks: Uint8Array[] = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('data', (chunk) => chunks.push(chunk as Uint8Array));
         stream.on('error', reject);
         stream.on('end', () =>
             resolve(
@@ -31,8 +31,11 @@ export async function compressedStreamToString(
     });
 }
 
-export async function getEvents(project: number, session: number) {
-    const key = `${project}/${session}/session-contents-compressed`;
+export async function getEvents(project: number, session: number, chunk?: number) {
+    let key = `${project}/${session}/session-contents-compressed`;
+    if (chunk !== undefined) {
+        key = `${key}-${chunk.toString().padStart(4, "0")}`
+    }
     const command = new GetObjectCommand({
         Bucket: 'highlight-session-s3-test',
         Key: key,

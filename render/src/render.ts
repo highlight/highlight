@@ -36,7 +36,7 @@ export async function render(
     ts?: number,
     dir?: string
 ) {
-    if (!ts && !fps) {
+    if (ts === undefined && fps === undefined) {
         throw new Error('timestamp or fps must be provided');
     }
     events = events.replace(/\\/g, '\\\\');

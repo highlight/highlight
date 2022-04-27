@@ -4,6 +4,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "build": "tsc --build ./",
+    "single": "DEV=true ts-node -r tsconfig-paths/register ./src",
     "dev": "DEV=true nodemon",
     "publish": "zip -r function.zip dist node_modules && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
   },
