@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -47,7 +48,8 @@ func NewLambdaClient() (*Client, error) {
 	}, nil
 }
 
-func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int64, chunk int) (*http.Response, error) {
+func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) (*http.Response, error) {
+	log.Infof("requesting session screenshot for project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk)
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://zbty37wu02.execute-api.us-east-2.amazonaws.com/default/session-screenshots?project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk), nil)
 	req = req.WithContext(ctx)
 

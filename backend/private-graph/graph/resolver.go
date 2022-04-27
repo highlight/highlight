@@ -873,8 +873,8 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 }
 
 // GetSessionChunk Given a session and session-relative timestamp, finds the chunk and chunk-relative timestamp.
-func (r *Resolver) GetSessionChunk(sessionID int, ts int64) (chunkIdx int, chunkTs int64) {
-	chunkTs = ts
+func (r *Resolver) GetSessionChunk(sessionID int, ts float64) (chunkIdx int, chunkTs int64) {
+	chunkTs = int64(ts)
 	var chunks []*model.EventChunk
 	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: sessionID}).
 		Scan(&chunks).Error; err != nil {
@@ -883,7 +883,7 @@ func (r *Resolver) GetSessionChunk(sessionID int, ts int64) (chunkIdx int, chunk
 	}
 	if len(chunks) > 1 {
 		chunkTs = chunks[0].Timestamp
-		absTime := chunkTs + ts
+		absTime := chunkTs + int64(ts)
 		for i, chunk := range chunks[1:] {
 			if chunk.Timestamp > absTime {
 				break
@@ -896,7 +896,7 @@ func (r *Resolver) GetSessionChunk(sessionID int, ts int64) (chunkIdx int, chunk
 	return
 }
 
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int64, chunk int) ([]byte, error) {
+func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
 	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make screenshot render request")

@@ -991,8 +991,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		c := context.Background()
-		chunkIdx, chunkTs := r.GetSessionChunk(session.ID, int64(time))
-		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		chunkIdx, chunkTs := r.GetSessionChunk(session.ID, time)
+		log.Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, int64(time))
+		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, int(chunkTs), chunkIdx)
 		if err != nil {
 			log.Errorf("failed to render screenshot for %d %d %f %s", projectID, session.ID, time, err)
 		} else {
