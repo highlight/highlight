@@ -360,6 +360,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 }
 
 func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+	if sessionID == 0 {
+		log.Errorf("received web vitals %+v for sessionID 0", metric)
+		return -1, nil
+	}
+
 	session := &model.Session{}
 	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		log.Error(err)
