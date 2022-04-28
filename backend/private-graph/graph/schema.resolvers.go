@@ -2589,7 +2589,6 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
-// RequestAccess sends an access email request to the first two workspace admin.
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
