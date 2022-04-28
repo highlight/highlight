@@ -2589,13 +2589,16 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
-// RequestAccess sends an access email request to the first two workspace admin. Any errors are logged but not returned to avoid leaking metadata to the client (such as whether the project exists or they have access to send an access request).
+// RequestAccess sends an access email request to the first two workspace admin.
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
 	time.Sleep(time.Millisecond * time.Duration(10*rand.Float64()))
 
+	// Any errors are logged but not returned to avoid leaking metadata
+	// to the client (such as whether the project exists
+	// or they have access to send an access request).
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		log.Error(e.Wrap(err, "user is not logged in"))
