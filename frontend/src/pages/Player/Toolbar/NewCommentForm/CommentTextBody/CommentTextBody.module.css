@@ -45,7 +45,7 @@
 }
 
 .mentions__input::placeholder {
-    color: var(--color-gray-500) !important;
+    color: var(--color-text-primary) !important;
 }
 
 .mentions__suggestions__list {
@@ -74,9 +74,19 @@
 }
 
 .mentions__mention {
-    color: var(--color-purple-400);
-    font-weight: 300 !important;
+    color: var(--color-link);
+    font-weight: 400 !important;
     pointer-events: none;
     position: relative;
     z-index: 1;
+    text-shadow: 1px 1px 1px white, 1px -1px 1px white, -1px 1px 1px white,
+    -1px -1px 1px white;
+}
+
+.mentionedUser {
+    color: var(--color-link);
+}
+
+.commentText {
+    color: var(--color-gray-500)
 }
