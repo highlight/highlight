@@ -32,7 +32,7 @@
 
 .mentions--multiLine .mentions__input {
     border: 1px solid transparent;
-    color: var(--color-text-primary);
+    color: var(--color-gray-500);
     cursor: inherit;
     font-weight: 400;
     outline: 0;
@@ -85,4 +85,8 @@
 
 .mentionedUser {
     color: var(--color-link);
+}
+
+.commentText {
+    color: var(--color-gray-500)
 }

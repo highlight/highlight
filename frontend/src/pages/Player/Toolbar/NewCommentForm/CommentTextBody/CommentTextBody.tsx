@@ -71,24 +71,26 @@ const CommentTextBody = ({
                 );
             } else {
                 pieces.push(
-                    <Linkify
-                        componentDecorator={(
-                            decoratedHref: string,
-                            decoratedText: string,
-                            key: number
-                        ) => (
-                            <a
-                                target={'_blank'}
-                                rel="noreferrer"
-                                href={decoratedHref}
-                                key={key}
-                            >
-                                {decoratedText}
-                            </a>
-                        )}
-                    >
-                        {value}
-                    </Linkify>
+                    <span className={commentTextBodyClassNames.commentText}>
+                        <Linkify
+                            componentDecorator={(
+                                decoratedHref: string,
+                                decoratedText: string,
+                                key: number
+                            ) => (
+                                <a
+                                    target={'_blank'}
+                                    rel="noreferrer"
+                                    href={decoratedHref}
+                                    key={key}
+                                >
+                                    {decoratedText}
+                                </a>
+                            )}
+                        >
+                            {value}
+                        </Linkify>
+                    </span>
                 );
             }
         }
