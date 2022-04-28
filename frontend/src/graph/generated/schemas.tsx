@@ -1276,6 +1276,7 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+    requestAccess?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1741,6 +1742,10 @@ export type MutationSubmitRegistrationFormArgs = {
     use_case: Scalars['String'];
     heard_about: Scalars['String'];
     pun?: Maybe<Scalars['String']>;
+};
+
+export type MutationRequestAccessArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type Subscription = {

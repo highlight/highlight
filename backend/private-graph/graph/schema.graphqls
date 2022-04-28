@@ -1214,6 +1214,9 @@ type Mutation {
         heard_about: String!
         pun: String
     ): Boolean
+    requestAccess(
+        project_id: ID!
+    ): Boolean
 }
 
 type Subscription {

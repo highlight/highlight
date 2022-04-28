@@ -1178,3 +1178,7 @@ mutation SyncSlackIntegration($project_id: ID!) {
         newChannelsAddedCount
     }
 }
+
+mutation RequestAccess($project_id: ID!) {
+    requestAccess(project_id: $project_id)
+}

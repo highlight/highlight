@@ -2589,6 +2589,10 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")

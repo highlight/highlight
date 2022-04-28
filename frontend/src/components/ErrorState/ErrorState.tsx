@@ -1,24 +1,27 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Space from '@components/Space/Space';
+import { auth } from '@util/auth';
+import { client } from '@util/graph';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
-import { auth } from '../../util/auth';
-import { client } from '../../util/graph';
 import Button from '../Button/Button/Button';
 import ElevatedCard from '../ElevatedCard/ElevatedCard';
 import styles from './ErrorState.module.scss';
+import RequestAccess from './RequestAccess/RequestAccess';
 
 export const ErrorState = ({
     message,
     errorString,
     shownWithHeader = false,
+    showRequestAccess = false,
 }: {
     message: string;
     errorString?: string;
     shownWithHeader?: boolean;
+    showRequestAccess?: boolean;
 }) => {
     const { isLoggedIn } = useAuthContext();
     const [showError, setShowError] = useState(false);
@@ -46,17 +49,16 @@ export const ErrorState = ({
                 )}
                 <div className={styles.buttonGroup}>
                     {isLoggedIn ? (
-                        <>
+                        <div className={styles.loggedInButtonGroup}>
                             <a href="/">
                                 <Button
                                     type="primary"
                                     trackingId="ErrorStateGoToMyAccount"
                                 >
-                                    Go to my Account
+                                    My Account
                                 </Button>
                             </a>
                             <Button
-                                style={{ marginLeft: 10 }}
                                 trackingId="ErrorStateLoginAsDifferentUser"
                                 onClick={async () => {
                                     try {
@@ -69,9 +71,10 @@ export const ErrorState = ({
                                     client.clearStore();
                                 }}
                             >
-                                Sign in as a different User
+                                Change User
                             </Button>
-                        </>
+                            {showRequestAccess && <RequestAccess />}
+                        </div>
                     ) : (
                         <Space size="small">
                             <ButtonLink
