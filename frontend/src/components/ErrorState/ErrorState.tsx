@@ -1,10 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Space from '@components/Space/Space';
-import { auth } from '@util/auth';
-import { client } from '@util/graph';
 import classNames from 'classnames';
-import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import Button from '../Button/Button/Button';
@@ -55,24 +52,9 @@ export const ErrorState = ({
                                     type="primary"
                                     trackingId="ErrorStateGoToMyAccount"
                                 >
-                                    My Account
+                                    Go to My Account
                                 </Button>
                             </a>
-                            <Button
-                                trackingId="ErrorStateLoginAsDifferentUser"
-                                onClick={async () => {
-                                    try {
-                                        auth.signOut();
-                                    } catch (e) {
-                                        if (e instanceof Error) {
-                                            H.consumeError(e);
-                                        }
-                                    }
-                                    client.clearStore();
-                                }}
-                            >
-                                Change User
-                            </Button>
                             {showRequestAccess && <RequestAccess />}
                         </div>
                     ) : (

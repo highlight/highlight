@@ -2,10 +2,7 @@ import Button from '@components/Button/Button/Button';
 import { useRequestAccessMutation } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import { H } from 'highlight.run';
 import React, { useState } from 'react';
-
-import styles from './RequestAccess.module.scss';
 
 const RequestAccess = () => {
     const { project_id } = useParams<{
@@ -13,50 +10,29 @@ const RequestAccess = () => {
     }>();
     const [requestAccess] = useRequestAccessMutation();
     const [sentAccessRequest, setSentAccessRequest] = useState(false);
-    return sentAccessRequest ? (
-        <p>
-            Request sent You'll get an email letting you know if the file is
-            shared with you
-        </p>
-    ) : (
+    return (
         <Button
-            type="primary"
-            className={styles.accessButton}
             trackingId={'ErrorStateRequestAccess'}
+            disabled={sentAccessRequest}
             onClick={async () => {
                 console.log('project_id', project_id);
                 try {
                     await requestAccess({
                         variables: { project_id: project_id },
                     });
-                    setSentAccessRequest(true);
                 } catch (_e) {
-                    const e = _e as Error;
-                    H.track('Request Session Access Failed', {
-                        error: e.toString(),
-                    });
-                    message.error(
+                } finally {
+                    message.success(
                         <>
-                            Failed to request session access, please try again.
-                            If this keeps failing please message us on{' '}
-                            <span
-                                className={styles.intercomLink}
-                                onClick={() => {
-                                    window.Intercom(
-                                        'showNewMessage',
-                                        `I can't request session access. This is the error I'm getting: "${e}"`
-                                    );
-                                }}
-                            >
-                                Intercom
-                            </span>
-                            .
+                            If the workspace exists, we've sent an email to the
+                            owner to share access with you!
                         </>
                     );
+                    setSentAccessRequest(true);
                 }
             }}
         >
-            Request Access
+            {sentAccessRequest ? 'Access Requested!' : 'Request Access'}
         </Button>
     );
 };

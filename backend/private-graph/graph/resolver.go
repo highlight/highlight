@@ -953,6 +953,33 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	return &inviteLink, nil
 }
 
+func (r *Resolver) SendWorkspaceRequestEmail(fromName string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
+	to := &mail.Email{Address: toEmail}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(Email.SendGridRequestAccessEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Admin_Requester", fromName)
+	p.SetDynamicTemplateData("Workspace_Admin", toName)
+	p.SetDynamicTemplateData("Workspace_Name", workspaceName)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
+	}
+	return &inviteLink, nil
+}
+
 func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
