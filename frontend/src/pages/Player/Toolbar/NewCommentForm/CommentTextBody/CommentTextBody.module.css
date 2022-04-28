@@ -80,3 +80,7 @@
     position: relative;
     z-index: 1;
 }
+
+.mentionedUser {
+    color: var(--color-link);
+}
