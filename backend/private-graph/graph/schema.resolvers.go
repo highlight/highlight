@@ -2589,9 +2589,7 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
-// RequestAccess sends an access email request to the first two workspace admin.
-// Any errors are logged but not returned to avoid leaking metadata to the client
-// (such as whether the project exists or they have access to send an access request).
+// RequestAccess sends an access email request to the first two workspace admin. Any errors are logged but not returned to avoid leaking metadata to the client (such as whether the project exists or they have access to send an access request).
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
@@ -2622,7 +2620,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	}
 
 	for _, a := range workspaceAdmins[:2] {
-		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *workspace.Name,
+		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
 			log.Error(e.Wrap(err, "failed to send request access email"))
 			return &model.T, nil

@@ -15,7 +15,7 @@ var (
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
 	SendGridAlertEmailTemplateID          = "d-efd755d329db413082dbdf1188b6846e"
-	SendGridRequestAccessEmailTemplateID  = "d-TODO"
+	SendGridRequestAccessEmailTemplateID  = "d-f059960009ba4a9fb5640e98db517eef"
 	SendGridOutboundEmail                 = "gm@runhighlight.com"
 )
 

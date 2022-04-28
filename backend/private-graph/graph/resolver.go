@@ -953,7 +953,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	return &inviteLink, nil
 }
 
-func (r *Resolver) SendWorkspaceRequestEmail(fromName string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
+func (r *Resolver) SendWorkspaceRequestEmail(fromName string, fromEmail string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
@@ -963,7 +963,8 @@ func (r *Resolver) SendWorkspaceRequestEmail(fromName string, workspaceName stri
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
-	p.SetDynamicTemplateData("Admin_Requester", fromName)
+	p.SetDynamicTemplateData("Requester_Name", fromName)
+	p.SetDynamicTemplateData("Requester_Email", fromEmail)
 	p.SetDynamicTemplateData("Workspace_Admin", toName)
 	p.SetDynamicTemplateData("Workspace_Name", workspaceName)
 	p.SetDynamicTemplateData("Invite_Link", inviteLink)
