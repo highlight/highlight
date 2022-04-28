@@ -636,8 +636,8 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
 		slack.NewSectionBlock(
-			nil,
-			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, slack.NewAccessory(button),
 		),
 	)
 
@@ -689,8 +689,8 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
 		slack.NewSectionBlock(
-			nil,
-			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, slack.NewAccessory(button),
 		),
 	)
 
