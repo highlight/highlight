@@ -22,6 +22,7 @@ export const handler = async (event?: APIGatewayEvent) => {
         statusCode: 200,
         isBase64Encoded: true,
         body: Buffer.from(file).toString('base64'),
+        path: files[0],
         headers: {
             'content-type': 'image/png',
         },
