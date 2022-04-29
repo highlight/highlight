@@ -4591,12 +4591,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rehooks/local-storage@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "@rehooks/local-storage@npm:2.4.0"
+"@rehooks/local-storage@npm:^2.4.4":
+  version: 2.4.4
+  resolution: "@rehooks/local-storage@npm:2.4.4"
   peerDependencies:
-    react: "*"
-  checksum: 99748a349a95fd9f40832772a4425fd87abed6120740853e01f3c91ede489f88e0fa6eabaa84132af83e38c8ae7de7c02925f37c70c03a4347eca367bb3a84e1
+    react: ">=16.8.0"
+  checksum: 1aba4f4cfa0f1767d82730240a11c814f5b70917a0031989d3ce3a97b3d040523271738802a4a5deee20e9295e7c09bca6882a048337f0b78525347b7370ec73
   languageName: node
   linkType: hard
 
@@ -12267,7 +12267,7 @@ __metadata:
     "@highlight-run/react-mentions": 4.4.1
     "@highlight-run/react-select": ^5.2.2
     "@highlight-run/rrweb": 2.1.7
-    "@rehooks/local-storage": ^2.4.0
+    "@rehooks/local-storage": ^2.4.4
     "@rehooks/window-size": ^1.0.2
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
