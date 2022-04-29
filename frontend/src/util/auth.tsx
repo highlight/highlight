@@ -1,6 +1,7 @@
 import 'firebase/auth';
 
-import * as firebase from 'firebase/app';
+import Firebase from 'firebase/app'
+
 
 let firebaseConfig: any;
 let firebaseConfigString: string;
@@ -23,6 +24,6 @@ try {
 
 window._highlightFirebaseConfig = firebaseConfig;
 
-firebase.initializeApp(firebaseConfig);
-export const googleProvider = new firebase.auth.GoogleAuthProvider();
-export const auth = firebase.auth();
+Firebase.initializeApp(firebaseConfig);
+export const googleProvider = new Firebase.auth.GoogleAuthProvider();
+export const auth = Firebase.auth();

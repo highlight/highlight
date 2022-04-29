@@ -13,7 +13,7 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
-import * as firebase from 'firebase/app';
+import Firebase from 'firebase/app';
 
 const uri =
     process.env.REACT_APP_PRIVATE_GRAPH_URI ??
@@ -33,7 +33,7 @@ try {
             lazy: true,
             reconnect: true,
             connectionParams: async () => {
-                const token = await firebase.auth().currentUser?.getIdToken();
+                const token = await Firebase.auth().currentUser?.getIdToken();
                 return {
                     token,
                 };
@@ -64,7 +64,7 @@ if (isOnPrem) {
 
 const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
-    const user = firebase.auth().currentUser;
+    const user = Firebase.auth().currentUser;
     // return the headers to the context so httpLink can read them
     return user?.getIdToken().then((t) => {
         return { headers: { ...headers, token: t } };
