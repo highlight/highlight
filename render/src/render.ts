@@ -6,22 +6,17 @@ import chromium from 'chrome-aws-lambda';
 
 const getHtml = (): string => {
     return `<html lang="en"><head><title></title><style>
+
 .rrwebPlayerWrapper {
-    align-items: center;
-    box-sizing: border-box;
     display: flex;
-    flex-grow: 1;
+    align-items: center;
     justify-content: center;
-    position: relative;
-    width: 1920px;
-    height: 1080px;
-}
-.rrwebPlayerDiv {
+    width: 100%;
     height: 100%;
-    position: relative;
 }
+.rrwebPlayerDiv {}
 </style></head><body style="padding: 0; margin: 0">
-  <div id="player" class="rrwebPlayerWrapper">
+  <div id="wrapper" class="rrwebPlayerWrapper">
     <div id="player" class="rrwebPlayerDiv"></div>
   </div>
 </body></html>
@@ -48,10 +43,6 @@ export async function render(
     const browser = await chromium.puppeteer.launch({
         headless: chromium.headless,
         ignoreHTTPSErrors: true,
-        defaultViewport: {
-            width: 1920,
-            height: 1080,
-        },
         args: chromium.args,
         executablePath: await chromium.executablePath,
     });
@@ -72,9 +63,7 @@ export async function render(
     await page.evaluate(js);
     await page.evaluate(
         `
-        const playerMountingRoot = document.getElementById(
-            'player'
-        );
+        const playerMountingRoot = document.getElementById('player');
         const events = JSON.parse(` +
             '`' +
             events +
@@ -85,11 +74,13 @@ export async function render(
             triggerFocus: true,
             mouseTail: false,
             UNSAFE_replayCanvas: true,
-            liveMode: true,
+            liveMode: false,
         });
-        r.pause(0)
-        meta = r.getMetaData()
-        loaded = true
+        r.on('resize', (e) => {viewport = e});
+        r.pause(0);
+        
+        meta = r.getMetaData();
+        loaded = true;
     `
     );
     await page.waitForFunction('loaded');
@@ -98,6 +89,9 @@ export async function render(
         endTime: number;
         totalTime: number;
     };
+    const width = await page.evaluate(`viewport.width`);
+    const height = await page.evaluate(`viewport.height`);
+    await page.setViewport({ width: width + 16, height: height + 16 });
 
     let interval = 1000;
     let start = ts || meta.startTime;
