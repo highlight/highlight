@@ -25,7 +25,7 @@
       "./node_modules/@types",
       "./src/@types"
     ],
-    "types": ["vite/client", "vite-plugin-svgr/client"],
+    "types": ["vite/client", "vite-plugin-svgr/client", "@types/jest"],
     "noFallthroughCasesInSwitch": true
   },
   "include": [
