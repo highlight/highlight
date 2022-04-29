@@ -1,7 +1,6 @@
 import 'firebase/auth';
 
-import Firebase from 'firebase/app'
-
+import Firebase from 'firebase/app';
 
 let firebaseConfig: any;
 let firebaseConfigString: string;
