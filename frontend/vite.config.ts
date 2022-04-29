@@ -9,7 +9,7 @@ import { resolve } from 'path';
 import fs from 'fs';
 import envCompatible from 'vite-plugin-env-compatible';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import createImportPlugin from 'vite-plugin-import';
+import vitePluginImp from 'vite-plugin-imp';
 
 const pathResolver = (path: string) => resolve(__dirname, path);
 const themeVariables = lessToJS(
@@ -44,17 +44,19 @@ export default defineConfig({
                 icon: true,
             },
         }),
-        createImportPlugin([
-            {
-                libraryName: 'antd',
-                style: (name) => {
-                    if (name === 'col' || name === 'row') {
-                        return 'antd/lib/style/index.less';
-                    }
-                    return `antd/es/${name}/style/index.less`;
+        vitePluginImp({
+            libList: [
+                {
+                    libName: 'antd',
+                    style: (name) => {
+                        if (name === 'col' || name === 'row') {
+                            return 'antd/lib/style/index.less';
+                        }
+                        return `antd/es/${name}/style/index.less`;
+                    },
                 },
-            },
-        ]),
+            ],
+        }),
     ],
     build: {
         outDir: 'build',
@@ -62,7 +64,7 @@ export default defineConfig({
         sourcemap: true,
     },
     server: {
-        https: false,
+        https: true,
         port: 3000,
         host: '0.0.0.0',
         cors: true,
