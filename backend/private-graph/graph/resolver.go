@@ -696,32 +696,13 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	for _, slackUser := range taggedSlackUsers {
-		if slackUser.WebhookChannelID != nil {
-			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
-			if err != nil {
-				log.Error(e.Wrap(err, "failed to join slack channel"))
-			}
-			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
-				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any links that are in the Slack message.*/)
-			if err != nil {
-				return e.Wrap(err, "error posting slack message via slack bot")
-			}
-		}
-	}
 
-	// Upload the screenshot to the user's Slack workspace.
+	// Prepare upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
 	// If we upload the image somewhere public, anyone with the link to the image will have access. The image could contain sensitive information.
 	// By uploading to the user's Slack workspace, we limit the authorization of the image to only Slack members of the user's workspace.
 	var uploadedFileKey string
 	if base64Image != nil {
-		var channels []string
-		for _, slackUser := range taggedSlackUsers {
-			channels = append(channels, *slackUser.WebhookChannelID)
-		}
-
 		// This key will be used as the file name for the file written to disk.
 		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
 		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", workspace.ID, admin.ID, time.Now().UnixNano())
@@ -745,28 +726,43 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		if err := f.Sync(); err != nil {
 			log.Error("Failed to sync file on disk")
 		}
+	}
 
-		// We need to write the base64 image to disk, read the file, then upload it to Slack.
-		// We can't send Slack a base64 string.
-		fileUploadParams := slack.FileUploadParameters{
-			Filetype: "image/png",
-			Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
-			// These are the channels that will have access to the uploaded file.
-			Channels: channels,
-			File:     uploadedFileKey,
-			Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
-		}
-		_, err = slackClient.UploadFile(fileUploadParams)
-
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to upload file to Slack"))
-		}
-
-		if uploadedFileKey != "" {
-			if err := os.Remove(uploadedFileKey); err != nil {
-				log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
-
+	for _, slackUser := range taggedSlackUsers {
+		if slackUser.WebhookChannelID != nil {
+			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
+			if err != nil {
+				log.Warn(e.Wrap(err, "failed to join slack channel"))
 			}
+			_, respTs, err := slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
+				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any media that are in the Slack message.*/)
+			if err != nil {
+				log.Error(e.Wrap(err, "error posting slack message via slack bot"))
+			}
+			if uploadedFileKey != "" {
+				// We need to write the base64 image to disk, read the file, then upload it to Slack.
+				// We can't send Slack a base64 string.
+				fileUploadParams := slack.FileUploadParameters{
+					Filetype: "image/png",
+					Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
+					// These are the channels that will have access to the uploaded file.
+					Channels:        []string{*slackUser.WebhookChannelID},
+					File:            uploadedFileKey,
+					Title:           fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+					ThreadTimestamp: respTs,
+				}
+				_, err = slackClient.UploadFile(fileUploadParams)
+
+				if err != nil {
+					log.Error(e.Wrap(err, "failed to upload file to Slack"))
+				}
+			}
+		}
+	}
+	if uploadedFileKey != "" {
+		if err := os.Remove(uploadedFileKey); err != nil {
+			log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
 		}
 	}
 
