@@ -251,7 +251,7 @@ const LoginForm = () => {
                                 ) : formState ===
                                   LoginFormState.ResetPassword ? (
                                     <>
-                                        Want to try and{' '}
+                                        Want to{' '}
                                         <span
                                             onClick={() => {
                                                 changeState(
