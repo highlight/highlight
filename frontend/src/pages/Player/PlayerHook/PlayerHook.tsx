@@ -782,7 +782,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (project_id === '896' && replayer.iframe.contentDocument) {
                 const cssLink = document.createElement('link');
                 cssLink.href =
-                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css';
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
                 cssLink.rel = 'stylesheet';
                 cssLink.type = 'text/css';
                 replayer.iframe.contentDocument.head.appendChild(cssLink);
