@@ -64,10 +64,9 @@ const TimelineIndicatorsMemoized = React.memo(
                             }}
                         >
                             {sessionInterval.sessionEvents.map((event) => {
-                                const intervalWidth = sessionInterval.active
-                                    ? sessionInterval.endPercent -
-                                      sessionInterval.startPercent
-                                    : 0.01;
+                                const intervalWidth =
+                                    sessionInterval.endPercent -
+                                    sessionInterval.startPercent;
                                 // calculate the event position percentage, relative to the entire timeline.
                                 // i.e. each event start is weighted relative to the size of the interval it is in,
                                 // since inactive intervals have a fixed small size.

@@ -253,6 +253,19 @@ export const Toolbar = React.memo(() => {
                 <TimelineIndicators />
                 {!isLiveMode ? (
                     <div className={styles.playerRail}>
+                        {toolbarItems.zoomAreaLeft !== undefined &&
+                        toolbarItems.zoomAreaRight !== undefined ? (
+                            <div
+                                className={styles.zoomArea}
+                                style={{
+                                    left: `${toolbarItems.zoomAreaLeft}%`,
+                                    width: `${
+                                        toolbarItems.zoomAreaRight -
+                                        toolbarItems.zoomAreaLeft
+                                    }%`,
+                                }}
+                            ></div>
+                        ) : null}
                         <div
                             className={styles.sliderRail}
                             style={{

@@ -25,6 +25,10 @@ interface ToolbarItemsContext {
     setAutoPlay: ToolbarItemSetter;
     showPlayerTime: ToolbarItem;
     setShowPlayerTime: ToolbarItemSetter;
+    zoomAreaLeft: number | undefined;
+    setZoomAreaLeft: React.Dispatch<React.SetStateAction<number | undefined>>;
+    zoomAreaRight: number | undefined;
+    setZoomAreaRight: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 export const [

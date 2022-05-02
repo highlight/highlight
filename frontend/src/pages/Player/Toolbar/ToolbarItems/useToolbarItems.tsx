@@ -1,5 +1,6 @@
 import { ToolbarItem } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import useLocalStorage from '@rehooks/local-storage';
+import { useState } from 'react';
 
 const LocalStorageKeyPrefix = 'highlightToolbarItem';
 
@@ -53,6 +54,9 @@ const useToolbarItems = () => {
         }
     );
 
+    const [zoomAreaLeft, setZoomAreaLeft] = useState<number | undefined>();
+    const [zoomAreaRight, setZoomAreaRight] = useState<number | undefined>();
+
     return {
         devToolsButton,
         setDevToolsButton,
@@ -68,6 +72,10 @@ const useToolbarItems = () => {
         setAutoPlay,
         showPlayerTime,
         setShowPlayerTime,
+        zoomAreaLeft,
+        setZoomAreaLeft,
+        zoomAreaRight,
+        setZoomAreaRight,
     };
 };
 
