@@ -440,6 +440,7 @@ export const NewCommentForm = ({
                         <h3>{modalHeader ?? 'Add a  Comment'}</h3>
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
+                                newInput
                                 commentText={commentText}
                                 onChangeHandler={onChangeHandler}
                                 placeholder={placeholder}
