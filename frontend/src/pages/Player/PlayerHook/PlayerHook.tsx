@@ -1,4 +1,21 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { datadogLogs } from '@datadog/browser-logs';
+import {
+    OnSessionPayloadAppendedDocument,
+    useGetEventChunksQuery,
+    useGetEventChunkUrlQuery,
+    useGetSessionIntervalsQuery,
+    useGetSessionPayloadLazyQuery,
+    useGetSessionQuery,
+    useGetTimelineIndicatorEventsQuery,
+    useMarkSessionAsViewedMutation,
+} from '@graph/hooks';
+import {
+    ErrorObject,
+    Session,
+    SessionComment,
+    SessionResults,
+} from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
@@ -21,23 +38,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../../authentication/AuthContext';
-import {
-    OnSessionPayloadAppendedDocument,
-    useGetEventChunksQuery,
-    useGetEventChunkUrlQuery,
-    useGetSessionIntervalsQuery,
-    useGetSessionPayloadLazyQuery,
-    useGetSessionQuery,
-    useGetTimelineIndicatorEventsQuery,
-    useMarkSessionAsViewedMutation,
-} from '../../../graph/generated/hooks';
-import {
-    ErrorObject,
-    Session,
-    SessionComment,
-    SessionResults,
-} from '../../../graph/generated/schemas';
 import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
@@ -772,6 +772,17 @@ export const usePlayer = (): ReplayerContextInterface => {
                 const cssLink = document.createElement('link');
                 cssLink.href =
                     'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
+                cssLink.rel = 'stylesheet';
+                cssLink.type = 'text/css';
+                replayer.iframe.contentDocument.head.appendChild(cssLink);
+            }
+
+            // Inject FontAwesome font, icons, and css for Gelt Finance sessions.
+            // Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
+            if (project_id === '896' && replayer.iframe.contentDocument) {
+                const cssLink = document.createElement('link');
+                cssLink.href =
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css';
                 cssLink.rel = 'stylesheet';
                 cssLink.type = 'text/css';
                 replayer.iframe.contentDocument.head.appendChild(cssLink);
