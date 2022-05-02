@@ -45,6 +45,7 @@ import {
 } from '../SearchContext/SearchContext';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
+import SessionsGraph from './components/SessionsGraph/SessionsGraph';
 import styles from './SessionsFeed.module.scss';
 
 // const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
@@ -58,6 +59,7 @@ export const SessionFeed = React.memo(() => {
     }>();
     const sessionFeedConfiguration = useSessionFeedConfiguration();
     const [count, setCount] = useState(10);
+    const [page, setPage] = useState(1);
     const {
         autoPlaySessions,
         setAutoPlaySessions,
@@ -258,6 +260,14 @@ export const SessionFeed = React.memo(() => {
         return sessionResults.sessions;
     }, [loading, searchParams.hide_viewed, sessionResults.sessions]);
 
+    const pageSessions = useMemo(() => {
+        const sessionsPerPage = 5;
+        return filteredSessions.slice(
+            sessionsPerPage * (page - 1),
+            sessionsPerPage * page
+        );
+    }, [filteredSessions, page]);
+
     const onFeedScrollListener = (
         e: React.UIEvent<HTMLElement> | undefined
     ) => {
@@ -335,6 +345,11 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
+            <div className={styles.fixedContent}>
+                <div className={styles.resultCount}>
+                    <SessionsGraph sessions={filteredSessions} />
+                </div>
+            </div>
             <div
                 className={classNames(styles.feedContent, {
                     [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
@@ -371,7 +386,7 @@ export const SessionFeed = React.memo(() => {
                             ) : (
                                 <>
                                     {!isOnPrem && <LimitedSessionCard />}
-                                    {filteredSessions.map((u) => (
+                                    {pageSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}
                                             key={u?.secure_id}
@@ -407,6 +422,7 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
+            <button onClick={() => setPage((p) => p + 1)}>page incr</button>
         </SessionFeedConfigurationContextProvider>
     );
 });
