@@ -14822,10 +14822,12 @@ react-icons@^3.11.0:
   dependencies:
     camelcase "^5.0.0"
 
-react-infinite-scroll-hook@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-infinite-scroll-hook/-/react-infinite-scroll-hook-3.0.0.tgz#13b1b4f95769a75da9d615905f4cbf78ccebf1f1"
-  integrity sha512-uLWsLAZ4jJqv6iHq4w7sySK6P059xgh1I98MSiV3UhZacMELhcdr9AycobC41ctIXU/Z9+caPNWwiJJZHwKCaw==
+react-infinite-scroll-hook@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/react-infinite-scroll-hook/-/react-infinite-scroll-hook-4.0.3.tgz#48eba01ef3e7f70528e92d15f031ff0ec7845493"
+  integrity sha512-5B3YuWODFq9j2m1J+Shk24QR2WDV0U9oQAaxR8ddFge8oC8Ls54EmkQxwelOjyv1jub4bP0jjSK7v+fM5QwWmg==
+  dependencies:
+    react-intersection-observer-hook "^2.0.4"
 
 react-input-autosize@^3.0.0:
   version "3.0.0"
@@ -14833,6 +14835,11 @@ react-input-autosize@^3.0.0:
   integrity sha512-nL9uS7jEs/zu8sqwFE5MAPx6pPkNAriACQ2rGLlqmKr2sPGtN7TXTyDdQt4lbNXVx7Uzadb40x8qotIuru6Rhg==
   dependencies:
     prop-types "^15.5.8"
+
+react-intersection-observer-hook@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/react-intersection-observer-hook/-/react-intersection-observer-hook-2.0.4.tgz#1ea00ab07f7bb859a5cc924f612862a63faf3b24"
+  integrity sha512-bBZSuv5+CNAH3eA5U52McmkR/Obn23igBL3/MuYzlRvALrweSxqvT35cwWnaFkqUh6SjvYRfJncDpaqejAr9oA==
 
 react-is@16.10.2:
   version "16.10.2"

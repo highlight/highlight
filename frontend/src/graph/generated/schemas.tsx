@@ -528,12 +528,14 @@ export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
     totalCount: Scalars['Int64'];
+    scrollID?: Maybe<Scalars['String']>;
 };
 
 export type ErrorResults = {
     __typename?: 'ErrorResults';
     error_groups: Array<ErrorGroup>;
     totalCount: Scalars['Int64'];
+    scrollID?: Maybe<Scalars['String']>;
 };
 
 export type ExternalAttachment = {
@@ -887,12 +889,14 @@ export type QueryError_GroupsArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     params?: Maybe<ErrorSearchParamsInput>;
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QueryError_Groups_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     query: Scalars['String'];
+    scroll_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryError_GroupArgs = {
@@ -1024,6 +1028,7 @@ export type QuerySessionsArgs = {
     lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QuerySessions_OpensearchArgs = {
@@ -1031,6 +1036,7 @@ export type QuerySessions_OpensearchArgs = {
     count: Scalars['Int'];
     query: Scalars['String'];
     sort_desc: Scalars['Boolean'];
+    scroll_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryField_TypesArgs = {

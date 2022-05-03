@@ -139,6 +139,7 @@ export const ProjectRouter = () => {
         EmptySessionsSearchParams
     );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+    const [page, setPage] = useState<string>('');
 
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
@@ -176,6 +177,7 @@ export const ProjectRouter = () => {
         environments: ArrayParam,
         app_versions: ArrayParam,
         query: QueryBuilderStateParam,
+        page: StringParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
@@ -189,10 +191,21 @@ export const ProjectRouter = () => {
     const sessionsMatch = useRouteMatch('/:project_id/sessions');
 
     useEffect(() => {
+        console.log('page effect', page);
+
         const areAnySearchParamsSet = !_.isEqual(
             EmptySessionsSearchParams,
             searchParams
         );
+
+        if (page.length) {
+            setSearchParamsToUrlParams(
+                {
+                    page: page,
+                },
+                'replaceIn'
+            );
+        }
 
         // Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
         if (!segmentName && areAnySearchParamsSet) {
@@ -229,7 +242,13 @@ export const ProjectRouter = () => {
                 );
             }
         }
-    }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
+    }, [
+        setSearchParamsToUrlParams,
+        searchParams,
+        page,
+        segmentName,
+        sessionsMatch,
+    ]);
 
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
@@ -303,6 +322,8 @@ export const ProjectRouter = () => {
                         setQueryBuilderInput,
                         isQuickSearchOpen,
                         setIsQuickSearchOpen,
+                        page,
+                        setPage,
                     }}
                 >
                     <Header />

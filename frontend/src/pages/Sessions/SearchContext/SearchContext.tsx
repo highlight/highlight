@@ -1,7 +1,6 @@
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import { createContext } from '@util/context/context';
 import React from 'react';
-
-import { createContext } from '../../../util/context/context';
 
 export type UserProperty = {
     id: string;
@@ -65,6 +64,8 @@ interface SearchContext {
     >;
     isQuickSearchOpen: boolean;
     setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    page: string;
+    setPage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const showLiveSessions = (searchParams: SearchParams): boolean => {

@@ -479,11 +479,13 @@ input SanitizedAdminInput {
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
+    scrollID: String
 }
 
 type ErrorResults {
     error_groups: [ErrorGroup!]!
     totalCount: Int64!
+    scrollID: String
 }
 
 # 2 way connector type between highlight objects and external integration objects
@@ -719,11 +721,13 @@ type Query {
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
+        page: Int
     ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
         query: String!
+        scroll_id: String
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -781,12 +785,14 @@ type Query {
         lifecycle: SessionLifecycle!
         starred: Boolean!
         params: SearchParamsInput
+        page: Int
     ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
         query: String!
         sort_desc: Boolean!
+        scroll_id: String
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(

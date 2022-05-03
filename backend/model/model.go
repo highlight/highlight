@@ -381,6 +381,7 @@ type EmailSignup struct {
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
+	ScrollID   string
 }
 
 type Session struct {
@@ -697,6 +698,7 @@ func EventsObjectTable(sessionID int) func(tx *gorm.DB) *gorm.DB {
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
 	TotalCount  int64
+	ScrollID    string
 }
 
 type ErrorSearchParams struct {

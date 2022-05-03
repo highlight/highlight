@@ -527,12 +527,14 @@ query GetSessionsOpenSearch(
     $count: Int!
     $query: String!
     $sort_desc: Boolean!
+    $scroll_id: String
 ) {
     sessions_opensearch(
         project_id: $project_id
         count: $count
         query: $query
         sort_desc: $sort_desc
+        scroll_id: $scroll_id
     ) {
         sessions {
             id
@@ -568,6 +570,7 @@ query GetSessionsOpenSearch(
             last_user_interaction_time
         }
         totalCount
+        scrollID
     }
 }
 
@@ -575,11 +578,13 @@ query GetErrorGroupsOpenSearch(
     $project_id: ID!
     $count: Int!
     $query: String!
+    $scroll_id: String
 ) {
     error_groups_opensearch(
         project_id: $project_id
         count: $count
         query: $query
+        scroll_id: $scroll_id
     ) {
         error_groups {
             created_at
@@ -605,6 +610,7 @@ query GetErrorGroupsOpenSearch(
             error_frequency
         }
         totalCount
+        scrollID
     }
 }
 
@@ -614,6 +620,7 @@ query GetSessions(
     $lifecycle: SessionLifecycle!
     $starred: Boolean!
     $params: SearchParamsInput
+    $page: Int
 ) {
     sessions(
         project_id: $project_id
@@ -621,6 +628,7 @@ query GetSessions(
         lifecycle: $lifecycle
         starred: $starred
         params: $params
+        page: $page
     ) {
         sessions {
             id
@@ -896,8 +904,9 @@ query GetErrorGroups(
     $project_id: ID!
     $count: Int!
     $params: ErrorSearchParamsInput
+    $page: Int
 ) {
-    error_groups(project_id: $project_id, count: $count, params: $params) {
+    error_groups(project_id: $project_id, count: $count, params: $params, page: $page) {
         error_groups {
             created_at
             id

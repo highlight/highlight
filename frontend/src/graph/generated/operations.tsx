@@ -2153,12 +2153,13 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
+    scroll_id?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
     sessions_opensearch: { __typename?: 'SessionResults' } & Pick<
         Types.SessionResults,
-        'totalCount'
+        'totalCount' | 'scrollID'
     > & {
             sessions: Array<
                 { __typename?: 'Session' } & Pick<
@@ -2208,12 +2209,13 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
+    scroll_id?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
     error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
         Types.ErrorResults,
-        'totalCount'
+        'totalCount' | 'scrollID'
     > & {
             error_groups: Array<
                 { __typename?: 'ErrorGroup' } & Pick<
@@ -2260,6 +2262,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
     lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
+    page?: Types.Maybe<Types.Scalars['Int']>;
 }>;
 
 export type GetSessionsQuery = { __typename?: 'Query' } & {
@@ -2684,6 +2687,7 @@ export type GetErrorGroupsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     params?: Types.Maybe<Types.ErrorSearchParamsInput>;
+    page?: Types.Maybe<Types.Scalars['Int']>;
 }>;
 
 export type GetErrorGroupsQuery = { __typename?: 'Query' } & {

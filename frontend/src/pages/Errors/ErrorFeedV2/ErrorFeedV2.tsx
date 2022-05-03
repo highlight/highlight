@@ -4,27 +4,22 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
+import {
+    useGetErrorGroupsOpenSearchQuery,
+    useGetErrorGroupsQuery,
+} from '@graph/hooks';
+import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
+import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
-import React, { RefObject, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetErrorGroupsOpenSearchQuery,
-    useGetErrorGroupsQuery,
-} from '../../../graph/generated/hooks';
-import {
-    ErrorGroup,
-    ErrorResults,
-    ErrorState,
-    Maybe,
-} from '../../../graph/generated/schemas';
-import { gqlSanitize } from '../../../util/gqlSanitize';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
@@ -95,11 +90,11 @@ export const ErrorFeedV2 = () => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
 
-    const infiniteRef = useInfiniteScroll({
-        checkInterval: 1200, // frequency to check (1.2s)
+    const [sentryRef, { rootRef }] = useInfiniteScroll({
         loading,
         hasNextPage: data.error_groups.length < data.totalCount,
-        scrollContainer: 'parent',
+        rootMargin: '-20px',
+        delayInMs: 300,
         onLoadMore: () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
@@ -108,6 +103,28 @@ export const ErrorFeedV2 = () => {
                     count,
                     project_id,
                 },
+            }).then((r) => {
+                if (isQueryBuilder) {
+                    setData((p) => ({
+                        ...gqlSanitize(
+                            errorDataOpenSearch?.error_groups_opensearch
+                        ),
+                        error_groups: [
+                            ...p.error_groups,
+                            ...(errorDataOpenSearch?.error_groups_opensearch
+                                .error_groups || []),
+                        ],
+                    }));
+                } else {
+                    setData((p) => ({
+                        ...gqlSanitize(errorDataOriginal?.error_groups),
+                        error_groups: [
+                            ...p.error_groups,
+                            ...(errorDataOriginal?.error_groups?.error_groups ||
+                                []),
+                        ],
+                    }));
+                }
             });
         },
     });
@@ -130,12 +147,13 @@ export const ErrorFeedV2 = () => {
                 </div>
             </div>
             <div
+                ref={rootRef}
                 className={classNames(styles.feedContent, {
                     [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
                 })}
                 onScroll={onFeedScrollListener}
             >
-                <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+                <div>
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
@@ -156,16 +174,18 @@ export const ErrorFeedV2 = () => {
                                     )
                                 )
                             )}
-                            {data.error_groups.length < data.totalCount && (
-                                <Skeleton
-                                    height={110}
-                                    style={{
-                                        borderRadius: 8,
-                                        marginTop: 14,
-                                        marginBottom: 14,
-                                    }}
-                                />
-                            )}
+                            <div ref={sentryRef} />
+                            {loading ||
+                                (data.error_groups.length < data.totalCount && (
+                                    <Skeleton
+                                        height={110}
+                                        style={{
+                                            borderRadius: 8,
+                                            marginTop: 14,
+                                            marginBottom: 14,
+                                        }}
+                                    />
+                                ))}
                         </>
                     )}
                 </div>
