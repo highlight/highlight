@@ -63,6 +63,10 @@ const getIntervalWithPercentages = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
 ): ParsedSessionInterval[] => {
+    if (allIntervals.length === 0) {
+        return [];
+    }
+
     const intervals = allIntervals.map((e) => ({
         ...e,
         startTime: e.startTime - metadata.startTime,
@@ -102,11 +106,19 @@ const getIntervalWithPercentages = (
     withPercent.sort((a, b) => b.percent - a.percent);
 
     let error = withPercent.reduce((acc, i) => acc + i.percent, 0) - 1;
-    for (let i = 0; error > 0; i++, error -= INACTIVE_THRESHOLD) {
-        withPercent[i].percent -= INACTIVE_THRESHOLD;
+    for (
+        let i = 0;
+        error >= INACTIVE_THRESHOLD;
+        i++, error -= INACTIVE_THRESHOLD
+    ) {
+        withPercent[i % withPercent.length].percent -= INACTIVE_THRESHOLD;
     }
-    for (let i = 0; error < 0; i++, error += INACTIVE_THRESHOLD) {
-        withPercent[i].percent += INACTIVE_THRESHOLD;
+    for (
+        let i = 0;
+        error <= -INACTIVE_THRESHOLD;
+        i++, error += INACTIVE_THRESHOLD
+    ) {
+        withPercent[i % withPercent.length].percent += INACTIVE_THRESHOLD;
     }
 
     withPercent.sort((a, b) => a.idx - b.idx);
