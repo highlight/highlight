@@ -197,7 +197,7 @@ const TimelineIndicators = React.memo(() => {
 
     return (
         <>
-            <HighlightGate featureIsOn={false}>
+            <HighlightGate featureIsOn={true}>
                 <TimelineIndicatorsBarGraph
                     sessionIntervals={sessionIntervals}
                     selectedTimelineAnnotationTypes={
@@ -205,7 +205,7 @@ const TimelineIndicators = React.memo(() => {
                     }
                 />
             </HighlightGate>
-            <TimelineIndicatorsMemoized
+            {/* <TimelineIndicatorsMemoized
                 openDevTools={openDevTools}
                 refContainer={refContainer}
                 sessionIntervals={sessionIntervals}
@@ -216,7 +216,7 @@ const TimelineIndicators = React.memo(() => {
                 startTime={sessionMetadata.startTime || 0}
                 pause={pause}
                 activeEvent={activeEvent}
-            />
+            /> */}
         </>
     );
 });

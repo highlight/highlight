@@ -105,24 +105,24 @@ const TimelineIndicatorsBarGraph = React.memo(
             combined.comments = filterAndMap(combined.comments);
         }
 
-        // ZANETODO
-        // const getTimeFromPercent = (percent: number): number | undefined => {
-        //     for (let i = 0; i < sessionIntervals.length; i++) {
-        //         const interval = sessionIntervals[i];
-        //         if (interval.startPercent * 100 > percent && i > 0) {
-        //             const cur = sessionIntervals[i - 1];
-        //             const globalPctInInterval =
-        //                 percent - cur.startPercent * 100;
-        //             const intervalOffset =
-        //                 globalPctInInterval /
-        //                 (cur.endPercent - cur.startPercent) /
-        //                 100;
-        //             const timeOffset =
-        //                 (cur.endTime - cur.startTime) * intervalOffset;
-        //             return cur.startTime + timeOffset;
-        //         }
-        //     }
-        // };
+        const getTimeFromPercent = (percent: number): number => {
+            for (let i = 0; i < sessionIntervals.length; i++) {
+                const interval = sessionIntervals[i];
+                if (interval.startPercent * 100 > percent && i > 0) {
+                    const cur = sessionIntervals[i - 1];
+                    const globalPctInInterval =
+                        percent - cur.startPercent * 100;
+                    const intervalOffset =
+                        globalPctInInterval /
+                        (cur.endPercent - cur.startPercent) /
+                        100;
+                    const timeOffset =
+                        (cur.endTime - cur.startTime) * intervalOffset;
+                    return cur.startTime + timeOffset;
+                }
+            }
+            return 0;
+        };
 
         // const zoomTimeLeft = getTimeFromPercent(zoomAreaLeft ?? 0);
         // const zoomTimeRight = getTimeFromPercent(zoomAreaRight ?? 0);
@@ -145,11 +145,15 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         }
 
+        const bucketStartTimes = [];
+        for (let p = 0; p < 1; p += percentPerBar) {
+            bucketStartTimes.push(getTimeFromPercent(p));
+        }
+
         return (
             <Histogram
                 startTime={combined.startTime}
                 endTime={combined.endTime}
-                bucketStartTimes={[]}
                 onAreaChanged={(left, right) => {
                     setZoomAreaLeft(
                         ((zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0)) *
@@ -164,6 +168,8 @@ const TimelineIndicatorsBarGraph = React.memo(
                     );
                 }}
                 seriesList={series}
+                timeFormatter={(t) => `${t / 1000} seconds`}
+                bucketStartTimes={bucketStartTimes}
             />
         );
     }

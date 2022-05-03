@@ -5,6 +5,7 @@ import {
     ReferenceArea,
     ResponsiveContainer,
     Tooltip,
+    XAxis,
 } from 'recharts';
 
 import styles from './Histogram.module.scss';
@@ -21,9 +22,16 @@ interface Props {
     bucketStartTimes: number[];
     onAreaChanged: (left: number, right: number) => void;
     seriesList: Series[];
+    timeFormatter: (value: number) => string;
 }
 
-const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
+const Histogram = ({
+    startTime,
+    onAreaChanged,
+    seriesList,
+    bucketStartTimes,
+    timeFormatter,
+}: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
     let dragLeft: number | undefined;
@@ -33,16 +41,22 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
         dragRight = Math.max(dragStart, dragEnd);
     }
 
-    const chartData: { [key: string]: number }[] = [];
-    if (series.length > 0) {
-        for (let i = 0; i < series[0].counts.length; i++) {
-            chartData.push({});
-        }
+    // assert all series have the same length
+    const seriesLength = bucketStartTimes.length;
+    if (!seriesList.every((s) => s.counts.length === seriesLength)) {
+        throw new Error('all series must have the same length');
+    }
 
-        for (const s of series) {
-            for (let i = 0; i < s.counts.length; i++) {
-                chartData[i][s.label] = s.counts[i];
-            }
+    const chartData: {
+        [key: string]: string | number;
+    }[] = [];
+    for (const t of bucketStartTimes) {
+        chartData.push({ label: timeFormatter(t) });
+    }
+
+    for (const s of seriesList) {
+        for (let i = 0; i < seriesLength; i++) {
+            chartData[i][s.label] = s.counts[i];
         }
     }
 
@@ -90,6 +104,7 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
                                 setDragEnd(undefined);
                             }}
                         >
+                            <XAxis dataKey="label" />
                             <Tooltip
                                 content={
                                     // ZANETODO
@@ -97,7 +112,7 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
                                 }
                                 wrapperStyle={{ zIndex: 99999 }}
                             />
-                            {series.map((s) => (
+                            {seriesList.map((s) => (
                                 <Bar
                                     key={s.label}
                                     dataKey={s.label}
