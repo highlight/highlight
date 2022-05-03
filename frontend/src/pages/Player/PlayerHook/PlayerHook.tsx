@@ -782,7 +782,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (project_id === '896' && replayer.iframe.contentDocument) {
                 const faScript = document.createElement('script');
                 faScript.src = 'https://kit.fontawesome.com/2fb433086f.js';
-                faScript.crossorigin = 'anonymous;
+                faScript.crossorigin = 'anonymous';
                 replayer.iframe.contentDocument.head.appendChild(faScript);
             }
 
