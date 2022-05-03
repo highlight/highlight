@@ -220,9 +220,16 @@ const LoginForm = () => {
                     <form onSubmit={onSubmit} className={styles.loginForm}>
                         <div className={styles.loginTitleWrapper}>
                             <h2 className={styles.loginTitle}>
-                                Welcome{' '}
-                                {formState === LoginFormState.SignIn && 'back'}{' '}
-                                to Highlight.
+                                {formState === LoginFormState.ResetPassword ? (
+                                    <>Reset your Password.</>
+                                ) : (
+                                    <>
+                                        Welcome{' '}
+                                        {formState === LoginFormState.SignIn &&
+                                            'back'}{' '}
+                                        to Highlight.
+                                    </>
+                                )}
                             </h2>
                             <p className={styles.loginSubTitle}>
                                 {formState === LoginFormState.SignIn ? (
@@ -240,6 +247,24 @@ const LoginForm = () => {
                                         >
                                             Create an account.
                                         </span>
+                                    </>
+                                ) : formState ===
+                                  LoginFormState.ResetPassword ? (
+                                    <>
+                                        Want to{' '}
+                                        <span
+                                            onClick={() => {
+                                                changeState(
+                                                    LoginFormState.SignIn
+                                                );
+                                            }}
+                                            className={
+                                                styles.loginStateSwitcher
+                                            }
+                                        >
+                                            sign in
+                                        </span>{' '}
+                                        again?
                                     </>
                                 ) : (
                                     <>

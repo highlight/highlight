@@ -42,6 +42,23 @@ const TimelineIndicatorsMemoized = React.memo(
         pause,
         activeEvent,
     }: Props) => {
+        const getRelativeStart = (
+            sessionInterval: ParsedSessionInterval,
+            ts: number
+        ) => {
+            const intervalWidth = sessionInterval.active
+                ? sessionInterval.endPercent - sessionInterval.startPercent
+                : 0.01;
+            // calculate the event position percentage, relative to the entire timeline.
+            // i.e. each event start is weighted relative to the size of the interval it is in,
+            // since inactive intervals have a fixed small size.
+            return (
+                sessionInterval.startPercent +
+                intervalWidth *
+                    ((ts - startTime - sessionInterval.startTime) /
+                        sessionInterval.duration)
+            );
+        };
         return (
             <AnimatePresence presenceAffectsLayout>
                 <aside
@@ -64,24 +81,14 @@ const TimelineIndicatorsMemoized = React.memo(
                             }}
                         >
                             {sessionInterval.sessionEvents.map((event) => {
-                                const intervalWidth =
-                                    sessionInterval.endPercent -
-                                    sessionInterval.startPercent;
-                                // calculate the event position percentage, relative to the entire timeline.
-                                // i.e. each event start is weighted relative to the size of the interval it is in,
-                                // since inactive intervals have a fixed small size.
-                                const relativeStart =
-                                    sessionInterval.startPercent +
-                                    intervalWidth *
-                                        ((event.timestamp -
-                                            startTime -
-                                            sessionIntervals[index].startTime) /
-                                            sessionInterval.duration);
                                 return (
                                     <TimelineEventAnnotation
                                         event={event}
                                         startTime={startTime}
-                                        relativeStartPercent={relativeStart}
+                                        relativeStartPercent={getRelativeStart(
+                                            sessionInterval,
+                                            event.timestamp
+                                        )}
                                         selectedTimelineAnnotationTypes={
                                             selectedTimelineAnnotationTypes
                                         }
@@ -97,7 +104,11 @@ const TimelineIndicatorsMemoized = React.memo(
                                 sessionInterval.errors.map((error) => (
                                     <TimelineErrorAnnotation
                                         error={error}
-                                        key={`${error.timestamp}-${error.id}`}
+                                        key={`${error.timestamp}-${error.id}}`}
+                                        relativeStartPercent={getRelativeStart(
+                                            sessionInterval,
+                                            new Date(error.timestamp).getTime()
+                                        )}
                                     />
                                 ))}
                             {selectedTimelineAnnotationTypes.includes(
@@ -108,6 +119,11 @@ const TimelineIndicatorsMemoized = React.memo(
                                         <TimelineCommentAnnotation
                                             comment={comment}
                                             key={comment.id}
+                                            relativeStartPercent={getRelativeStart(
+                                                sessionInterval,
+                                                startTime +
+                                                    (comment.timestamp || 0)
+                                            )}
                                         />
                                     );
                                 })}

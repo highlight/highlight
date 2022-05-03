@@ -1,3 +1,4 @@
+import { TooltipPlacement } from 'antd/lib/tooltip';
 import classNames from 'classnames';
 import { motion } from 'framer-motion';
 import React from 'react';
@@ -6,6 +7,19 @@ import { EventsForTimeline } from '../../PlayerHook/utils';
 import { ParsedEvent } from '../../ReplayerContext';
 import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotation.module.scss';
+
+export const getPopoverPlacement = (relativeStartPercent: number) => {
+    let offset = [-10, -10];
+    let placement: TooltipPlacement = 'topLeft';
+    if (relativeStartPercent > 0.67) {
+        offset = [18, -10];
+        placement = 'topRight';
+    } else if (relativeStartPercent > 0.33) {
+        offset = [0, -10];
+        placement = 'top';
+    }
+    return { offset, placement };
+};
 
 interface Props {
     event: ParsedEvent;
