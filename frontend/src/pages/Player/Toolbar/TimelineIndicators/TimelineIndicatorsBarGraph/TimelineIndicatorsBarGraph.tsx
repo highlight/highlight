@@ -150,18 +150,16 @@ const TimelineIndicatorsBarGraph = React.memo(
                 startTime={combined.startTime}
                 endTime={combined.endTime}
                 bucketStartTimes={[]}
-                onLeftChanged={(value) => {
+                onAreaChanged={(left, right) => {
                     setZoomAreaLeft(
                         ((zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0)) *
-                            value *
+                            left *
                             percentPerBar +
                             (zoomAreaLeft ?? 0)
                     );
-                }}
-                onRightChanged={(value) => {
                     setZoomAreaRight(
                         ((zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0)) *
-                            (value * percentPerBar + percentPerBar) +
+                            (right * percentPerBar + percentPerBar) +
                             (zoomAreaLeft ?? 0)
                     );
                 }}

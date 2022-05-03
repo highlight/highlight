@@ -19,24 +19,19 @@ interface Props {
     startTime: number;
     endTime: number;
     bucketStartTimes: number[];
-    onLeftChanged: (value: number) => void;
-    onRightChanged: (value: number) => void;
+    onAreaChanged: (left: number, right: number) => void;
     series: Series[];
 }
 
-const Histogram = ({
-    startTime,
-    onLeftChanged,
-    onRightChanged,
-    series,
-}: Props) => {
-    const [startArea, setStartArea] = useState<number | undefined>();
-    const [selectedAreaLeft, setSelectedAreaLeft] = useState<
-        number | undefined
-    >();
-    const [selectedAreaRight, setSelectedAreaRight] = useState<
-        number | undefined
-    >();
+const Histogram = ({ startTime, onAreaChanged, series }: Props) => {
+    const [dragStart, setDragStart] = useState<number | undefined>();
+    const [dragEnd, setDragEnd] = useState<number | undefined>();
+    let dragLeft: number | undefined;
+    let dragRight: number | undefined;
+    if (dragStart !== undefined && dragEnd !== undefined) {
+        dragLeft = Math.min(dragStart, dragEnd);
+        dragRight = Math.max(dragStart, dragEnd);
+    }
 
     const chartData: { [key: string]: number }[] = [];
     if (series.length > 0) {
@@ -69,43 +64,30 @@ const Histogram = ({
                                 if (!e) {
                                     return;
                                 }
-                                setStartArea(e.activeLabel);
-                                setSelectedAreaLeft(e.activeLabel);
-                                setSelectedAreaRight(e.activeLabel);
+                                setDragStart(e.activeLabel);
+                                setDragEnd(e.activeLabel);
                             }}
                             onMouseMove={(e: any) => {
                                 if (!e) {
                                     return;
                                 }
-                                if (startArea !== undefined) {
-                                    if (e.activeLabel === startArea) {
-                                        setSelectedAreaLeft(e.activeLabel);
-                                        setSelectedAreaRight(e.activeLabel);
-                                    } else if (e.activeLabel > startArea) {
-                                        setSelectedAreaLeft(startArea);
-                                        setSelectedAreaRight(e.activeLabel);
-                                    } else if (e.activeLabel < startArea) {
-                                        setSelectedAreaLeft(e.activeLabel);
-                                        setSelectedAreaRight(startArea);
-                                    }
+                                if (dragStart !== undefined) {
+                                    setDragEnd(e.activeLabel);
                                 }
                             }}
                             onMouseUp={() => {
                                 if (
-                                    selectedAreaLeft !== undefined &&
-                                    selectedAreaRight !== undefined
+                                    dragLeft !== undefined &&
+                                    dragRight !== undefined
                                 ) {
-                                    onLeftChanged(selectedAreaLeft);
-                                    onRightChanged(selectedAreaRight);
+                                    onAreaChanged(dragLeft, dragRight);
                                 }
-                                setStartArea(undefined);
-                                setSelectedAreaLeft(undefined);
-                                setSelectedAreaRight(undefined);
+                                setDragStart(undefined);
+                                setDragEnd(undefined);
                             }}
                             onMouseLeave={() => {
-                                setStartArea(undefined);
-                                setSelectedAreaLeft(undefined);
-                                setSelectedAreaRight(undefined);
+                                setDragStart(undefined);
+                                setDragEnd(undefined);
                             }}
                         >
                             <Tooltip
@@ -123,11 +105,11 @@ const Histogram = ({
                                     fill={`var(${s.color})`}
                                 />
                             ))}
-                            {selectedAreaLeft !== undefined &&
-                            selectedAreaRight !== undefined ? (
+                            {dragStart !== undefined &&
+                            dragEnd !== undefined ? (
                                 <ReferenceArea
-                                    x1={selectedAreaLeft}
-                                    x2={selectedAreaRight}
+                                    x1={dragLeft}
+                                    x2={dragRight}
                                     strokeOpacity={0.3}
                                 />
                             ) : null}
