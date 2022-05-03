@@ -20,6 +20,7 @@ import {
 } from '../../ReplayerContext';
 import usePlayerConfiguration from './usePlayerConfiguration';
 
+// Minimum percentage of total session duration required for an inactive interval to be rendered
 export const INACTIVE_THRESHOLD = 0.02;
 
 /**
@@ -80,11 +81,13 @@ const getIntervalWithPercentages = (
 
     const activePercent = 1 - INACTIVE_THRESHOLD * numInactive;
 
+    // Calculate percentage of player bar to allocate to each interval
     const withPercent = intervals.map((i, idx) => ({
         ...i,
         idx,
         percent: i.active
-            ? Math.round(
+            ? // Round each interval size to a multiple of INACTIVE_THRESHOLD
+              Math.round(
                   Math.max(
                       (i.duration * activePercent) /
                           activeDuration /
@@ -94,9 +97,10 @@ const getIntervalWithPercentages = (
               ) * INACTIVE_THRESHOLD
             : INACTIVE_THRESHOLD,
     }));
-    withPercent.sort((a, b) => b.percent - a.percent);
 
     // Allocate rounding error to the largest intervals
+    withPercent.sort((a, b) => b.percent - a.percent);
+
     let error = withPercent.reduce((acc, i) => acc + i.percent, 0) - 1;
     for (let i = 0; error > 0; i++, error -= INACTIVE_THRESHOLD) {
         withPercent[i].percent -= INACTIVE_THRESHOLD;
