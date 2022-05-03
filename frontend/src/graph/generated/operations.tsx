@@ -2254,64 +2254,6 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
         };
 };
 
-export type GetSessionsQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    count: Types.Scalars['Int'];
-    lifecycle: Types.SessionLifecycle;
-    starred: Types.Scalars['Boolean'];
-    params?: Types.Maybe<Types.SearchParamsInput>;
-}>;
-
-export type GetSessionsQuery = { __typename?: 'Query' } & {
-    sessions: { __typename?: 'SessionResults' } & Pick<
-        Types.SessionResults,
-        'totalCount'
-    > & {
-            sessions: Array<
-                { __typename?: 'Session' } & Pick<
-                    Types.Session,
-                    | 'id'
-                    | 'secure_id'
-                    | 'fingerprint'
-                    | 'identifier'
-                    | 'os_name'
-                    | 'os_version'
-                    | 'browser_name'
-                    | 'browser_version'
-                    | 'city'
-                    | 'state'
-                    | 'postal'
-                    | 'created_at'
-                    | 'language'
-                    | 'length'
-                    | 'active_length'
-                    | 'enable_recording_network_contents'
-                    | 'viewed'
-                    | 'starred'
-                    | 'processed'
-                    | 'has_rage_clicks'
-                    | 'has_errors'
-                    | 'field_group'
-                    | 'first_time'
-                    | 'user_properties'
-                    | 'event_counts'
-                    | 'last_user_interaction_time'
-                > & {
-                        fields?: Types.Maybe<
-                            Array<
-                                Types.Maybe<
-                                    { __typename?: 'Field' } & Pick<
-                                        Types.Field,
-                                        'name' | 'value' | 'type' | 'id'
-                                    >
-                                >
-                            >
-                        >;
-                    }
-            >;
-        };
-};
-
 export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetProjectsQuery = { __typename?: 'Query' } & {
@@ -2680,58 +2622,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetErrorGroupsQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    count: Types.Scalars['Int'];
-    params?: Types.Maybe<Types.ErrorSearchParamsInput>;
-}>;
-
-export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
-    error_groups?: Types.Maybe<
-        { __typename?: 'ErrorResults' } & Pick<
-            Types.ErrorResults,
-            'totalCount'
-        > & {
-                error_groups: Array<
-                    { __typename?: 'ErrorGroup' } & Pick<
-                        Types.ErrorGroup,
-                        | 'created_at'
-                        | 'id'
-                        | 'secure_id'
-                        | 'type'
-                        | 'event'
-                        | 'state'
-                        | 'environments'
-                        | 'stack_trace'
-                        | 'error_frequency'
-                    > & {
-                            structured_stack_trace: Array<
-                                Types.Maybe<
-                                    { __typename?: 'ErrorTrace' } & Pick<
-                                        Types.ErrorTrace,
-                                        | 'fileName'
-                                        | 'lineNumber'
-                                        | 'functionName'
-                                        | 'columnNumber'
-                                    >
-                                >
-                            >;
-                            metadata_log: Array<
-                                Types.Maybe<
-                                    { __typename?: 'ErrorMetadata' } & Pick<
-                                        Types.ErrorMetadata,
-                                        | 'error_id'
-                                        | 'session_secure_id'
-                                        | 'timestamp'
-                                    >
-                                >
-                            >;
-                        }
-                >;
-            }
-    >;
-};
-
 export type GetMessagesQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
 }>;
@@ -3072,15 +2962,6 @@ export type IsBackendIntegratedQueryVariables = Types.Exact<{
 export type IsBackendIntegratedQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isBackendIntegrated'
->;
-
-export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'unprocessedSessionsCount'
 >;
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
@@ -3653,7 +3534,6 @@ export const namedOperations = {
         GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
         GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
-        GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
         GetWorkspaces: 'GetWorkspaces' as const,
@@ -3669,7 +3549,6 @@ export const namedOperations = {
         GetBillingDetails: 'GetBillingDetails' as const,
         GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
-        GetErrorGroups: 'GetErrorGroups' as const,
         GetMessages: 'GetMessages' as const,
         GetResources: 'GetResources' as const,
         GetFieldSuggestion: 'GetFieldSuggestion' as const,
@@ -3685,7 +3564,6 @@ export const namedOperations = {
         GetErrorSegments: 'GetErrorSegments' as const,
         IsIntegrated: 'IsIntegrated' as const,
         IsBackendIntegrated: 'IsBackendIntegrated' as const,
-        UnprocessedSessionsCount: 'UnprocessedSessionsCount' as const,
         GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
         GetReferrersCount: 'GetReferrersCount' as const,
         GetNewUsersCount: 'GetNewUsersCount' as const,

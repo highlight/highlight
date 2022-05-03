@@ -3,7 +3,6 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Tooltip from '@components/Tooltip/Tooltip';
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
@@ -33,8 +32,6 @@ import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/L
 import {
     useGetBillingDetailsForProjectQuery,
     useGetSessionsOpenSearchQuery,
-    useGetSessionsQuery,
-    useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
 import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
@@ -64,7 +61,6 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
-    const { isQueryBuilder } = usePlayerUIContext();
 
     const [
         sessionFeedIsInTopScrollPosition,
@@ -79,20 +75,11 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
         searchQuery,
     } = useSearchContext();
-    const { show_live_sessions } = searchParams;
     const { integrated } = useIntegrated();
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
-    const { data: unprocessedSessionsSql } = useUnprocessedSessionsCountQuery({
-        variables: {
-            project_id,
-        },
-        pollInterval: 5000,
-        skip: isQueryBuilder,
-    });
-
     const {
         data: unprocessedSessionsOpenSearch,
     } = useGetSessionsOpenSearchQuery({
@@ -102,20 +89,15 @@ export const SessionFeed = React.memo(() => {
             query: getUnprocessedSessionsQuery(searchQuery),
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
-        skip: !isQueryBuilder || !searchQuery,
+        skip: !searchQuery,
         pollInterval: 5000,
     });
 
     // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
-    const unprocessedSessionsCount: number | undefined = isQueryBuilder
-        ? unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount
-        : unprocessedSessionsSql?.unprocessedSessionsCount;
+    const unprocessedSessionsCount: number | undefined =
+        unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount;
 
-    const {
-        loading: loadingOpenSearch,
-        fetchMore: fetchOpenSearch,
-        called: calledOpenSearch,
-    } = useGetSessionsOpenSearchQuery({
+    const { loading, fetchMore, called } = useGetSessionsOpenSearchQuery({
         variables: {
             query: searchQuery,
             count: count + 10,
@@ -128,39 +110,8 @@ export const SessionFeed = React.memo(() => {
             }
             setShowLoadingSkeleton(false);
         },
-        skip: !isQueryBuilder || !searchQuery,
+        skip: !searchQuery,
     });
-
-    const {
-        loading: loadingOriginal,
-        fetchMore: fetchOriginal,
-        called: calledOriginal,
-    } = useGetSessionsQuery({
-        variables: {
-            params: searchParams,
-            count: count + 10,
-            project_id,
-            lifecycle:
-                segment_id === LIVE_SEGMENT_ID
-                    ? SessionLifecycle.All
-                    : show_live_sessions
-                    ? SessionLifecycle.All
-                    : SessionLifecycle.Completed,
-            starred: showStarredSessions,
-        },
-        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
-        onCompleted: (response) => {
-            if (response?.sessions) {
-                setSessionResults(response.sessions);
-            }
-            setShowLoadingSkeleton(false);
-        },
-        skip: isQueryBuilder,
-    });
-
-    const called = isQueryBuilder ? calledOpenSearch : calledOriginal;
-    const loading = isQueryBuilder ? loadingOpenSearch : loadingOriginal;
-    const fetchMore = isQueryBuilder ? fetchOpenSearch : fetchOriginal;
 
     useEffect(() => {
         if (loading) {

@@ -1,9 +1,6 @@
 import 'rc-slider/assets/index.css';
 
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
@@ -63,9 +60,8 @@ interface Props {
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { currentWorkspace } = useApplicationContext();
-    const { session_secure_id, project_id } = useParams<{
+    const { session_secure_id } = useParams<{
         session_secure_id: string;
-        project_id: string;
     }>();
     const [resizeListener, sizes] = useResizeAware();
 
@@ -114,9 +110,6 @@ const Player = ({ integrated }: Props) => {
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
-    const { isHighlightAdmin } = useAuthContext();
-
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     useEffect(() => {
         if (!session_secure_id) {
@@ -200,7 +193,6 @@ const Player = ({ integrated }: Props) => {
                 setDetailedPanel,
                 selectedRightPanelTab,
                 setSelectedRightPanelTab,
-                isQueryBuilder,
                 activeEvent,
                 setActiveEvent,
             }}
