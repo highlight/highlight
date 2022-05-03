@@ -163,7 +163,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                             (zoomAreaLeft ?? 0)
                     );
                 }}
-                series={series}
+                seriesList={series}
             />
         );
     }

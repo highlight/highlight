@@ -20,10 +20,10 @@ interface Props {
     endTime: number;
     bucketStartTimes: number[];
     onAreaChanged: (left: number, right: number) => void;
-    series: Series[];
+    seriesList: Series[];
 }
 
-const Histogram = ({ startTime, onAreaChanged, series }: Props) => {
+const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
     let dragLeft: number | undefined;
