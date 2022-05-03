@@ -784,6 +784,12 @@ export const usePlayer = (): ReplayerContextInterface => {
                 faScript.src = 'https://kit.fontawesome.com/2fb433086f.js';
                 faScript.crossOrigin = 'anonymous';
                 replayer.iframe.contentDocument.head.appendChild(faScript);
+                const cssLink = document.createElement('link');
+                cssLink.href =
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+                cssLink.rel = 'stylesheet';
+                cssLink.type = 'text/css';
+                replayer.iframe.contentDocument.head.appendChild(cssLink);
             }
 
             const parsedTimelineIndicatorEvents =
