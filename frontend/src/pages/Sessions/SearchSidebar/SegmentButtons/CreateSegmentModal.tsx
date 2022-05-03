@@ -1,7 +1,4 @@
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -50,7 +47,6 @@ const CreateSegmentModal = ({
     const history = useHistory();
 
     const { isHighlightAdmin } = useAuthContext();
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
@@ -96,11 +92,9 @@ const CreateSegmentModal = ({
                         Creating a segment allows you to save search queries
                         that target a specific set of sessions.
                     </p>
-                    {isQueryBuilder && (
-                        <div className={styles.queryBuilderContainer}>
-                            <SessionsQueryBuilder readonly />
-                        </div>
-                    )}
+                    <div className={styles.queryBuilderContainer}>
+                        <SessionsQueryBuilder readonly />
+                    </div>
                     <Input
                         name="name"
                         value={name}

@@ -22,16 +22,6 @@ export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
-const denyList: string[] = [];
-
-export const queryBuilderEnabled = (
-    isHighlightAdmin: boolean,
-    project_id: string
-) => {
-    // Projects can be disabled on a one-off basis by adding to the denyList
-    return isHighlightAdmin || !denyList.includes(project_id);
-};
-
 export const [useAuthContext, AuthContextProvider] = createContext<{
     role: AuthRole;
     admin?: Admin;

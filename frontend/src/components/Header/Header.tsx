@@ -1,7 +1,4 @@
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
@@ -44,7 +41,6 @@ export const Header = () => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
     const { isLoggedIn, isHighlightAdmin } = useAuthContext();
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
 
     const { showBanner } = useGlobalContext();
     const isWorkspaceLevel = workspace_id !== undefined;
@@ -70,7 +66,7 @@ export const Header = () => {
                         <div className={styles.applicationPickerContainer}>
                             <ApplicationPicker />
 
-                            {!!project_id && isQueryBuilder && (
+                            {!!project_id && (
                                 <div className={styles.quicksearchWrapper}>
                                     <QuickSearch />
                                 </div>

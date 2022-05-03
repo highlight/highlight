@@ -1,9 +1,6 @@
 import 'rc-slider/assets/index.css';
 
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
@@ -116,8 +113,6 @@ const Player = ({ integrated }: Props) => {
     >('tabs-PlayerRightPanel-active-tab', 'Events');
     const { isHighlightAdmin } = useAuthContext();
 
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
-
     useEffect(() => {
         if (!session_secure_id) {
             setShowLeftPanel(true);
@@ -200,7 +195,6 @@ const Player = ({ integrated }: Props) => {
                 setDetailedPanel,
                 selectedRightPanelTab,
                 setSelectedRightPanelTab,
-                isQueryBuilder,
                 activeEvent,
                 setActiveEvent,
             }}

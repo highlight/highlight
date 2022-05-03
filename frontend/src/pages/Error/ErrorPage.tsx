@@ -1,7 +1,4 @@
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
@@ -156,7 +153,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
     const [searchQuery, setSearchQuery] = useState('');
     const [
         showCreateCommentModal,
@@ -172,7 +168,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
-                isQueryBuilder,
                 searchQuery,
                 setSearchQuery,
             }}
