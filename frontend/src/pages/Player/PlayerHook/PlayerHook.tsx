@@ -780,12 +780,10 @@ export const usePlayer = (): ReplayerContextInterface => {
             // Inject FontAwesome font, icons, and css for Gelt Finance sessions.
             // Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
             if (project_id === '896' && replayer.iframe.contentDocument) {
-                const cssLink = document.createElement('link');
-                cssLink.href =
-                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-                cssLink.rel = 'stylesheet';
-                cssLink.type = 'text/css';
-                replayer.iframe.contentDocument.head.appendChild(cssLink);
+                const faScript = document.createElement('script');
+                faScript.src = 'https://kit.fontawesome.com/2fb433086f.js';
+                faScript.crossorigin = 'anonymous;
+                replayer.iframe.contentDocument.head.appendChild(faScript);
             }
 
             const parsedTimelineIndicatorEvents =
