@@ -75,7 +75,6 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
         searchQuery,
     } = useSearchContext();
-    const { show_live_sessions } = searchParams;
     const { integrated } = useIntegrated();
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({

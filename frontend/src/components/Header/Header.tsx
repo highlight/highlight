@@ -40,7 +40,7 @@ export const Header = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
 
     const { showBanner } = useGlobalContext();
     const isWorkspaceLevel = workspace_id !== undefined;

@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
@@ -35,7 +34,6 @@ const CreateErrorSegmentModal = ({
         project_id: string;
         segment_id: string;
     }>();
-    const { isHighlightAdmin } = useAuthContext();
 
     const { searchParams, setExistingParams } = useErrorSearchContext();
     const history = useHistory();

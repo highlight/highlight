@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -45,8 +44,6 @@ const CreateSegmentModal = ({
             : project_id;
     const { searchParams, setExistingParams } = useSearchContext();
     const history = useHistory();
-
-    const { isHighlightAdmin } = useAuthContext();
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();

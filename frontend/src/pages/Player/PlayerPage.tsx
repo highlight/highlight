@@ -60,9 +60,8 @@ interface Props {
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { currentWorkspace } = useApplicationContext();
-    const { session_secure_id, project_id } = useParams<{
+    const { session_secure_id } = useParams<{
         session_secure_id: string;
-        project_id: string;
     }>();
     const [resizeListener, sizes] = useResizeAware();
 
@@ -111,7 +110,6 @@ const Player = ({ integrated }: Props) => {
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
-    const { isHighlightAdmin } = useAuthContext();
 
     useEffect(() => {
         if (!session_secure_id) {

@@ -70,7 +70,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showBanner } = useGlobalContext();
 
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const {
         data,
         loading,
