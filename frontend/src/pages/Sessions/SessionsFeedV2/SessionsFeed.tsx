@@ -14,7 +14,7 @@ import {
     GetSessionsOpenSearchQuery,
     GetSessionsQuery,
 } from '@graph/operations';
-import { PlanType, SessionLifecycle } from '@graph/schemas';
+import { PlanType, Session, SessionLifecycle } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
@@ -32,6 +32,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
+import { StringParam, useQueryParams } from 'use-query-params';
 
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
@@ -45,7 +46,6 @@ import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-// const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 const PAGE_SIZE = 20;
 
 export const SessionFeed = React.memo(() => {
@@ -69,6 +69,31 @@ export const SessionFeed = React.memo(() => {
         setSessionFeedIsInTopScrollPosition,
     ] = useState(true);
 
+    const [startSessionID, setStartSessionID] = useState<string>();
+    const [
+        paginationParamsToUrlParams,
+        setPaginationParamsToUrlParams,
+    ] = useQueryParams({
+        startSessionID: StringParam,
+    });
+
+    useEffect(() => {
+        if (
+            paginationParamsToUrlParams.startSessionID &&
+            Number(paginationParamsToUrlParams.startSessionID) > 0
+        ) {
+            setStartSessionID(paginationParamsToUrlParams.startSessionID);
+        }
+        // only load session id from url once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        setPaginationParamsToUrlParams({
+            startSessionID: startSessionID,
+        });
+    }, [setPaginationParamsToUrlParams, startSessionID]);
+
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const {
@@ -76,8 +101,6 @@ export const SessionFeed = React.memo(() => {
         showStarredSessions,
         setSearchParams,
         searchQuery,
-        page,
-        setPage,
     } = useSearchContext();
     const { show_live_sessions } = searchParams;
     const { integrated } = useIntegrated();
@@ -111,18 +134,32 @@ export const SessionFeed = React.memo(() => {
         ? unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount
         : unprocessedSessionsSql?.unprocessedSessionsCount;
 
+    const sortedSessions = (sessions: Session[]) => {
+        return sessions.sort(
+            (a, b) =>
+                (sessionFeedConfiguration.sortOrder === 'Descending' ? 1 : -1) *
+                    Number(b.id) -
+                Number(a.id)
+        );
+    };
+
     const addOpenSearchSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
             setSessionResults((r) => ({
                 ...response.sessions_opensearch,
-                sessions: [
+                totalCount: Math.max(
+                    r.totalCount,
+                    response.sessions_opensearch.totalCount
+                ),
+                sessions: sortedSessions([
                     ...r.sessions,
                     ...response.sessions_opensearch.sessions,
-                ],
+                ]),
             }));
-        }
-        if (response?.sessions_opensearch?.scrollID) {
-            setPage(response?.sessions_opensearch?.scrollID);
+            const first = response.sessions_opensearch.sessions.slice(0, 1)[0];
+            if (first?.id) {
+                setStartSessionID(first.id);
+            }
         }
         setShowLoadingSkeleton(false);
     };
@@ -131,10 +168,20 @@ export const SessionFeed = React.memo(() => {
         if (response?.sessions) {
             setSessionResults((r) => ({
                 ...response.sessions,
-                sessions: [...r.sessions, ...response.sessions.sessions],
+                totalCount: Math.max(
+                    r.totalCount,
+                    response.sessions.totalCount
+                ),
+                sessions: sortedSessions([
+                    ...r.sessions,
+                    ...response.sessions.sessions,
+                ]),
             }));
+            const first = response.sessions.sessions.slice(0, 1)[0];
+            if (first?.id) {
+                setStartSessionID(first.id);
+            }
         }
-        setPage((p) => ((Number.isInteger(p) ? Number(p) : 0) + 1).toString());
         setShowLoadingSkeleton(false);
     };
 
@@ -148,6 +195,7 @@ export const SessionFeed = React.memo(() => {
             count: PAGE_SIZE,
             project_id,
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
+            start_session_id: paginationParamsToUrlParams.startSessionID,
         },
         onCompleted: addOpenSearchSessions,
         skip: !isQueryBuilder || !searchQuery,
@@ -162,7 +210,6 @@ export const SessionFeed = React.memo(() => {
             params: searchParams,
             count: PAGE_SIZE,
             project_id,
-            page: Number.isInteger(page) ? Number(page) : 0,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.All
@@ -170,8 +217,8 @@ export const SessionFeed = React.memo(() => {
                     ? SessionLifecycle.All
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,
+            start_session_id: paginationParamsToUrlParams.startSessionID,
         },
-        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: addSessions,
         skip: isQueryBuilder,
     });
@@ -241,34 +288,52 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
     ]);
 
+    const loadMore = (back?: boolean) => {
+        let s = sessionResults.sessions.slice(-1)[0];
+        let startID = Number(s?.id) + 1;
+        if (back) {
+            s = sessionResults.sessions[0];
+            startID = Number(s?.id) - 1;
+        }
+        fetchMore({
+            variables: {
+                params: searchParams,
+                count: PAGE_SIZE,
+                project_id,
+                ...(startID > 1 || startID < -1
+                    ? { start_session_id: startID }
+                    : {}),
+                sort_desc: !back,
+                processed:
+                    segment_id === LIVE_SEGMENT_ID
+                        ? SessionLifecycle.Live
+                        : searchParams.show_live_sessions
+                        ? SessionLifecycle.Live
+                        : SessionLifecycle.Completed,
+            },
+        }).then((r) => {
+            if (isQueryBuilder) {
+                addOpenSearchSessions(r.data as GetSessionsOpenSearchQuery);
+            } else {
+                addSessions(r.data as GetSessionsQuery);
+            }
+        });
+    };
+
     const [sentryRef, { rootRef }] = useInfiniteScroll({
         loading,
         hasNextPage: sessionResults.sessions.length < sessionResults.totalCount,
         rootMargin: '-20px',
         delayInMs: 300,
-        onLoadMore: () => {
-            fetchMore({
-                variables: {
-                    params: searchParams,
-                    count: PAGE_SIZE,
-                    project_id,
-                    scroll_id: page,
-                    page: page,
-                    processed:
-                        segment_id === LIVE_SEGMENT_ID
-                            ? SessionLifecycle.Live
-                            : searchParams.show_live_sessions
-                            ? SessionLifecycle.Live
-                            : SessionLifecycle.Completed,
-                },
-            }).then((r) => {
-                if (isQueryBuilder) {
-                    addOpenSearchSessions(r.data as GetSessionsOpenSearchQuery);
-                } else {
-                    addSessions(r.data as GetSessionsQuery);
-                }
-            });
-        },
+        onLoadMore: () => loadMore(),
+    });
+    // inifinite scrolling in the other direction
+    const [sentryRefBack] = useInfiniteScroll({
+        loading,
+        hasNextPage: false, // TODO(vkorolik)
+        rootMargin: '-20px',
+        delayInMs: 300,
+        onLoadMore: () => loadMore(true),
     });
 
     const filteredSessions = useMemo(() => {
@@ -368,6 +433,15 @@ export const SessionFeed = React.memo(() => {
                 onScroll={onFeedScrollListener}
             >
                 <div onScroll={onFeedScrollListener}>
+                    <div ref={sentryRefBack}>
+                        <Skeleton
+                            height={74}
+                            style={{
+                                borderRadius: 8,
+                                marginBottom: 24,
+                            }}
+                        />
+                    </div>
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={!showDetailedSessionView ? 74 : 125}
@@ -394,25 +468,29 @@ export const SessionFeed = React.memo(() => {
                             ) : (
                                 <>
                                     {!isOnPrem && <LimitedSessionCard />}
-                                    {filteredSessions.map((u) => (
-                                        <MinimalSessionCard
-                                            session={u}
-                                            key={u?.secure_id}
-                                            selected={
-                                                session_secure_id ===
-                                                u?.secure_id
-                                            }
-                                            autoPlaySessions={autoPlaySessions}
-                                            showDetailedSessionView={
-                                                showDetailedSessionView
-                                            }
-                                            configuration={{
-                                                countFormat:
-                                                    sessionFeedConfiguration.countFormat,
-                                                datetimeFormat:
-                                                    sessionFeedConfiguration.datetimeFormat,
-                                            }}
-                                        />
+                                    {filteredSessions.map((u, idx) => (
+                                        <div key={idx}>
+                                            <MinimalSessionCard
+                                                session={u}
+                                                key={u?.secure_id}
+                                                selected={
+                                                    session_secure_id ===
+                                                    u?.secure_id
+                                                }
+                                                autoPlaySessions={
+                                                    autoPlaySessions
+                                                }
+                                                showDetailedSessionView={
+                                                    showDetailedSessionView
+                                                }
+                                                configuration={{
+                                                    countFormat:
+                                                        sessionFeedConfiguration.countFormat,
+                                                    datetimeFormat:
+                                                        sessionFeedConfiguration.datetimeFormat,
+                                                }}
+                                            />
+                                        </div>
                                     ))}
                                 </>
                             )}

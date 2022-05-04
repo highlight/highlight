@@ -64,8 +64,6 @@ interface SearchContext {
     >;
     isQuickSearchOpen: boolean;
     setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    page: string;
-    setPage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const showLiveSessions = (searchParams: SearchParams): boolean => {

@@ -248,7 +248,6 @@ type ComplexityRoot struct {
 
 	ErrorResults struct {
 		ErrorGroups func(childComplexity int) int
-		ScrollID    func(childComplexity int) int
 		TotalCount  func(childComplexity int) int
 	}
 
@@ -446,8 +445,8 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroups                  func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput, page *int) int
-		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, scrollID *string) int
+		ErrorGroups                  func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput, sortDesc *bool, startErrorGroupID *int) int
+		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, sortDesc *bool, startErrorGroupID *int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
@@ -488,8 +487,8 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
-		Sessions                     func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput, page *int) int
-		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, scrollID *string) int
+		Sessions                     func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput, sortDesc *bool, startSessionID *int) int
+		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc *bool, startSessionID *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
@@ -678,7 +677,6 @@ type ComplexityRoot struct {
 	}
 
 	SessionResults struct {
-		ScrollID   func(childComplexity int) int
 		Sessions   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -886,8 +884,8 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput, page *int) (*model1.ErrorResults, error)
-	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, scrollID *string) (*model1.ErrorResults, error)
+	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput, sortDesc *bool, startErrorGroupID *int) (*model1.ErrorResults, error)
+	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc *bool, startErrorGroupID *int) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -918,8 +916,8 @@ type QueryResolver interface {
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
-	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput, page *int) (*model1.SessionResults, error)
-	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, scrollID *string) (*model1.SessionResults, error)
+	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput, sortDesc *bool, startSessionID *int) (*model1.SessionResults, error)
+	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc *bool, startSessionID *int) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
@@ -1939,13 +1937,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorResults.ErrorGroups(childComplexity), true
-
-	case "ErrorResults.scrollID":
-		if e.complexity.ErrorResults.ScrollID == nil {
-			break
-		}
-
-		return e.complexity.ErrorResults.ScrollID(childComplexity), true
 
 	case "ErrorResults.totalCount":
 		if e.complexity.ErrorResults.TotalCount == nil {
@@ -3410,7 +3401,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroups(childComplexity, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput), args["page"].(*int)), true
+		return e.complexity.Query.ErrorGroups(childComplexity, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput), args["sort_desc"].(*bool), args["start_error_group_id"].(*int)), true
 
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
@@ -3422,7 +3413,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["scroll_id"].(*string)), true
+		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(*bool), args["start_error_group_id"].(*int)), true
 
 	case "Query.error_segments":
 		if e.complexity.Query.ErrorSegments == nil {
@@ -3899,7 +3890,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Sessions(childComplexity, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput), args["page"].(*int)), true
+		return e.complexity.Query.Sessions(childComplexity, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput), args["sort_desc"].(*bool), args["start_session_id"].(*int)), true
 
 	case "Query.sessions_opensearch":
 		if e.complexity.Query.SessionsOpensearch == nil {
@@ -3911,7 +3902,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["scroll_id"].(*string)), true
+		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(*bool), args["start_session_id"].(*int)), true
 
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
@@ -5020,13 +5011,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionPayload.SessionComments(childComplexity), true
 
-	case "SessionResults.scrollID":
-		if e.complexity.SessionResults.ScrollID == nil {
-			break
-		}
-
-		return e.complexity.SessionResults.ScrollID(childComplexity), true
-
 	case "SessionResults.sessions":
 		if e.complexity.SessionResults.Sessions == nil {
 			break
@@ -5958,13 +5942,11 @@ input SanitizedAdminInput {
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
-    scrollID: String
 }
 
 type ErrorResults {
     error_groups: [ErrorGroup!]!
     totalCount: Int64!
-    scrollID: String
 }
 
 # 2 way connector type between highlight objects and external integration objects
@@ -6200,13 +6182,15 @@ type Query {
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
-        page: Int
+        sort_desc: Boolean
+        start_error_group_id: ID
     ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
         query: String!
-        scroll_id: String
+        sort_desc: Boolean
+        start_error_group_id: ID
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -6264,14 +6248,15 @@ type Query {
         lifecycle: SessionLifecycle!
         starred: Boolean!
         params: SearchParamsInput
-        page: Int
+        sort_desc: Boolean
+        start_session_id: ID
     ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
         query: String!
-        sort_desc: Boolean!
-        scroll_id: String
+        sort_desc: Boolean
+        start_session_id: ID
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
@@ -10060,15 +10045,24 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 		}
 	}
 	args["params"] = arg2
-	var arg3 *int
-	if tmp, ok := rawArgs["page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg3 *bool
+	if tmp, ok := rawArgs["sort_desc"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_desc"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["page"] = arg3
+	args["sort_desc"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["start_error_group_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_error_group_id"))
+		arg4, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start_error_group_id"] = arg4
 	return args, nil
 }
 
@@ -10102,15 +10096,24 @@ func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context
 		}
 	}
 	args["query"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["scroll_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scroll_id"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg3 *bool
+	if tmp, ok := rawArgs["sort_desc"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_desc"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["scroll_id"] = arg3
+	args["sort_desc"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["start_error_group_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_error_group_id"))
+		arg4, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start_error_group_id"] = arg4
 	return args, nil
 }
 
@@ -10879,15 +10882,24 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["params"] = arg4
-	var arg5 *int
-	if tmp, ok := rawArgs["page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg5 *bool
+	if tmp, ok := rawArgs["sort_desc"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_desc"))
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["page"] = arg5
+	args["sort_desc"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["start_session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_session_id"))
+		arg6, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start_session_id"] = arg6
 	return args, nil
 }
 
@@ -10921,24 +10933,24 @@ func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Con
 		}
 	}
 	args["query"] = arg2
-	var arg3 bool
+	var arg3 *bool
 	if tmp, ok := rawArgs["sort_desc"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_desc"))
-		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["sort_desc"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["scroll_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scroll_id"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg4 *int
+	if tmp, ok := rawArgs["start_session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_session_id"))
+		arg4, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["scroll_id"] = arg4
+	args["start_session_id"] = arg4
 	return args, nil
 }
 
@@ -15831,38 +15843,6 @@ func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field 
 	res := resTmp.(int64)
 	fc.Result = res
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorResults_scrollID(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorResults",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScrollID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
@@ -20779,7 +20759,7 @@ func (ec *executionContext) _Query_error_groups(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroups(rctx, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput), args["page"].(*int))
+		return ec.resolvers.Query().ErrorGroups(rctx, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput), args["sort_desc"].(*bool), args["start_error_group_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20818,7 +20798,7 @@ func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["scroll_id"].(*string))
+		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(*bool), args["start_error_group_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22064,7 +22044,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput), args["page"].(*int))
+		return ec.resolvers.Query().Sessions(rctx, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput), args["sort_desc"].(*bool), args["start_session_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22106,7 +22086,7 @@ func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["scroll_id"].(*string))
+		return ec.resolvers.Query().SessionsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(*bool), args["start_session_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28291,38 +28271,6 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SessionResults_scrollID(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SessionResults",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScrollID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SlackSyncResponse_success(ctx context.Context, field graphql.CollectedField, obj *model.SlackSyncResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33551,13 +33499,6 @@ func (ec *executionContext) _ErrorResults(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "scrollID":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ErrorResults_scrollID(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38423,13 +38364,6 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "scrollID":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._SessionResults_scrollID(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

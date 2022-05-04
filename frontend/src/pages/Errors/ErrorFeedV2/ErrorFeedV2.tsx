@@ -8,6 +8,10 @@ import {
     useGetErrorGroupsOpenSearchQuery,
     useGetErrorGroupsQuery,
 } from '@graph/hooks';
+import {
+    GetErrorGroupsOpenSearchQuery,
+    GetErrorGroupsQuery,
+} from '@graph/operations';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
@@ -23,6 +27,8 @@ import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
+const PAGE_SIZE = 20;
+
 export const ErrorFeedV2 = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const [count, setCount] = useState(10);
@@ -37,7 +43,11 @@ export const ErrorFeedV2 = () => {
     ] = useState(true);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { isQueryBuilder } = useErrorSearchContext();
+    const {
+        isQueryBuilder,
+        startErrorGroupID,
+        setStartErrorGroupID,
+    } = useErrorSearchContext();
 
     const {
         loading: loadingOpenSearch,
@@ -46,7 +56,8 @@ export const ErrorFeedV2 = () => {
     } = useGetErrorGroupsOpenSearchQuery({
         variables: {
             query: searchQuery,
-            count: count + 10,
+            count: PAGE_SIZE,
+            start_error_group_id: startErrorGroupID,
             project_id,
         },
         onCompleted: () => {
@@ -62,7 +73,8 @@ export const ErrorFeedV2 = () => {
     } = useGetErrorGroupsQuery({
         variables: {
             params: searchParams,
-            count: count + 10,
+            count: PAGE_SIZE,
+            start_error_group_id: startErrorGroupID,
             project_id,
         },
         onCompleted: () => {
@@ -87,9 +99,17 @@ export const ErrorFeedV2 = () => {
     ]);
 
     useEffect(() => {
+        const s = data.error_groups.slice(-1);
+        if (s.length) {
+            setStartErrorGroupID(s[0].id);
+        }
+    }, [setStartErrorGroupID, data.error_groups]);
+
+    useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
 
+    // TODO(vkorolik) infinite scroll in other direction
     const [sentryRef, { rootRef }] = useInfiniteScroll({
         loading,
         hasNextPage: data.error_groups.length < data.totalCount,
@@ -105,29 +125,35 @@ export const ErrorFeedV2 = () => {
                 },
             }).then((r) => {
                 if (isQueryBuilder) {
-                    setData((p) => ({
-                        ...gqlSanitize(
-                            errorDataOpenSearch?.error_groups_opensearch
-                        ),
-                        error_groups: [
-                            ...p.error_groups,
-                            ...(errorDataOpenSearch?.error_groups_opensearch
-                                .error_groups || []),
-                        ],
-                    }));
+                    addErrorGroupsOpenSearch(
+                        (r as unknown) as GetErrorGroupsOpenSearchQuery
+                    );
                 } else {
-                    setData((p) => ({
-                        ...gqlSanitize(errorDataOriginal?.error_groups),
-                        error_groups: [
-                            ...p.error_groups,
-                            ...(errorDataOriginal?.error_groups?.error_groups ||
-                                []),
-                        ],
-                    }));
+                    addErrorGroups(r as GetErrorGroupsQuery);
                 }
             });
         },
     });
+
+    const addErrorGroupsOpenSearch = (r: GetErrorGroupsOpenSearchQuery) => {
+        setData((p) => ({
+            ...gqlSanitize(r?.error_groups_opensearch),
+            error_groups: [
+                ...p.error_groups,
+                ...(r?.error_groups_opensearch.error_groups || []),
+            ],
+        }));
+    };
+
+    const addErrorGroups = (r: GetErrorGroupsQuery) => {
+        setData((p) => ({
+            ...gqlSanitize(r?.error_groups),
+            error_groups: [
+                ...p.error_groups,
+                ...(r?.error_groups?.error_groups || []),
+            ],
+        }));
+    };
 
     const onFeedScrollListener = (
         e: React.UIEvent<HTMLElement> | undefined

@@ -71,17 +71,16 @@ type Client struct {
 }
 
 type SearchOptions struct {
-	MaxResults    *int
-	SortField     *string
-	SortOrder     *string
-	ReturnCount   *bool
-	ScrollTime    time.Duration
-	ExcludeFields []string
+	MaxResults     *int
+	SortField      *string
+	SortOrder      *string
+	StartSessionID *int // determine starting session id. others come ater (depending on SortOrder)
+	ReturnCount    *bool
+	ExcludeFields  []string
 }
 
 type SearchResponse struct {
 	ResultCount int64
-	ScrollID    string
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -307,7 +306,16 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		return nil, e.Wrap(err, "query is not valid JSON")
 	}
 
-	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+	startQuery := ""
+	if options.StartSessionID != nil {
+		cmp := `lte`
+		if options.SortOrder != nil && *options.SortOrder == "asc" {
+			cmp = `gte`
+		}
+		startQuery = fmt.Sprintf(`{"range": {"id": {"%s": %d}}},`, cmp, *options.StartSessionID)
+	}
+
+	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s %s]}}`, projectID, startQuery, query)
 
 	sort := ""
 	if options.SortField != nil {
@@ -328,15 +336,6 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		count = *options.MaxResults
 	}
 
-	scrollTime := time.Duration(0)
-	scrollCount := 0
-	if options.ScrollTime > 0 {
-		// not allowed to disable hit counting with pagination
-		trackTotalHits = "true"
-		scrollTime = options.ScrollTime
-		scrollCount = count
-	}
-
 	excludesStr := ""
 	for _, e := range options.ExcludeFields {
 		if excludesStr != "" {
@@ -355,10 +354,8 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		searchIndexes = append(searchIndexes, GetIndex(index))
 	}
 	search := opensearchapi.SearchRequest{
-		Index:  searchIndexes,
-		Body:   content,
-		Scroll: scrollTime,
-		Size:   &scrollCount,
+		Index: searchIndexes,
+		Body:  content,
 	}
 
 	searchResponse, err := search.Do(context.Background(), c.ReadClient)
@@ -427,29 +424,6 @@ func (c *Client) PutScript(script Script, bodyStr string) error {
 	return nil
 }
 
-func (c *Client) Scroll(scrollID string, options SearchOptions, results interface{}) (*SearchResponse, error) {
-	scroll := opensearchapi.ScrollRequest{
-		Scroll:   options.ScrollTime,
-		ScrollID: scrollID,
-	}
-
-	scrollResponse, err := scroll.Do(context.Background(), c.ReadClient)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to do scroll request")
-	}
-
-	res, err := ioutil.ReadAll(scrollResponse.Body)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to read scroll response")
-	}
-
-	if err := scrollResponse.Body.Close(); err != nil {
-		return nil, e.Wrap(err, "failed to close scroll response")
-	}
-
-	return c.formatSearchResponse(res, results)
-}
-
 func (c *Client) formatSearchResponse(res []byte, results interface{}) (*SearchResponse, error) {
 	var response struct {
 		Hits struct {
@@ -460,7 +434,6 @@ func (c *Client) formatSearchResponse(res []byte, results interface{}) (*SearchR
 				Source interface{} `json:"_source"`
 			} `json:"hits"`
 		} `json:"hits"`
-		ScrollID string `json:"_scroll_id"`
 	}
 
 	if err := json.Unmarshal(res, &response); err != nil {
@@ -481,7 +454,7 @@ func (c *Client) formatSearchResponse(res []byte, results interface{}) (*SearchR
 		return nil, e.Wrap(err, "failed to unmarshal sources")
 	}
 
-	rp := SearchResponse{response.Hits.Total.Value, response.ScrollID}
+	rp := SearchResponse{response.Hits.Total.Value}
 	return &rp, nil
 }
 

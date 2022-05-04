@@ -114,6 +114,17 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.search]);
 
+    useEffect(() => {
+        setStartErrorGroupID(
+            new URLSearchParams(location.search).get(
+                PlayerSearchParameters.startErrorGroupId
+            ) || undefined
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
+
+    // TODO(vkorolik) set the URL when startErrorGroupID changes
+
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
         setCachedParams,
@@ -158,6 +169,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
     const [searchQuery, setSearchQuery] = useState('');
+    const [startErrorGroupID, setStartErrorGroupID] = useState<string>();
     const [
         showCreateCommentModal,
         setShowCreateCommentModal,
@@ -175,6 +187,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 isQueryBuilder,
                 searchQuery,
                 setSearchQuery,
+                startErrorGroupID,
+                setStartErrorGroupID,
             }}
         >
             <Helmet>

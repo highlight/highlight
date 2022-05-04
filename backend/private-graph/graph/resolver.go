@@ -2120,6 +2120,16 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	return &existingChannels, newChannelsCount, nil
 }
 
+func (r *Resolver) getSort(sortDesc *bool) (cmp string, sortOrder string) {
+	cmp = "<="
+	sortOrder = "desc"
+	if sortDesc != nil && !*sortDesc {
+		sortOrder = "asc"
+		cmp = ">="
+	}
+	return
+}
+
 func GetAggregateSQLStatement(aggregateFunctionName string) string {
 	aggregateStatement := "AVG(value)"
 

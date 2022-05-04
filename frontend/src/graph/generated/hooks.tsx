@@ -5673,14 +5673,14 @@ export const GetSessionsOpenSearchDocument = gql`
         $count: Int!
         $query: String!
         $sort_desc: Boolean!
-        $scroll_id: String
+        $start_session_id: ID
     ) {
         sessions_opensearch(
             project_id: $project_id
             count: $count
             query: $query
             sort_desc: $sort_desc
-            scroll_id: $scroll_id
+            start_session_id: $start_session_id
         ) {
             sessions {
                 id
@@ -5716,7 +5716,6 @@ export const GetSessionsOpenSearchDocument = gql`
                 last_user_interaction_time
             }
             totalCount
-            scrollID
         }
     }
 `;
@@ -5737,7 +5736,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
- *      scroll_id: // value for 'scroll_id'
+ *      start_session_id: // value for 'start_session_id'
  *   },
  * });
  */
@@ -5778,13 +5777,13 @@ export const GetErrorGroupsOpenSearchDocument = gql`
         $project_id: ID!
         $count: Int!
         $query: String!
-        $scroll_id: String
+        $start_error_group_id: ID
     ) {
         error_groups_opensearch(
             project_id: $project_id
             count: $count
             query: $query
-            scroll_id: $scroll_id
+            start_error_group_id: $start_error_group_id
         ) {
             error_groups {
                 created_at
@@ -5810,7 +5809,6 @@ export const GetErrorGroupsOpenSearchDocument = gql`
                 error_frequency
             }
             totalCount
-            scrollID
         }
     }
 `;
@@ -5830,7 +5828,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
- *      scroll_id: // value for 'scroll_id'
+ *      start_error_group_id: // value for 'start_error_group_id'
  *   },
  * });
  */
@@ -5873,7 +5871,7 @@ export const GetSessionsDocument = gql`
         $lifecycle: SessionLifecycle!
         $starred: Boolean!
         $params: SearchParamsInput
-        $page: Int
+        $start_session_id: ID
     ) {
         sessions(
             project_id: $project_id
@@ -5881,7 +5879,7 @@ export const GetSessionsDocument = gql`
             lifecycle: $lifecycle
             starred: $starred
             params: $params
-            page: $page
+            start_session_id: $start_session_id
         ) {
             sessions {
                 id
@@ -5939,7 +5937,7 @@ export const GetSessionsDocument = gql`
  *      lifecycle: // value for 'lifecycle'
  *      starred: // value for 'starred'
  *      params: // value for 'params'
- *      page: // value for 'page'
+ *      start_session_id: // value for 'start_session_id'
  *   },
  * });
  */
@@ -6950,13 +6948,13 @@ export const GetErrorGroupsDocument = gql`
         $project_id: ID!
         $count: Int!
         $params: ErrorSearchParamsInput
-        $page: Int
+        $start_error_group_id: ID
     ) {
         error_groups(
             project_id: $project_id
             count: $count
             params: $params
-            page: $page
+            start_error_group_id: $start_error_group_id
         ) {
             error_groups {
                 created_at
@@ -7001,7 +6999,7 @@ export const GetErrorGroupsDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      params: // value for 'params'
- *      page: // value for 'page'
+ *      start_error_group_id: // value for 'start_error_group_id'
  *   },
  * });
  */

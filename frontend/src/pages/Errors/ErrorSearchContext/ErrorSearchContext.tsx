@@ -24,6 +24,10 @@ type ErrorSearchContext = {
     isQueryBuilder: boolean;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    startErrorGroupID?: string;
+    setStartErrorGroupID: React.Dispatch<
+        React.SetStateAction<string | undefined>
+    >;
 };
 
 export const [

@@ -2153,13 +2153,13 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
-    scroll_id?: Types.Maybe<Types.Scalars['String']>;
+    start_session_id?: Types.Maybe<Types.Scalars['ID']>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
     sessions_opensearch: { __typename?: 'SessionResults' } & Pick<
         Types.SessionResults,
-        'totalCount' | 'scrollID'
+        'totalCount'
     > & {
             sessions: Array<
                 { __typename?: 'Session' } & Pick<
@@ -2209,13 +2209,13 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
-    scroll_id?: Types.Maybe<Types.Scalars['String']>;
+    start_error_group_id?: Types.Maybe<Types.Scalars['ID']>;
 }>;
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
     error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
         Types.ErrorResults,
-        'totalCount' | 'scrollID'
+        'totalCount'
     > & {
             error_groups: Array<
                 { __typename?: 'ErrorGroup' } & Pick<
@@ -2262,7 +2262,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
     lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
-    page?: Types.Maybe<Types.Scalars['Int']>;
+    start_session_id?: Types.Maybe<Types.Scalars['ID']>;
 }>;
 
 export type GetSessionsQuery = { __typename?: 'Query' } & {
@@ -2687,7 +2687,7 @@ export type GetErrorGroupsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     params?: Types.Maybe<Types.ErrorSearchParamsInput>;
-    page?: Types.Maybe<Types.Scalars['Int']>;
+    start_error_group_id?: Types.Maybe<Types.Scalars['ID']>;
 }>;
 
 export type GetErrorGroupsQuery = { __typename?: 'Query' } & {

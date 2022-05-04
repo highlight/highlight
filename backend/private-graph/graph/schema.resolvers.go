@@ -2879,11 +2879,13 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	return rageClicks, nil
 }
 
-func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput, sortDesc *bool, startErrorGroupID *int) (*model.ErrorResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
+
+	cmp, sortOrder := r.getSort(sortDesc)
 
 	errorGroups := []model.ErrorGroup{}
 	selectPreamble := `SELECT id, secure_id, project_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
@@ -2893,6 +2895,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 	queryString += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
 	queryString += "AND (deleted_at IS NULL) "
+	if startErrorGroupID != nil {
+		queryString += "AND id "
+		queryString += fmt.Sprintf("%s %d", cmp, *startErrorGroupID)
+	}
 
 	if d := params.DateRange; d != nil {
 		queryString += andErrorGroupHasErrorObjectWhere(fmt.Sprintf(
@@ -2943,10 +2949,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
 		start := time.Now()
-		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
-		if page != nil {
-			query = fmt.Sprintf("%s OFFSET %d", query, *page*count)
-		}
+		query := fmt.Sprintf("%s %s ORDER BY updated_at %s LIMIT %d", selectPreamble, queryString, sortOrder, count)
 		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
 		}
@@ -2994,20 +2997,22 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	return errorResults, nil
 }
 
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, scrollID *string) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc *bool, startErrorGroupID *int) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
+	_, sortOrder := r.getSort(sortDesc)
+
 	results := []opensearch.OpenSearchError{}
 	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String("updated_at"),
-		SortOrder:     ptr.String("desc"),
-		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
-		ScrollTime:    time.Hour * 24,                   // allow paginated URLs to be valid for this time
+		MaxResults:     ptr.Int(count),
+		SortField:      ptr.String("updated_at"),
+		SortOrder:      ptr.String(sortOrder),
+		StartSessionID: startErrorGroupID,
+		ReturnCount:    ptr.Bool(true),
+		ExcludeFields:  []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
 	}
 
 	rp, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
@@ -3023,7 +3028,6 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	return &model.ErrorResults{
 		ErrorGroups: asErrorGroups,
 		TotalCount:  rp.ResultCount,
-		ScrollID:    rp.ScrollID,
 	}, nil
 }
 
@@ -3735,11 +3739,13 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput, sortDesc *bool, startSessionID *int) (*model.SessionResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
+
+	cmp, sortOrder := r.getSort(sortDesc)
 
 	sessionsQueryPreamble := "SELECT *"
 	joinClause := "FROM sessions"
@@ -3779,6 +3785,11 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		whereClause += "AND (processed = false) "
 	}
 	whereClause += "AND (deleted_at IS NULL) "
+
+	if startSessionID != nil {
+		whereClause += "AND id "
+		whereClause += fmt.Sprintf("%s %d", cmp, *startSessionID)
+	}
 
 	whereClause += fieldFilters
 	if d := params.DateRange; d != nil {
@@ -3867,10 +3878,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("project_id", projectID))
 		start := time.Now()
-		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
-		if page != nil {
-			query = fmt.Sprintf("%s OFFSET %d", query, *page*count)
-		}
+		query := fmt.Sprintf("%s %s %s ORDER BY created_at %s LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, sortOrder, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrapf(err, "error querying filtered sessions: %s", query)
 		}
@@ -3919,38 +3927,23 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, scrollID *string) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc *bool, startSessionID *int) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
 	var results []model.Session
-	if scrollID != nil {
-		rp, err := r.OpenSearch.Scroll(*scrollID, opensearch.SearchOptions{ScrollTime: opensearch.ScrollTime}, &results)
-		if err != nil {
-			return nil, err
-		}
 
-		return &model.SessionResults{
-			Sessions:   results,
-			TotalCount: rp.ResultCount,
-			ScrollID:   rp.ScrollID,
-		}, nil
-	}
-
-	sortOrder := "desc"
-	if !sortDesc {
-		sortOrder = "asc"
-	}
+	_, sortOrder := r.getSort(sortDesc)
 
 	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String("created_at"),
-		SortOrder:     ptr.String(sortOrder),
-		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
-		ScrollTime:    opensearch.ScrollTime,
+		MaxResults:     ptr.Int(count),
+		SortField:      ptr.String("id"),
+		SortOrder:      ptr.String(sortOrder),
+		StartSessionID: startSessionID,
+		ReturnCount:    ptr.Bool(true),
+		ExcludeFields:  []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}
 	q := fmt.Sprintf(`
 	{"bool": {
@@ -3991,7 +3984,6 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: rp.ResultCount,
-		ScrollID:   rp.ScrollID,
 	}, nil
 }
 
