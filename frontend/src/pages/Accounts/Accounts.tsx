@@ -3,6 +3,7 @@ import {
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { USD } from '@dinero.js/currencies';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { Table } from 'antd';
 import { dinero, down, toUnit } from 'dinero.js';
@@ -22,7 +23,7 @@ import {
 
 import {
     useGetAccountDetailsQuery,
-    useGetAccountsQuery,
+    useGetAccountsLazyQuery,
 } from '../../graph/generated/hooks';
 
 export const AccountsPage = () => {
@@ -119,7 +120,24 @@ export const Account = () => {
 
 export const Accounts = () => {
     const history = useHistory();
-    const { data: accountData, loading } = useGetAccountsQuery();
+    const [accountData, setAccountData] = useLocalStorage(
+        'accountData',
+        JSON.stringify([])
+    );
+    const [
+        getAccountsQuery,
+        { data: accountQueryData, loading },
+    ] = useGetAccountsLazyQuery({
+        onCompleted: (data) => {
+            setAccountData(JSON.stringify(data?.accounts));
+        },
+    });
+
+    useEffect(() => {
+        if (!accountData && !loading) {
+            getAccountsQuery();
+        }
+    }, [getAccountsQuery, accountData, loading]);
 
     return (
         <div style={{ padding: 50 }}>
@@ -266,7 +284,7 @@ export const Accounts = () => {
                                 (a.member_limit ?? 0) - (b.member_limit ?? 0),
                         },
                     ]}
-                    dataSource={accountData?.accounts?.map((a, i) => {
+                    dataSource={accountQueryData?.accounts?.map((a, i) => {
                         return {
                             key: i,
                             email: a?.email,
