@@ -179,12 +179,15 @@ export const ProjectRouter = () => {
         environments: ArrayParam,
         app_versions: ArrayParam,
         query: QueryBuilderStateParam,
-        page: NumberParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
         JsonParam
     );
+
+    const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+        page: NumberParam,
+    });
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -235,18 +238,23 @@ export const ProjectRouter = () => {
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
 
+    // TODO(vkorolik) how to clear page on search query change
+
     useEffect(() => {
-        setSearchParamsToUrlParams(
+        setPaginationToUrlParams(
             {
                 page: page,
             },
             'replaceIn'
         );
-    }, [setSearchParamsToUrlParams, page]);
+    }, [setPaginationToUrlParams, page]);
 
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
             setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+            setPage(paginationToUrlParams.page);
         }
         // We only want to run this on mount (i.e. when the page first loads).
         // eslint-disable-next-line react-hooks/exhaustive-deps

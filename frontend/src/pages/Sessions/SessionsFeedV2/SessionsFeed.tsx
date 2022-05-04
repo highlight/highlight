@@ -43,7 +43,7 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
@@ -100,7 +100,7 @@ export const SessionFeed = React.memo(() => {
     const addSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
             setSessionResults(response.sessions_opensearch);
-            totalPages.current = Math.ceil(
+            totalPages.current = Math.floor(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
         }
@@ -222,9 +222,7 @@ export const SessionFeed = React.memo(() => {
                                     {`sessions, `}
                                 </Tooltip>
                                 <Tooltip
-                                    title={`Page ${page} of ${Math.ceil(
-                                        sessionResults.totalCount / PAGE_SIZE
-                                    ).toLocaleString()}`}
+                                    title={`Page ${page} of ${totalPages.current.toLocaleString()}`}
                                 >
                                     {`p ${page.toLocaleString()} of ${totalPages.current.toLocaleString()}`}
                                 </Tooltip>
