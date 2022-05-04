@@ -32,7 +32,6 @@ export function* splitTaggedUsers(
     // Conversation names can only contain lowercase letters,
     // numbers, hyphens, periods, and underscores (and spaces in admin names)
     const m = text.split(/@+(\[@?#?[\w\d-._\s]+])\([\w\d-._\s]+\)/);
-    console.log(text, m);
     for (const piece of m) {
         if (piece.match(/\[(.+)]/)) {
             yield {

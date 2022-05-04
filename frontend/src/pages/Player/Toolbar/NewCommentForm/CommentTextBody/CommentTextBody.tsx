@@ -26,6 +26,8 @@ interface Props {
     suggestions?: AdminSuggestion[];
     onDisplayTransformHandler?: (_id: string, display: string) => string;
     suggestionsPortalHost?: Element;
+
+    newInput?: boolean;
 }
 
 const CommentTextBody = ({
@@ -35,6 +37,8 @@ const CommentTextBody = ({
     suggestions = [],
     onDisplayTransformHandler,
     suggestionsPortalHost,
+
+    newInput,
 }: Props) => {
     const { project_id } = useParams<{
         project_id: string;
@@ -60,7 +64,7 @@ const CommentTextBody = ({
             (suggestion.display && suggestion.display[0] == '@')
     );
 
-    if (!suggestions?.length) {
+    if (!newInput) {
         const pieces = [];
         for (const { matched, value } of splitTaggedUsers(commentText)) {
             if (matched) {

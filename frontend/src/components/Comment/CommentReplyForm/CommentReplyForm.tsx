@@ -202,6 +202,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
                     >
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
+                                newInput
                                 commentText={commentText}
                                 onChangeHandler={onChangeHandler}
                                 placeholder={`Add a reply...`}

@@ -7,10 +7,12 @@
     display: inline-block;
     width: 130px;
 }
+
 .mentions--singleLine .mentions__highlighter {
     border: 2px inset transparent;
     padding: 1px;
 }
+
 .mentions--singleLine .mentions__input {
     border: 2px inset;
     padding: 1px;
@@ -45,7 +47,7 @@
 }
 
 .mentions__input::placeholder {
-    color: var(--color-text-primary) !important;
+    color: var(--color-gray-500) !important;
 }
 
 .mentions__suggestions__list {
@@ -78,9 +80,9 @@
     font-weight: 400 !important;
     pointer-events: none;
     position: relative;
+    text-shadow: 1px 1px 1px var(--color-white), 1px -1px 1px var(--color-white),
+        -1px 1px 1px var(--color-white), -1px -1px 1px var(--color-white);
     z-index: 1;
-    text-shadow: 1px 1px 1px white, 1px -1px 1px white, -1px 1px 1px white,
-    -1px -1px 1px white;
 }
 
 .mentionedUser {
@@ -88,5 +90,5 @@
 }
 
 .commentText {
-    color: var(--color-gray-500)
+    color: var(--color-gray-500);
 }
