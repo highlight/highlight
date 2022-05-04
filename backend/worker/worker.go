@@ -289,7 +289,7 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Consumer)
 	}
 
-	wp := workerpool.New(80)
+	wp := workerpool.New(8)
 	wp.SetPanicHandler(util.Recover)
 
 	// receive messages and submit them to worker pool for processing
