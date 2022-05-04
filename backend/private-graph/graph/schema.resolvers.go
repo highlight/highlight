@@ -2921,7 +2921,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	return rageClicks, nil
 }
 
-func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput, page *int) (*model.ErrorResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
@@ -2986,6 +2986,9 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
+		if page != nil {
+			query = fmt.Sprintf("%s OFFSET %d", query, *page*count)
+		}
 		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
 		}
@@ -3033,7 +3036,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	return errorResults, nil
 }
 
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3046,6 +3049,9 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		SortOrder:     ptr.String("desc"),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+	}
+	if page != nil {
+		options.ResultsFrom = ptr.Int(*page * count)
 	}
 
 	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
@@ -3772,7 +3778,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput, page *int) (*model.SessionResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
@@ -3905,6 +3911,9 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
+		if page != nil {
+			query = fmt.Sprintf("%s OFFSET %d", query, *page*count)
+		}
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrapf(err, "error querying filtered sessions: %s", query)
 		}
@@ -3953,7 +3962,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3972,6 +3981,9 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+	}
+	if page != nil {
+		options.ResultsFrom = ptr.Int(*page * count)
 	}
 	q := fmt.Sprintf(`
 	{"bool": {

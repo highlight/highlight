@@ -2,7 +2,14 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '@components/Tooltip/Tooltip';
+import {
+    useGetBillingDetailsForProjectQuery,
+    useGetSessionsOpenSearchQuery,
+} from '@graph/hooks';
+import { GetSessionsOpenSearchQuery } from '@graph/operations';
+import { PlanType } from '@graph/schemas';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
@@ -16,45 +23,35 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import React, {
-    RefObject,
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
-import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
 
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import {
-    useGetBillingDetailsForProjectQuery,
-    useGetSessionsOpenSearchQuery,
-} from '../../../graph/generated/hooks';
-import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
     showLiveSessions,
     useSearchContext,
 } from '../SearchContext/SearchContext';
-import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-// const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
+const PAGE_SIZE = 20;
 
 export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
-    const { project_id, segment_id, session_secure_id } = useParams<{
+    const { project_id, session_secure_id } = useParams<{
         project_id: string;
-        segment_id: string;
         session_secure_id: string;
     }>();
     const sessionFeedConfiguration = useSessionFeedConfiguration();
-    const [count, setCount] = useState(10);
     const {
         autoPlaySessions,
         setAutoPlaySessions,
@@ -67,6 +64,7 @@ export const SessionFeed = React.memo(() => {
         setSessionFeedIsInTopScrollPosition,
     ] = useState(true);
 
+    const totalPages = useRef<number>(0);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const {
@@ -74,6 +72,8 @@ export const SessionFeed = React.memo(() => {
         showStarredSessions,
         setSearchParams,
         searchQuery,
+        page,
+        setPage,
     } = useSearchContext();
     const { integrated } = useIntegrated();
 
@@ -97,19 +97,25 @@ export const SessionFeed = React.memo(() => {
     const unprocessedSessionsCount: number | undefined =
         unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount;
 
-    const { loading, fetchMore, called } = useGetSessionsOpenSearchQuery({
+    const addSessions = (response: GetSessionsOpenSearchQuery) => {
+        if (response?.sessions_opensearch) {
+            setSessionResults(response.sessions_opensearch);
+            totalPages.current = Math.ceil(
+                response?.sessions_opensearch.totalCount / PAGE_SIZE
+            );
+        }
+        setShowLoadingSkeleton(false);
+    };
+
+    const { loading, called } = useGetSessionsOpenSearchQuery({
         variables: {
             query: searchQuery,
-            count: count + 10,
+            count: PAGE_SIZE,
+            page: page,
             project_id,
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
-        onCompleted: (response) => {
-            if (response?.sessions_opensearch) {
-                setSessionResults(response.sessions_opensearch);
-            }
-            setShowLoadingSkeleton(false);
-        },
+        onCompleted: addSessions,
         skip: !searchQuery,
     });
 
@@ -119,7 +125,7 @@ export const SessionFeed = React.memo(() => {
         }
         // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams]);
+    }, [searchParams, page]);
 
     const enableLiveSessions = useCallback(() => {
         if (!searchParams.query) {
@@ -174,29 +180,6 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
     ]);
 
-    const infiniteRef = useInfiniteScroll({
-        checkInterval: 1200, // frequency to check (1.2s)
-        loading,
-        hasNextPage: sessionResults.sessions.length < sessionResults.totalCount,
-        scrollContainer: 'parent',
-        onLoadMore: () => {
-            setCount((previousCount) => previousCount + 10);
-            fetchMore({
-                variables: {
-                    params: searchParams,
-                    count,
-                    project_id,
-                    processed:
-                        segment_id === LIVE_SEGMENT_ID
-                            ? SessionLifecycle.Live
-                            : searchParams.show_live_sessions
-                            ? SessionLifecycle.Live
-                            : SessionLifecycle.Completed,
-                },
-            });
-        },
-    });
-
     const filteredSessions = useMemo(() => {
         if (loading) {
             return sessionResults.sessions;
@@ -236,7 +219,14 @@ export const SessionFeed = React.memo(() => {
                                             sessionFeedConfiguration.countFormat
                                         )}`}
                                     />{' '}
-                                    {`sessions `}
+                                    {`sessions, `}
+                                </Tooltip>
+                                <Tooltip
+                                    title={`Page ${page} of ${Math.ceil(
+                                        sessionResults.totalCount / PAGE_SIZE
+                                    ).toLocaleString()}`}
+                                >
+                                    {`p ${page.toLocaleString()} of ${totalPages.current.toLocaleString()}`}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -292,10 +282,7 @@ export const SessionFeed = React.memo(() => {
                 })}
                 onScroll={onFeedScrollListener}
             >
-                <div
-                    ref={infiniteRef as RefObject<HTMLDivElement>}
-                    onScroll={onFeedScrollListener}
-                >
+                <div onScroll={onFeedScrollListener}>
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={!showDetailedSessionView ? 74 : 125}
@@ -321,6 +308,24 @@ export const SessionFeed = React.memo(() => {
                                 )
                             ) : (
                                 <>
+                                    <button
+                                        onClick={() => {
+                                            if (page > 0) {
+                                                setPage((p) => p - 1);
+                                            }
+                                        }}
+                                    >
+                                        prev page
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (page < totalPages.current) {
+                                                setPage((p) => p + 1);
+                                            }
+                                        }}
+                                    >
+                                        next page
+                                    </button>
                                     {!isOnPrem && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
@@ -344,16 +349,20 @@ export const SessionFeed = React.memo(() => {
                                     ))}
                                 </>
                             )}
-                            {sessionResults.sessions.length <
-                                sessionResults.totalCount && (
-                                <Skeleton
-                                    height={74}
-                                    style={{
-                                        borderRadius: 8,
-                                        marginBottom: 24,
-                                    }}
-                                />
-                            )}
+                            <button
+                                onClick={() => {
+                                    setPage((p) => p - 1);
+                                }}
+                            >
+                                prev page
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setPage((p) => p + 1);
+                                }}
+                            >
+                                next page
+                            </button>
                         </>
                     )}
                 </div>

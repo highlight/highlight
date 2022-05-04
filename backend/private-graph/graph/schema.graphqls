@@ -719,11 +719,13 @@ type Query {
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
+        page: Int
     ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
         query: String!
+        page: Int
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -781,12 +783,14 @@ type Query {
         lifecycle: SessionLifecycle!
         starred: Boolean!
         params: SearchParamsInput
+        page: Int
     ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
         query: String!
         sort_desc: Boolean!
+        page: Int
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
