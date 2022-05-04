@@ -149,6 +149,7 @@ const NewProjectPage = () => {
                     />
                     {isWorkspace && (
                         <AutoJoinForm
+                            newWorkspace
                             updateOrigins={(domains) => {
                                 setAutoJoinDomains(domains);
                             }}
