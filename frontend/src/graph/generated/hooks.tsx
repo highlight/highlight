@@ -5719,12 +5719,14 @@ export const GetSessionsOpenSearchDocument = gql`
         $count: Int!
         $query: String!
         $sort_desc: Boolean!
+        $page: Int
     ) {
         sessions_opensearch(
             project_id: $project_id
             count: $count
             query: $query
             sort_desc: $sort_desc
+            page: $page
         ) {
             sessions {
                 id
@@ -5780,6 +5782,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
+ *      page: // value for 'page'
  *   },
  * });
  */
@@ -5820,11 +5823,13 @@ export const GetErrorGroupsOpenSearchDocument = gql`
         $project_id: ID!
         $count: Int!
         $query: String!
+        $page: Int
     ) {
         error_groups_opensearch(
             project_id: $project_id
             count: $count
             query: $query
+            page: $page
         ) {
             error_groups {
                 created_at
@@ -5869,6 +5874,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      page: // value for 'page'
  *   },
  * });
  */

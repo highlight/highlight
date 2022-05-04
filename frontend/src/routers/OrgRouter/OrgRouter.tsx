@@ -32,6 +32,7 @@ import {
     ArrayParam,
     BooleanParam,
     JsonParam,
+    NumberParam,
     StringParam,
     useQueryParam,
     useQueryParams,
@@ -140,6 +141,8 @@ export const ProjectRouter = () => {
     );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
+    const [page, setPage] = useState(0);
+
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
@@ -176,6 +179,7 @@ export const ProjectRouter = () => {
         environments: ArrayParam,
         app_versions: ArrayParam,
         query: QueryBuilderStateParam,
+        page: NumberParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
@@ -230,6 +234,15 @@ export const ProjectRouter = () => {
             }
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
+
+    useEffect(() => {
+        setSearchParamsToUrlParams(
+            {
+                page: page,
+            },
+            'replaceIn'
+        );
+    }, [setSearchParamsToUrlParams, page]);
 
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
@@ -303,6 +316,8 @@ export const ProjectRouter = () => {
                         setQueryBuilderInput,
                         isQuickSearchOpen,
                         setIsQuickSearchOpen,
+                        page,
+                        setPage,
                     }}
                 >
                     <Header />
