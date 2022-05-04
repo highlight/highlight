@@ -1438,6 +1438,15 @@ export type SyncSlackIntegrationMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type RequestAccessMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type RequestAccessMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'requestAccess'
+>;
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -3645,6 +3654,7 @@ export const namedOperations = {
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
         SyncSlackIntegration: 'SyncSlackIntegration' as const,
+        RequestAccess: 'RequestAccess' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {

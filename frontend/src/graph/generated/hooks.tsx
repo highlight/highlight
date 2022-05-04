@@ -3986,6 +3986,52 @@ export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
     Types.SyncSlackIntegrationMutation,
     Types.SyncSlackIntegrationMutationVariables
 >;
+export const RequestAccessDocument = gql`
+    mutation RequestAccess($project_id: ID!) {
+        requestAccess(project_id: $project_id)
+    }
+`;
+export type RequestAccessMutationFn = Apollo.MutationFunction<
+    Types.RequestAccessMutation,
+    Types.RequestAccessMutationVariables
+>;
+
+/**
+ * __useRequestAccessMutation__
+ *
+ * To run a mutation, you first call `useRequestAccessMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestAccessMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestAccessMutation, { data, loading, error }] = useRequestAccessMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useRequestAccessMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.RequestAccessMutation,
+        Types.RequestAccessMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.RequestAccessMutation,
+        Types.RequestAccessMutationVariables
+    >(RequestAccessDocument, baseOptions);
+}
+export type RequestAccessMutationHookResult = ReturnType<
+    typeof useRequestAccessMutation
+>;
+export type RequestAccessMutationResult = Apollo.MutationResult<Types.RequestAccessMutation>;
+export type RequestAccessMutationOptions = Apollo.BaseMutationOptions<
+    Types.RequestAccessMutation,
+    Types.RequestAccessMutationVariables
+>;
 export const GetWebVitalDashboardDocument = gql`
     query GetWebVitalDashboard(
         $project_id: ID!

@@ -2589,6 +2589,48 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
+	defer span.Finish()
+	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
+	time.Sleep(time.Millisecond * time.Duration(10*rand.Float64()))
+
+	// Any errors are logged but not returned to avoid leaking metadata
+	// to the client (such as whether the project exists
+	// or they have access to send an access request).
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		log.Error(e.Wrap(err, "user is not logged in"))
+		return &model.T, nil
+	}
+
+	var project model.Project
+	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		log.Error(e.Wrap(err, "error querying project"))
+		return &model.T, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.Error(e.Wrap(err, "error querying workspace"))
+		return &model.T, nil
+	}
+
+	var workspaceAdmins []*model.Admin
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+		log.Error(e.Wrap(err, "error getting admins for the workspace"))
+		return &model.T, nil
+	}
+
+	for _, a := range workspaceAdmins[:2] {
+		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+			log.Error(e.Wrap(err, "failed to send request access email"))
+			return &model.T, nil
+		}
+	}
+	return &model.T, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")

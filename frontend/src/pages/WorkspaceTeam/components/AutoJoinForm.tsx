@@ -12,7 +12,11 @@ import React, { useState } from 'react';
 
 import styles from './AutoJoinForm.module.scss';
 
-function AutoJoinForm() {
+function AutoJoinForm({
+    updateOrigins,
+}: {
+    updateOrigins?: (domains: string[]) => void;
+}) {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { admin } = useAuthContext();
     const { loading } = useGetWorkspaceAdminsQuery({
@@ -42,15 +46,19 @@ function AutoJoinForm() {
     const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
     const onChangeMsg = (domains: string[], msg: string) => {
         setEmailOrigins(domains);
-        updateAllowedEmailOrigins({
-            variables: {
-                allowed_auto_join_email_origins: JSON.stringify(domains),
-                workspace_id: workspace_id,
-            },
-            refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
-        }).then(() => {
-            message.success(msg);
-        });
+        if (updateOrigins) {
+            updateOrigins(domains);
+        } else {
+            updateAllowedEmailOrigins({
+                variables: {
+                    allowed_auto_join_email_origins: JSON.stringify(domains),
+                    workspace_id: workspace_id,
+                },
+                refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
+            }).then(() => {
+                message.success(msg);
+            });
+        }
     };
     const onChange = (domains: string[]) => {
         onChangeMsg(domains, 'Successfully updated auto-join email domains!');
