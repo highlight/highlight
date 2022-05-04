@@ -105,23 +105,24 @@ const TimelineIndicatorsBarGraph = React.memo(
             combined.comments = filterAndMap(combined.comments);
         }
 
-        const getTimeFromPercent = (percent: number): number => {
-            for (let i = 0; i < sessionIntervals.length; i++) {
-                const interval = sessionIntervals[i];
-                if (interval.startPercent * 100 > percent && i > 0) {
-                    const cur = sessionIntervals[i - 1];
+        const getTimeFromPercent = (percent: number): number | undefined => {
+            for (const interval of sessionIntervals) {
+                if (
+                    interval.startPercent * 100 <= percent &&
+                    interval.endPercent * 100 >= percent
+                ) {
                     const globalPctInInterval =
-                        percent - cur.startPercent * 100;
+                        percent - interval.startPercent * 100;
                     const intervalOffset =
                         globalPctInInterval /
-                        (cur.endPercent - cur.startPercent) /
+                        (interval.endPercent - interval.startPercent) /
                         100;
                     const timeOffset =
-                        (cur.endTime - cur.startTime) * intervalOffset;
-                    return cur.startTime + timeOffset;
+                        (interval.endTime - interval.startTime) *
+                        intervalOffset;
+                    return interval.startTime + timeOffset;
                 }
             }
-            return 0;
         };
 
         // const zoomTimeLeft = getTimeFromPercent(zoomAreaLeft ?? 0);
@@ -147,7 +148,7 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         const bucketStartTimes = [];
         for (let p = 0; p < 1; p += percentPerBar) {
-            bucketStartTimes.push(getTimeFromPercent(p));
+            bucketStartTimes.push(getTimeFromPercent(p * 100) ?? 0);
         }
 
         return (
@@ -168,7 +169,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                     );
                 }}
                 seriesList={series}
-                timeFormatter={(t) => `${t / 1000} seconds`}
+                timeFormatter={(t) => `${(t / 1000).toFixed(2)} seconds`}
                 bucketStartTimes={bucketStartTimes}
             />
         );

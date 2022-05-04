@@ -60,6 +60,8 @@ const Histogram = ({
         }
     }
 
+    console.log('chartData', chartData);
+
     return (
         <div className={styles.container}>
             <div className={styles.graphContainer}>
