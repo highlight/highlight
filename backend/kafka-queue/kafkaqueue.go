@@ -96,9 +96,7 @@ func New(topic string, mode Mode) *Queue {
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
 	if mode == Producer {
 		pool.kafkaP = &kafka.Writer{
-			Logger:      kafka.LoggerFunc(log.Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.Warnf),
-			Addr:        kafka.TCP(brokers...),
+			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
 				SASL:        mechanism,
 				TLS:         tlsConfig,
@@ -122,9 +120,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	} else if mode == Consumer {
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
-			Logger:      kafka.LoggerFunc(log.Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.Warnf),
-			Brokers:     brokers,
+			Brokers: brokers,
 			Dialer: &kafka.Dialer{
 				Timeout:       KafkaOperationTimeout,
 				DualStack:     true,
