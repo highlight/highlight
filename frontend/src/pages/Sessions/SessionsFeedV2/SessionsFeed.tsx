@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { PAGE_SIZE, Pagination } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '@components/Tooltip/Tooltip';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
 import { PlanType } from '@graph/schemas';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
@@ -22,6 +24,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
+import _ from 'lodash';
 import React, {
     useCallback,
     useEffect,
@@ -37,13 +40,12 @@ import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/L
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
+    SearchParams,
     showLiveSessions,
     useSearchContext,
 } from '../SearchContext/SearchContext';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
-
-const PAGE_SIZE = 10;
 
 export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
@@ -76,6 +78,9 @@ export const SessionFeed = React.memo(() => {
         setPage,
     } = useSearchContext();
     const { integrated } = useIntegrated();
+    const previousSearchParams = useRef<SearchParams>(
+        EmptySessionsSearchParams
+    );
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
@@ -99,7 +104,13 @@ export const SessionFeed = React.memo(() => {
 
     const addSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
-            setSessionResults(response.sessions_opensearch);
+            setSessionResults((prev) => ({
+                ...response.sessions_opensearch,
+                totalCount: Math.max(
+                    prev.totalCount,
+                    response.sessions_opensearch.totalCount
+                ),
+            }));
             totalPages.current = Math.floor(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
@@ -126,6 +137,20 @@ export const SessionFeed = React.memo(() => {
         // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, page]);
+
+    useEffect(() => {
+        // we just loaded the page for the first time
+        if (
+            _.isEqual(previousSearchParams.current, EmptySessionsSearchParams)
+        ) {
+            previousSearchParams.current = searchParams;
+        }
+        // the search query actually changed, reset the page
+        if (!_.isEqual(previousSearchParams.current, searchParams)) {
+            setPage(0);
+            previousSearchParams.current = searchParams;
+        }
+    }, [searchParams, previousSearchParams, setPage]);
 
     const enableLiveSessions = useCallback(() => {
         if (!searchParams.query) {
@@ -218,13 +243,8 @@ export const SessionFeed = React.memo(() => {
                                             sessionResults.totalCount,
                                             sessionFeedConfiguration.countFormat
                                         )}`}
-                                    />{' '}
-                                    {`sessions, `}
-                                </Tooltip>
-                                <Tooltip
-                                    title={`Page ${page} of ${totalPages.current.toLocaleString()}`}
-                                >
-                                    {`p ${page.toLocaleString()} of ${totalPages.current.toLocaleString()}`}
+                                    />
+                                    {' sessions'}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -280,7 +300,10 @@ export const SessionFeed = React.memo(() => {
                 })}
                 onScroll={onFeedScrollListener}
             >
-                <div onScroll={onFeedScrollListener}>
+                <div
+                    onScroll={onFeedScrollListener}
+                    className={styles.feedItems}
+                >
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={!showDetailedSessionView ? 74 : 125}
@@ -306,24 +329,6 @@ export const SessionFeed = React.memo(() => {
                                 )
                             ) : (
                                 <>
-                                    <button
-                                        onClick={() => {
-                                            if (page > 0) {
-                                                setPage((p) => p - 1);
-                                            }
-                                        }}
-                                    >
-                                        prev page
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (page < totalPages.current) {
-                                                setPage((p) => p + 1);
-                                            }
-                                        }}
-                                    >
-                                        next page
-                                    </button>
                                     {!isOnPrem && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
@@ -347,23 +352,14 @@ export const SessionFeed = React.memo(() => {
                                     ))}
                                 </>
                             )}
-                            <button
-                                onClick={() => {
-                                    setPage((p) => p - 1);
-                                }}
-                            >
-                                prev page
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setPage((p) => p + 1);
-                                }}
-                            >
-                                next page
-                            </button>
                         </>
                     )}
                 </div>
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    totalPages={totalPages}
+                />
             </div>
         </SessionFeedConfigurationContextProvider>
     );

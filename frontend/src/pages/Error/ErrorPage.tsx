@@ -23,6 +23,7 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
+import _ from 'lodash';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -39,6 +40,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { NumberParam, useQueryParams } from 'use-query-params';
 
 import Button from '../../components/Button/Button/Button';
 import Tooltip from '../../components/Tooltip/Tooltip';
@@ -103,6 +105,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         )
     );
 
+    const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+        page: NumberParam,
+    });
+
     useEffect(() => {
         const commentId = new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
@@ -158,6 +164,41 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         showCreateCommentModal,
         setShowCreateCommentModal,
     ] = useState<CreateModalType>(CreateModalType.None);
+    const [page, setPage] = useState<number>();
+
+    useEffect(() => {
+        if (page !== undefined) {
+            setPaginationToUrlParams(
+                {
+                    page: page,
+                },
+                'replaceIn'
+            );
+        }
+    }, [setPaginationToUrlParams, page]);
+
+    useEffect(() => {
+        if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+            setPage(paginationToUrlParams.page);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        // we just loaded the page for the first time
+        if (_.isEqual(existingParams, {})) {
+            setExistingParams(searchParams);
+        }
+        // the search query actually changed, reset the page
+        if (
+            !_.isEqual(existingParams, {}) &&
+            !_.isEqual(existingParams, searchParams)
+        ) {
+            setPage(0);
+            setExistingParams(searchParams);
+        }
+    }, [searchParams, existingParams, setPage]);
 
     return (
         <ErrorSearchContextProvider
@@ -170,6 +211,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setSegmentName,
                 searchQuery,
                 setSearchQuery,
+                page,
+                setPage,
             }}
         >
             <Helmet>

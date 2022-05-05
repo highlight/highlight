@@ -141,7 +141,7 @@ export const ProjectRouter = () => {
     );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState<number>();
 
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
@@ -238,15 +238,15 @@ export const ProjectRouter = () => {
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
 
-    // TODO(vkorolik) how to clear page on search query change
-
     useEffect(() => {
-        setPaginationToUrlParams(
-            {
-                page: page,
-            },
-            'replaceIn'
-        );
+        if (page !== undefined) {
+            setPaginationToUrlParams(
+                {
+                    page: page,
+                },
+                'replaceIn'
+            );
+        }
     }, [setPaginationToUrlParams, page]);
 
     useEffect(() => {
