@@ -1,9 +1,22 @@
 import Histogram from '@components/Histogram/Histogram';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
-import { ParsedSessionInterval } from '@pages/Player/ReplayerContext';
+import {
+    ParsedHighlightEvent,
+    ParsedSessionInterval,
+} from '@pages/Player/ReplayerContext';
+import {
+    getEventRenderDetails,
+    getPlayerEventIcon,
+} from '@pages/Player/StreamElement/StreamElement';
+import StreamElementPayload from '@pages/Player/StreamElement/StreamElementPayload';
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import React from 'react';
+
+import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
+import { TimelineAnnotationColors } from '../../Toolbar';
+import styles from '../../Toolbar.module.scss';
 
 interface Props {
     sessionIntervals: ParsedSessionInterval[];
@@ -23,7 +36,8 @@ const TimelineIndicatorsBarGraph = React.memo(
             return null;
         }
 
-        const percentPerBar = 0.02;
+        const numberOfBars = 50;
+        const percentPerBar = 1 / numberOfBars;
 
         const startTime = sessionIntervals[0].startTime;
         const endTime = sessionIntervals[sessionIntervals.length - 1].endTime;
@@ -146,10 +160,73 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         }
 
+        console.log('zoomArea', zoomAreaLeft, zoomAreaRight);
+        const scale = (zoomAreaRight ?? 1) - (zoomAreaLeft ?? 0);
         const bucketStartTimes = [];
-        for (let p = 0; p < 1; p += percentPerBar) {
-            bucketStartTimes.push(getTimeFromPercent(p * 100) ?? 0);
+        for (
+            let p = zoomAreaLeft ?? 0;
+            p < (zoomAreaRight ?? 1);
+            p += percentPerBar * scale
+        ) {
+            bucketStartTimes.push(getTimeFromPercent(p) ?? 0);
         }
+
+        const tooltipContent = (bucketIndex: number | undefined) => {
+            console.log('bucketIndex', bucketIndex);
+            if (bucketIndex === undefined) {
+                return;
+            }
+            const events: ParsedHighlightEvent[] =
+                chartData[bucketIndex].events;
+            return events.map((e) => {
+                const details = getEventRenderDetails(e);
+                const Icon = getPlayerEventIcon(
+                    details.title || '',
+                    details.payload
+                );
+                console.log('details', details);
+                return (
+                    <>
+                        <span className={timelineAnnotationStyles.title}>
+                            <span
+                                className={
+                                    timelineAnnotationStyles.iconContainer
+                                }
+                                style={{
+                                    background: `var(${
+                                        // @ts-ignore
+                                        TimelineAnnotationColors[details.title]
+                                    })`,
+                                }}
+                            >
+                                {Icon}
+                            </span>
+                            {getTimelineEventDisplayName(details.title || '')}
+                        </span>
+                        <div
+                            key={e.timestamp}
+                            className={styles.popoverContent}
+                        >
+                            <StreamElementPayload
+                                payload={
+                                    typeof details.payload === 'object'
+                                        ? JSON.stringify(details.payload)
+                                        : typeof details.payload ===
+                                              'boolean' &&
+                                          details.title?.includes('Tab')
+                                        ? details.payload
+                                            ? 'The user switched away from this tab.'
+                                            : 'The user is currently active on this tab.'
+                                        : details.payload
+                                }
+                            />
+                        </div>
+                    </>
+                );
+            });
+        };
+
+        console.log('bucketStartTimes', bucketStartTimes);
 
         return (
             <Histogram
@@ -169,8 +246,9 @@ const TimelineIndicatorsBarGraph = React.memo(
                     );
                 }}
                 seriesList={series}
-                timeFormatter={(t) => `${(t / 1000).toFixed(2)} seconds`}
+                timeFormatter={(t) => `${t.toFixed(2)}s`}
                 bucketStartTimes={bucketStartTimes}
+                tooltipContent={tooltipContent}
             />
         );
     }
@@ -205,7 +283,7 @@ const getEventsInTimeBucket = (
     const data: { [key: string]: any } = {};
 
     for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = {};
+        data[i.toString()] = { events: [] };
     }
 
     interval.sessionEvents.forEach((event) => {
@@ -223,6 +301,7 @@ const getEventsInTimeBucket = (
             } else {
                 data[bucketKey][eventType]++;
             }
+            data[bucketKey].events.push(event);
         }
     });
 

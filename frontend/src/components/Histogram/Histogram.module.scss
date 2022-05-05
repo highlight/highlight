@@ -24,6 +24,11 @@
     }
 }
 
+.tooltipPopover {
+    background-color: var(--color-primary-background);
+    z-index: 999999999;
+}
+
 @keyframes enter {
     0% {
         transform: translateY(100px);

@@ -1,3 +1,4 @@
+import Popover from '@components/Popover/Popover';
 import React, { useState } from 'react';
 import {
     Bar,
@@ -23,6 +24,7 @@ interface Props {
     onAreaChanged: (left: number, right: number) => void;
     seriesList: Series[];
     timeFormatter: (value: number) => string;
+    tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
 }
 
 const Histogram = ({
@@ -31,6 +33,7 @@ const Histogram = ({
     seriesList,
     bucketStartTimes,
     timeFormatter,
+    tooltipContent,
 }: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
@@ -50,8 +53,8 @@ const Histogram = ({
     const chartData: {
         [key: string]: string | number;
     }[] = [];
-    for (const t of bucketStartTimes) {
-        chartData.push({ label: timeFormatter(t) });
+    for (let i = 0; i < bucketStartTimes.length; i++) {
+        chartData.push({});
     }
 
     for (const s of seriesList) {
@@ -80,6 +83,7 @@ const Histogram = ({
                                 if (!e) {
                                     return;
                                 }
+                                console.log('onMouseDown', e);
                                 setDragStart(e.activeLabel);
                                 setDragEnd(e.activeLabel);
                             }}
@@ -88,31 +92,63 @@ const Histogram = ({
                                     return;
                                 }
                                 if (dragStart !== undefined) {
+                                    console.log('onMouseMove', e);
                                     setDragEnd(e.activeLabel);
                                 }
                             }}
                             onMouseUp={() => {
+                                console.log('onMouseUp');
                                 if (
                                     dragLeft !== undefined &&
                                     dragRight !== undefined
                                 ) {
                                     onAreaChanged(dragLeft, dragRight);
+                                    console.log(
+                                        'onMouseUp area changed',
+                                        dragLeft,
+                                        dragRight
+                                    );
                                 }
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
                             }}
                             onMouseLeave={() => {
+                                console.log('onMouseLeave');
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
                             }}
                         >
-                            <XAxis dataKey="label" />
+                            <XAxis
+                                style={{
+                                    userSelect: 'none',
+                                }}
+                                tickFormatter={(value, index) => {
+                                    const t = bucketStartTimes[index];
+                                    return timeFormatter(t);
+                                }}
+                                height={15}
+                            />
                             <Tooltip
-                                content={
-                                    // ZANETODO
-                                    <div>tooltip :)</div>
-                                }
-                                wrapperStyle={{ zIndex: 99999 }}
+                                content={(val) => {
+                                    return (
+                                        <Popover placement="top">
+                                            <div
+                                                className={
+                                                    styles.tooltipPopover
+                                                }
+                                            >
+                                                {tooltipContent(val.label)}
+                                            </div>
+                                        </Popover>
+                                    );
+                                }}
+                                wrapperStyle={{
+                                    zIndex: 9999999999,
+                                    top: -200,
+                                    height: 300,
+                                    left: 10,
+                                    overflow: 'auto',
+                                }}
                             />
                             {seriesList.map((s) => (
                                 <Bar
