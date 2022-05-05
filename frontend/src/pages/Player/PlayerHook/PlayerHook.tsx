@@ -572,6 +572,27 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     }, [setShowLeftPanel, setShowRightPanel]);
 
+    const loadiFrameResources = (r: Replayer) => {
+        // Inject the Material font icons into the player if it's a Boardgent session.
+        // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
+        if (project_id === '669' && r.iframe.contentDocument) {
+            const cssLink = document.createElement('link');
+            cssLink.href =
+                'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
+            cssLink.rel = 'stylesheet';
+            cssLink.type = 'text/css';
+            r.iframe.contentDocument.head.appendChild(cssLink);
+        }
+        // Inject FontAwesome for Gelt Finance sessions.
+        // Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
+        if (project_id === '896' && r.iframe.contentDocument) {
+            const scriptLink = document.createElement('script');
+            scriptLink.src = 'https://kit.fontawesome.com/2fb433086f.js';
+            scriptLink.crossOrigin = 'anonymous';
+            r.iframe.contentDocument.head.appendChild(scriptLink);
+        }
+    };
+
     const initReplayer = (newEvents: HighlightEvent[]) => {
         setState(ReplayerState.Loading);
         // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
@@ -618,6 +639,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         r.on('start', () => {
             const newTs = r.getCurrentTime() + r.getMetaData().startTime;
             setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs));
+            loadiFrameResources(r);
         });
         setReplayer(r);
         if (isLiveMode) {
@@ -765,31 +787,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionMetadata,
                 parsedSessionIntervalsData
             );
-
-            // Inject the Material font icons into the player if it's a Boardgent session.
-            // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
-            if (project_id === '669' && replayer.iframe.contentDocument) {
-                const cssLink = document.createElement('link');
-                cssLink.href =
-                    'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
-                cssLink.rel = 'stylesheet';
-                cssLink.type = 'text/css';
-                replayer.iframe.contentDocument.head.appendChild(cssLink);
-            }
-
-            // Inject FontAwesome font, icons, and css for Gelt Finance sessions.
-            // Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
-            if (project_id === '896' && replayer.iframe.contentDocument) {
-                const cssLink = document.createElement('link');
-                cssLink.href =
-                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-                cssLink.rel = 'stylesheet';
-                cssLink.integrity =
-                    'sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==';
-                cssLink.crossOrigin = 'anonymous';
-                cssLink.referrerPolicy = 'no-referrer';
-                replayer.iframe.contentDocument.head.appendChild(cssLink);
-            }
 
             const parsedTimelineIndicatorEvents =
                 timelineIndicatorEventsData &&
