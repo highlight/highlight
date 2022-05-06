@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/lambda"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/lambda"
 
 	"github.com/pkg/errors"
 
@@ -556,106 +557,6 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
-}
-
-func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
-	if params.VisitedURL != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
-	}
-
-	if params.Referrer != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
-	}
-
-	inclusiveFilters := []string{}
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
-	if len(inclusiveFilters) > 0 {
-		whereClause += andSessionHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
-	}
-
-	exclusiveFilters := []string{}
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
-	if len(exclusiveFilters) > 0 {
-		whereClause += andSessionDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
-	}
-
-	return whereClause, nil
-}
-
-func andSessionHasFieldsWhere(fieldConditions string) string {
-	return "AND " + SessionHasFieldsWhere(fieldConditions)
-}
-
-func SessionHasFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andSessionDoesNotHaveFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND NOT EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasSessionsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		JOIN sessions
-		ON error_objects.session_id = sessions.id
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasErrorObjectWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-// Takes a list of user search inputs, and converts them into a list of SQL filters
-// propertyType: 'user' or 'track'
-func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, propertyType string) []string {
-	sqlFilters := []string{}
-	for _, prop := range userPropertyInputs {
-		if prop.Name == "contains" {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
-		} else {
-			sqlFilters = append(sqlFilters, fmt.Sprintf("(fields.id = %d)", *prop.ID))
-		}
-	}
-	return sqlFilters
 }
 
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
