@@ -655,7 +655,7 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, threadTS *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -697,7 +697,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	// Prepare upload the screenshot to the user's Slack workspace.
+	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
 	// If we upload the image somewhere public, anyone with the link to the image will have access. The image could contain sensitive information.
 	// By uploading to the user's Slack workspace, we limit the authorization of the image to only Slack members of the user's workspace.
@@ -734,9 +734,17 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 			if err != nil {
 				log.Warn(e.Wrap(err, "failed to join slack channel"))
 			}
-			_, respTs, err := slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
-				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any media that are in the Slack message.*/)
+			opts := []slack.MsgOption{
+				slack.MsgOptionBlocks(blockSet.BlockSet...),
+				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
+			}
+			if threadTS != nil {
+				opts = append(opts, slack.MsgOptionTS(*threadTS))
+			}
+			_, respTs, err := slackClient.PostMessage(*slackUser.WebhookChannelID, opts...)
+			log.Warn(respTs)
+
 			if err != nil {
 				log.Error(e.Wrap(err, "error posting slack message via slack bot"))
 			}
@@ -747,9 +755,10 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 					Filetype: "image/png",
 					Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
 					// These are the channels that will have access to the uploaded file.
-					Channels:        []string{*slackUser.WebhookChannelID},
-					File:            uploadedFileKey,
-					Title:           fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+					Channels: []string{*slackUser.WebhookChannelID},
+					File:     uploadedFileKey,
+					Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+					// makes the file upload a thread response to the original message
 					ThreadTimestamp: respTs,
 				}
 				_, err = slackClient.UploadFile(fileUploadParams)
@@ -1828,7 +1837,7 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+			err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, nil)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 			}
@@ -1855,7 +1864,7 @@ func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *mo
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, nil)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
