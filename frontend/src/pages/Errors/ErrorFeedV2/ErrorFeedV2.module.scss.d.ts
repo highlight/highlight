@@ -14,8 +14,6 @@ export const hasScrolled: string;
 export const ignored: string;
 export const middleText: string;
 export const open: string;
-export const pageButtonsContainer: string;
-export const pageButtonsRow: string;
 export const readMarker: string;
 export const readMarkerContainer: string;
 export const resolved: string;

@@ -172,12 +172,11 @@
 
 .feedItems {
     @include hide-scrollbar;
-    height: calc(100vh - 385px);
-    overflow: auto;
-
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
+    height: calc(100vh - 385px);
+    overflow: auto;
 
     &.hasScrolled {
         border-top-color: var(--color-gray-300);

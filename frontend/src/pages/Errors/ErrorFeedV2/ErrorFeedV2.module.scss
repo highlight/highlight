@@ -87,13 +87,11 @@
 
 .feedItems {
     @include hide-scrollbar;
-    height: calc(100vh - 350px);
-    overflow: auto;
-
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
-
+    height: calc(100vh - 350px);
+    overflow: auto;
 
     &.hasScrolled {
         border-top-color: var(--color-gray-300);
@@ -210,19 +208,4 @@
     @media screen and (max-width: 1200px) {
         flex-direction: column;
     }
-}
-
-.pageButtonsRow {
-    flex-shrink: 0;
-    display: flex;
-    width: 100%;
-    justify-content: flex-end;
-    padding-bottom: var(--size-large);
-}
-
-.pageButtonsContainer {
-    display: grid;
-    gap: var(--size-xSmall);
-    grid-template-columns: 1fr 1fr;
-    width: auto;
 }

@@ -1,30 +1,30 @@
 .pageButtonsRow {
-  flex-shrink: 0;
-  display: flex;
-  width: 100%;
-  justify-content: flex-end;
-  margin-top: var(--size-medium);
-  padding-bottom: var(--size-large);
+    display: flex;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    margin-top: var(--size-medium);
+    padding-bottom: var(--size-large);
+    width: 100%;
 }
 
 .pageButtonsContainer {
-  display: grid;
-  gap: var(--size-xSmall);
-  grid-template-columns: 1fr 1fr;
-  width: auto;
+    display: grid;
+    gap: var(--size-xSmall);
+    grid-template-columns: 1fr 1fr;
+    width: auto;
 }
 
 .container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  align-self: center;
+    align-self: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 .btn {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  align-content: center;
-  align-self: center;
+    align-content: center;
+    align-self: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
