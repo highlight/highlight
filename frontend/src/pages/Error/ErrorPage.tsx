@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { ErrorState } from '@components/ErrorState/ErrorState';
+import { STARTING_PAGE } from '@components/Pagination/Pagination';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetDailyErrorFrequencyQuery,
@@ -189,7 +190,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             setExistingParams(searchParams);
         } else if (!_.isEqual(existingParams, searchParams)) {
             // the search query actually changed, reset the page
-            setPage(0);
+            setPage(STARTING_PAGE);
             setExistingParams(searchParams);
         }
         // only if the search params change, not the previous search params

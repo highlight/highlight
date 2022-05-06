@@ -2,7 +2,11 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { PAGE_SIZE, Pagination } from '@components/Pagination/Pagination';
+import {
+    PAGE_SIZE,
+    Pagination,
+    STARTING_PAGE,
+} from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '@components/Tooltip/Tooltip';
 import {
@@ -146,7 +150,7 @@ export const SessionFeed = React.memo(() => {
             previousSearchParams.current = searchParams;
         } else if (!_.isEqual(previousSearchParams.current, searchParams)) {
             // the search query actually changed, reset the page
-            setPage(0);
+            setPage(STARTING_PAGE);
             previousSearchParams.current = searchParams;
         }
         // only if the search params change, not the previous search params

@@ -6,6 +6,7 @@ import { Pagination as AntdPagination } from 'antd';
 import React from 'react';
 
 export const PAGE_SIZE = 10;
+export const STARTING_PAGE = 1;
 
 enum PageDirection {
     Forward,
@@ -23,12 +24,12 @@ export const Pagination = ({
 }) => {
     const changePage = (dir: PageDirection) => {
         if (dir === PageDirection.Forward) {
-            if ((page || 0) < totalPages.current) {
-                setPage((p) => (p || 0) + 1);
+            if ((page || STARTING_PAGE) < totalPages.current) {
+                setPage((p) => (p || STARTING_PAGE) + 1);
             }
         } else if (dir === PageDirection.Backward) {
-            if ((page || 0) > 0) {
-                setPage((p) => (p || 0) - 1);
+            if ((page || STARTING_PAGE) > STARTING_PAGE) {
+                setPage((p) => (p || STARTING_PAGE) - 1);
             }
         }
     };
@@ -42,14 +43,14 @@ export const Pagination = ({
                         size={'small'}
                         pageSize={PAGE_SIZE}
                         total={PAGE_SIZE * (totalPages.current + 1)}
-                        current={(page || 0) + 1}
-                        onChange={(p) => setPage(p - 1)}
+                        current={page || STARTING_PAGE}
+                        onChange={setPage}
                     />
                 </div>
                 <div className={styles.pageButtonsContainer} hidden>
                     <Button
                         className={styles.btn}
-                        disabled={(page || 0) <= 0}
+                        disabled={(page || STARTING_PAGE) <= STARTING_PAGE}
                         trackingId={'SessionsFeedPreviousPage'}
                         onClick={() => {
                             changePage(PageDirection.Backward);
@@ -59,7 +60,7 @@ export const Pagination = ({
                     </Button>
                     <Button
                         className={styles.btn}
-                        disabled={(page || 0) >= totalPages.current}
+                        disabled={(page || STARTING_PAGE) >= totalPages.current}
                         trackingId={'SessionsFeedNextPage'}
                         onClick={() => {
                             changePage(PageDirection.Forward);
