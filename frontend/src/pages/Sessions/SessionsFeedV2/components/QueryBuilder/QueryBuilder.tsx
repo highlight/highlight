@@ -722,7 +722,11 @@ const QueryRule = ({
     );
 };
 
-export const DateRangeFilter = () => {
+export const DateRangeFilter = ({
+    onChangeValue,
+}: {
+    onChangeValue: OnChange;
+}) => {
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -758,9 +762,7 @@ export const DateRangeFilter = () => {
                         },
                     ],
                 }}
-                onChange={() => {
-                    // updateRule(index, { val: val });
-                }}
+                onChange={onChangeValue}
                 loadOptions={() => Promise.resolve([])}
                 type={'date_range'}
                 disabled={false}
@@ -1334,6 +1336,23 @@ const QueryBuilder = ({
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
 
+    const [timeRangeRule, setTimeRangeRule] = useState<RuleProps>({
+        field: {
+            kind: 'single',
+            label: 'created_at',
+            value: 'custom_created_at',
+        },
+        op: 'between_date',
+        val: {
+            kind: 'multi',
+            options: [
+                {
+                    label: 'May 6 to May 6',
+                    value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
+                },
+            ],
+        },
+    });
     const [rules, setRulesImpl] = useState<RuleProps[]>([]);
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
@@ -1544,6 +1563,14 @@ const QueryBuilder = ({
 
     return (
         <>
+            <DateRangeFilter
+                onChangeValue={(val) => {
+                    setTimeRangeRule({
+                        ...timeRangeRule,
+                        ...{ val: val as MultiselectOption },
+                    });
+                }}
+            />
             <div className={styles.builderContainer}>
                 {rules.length > 0 && (
                     <div className={styles.rulesContainer}>
@@ -1562,7 +1589,6 @@ const QueryBuilder = ({
                                       </Button>,
                                   ]
                                 : []),
-                            // console.log('Rich: ', JSON.stringify(rule), JSON.)
                             <QueryRule
                                 key={`rule-${index}`}
                                 rule={rule}
@@ -1707,7 +1733,6 @@ const QueryBuilder = ({
                     </div>
                 )}
             </div>
-            <DateRangeFilter />
         </>
     );
 };
