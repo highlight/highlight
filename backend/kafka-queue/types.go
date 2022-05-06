@@ -2,9 +2,15 @@ package kafka_queue
 
 import customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 
+type PayloadType = int
+
 const (
-	PushPayload       = iota
-	InitializeSession = iota
+	PushPayload          PayloadType = iota
+	InitializeSession    PayloadType = iota
+	IdentifySession      PayloadType = iota
+	AddTrackProperties   PayloadType = iota
+	AddSessionProperties PayloadType = iota
+	PushBackendPayload   PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -23,10 +29,32 @@ type InitializeSessionArgs struct {
 	IP        string
 }
 
+type IdentifySessionArgs struct {
+	SessionID      int
+	UserIdentifier string
+	UserObject     interface{}
+}
+type AddTrackPropertiesArgs struct {
+	SessionID        int
+	PropertiesObject interface{}
+}
+type AddSessionPropertiesArgs struct {
+	SessionID        int
+	PropertiesObject interface{}
+}
+type PushBackendPayloadArgs struct {
+	SessionSecureIDs []string
+	Errors           []*customModels.BackendErrorObjectInput
+}
+
 type Message struct {
-	Type              int // PayloadType
-	PushPayload       *PushPayloadArgs
-	InitializeSession *InitializeSessionArgs
+	Type                 PayloadType
+	PushPayload          *PushPayloadArgs
+	InitializeSession    *InitializeSessionArgs
+	IdentifySession      *IdentifySessionArgs
+	AddTrackProperties   *AddTrackPropertiesArgs
+	AddSessionProperties *AddSessionPropertiesArgs
+	PushBackendPayload   *PushBackendPayloadArgs
 }
 
 type PartitionMessage struct {

@@ -7,6 +7,7 @@ import (
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
+	"net/mail"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1071,6 +1072,168 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	return session, nil
 }
 
+func (r *Resolver) IdentifySession(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
+	obj, ok := userObject.(map[string]interface{})
+	if !ok {
+		return e.New("[IdentifySession] error converting userObject interface type")
+	}
+
+	userProperties := map[string]string{}
+	if userIdentifier != "" {
+		userProperties["identifier"] = userIdentifier
+	}
+
+	// If userIdentifier is a valid email, save as an email field
+	// (this will be overridden if `email` is passed to `H.identify`)
+	_, err := mail.ParseAddress(userIdentifier)
+	if err == nil {
+		userProperties["email"] = userIdentifier
+	}
+
+	userObj := make(map[string]string)
+	for k, v := range obj {
+		if v != "" {
+			userProperties[k] = fmt.Sprintf("%v", v)
+			userObj[k] = fmt.Sprintf("%v", v)
+		}
+	}
+
+	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
+		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
+	}
+
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
+	}
+	// set user properties to session in db
+	if err := session.SetUserProperties(userObj); err != nil {
+		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
+	}
+
+	// Check if there is a session created by this user.
+	firstTime := &model.F
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, ProjectID: session.ProjectID}).Take(&model.Session{}).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			firstTime = &model.T
+		} else {
+			return e.Wrap(err, "[IdentifySession] error querying session with past identifier")
+		}
+	}
+
+	session.FirstTime = firstTime
+	if userIdentifier != "" {
+		session.Identifier = userIdentifier
+	}
+
+	openSearchProperties := map[string]interface{}{
+		"user_properties": session.UserProperties,
+		"first_time":      session.FirstTime,
+	}
+	if session.Identifier != "" {
+		openSearchProperties["identifier"] = session.Identifier
+	}
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	if err := r.DB.Save(&session).Error; err != nil {
+		return e.Wrap(err, "[IdentifySession] failed to update session")
+	}
+
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("identified session: %s", session.Identifier)
+
+	r.AlertWorkerPool.SubmitRecover(func() {
+		// Sending New User Alert
+		// if is not new user, return
+		if session.FirstTime == nil || !*session.FirstTime {
+			return
+		}
+		var sessionAlerts []*model.SessionAlert
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
+			return
+		}
+
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", session.ProjectID))
+				return
+			}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == session.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return
+			}
+
+			// get produced user properties from session
+			userProperties, err := session.GetUserProperties()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", session.ProjectID))
+				return
+			}
+
+			project := &model.Project{}
+			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+				log.Error(e.Wrap(err, "error querying project"))
+				return
+			}
+
+			workspace, err := r.getWorkspace(project.WorkspaceID)
+			if err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error querying workspace", session.ProjectID))
+				return
+			}
+
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
+		}
+	})
+	return nil
+}
+
+func (r *Resolver) AddTrackProperties(_ context.Context, sessionID int, propertiesObject interface{}) error {
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return e.New("error converting userObject interface type")
+	}
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
+			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
+		}
+	}
+	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
+	if err != nil {
+		return e.Wrap(err, "error adding set of properties to db")
+	}
+	return nil
+}
+
+func (r *Resolver) AddSessionProperties(_ context.Context, sessionID int, propertiesObject interface{}) error {
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return e.New("error converting userObject interface type")
+	}
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+	}
+	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
+	if err != nil {
+		return e.Wrap(err, "error adding set of properties to db")
+	}
+	return nil
+}
+
 func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
@@ -1237,17 +1400,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 	})
 }
 
-func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) {
-	// Get a list of unique session ids to query
-	sessionSecureIdSet := make(map[string]bool)
-	for _, errInput := range errors {
-		sessionSecureIdSet[errInput.SessionSecureID] = true
-	}
-	sessionSecureIds := make([]string, 0, len(sessionSecureIdSet))
-	for sId := range sessionSecureIdSet {
-		sessionSecureIds = append(sessionSecureIds, sId)
-	}
-
+func (r *Resolver) ProcessBackendPayload(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
