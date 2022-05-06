@@ -3,7 +3,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { Pagination } from '@components/Pagination/Pagination';
+import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
@@ -105,7 +105,13 @@ export const ErrorFeedV2 = () => {
                             ) : (
                                 data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
-                                        <ErrorCardV2 errorGroup={u} key={ind} />
+                                        <ErrorCardV2
+                                            errorGroup={u}
+                                            key={ind}
+                                            urlParams={`?page=${
+                                                page || STARTING_PAGE
+                                            }`}
+                                        />
                                     )
                                 )
                             )}
@@ -122,7 +128,13 @@ export const ErrorFeedV2 = () => {
     );
 };
 
-const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
+const ErrorCardV2 = ({
+    errorGroup,
+    urlParams,
+}: {
+    errorGroup: Maybe<ErrorGroup>;
+    urlParams?: string;
+}) => {
     const { project_id, error_secure_id } = useParams<{
         project_id: string;
         error_secure_id?: string;
@@ -143,7 +155,11 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.secure_id}>
-            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}`}>
+            <Link
+                to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}${
+                    urlParams || ''
+                }`}
+            >
                 <div
                     className={classNames(styles.errorCard, {
                         [styles.selected]:

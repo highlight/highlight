@@ -340,6 +340,9 @@ export const SessionFeed = React.memo(() => {
                                                 session_secure_id ===
                                                 u?.secure_id
                                             }
+                                            urlParams={`?page=${
+                                                page || STARTING_PAGE
+                                            }`}
                                             autoPlaySessions={autoPlaySessions}
                                             showDetailedSessionView={
                                                 showDetailedSessionView
