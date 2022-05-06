@@ -234,7 +234,7 @@ const getDateLabel = (value: string): string => {
     const end = split[1];
     const startStr = moment(start).format('MMM D');
     const endStr = moment(end).format('MMM D');
-    return `${startStr} and ${endStr}`;
+    return `${startStr} to ${endStr}`;
 };
 
 const getLengthLabel = (value: string): string => {
@@ -681,6 +681,7 @@ const QueryRule = ({
     onRemove,
     readonly,
 }: { rule: RuleProps } & RuleSettings) => {
+    console.log('Rich:' + JSON.stringify(rule));
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -717,6 +718,53 @@ const QueryRule = ({
                     <SvgXIcon />
                 </Button>
             )}
+        </div>
+    );
+};
+
+export const DateRangeFilter = () => {
+    return (
+        <div className={styles.ruleContainer}>
+            <SelectPopout
+                value={{
+                    kind: 'single',
+                    label: 'created_at',
+                    value: 'custom_created_at',
+                }}
+                onChange={() => {}}
+                loadOptions={() => Promise.resolve([])}
+                type="select"
+                disabled={true}
+            />
+            <SelectPopout
+                value={{
+                    kind: 'single',
+                    label: 'is between',
+                    value: 'between_date',
+                }}
+                onChange={() => {}}
+                loadOptions={() => Promise.resolve([])}
+                type="select"
+                disabled={true}
+            />
+            <SelectPopout
+                value={{
+                    kind: 'multi',
+                    options: [
+                        {
+                            label: 'May 1 to May 5',
+                            value:
+                                '2022-05-02T01:11:19.000Z_2022-05-06T01:11:19.000Z',
+                        },
+                    ],
+                }}
+                onChange={() => {
+                    // updateRule(index, { val: val });
+                }}
+                loadOptions={() => Promise.resolve([])}
+                type={'date_range'}
+                disabled={false}
+            />
         </div>
     );
 };
@@ -1495,168 +1543,172 @@ const QueryBuilder = ({
     }
 
     return (
-        <div className={styles.builderContainer}>
-            {rules.length > 0 && (
-                <div className={styles.rulesContainer}>
-                    {rules.flatMap((rule, index) => [
-                        ...(index != 0
-                            ? [
-                                  <Button
-                                      className={styles.separator}
-                                      trackingId="SessionsQuerySeparatorToggle"
-                                      onClick={toggleIsAnd}
-                                      key={`separator-${index}`}
-                                      type="dashed"
-                                      disabled={readonly}
-                                  >
-                                      {isAnd ? 'and' : 'or'}
-                                  </Button>,
-                              ]
-                            : []),
-                        <QueryRule
-                            key={`rule-${index}`}
-                            rule={rule}
-                            onChangeKey={(val) => {
-                                // Default to 'is' when rule is not defined yet
-                                if (rule.op === undefined) {
-                                    updateRule(index, {
-                                        field: val,
-                                        op: getDefaultOperator(rule.field),
-                                    });
-                                } else {
-                                    updateRule(index, { field: val });
-                                }
-                            }}
-                            getKeyOptions={getKeyOptions}
-                            onChangeOperator={(val) => {
-                                if (val?.kind === 'single') {
-                                    updateRule(index, { op: val.value });
-                                }
-                            }}
-                            getOperatorOptions={getOperatorOptionsCallback(
-                                getCustomFieldOptions(rule.field),
-                                rule.val
-                            )}
-                            onChangeValue={(val) => {
-                                updateRule(index, { val: val });
-                            }}
-                            getValueOptions={getValueOptionsCallback(
-                                rule.field
-                            )}
-                            onRemove={() => removeRule(index)}
-                            readonly={readonly ?? false}
-                        />,
-                    ])}
-                </div>
-            )}
-            {!readonly && (
-                <div>
-                    <Popover
-                        trigger="click"
-                        content={
-                            currentRule?.field === undefined ? (
-                                <PopoutContent
-                                    key={'popover-step-1'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(undefined);
-                                    }}
-                                    onChange={(val) => {
-                                        const field = val as
-                                            | SelectOption
-                                            | undefined;
-                                        addRule({
-                                            field: field,
-                                            op: undefined,
-                                            val: undefined,
+        <>
+            <div className={styles.builderContainer}>
+                {rules.length > 0 && (
+                    <div className={styles.rulesContainer}>
+                        {rules.flatMap((rule, index) => [
+                            ...(index != 0
+                                ? [
+                                      <Button
+                                          className={styles.separator}
+                                          trackingId="SessionsQuerySeparatorToggle"
+                                          onClick={toggleIsAnd}
+                                          key={`separator-${index}`}
+                                          type="dashed"
+                                          disabled={readonly}
+                                      >
+                                          {isAnd ? 'and' : 'or'}
+                                      </Button>,
+                                  ]
+                                : []),
+                            // console.log('Rich: ', JSON.stringify(rule), JSON.)
+                            <QueryRule
+                                key={`rule-${index}`}
+                                rule={rule}
+                                onChangeKey={(val) => {
+                                    // Default to 'is' when rule is not defined yet
+                                    if (rule.op === undefined) {
+                                        updateRule(index, {
+                                            field: val,
+                                            op: getDefaultOperator(rule.field),
                                         });
-                                    }}
-                                    loadOptions={getKeyOptions}
-                                    type="select"
-                                    placeholder="Filter..."
-                                />
-                            ) : currentRule?.op === undefined ? (
-                                <PopoutContent
-                                    key={'popover-step-2'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(3);
-                                    }}
-                                    onChange={(val) => {
-                                        const op = (val as SelectOption)
-                                            .value as Operator;
-                                        if (!hasArguments(op)) {
+                                    } else {
+                                        updateRule(index, { field: val });
+                                    }
+                                }}
+                                getKeyOptions={getKeyOptions}
+                                onChangeOperator={(val) => {
+                                    if (val?.kind === 'single') {
+                                        updateRule(index, { op: val.value });
+                                    }
+                                }}
+                                getOperatorOptions={getOperatorOptionsCallback(
+                                    getCustomFieldOptions(rule.field),
+                                    rule.val
+                                )}
+                                onChangeValue={(val) => {
+                                    updateRule(index, { val: val });
+                                }}
+                                getValueOptions={getValueOptionsCallback(
+                                    rule.field
+                                )}
+                                onRemove={() => removeRule(index)}
+                                readonly={readonly ?? false}
+                            />,
+                        ])}
+                    </div>
+                )}
+                {!readonly && (
+                    <div>
+                        <Popover
+                            trigger="click"
+                            content={
+                                currentRule?.field === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-1'}
+                                        value={undefined}
+                                        setVisible={() => {
                                             setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
+                                            const field = val as
+                                                | SelectOption
+                                                | undefined;
+                                            addRule({
+                                                field: field,
+                                                op: undefined,
+                                                val: undefined,
+                                            });
+                                        }}
+                                        loadOptions={getKeyOptions}
+                                        type="select"
+                                        placeholder="Filter..."
+                                    />
+                                ) : currentRule?.op === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-2'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(3);
+                                        }}
+                                        onChange={(val) => {
+                                            const op = (val as SelectOption)
+                                                .value as Operator;
+                                            if (!hasArguments(op)) {
+                                                setCurrentStep(undefined);
+                                                addRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            } else {
+                                                setCurrentRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            }
+                                        }}
+                                        loadOptions={getOperatorOptionsCallback(
+                                            getCustomFieldOptions(
+                                                currentRule.field
+                                            ),
+                                            currentRule.val
+                                        )}
+                                        type="select"
+                                        placeholder="Select..."
+                                    />
+                                ) : (
+                                    <PopoutContent
+                                        key={'popover-step-3'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
                                             addRule({
                                                 ...currentRule,
-                                                op,
+                                                val: val as
+                                                    | MultiselectOption
+                                                    | undefined,
                                             });
-                                        } else {
-                                            setCurrentRule({
-                                                ...currentRule,
-                                                op,
-                                            });
-                                        }
-                                    }}
-                                    loadOptions={getOperatorOptionsCallback(
-                                        getCustomFieldOptions(
+                                        }}
+                                        loadOptions={getValueOptionsCallback(
                                             currentRule.field
-                                        ),
-                                        currentRule.val
-                                    )}
-                                    type="select"
-                                    placeholder="Select..."
-                                />
-                            ) : (
-                                <PopoutContent
-                                    key={'popover-step-3'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(undefined);
-                                    }}
-                                    onChange={(val) => {
-                                        addRule({
-                                            ...currentRule,
-                                            val: val as
-                                                | MultiselectOption
-                                                | undefined,
-                                        });
-                                    }}
-                                    loadOptions={getValueOptionsCallback(
-                                        currentRule.field
-                                    )}
-                                    type={getPopoutType(currentRule.op)}
-                                    placeholder={`Select...`}
-                                />
-                            )
-                        }
-                        placement="bottomLeft"
-                        contentContainerClassName={styles.contentContainer}
-                        popoverClassName={styles.popoverContainer}
-                        destroyTooltipOnHide
-                        onVisibleChange={(isVisible) => {
-                            if (!isVisible) {
-                                setCurrentStep(undefined);
+                                        )}
+                                        type={getPopoutType(currentRule.op)}
+                                        placeholder={`Select...`}
+                                    />
+                                )
                             }
-                        }}
-                        visible={
-                            currentStep === 1 ||
-                            (currentStep === 2 && !!currentRule?.field) ||
-                            (currentStep === 3 && !!currentRule?.op)
-                        }
-                    >
-                        <Button
-                            className={styles.addFilter}
-                            trackingId="SessionsQueryAddRule2"
-                            onClick={newRule}
-                            type="dashed"
+                            placement="bottomLeft"
+                            contentContainerClassName={styles.contentContainer}
+                            popoverClassName={styles.popoverContainer}
+                            destroyTooltipOnHide
+                            onVisibleChange={(isVisible) => {
+                                if (!isVisible) {
+                                    setCurrentStep(undefined);
+                                }
+                            }}
+                            visible={
+                                currentStep === 1 ||
+                                (currentStep === 2 && !!currentRule?.field) ||
+                                (currentStep === 3 && !!currentRule?.op)
+                            }
                         >
-                            + Filter
-                        </Button>
-                    </Popover>
-                </div>
-            )}
-        </div>
+                            <Button
+                                className={styles.addFilter}
+                                trackingId="SessionsQueryAddRule2"
+                                onClick={newRule}
+                                type="dashed"
+                            >
+                                + Filter
+                            </Button>
+                        </Popover>
+                    </div>
+                )}
+            </div>
+            <DateRangeFilter />
+        </>
     );
 };
 
