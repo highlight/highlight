@@ -46,7 +46,7 @@ export const Pagination = ({
                         onChange={(p) => setPage(p - 1)}
                     />
                 </div>
-                <div className={styles.pageButtonsContainer}>
+                <div className={styles.pageButtonsContainer} hidden>
                     <Button
                         className={styles.btn}
                         disabled={(page || 0) <= 0}

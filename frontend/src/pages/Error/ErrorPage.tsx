@@ -147,12 +147,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     useEffect(() => {
         if (queryBuilderInput?.type === 'errors') {
-            const searchParams = {
+            setSearchParams({
                 ...EmptyErrorsSearchParams,
                 query: JSON.stringify(queryBuilderInput),
-            };
-            setExistingParams(searchParams);
-            setSearchParams(searchParams);
+            });
             setQueryBuilderInput(undefined);
         }
     }, [queryBuilderInput, setQueryBuilderInput]);
@@ -189,16 +187,14 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         // we just loaded the page for the first time
         if (_.isEqual(existingParams, {})) {
             setExistingParams(searchParams);
-        }
-        // the search query actually changed, reset the page
-        if (
-            !_.isEqual(existingParams, {}) &&
-            !_.isEqual(existingParams, searchParams)
-        ) {
+        } else if (!_.isEqual(existingParams, searchParams)) {
+            // the search query actually changed, reset the page
             setPage(0);
             setExistingParams(searchParams);
         }
-    }, [searchParams, existingParams, setPage]);
+        // only if the search params change, not the previous search params
+        // eslint-disable-next-line
+    }, [searchParams, setPage]);
 
     return (
         <ErrorSearchContextProvider

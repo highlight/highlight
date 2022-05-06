@@ -144,13 +144,14 @@ export const SessionFeed = React.memo(() => {
             _.isEqual(previousSearchParams.current, EmptySessionsSearchParams)
         ) {
             previousSearchParams.current = searchParams;
-        }
-        // the search query actually changed, reset the page
-        if (!_.isEqual(previousSearchParams.current, searchParams)) {
+        } else if (!_.isEqual(previousSearchParams.current, searchParams)) {
+            // the search query actually changed, reset the page
             setPage(0);
             previousSearchParams.current = searchParams;
         }
-    }, [searchParams, previousSearchParams, setPage]);
+        // only if the search params change, not the previous search params
+        // eslint-disable-next-line
+    }, [searchParams, setPage]);
 
     const enableLiveSessions = useCallback(() => {
         if (!searchParams.query) {
@@ -294,15 +295,12 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
-            <div
-                className={classNames(styles.feedContent, {
-                    [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
-                })}
-                onScroll={onFeedScrollListener}
-            >
+            <div className={styles.feedContent}>
                 <div
                     onScroll={onFeedScrollListener}
-                    className={styles.feedItems}
+                    className={classNames(styles.feedItems, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
                 >
                     {showLoadingSkeleton ? (
                         <Skeleton

@@ -82,13 +82,13 @@ export const ErrorFeedV2 = () => {
                     )}
                 </div>
             </div>
-            <div
-                className={classNames(styles.feedContent, {
-                    [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
-                })}
-                onScroll={onFeedScrollListener}
-            >
-                <div className={styles.feedItems}>
+            <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedItems, {
+                        [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                    })}
+                    onScroll={onFeedScrollListener}
+                >
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
