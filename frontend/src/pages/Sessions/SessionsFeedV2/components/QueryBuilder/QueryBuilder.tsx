@@ -1004,6 +1004,9 @@ const deserializeRules = (ruleGroups: any): RuleProps[] => {
     return rules;
 };
 
+const findTimeRangeRuleIndex = (rules: RuleProps[]) =>
+    rules.findIndex((rule) => rule.field?.value === 'custom_created_at');
+
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
     rule.op !== undefined &&
@@ -1336,23 +1339,23 @@ const QueryBuilder = ({
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
 
-    const [timeRangeRule, setTimeRangeRule] = useState<RuleProps>({
-        field: {
-            kind: 'single',
-            label: 'created_at',
-            value: 'custom_created_at',
-        },
-        op: 'between_date',
-        val: {
-            kind: 'multi',
-            options: [
-                {
-                    label: 'May 6 to May 6',
-                    value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
-                },
-            ],
-        },
-    });
+    // const [timeRangeRule, setTimeRangeRule] = useState<RuleProps>({
+    //     field: {
+    //         kind: 'single',
+    //         label: 'created_at',
+    //         value: 'custom_created_at',
+    //     },
+    //     op: 'between_date',
+    //     val: {
+    //         kind: 'multi',
+    //         options: [
+    //             {
+    //                 label: 'May 6 to May 6',
+    //                 value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
+    //             },
+    //         ],
+    //     },
+    // });
     const [rules, setRulesImpl] = useState<RuleProps[]>([]);
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
@@ -1565,10 +1568,20 @@ const QueryBuilder = ({
         <>
             <DateRangeFilter
                 onChangeValue={(val) => {
-                    setTimeRangeRule({
-                        ...timeRangeRule,
-                        ...{ val: val as MultiselectOption },
-                    });
+                    const index = findTimeRangeRuleIndex(rules);
+                    if (index === -1) {
+                        addRule({
+                            field: {
+                                kind: 'single',
+                                label: 'created_at',
+                                value: 'custom_created_at',
+                            },
+                            op: 'between_date',
+                            val: val as MultiselectOption,
+                        });
+                    } else {
+                        updateRule(index, { val: val as MultiselectOption });
+                    }
                 }}
             />
             <div className={styles.builderContainer}>
