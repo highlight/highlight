@@ -16,7 +16,13 @@ import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import Creatable from 'react-select/creatable';
@@ -681,7 +687,6 @@ const QueryRule = ({
     onRemove,
     readonly,
 }: { rule: RuleProps } & RuleSettings) => {
-    console.log('Rich:' + JSON.stringify(rule));
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -723,8 +728,10 @@ const QueryRule = ({
 };
 
 export const DateRangeFilter = ({
+    rule,
     onChangeValue,
 }: {
+    rule: RuleProps;
     onChangeValue: OnChange;
 }) => {
     return (
@@ -752,16 +759,7 @@ export const DateRangeFilter = ({
                 disabled={true}
             />
             <SelectPopout
-                value={{
-                    kind: 'multi',
-                    options: [
-                        {
-                            label: 'May 1 to May 5',
-                            value:
-                                '2022-05-02T01:11:19.000Z_2022-05-06T01:11:19.000Z',
-                        },
-                    ],
-                }}
+                value={rule.val}
                 onChange={onChangeValue}
                 loadOptions={() => Promise.resolve([])}
                 type={'date_range'}
@@ -1003,9 +1001,6 @@ const deserializeRules = (ruleGroups: any): RuleProps[] => {
 
     return rules;
 };
-
-const findTimeRangeRuleIndex = (rules: RuleProps[]) =>
-    rules.findIndex((rule) => rule.field?.value === 'custom_created_at');
 
 const isComplete = (rule: RuleProps) =>
     rule.field !== undefined &&
@@ -1338,7 +1333,6 @@ const QueryBuilder = ({
     });
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
-
     // const [timeRangeRule, setTimeRangeRule] = useState<RuleProps>({
     //     field: {
     //         kind: 'single',
@@ -1356,7 +1350,44 @@ const QueryBuilder = ({
     //         ],
     //     },
     // });
+    const defaultTimeRangeRule: RuleProps = {
+        field: {
+            kind: 'single',
+            label: 'created_at',
+            value: 'custom_created_at',
+        },
+        op: 'between_date',
+        val: {
+            kind: 'multi',
+            options: [
+                {
+                    label: 'May 6 to May 6',
+                    value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
+                },
+            ],
+        },
+    };
     const [rules, setRulesImpl] = useState<RuleProps[]>([]);
+    console.log('Rich', JSON.stringify(rules));
+    const timeRangeRule = useMemo<RuleProps | undefined>(
+        () => rules.find((rule) => rule.field?.value === 'custom_created_at'),
+        [rules]
+    );
+    const filterRules = useMemo<RuleProps[]>(
+        () => rules.filter((rule) => rule.field?.value !== 'custom_created_at'),
+        [rules]
+    );
+    const updateTimeRangeRule = (val: OnChangeInput) => {
+        const index = rules.findIndex(
+            (rule) => rule.field?.value === 'custom_created_at'
+        );
+        if (index === -1) {
+            addRule({ ...defaultTimeRangeRule, val: val as MultiselectOption });
+        } else {
+            updateRule(index, { val: val as MultiselectOption });
+        }
+    };
+
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
     };
@@ -1567,27 +1598,13 @@ const QueryBuilder = ({
     return (
         <>
             <DateRangeFilter
-                onChangeValue={(val) => {
-                    const index = findTimeRangeRuleIndex(rules);
-                    if (index === -1) {
-                        addRule({
-                            field: {
-                                kind: 'single',
-                                label: 'created_at',
-                                value: 'custom_created_at',
-                            },
-                            op: 'between_date',
-                            val: val as MultiselectOption,
-                        });
-                    } else {
-                        updateRule(index, { val: val as MultiselectOption });
-                    }
-                }}
+                rule={timeRangeRule || defaultTimeRangeRule}
+                onChangeValue={updateTimeRangeRule}
             />
             <div className={styles.builderContainer}>
-                {rules.length > 0 && (
+                {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>
-                        {rules.flatMap((rule, index) => [
+                        {filterRules.flatMap((rule, index) => [
                             ...(index != 0
                                 ? [
                                       <Button
