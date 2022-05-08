@@ -120,7 +120,7 @@ export const Account = () => {
 
 export const Accounts = () => {
     const history = useHistory();
-    const [accountData, setAccountData] = useLocalStorage(
+    const [accountDataLocal, setAccountDataLocal] = useLocalStorage(
         'accountData',
         JSON.stringify([])
     );
@@ -129,15 +129,16 @@ export const Accounts = () => {
         { data: accountQueryData, loading },
     ] = useGetAccountsLazyQuery({
         onCompleted: (data) => {
-            setAccountData(JSON.stringify(data?.accounts));
+            setAccountDataLocal(JSON.stringify(data?.accounts));
         },
     });
 
     useEffect(() => {
-        if (!accountData && !loading) {
+        console.log(JSON.parse(accountDataLocal));
+        if (!accountDataLocal && !loading) {
             getAccountsQuery();
         }
-    }, [getAccountsQuery, accountData, loading]);
+    }, [getAccountsQuery, accountDataLocal, loading]);
 
     return (
         <div style={{ padding: 50 }}>
@@ -284,25 +285,28 @@ export const Accounts = () => {
                                 (a.member_limit ?? 0) - (b.member_limit ?? 0),
                         },
                     ]}
-                    dataSource={accountQueryData?.accounts?.map((a, i) => {
-                        return {
-                            key: i,
-                            email: a?.email,
-                            id: a?.id,
-                            member_count: a?.member_count,
-                            member_limit: a?.member_limit,
-                            name: a?.name,
-                            plan_tier: a?.plan_tier,
-                            paid_prev: a?.paid_prev,
-                            paid_prev_prev: a?.paid_prev_prev,
-                            session_count_cur: a?.session_count_cur,
-                            session_count_prev: a?.session_count_prev,
-                            session_count_prev_prev: a?.session_count_prev_prev,
-                            session_limit: a?.session_limit,
-                            stripe_customer_id: a?.stripe_customer_id,
-                            subscription_start: a?.subscription_start,
-                        };
-                    })}
+                    dataSource={JSON.parse(accountDataLocal)?.map(
+                        (a: any, i: any) => {
+                            return {
+                                key: i,
+                                email: a?.email,
+                                id: a?.id,
+                                member_count: a?.member_count,
+                                member_limit: a?.member_limit,
+                                name: a?.name,
+                                plan_tier: a?.plan_tier,
+                                paid_prev: a?.paid_prev,
+                                paid_prev_prev: a?.paid_prev_prev,
+                                session_count_cur: a?.session_count_cur,
+                                session_count_prev: a?.session_count_prev,
+                                session_count_prev_prev:
+                                    a?.session_count_prev_prev,
+                                session_limit: a?.session_limit,
+                                stripe_customer_id: a?.stripe_customer_id,
+                                subscription_start: a?.subscription_start,
+                            };
+                        }
+                    )}
                 />
             )}
         </div>
