@@ -1,4 +1,3 @@
-import Popover from '@components/Popover/Popover';
 import React, { useState } from 'react';
 import {
     Bar,
@@ -6,7 +5,6 @@ import {
     ReferenceArea,
     ResponsiveContainer,
     Tooltip,
-    XAxis,
 } from 'recharts';
 
 import styles from './Histogram.module.scss';
@@ -20,7 +18,7 @@ interface Series {
 interface Props {
     startTime: number;
     endTime: number;
-    bucketStartTimes: number[];
+    bucketTimes: number[];
     onAreaChanged: (left: number, right: number) => void;
     seriesList: Series[];
     timeFormatter: (value: number) => string;
@@ -31,7 +29,7 @@ const Histogram = ({
     startTime,
     onAreaChanged,
     seriesList,
-    bucketStartTimes,
+    bucketTimes,
     timeFormatter,
     tooltipContent,
 }: Props) => {
@@ -44,6 +42,9 @@ const Histogram = ({
         dragRight = Math.max(dragStart, dragEnd);
     }
 
+    const bucketStartTimes = bucketTimes.slice(0, -1);
+    const bucketEndTimes = bucketTimes.slice(1);
+
     // assert all series have the same length
     const seriesLength = bucketStartTimes.length;
     if (!seriesList.every((s) => s.counts.length === seriesLength)) {
@@ -53,7 +54,7 @@ const Histogram = ({
     const chartData: {
         [key: string]: string | number;
     }[] = [];
-    for (let i = 0; i < bucketStartTimes.length; i++) {
+    for (const {} of bucketStartTimes) {
         chartData.push({});
     }
 
@@ -62,8 +63,6 @@ const Histogram = ({
             chartData[i][s.label] = s.counts[i];
         }
     }
-
-    console.log('chartData', chartData);
 
     return (
         <div className={styles.container}>
@@ -83,7 +82,6 @@ const Histogram = ({
                                 if (!e) {
                                     return;
                                 }
-                                console.log('onMouseDown', e);
                                 setDragStart(e.activeLabel);
                                 setDragEnd(e.activeLabel);
                             }}
@@ -92,61 +90,82 @@ const Histogram = ({
                                     return;
                                 }
                                 if (dragStart !== undefined) {
-                                    console.log('onMouseMove', e);
                                     setDragEnd(e.activeLabel);
                                 }
                             }}
                             onMouseUp={() => {
-                                console.log('onMouseUp');
                                 if (
                                     dragLeft !== undefined &&
                                     dragRight !== undefined
                                 ) {
                                     onAreaChanged(dragLeft, dragRight);
-                                    console.log(
-                                        'onMouseUp area changed',
-                                        dragLeft,
-                                        dragRight
-                                    );
                                 }
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
                             }}
                             onMouseLeave={() => {
-                                console.log('onMouseLeave');
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
                             }}
                         >
-                            <XAxis
-                                style={{
-                                    userSelect: 'none',
-                                }}
-                                tickFormatter={(value, index) => {
-                                    const t = bucketStartTimes[index];
-                                    return timeFormatter(t);
-                                }}
-                                height={15}
-                            />
                             <Tooltip
                                 content={(val) => {
-                                    return (
-                                        <Popover placement="top">
+                                    if (
+                                        dragLeft !== undefined &&
+                                        dragRight !== undefined
+                                    ) {
+                                        const leftTime = timeFormatter(
+                                            bucketStartTimes[dragLeft]
+                                        );
+                                        const rightTime = timeFormatter(
+                                            bucketEndTimes[dragRight]
+                                        );
+                                        return (
                                             <div
                                                 className={
                                                     styles.tooltipPopover
                                                 }
                                             >
+                                                <div
+                                                    className={
+                                                        styles.popoverContent
+                                                    }
+                                                >
+                                                    <div
+                                                        className={styles.title}
+                                                    >
+                                                        {leftTime} to{' '}
+                                                        {rightTime}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        const leftTime = timeFormatter(
+                                            bucketStartTimes[val.label]
+                                        );
+                                        const rightTime = timeFormatter(
+                                            bucketEndTimes[val.label]
+                                        );
+                                        return (
+                                            <div
+                                                className={
+                                                    styles.tooltipPopover
+                                                }
+                                            >
+                                                <div className={styles.title}>
+                                                    {leftTime} to {rightTime}
+                                                </div>
                                                 {tooltipContent(val.label)}
                                             </div>
-                                        </Popover>
-                                    );
+                                        );
+                                    }
                                 }}
                                 wrapperStyle={{
                                     zIndex: 9999999999,
-                                    top: -200,
-                                    height: 300,
-                                    left: 10,
+                                    // top: -200,
+                                    // height: 300,
+                                    // left: 10,
                                     overflow: 'auto',
                                 }}
                             />

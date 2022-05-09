@@ -1,18 +1,29 @@
+import GoToButton from '@components/Button/GoToButton';
+import SessionComment from '@components/Comment/SessionComment/SessionComment';
 import Histogram from '@components/Histogram/Histogram';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import {
+    ParsedErrorObject,
     ParsedHighlightEvent,
+    ParsedSessionComment,
     ParsedSessionInterval,
+    useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import {
     getEventRenderDetails,
     getPlayerEventIcon,
 } from '@pages/Player/StreamElement/StreamElement';
 import StreamElementPayload from '@pages/Player/StreamElement/StreamElementPayload';
+import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
-import React from 'react';
+import { useParams } from '@util/react-router/useParams';
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
+import { MillisToMinutesAndSeconds } from '@util/time';
+import React, { useEffect } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
 import { TimelineAnnotationColors } from '../../Toolbar';
@@ -31,6 +42,21 @@ const TimelineIndicatorsBarGraph = React.memo(
             zoomAreaRight,
             setZoomAreaRight,
         } = useToolbarItemsContext();
+        const {
+            showPlayerAbsoluteTime,
+            setShowDevTools,
+            setSelectedDevToolsTab,
+        } = usePlayerConfiguration();
+        const { sessionMetadata } = useReplayerContext();
+        const { setErrorPanel } = useResourceOrErrorDetailPanel();
+        const { session_secure_id } = useParams<{
+            session_secure_id: string;
+        }>();
+
+        useEffect(() => {
+            setZoomAreaLeft(0);
+            setZoomAreaRight(100);
+        }, [session_secure_id, setZoomAreaLeft, setZoomAreaRight]);
 
         if (sessionIntervals.length === 0) {
             return null;
@@ -160,73 +186,133 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         }
 
-        console.log('zoomArea', zoomAreaLeft, zoomAreaRight);
-        const scale = (zoomAreaRight ?? 1) - (zoomAreaLeft ?? 0);
-        const bucketStartTimes = [];
-        for (
-            let p = zoomAreaLeft ?? 0;
-            p < (zoomAreaRight ?? 1);
-            p += percentPerBar * scale
-        ) {
-            bucketStartTimes.push(getTimeFromPercent(p) ?? 0);
+        const scale = (zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0);
+        const bucketTimes = [];
+        for (let i = 0; i <= numberOfBars; i++) {
+            const p = i * percentPerBar * scale + (zoomAreaLeft ?? 0);
+            bucketTimes.push(getTimeFromPercent(p) ?? 0);
         }
 
+        const displayEvent = (e: ParsedHighlightEvent) => {
+            const details = getEventRenderDetails(e);
+            const Icon = getPlayerEventIcon(
+                details.title || '',
+                details.payload
+            );
+            return (
+                <>
+                    <span className={timelineAnnotationStyles.title}>
+                        <span
+                            className={timelineAnnotationStyles.iconContainer}
+                            style={{
+                                background: `var(${
+                                    // @ts-ignore
+                                    TimelineAnnotationColors[details.title]
+                                })`,
+                            }}
+                        >
+                            {Icon}
+                        </span>
+                        {getTimelineEventDisplayName(details.title || '')}
+                    </span>
+                    <div key={e.timestamp} className={styles.popoverContent}>
+                        <StreamElementPayload
+                            payload={
+                                typeof details.payload === 'object'
+                                    ? JSON.stringify(details.payload)
+                                    : typeof details.payload === 'boolean' &&
+                                      details.title?.includes('Tab')
+                                    ? details.payload
+                                        ? 'The user switched away from this tab.'
+                                        : 'The user is currently active on this tab.'
+                                    : details.payload
+                            }
+                        />
+                    </div>
+                </>
+            );
+        };
+
+        const displayError = (e: ParsedErrorObject) => {
+            return (
+                <div className={styles.popoverContent}>
+                    {e.source}
+                    <div className={styles.buttonContainer}>
+                        <GoToButton
+                            onClick={() => {
+                                setShowDevTools(true);
+                                setSelectedDevToolsTab(DevToolTabType.Errors);
+                                setErrorPanel(e);
+                            }}
+                            label="More info"
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        const displayComment = (c: ParsedSessionComment) => {
+            return (
+                <div className={styles.popoverContent}>
+                    <SessionComment comment={c} />
+                </div>
+            );
+        };
+
+        const displayAggregate = (count: number, eventType: string) => {
+            const Icon = getPlayerEventIcon(eventType);
+            return (
+                <>
+                    <div className={timelineAnnotationStyles.title}>
+                        <span
+                            className={timelineAnnotationStyles.iconContainer}
+                            style={{
+                                background: `var(${
+                                    // @ts-ignore
+                                    TimelineAnnotationColors[eventType]
+                                })`,
+                            }}
+                        >
+                            {Icon}
+                        </span>
+                        {getTimelineEventDisplayName(eventType || '')} x {count}
+                    </div>
+                </>
+            );
+        };
+
         const tooltipContent = (bucketIndex: number | undefined) => {
-            console.log('bucketIndex', bucketIndex);
             if (bucketIndex === undefined) {
                 return;
             }
-            const events: ParsedHighlightEvent[] =
-                chartData[bucketIndex].events;
-            return events.map((e) => {
-                const details = getEventRenderDetails(e);
-                const Icon = getPlayerEventIcon(
-                    details.title || '',
-                    details.payload
-                );
-                console.log('details', details);
-                return (
-                    <>
-                        <span className={timelineAnnotationStyles.title}>
-                            <span
-                                className={
-                                    timelineAnnotationStyles.iconContainer
-                                }
-                                style={{
-                                    background: `var(${
-                                        // @ts-ignore
-                                        TimelineAnnotationColors[details.title]
-                                    })`,
-                                }}
-                            >
-                                {Icon}
-                            </span>
-                            {getTimelineEventDisplayName(details.title || '')}
-                        </span>
-                        <div
-                            key={e.timestamp}
-                            className={styles.popoverContent}
-                        >
-                            <StreamElementPayload
-                                payload={
-                                    typeof details.payload === 'object'
-                                        ? JSON.stringify(details.payload)
-                                        : typeof details.payload ===
-                                              'boolean' &&
-                                          details.title?.includes('Tab')
-                                        ? details.payload
-                                            ? 'The user switched away from this tab.'
-                                            : 'The user is currently active on this tab.'
-                                        : details.payload
-                                }
-                            />
-                        </div>
-                    </>
-                );
-            });
+            const bucket = chartData[bucketIndex];
+            const labels = [];
+            for (const e of EventsForTimeline) {
+                const count = bucket[e];
+                if (count > 0) {
+                    if (count > 2) {
+                        labels.push(displayAggregate(count, e));
+                    } else {
+                        if (e === 'Errors') {
+                            labels.push(bucket.errors.map(displayError));
+                        } else if (e === 'Comments') {
+                            labels.push(bucket.comments.map(displayComment));
+                        } else {
+                            labels.push(bucket.events.map(displayEvent));
+                        }
+                    }
+                }
+            }
+            return labels;
         };
 
-        console.log('bucketStartTimes', bucketStartTimes);
+        const timeFormatter = (t: number) =>
+            showPlayerAbsoluteTime
+                ? playerTimeToSessionAbsoluteTime({
+                      sessionStartTime: sessionMetadata.startTime,
+                      relativeTime: t,
+                  }).toString()
+                : MillisToMinutesAndSeconds(t);
 
         return (
             <Histogram
@@ -246,8 +332,8 @@ const TimelineIndicatorsBarGraph = React.memo(
                     );
                 }}
                 seriesList={series}
-                timeFormatter={(t) => `${t.toFixed(2)}s`}
-                bucketStartTimes={bucketStartTimes}
+                timeFormatter={timeFormatter}
+                bucketTimes={bucketTimes}
                 tooltipContent={tooltipContent}
             />
         );
@@ -283,7 +369,7 @@ const getEventsInTimeBucket = (
     const data: { [key: string]: any } = {};
 
     for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = { events: [] };
+        data[i.toString()] = { events: [], errors: [], comments: [] };
     }
 
     interval.sessionEvents.forEach((event) => {
@@ -296,7 +382,7 @@ const getEventsInTimeBucket = (
 
             const bucketKey = getBucketKey(event, numberOfBuckets);
 
-            if (!(event.type in data[bucketKey])) {
+            if (!(eventType in data[bucketKey])) {
                 data[bucketKey][eventType] = 1;
             } else {
                 data[bucketKey][eventType]++;
@@ -313,11 +399,29 @@ const getEventsInTimeBucket = (
 
             const bucketKey = getBucketKey(error, numberOfBuckets);
 
-            if (!(error.type in data[bucketKey])) {
+            if (!('Errors' in data[bucketKey])) {
                 data[bucketKey]['Errors'] = 1;
             } else {
                 data[bucketKey]['Errors']++;
             }
+            data[bucketKey].errors.push(error);
+        });
+    }
+
+    if (selectedTimelineAnnotationTypes.includes('Comments')) {
+        interval.comments.forEach((comment) => {
+            if (comment.relativeIntervalPercentage === undefined) {
+                return;
+            }
+
+            const bucketKey = getBucketKey(comment, numberOfBuckets);
+
+            if (!('Comments' in data[bucketKey])) {
+                data[bucketKey]['Comments'] = 1;
+            } else {
+                data[bucketKey]['Comments']++;
+            }
+            data[bucketKey].comments.push(comment);
         });
     }
 

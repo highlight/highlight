@@ -255,7 +255,7 @@ export const Toolbar = React.memo(() => {
                     <div className={styles.playerRail}>
                         {toolbarItems.zoomAreaLeft !== undefined &&
                         toolbarItems.zoomAreaRight !== undefined ? (
-                            <div
+                            <button
                                 className={styles.zoomArea}
                                 style={{
                                     left: `${toolbarItems.zoomAreaLeft}%`,
@@ -264,7 +264,11 @@ export const Toolbar = React.memo(() => {
                                         toolbarItems.zoomAreaLeft
                                     }%`,
                                 }}
-                            ></div>
+                                onClick={() => {
+                                    toolbarItems.setZoomAreaLeft(undefined);
+                                    toolbarItems.setZoomAreaRight(undefined);
+                                }}
+                            ></button>
                         ) : null}
                         <div
                             className={styles.sliderRail}

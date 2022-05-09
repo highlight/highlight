@@ -10,6 +10,7 @@
     padding: var(--size-xSmall) 0;
     position: relative;
     width: 100%;
+    z-index: 999999;
 
     .graphContainer {
         margin: 0 auto;
@@ -26,7 +27,40 @@
 
 .tooltipPopover {
     background-color: var(--color-primary-background);
-    z-index: 999999999;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    color: var(--text-primary) !important;
+    padding: var(--size-small) 0 !important;
+
+    > * {
+        padding-left: var(--size-medium) !important;
+        padding-right: var(--size-medium) !important;
+    }
+
+    > h4 {
+        border-bottom: 1px solid var(--color-gray-300);
+        font-family: var(--header-font-family);
+        font-size: 13px !important;
+        margin-bottom: var(--size-small) !important;
+        padding-bottom: var(--size-xSmall);
+    }
+
+    > p {
+        color: var(--color-gray-500) !important;
+        font-size: 14px !important;
+        margin: 0 !important;
+    }
+}
+
+.popoverContent {
+    max-height: 300px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    padding-bottom: var(--size-xSmall);
+    text-overflow: ellipsis;
+    width: 240px;
 }
 
 @keyframes enter {
@@ -37,4 +71,13 @@
     100% {
         transform: translateY(0);
     }
+}
+
+.title {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+    font-weight: 700;
+    justify-content: center;
+    margin-bottom: var(--size-small);
 }
