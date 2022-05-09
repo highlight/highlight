@@ -120,28 +120,25 @@ export const Account = () => {
 
 export const Accounts = () => {
     const history = useHistory();
-    const [accountDataLocal, setAccountDataLocal] = useLocalStorage(
-        'accountData',
-        JSON.stringify([])
-    );
-    const [
-        getAccountsQuery,
-        { data: accountQueryData, loading },
-    ] = useGetAccountsLazyQuery({
+    const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
+        { [key: string]: any }[]
+    >('accountData', []);
+    const [getAccountsQuery, { loading }] = useGetAccountsLazyQuery({
         onCompleted: (data) => {
-            setAccountDataLocal(JSON.stringify(data?.accounts));
+            const accounts: any[] | undefined =
+                data?.accounts?.map((e) => e as any) ?? [];
+            setAccountDataLocal(accounts);
         },
     });
-
-    useEffect(() => {
-        console.log(JSON.parse(accountDataLocal));
-        if (!accountDataLocal && !loading) {
-            getAccountsQuery();
-        }
-    }, [getAccountsQuery, accountDataLocal, loading]);
-
     return (
         <div style={{ padding: 50 }}>
+            <button
+                onClick={() => {
+                    getAccountsQuery();
+                }}
+            >
+                refetch
+            </button>
             {loading ? (
                 'loading...'
             ) : (
@@ -285,8 +282,8 @@ export const Accounts = () => {
                                 (a.member_limit ?? 0) - (b.member_limit ?? 0),
                         },
                     ]}
-                    dataSource={JSON.parse(accountDataLocal)?.map(
-                        (a: any, i: any) => {
+                    dataSource={
+                        accountDataLocal.map((a: any, i: any) => {
                             return {
                                 key: i,
                                 email: a?.email,
@@ -305,8 +302,8 @@ export const Accounts = () => {
                                 stripe_customer_id: a?.stripe_customer_id,
                                 subscription_start: a?.subscription_start,
                             };
-                        }
-                    )}
+                        }) ?? undefined
+                    }
                 />
             )}
         </div>
