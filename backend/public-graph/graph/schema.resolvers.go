@@ -6,8 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +13,7 @@ import (
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
@@ -23,6 +22,7 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -115,7 +115,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, err
 }
 
-func (r *mutationResolver) PushPayload(_ context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
@@ -131,7 +131,7 @@ func (r *mutationResolver) PushPayload(_ context.Context, sessionID int, events 
 	return size.Of(events), err
 }
 
-func (r *mutationResolver) PushBackendPayload(_ context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
 	// Get a list of unique session ids to query
 	sessionSecureIdSet := make(map[string]bool)
 	for _, errInput := range errors {
@@ -153,7 +153,7 @@ func (r *mutationResolver) PushBackendPayload(_ context.Context, errors []*custo
 	return nil, err
 }
 
-func (r *mutationResolver) MarkBackendSetup(_ context.Context, sessionSecureID string) (int, error) {
+func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).First(&session).Error; err != nil {
 		return -1, e.Wrapf(err, "error reading from sessionSecureId")
@@ -170,7 +170,7 @@ func (r *mutationResolver) MarkBackendSetup(_ context.Context, sessionSecureID s
 	return session.ProjectID, nil
 }
 
-func (r *mutationResolver) AddSessionFeedback(_ context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
+func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
 	metadata := make(map[string]interface{})
 
 	if userName != nil {
@@ -278,7 +278,7 @@ func (r *mutationResolver) AddSessionFeedback(_ context.Context, sessionID int, 
 	return feedbackComment.ID, nil
 }
 
-func (r *mutationResolver) AddWebVitals(_ context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
 	if sessionID == 0 {
 		log.Errorf("received web vitals %+v for sessionID 0", metric)
 		return -1, nil
@@ -333,7 +333,7 @@ func (r *mutationResolver) AddWebVitals(_ context.Context, sessionID int, metric
 	return sessionID, nil
 }
 
-func (r *mutationResolver) AddDeviceMetric(_ context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
+func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		log.Error(err)
@@ -383,7 +383,7 @@ func (r *mutationResolver) AddDeviceMetric(_ context.Context, sessionID int, met
 	return sessionID, nil
 }
 
-func (r *queryResolver) Ignore(_ context.Context, _ int) (interface{}, error) {
+func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }
 
