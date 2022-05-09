@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io"
 	"math"
 	"math/rand"
@@ -14,8 +15,6 @@ import (
 	"sort"
 	"strconv"
 	"time"
-
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
 
@@ -58,7 +57,7 @@ type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
 	S3Client       *storage.StorageClient
-	KafkaQueue     *kafka_queue.Queue
+	KafkaQueue     *kafkaqueue.Queue
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -263,10 +262,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
+func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 	ctx := context.Background()
 	switch task.Type {
-	case kafka_queue.PushPayload:
+	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
 			break
 		}
@@ -280,6 +279,45 @@ func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs)
+	case kafkaqueue.InitializeSession:
+		if task.InitializeSession == nil {
+			break
+		}
+		_, err := w.PublicResolver.InitializeSessionImplementation(
+			task.InitializeSession.SessionID,
+			task.InitializeSession.IP)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
+		}
+	case kafkaqueue.IdentifySession:
+		if task.IdentifySession == nil {
+			break
+		}
+		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
+		}
+	case kafkaqueue.AddTrackProperties:
+		if task.AddTrackProperties == nil {
+			break
+		}
+		err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+		}
+	case kafkaqueue.AddSessionProperties:
+		if task.AddSessionProperties == nil {
+			break
+		}
+		err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+		}
+	case kafkaqueue.PushBackendPayload:
+		if task.PushBackendPayload == nil {
+			break
+		}
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureIDs, task.PushBackendPayload.Errors)
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
@@ -287,7 +325,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafka_queue.Message) {
 
 func (w *Worker) PublicWorker() {
 	if w.KafkaQueue == nil {
-		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Consumer)
+		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
 	}
 
 	wp := workerpool.New(1)
@@ -329,7 +367,7 @@ func (w *Worker) DeleteCompletedSessions() {
 	}
 }
 
-func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
+func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
 	s.Excluded = &model.T
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
@@ -347,7 +385,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	return nil
 }
 
-func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
+func (w *Worker) isSessionUserExcluded(_ context.Context, s *model.Session) bool {
 	var project model.Project
 	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
