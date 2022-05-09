@@ -49,6 +49,10 @@ func NewLambdaClient() (*Client, error) {
 }
 
 func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) (*http.Response, error) {
+	projectID = 762
+	sessionID = 34182755
+	ts = 1000
+	chunk = 75
 	log.Infof("requesting session screenshot for project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk)
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://zbty37wu02.execute-api.us-east-2.amazonaws.com/default/session-screenshots?project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk), nil)
 	req = req.WithContext(ctx)

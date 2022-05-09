@@ -1009,10 +1009,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
-			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
 		}
 	})
 
@@ -1111,7 +1111,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	var sessionComment model.SessionComment
-	if err := r.DB.Preload("Followers").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1149,13 +1149,17 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 	if len(sessionComment.Followers) > 0 && !isGuest {
-		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		var threadIDs []int
+		for _, thread := range sessionComment.Threads {
+			threadIDs = append(threadIDs, thread.ID)
+		}
+		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
@@ -1223,10 +1227,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1361,13 +1365,17 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
-		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+		var threadIDs []int
+		for _, thread := range errorComment.Threads {
+			threadIDs = append(threadIDs, thread.ID)
+		}
+		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, nil, "replied to", "error")
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, errorComment.Followers)

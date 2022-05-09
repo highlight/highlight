@@ -142,6 +142,7 @@ var Models = []interface{}{
 	&ErrorComment{},
 	&CommentReply{},
 	&CommentFollower{},
+	&CommentSlackThread{},
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
@@ -828,6 +829,7 @@ type SessionComment struct {
 	Attachments     []*ExternalAttachment `gorm:"foreignKey:SessionCommentID"`
 	Replies         []*CommentReply       `gorm:"foreignKey:SessionCommentID"`
 	Followers       []*CommentFollower    `gorm:"foreignKey:SessionCommentID"`
+	Threads         []*CommentSlackThread `gorm:"foreignKey:SessionCommentID"`
 }
 
 type ErrorComment struct {
@@ -842,6 +844,7 @@ type ErrorComment struct {
 	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
 	Replies        []*CommentReply       `gorm:"foreignKey:ErrorCommentID"`
 	Followers      []*CommentFollower    `gorm:"foreignKey:ErrorCommentID"`
+	Threads        []*CommentSlackThread `gorm:"foreignKey:ErrorCommentID"`
 }
 
 type CommentReply struct {
@@ -862,6 +865,15 @@ type CommentFollower struct {
 	AdminId          int
 	SlackChannelName string
 	SlackChannelID   string
+}
+
+type CommentSlackThread struct {
+	Model
+	SessionCommentID int `gorm:"index"`
+	ErrorCommentID   int `gorm:"index"`
+
+	SlackChannelID string
+	ThreadTS       string
 }
 
 type SessionInterval struct {
