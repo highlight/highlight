@@ -293,7 +293,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.IdentifySession == nil {
 			break
 		}
-		err := w.PublicResolver.IdentifySession(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
+		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 		}
@@ -301,7 +301,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.AddTrackProperties == nil {
 			break
 		}
-		err := w.PublicResolver.AddTrackProperties(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
+		err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
 		}
@@ -309,7 +309,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.AddSessionProperties == nil {
 			break
 		}
-		err := w.PublicResolver.AddSessionProperties(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
+		err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
 		}
@@ -317,7 +317,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayload(ctx, task.PushBackendPayload.SessionSecureIDs, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureIDs, task.PushBackendPayload.Errors)
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}

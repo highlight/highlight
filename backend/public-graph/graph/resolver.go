@@ -1072,7 +1072,7 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	return session, nil
 }
 
-func (r *Resolver) IdentifySession(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
+func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1199,7 +1199,7 @@ func (r *Resolver) IdentifySession(_ context.Context, sessionID int, userIdentif
 	return nil
 }
 
-func (r *Resolver) AddTrackProperties(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddTrackPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1218,7 +1218,7 @@ func (r *Resolver) AddTrackProperties(_ context.Context, sessionID int, properti
 	return nil
 }
 
-func (r *Resolver) AddSessionProperties(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddSessionPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1400,7 +1400,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 	})
 }
 
-func (r *Resolver) ProcessBackendPayload(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
@@ -1880,4 +1880,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return
 		}
 	}
+}
+
+func (r *Resolver) isHighlightSession(sessionID int) bool {
+	session := &model.Session{}
+	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		log.Error(e.Wrap(err, "error querying session by sessionID for highlight check"))
+		return false
+	}
+	return session.ProjectID == 1
 }
