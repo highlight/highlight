@@ -1,4 +1,21 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { datadogLogs } from '@datadog/browser-logs';
+import {
+    OnSessionPayloadAppendedDocument,
+    useGetEventChunksQuery,
+    useGetEventChunkUrlQuery,
+    useGetSessionIntervalsQuery,
+    useGetSessionPayloadLazyQuery,
+    useGetSessionQuery,
+    useGetTimelineIndicatorEventsQuery,
+    useMarkSessionAsViewedMutation,
+} from '@graph/hooks';
+import {
+    ErrorObject,
+    Session,
+    SessionComment,
+    SessionResults,
+} from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     customEvent,
@@ -21,23 +38,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../../authentication/AuthContext';
-import {
-    OnSessionPayloadAppendedDocument,
-    useGetEventChunksQuery,
-    useGetEventChunkUrlQuery,
-    useGetSessionIntervalsQuery,
-    useGetSessionPayloadLazyQuery,
-    useGetSessionQuery,
-    useGetTimelineIndicatorEventsQuery,
-    useMarkSessionAsViewedMutation,
-} from '../../../graph/generated/hooks';
-import {
-    ErrorObject,
-    Session,
-    SessionComment,
-    SessionResults,
-} from '../../../graph/generated/schemas';
 import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
@@ -572,6 +572,27 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     }, [setShowLeftPanel, setShowRightPanel]);
 
+    const loadiFrameResources = (r: Replayer) => {
+        // Inject the Material font icons into the player if it's a Boardgent session.
+        // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
+        if (project_id === '669' && r.iframe.contentDocument) {
+            const cssLink = document.createElement('link');
+            cssLink.href =
+                'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
+            cssLink.rel = 'stylesheet';
+            cssLink.type = 'text/css';
+            r.iframe.contentDocument.head.appendChild(cssLink);
+        }
+        // Inject FontAwesome for Gelt Finance sessions.
+        // Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
+        if (project_id === '896' && r.iframe.contentDocument) {
+            const scriptLink = document.createElement('script');
+            scriptLink.src = 'https://kit.fontawesome.com/2fb433086f.js';
+            scriptLink.crossOrigin = 'anonymous';
+            r.iframe.contentDocument.head.appendChild(scriptLink);
+        }
+    };
+
     const initReplayer = (newEvents: HighlightEvent[]) => {
         setState(ReplayerState.Loading);
         // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
@@ -618,6 +639,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         r.on('start', () => {
             const newTs = r.getCurrentTime() + r.getMetaData().startTime;
             setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs));
+            loadiFrameResources(r);
         });
         setReplayer(r);
         if (isLiveMode) {
@@ -765,17 +787,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 sessionMetadata,
                 parsedSessionIntervalsData
             );
-
-            // Inject the Material font icons into the player if it's a Boardgent session.
-            // Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
-            if (project_id === '669' && replayer.iframe.contentDocument) {
-                const cssLink = document.createElement('link');
-                cssLink.href =
-                    'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css';
-                cssLink.rel = 'stylesheet';
-                cssLink.type = 'text/css';
-                replayer.iframe.contentDocument.head.appendChild(cssLink);
-            }
 
             const parsedTimelineIndicatorEvents =
                 timelineIndicatorEventsData &&

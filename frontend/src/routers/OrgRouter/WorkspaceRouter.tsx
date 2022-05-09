@@ -1,3 +1,4 @@
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import {
     AppLoadingState,
     useAppLoadingContext,
@@ -97,18 +98,31 @@ export const WorkspaceRouter = () => {
                         commonStyles.sidebarHidden
                     )}
                 >
-                    <Switch>
-                        <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|billing)">
-                            <WorkspaceTabs />
-                        </Route>
-                        <Route path="/w/:workspace_id(\d+)">
-                            {isLoggedIn ? (
-                                <WorkspaceRedirectionRouter />
-                            ) : (
-                                <LoginForm />
-                            )}
-                        </Route>
-                    </Switch>
+                    {isLoggedIn && data?.workspace === null ? (
+                        <ErrorState
+                            message={`
+                        Seems like you don’t have access to this page 😢. If you're
+                        part of a team, ask your project admin to send you an
+                        invite. Otherwise, feel free to make an account!
+                        `}
+                            shownWithHeader
+                        />
+                    ) : (
+                        <>
+                            <Switch>
+                                <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|billing)">
+                                    <WorkspaceTabs />
+                                </Route>
+                                <Route path="/w/:workspace_id(\d+)">
+                                    {isLoggedIn ? (
+                                        <WorkspaceRedirectionRouter />
+                                    ) : (
+                                        <LoginForm />
+                                    )}
+                                </Route>
+                            </Switch>
+                        </>
+                    )}
                 </div>
             </ApplicationContextProvider>
         </GlobalContextProvider>

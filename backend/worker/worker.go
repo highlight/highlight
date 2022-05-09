@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io"
 	"math"
 	"math/rand"
@@ -15,6 +14,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
 
@@ -289,7 +290,7 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Consumer)
 	}
 
-	wp := workerpool.New(80)
+	wp := workerpool.New(1)
 	wp.SetPanicHandler(util.Recover)
 
 	// receive messages and submit them to worker pool for processing
@@ -399,6 +400,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		WHERE session_id = ?
 	`, s.ID).Error; err != nil {
 		return errors.Wrap(err, "failed to delete existing event chunks")
+	}
+
+	// Delete any timeline indicator events which were previously written for this session
+	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+		Delete(&model.TimelineIndicatorEvent{}).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
+	}
+
+	// Delete any rage click events which were previously written for this session
+	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+		Delete(&model.RageClickEvent{}).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
 	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {

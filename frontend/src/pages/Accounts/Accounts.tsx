@@ -3,6 +3,7 @@ import {
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { USD } from '@dinero.js/currencies';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { Table } from 'antd';
 import { dinero, down, toUnit } from 'dinero.js';
@@ -22,7 +23,7 @@ import {
 
 import {
     useGetAccountDetailsQuery,
-    useGetAccountsQuery,
+    useGetAccountsLazyQuery,
 } from '../../graph/generated/hooks';
 
 export const AccountsPage = () => {
@@ -119,10 +120,25 @@ export const Account = () => {
 
 export const Accounts = () => {
     const history = useHistory();
-    const { data: accountData, loading } = useGetAccountsQuery();
-
+    const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
+        { [key: string]: any }[]
+    >('accountData', []);
+    const [getAccountsQuery, { loading }] = useGetAccountsLazyQuery({
+        onCompleted: (data) => {
+            const accounts: any[] | undefined =
+                data?.accounts?.map((e) => e as any) ?? [];
+            setAccountDataLocal(accounts);
+        },
+    });
     return (
         <div style={{ padding: 50 }}>
+            <button
+                onClick={() => {
+                    getAccountsQuery();
+                }}
+            >
+                refetch
+            </button>
             {loading ? (
                 'loading...'
             ) : (
@@ -266,25 +282,28 @@ export const Accounts = () => {
                                 (a.member_limit ?? 0) - (b.member_limit ?? 0),
                         },
                     ]}
-                    dataSource={accountData?.accounts?.map((a, i) => {
-                        return {
-                            key: i,
-                            email: a?.email,
-                            id: a?.id,
-                            member_count: a?.member_count,
-                            member_limit: a?.member_limit,
-                            name: a?.name,
-                            plan_tier: a?.plan_tier,
-                            paid_prev: a?.paid_prev,
-                            paid_prev_prev: a?.paid_prev_prev,
-                            session_count_cur: a?.session_count_cur,
-                            session_count_prev: a?.session_count_prev,
-                            session_count_prev_prev: a?.session_count_prev_prev,
-                            session_limit: a?.session_limit,
-                            stripe_customer_id: a?.stripe_customer_id,
-                            subscription_start: a?.subscription_start,
-                        };
-                    })}
+                    dataSource={
+                        accountDataLocal.map((a: any, i: any) => {
+                            return {
+                                key: i,
+                                email: a?.email,
+                                id: a?.id,
+                                member_count: a?.member_count,
+                                member_limit: a?.member_limit,
+                                name: a?.name,
+                                plan_tier: a?.plan_tier,
+                                paid_prev: a?.paid_prev,
+                                paid_prev_prev: a?.paid_prev_prev,
+                                session_count_cur: a?.session_count_cur,
+                                session_count_prev: a?.session_count_prev,
+                                session_count_prev_prev:
+                                    a?.session_count_prev_prev,
+                                session_limit: a?.session_limit,
+                                stripe_customer_id: a?.stripe_customer_id,
+                                subscription_start: a?.subscription_start,
+                            };
+                        }) ?? undefined
+                    }
                 />
             )}
         </div>

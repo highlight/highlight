@@ -14,10 +14,7 @@ import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetErrorGroupsOpenSearchQuery,
-    useGetErrorGroupsQuery,
-} from '../../../graph/generated/hooks';
+import { useGetErrorGroupsOpenSearchQuery } from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
@@ -42,11 +39,10 @@ export const ErrorFeedV2 = () => {
     ] = useState(true);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { isQueryBuilder } = useErrorSearchContext();
 
     const {
-        loading: loadingOpenSearch,
-        fetchMore: fetchOpenSearch,
+        loading,
+        fetchMore,
         data: errorDataOpenSearch,
     } = useGetErrorGroupsOpenSearchQuery({
         variables: {
@@ -57,39 +53,14 @@ export const ErrorFeedV2 = () => {
         onCompleted: () => {
             setShowLoadingSkeleton(false);
         },
-        skip: !isQueryBuilder || !searchQuery,
+        skip: !searchQuery,
     });
-
-    const {
-        loading: loadingOriginal,
-        fetchMore: fetchOriginal,
-        data: errorDataOriginal,
-    } = useGetErrorGroupsQuery({
-        variables: {
-            params: searchParams,
-            count: count + 10,
-            project_id,
-        },
-        onCompleted: () => {
-            setShowLoadingSkeleton(false);
-        },
-        skip: isQueryBuilder,
-    });
-
-    const loading = isQueryBuilder ? loadingOpenSearch : loadingOriginal;
-    const fetchMore = isQueryBuilder ? fetchOpenSearch : fetchOriginal;
 
     useEffect(() => {
-        if (errorDataOriginal?.error_groups) {
-            setData(gqlSanitize(errorDataOriginal?.error_groups));
-        }
         if (errorDataOpenSearch?.error_groups_opensearch) {
             setData(gqlSanitize(errorDataOpenSearch?.error_groups_opensearch));
         }
-    }, [
-        errorDataOpenSearch?.error_groups_opensearch,
-        errorDataOriginal?.error_groups,
-    ]);
+    }, [errorDataOpenSearch?.error_groups_opensearch]);
 
     useEffect(() => {
         setShowLoadingSkeleton(true);

@@ -2,6 +2,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import { CardForm, CardFormActionsContainer } from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import Input from '@components/Input/Input';
+import { CircularSpinner } from '@components/Loading/Loading';
 import {
     AppLoadingState,
     useAppLoadingContext,
@@ -11,7 +12,11 @@ import {
     useCreateWorkspaceMutation,
     useGetWorkspaceQuery,
     useGetWorkspacesCountQuery,
+    useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
+import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
+import { client } from '@util/graph';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -21,14 +26,13 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { CircularSpinner } from '../../components/Loading/Loading';
-import { client } from '../../util/graph';
 import styles from './NewProject.module.scss';
 
 const NewProjectPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const [error, setError] = useState<undefined | string>(undefined);
     const [name, setName] = useState<string>('');
+    const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>();
 
     const { data: currentWorkspaceData } = useGetWorkspaceQuery({
         variables: { id: workspace_id },
@@ -45,6 +49,7 @@ const NewProjectPage = () => {
             error: workspaceError,
         },
     ] = useCreateWorkspaceMutation();
+    const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
     const { setLoadingState } = useAppLoadingContext();
 
     useEffect(() => {
@@ -62,29 +67,39 @@ const NewProjectPage = () => {
     // User is creating a workspace if workspace is not specified in the URL
     const isWorkspace = !workspace_id;
 
-    const onSubmit = (e: { preventDefault: () => void }) => {
+    const onSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
         if (isWorkspace) {
-            createWorkspace({
+            const result = await createWorkspace({
                 variables: {
                     name: name,
                 },
-            }).then(() => {
-                client.cache.reset();
-                H.track('CreateWorkspace', { name });
-                setName('');
             });
+            const createdWorkspaceId = result.data?.createWorkspace?.id;
+            H.track('CreateWorkspace', { name });
+            await client.cache.reset();
+            setName('');
+            if (createdWorkspaceId && autoJoinDomains?.length) {
+                await updateAllowedEmailOrigins({
+                    variables: {
+                        allowed_auto_join_email_origins: JSON.stringify(
+                            autoJoinDomains
+                        ),
+                        workspace_id: createdWorkspaceId,
+                    },
+                    refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
+                });
+            }
         } else {
-            createProject({
+            await createProject({
                 variables: {
                     name: name,
                     workspace_id,
                 },
-            }).then(() => {
-                H.track('CreateProject', { name });
-                client.cache.reset();
-                setName('');
             });
+            H.track('CreateProject', { name });
+            await client.cache.reset();
+            setName('');
         }
     };
 
@@ -119,7 +134,7 @@ const NewProjectPage = () => {
                         {`Error with ${pageType} name ` + error}
                     </div>
                 )}
-                <CardForm onSubmit={onSubmit}>
+                <CardForm onSubmit={onSubmit} className={styles.cardForm}>
                     <Input
                         placeholder={
                             isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
@@ -132,6 +147,14 @@ const NewProjectPage = () => {
                         autoComplete="off"
                         autoFocus
                     />
+                    {isWorkspace && (
+                        <AutoJoinForm
+                            newWorkspace
+                            updateOrigins={(domains) => {
+                                setAutoJoinDomains(domains);
+                            }}
+                        />
+                    )}
                     <CardFormActionsContainer>
                         <Button
                             trackingId={`Create${pageTypeCaps}`}
