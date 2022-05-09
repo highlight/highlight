@@ -222,3 +222,13 @@
     right: var(--size-medium);
     top: var(--size-medium);
 }
+
+.blurred {
+    filter: blur(4px);
+}
+
+.enhancedLinksGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 20px;
+}
