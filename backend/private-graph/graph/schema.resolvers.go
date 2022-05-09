@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -3001,7 +3000,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	}
 	pt := modelInputs.PlanType(w.PlanTier)
 	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
-		return nil, errors.New(fmt.Sprintf("%s workspace tier does not include enhanced user details. Upgrade to Startup tier or higher.", pt))
+		return nil, fmt.Errorf("%s workspace tier does not include enhanced user details. Upgrade to Startup tier or higher", pt)
 	}
 	// preload `Fields` children
 	sessionObj := &model.Session{}
