@@ -51,8 +51,8 @@ func SetupZapierAuthContextMiddleware(db *gorm.DB) func(http.Handler) http.Handl
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "parsedToken", parsedToken)
-			ctx = context.WithValue(ctx, "project", project)
+			ctx := context.WithValue(r.Context(), model.ContextKeys.ZapierToken, parsedToken)
+			ctx = context.WithValue(ctx, model.ContextKeys.ZapierProject, project)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

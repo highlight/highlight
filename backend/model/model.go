@@ -105,6 +105,8 @@ var ContextKeys = struct {
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
+	ZapierToken    contextString
+	ZapierProject  contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -112,6 +114,8 @@ var ContextKeys = struct {
 	UID:            "uid",
 	Email:          "email",
 	AcceptEncoding: "acceptEncoding",
+	ZapierToken:    "parsedToken",
+	ZapierProject:  "project",
 }
 
 var Models = []interface{}{
