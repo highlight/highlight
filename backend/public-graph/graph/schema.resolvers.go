@@ -50,68 +50,48 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 			_ = slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		}
 	} else {
-		ip := ctx.Value(model.ContextKeys.IP).(string)
-		if r.isHighlightSession(session.ID) {
-			err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-				Type: kafkaqueue.InitializeSession,
-				InitializeSession: &kafkaqueue.InitializeSessionArgs{
-					SessionID: session.ID,
-					IP:        ip,
-				}}, strconv.Itoa(session.ID))
-		} else {
-			session, err = r.InitializeSessionImplementation(session.ID, ip)
-		}
+		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
+			Type: kafkaqueue.InitializeSession,
+			InitializeSession: &kafkaqueue.InitializeSessionArgs{
+				SessionID: session.ID,
+				IP:        ctx.Value(model.ContextKeys.IP).(string),
+			}}, strconv.Itoa(session.ID))
 	}
 
 	return session, err
 }
 
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
-	var err error
-	if r.isHighlightSession(sessionID) {
-		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-			Type: kafkaqueue.IdentifySession,
-			IdentifySession: &kafkaqueue.IdentifySessionArgs{
-				SessionID:      sessionID,
-				UserIdentifier: userIdentifier,
-				UserObject:     userObject,
-			},
-		}, strconv.Itoa(sessionID))
-	} else {
-		err = r.IdentifySessionImpl(ctx, sessionID, userIdentifier, userObject)
-	}
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+		Type: kafkaqueue.IdentifySession,
+		IdentifySession: &kafkaqueue.IdentifySessionArgs{
+			SessionID:      sessionID,
+			UserIdentifier: userIdentifier,
+			UserObject:     userObject,
+		},
+	}, strconv.Itoa(sessionID))
 	return &sessionID, err
 }
 
 func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
-	var err error
-	if r.isHighlightSession(sessionID) {
-		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-			Type: kafkaqueue.AddTrackProperties,
-			AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
-				SessionID:        sessionID,
-				PropertiesObject: propertiesObject,
-			},
-		}, strconv.Itoa(sessionID))
-	} else {
-		err = r.AddTrackPropertiesImpl(ctx, sessionID, propertiesObject)
-	}
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+		Type: kafkaqueue.AddTrackProperties,
+		AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
+			SessionID:        sessionID,
+			PropertiesObject: propertiesObject,
+		},
+	}, strconv.Itoa(sessionID))
 	return &sessionID, err
 }
 
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
-	var err error
-	if r.isHighlightSession(sessionID) {
-		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-			Type: kafkaqueue.AddSessionProperties,
-			AddSessionProperties: &kafkaqueue.AddSessionPropertiesArgs{
-				SessionID:        sessionID,
-				PropertiesObject: propertiesObject,
-			},
-		}, strconv.Itoa(sessionID))
-	} else {
-		err = r.AddSessionPropertiesImpl(ctx, sessionID, propertiesObject)
-	}
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+		Type: kafkaqueue.AddSessionProperties,
+		AddSessionProperties: &kafkaqueue.AddSessionPropertiesArgs{
+			SessionID:        sessionID,
+			PropertiesObject: propertiesObject,
+		},
+	}, strconv.Itoa(sessionID))
 	return &sessionID, err
 }
 
