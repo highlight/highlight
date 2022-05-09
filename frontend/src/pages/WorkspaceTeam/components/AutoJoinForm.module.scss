@@ -14,4 +14,8 @@
 
 .select {
     width: 100%;
+
+  &:global(.ant-select-disabled .ant-select-selector) {
+    background-color: var(--color-primary-background) !important;
+  }
 }
