@@ -157,6 +157,13 @@ func (p *Queue) Stop() {
 		if err := p.kafkaC.Close(); err != nil {
 			log.Error(errors.Wrap(err, "failed to close reader"))
 		}
+		p.kafkaC = nil
+	}
+	if p.kafkaP != nil {
+		if err := p.kafkaP.Close(); err != nil {
+			log.Error(errors.Wrap(err, "failed to close writer"))
+		}
+		p.kafkaP = nil
 	}
 }
 
