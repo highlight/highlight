@@ -156,14 +156,28 @@ export const MetadataBox = React.memo(() => {
 });
 
 export const UserDetailsBox = React.memo(() => {
-    const { session_secure_id } = useParams<{ session_secure_id: string }>();
+    const { project_id, session_secure_id } = useParams<{
+        project_id: string;
+        session_secure_id: string;
+    }>();
     const { data, error, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
     });
 
     if (error) {
         return (
-            <Tooltip title={error.message}>
+            <Tooltip
+                mouseEnterDelay={0.3}
+                title={
+                    <a
+                        href={`/w/${project_id}/billing`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {error.message}
+                    </a>
+                }
+            >
                 <div className={styles.userEnhanced}>
                     <div style={{ width: 36 }}>
                         <div className={styles.blurred}>
