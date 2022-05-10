@@ -1,13 +1,14 @@
 package graph
 
 import (
-	"os"
-	"testing"
-
+	"context"
+	"github.com/aws/smithy-go/ptr"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
+	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -69,4 +70,70 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 			t.Fatalf("received incorrect chunk ts %d", chunkTs)
 		}
 	})
+}
+
+// ensure that invite link email is checked case-insensitively with admin email
+func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
+	tests := map[string]struct {
+		adminEmail    string
+		inviteEmail   string
+		errorExpected bool
+	}{
+		"same email same case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "foo@bar.com",
+			errorExpected: false,
+		},
+		"same email different case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "fOO@Bar.com",
+			errorExpected: false,
+		},
+		"different email": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "f00@bar.com",
+			errorExpected: true,
+		},
+	}
+	for testName, v := range tests {
+		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+			// inserting the data
+			admin := model.Admin{
+				UID:           ptr.String("a1b2c3"),
+				Name:          ptr.String("adm1"),
+				PhotoURL:      ptr.String("asdf"),
+				EmailVerified: ptr.Bool(true),
+				Email:         ptr.String(v.adminEmail),
+			}
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting admin"))
+			}
+			workspace := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+			inviteLink := model.WorkspaceInviteLink{
+				WorkspaceID:  &workspace.ID,
+				InviteeEmail: ptr.String(v.inviteEmail),
+				Secret:       ptr.String(testName),
+			}
+			if err := DB.Create(&inviteLink).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting invite link"))
+			}
+
+			// test logic
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+			r := &mutationResolver{Resolver: &Resolver{DB: DB}}
+			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
+			if v.errorExpected != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
+			}
+			if err == nil && *workspaceID != workspace.ID {
+				t.Fatalf("received invalid workspace ID %d", workspaceID)
+			}
+		})
+	}
 }

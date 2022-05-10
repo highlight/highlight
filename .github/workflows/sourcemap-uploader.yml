@@ -13,7 +13,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v1
               with:
-                  node-version: 15.11.0
+                  node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
             - name: Install main dependencies
               run: cd sourcemap-uploader && yarn install
