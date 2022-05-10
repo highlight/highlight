@@ -948,7 +948,6 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
-	log.Warnf("session %d pua %s", session.ID, session.PayloadUpdatedAt)
 	// determine if session is within billing quota
 	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 
