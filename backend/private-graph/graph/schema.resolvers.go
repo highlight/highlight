@@ -2998,6 +2998,19 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	p, err := r.isAdminInProject(ctx, s.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not project owner")
+	}
+	w, err := r.isAdminInWorkspace(ctx, p.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not workspace owner")
+	}
+	pt := modelInputs.PlanType(w.PlanTier)
+	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+		return nil, fmt.Errorf("%s tier does not include enhanced user details. Click here to see upgrade options", pt)
+	}
+	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
 	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {

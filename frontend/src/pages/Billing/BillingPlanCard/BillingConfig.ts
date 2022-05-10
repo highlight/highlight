@@ -1,4 +1,4 @@
-import { PlanType } from '../../../graph/generated/schemas';
+import { PlanType } from '@graph/schemas';
 
 type FeatureWithTooltip = {
     text: string;
@@ -59,9 +59,10 @@ const startupPlan: BillingPlan = {
             text: '80,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
+        'Everything in Basic',
         '8 members included',
-        'Unlimited dev tools access',
-        'Unlimited retention',
+        'Enhanced user metadata',
+        'Issue tracking integrations',
     ],
     membersIncluded: 8,
 };

@@ -1,6 +1,14 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import { Avatar } from '@components/Avatar/Avatar';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import Tooltip from '@components/Tooltip/Tooltip';
+import {
+    useGetEnhancedUserDetailsQuery,
+    useMarkSessionAsStarredMutation,
+} from '@graph/hooks';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
+import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
@@ -12,19 +20,7 @@ import {
     FaTwitterSquare,
 } from 'react-icons/fa';
 
-import { useAuthContext } from '../../../authentication/AuthContext';
-import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
-import {
-    useGetEnhancedUserDetailsQuery,
-    useMarkSessionAsStarredMutation,
-} from '../../../graph/generated/hooks';
-import {
-    Maybe,
-    Session,
-    SocialLink,
-    SocialType,
-} from '../../../graph/generated/schemas';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { getIdentifiedUserProfileImage } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
@@ -41,11 +37,10 @@ export const MetadataBox = React.memo(() => {
             cache.modify({
                 fields: {
                     session(existingSession) {
-                        const updatedSession = {
+                        return {
                             ...existingSession,
                             starred: !existingSession.starred,
                         };
-                        return updatedSession;
                     },
                 },
             });
@@ -161,10 +156,56 @@ export const MetadataBox = React.memo(() => {
 });
 
 export const UserDetailsBox = React.memo(() => {
-    const { session_secure_id } = useParams<{ session_secure_id: string }>();
-    const { data, loading } = useGetEnhancedUserDetailsQuery({
+    const { project_id, session_secure_id } = useParams<{
+        project_id: string;
+        session_secure_id: string;
+    }>();
+    const { data, error, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
     });
+
+    if (error) {
+        return (
+            <Tooltip
+                mouseEnterDelay={0.3}
+                title={
+                    <a
+                        href={`/w/${project_id}/billing`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {error.message}
+                    </a>
+                }
+            >
+                <div className={styles.userEnhanced}>
+                    <div style={{ width: 36 }}>
+                        <div className={styles.blurred}>
+                            <Avatar
+                                seed="test"
+                                className={styles.enhancedAvatar}
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.enhancedTextSection}>
+                        <div className={styles.blurred}>
+                            <SocialComponent
+                                disabled
+                                socialLink={
+                                    {
+                                        link: 'http://example.com',
+                                        type: 'Github',
+                                    } as SocialLink
+                                }
+                                key={'example'}
+                            />
+                            SOME INTERESTING DETAILS HERE
+                        </div>
+                    </div>
+                </div>
+            </Tooltip>
+        );
+    }
 
     if (!loading && !hasEnrichedData(data)) {
         return null;
@@ -199,7 +240,7 @@ export const UserDetailsBox = React.memo(() => {
                 {loading ? (
                     <Skeleton height="2rem" />
                 ) : (
-                    <>
+                    <div className={styles.enhancedLinksGrid}>
                         {data?.enhanced_user_details?.name && (
                             <h4 id={styles.enhancedName}>
                                 {data?.enhanced_user_details?.name}
@@ -219,21 +260,22 @@ export const UserDetailsBox = React.memo(() => {
                                     />
                                 )
                         )}
-                    </>
+                    </div>
                 )}
             </div>
         </div>
     );
 });
 
-const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
-    return (
-        <a
-            className={styles.enhancedSocial}
-            href={getAbsoluteUrl(socialLink.link ?? '')}
-            target="_blank"
-            rel="noopener noreferrer"
-        >
+const SocialComponent = ({
+    socialLink,
+    disabled,
+}: {
+    socialLink: SocialLink;
+    disabled?: boolean;
+}) => {
+    const inner = (
+        <>
             {socialLink?.type === SocialType.Github ? (
                 <FaGithubSquare />
             ) : socialLink?.type === SocialType.Facebook ? (
@@ -248,6 +290,19 @@ const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
                 <></>
             )}
             <p className={styles.enhancedSocialText}>{socialLink.type}</p>
+        </>
+    );
+    if (disabled) {
+        return <span className={styles.enhancedSocial}>{inner}</span>;
+    }
+    return (
+        <a
+            className={styles.enhancedSocial}
+            href={getAbsoluteUrl(socialLink.link ?? '')}
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            {inner}
         </a>
     );
 };
