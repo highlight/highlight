@@ -1,4 +1,4 @@
-import { PlanType } from '../../../graph/generated/schemas';
+import { PlanType } from '@graph/schemas';
 
 type FeatureWithTooltip = {
     text: string;
