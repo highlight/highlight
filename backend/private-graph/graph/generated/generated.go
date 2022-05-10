@@ -374,6 +374,7 @@ type ComplexityRoot struct {
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
+		RequestAccess                    func(childComplexity int, projectID int) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
@@ -445,7 +446,6 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroups                  func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput) int
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
@@ -455,6 +455,7 @@ type ComplexityRoot struct {
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
 		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
+		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		IdentifierSuggestion         func(childComplexity int, projectID int) int
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
@@ -486,7 +487,6 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
-		Sessions                     func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
 		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
@@ -494,7 +494,6 @@ type ComplexityRoot struct {
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
 		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
-		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
 		UserPropertiesAlerts         func(childComplexity int, projectID int) int
 		WebVitalDashboard            func(childComplexity int, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) int
@@ -873,6 +872,7 @@ type MutationResolver interface {
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
 	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
 	SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error)
+	RequestAccess(ctx context.Context, projectID int) (*bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -883,7 +883,6 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
@@ -902,7 +901,6 @@ type QueryResolver interface {
 	WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, projectID int) (*bool, error)
 	IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error)
-	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
 	LiveUsersCount(ctx context.Context, projectID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
 	ProjectHasViewedASession(ctx context.Context, projectID int) (*model1.Session, error)
@@ -915,7 +913,6 @@ type QueryResolver interface {
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
-	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
@@ -944,6 +941,7 @@ type QueryResolver interface {
 	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
+	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
 	IsIntegratedWith(ctx context.Context, integrationType model.IntegrationType, projectID int) (bool, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
@@ -2802,6 +2800,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ReplyToSessionComment(childComplexity, args["comment_id"].(int), args["text"].(string), args["text_for_email"].(string), args["sessionURL"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput)), true
 
+	case "Mutation.requestAccess":
+		if e.complexity.Mutation.RequestAccess == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestAccess_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RequestAccess(childComplexity, args["project_id"].(int)), true
+
 	case "Mutation.sendAdminProjectInvite":
 		if e.complexity.Mutation.SendAdminProjectInvite == nil {
 			break
@@ -3389,18 +3399,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorGroup(childComplexity, args["secure_id"].(string)), true
 
-	case "Query.error_groups":
-		if e.complexity.Query.ErrorGroups == nil {
-			break
-		}
-
-		args, err := ec.field_Query_error_groups_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorGroups(childComplexity, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput)), true
-
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
 			break
@@ -3508,6 +3506,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string)), true
+
+	case "Query.generate_zapier_access_token":
+		if e.complexity.Query.GenerateZapierAccessToken == nil {
+			break
+		}
+
+		args, err := ec.field_Query_generate_zapier_access_token_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GenerateZapierAccessToken(childComplexity, args["project_id"].(int)), true
 
 	case "Query.identifier_suggestion":
 		if e.complexity.Query.IdentifierSuggestion == nil {
@@ -3866,18 +3876,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionIntervals(childComplexity, args["session_secure_id"].(string)), true
 
-	case "Query.sessions":
-		if e.complexity.Query.Sessions == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessions_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Sessions(childComplexity, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
-
 	case "Query.sessions_opensearch":
 		if e.complexity.Query.SessionsOpensearch == nil {
 			break
@@ -3961,18 +3959,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.TrackPropertiesAlerts(childComplexity, args["project_id"].(int)), true
-
-	case "Query.unprocessedSessionsCount":
-		if e.complexity.Query.UnprocessedSessionsCount == nil {
-			break
-		}
-
-		args, err := ec.field_Query_unprocessedSessionsCount_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.UnprocessedSessionsCount(childComplexity, args["project_id"].(int)), true
 
 	case "Query.userFingerprintCount":
 		if e.complexity.Query.UserFingerprintCount == nil {
@@ -5596,6 +5582,7 @@ enum SocialType {
 enum IntegrationType {
     Slack
     Linear
+    Zapier
 }
 
 enum ErrorState {
@@ -6163,11 +6150,6 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): [RageClickEventForProject!]!
-    error_groups(
-        project_id: ID!
-        count: Int!
-        params: ErrorSearchParamsInput
-    ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
@@ -6190,7 +6172,6 @@ type Query {
     workspace_admins_by_project_id(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     isBackendIntegrated(project_id: ID!): Boolean
-    unprocessedSessionsCount(project_id: ID!): Int64
     liveUsersCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
     projectHasViewedASession(project_id: ID!): Session
@@ -6223,13 +6204,6 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): UserFingerprintCount
-    sessions(
-        project_id: ID!
-        count: Int!
-        lifecycle: SessionLifecycle!
-        starred: Boolean!
-        params: SearchParamsInput
-    ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
@@ -6284,6 +6258,7 @@ type Query {
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
+    generate_zapier_access_token(project_id: ID!): String!
     is_integrated_with(
         integration_type: IntegrationType!
         project_id: ID!
@@ -6660,6 +6635,9 @@ type Mutation {
         use_case: String!
         heard_about: String!
         pun: String
+    ): Boolean
+    requestAccess(
+        project_id: ID!
     ): Boolean
 }
 
@@ -8537,6 +8515,21 @@ func (ec *executionContext) field_Mutation_replyToSessionComment_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestAccess_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_sendAdminProjectInvite_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9992,39 +9985,6 @@ func (ec *executionContext) field_Query_error_group_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 *model.ErrorSearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10238,6 +10198,21 @@ func (ec *executionContext) field_Query_fields_opensearch_args(ctx context.Conte
 		}
 	}
 	args["query"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_generate_zapier_access_token_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -10760,57 +10735,6 @@ func (ec *executionContext) field_Query_session_intervals_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 model.SessionLifecycle
-	if tmp, ok := rawArgs["lifecycle"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lifecycle"))
-		arg2, err = ec.unmarshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["lifecycle"] = arg2
-	var arg3 bool
-	if tmp, ok := rawArgs["starred"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
-		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["starred"] = arg3
-	var arg4 *model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg4, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg4
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10938,21 +10862,6 @@ func (ec *executionContext) field_Query_topUsers_args(ctx context.Context, rawAr
 }
 
 func (ec *executionContext) field_Query_track_properties_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_unprocessedSessionsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -19832,6 +19741,45 @@ func (ec *executionContext) _Mutation_submitRegistrationForm(ctx context.Context
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_requestAccess(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_requestAccess_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RequestAccess(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NamedCount_name(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20633,45 +20581,6 @@ func (ec *executionContext) _Query_rageClicksForProject(ctx context.Context, fie
 	return ec.marshalNRageClickEventForProject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRageClickEventForProjectᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_error_groups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_error_groups_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroups(rctx, args["project_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ErrorResults)
-	fc.Result = res
-	return ec.marshalOErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21393,45 +21302,6 @@ func (ec *executionContext) _Query_isBackendIntegrated(ctx context.Context, fiel
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_unprocessedSessionsCount_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UnprocessedSessionsCount(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int64)
-	fc.Result = res
-	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_liveUsersCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21916,48 +21786,6 @@ func (ec *executionContext) _Query_userFingerprintCount(ctx context.Context, fie
 	res := resTmp.(*model.UserFingerprintCount)
 	fc.Result = res
 	return ec.marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserFingerprintCount(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_sessions_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["project_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionResults)
-	fc.Result = res
-	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23076,6 +22904,48 @@ func (ec *executionContext) _Query_slack_members(ctx context.Context, field grap
 	res := resTmp.([]*model.SanitizedSlackChannel)
 	fc.Result = res
 	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_generate_zapier_access_token(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_generate_zapier_access_token_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GenerateZapierAccessToken(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_is_integrated_with(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -34515,6 +34385,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "requestAccess":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestAccess(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34935,26 +34812,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "error_groups":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_error_groups(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "error_groups_opensearch":
 			field := field
 
@@ -35348,26 +35205,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "unprocessedSessionsCount":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_unprocessedSessionsCount(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "liveUsersCount":
 			field := field
 
@@ -35616,29 +35453,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_userFingerprintCount(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "sessions":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -36250,6 +36064,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slack_members(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "generate_zapier_access_token":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_generate_zapier_access_token(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -41155,16 +40992,6 @@ func (ec *executionContext) marshalNSessionInterval2ᚖgithubᚗcomᚋhighlight�
 	return ec._SessionInterval(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, v interface{}) (model.SessionLifecycle, error) {
-	var res model.SessionLifecycle
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, sel ast.SelectionSet, v model.SessionLifecycle) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNSessionResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v model1.SessionResults) graphql.Marshaler {
 	return ec._SessionResults(ctx, sel, &v)
 }
@@ -42228,21 +42055,6 @@ func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑru
 	return ec._ErrorObject(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ErrorResults(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (*model.ErrorSearchParamsInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorSegment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -42700,14 +42512,6 @@ func (ec *executionContext) unmarshalOSanitizedSlackChannelInput2ᚖgithubᚗcom
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputSanitizedSlackChannelInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (*model.SearchParamsInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

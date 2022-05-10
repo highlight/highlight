@@ -4,14 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -23,6 +24,17 @@ const (
 	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
 )
 
+var (
+	EnvironmentPrefix string = func() string {
+		prefix := os.Getenv("KAFKA_ENV_PREFIX")
+		if len(prefix) > 0 {
+			return prefix
+		} else {
+			return os.Getenv("DOPPLER_CONFIG")
+		}
+	}()
+)
+
 type Mode int
 
 const (
@@ -31,11 +43,10 @@ const (
 )
 
 type Queue struct {
-	Topic string
-
-	client *kafka.Client
-	kafkaP *kafka.Writer
-	kafkaC *kafka.Reader
+	Topic         string
+	ConsumerGroup string
+	kafkaP        *kafka.Writer
+	kafkaC        *kafka.Reader
 }
 
 type MessageQueue interface {
@@ -48,50 +59,51 @@ type MessageQueue interface {
 func New(topic string, mode Mode) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
+	tlsConfig := &tls.Config{}
 	mechanism, err := scram.Mechanism(scram.SHA512, os.Getenv("KAFKA_SASL_USERNAME"), os.Getenv("KAFKA_SASL_PASSWORD"))
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
 	}
 
-	tlsConfig := &tls.Config{}
-	pool := &Queue{Topic: topic, client: &kafka.Client{
-		Addr: kafka.TCP(brokers...),
-		Transport: &kafka.Transport{
-			SASL:        mechanism,
-			TLS:         tlsConfig,
-			DialTimeout: KafkaOperationTimeout,
-			IdleTimeout: KafkaOperationTimeout,
-		},
-		Timeout: KafkaOperationTimeout,
-	}}
+	groupID := "group-default"
+	if util.IsDevOrTestEnv() {
+		// create per-profile consumer and topic to avoid collisions between dev envs
+		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
+		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 
-	_, err = pool.client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
-		Resources: []kafka.AlterConfigRequestResource{{
-			ResourceType: kafka.ResourceTypeTopic,
-			ResourceName: topic,
-			Configs: []kafka.AlterConfigRequestConfig{{
-				Name:  "max.message.bytes",
-				Value: strconv.Itoa(messageSizeBytes),
-			},
-			},
-		}},
-	})
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "failed to set topic message max bytes"))
-	}
-
-	if mode == Producer {
-		pool.kafkaP = &kafka.Writer{
-			Logger:      kafka.LoggerFunc(log.Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.Warnf),
-			Addr:        kafka.TCP(brokers...),
+		client := &kafka.Client{
+			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
 				SASL:        mechanism,
 				TLS:         tlsConfig,
 				DialTimeout: KafkaOperationTimeout,
 				IdleTimeout: KafkaOperationTimeout,
 			},
-			Topic:        topic,
+			Timeout: KafkaOperationTimeout,
+		}
+		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
+			Topics: []kafka.TopicConfig{{
+				Topic:             topic,
+				NumPartitions:     64,
+				ReplicationFactor: 3,
+			}},
+		})
+		if err != nil {
+			log.Fatal(errors.Wrap(err, "failed to create necessary topic"))
+		}
+	}
+
+	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
+	if mode == Producer {
+		pool.kafkaP = &kafka.Writer{
+			Addr: kafka.TCP(brokers...),
+			Transport: &kafka.Transport{
+				SASL:        mechanism,
+				TLS:         tlsConfig,
+				DialTimeout: KafkaOperationTimeout,
+				IdleTimeout: KafkaOperationTimeout,
+			},
+			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
@@ -99,7 +111,7 @@ func New(topic string, mode Mode) *Queue {
 			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
-			BatchSize:    10000,
+			BatchSize:    1000,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: 5 * time.Minute,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
@@ -108,9 +120,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	} else if mode == Consumer {
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
-			Logger:      kafka.LoggerFunc(log.Debugf),
-			ErrorLogger: kafka.LoggerFunc(log.Warnf),
-			Brokers:     brokers,
+			Brokers: brokers,
 			Dialer: &kafka.Dialer{
 				Timeout:       KafkaOperationTimeout,
 				DualStack:     true,
@@ -120,11 +130,11 @@ func New(topic string, mode Mode) *Queue {
 			HeartbeatInterval: time.Second,
 			SessionTimeout:    10 * time.Second,
 			RebalanceTimeout:  10 * time.Second,
-			Topic:             topic,
-			GroupID:           "group-default", // all partitions for this group, auto balanced
+			Topic:             pool.Topic,
+			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     10000,
+			QueueCapacity:     1000,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: 100 * time.Millisecond,
@@ -147,6 +157,13 @@ func (p *Queue) Stop() {
 		if err := p.kafkaC.Close(); err != nil {
 			log.Error(errors.Wrap(err, "failed to close reader"))
 		}
+		p.kafkaC = nil
+	}
+	if p.kafkaP != nil {
+		if err := p.kafkaP.Close(); err != nil {
+			log.Error(errors.Wrap(err, "failed to close writer"))
+		}
+		p.kafkaP = nil
 	}
 }
 

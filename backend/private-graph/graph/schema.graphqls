@@ -147,6 +147,7 @@ enum SocialType {
 enum IntegrationType {
     Slack
     Linear
+    Zapier
 }
 
 enum ErrorState {
@@ -714,11 +715,6 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): [RageClickEventForProject!]!
-    error_groups(
-        project_id: ID!
-        count: Int!
-        params: ErrorSearchParamsInput
-    ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
@@ -741,7 +737,6 @@ type Query {
     workspace_admins_by_project_id(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     isBackendIntegrated(project_id: ID!): Boolean
-    unprocessedSessionsCount(project_id: ID!): Int64
     liveUsersCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
     projectHasViewedASession(project_id: ID!): Session
@@ -774,13 +769,6 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): UserFingerprintCount
-    sessions(
-        project_id: ID!
-        count: Int!
-        lifecycle: SessionLifecycle!
-        starred: Boolean!
-        params: SearchParamsInput
-    ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
@@ -835,6 +823,7 @@ type Query {
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
+    generate_zapier_access_token(project_id: ID!): String!
     is_integrated_with(
         integration_type: IntegrationType!
         project_id: ID!
@@ -1211,6 +1200,9 @@ type Mutation {
         use_case: String!
         heard_about: String!
         pun: String
+    ): Boolean
+    requestAccess(
+        project_id: ID!
     ): Boolean
 }
 

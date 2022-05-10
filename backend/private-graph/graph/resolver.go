@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/lambda"
+
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
@@ -54,6 +56,7 @@ type Resolver struct {
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          *storage.StorageClient
+	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
@@ -223,7 +226,8 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 
 	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
-		if *inviteLink.InviteeEmail != *admin.Email {
+		// check case-insensitively because email addresses are case-insensitive.
+		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
 			return nil, e.New("403: This invite is not valid for the admin.")
 		}
 	}
@@ -556,106 +560,6 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
-	if params.VisitedURL != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
-	}
-
-	if params.Referrer != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
-	}
-
-	inclusiveFilters := []string{}
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
-	if len(inclusiveFilters) > 0 {
-		whereClause += andSessionHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
-	}
-
-	exclusiveFilters := []string{}
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
-	if len(exclusiveFilters) > 0 {
-		whereClause += andSessionDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
-	}
-
-	return whereClause, nil
-}
-
-func andSessionHasFieldsWhere(fieldConditions string) string {
-	return "AND " + SessionHasFieldsWhere(fieldConditions)
-}
-
-func SessionHasFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andSessionDoesNotHaveFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND NOT EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasSessionsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		JOIN sessions
-		ON error_objects.session_id = sessions.id
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasErrorObjectWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-// Takes a list of user search inputs, and converts them into a list of SQL filters
-// propertyType: 'user' or 'track'
-func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, propertyType string) []string {
-	sqlFilters := []string{}
-	for _, prop := range userPropertyInputs {
-		if prop.Name == "contains" {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
-		} else {
-			sqlFilters = append(sqlFilters, fmt.Sprintf("(fields.id = %d)", *prop.ID))
-		}
-	}
-	return sqlFilters
-}
-
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
@@ -870,6 +774,45 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	return nil
 }
 
+// GetSessionChunk Given a session and session-relative timestamp, finds the chunk and chunk-relative timestamp.
+func (r *Resolver) GetSessionChunk(sessionID int, ts int) (chunkIdx int, chunkTs int) {
+	chunkTs = ts
+	var chunks []*model.EventChunk
+	if err := r.DB.Order("chunk_index ASC").Model(&model.EventChunk{}).Where(&model.EventChunk{SessionID: sessionID}).
+		Scan(&chunks).Error; err != nil {
+		log.Error(e.Wrap(err, "error retrieving event chunks from DB"))
+		return
+	}
+	if len(chunks) > 1 {
+		t := chunks[0].Timestamp
+		absTime := t + int64(ts)
+		for i, chunk := range chunks[1:] {
+			if chunk.Timestamp > absTime {
+				break
+			}
+			chunkIdx = i + 1
+			t = chunk.Timestamp
+		}
+		chunkTs = int(absTime - t)
+	}
+	return
+}
+
+func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
+	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to make screenshot render request")
+	}
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", res.StatusCode))
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read body of screenshot render response")
+	}
+	return b, nil
+}
+
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
 func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -898,6 +841,34 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	p.AddTos(to)
 	p.SetDynamicTemplateData("Admin_Invitor", adminName)
 	p.SetDynamicTemplateData("Organization_Name", projectOrWorkspaceName)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
+	}
+	return &inviteLink, nil
+}
+
+func (r *Resolver) SendWorkspaceRequestEmail(fromName string, fromEmail string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
+	to := &mail.Email{Address: toEmail}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(Email.SendGridRequestAccessEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Requester_Name", fromName)
+	p.SetDynamicTemplateData("Requester_Email", fromEmail)
+	p.SetDynamicTemplateData("Workspace_Admin", toName)
+	p.SetDynamicTemplateData("Workspace_Name", workspaceName)
 	p.SetDynamicTemplateData("Invite_Link", inviteLink)
 
 	m.AddPersonalizations(p)
@@ -1426,6 +1397,14 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 		return nil
 	}); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
+	if err := r.DB.Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing zapier access token in project model")
 	}
 
 	return nil

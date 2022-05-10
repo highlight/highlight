@@ -608,58 +608,6 @@ query GetErrorGroupsOpenSearch(
     }
 }
 
-query GetSessions(
-    $project_id: ID!
-    $count: Int!
-    $lifecycle: SessionLifecycle!
-    $starred: Boolean!
-    $params: SearchParamsInput
-) {
-    sessions(
-        project_id: $project_id
-        count: $count
-        lifecycle: $lifecycle
-        starred: $starred
-        params: $params
-    ) {
-        sessions {
-            id
-            secure_id
-            fingerprint
-            identifier
-            os_name
-            os_version
-            browser_name
-            browser_version
-            city
-            state
-            postal
-            created_at
-            language
-            length
-            active_length
-            enable_recording_network_contents
-            viewed
-            starred
-            processed
-            has_rage_clicks
-            has_errors
-            field_group
-            fields {
-                name
-                value
-                type
-                id
-            }
-            first_time
-            user_properties
-            event_counts
-            last_user_interaction_time
-        }
-        totalCount
-    }
-}
-
 query GetProjects {
     projects {
         id
@@ -892,39 +840,6 @@ query GetErrorGroup($secure_id: String!) {
     }
 }
 
-query GetErrorGroups(
-    $project_id: ID!
-    $count: Int!
-    $params: ErrorSearchParamsInput
-) {
-    error_groups(project_id: $project_id, count: $count, params: $params) {
-        error_groups {
-            created_at
-            id
-            secure_id
-            type
-            event
-            state
-            state
-            environments
-            stack_trace
-            structured_stack_trace {
-                fileName
-                lineNumber
-                functionName
-                columnNumber
-            }
-            metadata_log {
-                error_id
-                session_secure_id
-                timestamp
-            }
-            error_frequency
-        }
-        totalCount
-    }
-}
-
 query GetMessages($session_secure_id: String!) {
     messages(session_secure_id: $session_secure_id)
 }
@@ -1120,10 +1035,6 @@ query IsBackendIntegrated($project_id: ID!) {
     isBackendIntegrated(project_id: $project_id)
 }
 
-query UnprocessedSessionsCount($project_id: ID!) {
-    unprocessedSessionsCount(project_id: $project_id)
-}
-
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
     unprocessedSessionsCount(project_id: $project_id)
     liveUsersCount(project_id: $project_id)
@@ -1249,6 +1160,17 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
         integration_type: Linear
         project_id: $project_id
     )
+}
+
+query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
+    is_integrated_with_linear: is_integrated_with(
+        integration_type: Zapier
+        project_id: $project_id
+    )
+}
+
+query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
+    generate_zapier_access_token(project_id: $project_id)
 }
 
 query GetAlertsPagePayload($project_id: ID!) {

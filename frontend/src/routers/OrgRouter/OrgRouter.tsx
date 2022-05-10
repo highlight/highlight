@@ -327,6 +327,7 @@ export const ProjectRouter = () => {
                                     JSON.stringify(error)
                                 }
                                 shownWithHeader
+                                showRequestAccess
                             />
                         ) : (
                             <>

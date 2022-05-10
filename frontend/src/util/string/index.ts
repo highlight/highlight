@@ -26,6 +26,27 @@ export const validateEmail = (email: string) => {
     );
 };
 
+export function* splitTaggedUsers(
+    text: string
+): Generator<{ matched: boolean; value: string }> {
+    // Conversation names can only contain lowercase letters,
+    // numbers, hyphens, periods, and underscores (and spaces in admin names)
+    const m = text.split(/@+(\[@?#?[\w\d-._\s]+])\([\w\d-._\s]+\)/);
+    for (const piece of m) {
+        if (piece.match(/\[(.+)]/)) {
+            yield {
+                matched: true,
+                value: piece.replace(/\[(.+)]/, (_, p1) => p1),
+            };
+        } else {
+            yield {
+                matched: false,
+                value: piece,
+            };
+        }
+    }
+}
+
 export const bytesToPrettyString = (
     bytes: number,
     use1024 = false,

@@ -41,6 +41,8 @@ const ApplicationPicker = () => {
     const isWorkspaceLevel = workspace_id !== undefined;
     const history = useHistory();
     const { pathname } = useLocation();
+    const isInDemoProject =
+        projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID;
 
     const projectOptions = [
         ...(allProjects
@@ -93,53 +95,55 @@ const ApplicationPicker = () => {
             </div>
             <Group>
                 <div>
-                    <PopoverMenu
-                        placement="bottomLeft"
-                        menuItems={[
-                            {
-                                displayName: 'Create a New Project',
-                                icon: <SvgPlusIcon />,
-                                action: () => {
-                                    history.push(
-                                        `/w/${currentWorkspace?.id}/new`
-                                    );
+                    {!isInDemoProject && (
+                        <PopoverMenu
+                            placement="bottomLeft"
+                            menuItems={[
+                                {
+                                    displayName: 'Create a New Project',
+                                    icon: <SvgPlusIcon />,
+                                    action: () => {
+                                        history.push(
+                                            `/w/${currentWorkspace?.id}/new`
+                                        );
+                                    },
                                 },
-                            },
-                            {
-                                displayName: 'Project Settings',
-                                icon: <SvgBriefcase2Icon />,
-                                action: () => {
-                                    history.push(`/${project_id}/settings`);
+                                {
+                                    displayName: 'Project Settings',
+                                    icon: <SvgBriefcase2Icon />,
+                                    action: () => {
+                                        history.push(`/${project_id}/settings`);
+                                    },
                                 },
-                            },
-                            {
-                                displayName: 'Switch Workspace',
-                                icon: <SvgArrowRightIcon />,
-                                action: () => {
-                                    history.push(`/switch`);
+                                {
+                                    displayName: 'Switch Workspace',
+                                    icon: <SvgArrowRightIcon />,
+                                    action: () => {
+                                        history.push(`/switch`);
+                                    },
                                 },
-                            },
-                            {
-                                displayName: 'Workspace Settings',
-                                icon: <SvgSettingsIcon />,
-                                action: () => {
-                                    history.push(
-                                        `/w/${currentWorkspace?.id}/team`
-                                    );
+                                {
+                                    displayName: 'Workspace Settings',
+                                    icon: <SvgSettingsIcon />,
+                                    action: () => {
+                                        history.push(
+                                            `/w/${currentWorkspace?.id}/team`
+                                        );
+                                    },
                                 },
-                            },
-                        ]}
-                        buttonTrackingId="ApplicationPickerSettings"
-                        buttonContentsOverride={
-                            <Button
-                                trackingId="ApplicationPickerSettings"
-                                type="text"
-                                iconButton
-                            >
-                                <SvgSettingsIcon />
-                            </Button>
-                        }
-                    />
+                            ]}
+                            buttonTrackingId="ApplicationPickerSettings"
+                            buttonContentsOverride={
+                                <Button
+                                    trackingId="ApplicationPickerSettings"
+                                    type="text"
+                                    iconButton
+                                >
+                                    <SvgSettingsIcon />
+                                </Button>
+                            }
+                        />
+                    )}
                 </div>
                 {projectOptions.length > 0 && (
                     <div>

@@ -807,12 +807,18 @@ export class Highlight {
                         this.addCustomEvent('Click', clickTarget);
                     }
                     let selector = null;
+                    let textContent = null;
                     if (event && event.target) {
                         const t = event.target as HTMLElement;
                         selector = getSimpleSelector(t);
+                        textContent = t.textContent;
+                        // avoid sending huge strings here
+                        if (textContent && textContent.length > 2000) {
+                            textContent = textContent.substring(0, 2000);
+                        }
                     }
                     highlightThis.addProperties(
-                        { clickTarget: clickTarget, clickSelector: selector },
+                        { clickTextContent: textContent, clickSelector: selector },
                         { type: 'session' }
                     );
                 })

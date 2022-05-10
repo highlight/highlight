@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import Tooltip from '@components/Tooltip/Tooltip';
 import { useSyncSlackIntegrationMutation } from '@graph/hooks';
 import Reload from '@icons/Reload';
 import { useParams } from '@util/react-router/useParams';
@@ -72,7 +73,17 @@ const SyncWithSlackButton = ({
                         onClick={onClick}
                         loading={loading}
                     >
-                        {small ? <Reload /> : 'Sync Highlight with Slack'}
+                        {small ? (
+                            <Tooltip
+                                title={
+                                    'Refresh the channels & people in your Slack Workspace.'
+                                }
+                            >
+                                <Reload />
+                            </Tooltip>
+                        ) : (
+                            'Sync Highlight with Slack'
+                        )}
                     </Button>
                 ))}
             {!small && '.'}

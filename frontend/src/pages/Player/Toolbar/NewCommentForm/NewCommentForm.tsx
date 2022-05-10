@@ -38,7 +38,6 @@ import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import html2canvas from 'html2canvas';
 import React, { useEffect, useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { Link } from 'react-router-dom';
@@ -219,34 +218,6 @@ export const NewCommentForm = ({
             numSlackMentions: mentionedSlackUsers.length,
         });
         setIsCreatingComment(true);
-        let session_image: undefined | string = undefined;
-
-        if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
-            const iframe = document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement;
-            const canvas = await new Promise((resolve) =>
-                setTimeout(resolve, 300)
-            ).then(() =>
-                html2canvas(iframe.contentDocument!.documentElement, {
-                    allowTaint: true,
-                    logging: false,
-                    backgroundColor: null,
-                    foreignObjectRendering: false,
-                    useCORS: false,
-                    proxy: 'https://html2imageproxy.highlightrun.workers.dev',
-                    windowHeight: Number(iframe.height),
-                    windowWidth: Number(iframe.width),
-                    height: Number(iframe.height),
-                    width: Number(iframe.width),
-                    scrollY:
-                        iframe.contentDocument?.firstElementChild?.scrollTop,
-                })
-            );
-            session_image = canvas
-                .toDataURL()
-                .replace('data:image/png;base64,', '');
-        }
 
         const { issueTitle, issueDescription } = form.getFieldsValue([
             'issueTitle',
@@ -268,7 +239,6 @@ export const NewCommentForm = ({
                     tagged_slack_users: mentionedSlackUsers,
                     time: commentTime / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
-                    session_image,
                     tags: getTags(tags, commentTagsData),
                     integrations: selectedIssueService
                         ? [selectedIssueService]
@@ -470,6 +440,7 @@ export const NewCommentForm = ({
                         <h3>{modalHeader ?? 'Add a  Comment'}</h3>
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
+                                newInput
                                 commentText={commentText}
                                 onChangeHandler={onChangeHandler}
                                 placeholder={placeholder}

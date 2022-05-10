@@ -2,17 +2,15 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"testing"
-
+	"github.com/aws/smithy-go/ptr"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
+	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -31,133 +29,110 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func validateSessionResult(actual model.Session, expected model.Session) error {
-	if actual.ActiveLength != expected.ActiveLength {
-		return e.New(fmt.Sprintf("Actual ActiveLength %d doesn't match expected ActiveLength %d", actual.ActiveLength, expected.ActiveLength))
+func TestResolver_GetSessionChunk(t *testing.T) {
+	timestamps := []int64{
+		1651073243208,
+		1651073392851,
+		1651073564534,
+		1651073772378,
+		1651074011838,
+		1651074045741,
+		1651074284153,
+		1651074417161,
 	}
-	if actual.ProjectID != expected.ProjectID {
-		return e.New(fmt.Sprintf("Actual ProjectID %d doesn't match expected ProjectID %d", actual.ProjectID, expected.ProjectID))
-	}
-	if actual.Viewed != expected.Viewed && *actual.Viewed != *expected.Viewed {
-		return e.New(fmt.Sprintf("Actual Viewed %t doesn't match expected Viewed %t", *actual.Viewed, *expected.Viewed))
-	}
-	if actual.FirstTime != expected.FirstTime && *actual.FirstTime != *expected.FirstTime {
-		return e.New(fmt.Sprintf("Actual FirstTime %t doesn't match expected FirstTime %t", *actual.FirstTime, *expected.FirstTime))
-	}
-	return nil
+	util.RunTestWithDBWipe(t, "Test Chunk", DB, func(t *testing.T) {
+		// inserting the data
+		sessionsToInsert := []model.Session{
+			{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
+		}
+		if err := DB.Create(&sessionsToInsert).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+		chunksToInsert := []model.EventChunk{}
+		for idx, ts := range timestamps {
+			chunksToInsert = append(chunksToInsert, model.EventChunk{
+				SessionID:  sessionsToInsert[0].ID,
+				ChunkIndex: idx,
+				Timestamp:  ts,
+			})
+		}
+		if err := DB.Create(&chunksToInsert).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+
+		// test logic
+		r := &queryResolver{Resolver: &Resolver{DB: DB}}
+		chunkIdx, chunkTs := r.GetSessionChunk(sessionsToInsert[0].ID, 792248)
+		if chunkIdx != 4 {
+			t.Fatalf("received incorrect chunk idx %d", chunkIdx)
+		}
+		if chunkTs != 23618 {
+			t.Fatalf("received incorrect chunk ts %d", chunkTs)
+		}
+	})
 }
 
-func TestHideViewedSessions(t *testing.T) {
-	// construct table of sub-tests to run
+// ensure that invite link email is checked case-insensitively with admin email
+func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 	tests := map[string]struct {
-		hideViewed       *bool // hide viewed?
-		expectedCount    int64
-		expectedSessions []model.Session
-		sessionsToInsert []model.Session
+		adminEmail    string
+		inviteEmail   string
+		errorExpected bool
 	}{
-		"Don't hide viewed sessions": {hideViewed: &model.F, expectedCount: 3,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
+		"same email same case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "foo@bar.com",
+			errorExpected: false,
 		},
-		"Hide viewed sessions": {hideViewed: &model.T, expectedCount: 2,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
+		"same email different case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "fOO@Bar.com",
+			errorExpected: false,
 		},
-		"Don't hide single viewed sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
-			},
-		},
-		"Hide single viewed sessions": {hideViewed: &model.T, expectedCount: 0,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-			},
-			expectedSessions: []model.Session{},
-		},
-		"Don't hide single un-viewed sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Hide single un-viewed sessions": {hideViewed: &model.T, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Don't hide single viewed=nil sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Hide single viewed=nil sessions": {hideViewed: &model.T, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
+		"different email": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "f00@bar.com",
+			errorExpected: true,
 		},
 	}
-	// run tests
-	for name, tc := range tests {
-		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
+	for testName, v := range tests {
+		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
 			// inserting the data
-			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error inserting sessions"))
+			admin := model.Admin{
+				UID:           ptr.String("a1b2c3"),
+				Name:          ptr.String("adm1"),
+				PhotoURL:      ptr.String("asdf"),
+				EmailVerified: ptr.Bool(true),
+				Email:         ptr.String(v.adminEmail),
 			}
-			fieldsToInsert := []model.Field{
-				{
-					Type:      "session",
-					ProjectID: 1,
-					Sessions:  tc.sessionsToInsert,
-				},
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting admin"))
 			}
-			if err := DB.Create(&fieldsToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error inserting sessions"))
+			workspace := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+			inviteLink := model.WorkspaceInviteLink{
+				WorkspaceID:  &workspace.ID,
+				InviteeEmail: ptr.String(v.inviteEmail),
+				Secret:       ptr.String(testName),
+			}
+			if err := DB.Create(&inviteLink).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting invite link"))
 			}
 
 			// test logic
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
-			params := &modelInputs.SearchParamsInput{HideViewed: tc.hideViewed}
-			sessions, err := r.Sessions(context.Background(), 1, 3, modelInputs.SessionLifecycleAll, false, params)
-			if err != nil {
-				t.Fatal(e.Wrap(err, "error querying sessions"))
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+			r := &mutationResolver{Resolver: &Resolver{DB: DB}}
+			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
+			if v.errorExpected != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
 			}
-			if sessions.TotalCount != tc.expectedCount {
-				t.Fatal("received session count and expected session count not equal")
-			}
-			for i, s := range sessions.Sessions {
-				err = validateSessionResult(s, tc.expectedSessions[i])
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error matching actual and expected session"))
-				}
+			if err == nil && *workspaceID != workspace.ID {
+				t.Fatalf("received invalid workspace ID %d", workspaceID)
 			}
 		})
 	}

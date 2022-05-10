@@ -29,7 +29,6 @@ interface PlayerUIContext {
     setSelectedRightPanelTab: (
         newValue: 'Events' | 'Comments' | 'Metadata'
     ) => void;
-    isQueryBuilder: boolean;
     activeEvent?: HighlightEvent;
     setActiveEvent: React.Dispatch<
         React.SetStateAction<HighlightEvent | undefined>

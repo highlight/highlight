@@ -61,7 +61,7 @@ export const ResourcePage = React.memo(
             isInteractingWithResources,
             setIsInteractingWithResources,
         ] = useState(false);
-        const [currentActiveIndex, setCurrentActiveIndex] = useState(0);
+        const [currentActiveIndex, setCurrentActiveIndex] = useState<number>();
         const [allResources, setAllResources] = useState<
             Array<NetworkResource> | undefined
         >([]);
@@ -119,7 +119,6 @@ export const ResourcePage = React.memo(
         }, [parsedResources]);
 
         const resourcesToRender = useMemo(() => {
-            setCurrentActiveIndex(0);
             if (!allResources) {
                 return [];
             }
@@ -272,7 +271,7 @@ export const ResourcePage = React.memo(
 
                 if (direction !== undefined) {
                     e.preventDefault();
-                    let nextIndex = currentActiveIndex + direction;
+                    let nextIndex = (currentActiveIndex || 0) + direction;
                     if (nextIndex < 0) {
                         nextIndex = 0;
                     } else if (nextIndex >= resourcesToRender.length) {
@@ -302,16 +301,21 @@ export const ResourcePage = React.memo(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         const pauseFunction = useCallback(
             _.debounce((t: number) => {
-                console.log(t);
                 pause(t);
             }, 300),
             []
         );
 
         useEffect(() => {
-            if (resourcesToRender?.length) {
+            if (
+                resourcesToRender?.length &&
+                currentActiveIndex !== undefined &&
+                state == ReplayerState.Paused
+            ) {
                 pauseFunction(resourcesToRender[currentActiveIndex]?.startTime);
             }
+            // don't want state changes to move the player
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [pauseFunction, resourcesToRender, currentActiveIndex]);
 
         return (
@@ -598,6 +602,7 @@ const ResourceRow = ({
         </div>
     );
 };
+
 interface Request {
     url: string;
     verb: string;

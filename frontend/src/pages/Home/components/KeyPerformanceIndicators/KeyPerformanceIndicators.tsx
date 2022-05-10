@@ -28,7 +28,10 @@ const KeyPerformanceIndicators = () => {
         setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            lookBackPeriod: dateRangeLength,
+        },
     });
 
     return (

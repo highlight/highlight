@@ -173,6 +173,7 @@ export enum SocialType {
 export enum IntegrationType {
     Slack = 'Slack',
     Linear = 'Linear',
+    Zapier = 'Zapier',
 }
 
 export enum ErrorState {
@@ -834,6 +835,7 @@ export type Query = {
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
+    generate_zapier_access_token: Scalars['String'];
     is_integrated_with: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
@@ -1139,6 +1141,10 @@ export type QuerySlack_MembersArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryGenerate_Zapier_Access_TokenArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryIs_Integrated_WithArgs = {
     integration_type: IntegrationType;
     project_id: Scalars['ID'];
@@ -1270,6 +1276,7 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+    requestAccess?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1735,6 +1742,10 @@ export type MutationSubmitRegistrationFormArgs = {
     use_case: Scalars['String'];
     heard_about: Scalars['String'];
     pun?: Maybe<Scalars['String']>;
+};
+
+export type MutationRequestAccessArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type Subscription = {

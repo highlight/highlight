@@ -6,6 +6,7 @@ import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { Spin } from 'antd';
@@ -32,7 +33,11 @@ interface Suggestion {
 }
 
 const ERROR_TYPE = 'error-field';
+// keys where we should use the 'contains' verb rather than the 'is' default
+const CONTAINS_KEYS = new Set<string>(['email', 'identifier']);
 const RESULT_COUNT = 10;
+// number of previous searches to remember (drop the LRU)
+const MAX_LAST_SEARCHES = 10;
 
 const getQueryFieldKey = (input: QuickSearchOption) => {
     // Event is a special case because we query it on the error group
@@ -147,6 +152,20 @@ const QuickSearch = () => {
         isQuickSearchOpen: isMenuOpen,
         setIsQuickSearchOpen: setIsMenuOpen,
     } = useSearchContext();
+    const [lastSearches, setLastSearches] = useLocalStorage<
+        QuickSearchOption[]
+    >('highlightQuickSearchLastSearches');
+
+    const addLastSearch = (field: QuickSearchOption) => {
+        // remove existing duplicates
+        const previous = (lastSearches || []).filter(
+            (p) =>
+                p.name != field.name ||
+                p.type != field.type ||
+                p.value != field.value
+        );
+        setLastSearches([field, ...previous].slice(0, MAX_LAST_SEARCHES));
+    };
 
     const { loading, refetch } = useGetQuickFieldsOpensearchQuery({
         variables: {
@@ -257,6 +276,11 @@ const QuickSearch = () => {
         if (lastLoadedQuery !== query) {
             field = getDefaultField(query);
         }
+        if (field.value.length) {
+            addLastSearch(field);
+        } else if (lastSearches?.length) {
+            field = lastSearches[0];
+        }
 
         if (field.type === ERROR_TYPE) {
             setQueryBuilderInput({
@@ -266,11 +290,15 @@ const QuickSearch = () => {
             });
             history.push(`/${project_id}/errors`);
         } else {
+            let verb = 'is';
+            if (CONTAINS_KEYS.has(field.name)) {
+                verb = 'contains';
+            }
             const searchParams = {
                 ...EmptySessionsSearchParams,
                 query: JSON.stringify({
                     isAnd: true,
-                    rules: [[getQueryFieldKey(field), 'is', field.value]],
+                    rules: [[getQueryFieldKey(field), verb, field.value]],
                 }),
             };
             history.push(`/${project_id}/sessions`);
@@ -385,7 +413,11 @@ const QuickSearch = () => {
                     {
                         label: 'Default',
                         tooltip: 'Search by user identifier.',
-                        options: [getDefaultField(lastTyped)],
+                        options: lastTyped.length
+                            ? [getDefaultField(lastTyped)]
+                            : lastSearches?.length
+                            ? lastSearches
+                            : [],
                     },
                 ]}
                 maxMenuHeight={500}

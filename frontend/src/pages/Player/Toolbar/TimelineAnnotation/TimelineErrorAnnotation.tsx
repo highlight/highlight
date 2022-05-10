@@ -1,26 +1,30 @@
+import { getHeaderFromError } from '@pages/Error/ErrorPage';
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import GoToButton from '../../../../components/Button/GoToButton';
 import Popover from '../../../../components/Popover/Popover';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
-import { getHeaderFromError } from '../../../Error/ErrorPage';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
-import TimelineAnnotation from './TimelineAnnotation';
+import TimelineAnnotation, { getPopoverPlacement } from './TimelineAnnotation';
 import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     error: ParsedErrorObject;
+    relativeStartPercent: number;
 }
 
-function TimelineErrorAnnotation({ error }: Props): ReactElement {
+function TimelineErrorAnnotation({
+    error,
+    relativeStartPercent,
+}: Props): ReactElement {
     const location = useLocation();
     const errorId = new URLSearchParams(location.search).get(
         PlayerSearchParameters.errorId
@@ -52,8 +56,17 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         setShowDevTools,
     ]);
 
+    const { offset, placement } = getPopoverPlacement(relativeStartPercent);
     return (
         <Popover
+            align={{
+                overflow: {
+                    adjustY: false,
+                    adjustX: false,
+                },
+                offset: offset,
+            }}
+            placement={placement}
             getPopupContainer={getFullScreenPopoverGetPopupContainer}
             key={error.id}
             defaultVisible={errorId === error.id}

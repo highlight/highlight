@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -23,7 +24,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -920,6 +921,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if sessionImage != nil {
 		sessionImageStr = *sessionImage
 	}
+
 	if sessionTimestamp >= math.MaxInt32 {
 		log.Warnf("attempted to create session with invalid timestamp %d", sessionTimestamp)
 		sessionTimestamp = 0
@@ -986,12 +988,33 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
-	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
-	}
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		c := context.Background()
+		chunkIdx, chunkTs := r.GetSessionChunk(session.ID, sessionTimestamp)
+		log.Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
+		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		if err != nil {
+			log.Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
+		} else {
+			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
+			sessionImage = &sessionImageStr
+			if err := r.DB.Model(&model.SessionComment{}).Where(
+				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
+			).Updates(
+				model.SessionComment{
+					SessionImage: sessionImageStr,
+				},
+			).Error; err != nil {
+				log.Error(e.Wrap(err, fmt.Sprintf("failed to update image for comment %d", sessionComment.ID)))
+			}
+		}
+		if len(taggedAdmins) > 0 && !isGuest {
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+		}
+		if len(taggedSlackUsers) > 0 && !isGuest {
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+		}
+	})
 
 	if len(integrations) > 0 && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 		for _, s := range integrations {
@@ -1468,6 +1491,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeZapier {
+		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1664,7 +1691,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	}
 
 	metricMonitor := &model.MetricMonitor{}
-	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}}).Find(&metricMonitor).Error; err != nil {
+	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}, ProjectID: projectID}).Find(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
@@ -2561,6 +2588,48 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
+	defer span.Finish()
+	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
+	time.Sleep(time.Millisecond * time.Duration(10*rand.Float64()))
+
+	// Any errors are logged but not returned to avoid leaking metadata
+	// to the client (such as whether the project exists
+	// or they have access to send an access request).
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		log.Error(e.Wrap(err, "user is not logged in"))
+		return &model.T, nil
+	}
+
+	var project model.Project
+	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		log.Error(e.Wrap(err, "error querying project"))
+		return &model.T, nil
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.Error(e.Wrap(err, "error querying workspace"))
+		return &model.T, nil
+	}
+
+	var workspaceAdmins []*model.Admin
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+		log.Error(e.Wrap(err, "error getting admins for the workspace"))
+		return &model.T, nil
+	}
+
+	for _, a := range workspaceAdmins[:2] {
+		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+			log.Error(e.Wrap(err, "failed to send request access email"))
+			return &model.T, nil
+		}
+	}
+	return &model.T, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
@@ -2676,9 +2745,10 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	}{}
 	if err := r.DB.Raw(`
 	select SUM(count), to_char(date, 'yyyy-MM') as month 
-	from daily_session_counts 
+	from daily_session_counts_view 
 	where project_id in (select id from projects where projects.workspace_id = ?) 
-	group by month;
+	group by month
+	order by month
 	`, workspaceID).Scan(&queriedMonths).Error; err != nil {
 		return nil, e.Errorf("error retrieving months: %v", err)
 	}
@@ -2689,8 +2759,10 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	}{}
 	if err := r.DB.Raw(`
 	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
-	from daily_session_counts
-	where project_id in (select id from projects where projects.workspace_id = ?) group by date;
+	from daily_session_counts_view
+	where project_id in (select id from projects where projects.workspace_id = ?) 
+	group by date
+	order by date
 	`, workspaceID).Scan(&queriedDays).Error; err != nil {
 		return nil, e.Errorf("error retrieving days: %v", err)
 	}
@@ -2769,7 +2841,7 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 	}
 
 	var sessionIntervals []*model.SessionInterval
-	if res := r.DB.Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
+	if res := r.DB.Order("start_time ASC").Where(&model.SessionInterval{SessionSecureID: sessionSecureID}).Find(&sessionIntervals); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get session intervals")
 	}
 
@@ -2846,118 +2918,6 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	rageClicksSpan.Finish()
 
 	return rageClicks, nil
-}
-
-func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
-	endpointStart := time.Now()
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
-	}
-
-	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, secure_id, project_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
-	countPreamble := `SELECT COUNT(*)`
-
-	queryString := `FROM error_groups `
-
-	queryString += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
-	queryString += "AND (deleted_at IS NULL) "
-
-	if d := params.DateRange; d != nil {
-		queryString += andErrorGroupHasErrorObjectWhere(fmt.Sprintf(
-			"(project_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')",
-			projectID,
-			d.StartDate.Format("2006-01-02 15:04:05"),
-			d.EndDate.Format("2006-01-02 15:04:05"),
-		))
-	}
-
-	if state := params.State; state != nil {
-		queryString += fmt.Sprintf("AND (state = '%s') ", state)
-	}
-
-	if params.Event != nil {
-		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
-	}
-
-	if params.Type != nil {
-		queryString += fmt.Sprintf("AND (type = '%s')", *params.Type)
-	}
-
-	sessionFilters := []string{}
-
-	sessionFilters = append(sessionFilters, "(sessions.excluded <> true)")
-
-	if params.Browser != nil {
-		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
-	}
-
-	if params.Os != nil {
-		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.os_name = '%s')", *params.Os))
-	}
-
-	if params.VisitedURL != nil {
-		sessionFilters = append(sessionFilters, SessionHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "visited-url", *params.VisitedURL)))
-	}
-
-	if len(sessionFilters) > 0 {
-		queryString += andErrorGroupHasSessionsWhere(strings.Join(sessionFilters, " AND "))
-	}
-
-	var g errgroup.Group
-	var queriedErrorGroupsCount int64
-
-	logTags := []string{fmt.Sprintf("project_id:%d", projectID)}
-	g.Go(func() error {
-		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
-		start := time.Now()
-		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
-		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
-			return e.Wrap(err, "error reading from error groups")
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		errorGroupSpan.Finish()
-		return nil
-	})
-
-	g.Go(func() error {
-		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("project_id", projectID))
-		start := time.Now()
-		query := fmt.Sprintf("%s %s", countPreamble, queryString)
-		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
-			return e.Wrap(err, "error counting error groups")
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		errorGroupCountSpan.Finish()
-		return nil
-	})
-
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying error groups data")
-	}
-
-	errorResults := &model.ErrorResults{
-		ErrorGroups: errorGroups,
-		TotalCount:  queriedErrorGroupsCount,
-	}
-	endpointDuration := time.Since(endpointStart)
-	hlog.Timing("gql.errorGroups.duration", endpointDuration, logTags, 1)
-	hlog.Incr("gql.errorGroups.count", logTags, 1)
-	if endpointDuration.Milliseconds() > 3000 {
-		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
-	}
-	return errorResults, nil
 }
 
 func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
@@ -3354,23 +3314,14 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 	return &model.F, nil
 }
 
-func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
-	}
-
-	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
-		Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
-	}
-
-	return &count, nil
-}
-
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
 	}
 
 	var count int64
@@ -3414,6 +3365,11 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	dailySessions := []*model.DailySessionCount{}
 
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
@@ -3429,6 +3385,11 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
 	}
 
 	dailyErrors := []*model.DailyErrorCount{}
@@ -3534,6 +3495,11 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var count int64
 	if err := r.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE project_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", projectID, lookBackPeriod)).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of first time users")
@@ -3620,6 +3586,12 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var length float64
 	if err := r.DB.Raw(`
 		SELECT
@@ -3642,6 +3614,11 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
 	var count int64
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
@@ -3661,187 +3638,6 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	span.Finish()
 
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
-}
-
-func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-	endpointStart := time.Now()
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
-	}
-
-	sessionsQueryPreamble := "SELECT *"
-	joinClause := "FROM sessions"
-
-	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
-	if err != nil {
-		return nil, err
-	}
-
-	whereClause := ` `
-
-	whereClause += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
-	whereClause += "AND (excluded <> true) "
-	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
-	}
-	if starred {
-		whereClause += "AND (starred = true) "
-	}
-	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
-		whereClause += "AND (first_time = true) "
-	}
-	if params.LengthRange != nil {
-		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (active_length >= %f) ", *params.LengthRange.Min*60000)
-		}
-		if params.LengthRange.Max != nil {
-			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (active_length <= %f) ", *params.LengthRange.Max*60000)
-			}
-		}
-	}
-
-	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		whereClause += "AND (processed = true) "
-	} else if lifecycle == modelInputs.SessionLifecycleLive {
-		whereClause += "AND (processed = false) "
-	}
-	whereClause += "AND (deleted_at IS NULL) "
-
-	whereClause += fieldFilters
-	if d := params.DateRange; d != nil {
-		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
-	}
-
-	if os := params.Os; os != nil {
-		whereClause += fmt.Sprintf("AND (os_name = '%s') ", *os)
-	}
-
-	if identified := params.Identified; identified != nil && *identified {
-		whereClause += "AND (length(identifier) > 0) "
-	}
-
-	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false OR viewed IS NULL) "
-	}
-
-	if browser := params.Browser; browser != nil {
-		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
-	}
-
-	if deviceId := params.DeviceID; deviceId != nil {
-		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
-	}
-
-	if environments := params.Environments; len(environments) > 0 {
-		environmentsClause := ""
-
-		for index, environment := range environments {
-			environmentsClause += fmt.Sprintf("environment = '%s'", *environment)
-
-			if index < len(environments)-1 {
-				environmentsClause += " OR "
-			}
-		}
-
-		whereClause += fmt.Sprintf("AND (%s)", environmentsClause)
-	}
-
-	if appVersions := params.AppVersions; len(appVersions) > 0 {
-		appVersionsClause := ""
-
-		for index, appVersion := range appVersions {
-			appVersionsClause += fmt.Sprintf("app_version = '%s'", *appVersion)
-
-			if index < len(appVersions)-1 {
-				appVersionsClause += " OR "
-			}
-		}
-
-		whereClause += fmt.Sprintf("AND (%s)", appVersionsClause)
-	}
-
-	// user shouldn't see sessions that are not within billing quota
-	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
-
-	filterCount := len(params.UserProperties) +
-		len(params.ExcludedProperties) +
-		len(params.TrackProperties) +
-		len(params.ExcludedTrackProperties)
-	if params.Referrer != nil {
-		filterCount += 1
-	}
-	if params.VisitedURL != nil {
-		filterCount += 1
-	}
-
-	var g errgroup.Group
-	queriedSessions := []model.Session{}
-	var queriedSessionsCount int64
-	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND (active_length >= 0 AND active_length < 1000)) OR (active_length IS NULL AND (length >= 0 AND length < 1000))))) "
-	logTags := []string{
-		fmt.Sprintf("project_id:%d", projectID),
-		fmt.Sprintf("filtered:%t", fieldFilters != ""),
-		fmt.Sprintf("filter_count:%d", filterCount)}
-
-	g.Go(func() error {
-		if params.LengthRange != nil {
-			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
-				whereClauseSuffix = "AND processed = true "
-			}
-
-		}
-		whereClause += whereClauseSuffix
-		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("project_id", projectID))
-		start := time.Now()
-		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
-		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions: %s", query)
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		sessionsSpan.Finish()
-		return nil
-	})
-
-	g.Go(func() error {
-		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("project_id", projectID))
-		start := time.Now()
-		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
-		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		sessionCountSpan.Finish()
-		return nil
-	})
-
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data")
-	}
-
-	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions,
-		TotalCount: queriedSessionsCount,
-	}
-
-	endpointDuration := time.Since(endpointStart)
-	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
-	hlog.Incr("gql.sessions.count", logTags, 1)
-	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
-	}
-	return sessionList, nil
 }
 
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model.SessionResults, error) {
@@ -4558,6 +4354,24 @@ func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*mod
 	return ret, nil
 }
 
+func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return "", e.Wrap(err, "error querying project")
+	}
+
+	if project.ZapierAccessToken != nil {
+		return "", e.New("zapier access token already exists, can't generate another jwt")
+	}
+
+	token, err := zapier.GenerateZapierAccessToken(project.ID)
+	if err != nil {
+		return "", e.Wrap(err, "error generating zapier access token")
+	}
+
+	return token, nil
+}
+
 func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType modelInputs.IntegrationType, projectID int) (bool, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
@@ -4574,6 +4388,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.LinearAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeSlack {
 		return workspace.SlackAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeZapier {
+		return project.ZapierAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

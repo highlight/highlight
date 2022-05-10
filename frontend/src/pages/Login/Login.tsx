@@ -96,6 +96,7 @@ enum LoginFormState {
     SignUp,
     /** The user signed up with email/password. We need to block the user from doing anything until they verify their email. */
     VerifyEmail,
+    ResetPassword,
 }
 
 const LoginForm = () => {
@@ -122,23 +123,38 @@ const LoginForm = () => {
         setIsLoadingFirebase(true);
         if (formState === LoginFormState.SignIn) {
             auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    setIsLoadingFirebase(false);
-                })
+                .then(() => {})
                 .catch((error) => {
                     setError(error.toString());
+                })
+                .finally(() => setIsLoadingFirebase(false));
+        } else if (formState === LoginFormState.ResetPassword) {
+            if (!email.length) {
+                message.warning('Please enter your email.');
+                return;
+            }
+            auth.sendPasswordResetEmail(email)
+                .catch(() => {
+                    // swallow error if user does not exist
+                })
+                .finally(() => {
+                    message.success(
+                        'Password reset email sent (if a user exists)!'
+                    );
                     setIsLoadingFirebase(false);
+                    setTimeout(() => {
+                        setFormState(LoginFormState.SignIn);
+                    }, 1000);
                 });
         } else {
             auth.createUserWithEmailAndPassword(email, password)
                 .then(() => {
                     auth.currentUser?.sendEmailVerification();
-                    setIsLoadingFirebase(false);
                 })
                 .catch((error) => {
                     setError(error.toString());
-                    setIsLoadingFirebase(false);
-                });
+                })
+                .finally(() => setIsLoadingFirebase(false));
 
             // Redirect the user to their initial path instead to creating a new workspace.
             // We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
@@ -204,9 +220,16 @@ const LoginForm = () => {
                     <form onSubmit={onSubmit} className={styles.loginForm}>
                         <div className={styles.loginTitleWrapper}>
                             <h2 className={styles.loginTitle}>
-                                Welcome{' '}
-                                {formState === LoginFormState.SignIn && 'back'}{' '}
-                                to Highlight.
+                                {formState === LoginFormState.ResetPassword ? (
+                                    <>Reset your Password.</>
+                                ) : (
+                                    <>
+                                        Welcome{' '}
+                                        {formState === LoginFormState.SignIn &&
+                                            'back'}{' '}
+                                        to Highlight.
+                                    </>
+                                )}
                             </h2>
                             <p className={styles.loginSubTitle}>
                                 {formState === LoginFormState.SignIn ? (
@@ -224,6 +247,24 @@ const LoginForm = () => {
                                         >
                                             Create an account.
                                         </span>
+                                    </>
+                                ) : formState ===
+                                  LoginFormState.ResetPassword ? (
+                                    <>
+                                        Want to{' '}
+                                        <span
+                                            onClick={() => {
+                                                changeState(
+                                                    LoginFormState.SignIn
+                                                );
+                                            }}
+                                            className={
+                                                styles.loginStateSwitcher
+                                            }
+                                        >
+                                            sign in
+                                        </span>{' '}
+                                        again?
                                     </>
                                 ) : (
                                     <>
@@ -248,6 +289,7 @@ const LoginForm = () => {
                             <Input
                                 placeholder={'Email'}
                                 name="email"
+                                type={'email'}
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
@@ -255,16 +297,18 @@ const LoginForm = () => {
                                 autoFocus
                                 required
                             />
-                            <Input
-                                placeholder={'Password'}
-                                type="password"
-                                name="password"
-                                value={password}
-                                onChange={(e) => {
-                                    setPassword(e.target.value);
-                                }}
-                                required
-                            />
+                            {formState !== LoginFormState.ResetPassword && (
+                                <Input
+                                    placeholder={'Password'}
+                                    type="password"
+                                    name="password"
+                                    value={password}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                    }}
+                                    required
+                                />
+                            )}
                             {formState === LoginFormState.SignUp && (
                                 <>
                                     <Input
@@ -287,28 +331,19 @@ const LoginForm = () => {
                                 {error}
                             </div>
                         )}
-                        <p
-                            className={styles.resetPasswordText}
-                            onClick={() => {
-                                if (!email.length) {
-                                    message.warning('Please enter your email.');
-                                    return;
-                                }
-                                auth.sendPasswordResetEmail(email)
-                                    .then(() => {
-                                        message.success(
-                                            'Password reset email sent!'
-                                        );
-                                    })
-                                    .catch((error) => {
-                                        message.error(
-                                            `Failed to send password reset email. ${error}`
-                                        );
-                                    });
-                            }}
-                        >
-                            Forgot password?
-                        </p>
+                        {formState !== LoginFormState.ResetPassword && (
+                            <span
+                                onClick={() => {
+                                    changeState(LoginFormState.ResetPassword);
+                                }}
+                                className={classNames(
+                                    styles.loginStateSwitcher,
+                                    styles.resetPasswordText
+                                )}
+                            >
+                                Forgot your password?
+                            </span>
+                        )}
                         <Button
                             trackingId="LoginSignInUp"
                             className={commonStyles.submitButton}
@@ -318,35 +353,50 @@ const LoginForm = () => {
                         >
                             {formState === LoginFormState.SignIn
                                 ? 'Sign In'
-                                : 'Sign Up'}
+                                : formState === LoginFormState.SignUp
+                                ? 'Sign Up'
+                                : 'Reset Password'}
                         </Button>
                     </form>
-                    <p className={styles.otherSigninText}>
-                        or sign{' '}
-                        {formState === LoginFormState.SignIn ? 'in' : 'up'} with
-                    </p>
-                    <Button
-                        trackingId="LoginWithGoogle"
-                        className={classNames(
-                            commonStyles.secondaryButton,
-                            styles.googleButton
-                        )}
-                        onClick={() => {
-                            auth.signInWithRedirect(googleProvider).catch((e) =>
-                                setFirebaseError(JSON.stringify(e))
-                            );
-                        }}
-                        loading={isLoadingFirebase}
-                    >
-                        <GoogleLogo className={styles.googleLogoStyle} />
-                        <span className={styles.googleText}>
-                            Google Sign{' '}
-                            {formState === LoginFormState.SignIn ? 'In' : 'Up'}
-                        </span>
-                    </Button>
-                    <div className={commonStyles.errorMessage}>
-                        {firebaseError}
-                    </div>
+                    {formState !== LoginFormState.ResetPassword && (
+                        <>
+                            <p className={styles.otherSigninText}>
+                                or sign{' '}
+                                {formState === LoginFormState.SignIn
+                                    ? 'in'
+                                    : 'up'}{' '}
+                                with
+                            </p>
+                            <Button
+                                trackingId="LoginWithGoogle"
+                                className={classNames(
+                                    commonStyles.secondaryButton,
+                                    styles.googleButton
+                                )}
+                                onClick={() => {
+                                    auth.signInWithRedirect(
+                                        googleProvider
+                                    ).catch((e) =>
+                                        setFirebaseError(JSON.stringify(e))
+                                    );
+                                }}
+                                loading={isLoadingFirebase}
+                            >
+                                <GoogleLogo
+                                    className={styles.googleLogoStyle}
+                                />
+                                <span className={styles.googleText}>
+                                    Google Sign{' '}
+                                    {formState === LoginFormState.SignIn
+                                        ? 'In'
+                                        : 'Up'}
+                                </span>
+                            </Button>
+                            <div className={commonStyles.errorMessage}>
+                                {firebaseError}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </Landing>

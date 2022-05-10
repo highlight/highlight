@@ -6,8 +6,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"net/url"
 	"os"
 	"reflect"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -104,6 +105,8 @@ var ContextKeys = struct {
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
+	ZapierToken    contextString
+	ZapierProject  contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -111,6 +114,8 @@ var ContextKeys = struct {
 	UID:            "uid",
 	Email:          "email",
 	AcceptEncoding: "acceptEncoding",
+	ZapierToken:    "parsedToken",
+	ZapierProject:  "project",
 }
 
 var Models = []interface{}{
@@ -228,13 +233,14 @@ type WorkspaceInviteLink struct {
 
 type Project struct {
 	Model
-	Name             *string
-	StripeCustomerID *string
-	StripePriceID    *string
-	BillingEmail     *string
-	Secret           *string    `json:"-"`
-	Admins           []Admin    `gorm:"many2many:project_admins;"`
-	TrialEndDate     *time.Time `json:"trial_end_date"`
+	Name              *string
+	StripeCustomerID  *string
+	StripePriceID     *string
+	ZapierAccessToken *string
+	BillingEmail      *string
+	Secret            *string    `json:"-"`
+	Admins            []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate      *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
@@ -1027,7 +1033,14 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
-		CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_session_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+			END IF;
+		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}

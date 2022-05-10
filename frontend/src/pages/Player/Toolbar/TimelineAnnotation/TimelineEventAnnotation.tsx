@@ -3,7 +3,6 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
-import { TooltipPlacement } from 'antd/lib/tooltip';
 import React, { useState } from 'react';
 
 import Popover from '../../../../components/Popover/Popover';
@@ -16,7 +15,7 @@ import {
 import StreamElementPayload from '../../StreamElement/StreamElementPayload';
 import { TimelineAnnotationColors } from '../Toolbar';
 import styles from '../Toolbar.module.scss';
-import TimelineAnnotation from './TimelineAnnotation';
+import TimelineAnnotation, { getPopoverPlacement } from './TimelineAnnotation';
 import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
@@ -40,17 +39,7 @@ const TimelineEventAnnotation = ({
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     const Icon = getPlayerEventIcon(details.title || '', details.payload);
-
-    let offset = [-10, -10];
-    let placement: TooltipPlacement = 'topLeft';
-    if (relativeStartPercent > 0.67) {
-        offset = [18, -10];
-        placement = 'topRight';
-    } else if (relativeStartPercent > 0.33) {
-        offset = [0, -10];
-        placement = 'top';
-    }
-
+    const { offset, placement } = getPopoverPlacement(relativeStartPercent);
     return (
         <Popover
             align={{

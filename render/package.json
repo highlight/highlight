@@ -1,0 +1,79 @@
+{
+  "name": "render",
+  "version": "0.0.0",
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "build": "tsc --build ./",
+    "single": "DEV=true ts-node -r tsconfig-paths/register ./src",
+    "dev": "DEV=true nodemon",
+    "publish": "zip -r function.zip dist node_modules && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "ts, html",
+    "ignore": [
+      "src/public"
+    ],
+    "exec": "./node_modules/.bin/ts-node -r tsconfig-paths/register ./src"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    ],
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    },
+    "rules": {
+      "max-len": [
+        "error",
+        {
+          "code": 120
+        }
+      ],
+      "no-console": 1,
+      "no-extra-boolean-cast": 0,
+      "@typescript-eslint/restrict-plus-operands": 0,
+      "@typescript-eslint/explicit-module-boundary-types": 0,
+      "@typescript-eslint/no-explicit-any": 0,
+      "@typescript-eslint/no-floating-promises": 0,
+      "@typescript-eslint/no-unsafe-member-access": 0,
+      "@typescript-eslint/no-unsafe-call": 0,
+      "@typescript-eslint/no-unsafe-assignment": 0
+    }
+  },
+  "eslintIgnore": [
+    "src/public/",
+    "build.ts"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.76.0",
+    "@highlight-run/rrweb": "^1.2.0",
+    "@types/aws-lambda": "^8.10.95",
+    "@types/find": "^0.2.1",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^17.0.25",
+    "chrome-aws-lambda": "^10.1.0",
+    "find": "^0.3.0",
+    "fs-extra": "^10.1.0",
+    "puppeteer-core": "^10.1.0",
+    "ts-node": "^10.7.0",
+    "tsconfig-paths": "^3.14.1",
+    "typescript": "^4.6.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "eslint": "^8.13.0",
+    "nodemon": "^2.0.15",
+    "puppeteer": "^13.6.0"
+  },
+  "packageManager": "yarn@3.2.0"
+}

@@ -7,10 +7,12 @@
     display: inline-block;
     width: 130px;
 }
+
 .mentions--singleLine .mentions__highlighter {
     border: 2px inset transparent;
     padding: 1px;
 }
+
 .mentions--singleLine .mentions__input {
     border: 2px inset;
     padding: 1px;
@@ -74,9 +76,19 @@
 }
 
 .mentions__mention {
-    color: var(--color-purple-400);
-    font-weight: 300 !important;
+    color: var(--color-link);
+    font-weight: 400 !important;
     pointer-events: none;
     position: relative;
+    text-shadow: 1px 1px 1px var(--color-white), 1px -1px 1px var(--color-white),
+        -1px 1px 1px var(--color-white), -1px -1px 1px var(--color-white);
     z-index: 1;
+}
+
+.mentionedUser {
+    color: var(--color-link);
+}
+
+.commentText {
+    color: var(--color-gray-500);
 }

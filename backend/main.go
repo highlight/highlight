@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"html/template"
 	"io"
 	"net/http"
@@ -26,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -166,6 +168,11 @@ func main() {
 		log.Fatalf("error creating opensearch client: %v", err)
 	}
 
+	lambda, err := lambda.NewLambdaClient()
+	if err != nil {
+		log.Fatalf("error creating lambda client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -177,6 +184,7 @@ func main() {
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
 		StorageClient:          storage,
+		LambdaClient:           lambda,
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
@@ -209,6 +217,9 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
+		r.Route("/zapier", func(r chi.Router) {
+			zapier.CreateZapierRoutes(r, db)
+		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(slackSigningSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)

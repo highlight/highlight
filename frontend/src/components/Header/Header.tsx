@@ -1,15 +1,18 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
+import { Maybe, PlanType, Project } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import { isProjectWithinTrial } from '@util/billing/billing';
 import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -20,12 +23,6 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
-import {
-    queryBuilderEnabled,
-    useAuthContext,
-} from '../../authentication/AuthContext';
-import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
-import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
@@ -43,8 +40,7 @@ export const Header = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
-    const isQueryBuilder = queryBuilderEnabled(isHighlightAdmin, project_id);
+    const { isLoggedIn } = useAuthContext();
 
     const { showBanner } = useGlobalContext();
     const isWorkspaceLevel = workspace_id !== undefined;
@@ -70,7 +66,7 @@ export const Header = () => {
                         <div className={styles.applicationPickerContainer}>
                             <ApplicationPicker />
 
-                            {!!project_id && isQueryBuilder && (
+                            {!!project_id && (
                                 <div className={styles.quicksearchWrapper}>
                                     <QuickSearch />
                                 </div>
@@ -166,7 +162,8 @@ const FreePlanBanner = () => {
     }
 
     if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-        return <ProductHuntBanner />;
+        toggleShowBanner(false);
+        return null;
     }
 
     if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
@@ -291,7 +288,7 @@ const DemoWorkspaceBanner = () => {
         <div
             className={styles.trialWrapper}
             style={{
-                background: 'var(--color-primary-inverted-background)',
+                background: 'var(--color-green-600)',
             }}
         >
             <div className={classNames(styles.trialTimeText)}>

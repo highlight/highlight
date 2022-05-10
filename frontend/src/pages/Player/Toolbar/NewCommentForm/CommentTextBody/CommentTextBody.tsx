@@ -1,3 +1,5 @@
+import { AdminAvatar } from '@components/Avatar/Avatar';
+import { AdminSuggestion } from '@components/Comment/CommentHeader';
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import SvgSlackLogo from '@components/icons/SlackLogo';
 import { namedOperations } from '@graph/operations';
@@ -8,11 +10,11 @@ import {
 } from '@highlight-run/react-mentions';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useParams } from '@util/react-router/useParams';
+import { splitTaggedUsers } from '@util/string';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
+import Linkify from 'react-linkify';
 
-import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
-import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
 import newCommentFormStyles from '../NewCommentForm.module.scss';
 import commentTextBodyClassNames from './CommentTextBody.module.css';
 import styles from './CommentTextBody.module.scss';
@@ -24,6 +26,8 @@ interface Props {
     suggestions?: AdminSuggestion[];
     onDisplayTransformHandler?: (_id: string, display: string) => string;
     suggestionsPortalHost?: Element;
+
+    newInput?: boolean;
 }
 
 const CommentTextBody = ({
@@ -33,6 +37,8 @@ const CommentTextBody = ({
     suggestions = [],
     onDisplayTransformHandler,
     suggestionsPortalHost,
+
+    newInput,
 }: Props) => {
     const { project_id } = useParams<{
         project_id: string;
@@ -57,6 +63,43 @@ const CommentTextBody = ({
             suggestion.display?.includes('#') ||
             (suggestion.display && suggestion.display[0] == '@')
     );
+
+    if (!newInput) {
+        const pieces = [];
+        for (const { matched, value } of splitTaggedUsers(commentText)) {
+            if (matched) {
+                pieces.push(
+                    <span className={commentTextBodyClassNames.mentionedUser}>
+                        {value}
+                    </span>
+                );
+            } else {
+                pieces.push(
+                    <span className={commentTextBodyClassNames.commentText}>
+                        <Linkify
+                            componentDecorator={(
+                                decoratedHref: string,
+                                decoratedText: string,
+                                key: number
+                            ) => (
+                                <a
+                                    target={'_blank'}
+                                    rel="noreferrer"
+                                    href={decoratedHref}
+                                    key={key}
+                                >
+                                    {decoratedText}
+                                </a>
+                            )}
+                        >
+                            {value}
+                        </Linkify>
+                    </span>
+                );
+            }
+        }
+        return <>{pieces}</>;
+    }
 
     return (
         <MentionsInput
