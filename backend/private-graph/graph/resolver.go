@@ -226,7 +226,8 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 
 	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
-		if *inviteLink.InviteeEmail != *admin.Email {
+		// check case-insensitively because email addresses are case-insensitive.
+		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
 			return nil, e.New("403: This invite is not valid for the admin.")
 		}
 	}
