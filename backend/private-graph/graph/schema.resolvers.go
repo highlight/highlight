@@ -1109,6 +1109,9 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 
 func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+	if isGuest {
+		return nil, e.New("must be logged in to add a comment reply")
+	}
 
 	var sessionComment model.SessionComment
 	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
@@ -1148,13 +1151,10 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
-	if len(taggedAdmins) > 0 && !isGuest {
+	if len(taggedAdmins) > 0 {
 		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
-	}
-	if len(sessionComment.Followers) > 0 && !isGuest {
+	if len(sessionComment.Followers) > 0 {
 		var threadIDs []int
 		for _, thread := range sessionComment.Threads {
 			threadIDs = append(threadIDs, thread.ID)
@@ -1325,8 +1325,13 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+	if isGuest {
+		return nil, e.New("must be logged in to add a comment reply")
+	}
+
 	var errorComment model.ErrorComment
-	if err := r.DB.Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
+	if err := r.DB.Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
@@ -1334,8 +1339,6 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
-
-	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).First(&project).Error; err != nil {
@@ -1366,9 +1369,6 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 	if len(taggedAdmins) > 0 && !isGuest {
 		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
-	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
 		var threadIDs []int

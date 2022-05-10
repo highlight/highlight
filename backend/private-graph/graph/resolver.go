@@ -731,6 +731,8 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 					Channels: []string{*slackUser.WebhookChannelID},
 					File:     uploadedFileKey,
 					Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+					// include the image in the initial comment's thread
+					ThreadTimestamp: respTs,
 				}
 				_, err = slackClient.UploadFile(fileUploadParams)
 
