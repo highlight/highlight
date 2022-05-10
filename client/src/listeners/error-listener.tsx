@@ -18,6 +18,16 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                 res = ErrorStackParser.parse(error);
             } catch {} // @eslint-ignore
             const framesToUse = removeHighlightFrameIfExists(res);
+            const data = JSON.parse(
+                window.localStorage.getItem('vadim-test') || '[]'
+            );
+            data.push([
+                'onerror listener callback',
+                stringify(event),
+                window.location.href,
+                source,
+            ]);
+            window.localStorage.setItem('vadim-test', JSON.stringify(data));
             callback({
                 event: stringify(event),
                 type: 'window.onerror',

@@ -47,11 +47,11 @@ export class FirstLoadListeners {
 
     constructor(options: HighlightClassOptions) {
         this.options = options;
-        this.disableConsoleRecording =
-            // Disable recording the console on localhost.
-            // We're doing this because on some development builds, the console ends up in an infinite loop.
-            window.location.hostname === 'localhost' ||
-            !!options.disableConsoleRecording;
+        this.disableConsoleRecording = false;
+        // Disable recording the console on localhost.
+        // We're doing this because on some development builds, the console ends up in an infinite loop.
+        // window.location.hostname === 'localhost' ||
+        // !!options.disableConsoleRecording;
         this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
             ...ALL_CONSOLE_METHODS,
         ];
@@ -102,6 +102,15 @@ export class FirstLoadListeners {
                                 timestamp: new Date().toISOString(),
                             });
                         } else {
+                            const data = JSON.parse(
+                                window.localStorage.getItem('vadim-test') ||
+                                    '[]'
+                            );
+                            data.push(['MSG', c]);
+                            window.localStorage.setItem(
+                                'vadim-test',
+                                JSON.stringify(data)
+                            );
                             highlightThis.messages.push(c);
                         }
                     },

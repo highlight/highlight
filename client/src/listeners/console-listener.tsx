@@ -74,6 +74,11 @@ export function ConsoleListener(
                 const payload = [
                     stringify(message, logOptions.stringifyOptions),
                 ];
+                const data = JSON.parse(
+                    window.localStorage.getItem('vadim-test') || '[]'
+                );
+                data.push(['window error callback', trace.slice(1), payload]);
+                window.localStorage.setItem('vadim-test', JSON.stringify(data));
                 callback({
                     type: 'Error',
                     trace: trace.slice(1),
@@ -115,6 +120,19 @@ export function ConsoleListener(
                         stringify(s, logOptions.stringifyOptions)
                     );
 
+                    const data = JSON.parse(
+                        window.localStorage.getItem('vadim-test') || '[]'
+                    );
+                    data.push([
+                        'console callback',
+                        level,
+                        trace.slice(1),
+                        payload,
+                    ]);
+                    window.localStorage.setItem(
+                        'vadim-test',
+                        JSON.stringify(data)
+                    );
                     callback({
                         type: level,
                         trace: trace.slice(1),
