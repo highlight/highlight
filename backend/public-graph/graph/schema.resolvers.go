@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/util"
 	"os"
 	"strconv"
 	"strings"
@@ -18,7 +19,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -38,29 +38,29 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	projectID := session.ProjectID
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
-	if !util.IsDevEnv() && err != nil {
-		specifiedSecureID := ""
-		if sessionSecureID != nil {
-			specifiedSecureID = *sessionSecureID
+	if err != nil {
+		log.Error(err)
+		if !util.IsDevEnv() {
+			specifiedSecureID := ""
+			if sessionSecureID != nil {
+				specifiedSecureID = *sessionSecureID
+			}
+			msg := slack.WebhookMessage{Text: fmt.
+				Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nSecure ID: %s\nIs on-prem: %q", err, projectID, organizationVerboseID, specifiedSecureID, os.Getenv("REACT_APP_ONPREM"))}
+			_ = slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		}
-		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nSecure ID: %s\nIs on-prem: %q", err, projectID, organizationVerboseID, specifiedSecureID, os.Getenv("REACT_APP_ONPREM"))}
-		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
-		}
-	}
-
-	ip := ctx.Value(model.ContextKeys.IP).(string)
-	if r.isHighlightSession(session.ID) {
-		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-			Type: kafkaqueue.InitializeSession,
-			InitializeSession: &kafkaqueue.InitializeSessionArgs{
-				SessionID: session.ID,
-				IP:        ip,
-			}}, strconv.Itoa(session.ID))
 	} else {
-		session, err = r.InitializeSessionImplementation(session.ID, ip)
+		ip := ctx.Value(model.ContextKeys.IP).(string)
+		if r.isHighlightSession(session.ID) {
+			err = r.ProducerQueue.Submit(&kafkaqueue.Message{
+				Type: kafkaqueue.InitializeSession,
+				InitializeSession: &kafkaqueue.InitializeSessionArgs{
+					SessionID: session.ID,
+					IP:        ip,
+				}}, strconv.Itoa(session.ID))
+		} else {
+			session, err = r.InitializeSessionImplementation(session.ID, ip)
+		}
 	}
 
 	return session, err
