@@ -1881,12 +1881,3 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 }
-
-func (r *Resolver) isHighlightSession(sessionID int) bool {
-	session := &model.Session{}
-	if err := r.DB.Select("project_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		log.Error(e.Wrap(err, "error querying session by sessionID for highlight check"))
-		return false
-	}
-	return session.ProjectID == 1
-}
