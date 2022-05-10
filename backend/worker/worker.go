@@ -328,9 +328,6 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
 	}
 
-	wp := workerpool.New(1)
-	wp.SetPanicHandler(util.Recover)
-
 	// receive messages and submit them to worker pool for processing
 	for {
 		task := w.KafkaQueue.Receive()
@@ -338,7 +335,10 @@ func (w *Worker) PublicWorker() {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
-		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
+		func() {
+			defer util.Recover()
+			w.processPublicWorkerMessage(task)
+		}()
 	}
 }
 
