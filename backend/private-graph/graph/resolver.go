@@ -146,8 +146,8 @@ func (r *Resolver) formatSanitizedAuthor(admin *model.Admin) *modelInputs.Saniti
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
-	// Allow access to engineering@highlight.run or any verified @highlight.run email.
-	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
+	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
+	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run") || strings.Contains(email, "@runhighlight.com")
 }
 
 func (r *Resolver) isDemoProject(project_id int) bool {
