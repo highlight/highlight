@@ -23,11 +23,13 @@ import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContex
 import { useParams } from '@util/react-router/useParams';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
 import { TimelineAnnotationColors } from '../../Toolbar';
-import styles from '../../Toolbar.module.scss';
+import toolbarStyles from '../../Toolbar.module.scss';
+import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
     sessionIntervals: ParsedSessionInterval[];
@@ -47,7 +49,7 @@ const TimelineIndicatorsBarGraph = React.memo(
             setShowDevTools,
             setSelectedDevToolsTab,
         } = usePlayerConfiguration();
-        const { sessionMetadata } = useReplayerContext();
+        const { sessionMetadata, setTime } = useReplayerContext();
         const { setErrorPanel } = useResourceOrErrorDetailPanel();
         const { session_secure_id } = useParams<{
             session_secure_id: string;
@@ -187,7 +189,7 @@ const TimelineIndicatorsBarGraph = React.memo(
         }
 
         const scale = (zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0);
-        const bucketTimes = [];
+        const bucketTimes: number[] = [];
         for (let i = 0; i <= numberOfBars; i++) {
             const p = i * percentPerBar * scale + (zoomAreaLeft ?? 0);
             bucketTimes.push(getTimeFromPercent(p) ?? 0);
@@ -201,7 +203,12 @@ const TimelineIndicatorsBarGraph = React.memo(
             );
             return (
                 <>
-                    <span className={timelineAnnotationStyles.title}>
+                    <span
+                        className={classNames(
+                            timelineAnnotationStyles.title,
+                            styles.eventTitle
+                        )}
+                    >
                         <span
                             className={timelineAnnotationStyles.iconContainer}
                             style={{
@@ -215,7 +222,13 @@ const TimelineIndicatorsBarGraph = React.memo(
                         </span>
                         {getTimelineEventDisplayName(details.title || '')}
                     </span>
-                    <div key={e.timestamp} className={styles.popoverContent}>
+                    <div
+                        key={e.timestamp}
+                        className={classNames(
+                            toolbarStyles.popoverContent,
+                            styles.eventContent
+                        )}
+                    >
                         <StreamElementPayload
                             payload={
                                 typeof details.payload === 'object'
@@ -235,9 +248,9 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         const displayError = (e: ParsedErrorObject) => {
             return (
-                <div className={styles.popoverContent}>
+                <div className={toolbarStyles.popoverContent}>
                     {e.source}
-                    <div className={styles.buttonContainer}>
+                    <div className={toolbarStyles.buttonContainer}>
                         <GoToButton
                             onClick={() => {
                                 setShowDevTools(true);
@@ -253,7 +266,7 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         const displayComment = (c: ParsedSessionComment) => {
             return (
-                <div className={styles.popoverContent}>
+                <div className={toolbarStyles.popoverContent}>
                     <SessionComment comment={c} />
                 </div>
             );
@@ -263,7 +276,12 @@ const TimelineIndicatorsBarGraph = React.memo(
             const Icon = getPlayerEventIcon(eventType);
             return (
                 <>
-                    <div className={timelineAnnotationStyles.title}>
+                    <div
+                        className={classNames(
+                            timelineAnnotationStyles.title,
+                            styles.eventTitle
+                        )}
+                    >
                         <span
                             className={timelineAnnotationStyles.iconContainer}
                             style={{
@@ -303,7 +321,11 @@ const TimelineIndicatorsBarGraph = React.memo(
                     }
                 }
             }
-            return labels;
+            if (labels.length === 0) {
+                return null;
+            } else {
+                return <div>{labels}</div>;
+            }
         };
 
         const timeFormatter = (t: number) =>
@@ -330,6 +352,9 @@ const TimelineIndicatorsBarGraph = React.memo(
                             (right * percentPerBar + percentPerBar) +
                             (zoomAreaLeft ?? 0)
                     );
+                }}
+                onBucketClicked={(bucketIndex) => {
+                    setTime(bucketTimes[bucketIndex]);
                 }}
                 seriesList={series}
                 timeFormatter={timeFormatter}

@@ -1,0 +1,9 @@
+.eventTitle {
+    margin-top: var(--size-small);
+}
+
+.eventContent {
+    max-height: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

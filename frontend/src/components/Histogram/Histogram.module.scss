@@ -58,9 +58,7 @@
     overflow: hidden;
     overflow-wrap: anywhere;
     overflow-y: auto;
-    padding-bottom: var(--size-xSmall);
     text-overflow: ellipsis;
-    width: 240px;
 }
 
 @keyframes enter {
@@ -74,10 +72,7 @@
 }
 
 .title {
-    align-items: center;
     column-gap: var(--size-xSmall);
     display: flex;
     font-weight: 700;
-    justify-content: center;
-    margin-bottom: var(--size-small);
 }
