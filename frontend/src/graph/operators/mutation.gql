@@ -1182,3 +1182,7 @@ mutation SyncSlackIntegration($project_id: ID!) {
 mutation RequestAccess($project_id: ID!) {
     requestAccess(project_id: $project_id)
 }
+
+mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+    modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
+}

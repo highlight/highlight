@@ -1,6 +1,7 @@
 export const avatarWrapper: string;
 export const blurred: string;
 export const deviceDetails: string;
+export const enableClearbit: string;
 export const enhancedAvatar: string;
 export const enhancedBio: string;
 export const enhancedLinksGrid: string;

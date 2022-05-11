@@ -2638,6 +2638,18 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	return &model.T, nil
 }
 
+func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
+	}
+	workspace.ClearbitEnabled = enabled
+	if err := r.DB.Model(workspace).Update("ClearbitEnabled", &enabled).Error; err != nil {
+		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
+	}
+	return &enabled, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
@@ -3009,6 +3021,9 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	w, err := r.isAdminInWorkspace(ctx, p.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not workspace owner")
+	}
+	if !w.ClearbitEnabled {
+		return nil, nil
 	}
 	pt := modelInputs.PlanType(w.PlanTier)
 	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {

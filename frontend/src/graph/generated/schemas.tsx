@@ -249,6 +249,7 @@ export type Workspace = {
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
+    plan_tier: Scalars['String'];
     trial_end_date?: Maybe<Scalars['Timestamp']>;
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
@@ -256,6 +257,7 @@ export type Workspace = {
     allowed_auto_join_email_origins?: Maybe<Scalars['String']>;
     eligible_for_trial_extension: Scalars['Boolean'];
     trial_extension_enabled: Scalars['Boolean'];
+    clearbit_enabled: Scalars['Boolean'];
 };
 
 export type Segment = {
@@ -1263,6 +1265,7 @@ export type Mutation = {
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
     requestAccess?: Maybe<Scalars['Boolean']>;
+    modifyClearbitIntegration?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1732,6 +1735,11 @@ export type MutationSubmitRegistrationFormArgs = {
 
 export type MutationRequestAccessArgs = {
     project_id: Scalars['ID'];
+};
+
+export type MutationModifyClearbitIntegrationArgs = {
+    workspace_id: Scalars['ID'];
+    enabled: Scalars['Boolean'];
 };
 
 export type Subscription = {

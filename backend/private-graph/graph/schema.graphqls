@@ -218,6 +218,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    plan_tier: String!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -225,6 +226,7 @@ type Workspace {
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
     trial_extension_enabled: Boolean!
+    clearbit_enabled: Boolean!
 }
 
 type Segment {
@@ -1206,6 +1208,10 @@ type Mutation {
     ): Boolean
     requestAccess(
         project_id: ID!
+    ): Boolean
+    modifyClearbitIntegration(
+        workspace_id: ID!
+        enabled: Boolean!
     ): Boolean
 }
 
