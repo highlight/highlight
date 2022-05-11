@@ -65,91 +65,85 @@ const TimelineIndicatorsMemoized = React.memo(
                     className={classNames(styles.container)}
                     ref={refContainer}
                 >
-                    {sessionIntervals.map((sessionInterval, index) => {
-                        return (
-                            <div
-                                key={`${sessionInterval.startPercent}-${index}`}
-                                className={classNames(styles.sessionInterval, {
-                                    [styles.active]: sessionInterval.active,
-                                })}
-                                style={{
-                                    left: `${
-                                        sessionInterval.startPercent * 100
-                                    }%`,
-                                    width: `${
-                                        (sessionInterval.endPercent -
-                                            sessionInterval.startPercent) *
-                                        100
-                                    }%`,
-                                }}
-                            >
-                                {sessionInterval.sessionEvents.map((event) => {
+                    {sessionIntervals.map((sessionInterval, index) => (
+                        <div
+                            key={`${sessionInterval.startPercent}-${index}`}
+                            className={classNames(styles.sessionInterval, {
+                                [styles.active]: sessionInterval.active,
+                            })}
+                            style={{
+                                left: `${sessionInterval.startPercent * 100}%`,
+                                width: `${
+                                    (sessionInterval.endPercent -
+                                        sessionInterval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {sessionInterval.sessionEvents.map((event) => {
+                                return (
+                                    <TimelineEventAnnotation
+                                        event={event}
+                                        startTime={startTime}
+                                        relativeStartPercent={getRelativeStart(
+                                            sessionInterval,
+                                            event.timestamp
+                                        )}
+                                        selectedTimelineAnnotationTypes={
+                                            selectedTimelineAnnotationTypes
+                                        }
+                                        pause={pause}
+                                        key={`${event.timestamp}-${event.identifier}`}
+                                        activeEvent={activeEvent}
+                                    />
+                                );
+                            })}
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Errors'
+                            ) &&
+                                sessionInterval.errors.map((error) => (
+                                    <TimelineErrorAnnotation
+                                        error={error}
+                                        key={`${error.timestamp}-${error.id}}`}
+                                        relativeStartPercent={getRelativeStart(
+                                            sessionInterval,
+                                            new Date(error.timestamp).getTime()
+                                        )}
+                                    />
+                                ))}
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Comments'
+                            ) &&
+                                sessionInterval.comments.map((comment) => {
                                     return (
-                                        <TimelineEventAnnotation
-                                            event={event}
-                                            startTime={startTime}
+                                        <TimelineCommentAnnotation
+                                            comment={comment}
+                                            key={comment.id}
                                             relativeStartPercent={getRelativeStart(
                                                 sessionInterval,
-                                                event.timestamp
+                                                startTime +
+                                                    (comment.timestamp || 0)
                                             )}
-                                            selectedTimelineAnnotationTypes={
-                                                selectedTimelineAnnotationTypes
-                                            }
-                                            pause={pause}
-                                            key={`${event.timestamp}-${event.identifier}`}
-                                            activeEvent={activeEvent}
                                         />
                                     );
                                 })}
-                                {selectedTimelineAnnotationTypes.includes(
-                                    'Errors'
-                                ) &&
-                                    sessionInterval.errors.map((error) => (
-                                        <TimelineErrorAnnotation
-                                            error={error}
-                                            key={`${error.timestamp}-${error.id}}`}
-                                            relativeStartPercent={getRelativeStart(
-                                                sessionInterval,
-                                                new Date(
-                                                    error.timestamp
-                                                ).getTime()
-                                            )}
+                            {selectedTimelineAnnotationTypes.includes(
+                                'Click'
+                            ) &&
+                                rageClicks
+                                    .filter(
+                                        (rageClick) =>
+                                            rageClick.sessionIntervalIndex ===
+                                            index
+                                    )
+                                    .map((rageClick) => (
+                                        <RageClickSpan
+                                            rageClick={rageClick}
+                                            key={rageClick.startTimestamp}
                                         />
                                     ))}
-                                {selectedTimelineAnnotationTypes.includes(
-                                    'Comments'
-                                ) &&
-                                    sessionInterval.comments.map((comment) => {
-                                        return (
-                                            <TimelineCommentAnnotation
-                                                comment={comment}
-                                                key={comment.id}
-                                                relativeStartPercent={getRelativeStart(
-                                                    sessionInterval,
-                                                    startTime +
-                                                        (comment.timestamp || 0)
-                                                )}
-                                            />
-                                        );
-                                    })}
-                                {selectedTimelineAnnotationTypes.includes(
-                                    'Click'
-                                ) &&
-                                    rageClicks
-                                        .filter(
-                                            (rageClick) =>
-                                                rageClick.sessionIntervalIndex ===
-                                                index
-                                        )
-                                        .map((rageClick) => (
-                                            <RageClickSpan
-                                                rageClick={rageClick}
-                                                key={rageClick.startTimestamp}
-                                            />
-                                        ))}
-                            </div>
-                        );
-                    })}
+                        </div>
+                    ))}
                 </aside>
             </AnimatePresence>
         );
