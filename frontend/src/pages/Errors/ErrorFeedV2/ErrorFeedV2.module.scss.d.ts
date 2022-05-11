@@ -7,6 +7,7 @@ export const errorTextSection: string;
 export const errorTextSectionWrapper: string;
 export const errorTextWrapper: string;
 export const feedContent: string;
+export const feedItems: string;
 export const feedWrapper: string;
 export const fixedContent: string;
 export const hasScrolled: string;

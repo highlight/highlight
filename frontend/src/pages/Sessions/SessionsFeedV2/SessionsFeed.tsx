@@ -2,7 +2,20 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import {
+    PAGE_SIZE,
+    Pagination,
+    STARTING_PAGE,
+} from '@components/Pagination/Pagination';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '@components/Tooltip/Tooltip';
+import {
+    useGetBillingDetailsForProjectQuery,
+    useGetSessionsOpenSearchQuery,
+} from '@graph/hooks';
+import { GetSessionsOpenSearchQuery } from '@graph/operations';
+import { PlanType } from '@graph/schemas';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
@@ -15,46 +28,36 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
+import _ from 'lodash';
 import React, {
-    RefObject,
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
-import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
 
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import {
-    useGetBillingDetailsForProjectQuery,
-    useGetSessionsOpenSearchQuery,
-} from '../../../graph/generated/hooks';
-import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
+    SearchParams,
     showLiveSessions,
     useSearchContext,
 } from '../SearchContext/SearchContext';
-import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-// const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
-
 export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
-    const { project_id, segment_id, session_secure_id } = useParams<{
+    const { project_id, session_secure_id } = useParams<{
         project_id: string;
-        segment_id: string;
         session_secure_id: string;
     }>();
     const sessionFeedConfiguration = useSessionFeedConfiguration();
-    const [count, setCount] = useState(10);
     const {
         autoPlaySessions,
         setAutoPlaySessions,
@@ -67,6 +70,7 @@ export const SessionFeed = React.memo(() => {
         setSessionFeedIsInTopScrollPosition,
     ] = useState(true);
 
+    const totalPages = useRef<number>(0);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const {
@@ -74,8 +78,13 @@ export const SessionFeed = React.memo(() => {
         showStarredSessions,
         setSearchParams,
         searchQuery,
+        page,
+        setPage,
     } = useSearchContext();
     const { integrated } = useIntegrated();
+    const previousSearchParams = useRef<SearchParams>(
+        EmptySessionsSearchParams
+    );
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
@@ -97,19 +106,31 @@ export const SessionFeed = React.memo(() => {
     const unprocessedSessionsCount: number | undefined =
         unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount;
 
-    const { loading, fetchMore, called } = useGetSessionsOpenSearchQuery({
+    const addSessions = (response: GetSessionsOpenSearchQuery) => {
+        if (response?.sessions_opensearch) {
+            setSessionResults((prev) => ({
+                ...response.sessions_opensearch,
+                totalCount: Math.max(
+                    prev.totalCount,
+                    response.sessions_opensearch.totalCount
+                ),
+            }));
+            totalPages.current = Math.floor(
+                response?.sessions_opensearch.totalCount / PAGE_SIZE
+            );
+        }
+        setShowLoadingSkeleton(false);
+    };
+
+    const { loading, called } = useGetSessionsOpenSearchQuery({
         variables: {
             query: searchQuery,
-            count: count + 10,
+            count: PAGE_SIZE,
+            page: page,
             project_id,
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
-        onCompleted: (response) => {
-            if (response?.sessions_opensearch) {
-                setSessionResults(response.sessions_opensearch);
-            }
-            setShowLoadingSkeleton(false);
-        },
+        onCompleted: addSessions,
         skip: !searchQuery,
     });
 
@@ -119,7 +140,22 @@ export const SessionFeed = React.memo(() => {
         }
         // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams]);
+    }, [searchParams, page]);
+
+    useEffect(() => {
+        // we just loaded the page for the first time
+        if (
+            _.isEqual(previousSearchParams.current, EmptySessionsSearchParams)
+        ) {
+            previousSearchParams.current = searchParams;
+        } else if (!_.isEqual(previousSearchParams.current, searchParams)) {
+            // the search query actually changed, reset the page
+            setPage(STARTING_PAGE);
+            previousSearchParams.current = searchParams;
+        }
+        // only if the search params change, not the previous search params
+        // eslint-disable-next-line
+    }, [searchParams, setPage]);
 
     const enableLiveSessions = useCallback(() => {
         if (!searchParams.query) {
@@ -174,29 +210,6 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
     ]);
 
-    const infiniteRef = useInfiniteScroll({
-        checkInterval: 1200, // frequency to check (1.2s)
-        loading,
-        hasNextPage: sessionResults.sessions.length < sessionResults.totalCount,
-        scrollContainer: 'parent',
-        onLoadMore: () => {
-            setCount((previousCount) => previousCount + 10);
-            fetchMore({
-                variables: {
-                    params: searchParams,
-                    count,
-                    project_id,
-                    processed:
-                        segment_id === LIVE_SEGMENT_ID
-                            ? SessionLifecycle.Live
-                            : searchParams.show_live_sessions
-                            ? SessionLifecycle.Live
-                            : SessionLifecycle.Completed,
-                },
-            });
-        },
-    });
-
     const filteredSessions = useMemo(() => {
         if (loading) {
             return sessionResults.sessions;
@@ -235,8 +248,8 @@ export const SessionFeed = React.memo(() => {
                                             sessionResults.totalCount,
                                             sessionFeedConfiguration.countFormat
                                         )}`}
-                                    />{' '}
-                                    {`sessions `}
+                                    />
+                                    {' sessions'}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -286,15 +299,12 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
-            <div
-                className={classNames(styles.feedContent, {
-                    [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
-                })}
-                onScroll={onFeedScrollListener}
-            >
+            <div className={styles.feedContent}>
                 <div
-                    ref={infiniteRef as RefObject<HTMLDivElement>}
                     onScroll={onFeedScrollListener}
+                    className={classNames(styles.feedItems, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
                 >
                     {showLoadingSkeleton ? (
                         <Skeleton
@@ -330,6 +340,9 @@ export const SessionFeed = React.memo(() => {
                                                 session_secure_id ===
                                                 u?.secure_id
                                             }
+                                            urlParams={`?page=${
+                                                page || STARTING_PAGE
+                                            }`}
                                             autoPlaySessions={autoPlaySessions}
                                             showDetailedSessionView={
                                                 showDetailedSessionView
@@ -344,19 +357,14 @@ export const SessionFeed = React.memo(() => {
                                     ))}
                                 </>
                             )}
-                            {sessionResults.sessions.length <
-                                sessionResults.totalCount && (
-                                <Skeleton
-                                    height={74}
-                                    style={{
-                                        borderRadius: 8,
-                                        marginBottom: 24,
-                                    }}
-                                />
-                            )}
                         </>
                     )}
                 </div>
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    totalPages={totalPages}
+                />
             </div>
         </SessionFeedConfigurationContextProvider>
     );

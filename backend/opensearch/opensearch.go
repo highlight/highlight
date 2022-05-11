@@ -68,6 +68,7 @@ type Client struct {
 
 type SearchOptions struct {
 	MaxResults    *int
+	ResultsFrom   *int
 	SortField     *string
 	SortOrder     *string
 	ReturnCount   *bool
@@ -318,6 +319,11 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		count = *options.MaxResults
 	}
 
+	from := 0
+	if options.ResultsFrom != nil {
+		from = *options.ResultsFrom
+	}
+
 	excludesStr := ""
 	for _, e := range options.ExcludeFields {
 		if excludesStr != "" {
@@ -328,8 +334,8 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	}
 
 	content := strings.NewReader(
-		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "query": %s%s, "track_total_hits": %s}`,
-			excludesStr, count, q, sort, trackTotalHits))
+		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s}`,
+			excludesStr, count, from, q, sort, trackTotalHits))
 
 	searchIndexes := []string{}
 	for _, index := range indexes {

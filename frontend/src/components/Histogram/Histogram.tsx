@@ -43,6 +43,7 @@ const Histogram = ({
     const [dragEnd, setDragEnd] = useState<number | undefined>();
     const [tooltipHidden, setTooltipHidden] = useState(true);
     const [tooltipWantHidden, setTooltipWantHidden] = useState(true);
+
     let dragLeft: number | undefined;
     let dragRight: number | undefined;
     if (dragStart !== undefined && dragEnd !== undefined) {

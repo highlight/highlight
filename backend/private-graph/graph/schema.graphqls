@@ -719,6 +719,7 @@ type Query {
         project_id: ID!
         count: Int!
         query: String!
+        page: Int
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -737,6 +738,7 @@ type Query {
     workspace_admins_by_project_id(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     isBackendIntegrated(project_id: ID!): Boolean
+    unprocessedSessionsCount(project_id: ID!): Int64
     liveUsersCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
     projectHasViewedASession(project_id: ID!): Session
@@ -774,6 +776,7 @@ type Query {
         count: Int!
         query: String!
         sort_desc: Boolean!
+        page: Int
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(

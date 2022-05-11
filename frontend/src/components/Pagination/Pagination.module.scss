@@ -1,0 +1,30 @@
+.pageButtonsRow {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    margin-top: var(--size-medium);
+    padding-bottom: var(--size-large);
+    width: 100%;
+}
+
+.pageButtonsContainer {
+    display: grid;
+    gap: var(--size-xSmall);
+    grid-template-columns: 1fr 1fr;
+    width: auto;
+}
+
+.container {
+    align-self: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn {
+    align-content: center;
+    align-self: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}

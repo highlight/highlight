@@ -9,7 +9,10 @@ import {
     ProgressBarTableRowGroup,
     ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
+import { useGetTopUsersQuery } from '@graph/hooks';
 import SvgClockIcon from '@icons/ClockIcon';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -20,9 +23,6 @@ import { useHistory } from 'react-router-dom';
 import Input from '../../../../components/Input/Input';
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
-import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
@@ -49,6 +49,7 @@ const ActiveUsersTable = () => {
 
     const { loading } = useGetTopUsersQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },
+        fetchPolicy: 'no-cache',
         onCompleted: (data) => {
             if (data.topUsers) {
                 const transformedData = data.topUsers

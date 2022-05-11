@@ -178,6 +178,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
         [admin, mentionSuggestionsData, mentionedAdmins]
     );
 
+    if (admin === undefined) {
+        return null;
+    }
+
     return (
         <Form
             name="newComment"

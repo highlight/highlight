@@ -1009,10 +1009,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
-			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
 		}
 	})
 
@@ -1109,9 +1109,12 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 
 func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+	if isGuest {
+		return nil, e.New("must be logged in to add a comment reply")
+	}
 
 	var sessionComment model.SessionComment
-	if err := r.DB.Preload("Followers").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1148,14 +1151,15 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
-	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+	if len(taggedAdmins) > 0 {
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
-	}
-	if len(sessionComment.Followers) > 0 && !isGuest {
-		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+	if len(sessionComment.Followers) > 0 {
+		var threadIDs []int
+		for _, thread := range sessionComment.Threads {
+			threadIDs = append(threadIDs, thread.ID)
+		}
+		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
@@ -1223,10 +1227,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1321,8 +1325,13 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
+	if isGuest {
+		return nil, e.New("must be logged in to add a comment reply")
+	}
+
 	var errorComment model.ErrorComment
-	if err := r.DB.Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
+	if err := r.DB.Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
@@ -1330,8 +1339,6 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
-
-	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).First(&project).Error; err != nil {
@@ -1361,13 +1368,14 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
-	}
-	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
-		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, textForEmail, viewLink, nil, "replied to", "error")
+		var threadIDs []int
+		for _, thread := range errorComment.Threads {
+			threadIDs = append(threadIDs, thread.ID)
+		}
+		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, nil, "replied to", "error")
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, errorComment.Followers)
@@ -2920,7 +2928,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	return rageClicks, nil
 }
 
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -2933,6 +2941,10 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		SortOrder:     ptr.String("desc"),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+	}
+	if page != nil {
+		// page param is 1 indexed
+		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
 
 	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
@@ -2990,6 +3002,19 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	p, err := r.isAdminInProject(ctx, s.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not project owner")
+	}
+	w, err := r.isAdminInWorkspace(ctx, p.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not workspace owner")
+	}
+	pt := modelInputs.PlanType(w.PlanTier)
+	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+		return nil, nil
+	}
+	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
 	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
@@ -3312,6 +3337,25 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 		return &model.T, nil
 	}
 	return &model.F, nil
+}
+
+func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
+	var count int64
+	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
+		Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
 }
 
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
@@ -3640,7 +3684,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3659,6 +3703,10 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+	}
+	if page != nil {
+		// page param is 1 indexed
+		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
 	q := fmt.Sprintf(`
 	{"bool": {
