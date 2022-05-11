@@ -3008,7 +3008,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	}
 	pt := modelInputs.PlanType(w.PlanTier)
 	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
-		return nil, fmt.Errorf("%s tier does not include enhanced user details. Click here to see upgrade options", pt)
+		return nil, nil
 	}
 	// preload `Fields` children
 	sessionObj := &model.Session{}

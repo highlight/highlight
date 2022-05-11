@@ -160,11 +160,16 @@ export const UserDetailsBox = React.memo(() => {
         project_id: string;
         session_secure_id: string;
     }>();
-    const { data, error, loading } = useGetEnhancedUserDetailsQuery({
+    const { data, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
+        fetchPolicy: 'no-cache',
     });
 
-    if (error) {
+    if (loading) {
+        return null;
+    }
+
+    if (!data?.enhanced_user_details) {
         return (
             <Tooltip
                 mouseEnterDelay={0.3}
@@ -174,7 +179,8 @@ export const UserDetailsBox = React.memo(() => {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        {error.message}
+                        Workspace tier does not include enhanced user details.
+                        Click here to see upgrade options
                     </a>
                 }
             >
@@ -207,7 +213,7 @@ export const UserDetailsBox = React.memo(() => {
         );
     }
 
-    if (!loading && !hasEnrichedData(data)) {
+    if (!hasEnrichedData(data)) {
         return null;
     }
 
