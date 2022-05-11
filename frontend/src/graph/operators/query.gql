@@ -1160,6 +1160,11 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
         integration_type: Linear
         project_id: $project_id
     )
+    linear_teams(project_id: $project_id) {
+        team_id
+        name
+        key
+    }
 }
 
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {

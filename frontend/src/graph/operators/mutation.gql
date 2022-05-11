@@ -233,6 +233,7 @@ mutation CreateSessionComment(
     $tags: [SessionCommentTagInput]!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createSessionComment(
@@ -252,6 +253,7 @@ mutation CreateSessionComment(
         tags: $tags
         integrations: $integrations
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
     ) {
         id
@@ -284,6 +286,7 @@ mutation CreateIssueForSessionComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createIssueForSessionComment(
@@ -295,6 +298,7 @@ mutation CreateIssueForSessionComment(
         time: $time
         issue_title: $issue_title
         issue_description: $issue_description
+        issue_team_id: $issue_team_id
         integrations: $integrations
     ) {
         id
@@ -362,6 +366,7 @@ mutation CreateErrorComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createErrorComment(
@@ -375,6 +380,7 @@ mutation CreateErrorComment(
         author_name: $author_name
         integrations: $integrations
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
     ) {
         id
@@ -396,6 +402,7 @@ mutation CreateIssueForErrorComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createIssueForErrorComment(
@@ -405,6 +412,7 @@ mutation CreateIssueForErrorComment(
         author_name: $author_name
         text_for_attachment: $text_for_attachment
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
         integrations: $integrations
     ) {

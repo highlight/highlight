@@ -156,6 +156,13 @@ export type EnhancedUserDetailsResult = {
     email?: Maybe<Scalars['String']>;
 };
 
+export type LinearTeam = {
+    __typename?: 'LinearTeam';
+    team_id: Scalars['String'];
+    name: Scalars['String'];
+    key: Scalars['String'];
+};
+
 export type SocialLink = {
     __typename?: 'SocialLink';
     type: SocialType;
@@ -774,7 +781,6 @@ export type Query = {
     timeline_indicator_events: Array<TimelineIndicatorEvent>;
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
-    error_groups?: Maybe<ErrorResults>;
     error_groups_opensearch: ErrorResults;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -806,7 +812,6 @@ export type Query = {
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
-    sessions: SessionResults;
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
@@ -837,6 +842,7 @@ export type Query = {
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     generate_zapier_access_token: Scalars['String'];
     is_integrated_with: Scalars['Boolean'];
+    linear_teams?: Maybe<Array<LinearTeam>>;
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
     workspace_invite_links: WorkspaceInviteLink;
@@ -881,12 +887,6 @@ export type QueryRage_ClicksArgs = {
 export type QueryRageClicksForProjectArgs = {
     project_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
-};
-
-export type QueryError_GroupsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    params?: Maybe<ErrorSearchParamsInput>;
 };
 
 export type QueryError_Groups_OpensearchArgs = {
@@ -1018,14 +1018,6 @@ export type QueryUserFingerprintCountArgs = {
     lookBackPeriod: Scalars['Int'];
 };
 
-export type QuerySessionsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    lifecycle: SessionLifecycle;
-    starred: Scalars['Boolean'];
-    params?: Maybe<SearchParamsInput>;
-};
-
 export type QuerySessions_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
@@ -1147,6 +1139,10 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 
 export type QueryIs_Integrated_WithArgs = {
     integration_type: IntegrationType;
+    project_id: Scalars['ID'];
+};
+
+export type QueryLinear_TeamsArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -1428,6 +1424,7 @@ export type MutationCreateSessionCommentArgs = {
     session_image?: Maybe<Scalars['String']>;
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
     tags: Array<Maybe<SessionCommentTagInput>>;
 };
@@ -1441,6 +1438,7 @@ export type MutationCreateIssueForSessionCommentArgs = {
     time: Scalars['Float'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 
@@ -1468,6 +1466,7 @@ export type MutationCreateErrorCommentArgs = {
     author_name: Scalars['String'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 
@@ -1479,6 +1478,7 @@ export type MutationCreateIssueForErrorCommentArgs = {
     text_for_attachment: Scalars['String'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 

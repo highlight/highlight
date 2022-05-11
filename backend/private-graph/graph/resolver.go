@@ -1458,7 +1458,9 @@ type LinearTeamsResponse struct {
 	Data struct {
 		Teams struct {
 			Nodes []struct {
-				ID string `json:"id"`
+				ID   string `json:"id"`
+				Name string `json:"name"`
+				Key  string `json:"key"`
 			} `json:"nodes"`
 		} `json:"teams"`
 	} `json:"data"`
@@ -1470,6 +1472,8 @@ func (r *Resolver) GetLinearTeams(accessToken string) (*LinearTeamsResponse, err
 		teams {
 			nodes {
 				id
+				name
+				key
 			}
 		}
 	}
@@ -1614,19 +1618,23 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 	return createAttachmentRes, nil
 }
 
-func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string) error {
-	teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
-	if err != nil {
-		return err
+func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, _teamId *string) error {
+	teamId := _teamId
+
+	if teamId == nil {
+		teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+		if err != nil {
+			return err
+		}
+
+		if len(teamRes.Data.Teams.Nodes) <= 0 {
+			return e.New("no teams to make a linear issue to")
+		}
+
+		teamId = &teamRes.Data.Teams.Nodes[0].ID
 	}
 
-	if len(teamRes.Data.Teams.Nodes) <= 0 {
-		return e.New("no teams to make a linear issue to")
-	}
-
-	teamId := teamRes.Data.Teams.Nodes[0].ID
-
-	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, teamId, issueTitle, issueDescription)
+	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err
 	}

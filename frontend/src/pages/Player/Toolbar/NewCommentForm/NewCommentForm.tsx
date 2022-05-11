@@ -32,6 +32,7 @@ import INTEGRATIONS, {
 } from '@pages/IntegrationsPage/Integrations';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
+import useLocalStorage from '@rehooks/local-storage';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -99,6 +100,11 @@ export const NewCommentForm = ({
         selectedIssueService,
         setSelectedIssueService,
     ] = useState<IntegrationType>();
+
+    const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
+        'highlight-linear-default-team',
+        ''
+    );
 
     const integrationMap = useMemo(() => {
         const ret: { [key: string]: Integration } = {};
@@ -178,6 +184,7 @@ export const NewCommentForm = ({
                         ? [selectedIssueService]
                         : [],
                     issue_title: selectedIssueService ? issueTitle : null,
+                    issue_team_id: selectedlinearTeamId,
                     issue_description: selectedIssueService
                         ? issueDescription
                         : null,
@@ -240,6 +247,7 @@ export const NewCommentForm = ({
                     time: commentTime / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     tags: getTags(tags, commentTagsData),
+                    issue_team_id: selectedlinearTeamId,
                     integrations: selectedIssueService
                         ? [selectedIssueService]
                         : [],
@@ -382,7 +390,7 @@ export const NewCommentForm = ({
         [admin, adminSuggestions]
     );
 
-    const { isLinearIntegratedWithProject } = useLinearIntegration();
+    const { isLinearIntegratedWithProject, teams } = useLinearIntegration();
 
     const issueIntegrationsOptions = useMemo(() => {
         const integrations = [];
@@ -403,6 +411,20 @@ export const NewCommentForm = ({
         }
         return integrations;
     }, [isLinearIntegratedWithProject, integrationMap]);
+
+    const linearTeamsOptions = useMemo(() => {
+        return (
+            teams?.map((team) => ({
+                value: team.team_id,
+                id: team.team_id,
+                displayValue: (
+                    <>
+                        {team.name} ({team.key})
+                    </>
+                ),
+            })) || []
+        );
+    }, [teams]);
 
     useEffect(() => {
         const idx = modalHeader?.toLowerCase().indexOf('issue') || -1;
@@ -492,6 +514,23 @@ export const NewCommentForm = ({
                             />
                             Create a new {issueServiceDetail?.name} issue
                         </h3>
+                        {/* TODO make this work with other issue providers (when added) */}
+                        <Form.Item label={`${issueServiceDetail?.name} Team`}>
+                            <Select
+                                aria-label={`${issueServiceDetail?.name} Team`}
+                                defaultActiveFirstOption
+                                placeholder={
+                                    'Choose a team to create the issue in'
+                                }
+                                options={linearTeamsOptions}
+                                onChange={setLinearTeamId}
+                                value={
+                                    selectedlinearTeamId ||
+                                    linearTeamsOptions[0].id
+                                }
+                                notFoundContent={<p>No teams found</p>}
+                            />
+                        </Form.Item>
                         <Form.Item
                             name="issueTitle"
                             initialValue={defaultIssueTitle}
