@@ -119,33 +119,30 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         );
 
-        // If a left and right zoom areas are defined, filter the events
-        // and map to a new relativeIntervalPercentage (since the window size has shrunk)
-        if (zoomAreaLeft !== undefined && zoomAreaRight !== undefined) {
-            const filterAndMap = <
-                T extends { relativeIntervalPercentage?: number }
-            >(
-                events: T[]
-            ): T[] =>
-                events
-                    .filter(
-                        (e) =>
-                            e.relativeIntervalPercentage !== undefined &&
-                            e.relativeIntervalPercentage >= zoomAreaLeft &&
-                            e.relativeIntervalPercentage <= zoomAreaRight
-                    )
-                    .map((e) => ({
-                        ...e,
-                        relativeIntervalPercentage:
-                            ((e.relativeIntervalPercentage! - zoomAreaLeft) /
-                                (zoomAreaRight - zoomAreaLeft)) *
-                            100,
-                    }));
+        // Filter the events and map to a new relativeIntervalPercentage (since the window size has shrunk)
+        const filterAndMap = <
+            T extends { relativeIntervalPercentage?: number }
+        >(
+            events: T[]
+        ): T[] =>
+            events
+                .filter(
+                    (e) =>
+                        e.relativeIntervalPercentage !== undefined &&
+                        e.relativeIntervalPercentage >= zoomAreaLeft &&
+                        e.relativeIntervalPercentage <= zoomAreaRight
+                )
+                .map((e) => ({
+                    ...e,
+                    relativeIntervalPercentage:
+                        ((e.relativeIntervalPercentage! - zoomAreaLeft) /
+                            (zoomAreaRight - zoomAreaLeft)) *
+                        100,
+                }));
 
-            combined.errors = filterAndMap(combined.errors);
-            combined.sessionEvents = filterAndMap(combined.sessionEvents);
-            combined.comments = filterAndMap(combined.comments);
-        }
+        combined.errors = filterAndMap(combined.errors);
+        combined.sessionEvents = filterAndMap(combined.sessionEvents);
+        combined.comments = filterAndMap(combined.comments);
 
         const getTimeFromPercent = (percent: number): number | undefined => {
             for (const interval of sessionIntervals) {
@@ -167,9 +164,6 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         };
 
-        // const zoomTimeLeft = getTimeFromPercent(zoomAreaLeft ?? 0);
-        // const zoomTimeRight = getTimeFromPercent(zoomAreaRight ?? 0);
-
         const chartData = getEventsInTimeBucket(
             combined,
             selectedTimelineAnnotationTypes,
@@ -188,10 +182,10 @@ const TimelineIndicatorsBarGraph = React.memo(
             }
         }
 
-        const scale = (zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0);
+        const scale = zoomAreaRight - zoomAreaLeft;
         const bucketTimes: number[] = [];
         for (let i = 0; i <= numberOfBars; i++) {
-            const p = i * percentPerBar * scale + (zoomAreaLeft ?? 0);
+            const p = i * percentPerBar * scale + zoomAreaLeft;
             bucketTimes.push(getTimeFromPercent(p) ?? 0);
         }
 
@@ -316,7 +310,13 @@ const TimelineIndicatorsBarGraph = React.memo(
                         } else if (e === 'Comments') {
                             labels.push(bucket.comments.map(displayComment));
                         } else {
-                            labels.push(bucket.events.map(displayEvent));
+                            labels.push(
+                                bucket.events
+                                    .filter(
+                                        (event: any) => event.data.tag === e
+                                    )
+                                    .map(displayEvent)
+                            );
                         }
                     }
                 }
@@ -342,15 +342,13 @@ const TimelineIndicatorsBarGraph = React.memo(
                 endTime={combined.endTime}
                 onAreaChanged={(left, right) => {
                     setZoomAreaLeft(
-                        ((zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0)) *
-                            left *
-                            percentPerBar +
+                        (zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
                             (zoomAreaLeft ?? 0)
                     );
                     setZoomAreaRight(
-                        ((zoomAreaRight ?? 100) - (zoomAreaLeft ?? 0)) *
+                        (zoomAreaRight - zoomAreaLeft) *
                             (right * percentPerBar + percentPerBar) +
-                            (zoomAreaLeft ?? 0)
+                            zoomAreaLeft
                     );
                 }}
                 onBucketClicked={(bucketIndex) => {

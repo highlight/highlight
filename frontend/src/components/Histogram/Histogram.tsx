@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -14,6 +14,10 @@ interface Series {
     color: string; // Color as a css var e.g. --color-green-300
     counts: number[];
 }
+
+// interface TooltipProps {}
+
+const POPOVER_TIMEOUT_MS = 1000;
 
 interface Props {
     startTime: number;
@@ -37,6 +41,8 @@ const Histogram = ({
 }: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
+    const [tooltipHidden, setTooltipHidden] = useState(true);
+    const [tooltipWantHidden, setTooltipWantHidden] = useState(true);
     let dragLeft: number | undefined;
     let dragRight: number | undefined;
     if (dragStart !== undefined && dragEnd !== undefined) {
@@ -66,34 +72,59 @@ const Histogram = ({
         }
     }
 
-    const getTooltipContent = (val: any) => {
+    useEffect(() => {
+        // Return if we don't want the tooltip to be hidden or it's already hidden
+        // Any existing timeout will be cleared
+        if (!tooltipWantHidden || tooltipHidden) {
+            return;
+        }
+
+        const id = setTimeout(() => setTooltipHidden(true), POPOVER_TIMEOUT_MS);
+
+        return () => {
+            clearTimeout(id);
+        };
+    }, [tooltipHidden, tooltipWantHidden]);
+
+    const CustomTooltip = ({ label }: any) => {
+        let inner;
         if (dragLeft !== undefined && dragRight !== undefined) {
             const leftTime = timeFormatter(bucketStartTimes[dragLeft]);
             const rightTime = timeFormatter(bucketEndTimes[dragRight]);
-            return (
-                <div className={styles.tooltipPopover}>
-                    <div className={styles.popoverContent}>
-                        <div className={styles.title}>
-                            {leftTime}
-                            {dragLeft !== dragRight && ` to ${rightTime}`}
-                        </div>
-                    </div>
+            inner = (
+                <div className={styles.title}>
+                    {leftTime}
+                    {dragLeft !== dragRight && ` to ${rightTime}`}
                 </div>
             );
         } else {
-            const leftTime = timeFormatter(bucketStartTimes[val.label]);
-            const rightTime = timeFormatter(bucketEndTimes[val.label]);
-            return (
-                <div className={styles.tooltipPopover}>
-                    <div className={styles.popoverContent}>
-                        <div className={styles.title}>
-                            {`${leftTime} to ${rightTime}`}
-                        </div>
-                        {tooltipContent(val.label)}
+            const leftTime = timeFormatter(bucketStartTimes[label]);
+            const rightTime = timeFormatter(bucketEndTimes[label]);
+            inner = (
+                <>
+                    <div className={styles.title}>
+                        {`${leftTime} to ${rightTime}`}
                     </div>
-                </div>
+                    <div className={styles.popoverContent}>
+                        {tooltipContent(label)}
+                    </div>
+                </>
             );
         }
+        return (
+            <div
+                className={styles.tooltipPopover}
+                onMouseOver={() => {
+                    setTooltipHidden(false);
+                    setTooltipWantHidden(false);
+                }}
+                onMouseLeave={() => {
+                    setTooltipWantHidden(true);
+                }}
+            >
+                {inner}
+            </div>
+        );
     };
 
     return (
@@ -121,6 +152,8 @@ const Histogram = ({
                                 if (!e) {
                                     return;
                                 }
+                                setTooltipHidden(false);
+                                setTooltipWantHidden(false);
                                 if (dragStart !== undefined) {
                                     setDragEnd(e.activeLabel);
                                 }
@@ -142,16 +175,26 @@ const Histogram = ({
                             onMouseLeave={() => {
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
+                                setTooltipWantHidden(true);
+                            }}
+                            onMouseEnter={() => {
+                                setTooltipHidden(false);
+                                setTooltipWantHidden(false);
                             }}
                         >
                             <Tooltip
-                                content={getTooltipContent}
+                                content={<CustomTooltip />}
                                 wrapperStyle={{
                                     bottom: '100%',
                                     top: 'none',
                                     position: 'absolute',
                                     zIndex: 100,
                                     overflow: 'auto',
+                                    visibility: tooltipHidden
+                                        ? 'hidden'
+                                        : 'visible',
+                                    scale: tooltipHidden ? 0 : 1,
+                                    pointerEvents: 'inherit',
                                 }}
                                 allowEscapeViewBox={{
                                     x: false,
