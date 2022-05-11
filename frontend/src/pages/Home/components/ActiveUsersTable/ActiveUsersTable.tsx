@@ -49,7 +49,7 @@ const ActiveUsersTable = () => {
 
     const { loading } = useGetTopUsersQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
         onCompleted: (data) => {
             if (data.topUsers) {
                 const transformedData = data.topUsers
