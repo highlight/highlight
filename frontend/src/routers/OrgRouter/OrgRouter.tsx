@@ -32,6 +32,7 @@ import {
     ArrayParam,
     BooleanParam,
     JsonParam,
+    NumberParam,
     StringParam,
     useQueryParam,
     useQueryParams,
@@ -140,6 +141,8 @@ export const ProjectRouter = () => {
     );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
+    const [page, setPage] = useState<number>();
+
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
@@ -181,6 +184,10 @@ export const ProjectRouter = () => {
         'segment',
         JsonParam
     );
+
+    const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+        page: NumberParam,
+    });
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -232,8 +239,22 @@ export const ProjectRouter = () => {
     }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
 
     useEffect(() => {
+        if (page !== undefined) {
+            setPaginationToUrlParams(
+                {
+                    page: page,
+                },
+                'replaceIn'
+            );
+        }
+    }, [setPaginationToUrlParams, page]);
+
+    useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
             setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+            setPage(paginationToUrlParams.page);
         }
         // We only want to run this on mount (i.e. when the page first loads).
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,6 +324,8 @@ export const ProjectRouter = () => {
                         setQueryBuilderInput,
                         isQuickSearchOpen,
                         setIsQuickSearchOpen,
+                        page,
+                        setPage,
                     }}
                 >
                     <Header />

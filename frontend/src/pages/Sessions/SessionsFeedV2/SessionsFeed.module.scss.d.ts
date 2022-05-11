@@ -9,6 +9,7 @@ export const emptyStateWrapper: string;
 export const emptySubTitle: string;
 export const emptyTitle: string;
 export const feedContent: string;
+export const feedItems: string;
 export const feedWrapper: string;
 export const fixedContent: string;
 export const hasScrolled: string;
