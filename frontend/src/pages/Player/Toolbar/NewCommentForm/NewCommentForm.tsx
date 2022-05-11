@@ -514,7 +514,12 @@ export const NewCommentForm = ({
                             />
                             Create a new {issueServiceDetail?.name} issue
                         </h3>
-                        {/* TODO make this work with other issue providers (when added) */}
+                        {/* 
+                            TODO: make this work with other issue providers (when added)
+                            Since Linear is the only issue integration we have right now, 
+                            this works fine. But, different issue providers will have different ideas
+                            of what teams are so there should be different select dropdowns for those. 
+                        */}
                         <Form.Item label={`${issueServiceDetail?.name} Team`}>
                             <Select
                                 aria-label={`${issueServiceDetail?.name} Team`}
