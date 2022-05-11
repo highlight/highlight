@@ -774,7 +774,6 @@ export type Query = {
     timeline_indicator_events: Array<TimelineIndicatorEvent>;
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
-    error_groups?: Maybe<ErrorResults>;
     error_groups_opensearch: ErrorResults;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -806,7 +805,6 @@ export type Query = {
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
-    sessions: SessionResults;
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
@@ -881,12 +879,6 @@ export type QueryRage_ClicksArgs = {
 export type QueryRageClicksForProjectArgs = {
     project_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
-};
-
-export type QueryError_GroupsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    params?: Maybe<ErrorSearchParamsInput>;
 };
 
 export type QueryError_Groups_OpensearchArgs = {
@@ -1016,14 +1008,6 @@ export type QueryAverageSessionLengthArgs = {
 export type QueryUserFingerprintCountArgs = {
     project_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
-};
-
-export type QuerySessionsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    lifecycle: SessionLifecycle;
-    starred: Scalars['Boolean'];
-    params?: Maybe<SearchParamsInput>;
 };
 
 export type QuerySessions_OpensearchArgs = {

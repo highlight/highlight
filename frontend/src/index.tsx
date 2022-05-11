@@ -39,11 +39,15 @@ import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
+let commitSHA = process.env.REACT_APP_COMMIT_SHA || 'dev';
+if (commitSHA.length > 8) {
+    commitSHA = commitSHA.substring(0, 8);
+}
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
-    version: `${packageJson['version']}-${process.env.REACT_APP_CODE_REV}`,
+    version: `${packageJson['version']}-${commitSHA}`,
     networkRecording: {
         enabled: true,
         recordHeadersAndBody: true,
