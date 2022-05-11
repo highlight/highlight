@@ -2162,6 +2162,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
+    page?: Types.Maybe<Types.Scalars['Int']>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2217,6 +2218,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     query: Types.Scalars['String'];
+    page?: Types.Maybe<Types.Scalars['Int']>;
 }>;
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {

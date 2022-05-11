@@ -527,12 +527,14 @@ query GetSessionsOpenSearch(
     $count: Int!
     $query: String!
     $sort_desc: Boolean!
+    $page: Int
 ) {
     sessions_opensearch(
         project_id: $project_id
         count: $count
         query: $query
         sort_desc: $sort_desc
+        page: $page
     ) {
         sessions {
             id
@@ -575,11 +577,13 @@ query GetErrorGroupsOpenSearch(
     $project_id: ID!
     $count: Int!
     $query: String!
+    $page: Int
 ) {
     error_groups_opensearch(
         project_id: $project_id
         count: $count
         query: $query
+        page: $page
     ) {
         error_groups {
             created_at

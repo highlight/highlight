@@ -885,6 +885,7 @@ export type QueryError_Groups_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     query: Scalars['String'];
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QueryError_GroupArgs = {
@@ -1015,6 +1016,7 @@ export type QuerySessions_OpensearchArgs = {
     count: Scalars['Int'];
     query: Scalars['String'];
     sort_desc: Scalars['Boolean'];
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QueryField_TypesArgs = {
