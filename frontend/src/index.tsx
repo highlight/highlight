@@ -43,7 +43,7 @@ const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
-    version: packageJson['version'],
+    version: `${packageJson['version']}-${process.env.REACT_APP_CODE_REV}`,
     networkRecording: {
         enabled: true,
         recordHeadersAndBody: true,
