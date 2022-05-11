@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -14,8 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/lambda"
 
 	"github.com/pkg/errors"
 
