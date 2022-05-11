@@ -3335,6 +3335,25 @@ func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) 
 	return &model.F, nil
 }
 
+func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	// If demo project, load stats for project_id 1
+	if projectID == 0 {
+		projectID = 1
+	}
+
+	var count int64
+	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
+		Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
+}
+
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
