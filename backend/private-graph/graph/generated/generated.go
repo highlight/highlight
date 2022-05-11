@@ -446,7 +446,7 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string) int
+		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
@@ -487,7 +487,7 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
-		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool) int
+		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
@@ -884,7 +884,7 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string) (*model1.ErrorResults, error)
+	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -915,7 +915,7 @@ type QueryResolver interface {
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
-	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool) (*model1.SessionResults, error)
+	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model1.SessionResults, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
@@ -3411,7 +3411,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string)), true
+		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int)), true
 
 	case "Query.error_segments":
 		if e.complexity.Query.ErrorSegments == nil {
@@ -3888,7 +3888,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool)), true
+		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["page"].(*int)), true
 
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
@@ -6168,6 +6168,7 @@ type Query {
         project_id: ID!
         count: Int!
         query: String!
+        page: Int
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -6224,6 +6225,7 @@ type Query {
         count: Int!
         query: String!
         sort_desc: Boolean!
+        page: Int
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
@@ -10030,6 +10032,15 @@ func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context
 		}
 	}
 	args["query"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg3
 	return args, nil
 }
 
@@ -10789,6 +10800,15 @@ func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Con
 		}
 	}
 	args["sort_desc"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg4
 	return args, nil
 }
 
@@ -20636,7 +20656,7 @@ func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string))
+		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21882,7 +21902,7 @@ func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool))
+		return ec.resolvers.Query().SessionsOpensearch(rctx, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["page"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
