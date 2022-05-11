@@ -49,7 +49,4 @@ export const toolbarSection: string;
 export const undoSection: string;
 export const verticalDivider: string;
 export const zoomArea: string;
-<<<<<<< HEAD
 export const zoomAreaCanReset: string;
-=======
->>>>>>> 6064dd89dc543a80b7dbf5c73ea393d0cf7df0cd
