@@ -2,7 +2,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -28,138 +27,6 @@ func TestMain(m *testing.M) {
 	}
 	code := m.Run()
 	os.Exit(code)
-}
-
-func validateSessionResult(actual model.Session, expected model.Session) error {
-	if actual.ActiveLength != expected.ActiveLength {
-		return e.New(fmt.Sprintf("Actual ActiveLength %d doesn't match expected ActiveLength %d", actual.ActiveLength, expected.ActiveLength))
-	}
-	if actual.ProjectID != expected.ProjectID {
-		return e.New(fmt.Sprintf("Actual ProjectID %d doesn't match expected ProjectID %d", actual.ProjectID, expected.ProjectID))
-	}
-	if actual.Viewed != expected.Viewed && *actual.Viewed != *expected.Viewed {
-		return e.New(fmt.Sprintf("Actual Viewed %t doesn't match expected Viewed %t", *actual.Viewed, *expected.Viewed))
-	}
-	if actual.FirstTime != expected.FirstTime && *actual.FirstTime != *expected.FirstTime {
-		return e.New(fmt.Sprintf("Actual FirstTime %t doesn't match expected FirstTime %t", *actual.FirstTime, *expected.FirstTime))
-	}
-	return nil
-}
-
-func TestHideViewedSessions(t *testing.T) {
-	// construct table of sub-tests to run
-	tests := map[string]struct {
-		hideViewed       *bool // hide viewed?
-		expectedCount    int64
-		expectedSessions []model.Session
-		sessionsToInsert []model.Session
-	}{
-		"Don't hide viewed sessions": {hideViewed: &model.F, expectedCount: 3,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
-		},
-		"Hide viewed sessions": {hideViewed: &model.T, expectedCount: 2,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
-		},
-		"Don't hide single viewed sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
-			},
-		},
-		"Hide single viewed sessions": {hideViewed: &model.T, expectedCount: 0,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
-			},
-			expectedSessions: []model.Session{},
-		},
-		"Don't hide single un-viewed sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Hide single un-viewed sessions": {hideViewed: &model.T, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Don't hide single viewed=nil sessions": {hideViewed: &model.F, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
-			},
-		},
-		"Hide single viewed=nil sessions": {hideViewed: &model.T, expectedCount: 1,
-			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
-			},
-			expectedSessions: []model.Session{
-				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
-			},
-		},
-	}
-	// run tests
-	for name, tc := range tests {
-		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
-			// inserting the data
-			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error inserting sessions"))
-			}
-			fieldsToInsert := []model.Field{
-				{
-					Type:      "session",
-					ProjectID: 1,
-					Sessions:  tc.sessionsToInsert,
-				},
-			}
-			if err := DB.Create(&fieldsToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error inserting sessions"))
-			}
-
-			// test logic
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
-			params := &modelInputs.SearchParamsInput{HideViewed: tc.hideViewed}
-			sessions, err := r.Sessions(context.Background(), 1, 3, modelInputs.SessionLifecycleAll, false, params)
-			if err != nil {
-				t.Fatal(e.Wrap(err, "error querying sessions"))
-			}
-			if sessions.TotalCount != tc.expectedCount {
-				t.Fatal("received session count and expected session count not equal")
-			}
-			for i, s := range sessions.Sessions {
-				err = validateSessionResult(s, tc.expectedSessions[i])
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error matching actual and expected session"))
-				}
-			}
-		})
-	}
 }
 
 func TestResolver_GetSessionChunk(t *testing.T) {
@@ -203,4 +70,70 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 			t.Fatalf("received incorrect chunk ts %d", chunkTs)
 		}
 	})
+}
+
+// ensure that invite link email is checked case-insensitively with admin email
+func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
+	tests := map[string]struct {
+		adminEmail    string
+		inviteEmail   string
+		errorExpected bool
+	}{
+		"same email same case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "foo@bar.com",
+			errorExpected: false,
+		},
+		"same email different case": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "fOO@Bar.com",
+			errorExpected: false,
+		},
+		"different email": {
+			adminEmail:    "foo@bar.com",
+			inviteEmail:   "f00@bar.com",
+			errorExpected: true,
+		},
+	}
+	for testName, v := range tests {
+		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+			// inserting the data
+			admin := model.Admin{
+				UID:           ptr.String("a1b2c3"),
+				Name:          ptr.String("adm1"),
+				PhotoURL:      ptr.String("asdf"),
+				EmailVerified: ptr.Bool(true),
+				Email:         ptr.String(v.adminEmail),
+			}
+			if err := DB.Create(&admin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting admin"))
+			}
+			workspace := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+			inviteLink := model.WorkspaceInviteLink{
+				WorkspaceID:  &workspace.ID,
+				InviteeEmail: ptr.String(v.inviteEmail),
+				Secret:       ptr.String(testName),
+			}
+			if err := DB.Create(&inviteLink).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting invite link"))
+			}
+
+			// test logic
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+			r := &mutationResolver{Resolver: &Resolver{DB: DB}}
+			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
+			if v.errorExpected != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
+			}
+			if err == nil && *workspaceID != workspace.ID {
+				t.Fatalf("received invalid workspace ID %d", workspaceID)
+			}
+		})
+	}
 }

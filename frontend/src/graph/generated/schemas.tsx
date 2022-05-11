@@ -774,7 +774,6 @@ export type Query = {
     timeline_indicator_events: Array<TimelineIndicatorEvent>;
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
-    error_groups?: Maybe<ErrorResults>;
     error_groups_opensearch: ErrorResults;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -806,7 +805,6 @@ export type Query = {
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
-    sessions: SessionResults;
     sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
@@ -883,16 +881,11 @@ export type QueryRageClicksForProjectArgs = {
     lookBackPeriod: Scalars['Int'];
 };
 
-export type QueryError_GroupsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    params?: Maybe<ErrorSearchParamsInput>;
-};
-
 export type QueryError_Groups_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     query: Scalars['String'];
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QueryError_GroupArgs = {
@@ -1018,19 +1011,12 @@ export type QueryUserFingerprintCountArgs = {
     lookBackPeriod: Scalars['Int'];
 };
 
-export type QuerySessionsArgs = {
-    project_id: Scalars['ID'];
-    count: Scalars['Int'];
-    lifecycle: SessionLifecycle;
-    starred: Scalars['Boolean'];
-    params?: Maybe<SearchParamsInput>;
-};
-
 export type QuerySessions_OpensearchArgs = {
     project_id: Scalars['ID'];
     count: Scalars['Int'];
     query: Scalars['String'];
     sort_desc: Scalars['Boolean'];
+    page?: Maybe<Scalars['Int']>;
 };
 
 export type QueryField_TypesArgs = {
@@ -1276,6 +1262,7 @@ export type Mutation = {
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
+    requestAccess?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1741,6 +1728,10 @@ export type MutationSubmitRegistrationFormArgs = {
     use_case: Scalars['String'];
     heard_about: Scalars['String'];
     pun?: Maybe<Scalars['String']>;
+};
+
+export type MutationRequestAccessArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type Subscription = {

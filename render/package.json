@@ -55,7 +55,7 @@
   ],
   "dependencies": {
     "@aws-sdk/client-s3": "^3.76.0",
-    "@highlight-run/rrweb": "^1.2.0",
+    "@highlight-run/rrweb": "^1.2.1",
     "@types/aws-lambda": "^8.10.95",
     "@types/find": "^0.2.1",
     "@types/fs-extra": "^9.0.13",

@@ -105,6 +105,8 @@ var ContextKeys = struct {
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
+	ZapierToken    contextString
+	ZapierProject  contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -112,6 +114,8 @@ var ContextKeys = struct {
 	UID:            "uid",
 	Email:          "email",
 	AcceptEncoding: "acceptEncoding",
+	ZapierToken:    "parsedToken",
+	ZapierProject:  "project",
 }
 
 var Models = []interface{}{
@@ -138,6 +142,7 @@ var Models = []interface{}{
 	&ErrorComment{},
 	&CommentReply{},
 	&CommentFollower{},
+	&CommentSlackThread{},
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
@@ -824,6 +829,7 @@ type SessionComment struct {
 	Attachments     []*ExternalAttachment `gorm:"foreignKey:SessionCommentID"`
 	Replies         []*CommentReply       `gorm:"foreignKey:SessionCommentID"`
 	Followers       []*CommentFollower    `gorm:"foreignKey:SessionCommentID"`
+	Threads         []*CommentSlackThread `gorm:"foreignKey:SessionCommentID"`
 }
 
 type ErrorComment struct {
@@ -838,6 +844,7 @@ type ErrorComment struct {
 	Attachments    []*ExternalAttachment `gorm:"foreignKey:ErrorCommentID"`
 	Replies        []*CommentReply       `gorm:"foreignKey:ErrorCommentID"`
 	Followers      []*CommentFollower    `gorm:"foreignKey:ErrorCommentID"`
+	Threads        []*CommentSlackThread `gorm:"foreignKey:ErrorCommentID"`
 }
 
 type CommentReply struct {
@@ -858,6 +865,15 @@ type CommentFollower struct {
 	AdminId          int
 	SlackChannelName string
 	SlackChannelID   string
+}
+
+type CommentSlackThread struct {
+	Model
+	SessionCommentID int `gorm:"index"`
+	ErrorCommentID   int `gorm:"index"`
+
+	SlackChannelID string
+	ThreadTS       string
 }
 
 type SessionInterval struct {
@@ -1029,7 +1045,14 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
-		CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_session_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+			END IF;
+		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}

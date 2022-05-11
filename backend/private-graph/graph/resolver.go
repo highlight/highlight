@@ -145,8 +145,8 @@ func (r *Resolver) formatSanitizedAuthor(admin *model.Admin) *modelInputs.Saniti
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
-	// Allow access to engineering@highlight.run or any verified @highlight.run email.
-	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
+	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
+	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run") || strings.Contains(email, "@runhighlight.com")
 }
 
 func (r *Resolver) isDemoProject(project_id int) bool {
@@ -225,7 +225,8 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 
 	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
-		if *inviteLink.InviteeEmail != *admin.Email {
+		// check case-insensitively because email addresses are case-insensitive.
+		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
 			return nil, e.New("403: This invite is not valid for the admin.")
 		}
 	}
@@ -558,106 +559,6 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
-	if params.VisitedURL != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
-	}
-
-	if params.Referrer != nil {
-		whereClause += andSessionHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
-	}
-
-	inclusiveFilters := []string{}
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
-	if len(inclusiveFilters) > 0 {
-		whereClause += andSessionHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
-	}
-
-	exclusiveFilters := []string{}
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
-	if len(exclusiveFilters) > 0 {
-		whereClause += andSessionDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
-	}
-
-	return whereClause, nil
-}
-
-func andSessionHasFieldsWhere(fieldConditions string) string {
-	return "AND " + SessionHasFieldsWhere(fieldConditions)
-}
-
-func SessionHasFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andSessionDoesNotHaveFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND NOT EXISTS (
-		SELECT 1
-		FROM session_fields
-		JOIN fields
-		ON session_fields.field_id = fields.id
-		WHERE session_fields.session_id = sessions.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasSessionsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		JOIN sessions
-		ON error_objects.session_id = sessions.id
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasErrorObjectWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-// Takes a list of user search inputs, and converts them into a list of SQL filters
-// propertyType: 'user' or 'track'
-func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, propertyType string) []string {
-	sqlFilters := []string{}
-	for _, prop := range userPropertyInputs {
-		if prop.Name == "contains" {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
-		} else {
-			sqlFilters = append(sqlFilters, fmt.Sprintf("(fields.id = %d)", *prop.ID))
-		}
-	}
-	return sqlFilters
-}
-
 func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
@@ -691,24 +592,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	return nil
 }
 
-func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *model.Admin, adminIds []int, viewLink, commentText, action string, subjectScope string) error {
-	// this is needed for posting DMs
-	// if nil, user simply hasn't signed up for notifications, so return nil
-	if workspace.SlackAccessToken == nil {
-		return nil
-	}
-
-	var admins []*model.Admin
-	if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
-		return e.Wrap(err, "error fetching admins")
-	}
-	// return early if no admins w/ slack_im_channel_id
-	if len(admins) < 1 {
-		return nil
-	}
-
-	var blockSet slack.Blocks
-
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string) (blockSet slack.Blocks) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
@@ -735,92 +619,56 @@ func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *mod
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
 		slack.NewSectionBlock(
-			nil,
-			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, slack.NewAccessory(button),
 		),
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+	return
+}
+
+func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
+	if workspace.SlackAccessToken == nil {
+		return nil
+	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	for _, a := range admins {
-		if a.SlackIMChannelID != nil {
-			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
-			if err != nil {
-				return e.Wrap(err, "error posting slack message")
-			}
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	for _, threadID := range threadIDs {
+		thread := &model.CommentSlackThread{}
+		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
+			return e.Wrap(err, "error querying slack thread")
+		}
+		opts := []slack.MsgOption{
+			slack.MsgOptionBlocks(blocks.BlockSet...),
+			slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+			slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
+			slack.MsgOptionTS(thread.ThreadTS),
+		}
+		_, _, err := slackClient.PostMessage(thread.SlackChannelID, opts...)
+		if err != nil {
+			log.Error(err)
 		}
 	}
-
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
 		return nil
 	}
-
-	var blockSet slack.Blocks
-	determiner := "a"
-	if subjectScope == "error" {
-		determiner = "an"
-	}
-	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
-	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
-	}
-	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
-	}
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
-
-	button := slack.NewButtonBlockElement(
-		"",
-		"click",
-		slack.NewTextBlockObject(
-			slack.PlainTextType,
-			"View Thread",
-			false,
-			false,
-		),
-	)
-	button.URL = viewLink
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			nil,
-			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
-		),
-	)
-
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	for _, slackUser := range taggedSlackUsers {
-		if slackUser.WebhookChannelID != nil {
-			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
-			if err != nil {
-				log.Error(e.Wrap(err, "failed to join slack channel"))
-			}
-			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
-				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any links that are in the Slack message.*/)
-			if err != nil {
-				return e.Wrap(err, "error posting slack message via slack bot")
-			}
-		}
-	}
 
-	// Upload the screenshot to the user's Slack workspace.
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+
+	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
 	// If we upload the image somewhere public, anyone with the link to the image will have access. The image could contain sensitive information.
 	// By uploading to the user's Slack workspace, we limit the authorization of the image to only Slack members of the user's workspace.
 	var uploadedFileKey string
 	if base64Image != nil {
-		var channels []string
-		for _, slackUser := range taggedSlackUsers {
-			channels = append(channels, *slackUser.WebhookChannelID)
-		}
-
 		// This key will be used as the file name for the file written to disk.
 		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
 		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", workspace.ID, admin.ID, time.Now().UnixNano())
@@ -844,28 +692,59 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 		if err := f.Sync(); err != nil {
 			log.Error("Failed to sync file on disk")
 		}
+	}
 
-		// We need to write the base64 image to disk, read the file, then upload it to Slack.
-		// We can't send Slack a base64 string.
-		fileUploadParams := slack.FileUploadParameters{
-			Filetype: "image/png",
-			Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
-			// These are the channels that will have access to the uploaded file.
-			Channels: channels,
-			File:     uploadedFileKey,
-			Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
-		}
-		_, err = slackClient.UploadFile(fileUploadParams)
-
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to upload file to Slack"))
-		}
-
-		if uploadedFileKey != "" {
-			if err := os.Remove(uploadedFileKey); err != nil {
-				log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
-
+	for _, slackUser := range taggedSlackUsers {
+		if slackUser.WebhookChannelID != nil {
+			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
+			if err != nil {
+				log.Warn(e.Wrap(err, "failed to join slack channel"))
 			}
+			opts := []slack.MsgOption{
+				slack.MsgOptionBlocks(blocks.BlockSet...),
+				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
+			}
+			_, respTs, err := slackClient.PostMessage(*slackUser.WebhookChannelID, opts...)
+
+			if err != nil {
+				log.Error(e.Wrap(err, "error posting slack message via slack bot"))
+			} else {
+				thread := &model.CommentSlackThread{
+					SlackChannelID: *slackUser.WebhookChannelID,
+					ThreadTS:       respTs,
+				}
+				if sessionCommentID != nil {
+					thread.SessionCommentID = *sessionCommentID
+				} else if errorCommentID != nil {
+					thread.ErrorCommentID = *errorCommentID
+				}
+				r.DB.Create(thread)
+			}
+			if uploadedFileKey != "" {
+				// We need to write the base64 image to disk, read the file, then upload it to Slack.
+				// We can't send Slack a base64 string.
+				fileUploadParams := slack.FileUploadParameters{
+					Filetype: "image/png",
+					Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
+					// These are the channels that will have access to the uploaded file.
+					Channels: []string{*slackUser.WebhookChannelID},
+					File:     uploadedFileKey,
+					Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+					// include the image in the initial comment's thread
+					ThreadTimestamp: respTs,
+				}
+				_, err = slackClient.UploadFile(fileUploadParams)
+
+				if err != nil {
+					log.Error(e.Wrap(err, "failed to upload file to Slack"))
+				}
+			}
+		}
+	}
+	if uploadedFileKey != "" {
+		if err := os.Remove(uploadedFileKey); err != nil {
+			log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
 		}
 	}
 
@@ -939,6 +818,34 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 	p.AddTos(to)
 	p.SetDynamicTemplateData("Admin_Invitor", adminName)
 	p.SetDynamicTemplateData("Organization_Name", projectOrWorkspaceName)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
+	}
+	return &inviteLink, nil
+}
+
+func (r *Resolver) SendWorkspaceRequestEmail(fromName string, fromEmail string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
+	to := &mail.Email{Address: toEmail}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(Email.SendGridRequestAccessEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Requester_Name", fromName)
+	p.SetDynamicTemplateData("Requester_Email", fromEmail)
+	p.SetDynamicTemplateData("Workspace_Admin", toName)
+	p.SetDynamicTemplateData("Workspace_Name", workspaceName)
 	p.SetDynamicTemplateData("Invite_Link", inviteLink)
 
 	m.AddPersonalizations(p)
@@ -1857,14 +1764,13 @@ func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminIn
 	return
 }
 
-func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, threadIDs []int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	if admin.Email != nil {
 		ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
 	}
 
-	var taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput
 	for _, f := range followers {
 		// don't notify if the follower email is the reply author
 		if f.AdminId == admin.ID {
@@ -1881,13 +1787,7 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 		if found {
 			continue
 		}
-		if len(f.SlackChannelID) > 0 {
-			s := modelInputs.SanitizedSlackChannelInput{
-				WebhookChannelName: &f.SlackChannelName,
-				WebhookChannelID:   &f.SlackChannelID,
-			}
-			taggedSlackUsers = append(taggedSlackUsers, &s)
-		} else if f.AdminId > 0 {
+		if f.AdminId > 0 {
 			a := &model.Admin{}
 			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
 				log.Error(err, "Error finding follower admin object")
@@ -1897,13 +1797,13 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 		}
 	}
 
-	if len(taggedSlackUsers) > 0 {
+	if len(threadIDs) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
 				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+			err := r.SendSlackThreadReply(workspace, admin, viewLink, textForEmail, action, subjectScope, threadIDs)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 			}
@@ -1924,20 +1824,20 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 }
 
-func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -1966,7 +1866,22 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendPersonalSlackAlert(workspace, admin, adminIds, viewLink, textForEmail, action, subjectScope)
+		var admins []*model.Admin
+		if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching admins"))
+		}
+		// return early if no admins w/ slack_im_channel_id
+		if len(admins) < 1 {
+			return
+		}
+		var taggedAdminSlacks []*modelInputs.SanitizedSlackChannelInput
+		for _, a := range admins {
+			taggedAdminSlacks = append(taggedAdminSlacks, &modelInputs.SanitizedSlackChannelInput{
+				WebhookChannelID: a.SlackIMChannelID,
+			})
+		}
+
+		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}

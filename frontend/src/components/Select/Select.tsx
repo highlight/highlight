@@ -57,6 +57,8 @@ const Select = ({
 }: Props) => {
     return (
         <AntDesignSelect
+            // @ts-ignore
+            autoComplete="dontshow"
             {...props}
             disabled={props.loading || props.disabled}
             className={classNames(className, styles.select, {

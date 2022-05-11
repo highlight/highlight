@@ -715,15 +715,11 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): [RageClickEventForProject!]!
-    error_groups(
-        project_id: ID!
-        count: Int!
-        params: ErrorSearchParamsInput
-    ): ErrorResults
     error_groups_opensearch(
         project_id: ID!
         count: Int!
         query: String!
+        page: Int
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -775,18 +771,12 @@ type Query {
         project_id: ID!
         lookBackPeriod: Int!
     ): UserFingerprintCount
-    sessions(
-        project_id: ID!
-        count: Int!
-        lifecycle: SessionLifecycle!
-        starred: Boolean!
-        params: SearchParamsInput
-    ): SessionResults!
     sessions_opensearch(
         project_id: ID!
         count: Int!
         query: String!
         sort_desc: Boolean!
+        page: Int
     ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
@@ -1213,6 +1203,9 @@ type Mutation {
         use_case: String!
         heard_about: String!
         pun: String
+    ): Boolean
+    requestAccess(
+        project_id: ID!
     ): Boolean
 }
 

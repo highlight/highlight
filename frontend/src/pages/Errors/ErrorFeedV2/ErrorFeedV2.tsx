@@ -3,114 +3,67 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
+import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks';
+import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
+import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
-import React, { RefObject, useEffect, useState } from 'react';
-import useInfiniteScroll from 'react-infinite-scroll-hook';
+import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetErrorGroupsOpenSearchQuery,
-    useGetErrorGroupsQuery,
-} from '../../../graph/generated/hooks';
-import {
-    ErrorGroup,
-    ErrorResults,
-    ErrorState,
-    Maybe,
-} from '../../../graph/generated/schemas';
-import { gqlSanitize } from '../../../util/gqlSanitize';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
+const PAGE_SIZE = 10;
+
 export const ErrorFeedV2 = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const [count, setCount] = useState(10);
     const [data, setData] = useState<ErrorResults>({
         error_groups: [],
         totalCount: 0,
     });
-    const { searchParams, searchQuery } = useErrorSearchContext();
+    const totalPages = useRef<number>(0);
+    const {
+        searchParams,
+        searchQuery,
+        page,
+        setPage,
+    } = useErrorSearchContext();
     const [
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { isQueryBuilder } = useErrorSearchContext();
 
-    const {
-        loading: loadingOpenSearch,
-        fetchMore: fetchOpenSearch,
-        data: errorDataOpenSearch,
-    } = useGetErrorGroupsOpenSearchQuery({
+    const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
             query: searchQuery,
-            count: count + 10,
+            count: PAGE_SIZE,
+            page,
             project_id,
         },
-        onCompleted: () => {
+        onCompleted: (r) => {
             setShowLoadingSkeleton(false);
+            if (r?.error_groups_opensearch) {
+                setData(gqlSanitize(r?.error_groups_opensearch));
+                totalPages.current = Math.floor(
+                    r?.error_groups_opensearch.totalCount / PAGE_SIZE
+                );
+            }
         },
-        skip: !isQueryBuilder || !searchQuery,
+        skip: !searchQuery,
     });
-
-    const {
-        loading: loadingOriginal,
-        fetchMore: fetchOriginal,
-        data: errorDataOriginal,
-    } = useGetErrorGroupsQuery({
-        variables: {
-            params: searchParams,
-            count: count + 10,
-            project_id,
-        },
-        onCompleted: () => {
-            setShowLoadingSkeleton(false);
-        },
-        skip: isQueryBuilder,
-    });
-
-    const loading = isQueryBuilder ? loadingOpenSearch : loadingOriginal;
-    const fetchMore = isQueryBuilder ? fetchOpenSearch : fetchOriginal;
-
-    useEffect(() => {
-        if (errorDataOriginal?.error_groups) {
-            setData(gqlSanitize(errorDataOriginal?.error_groups));
-        }
-        if (errorDataOpenSearch?.error_groups_opensearch) {
-            setData(gqlSanitize(errorDataOpenSearch?.error_groups_opensearch));
-        }
-    }, [
-        errorDataOpenSearch?.error_groups_opensearch,
-        errorDataOriginal?.error_groups,
-    ]);
 
     useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
-
-    const infiniteRef = useInfiniteScroll({
-        checkInterval: 1200, // frequency to check (1.2s)
-        loading,
-        hasNextPage: data.error_groups.length < data.totalCount,
-        scrollContainer: 'parent',
-        onLoadMore: () => {
-            setCount((previousCount) => previousCount + 10);
-            fetchMore({
-                variables: {
-                    params: searchParams,
-                    count,
-                    project_id,
-                },
-            });
-        },
-    });
 
     const onFeedScrollListener = (
         e: React.UIEvent<HTMLElement> | undefined
@@ -129,13 +82,13 @@ export const ErrorFeedV2 = () => {
                     )}
                 </div>
             </div>
-            <div
-                className={classNames(styles.feedContent, {
-                    [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
-                })}
-                onScroll={onFeedScrollListener}
-            >
-                <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+            <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedItems, {
+                        [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                    })}
+                    onScroll={onFeedScrollListener}
+                >
                     {showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
@@ -152,29 +105,36 @@ export const ErrorFeedV2 = () => {
                             ) : (
                                 data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
-                                        <ErrorCardV2 errorGroup={u} key={ind} />
+                                        <ErrorCardV2
+                                            errorGroup={u}
+                                            key={ind}
+                                            urlParams={`?page=${
+                                                page || STARTING_PAGE
+                                            }`}
+                                        />
                                     )
                                 )
-                            )}
-                            {data.error_groups.length < data.totalCount && (
-                                <Skeleton
-                                    height={110}
-                                    style={{
-                                        borderRadius: 8,
-                                        marginTop: 14,
-                                        marginBottom: 14,
-                                    }}
-                                />
                             )}
                         </>
                     )}
                 </div>
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    totalPages={totalPages}
+                />
             </div>
         </>
     );
 };
 
-const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
+const ErrorCardV2 = ({
+    errorGroup,
+    urlParams,
+}: {
+    errorGroup: Maybe<ErrorGroup>;
+    urlParams?: string;
+}) => {
     const { project_id, error_secure_id } = useParams<{
         project_id: string;
         error_secure_id?: string;
@@ -195,7 +155,11 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.secure_id}>
-            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}`}>
+            <Link
+                to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}${
+                    urlParams || ''
+                }`}
+            >
                 <div
                     className={classNames(styles.errorCard, {
                         [styles.selected]:

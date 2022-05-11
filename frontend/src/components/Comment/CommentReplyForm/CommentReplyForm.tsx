@@ -178,6 +178,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
         [admin, mentionSuggestionsData, mentionedAdmins]
     );
 
+    if (admin === undefined) {
+        return null;
+    }
+
     return (
         <Form
             name="newComment"
@@ -202,6 +206,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
                     >
                         <div className={styles.commentInputContainer}>
                             <CommentTextBody
+                                newInput
                                 commentText={commentText}
                                 onChangeHandler={onChangeHandler}
                                 placeholder={`Add a reply...`}

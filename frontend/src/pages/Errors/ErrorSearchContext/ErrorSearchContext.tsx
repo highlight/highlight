@@ -1,7 +1,6 @@
+import { ErrorState } from '@graph/schemas';
+import { createContext } from '@util/context/context';
 import React from 'react';
-
-import { ErrorState } from '../../../graph/generated/schemas';
-import { createContext } from '../../../util/context/context';
 
 export type ErrorSearchParams = {
     date_range?: { start_date: Date; end_date: Date };
@@ -21,9 +20,10 @@ type ErrorSearchContext = {
     setExistingParams: React.Dispatch<React.SetStateAction<ErrorSearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
-    isQueryBuilder: boolean;
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    page?: number;
+    setPage: React.Dispatch<React.SetStateAction<number | undefined>>;
 };
 
 export const [
