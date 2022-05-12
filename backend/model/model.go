@@ -1059,6 +1059,33 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
+		SELECT DISTINCT f.type, f.name, f.project_id
+		FROM fields f
+		WHERE type IS NOT null
+		AND EXISTS (
+			SELECT 1
+			FROM session_fields sf
+			WHERE f.id = sf.field_id
+		);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
+	}
+
+	if err := DB.Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {

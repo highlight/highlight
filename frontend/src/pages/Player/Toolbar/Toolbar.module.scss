@@ -427,3 +427,14 @@
     max-height: fit-content;
     width: 300px;
 }
+
+.zoomArea {
+    background: var(--color-yellow-300);
+    border: 2px solid rgba(var(--color-yellow-300), 0.5);
+    border-radius: 10px;
+    height: 8px;
+    opacity: 0.8;
+    pointer-events: none;
+    position: absolute;
+    top: -14px;
+}

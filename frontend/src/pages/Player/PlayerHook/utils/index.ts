@@ -20,7 +20,8 @@ import {
 } from '../../ReplayerContext';
 import usePlayerConfiguration from './usePlayerConfiguration';
 
-const INACTIVE_THRESHOLD = 0.02;
+// Minimum percentage of total session duration required for an inactive interval to be rendered
+export const INACTIVE_THRESHOLD = 0.02;
 
 /**
  * Calculates the active and inactive parts of a session.
@@ -62,12 +63,17 @@ const getIntervalWithPercentages = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
 ): ParsedSessionInterval[] => {
+    if (allIntervals.length === 0) {
+        return [];
+    }
+
     const intervals = allIntervals.map((e) => ({
         ...e,
         startTime: e.startTime - metadata.startTime,
         endTime: e.endTime - metadata.startTime,
     }));
-    const { activeDuration, numInactive } = allIntervals.reduce(
+
+    const { activeDuration, numInactive } = intervals.reduce(
         (acc, interval) => ({
             activeDuration: interval.active
                 ? acc.activeDuration + interval.duration
@@ -76,19 +82,55 @@ const getIntervalWithPercentages = (
         }),
         { activeDuration: 0, numInactive: 0 }
     );
-    const inactiveSliceDuration = activeDuration
-        ? INACTIVE_THRESHOLD * activeDuration
-        : 1;
-    const totalDuration = activeDuration + inactiveSliceDuration * numInactive;
-    let currTime = 0;
 
-    return intervals.map((e) => {
-        const prevTime = currTime;
-        currTime = currTime + (e.active ? e.duration : inactiveSliceDuration);
+    const activePercent = 1 - INACTIVE_THRESHOLD * numInactive;
+
+    // Calculate percentage of player bar to allocate to each interval
+    const withPercent = intervals.map((i, idx) => ({
+        ...i,
+        idx,
+        percent: i.active
+            ? // Round each interval size to a multiple of INACTIVE_THRESHOLD
+              Math.round(
+                  Math.max(
+                      (i.duration * activePercent) /
+                          activeDuration /
+                          INACTIVE_THRESHOLD,
+                      1
+                  )
+              ) * INACTIVE_THRESHOLD
+            : INACTIVE_THRESHOLD,
+    }));
+
+    // Allocate rounding error to the largest intervals
+    withPercent.sort((a, b) => b.percent - a.percent);
+
+    let error = withPercent.reduce((acc, i) => acc + i.percent, 0) - 1;
+    for (
+        let i = 0;
+        error >= INACTIVE_THRESHOLD;
+        i++, error -= INACTIVE_THRESHOLD
+    ) {
+        withPercent[i % withPercent.length].percent -= INACTIVE_THRESHOLD;
+    }
+    for (
+        let i = 0;
+        error <= -INACTIVE_THRESHOLD;
+        i++, error += INACTIVE_THRESHOLD
+    ) {
+        withPercent[i % withPercent.length].percent += INACTIVE_THRESHOLD;
+    }
+
+    withPercent.sort((a, b) => a.idx - b.idx);
+
+    let currPercent = 0;
+    return withPercent.map((e) => {
+        const prevPercent = currPercent;
+        currPercent = currPercent + e.percent;
         return {
             ...e,
-            startPercent: prevTime / totalDuration,
-            endPercent: currTime / totalDuration,
+            startPercent: prevPercent,
+            endPercent: currPercent,
             errors: [],
             sessionEvents: [],
             comments: [],

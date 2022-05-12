@@ -50,12 +50,9 @@ jobs:
               with:
                 go-version: '>=1.18.x'
             - name: Format
-              uses: Jerome1337/gofmt-action@v1.0.4
-              with:
-                  gofmt-path: './backend'
-                  gofmt-flags: '-l -d'
+              run: if [ "$(gofmt -l -d ./backend | wc -l)" -gt 0 ]; then exit 1; fi
             - name: Run linter
-              uses: golangci/golangci-lint-action@v2
+              uses: golangci/golangci-lint-action@v3
               with:
                   args: --config ./.golangci.yml
                   working-directory: backend

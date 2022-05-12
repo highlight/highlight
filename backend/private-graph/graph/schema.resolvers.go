@@ -897,7 +897,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1025,7 +1025,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 					SessionCommentID: sessionComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1052,7 +1052,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	return sessionComment, nil
 }
 
-func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -1078,7 +1078,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 					SessionCommentID: sessionComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1183,7 +1183,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	return commentReply, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -1242,7 +1242,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 					ErrorCommentID:  errorComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1269,7 +1269,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
-func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -1295,7 +1295,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 					ErrorCommentID:  errorComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -3783,15 +3783,9 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	res := []*model.Field{}
 
 	if err := r.DB.Raw(`
-		SELECT DISTINCT type, name
-		FROM fields f
+		SELECT type, name
+		FROM fields_in_use_view f
 		WHERE project_id = ?
-		AND type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		)
 	`, projectID).Scan(&res).Error; err != nil {
 		return nil, e.Wrap(err, "error querying field types for project")
 	}
@@ -4465,6 +4459,42 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	}
 
 	return false, e.New("invalid integrationType")
+}
+
+func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*modelInputs.LinearTeam, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	ret := []*modelInputs.LinearTeam{}
+
+	if err != nil {
+		return ret, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	if workspace.LinearAccessToken == nil {
+		return ret, e.New("linear access token not found")
+	}
+
+	res, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+
+	if err != nil {
+		return ret, e.Wrap(err, "error getting linear teams")
+	}
+
+	teamResponse := res.Data.Teams.Nodes
+
+	ret = lo.Map[LinearTeam, *modelInputs.LinearTeam](teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
+		return &modelInputs.LinearTeam{
+			TeamID: team.ID,
+			Name:   team.Name,
+			Key:    team.Key,
+		}
+	})
+
+	return ret, nil
 }
 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {

@@ -1337,6 +1337,7 @@ export const CreateSessionCommentDocument = gql`
         $tags: [SessionCommentTagInput]!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createSessionComment(
@@ -1356,6 +1357,7 @@ export const CreateSessionCommentDocument = gql`
             tags: $tags
             integrations: $integrations
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
         ) {
             id
@@ -1413,6 +1415,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      tags: // value for 'tags'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1446,6 +1449,7 @@ export const CreateIssueForSessionCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createIssueForSessionComment(
@@ -1457,6 +1461,7 @@ export const CreateIssueForSessionCommentDocument = gql`
             time: $time
             issue_title: $issue_title
             issue_description: $issue_description
+            issue_team_id: $issue_team_id
             integrations: $integrations
         ) {
             id
@@ -1506,6 +1511,7 @@ export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1663,6 +1669,7 @@ export const CreateErrorCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createErrorComment(
@@ -1676,6 +1683,7 @@ export const CreateErrorCommentDocument = gql`
             author_name: $author_name
             integrations: $integrations
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
         ) {
             id
@@ -1718,6 +1726,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1750,6 +1759,7 @@ export const CreateIssueForErrorCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createIssueForErrorComment(
@@ -1759,6 +1769,7 @@ export const CreateIssueForErrorCommentDocument = gql`
             author_name: $author_name
             text_for_attachment: $text_for_attachment
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
             integrations: $integrations
         ) {
@@ -1805,6 +1816,7 @@ export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -8640,6 +8652,11 @@ export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
             integration_type: Linear
             project_id: $project_id
         )
+        linear_teams(project_id: $project_id) {
+            team_id
+            name
+            key
+        }
     }
 `;
 

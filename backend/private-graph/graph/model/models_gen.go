@@ -113,6 +113,12 @@ type LengthRangeInput struct {
 	Max *float64 `json:"max"`
 }
 
+type LinearTeam struct {
+	TeamID string `json:"team_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`

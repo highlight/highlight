@@ -156,6 +156,13 @@ export type EnhancedUserDetailsResult = {
     email?: Maybe<Scalars['String']>;
 };
 
+export type LinearTeam = {
+    __typename?: 'LinearTeam';
+    team_id: Scalars['String'];
+    name: Scalars['String'];
+    key: Scalars['String'];
+};
+
 export type SocialLink = {
     __typename?: 'SocialLink';
     type: SocialType;
@@ -837,6 +844,7 @@ export type Query = {
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     generate_zapier_access_token: Scalars['String'];
     is_integrated_with: Scalars['Boolean'];
+    linear_teams?: Maybe<Array<LinearTeam>>;
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
     workspace_invite_links: WorkspaceInviteLink;
@@ -1138,6 +1146,10 @@ export type QueryIs_Integrated_WithArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryLinear_TeamsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectArgs = {
     id: Scalars['ID'];
 };
@@ -1417,6 +1429,7 @@ export type MutationCreateSessionCommentArgs = {
     session_image?: Maybe<Scalars['String']>;
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
     tags: Array<Maybe<SessionCommentTagInput>>;
 };
@@ -1430,6 +1443,7 @@ export type MutationCreateIssueForSessionCommentArgs = {
     time: Scalars['Float'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 
@@ -1457,6 +1471,7 @@ export type MutationCreateErrorCommentArgs = {
     author_name: Scalars['String'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 
@@ -1468,6 +1483,7 @@ export type MutationCreateIssueForErrorCommentArgs = {
     text_for_attachment: Scalars['String'];
     issue_title?: Maybe<Scalars['String']>;
     issue_description?: Maybe<Scalars['String']>;
+    issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
 };
 
