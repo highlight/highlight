@@ -1,8 +1,8 @@
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
+import { ErrorFeedV2 } from '@pages/Errors/ErrorFeedV2/ErrorFeedV2';
 import classNames from 'classnames';
 import React from 'react';
 
-import { ErrorFeedV2 } from '../../../Errors/ErrorFeedV2/ErrorFeedV2';
 import PanelToggleButton from '../../../Player/components/PanelToggleButton/PanelToggleButton';
 import useErrorPageConfiguration from '../../utils/ErrorPageUIConfiguration';
 import SegmentPickerForErrors from '../SegmentPickerForErrors/SegmentPickerForErrors';
@@ -18,13 +18,13 @@ const ErrorSearchPanel = () => {
             })}
         >
             {showLeftPanel && (
-                <>
+                <div className={styles.searchContainer}>
                     <div className={styles.filtersContainer}>
                         <SegmentPickerForErrors />
                         <ErrorQueryBuilder />
                     </div>
                     <ErrorFeedV2 />
-                </>
+                </div>
             )}
             <PanelToggleButton
                 direction="left"
