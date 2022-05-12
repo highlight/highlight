@@ -200,7 +200,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                                     onChange={setLinearTeamId}
                                     value={
                                         selectedlinearTeamId ||
-                                        linearTeamsOptions[0].id
+                                        linearTeamsOptions[0]?.id
                                     }
                                     notFoundContent={<p>No teams found</p>}
                                 />

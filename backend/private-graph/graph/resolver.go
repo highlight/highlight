@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/lambda"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/lambda"
 
 	"github.com/pkg/errors"
 
@@ -1454,14 +1455,15 @@ func (r *Resolver) MakeLinearGraphQLRequest(accessToken string, body string) ([]
 	return b, nil
 }
 
+type LinearTeam struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
+}
 type LinearTeamsResponse struct {
 	Data struct {
 		Teams struct {
-			Nodes []struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-				Key  string `json:"key"`
-			} `json:"nodes"`
+			Nodes []LinearTeam `json:"nodes"`
 		} `json:"teams"`
 	} `json:"data"`
 }
@@ -1618,9 +1620,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 	return createAttachmentRes, nil
 }
 
-func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, _teamId *string) error {
-	teamId := _teamId
-
+func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
 	if teamId == nil {
 		teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
 		if err != nil {
