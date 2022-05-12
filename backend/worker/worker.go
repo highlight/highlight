@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io"
 	"math"
 	"math/rand"
@@ -15,6 +14,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
 
@@ -987,7 +988,13 @@ func (w *Worker) RefreshMaterializedViews() {
 	if err := w.Resolver.DB.Exec(`
 		REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
 	`).Error; err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing materialized views"))
+		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
+	}
+
+	if err := w.Resolver.DB.Exec(`
+		REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
+	`).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
 	}
 }
 

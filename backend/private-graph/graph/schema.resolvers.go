@@ -3759,15 +3759,9 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	res := []*model.Field{}
 
 	if err := r.DB.Raw(`
-		SELECT DISTINCT type, name
-		FROM fields f
+		SELECT type, name
+		FROM fields_in_use_view f
 		WHERE project_id = ?
-		AND type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		)
 	`, projectID).Scan(&res).Error; err != nil {
 		return nil, e.Wrap(err, "error querying field types for project")
 	}
