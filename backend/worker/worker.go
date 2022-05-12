@@ -339,7 +339,12 @@ func (w *Worker) PublicWorker() {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
-		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
+		wp.SubmitRecover(func() {
+			s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
+			defer s.Finish()
+			w.processPublicWorkerMessage(task)
+			hlog.Incr("worker.kafka.processed.total", nil, 1)
+		})
 	}
 }
 
