@@ -4,6 +4,7 @@ import {
     useModifyClearbitIntegrationMutation,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 
 export const useClearbitIntegration = () => {
@@ -20,6 +21,7 @@ export const useClearbitIntegration = () => {
     );
     const loading = loadingProject || loadingWorkspace;
     const isEnabled = !!workspace?.workspace?.clearbit_enabled;
+    const tier = workspace?.workspace?.plan_tier;
 
     const [modifyClearbit] = useModifyClearbitIntegrationMutation({
         refetchQueries: [namedOperations.Query.GetWorkspace],
@@ -28,6 +30,9 @@ export const useClearbitIntegration = () => {
     return {
         loading: loading,
         isClearbitIntegratedWithWorkspace: isEnabled,
+        mustUpgradeToIntegrate: mustUpgradeForClearbit(tier),
+        projectID: project_id,
+        workspaceID: workspaceID,
         modifyClearbit: ({ enabled }: { enabled: boolean }) => {
             if (workspaceID) {
                 modifyClearbit({

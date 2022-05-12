@@ -11,6 +11,7 @@ import {
 } from '@graph/hooks';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas';
+import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
@@ -179,8 +180,7 @@ export const UserDetailsBox = React.memo(() => {
     }
 
     if (!data?.enhanced_user_details) {
-        const tier = workspace?.workspace?.plan_tier;
-        if (tier !== 'Startup' && tier !== 'Enterprise') {
+        if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
             return (
                 <Tooltip
                     mouseEnterDelay={0.3}

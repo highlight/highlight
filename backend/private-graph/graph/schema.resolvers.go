@@ -2643,6 +2643,9 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 	if err != nil {
 		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
 	}
+	if pricing.MustUpgradeForClearbit(workspace.PlanTier) {
+		return nil, nil
+	}
 	workspace.ClearbitEnabled = enabled
 	if err := r.DB.Model(workspace).Update("ClearbitEnabled", &enabled).Error; err != nil {
 		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
@@ -3025,8 +3028,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if !w.ClearbitEnabled {
 		return nil, nil
 	}
-	pt := modelInputs.PlanType(w.PlanTier)
-	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
 	}
 	// preload `Fields` children

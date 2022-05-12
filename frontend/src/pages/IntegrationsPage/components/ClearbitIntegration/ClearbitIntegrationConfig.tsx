@@ -1,10 +1,12 @@
 import Button from '@components/Button/Button/Button';
+import { PlanType } from '@graph/schemas';
 import PlugIcon from '@icons/PlugIcon';
 import Sparkles2Icon from '@icons/Sparkles2Icon';
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils';
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import { message } from 'antd';
 import React, { useEffect } from 'react';
+import { Redirect, useHistory } from 'react-router-dom';
 
 import styles from './ClearbitIntegrationConfig.module.scss';
 
@@ -13,10 +15,15 @@ const ClearbitIntegrationConfig: React.FC<IntegrationConfigProps> = ({
     setIntegrationEnabled,
     integrationEnabled,
 }) => {
+    const [redirectToBilling, setRedirectToBilling] = React.useState(false);
     const {
         isClearbitIntegratedWithWorkspace,
+        mustUpgradeToIntegrate,
+        projectID,
+        workspaceID,
         modifyClearbit,
     } = useClearbitIntegration();
+    const history = useHistory();
 
     useEffect(() => {
         if (isClearbitIntegratedWithWorkspace && !integrationEnabled) {
@@ -67,6 +74,9 @@ const ClearbitIntegrationConfig: React.FC<IntegrationConfigProps> = ({
             </>
         );
     }
+    if (redirectToBilling) {
+        return <Redirect to={`/w/${workspaceID}/billing`} />;
+    }
 
     return (
         <>
@@ -78,29 +88,61 @@ const ClearbitIntegrationConfig: React.FC<IntegrationConfigProps> = ({
                 their online presence using Clearbit and display it in the
                 session metadata pane.
             </p>
-            <footer>
-                <Button
-                    trackingId={`IntegrationConfigurationCancel-Clearbit`}
-                    className={styles.modalBtn}
-                    onClick={() => {
-                        setModelOpen(false);
-                        setIntegrationEnabled(false);
-                    }}
-                >
-                    Cancel
-                </Button>
-                <Button
-                    trackingId={`IntegrationConfigurationSave-Clearbit`}
-                    className={styles.modalBtn}
-                    type="primary"
-                    onClick={() => {
-                        modifyClearbit({ enabled: true });
-                    }}
-                >
-                    <Sparkles2Icon className={styles.modalBtnIcon} /> Enable
-                    Clearbit
-                </Button>
-            </footer>
+            {mustUpgradeToIntegrate ? (
+                <>
+                    <p className={styles.modalSubTitle}>
+                        To enable Clearbit integration, please upgrade your
+                        workspace tier to <b>'{PlanType.Startup}'</b> or higher.
+                    </p>
+                    <footer>
+                        <Button
+                            trackingId={`IntegrationConfigurationCancelUpgrade-Clearbit`}
+                            className={styles.modalBtn}
+                            onClick={() => {
+                                setModelOpen(false);
+                                setIntegrationEnabled(false);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            trackingId={`IntegrationConfigurationViewUpgrade-Clearbit`}
+                            className={styles.modalBtn}
+                            type="primary"
+                            onClick={() => {
+                                history.push(`/${projectID}/integrations`);
+                                setRedirectToBilling(true);
+                            }}
+                        >
+                            View Upgrade Options
+                        </Button>
+                    </footer>
+                </>
+            ) : (
+                <footer>
+                    <Button
+                        trackingId={`IntegrationConfigurationCancel-Clearbit`}
+                        className={styles.modalBtn}
+                        onClick={() => {
+                            setModelOpen(false);
+                            setIntegrationEnabled(false);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        trackingId={`IntegrationConfigurationSave-Clearbit`}
+                        className={styles.modalBtn}
+                        type="primary"
+                        onClick={() => {
+                            modifyClearbit({ enabled: true });
+                        }}
+                    >
+                        <Sparkles2Icon className={styles.modalBtnIcon} /> Enable
+                        Clearbit
+                    </Button>
+                </footer>
+            )}
         </>
     );
 };
