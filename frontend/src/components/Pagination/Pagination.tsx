@@ -44,7 +44,7 @@ export const Pagination = ({
                 <Tooltip
                     mouseEnterDelay={0.3}
                     placement={'top'}
-                    align={{ offset: [76, 0] }}
+                    align={{ offset: [106, 0] }}
                     title={
                         (page || STARTING_PAGE) >= MAX_PAGES
                             ? 'There are more pages than we can load. Please narrow the search query.'
