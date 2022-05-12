@@ -3026,9 +3026,6 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not workspace owner")
 	}
-	if !w.ClearbitEnabled {
-		return nil, nil
-	}
 	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
 	}
@@ -3057,40 +3054,44 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		userDetailsModel := &model.EnhancedUserDetails{}
 		p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+			if !w.ClearbitEnabled {
+				return nil, nil
+			}
 			log.Infof("retrieving api response for clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
-			clearbitApiRequestSpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
+			clearbitApiRequestSpan := tracer.StartSpan("private-graph.EnhancedUserDetails",
 				tracer.ResourceName("clearbit.api.request"),
 				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
 			clearbitApiRequestSpan.Finish()
+			p, co = pc.Person, pc.Company
 			if err != nil {
 				log.Errorf("error w/ clearbit request: %v", err)
+			} else if len(p.ID) > 0 {
+				// Store the data for this email in the DB.
+				r.PrivateWorkerPool.SubmitRecover(func() {
+					log.Infof("caching response data in the db")
+					modelToSave := &model.EnhancedUserDetails{}
+					modelToSave.Email = &email
+					if personBytes, err := json.Marshal(p); err == nil {
+						sPersonBytes := string(personBytes)
+						modelToSave.PersonJSON = &sPersonBytes
+					} else {
+						log.Errorf("error marshaling clearbit person: %v", err)
+					}
+					if companyBytes, err := json.Marshal(co); err == nil {
+						sCompanyBytes := string(companyBytes)
+						modelToSave.CompanyJSON = &sCompanyBytes
+					} else {
+						log.Errorf("error marshaling clearbit company: %v", err)
+					}
+					if err := r.DB.Create(modelToSave).Error; err != nil {
+						log.Errorf("error creating clearbit details model")
+					}
+				})
 			}
-			p, co = pc.Person, pc.Company
-			// Store the data for this email in the DB.
-			r.PrivateWorkerPool.SubmitRecover(func() {
-				log.Infof("caching response data in the db")
-				modelToSave := &model.EnhancedUserDetails{}
-				modelToSave.Email = &email
-				if personBytes, err := json.Marshal(p); err == nil {
-					sPersonBytes := string(personBytes)
-					modelToSave.PersonJSON = &sPersonBytes
-				} else {
-					log.Errorf("error marshaling clearbit person: %v", err)
-				}
-				if companyBytes, err := json.Marshal(co); err == nil {
-					sCompanyBytes := string(companyBytes)
-					modelToSave.CompanyJSON = &sCompanyBytes
-				} else {
-					log.Errorf("error marshaling clearbit company: %v", err)
-				}
-				if err := r.DB.Create(modelToSave).Error; err != nil {
-					log.Errorf("error creating clearbit details model")
-				}
-			})
 		} else {
-			log.Infof("retrieving db entry for clearbit lookup")
+			log.Infof("retrieving cache db entry of clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
