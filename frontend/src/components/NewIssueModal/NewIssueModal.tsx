@@ -3,17 +3,23 @@ import Button from '@components/Button/Button/Button';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
+import Select from '@components/Select/Select';
 import TextArea from '@components/TextArea/TextArea';
 import {
     useCreateIssueForErrorCommentMutation,
     useCreateIssueForSessionCommentMutation,
 } from '@graph/hooks';
 import { IntegrationType } from '@graph/schemas';
-import { Integration } from '@pages/IntegrationsPage/Integrations';
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import {
+    Integration,
+    LINEAR_INTEGRATION,
+} from '@pages/IntegrationsPage/Integrations';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import styles from './NewIssueModal.module.scss';
 
@@ -41,6 +47,27 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
         issueTitle: string;
         issueDescription: string;
     }>();
+
+    const { teams } = useLinearIntegration();
+
+    const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
+        'highlight-linear-default-team',
+        ''
+    );
+
+    const linearTeamsOptions = useMemo(() => {
+        return (
+            teams?.map((team) => ({
+                value: team.team_id,
+                id: team.team_id,
+                displayValue: (
+                    <>
+                        {team.name} ({team.key})
+                    </>
+                ),
+            })) || []
+        );
+    }, [teams]);
 
     const { project_id } = useParams<{
         project_id: string;
@@ -84,6 +111,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         session_comment_id: commentId,
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
+                        issue_team_id: selectedlinearTeamId,
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
@@ -102,6 +130,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         error_comment_id: commentId,
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
+                        issue_team_id: selectedlinearTeamId,
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
@@ -157,6 +186,26 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                     onKeyDown={onFormChangeHandler}
                 >
                     <div>
+                        {selectedIntegration.key === LINEAR_INTEGRATION.key ? (
+                            <Form.Item
+                                label={`${selectedIntegration.name} Team`}
+                            >
+                                <Select
+                                    aria-label={`${selectedIntegration.name} Team`}
+                                    defaultActiveFirstOption
+                                    placeholder={
+                                        'Choose a team to create the issue in'
+                                    }
+                                    options={linearTeamsOptions}
+                                    onChange={setLinearTeamId}
+                                    value={
+                                        selectedlinearTeamId ||
+                                        linearTeamsOptions[0]?.id
+                                    }
+                                    notFoundContent={<p>No teams found</p>}
+                                />
+                            </Form.Item>
+                        ) : null}
                         <Form.Item
                             name="issueTitle"
                             initialValue={defaultIssueTitle}

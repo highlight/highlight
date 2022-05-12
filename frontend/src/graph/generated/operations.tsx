@@ -324,6 +324,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -368,6 +369,7 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -456,6 +458,7 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -483,6 +486,7 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -3173,7 +3177,16 @@ export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithLinearQuery = {
     __typename?: 'Query';
-} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] } & {
+    linear_teams?: Types.Maybe<
+        Array<
+            { __typename?: 'LinearTeam' } & Pick<
+                Types.LinearTeam,
+                'team_id' | 'name' | 'key'
+            >
+        >
+    >;
+};
 
 export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];

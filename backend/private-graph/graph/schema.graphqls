@@ -131,6 +131,12 @@ type EnhancedUserDetailsResult {
     email: String
 }
 
+type LinearTeam {
+    team_id: String!
+    name: String!
+    key: String!
+}
+
 type SocialLink {
     type: SocialType!
     link: String
@@ -831,6 +837,7 @@ type Query {
         integration_type: IntegrationType!
         project_id: ID!
     ): Boolean!
+    linear_teams(project_id: ID!): [LinearTeam!]
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -939,6 +946,7 @@ type Mutation {
         session_image: String
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
     ): SessionComment
@@ -951,6 +959,7 @@ type Mutation {
         time: Float!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
@@ -973,6 +982,7 @@ type Mutation {
         author_name: String!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): ErrorComment
     createIssueForErrorComment(
@@ -983,6 +993,7 @@ type Mutation {
         text_for_attachment: String!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
@@ -1204,9 +1215,7 @@ type Mutation {
         heard_about: String!
         pun: String
     ): Boolean
-    requestAccess(
-        project_id: ID!
-    ): Boolean
+    requestAccess(project_id: ID!): Boolean
 }
 
 type Subscription {
