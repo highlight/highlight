@@ -1,9 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
-import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
 import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef } from 'react';
@@ -196,28 +194,16 @@ const TimelineIndicators = React.memo(() => {
     }
 
     return (
-        <>
-            <HighlightGate featureIsOn={true}>
-                <TimelineIndicatorsBarGraph
-                    sessionIntervals={sessionIntervals}
-                    selectedTimelineAnnotationTypes={
-                        selectedTimelineAnnotationTypes
-                    }
-                />
-            </HighlightGate>
-            <TimelineIndicatorsMemoized
-                openDevTools={openDevTools}
-                refContainer={refContainer}
-                sessionIntervals={sessionIntervals}
-                selectedTimelineAnnotationTypes={
-                    selectedTimelineAnnotationTypes
-                }
-                rageClicks={rageClicks}
-                startTime={sessionMetadata.startTime || 0}
-                pause={pause}
-                activeEvent={activeEvent}
-            />
-        </>
+        <TimelineIndicatorsMemoized
+            openDevTools={openDevTools}
+            refContainer={refContainer}
+            sessionIntervals={sessionIntervals}
+            selectedTimelineAnnotationTypes={selectedTimelineAnnotationTypes}
+            rageClicks={rageClicks}
+            startTime={sessionMetadata.startTime || 0}
+            pause={pause}
+            activeEvent={activeEvent}
+        />
     );
 });
 

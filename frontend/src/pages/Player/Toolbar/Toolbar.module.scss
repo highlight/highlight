@@ -427,17 +427,3 @@
     max-height: fit-content;
     width: 300px;
 }
-
-.zoomArea {
-    background: var(--color-yellow-300);
-    border: 2px solid rgba(var(--color-yellow-300), 0.5);
-    border-radius: 10px;
-    height: 8px;
-    position: absolute;
-    top: -40px;
-    z-index: 999999999;
-}
-
-.zoomAreaCanReset {
-    cursor: pointer;
-}

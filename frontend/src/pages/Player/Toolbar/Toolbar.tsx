@@ -1,7 +1,10 @@
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Switch from '@components/Switch/Switch';
 import ActivityIcon from '@icons/ActivityIcon';
 import SvgReload from '@icons/Reload';
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
+import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
+import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -81,6 +84,7 @@ export const Toolbar = React.memo(() => {
         setAutoPlayVideo,
         enableInspectElement,
         showPlayerAbsoluteTime,
+        selectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
@@ -253,25 +257,18 @@ export const Toolbar = React.memo(() => {
                     setDevToolsTab: setSelectedDevToolsTab,
                 }}
             >
+                <HighlightGate featureIsOn={true}>
+                    <TimelineIndicatorsBarGraph
+                        sessionIntervals={sessionIntervals}
+                        selectedTimelineAnnotationTypes={
+                            selectedTimelineAnnotationTypes
+                        }
+                    />
+                    <Scrubber />
+                </HighlightGate>
                 <TimelineIndicators />
                 {!isLiveMode ? (
                     <div className={styles.playerRail}>
-                        <button
-                            className={classNames(styles.zoomArea, {
-                                [styles.zoomAreaCanReset]: isZoomed,
-                            })}
-                            style={{
-                                left: `${toolbarItems.zoomAreaLeft}%`,
-                                width: `${
-                                    toolbarItems.zoomAreaRight -
-                                    toolbarItems.zoomAreaLeft
-                                }%`,
-                            }}
-                            onClick={() => {
-                                toolbarItems.setZoomAreaLeft(0);
-                                toolbarItems.setZoomAreaRight(100);
-                            }}
-                        ></button>
                         <div
                             className={styles.sliderRail}
                             style={{

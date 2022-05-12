@@ -204,6 +204,7 @@ const Histogram = ({
                             />
                             {seriesList.map((s) => (
                                 <Bar
+                                    isAnimationActive={false}
                                     key={s.label}
                                     dataKey={s.label}
                                     stackId="a"

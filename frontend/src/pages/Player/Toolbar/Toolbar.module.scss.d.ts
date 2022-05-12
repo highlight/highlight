@@ -48,5 +48,3 @@ export const toolbarRightSection: string;
 export const toolbarSection: string;
 export const undoSection: string;
 export const verticalDivider: string;
-export const zoomArea: string;
-export const zoomAreaCanReset: string;
