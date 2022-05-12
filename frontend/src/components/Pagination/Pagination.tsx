@@ -6,6 +6,8 @@ import SvgRewindIcon from '@icons/RewindIcon';
 import { Pagination as AntdPagination } from 'antd';
 import React from 'react';
 
+// time since search params last changed that should trigger a page reset, ms
+export const RESET_PAGE_MS = 1000;
 export const PAGE_SIZE = 10;
 export const STARTING_PAGE = 1;
 const OPENSEARCH_MAX_RESULTS = 10000;
