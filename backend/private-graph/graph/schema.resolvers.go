@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -3057,7 +3058,12 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
 			log.Infof("retrieving api response for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			clearbitApiRequestSpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
+				tracer.ResourceName("clearbit.api.request"),
+				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			clearbitApiRequestSpan.Finish()
 			if err != nil {
 				log.Errorf("error w/ clearbit request: %v", err)
 			}
@@ -3085,6 +3091,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			})
 		} else {
 			log.Infof("retrieving db entry for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.Errorf("error unmarshaling person: %v", err)
