@@ -99,6 +99,7 @@ export function useMarkSessionAsViewedMutation(
         Types.MarkSessionAsViewedMutationVariables
     >(MarkSessionAsViewedDocument, baseOptions);
 }
+
 export type MarkSessionAsViewedMutationHookResult = ReturnType<
     typeof useMarkSessionAsViewedMutation
 >;
@@ -149,6 +150,7 @@ export function useMarkSessionAsStarredMutation(
         Types.MarkSessionAsStarredMutationVariables
     >(MarkSessionAsStarredDocument, baseOptions);
 }
+
 export type MarkSessionAsStarredMutationHookResult = ReturnType<
     typeof useMarkSessionAsStarredMutation
 >;
@@ -205,6 +207,7 @@ export function useCreateOrUpdateStripeSubscriptionMutation(
         Types.CreateOrUpdateStripeSubscriptionMutationVariables
     >(CreateOrUpdateStripeSubscriptionDocument, baseOptions);
 }
+
 export type CreateOrUpdateStripeSubscriptionMutationHookResult = ReturnType<
     typeof useCreateOrUpdateStripeSubscriptionMutation
 >;
@@ -251,6 +254,7 @@ export function useUpdateBillingDetailsMutation(
         Types.UpdateBillingDetailsMutationVariables
     >(UpdateBillingDetailsDocument, baseOptions);
 }
+
 export type UpdateBillingDetailsMutationHookResult = ReturnType<
     typeof useUpdateBillingDetailsMutation
 >;
@@ -301,6 +305,7 @@ export function useUpdateErrorGroupStateMutation(
         Types.UpdateErrorGroupStateMutationVariables
     >(UpdateErrorGroupStateDocument, baseOptions);
 }
+
 export type UpdateErrorGroupStateMutationHookResult = ReturnType<
     typeof useUpdateErrorGroupStateMutation
 >;
@@ -347,6 +352,7 @@ export function useSendEmailSignupMutation(
         Types.SendEmailSignupMutationVariables
     >(SendEmailSignupDocument, baseOptions);
 }
+
 export type SendEmailSignupMutationHookResult = ReturnType<
     typeof useSendEmailSignupMutation
 >;
@@ -394,6 +400,7 @@ export function useAddAdminToWorkspaceMutation(
         Types.AddAdminToWorkspaceMutationVariables
     >(AddAdminToWorkspaceDocument, baseOptions);
 }
+
 export type AddAdminToWorkspaceMutationHookResult = ReturnType<
     typeof useAddAdminToWorkspaceMutation
 >;
@@ -440,6 +447,7 @@ export function useJoinWorkspaceMutation(
         Types.JoinWorkspaceMutationVariables
     >(JoinWorkspaceDocument, baseOptions);
 }
+
 export type JoinWorkspaceMutationHookResult = ReturnType<
     typeof useJoinWorkspaceMutation
 >;
@@ -496,6 +504,7 @@ export function useChangeAdminRoleMutation(
         Types.ChangeAdminRoleMutationVariables
     >(ChangeAdminRoleDocument, baseOptions);
 }
+
 export type ChangeAdminRoleMutationHookResult = ReturnType<
     typeof useChangeAdminRoleMutation
 >;
@@ -543,6 +552,7 @@ export function useDeleteAdminFromProjectMutation(
         Types.DeleteAdminFromProjectMutationVariables
     >(DeleteAdminFromProjectDocument, baseOptions);
 }
+
 export type DeleteAdminFromProjectMutationHookResult = ReturnType<
     typeof useDeleteAdminFromProjectMutation
 >;
@@ -593,6 +603,7 @@ export function useDeleteAdminFromWorkspaceMutation(
         Types.DeleteAdminFromWorkspaceMutationVariables
     >(DeleteAdminFromWorkspaceDocument, baseOptions);
 }
+
 export type DeleteAdminFromWorkspaceMutationHookResult = ReturnType<
     typeof useDeleteAdminFromWorkspaceMutation
 >;
@@ -649,6 +660,7 @@ export function useOpenSlackConversationMutation(
         Types.OpenSlackConversationMutationVariables
     >(OpenSlackConversationDocument, baseOptions);
 }
+
 export type OpenSlackConversationMutationHookResult = ReturnType<
     typeof useOpenSlackConversationMutation
 >;
@@ -705,6 +717,7 @@ export function useAddIntegrationToProjectMutation(
         Types.AddIntegrationToProjectMutationVariables
     >(AddIntegrationToProjectDocument, baseOptions);
 }
+
 export type AddIntegrationToProjectMutationHookResult = ReturnType<
     typeof useAddIntegrationToProjectMutation
 >;
@@ -758,6 +771,7 @@ export function useRemoveIntegrationFromProjectMutation(
         Types.RemoveIntegrationFromProjectMutationVariables
     >(RemoveIntegrationFromProjectDocument, baseOptions);
 }
+
 export type RemoveIntegrationFromProjectMutationHookResult = ReturnType<
     typeof useRemoveIntegrationFromProjectMutation
 >;
@@ -811,6 +825,7 @@ export function useUpdateAllowedEmailOriginsMutation(
         Types.UpdateAllowedEmailOriginsMutationVariables
     >(UpdateAllowedEmailOriginsDocument, baseOptions);
 }
+
 export type UpdateAllowedEmailOriginsMutationHookResult = ReturnType<
     typeof useUpdateAllowedEmailOriginsMutation
 >;
@@ -861,6 +876,7 @@ export function useCreateProjectMutation(
         Types.CreateProjectMutationVariables
     >(CreateProjectDocument, baseOptions);
 }
+
 export type CreateProjectMutationHookResult = ReturnType<
     typeof useCreateProjectMutation
 >;
@@ -926,6 +942,7 @@ export function useSubmitRegistrationFormMutation(
         Types.SubmitRegistrationFormMutationVariables
     >(SubmitRegistrationFormDocument, baseOptions);
 }
+
 export type SubmitRegistrationFormMutationHookResult = ReturnType<
     typeof useSubmitRegistrationFormMutation
 >;
@@ -975,6 +992,7 @@ export function useCreateWorkspaceMutation(
         Types.CreateWorkspaceMutationVariables
     >(CreateWorkspaceDocument, baseOptions);
 }
+
 export type CreateWorkspaceMutationHookResult = ReturnType<
     typeof useCreateWorkspaceMutation
 >;
@@ -1039,6 +1057,7 @@ export function useEditProjectMutation(
         Types.EditProjectMutationVariables
     >(EditProjectDocument, baseOptions);
 }
+
 export type EditProjectMutationHookResult = ReturnType<
     typeof useEditProjectMutation
 >;
@@ -1085,6 +1104,7 @@ export function useDeleteProjectMutation(
         Types.DeleteProjectMutationVariables
     >(DeleteProjectDocument, baseOptions);
 }
+
 export type DeleteProjectMutationHookResult = ReturnType<
     typeof useDeleteProjectMutation
 >;
@@ -1135,6 +1155,7 @@ export function useEditWorkspaceMutation(
         Types.EditWorkspaceMutationVariables
     >(EditWorkspaceDocument, baseOptions);
 }
+
 export type EditWorkspaceMutationHookResult = ReturnType<
     typeof useEditWorkspaceMutation
 >;
@@ -1181,6 +1202,7 @@ export function useDeleteSegmentMutation(
         Types.DeleteSegmentMutationVariables
     >(DeleteSegmentDocument, baseOptions);
 }
+
 export type DeleteSegmentMutationHookResult = ReturnType<
     typeof useDeleteSegmentMutation
 >;
@@ -1233,6 +1255,7 @@ export function useEditSegmentMutation(
         Types.EditSegmentMutationVariables
     >(EditSegmentDocument, baseOptions);
 }
+
 export type EditSegmentMutationHookResult = ReturnType<
     typeof useEditSegmentMutation
 >;
@@ -1312,6 +1335,7 @@ export function useCreateSegmentMutation(
         Types.CreateSegmentMutationVariables
     >(CreateSegmentDocument, baseOptions);
 }
+
 export type CreateSegmentMutationHookResult = ReturnType<
     typeof useCreateSegmentMutation
 >;
@@ -1429,6 +1453,7 @@ export function useCreateSessionCommentMutation(
         Types.CreateSessionCommentMutationVariables
     >(CreateSessionCommentDocument, baseOptions);
 }
+
 export type CreateSessionCommentMutationHookResult = ReturnType<
     typeof useCreateSessionCommentMutation
 >;
@@ -1522,6 +1547,7 @@ export function useCreateIssueForSessionCommentMutation(
         Types.CreateIssueForSessionCommentMutationVariables
     >(CreateIssueForSessionCommentDocument, baseOptions);
 }
+
 export type CreateIssueForSessionCommentMutationHookResult = ReturnType<
     typeof useCreateIssueForSessionCommentMutation
 >;
@@ -1568,6 +1594,7 @@ export function useDeleteSessionCommentMutation(
         Types.DeleteSessionCommentMutationVariables
     >(DeleteSessionCommentDocument, baseOptions);
 }
+
 export type DeleteSessionCommentMutationHookResult = ReturnType<
     typeof useDeleteSessionCommentMutation
 >;
@@ -1644,6 +1671,7 @@ export function useReplyToSessionCommentMutation(
         Types.ReplyToSessionCommentMutationVariables
     >(ReplyToSessionCommentDocument, baseOptions);
 }
+
 export type ReplyToSessionCommentMutationHookResult = ReturnType<
     typeof useReplyToSessionCommentMutation
 >;
@@ -1734,6 +1762,7 @@ export function useCreateErrorCommentMutation(
         Types.CreateErrorCommentMutationVariables
     >(CreateErrorCommentDocument, baseOptions);
 }
+
 export type CreateErrorCommentMutationHookResult = ReturnType<
     typeof useCreateErrorCommentMutation
 >;
@@ -1821,6 +1850,7 @@ export function useCreateIssueForErrorCommentMutation(
         Types.CreateIssueForErrorCommentMutationVariables
     >(CreateIssueForErrorCommentDocument, baseOptions);
 }
+
 export type CreateIssueForErrorCommentMutationHookResult = ReturnType<
     typeof useCreateIssueForErrorCommentMutation
 >;
@@ -1867,6 +1897,7 @@ export function useDeleteErrorCommentMutation(
         Types.DeleteErrorCommentMutationVariables
     >(DeleteErrorCommentDocument, baseOptions);
 }
+
 export type DeleteErrorCommentMutationHookResult = ReturnType<
     typeof useDeleteErrorCommentMutation
 >;
@@ -1943,6 +1974,7 @@ export function useReplyToErrorCommentMutation(
         Types.ReplyToErrorCommentMutationVariables
     >(ReplyToErrorCommentDocument, baseOptions);
 }
+
 export type ReplyToErrorCommentMutationHookResult = ReturnType<
     typeof useReplyToErrorCommentMutation
 >;
@@ -1989,6 +2021,7 @@ export function useDeleteErrorSegmentMutation(
         Types.DeleteErrorSegmentMutationVariables
     >(DeleteErrorSegmentDocument, baseOptions);
 }
+
 export type DeleteErrorSegmentMutationHookResult = ReturnType<
     typeof useDeleteErrorSegmentMutation
 >;
@@ -2041,6 +2074,7 @@ export function useEditErrorSegmentMutation(
         Types.EditErrorSegmentMutationVariables
     >(EditErrorSegmentDocument, baseOptions);
 }
+
 export type EditErrorSegmentMutationHookResult = ReturnType<
     typeof useEditErrorSegmentMutation
 >;
@@ -2110,6 +2144,7 @@ export function useCreateErrorSegmentMutation(
         Types.CreateErrorSegmentMutationVariables
     >(CreateErrorSegmentDocument, baseOptions);
 }
+
 export type CreateErrorSegmentMutationHookResult = ReturnType<
     typeof useCreateErrorSegmentMutation
 >;
@@ -2199,6 +2234,7 @@ export function useCreateErrorAlertMutation(
         Types.CreateErrorAlertMutationVariables
     >(CreateErrorAlertDocument, baseOptions);
 }
+
 export type CreateErrorAlertMutationHookResult = ReturnType<
     typeof useCreateErrorAlertMutation
 >;
@@ -2280,6 +2316,7 @@ export function useCreateMetricMonitorMutation(
         Types.CreateMetricMonitorMutationVariables
     >(CreateMetricMonitorDocument, baseOptions);
 }
+
 export type CreateMetricMonitorMutationHookResult = ReturnType<
     typeof useCreateMetricMonitorMutation
 >;
@@ -2367,6 +2404,7 @@ export function useUpdateMetricMonitorMutation(
         Types.UpdateMetricMonitorMutationVariables
     >(UpdateMetricMonitorDocument, baseOptions);
 }
+
 export type UpdateMetricMonitorMutationHookResult = ReturnType<
     typeof useUpdateMetricMonitorMutation
 >;
@@ -2430,6 +2468,7 @@ export function useDeleteMetricMonitorMutation(
         Types.DeleteMetricMonitorMutationVariables
     >(DeleteMetricMonitorDocument, baseOptions);
 }
+
 export type DeleteMetricMonitorMutationHookResult = ReturnType<
     typeof useDeleteMetricMonitorMutation
 >;
@@ -2476,6 +2515,7 @@ export function useUpdateAdminAboutYouDetailsMutation(
         Types.UpdateAdminAboutYouDetailsMutationVariables
     >(UpdateAdminAboutYouDetailsDocument, baseOptions);
 }
+
 export type UpdateAdminAboutYouDetailsMutationHookResult = ReturnType<
     typeof useUpdateAdminAboutYouDetailsMutation
 >;
@@ -2557,6 +2597,7 @@ export function useCreateRageClickAlertMutation(
         Types.CreateRageClickAlertMutationVariables
     >(CreateRageClickAlertDocument, baseOptions);
 }
+
 export type CreateRageClickAlertMutationHookResult = ReturnType<
     typeof useCreateRageClickAlertMutation
 >;
@@ -2651,6 +2692,7 @@ export function useUpdateErrorAlertMutation(
         Types.UpdateErrorAlertMutationVariables
     >(UpdateErrorAlertDocument, baseOptions);
 }
+
 export type UpdateErrorAlertMutationHookResult = ReturnType<
     typeof useUpdateErrorAlertMutation
 >;
@@ -2703,6 +2745,7 @@ export function useDeleteErrorAlertMutation(
         Types.DeleteErrorAlertMutationVariables
     >(DeleteErrorAlertDocument, baseOptions);
 }
+
 export type DeleteErrorAlertMutationHookResult = ReturnType<
     typeof useDeleteErrorAlertMutation
 >;
@@ -2755,6 +2798,7 @@ export function useDeleteSessionAlertMutation(
         Types.DeleteSessionAlertMutationVariables
     >(DeleteSessionAlertDocument, baseOptions);
 }
+
 export type DeleteSessionAlertMutationHookResult = ReturnType<
     typeof useDeleteSessionAlertMutation
 >;
@@ -2814,6 +2858,7 @@ export function useCreateDefaultAlertsMutation(
         Types.CreateDefaultAlertsMutationVariables
     >(CreateDefaultAlertsDocument, baseOptions);
 }
+
 export type CreateDefaultAlertsMutationHookResult = ReturnType<
     typeof useCreateDefaultAlertsMutation
 >;
@@ -2895,6 +2940,7 @@ export function useCreateSessionFeedbackAlertMutation(
         Types.CreateSessionFeedbackAlertMutationVariables
     >(CreateSessionFeedbackAlertDocument, baseOptions);
 }
+
 export type CreateSessionFeedbackAlertMutationHookResult = ReturnType<
     typeof useCreateSessionFeedbackAlertMutation
 >;
@@ -2982,6 +3028,7 @@ export function useUpdateSessionFeedbackAlertMutation(
         Types.UpdateSessionFeedbackAlertMutationVariables
     >(UpdateSessionFeedbackAlertDocument, baseOptions);
 }
+
 export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<
     typeof useUpdateSessionFeedbackAlertMutation
 >;
@@ -3063,6 +3110,7 @@ export function useCreateNewUserAlertMutation(
         Types.CreateNewUserAlertMutationVariables
     >(CreateNewUserAlertDocument, baseOptions);
 }
+
 export type CreateNewUserAlertMutationHookResult = ReturnType<
     typeof useCreateNewUserAlertMutation
 >;
@@ -3148,6 +3196,7 @@ export function useCreateNewSessionAlertMutation(
         Types.CreateNewSessionAlertMutationVariables
     >(CreateNewSessionAlertDocument, baseOptions);
 }
+
 export type CreateNewSessionAlertMutationHookResult = ReturnType<
     typeof useCreateNewSessionAlertMutation
 >;
@@ -3239,6 +3288,7 @@ export function useUpdateNewSessionAlertMutation(
         Types.UpdateNewSessionAlertMutationVariables
     >(UpdateNewSessionAlertDocument, baseOptions);
 }
+
 export type UpdateNewSessionAlertMutationHookResult = ReturnType<
     typeof useUpdateNewSessionAlertMutation
 >;
@@ -3323,6 +3373,7 @@ export function useUpdateRageClickAlertMutation(
         Types.UpdateRageClickAlertMutationVariables
     >(UpdateRageClickAlertDocument, baseOptions);
 }
+
 export type UpdateRageClickAlertMutationHookResult = ReturnType<
     typeof useUpdateRageClickAlertMutation
 >;
@@ -3408,6 +3459,7 @@ export function useUpdateNewUserAlertMutation(
         Types.UpdateNewUserAlertMutationVariables
     >(UpdateNewUserAlertDocument, baseOptions);
 }
+
 export type UpdateNewUserAlertMutationHookResult = ReturnType<
     typeof useUpdateNewUserAlertMutation
 >;
@@ -3494,6 +3546,7 @@ export function useCreateTrackPropertiesAlertMutation(
         Types.CreateTrackPropertiesAlertMutationVariables
     >(CreateTrackPropertiesAlertDocument, baseOptions);
 }
+
 export type CreateTrackPropertiesAlertMutationHookResult = ReturnType<
     typeof useCreateTrackPropertiesAlertMutation
 >;
@@ -3585,6 +3638,7 @@ export function useUpdateTrackPropertiesAlertMutation(
         Types.UpdateTrackPropertiesAlertMutationVariables
     >(UpdateTrackPropertiesAlertDocument, baseOptions);
 }
+
 export type UpdateTrackPropertiesAlertMutationHookResult = ReturnType<
     typeof useUpdateTrackPropertiesAlertMutation
 >;
@@ -3671,6 +3725,7 @@ export function useCreateUserPropertiesAlertMutation(
         Types.CreateUserPropertiesAlertMutationVariables
     >(CreateUserPropertiesAlertDocument, baseOptions);
 }
+
 export type CreateUserPropertiesAlertMutationHookResult = ReturnType<
     typeof useCreateUserPropertiesAlertMutation
 >;
@@ -3762,6 +3817,7 @@ export function useUpdateUserPropertiesAlertMutation(
         Types.UpdateUserPropertiesAlertMutationVariables
     >(UpdateUserPropertiesAlertDocument, baseOptions);
 }
+
 export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<
     typeof useUpdateUserPropertiesAlertMutation
 >;
@@ -3818,6 +3874,7 @@ export function useUpdateSessionIsPublicMutation(
         Types.UpdateSessionIsPublicMutationVariables
     >(UpdateSessionIsPublicDocument, baseOptions);
 }
+
 export type UpdateSessionIsPublicMutationHookResult = ReturnType<
     typeof useUpdateSessionIsPublicMutation
 >;
@@ -3874,6 +3931,7 @@ export function useUpdateErrorGroupIsPublicMutation(
         Types.UpdateErrorGroupIsPublicMutationVariables
     >(UpdateErrorGroupIsPublicDocument, baseOptions);
 }
+
 export type UpdateErrorGroupIsPublicMutationHookResult = ReturnType<
     typeof useUpdateErrorGroupIsPublicMutation
 >;
@@ -3930,6 +3988,7 @@ export function useUpdateAllowMeterOverageMutation(
         Types.UpdateAllowMeterOverageMutationVariables
     >(UpdateAllowMeterOverageDocument, baseOptions);
 }
+
 export type UpdateAllowMeterOverageMutationHookResult = ReturnType<
     typeof useUpdateAllowMeterOverageMutation
 >;
@@ -3979,6 +4038,7 @@ export function useSyncSlackIntegrationMutation(
         Types.SyncSlackIntegrationMutationVariables
     >(SyncSlackIntegrationDocument, baseOptions);
 }
+
 export type SyncSlackIntegrationMutationHookResult = ReturnType<
     typeof useSyncSlackIntegrationMutation
 >;
@@ -4025,6 +4085,7 @@ export function useRequestAccessMutation(
         Types.RequestAccessMutationVariables
     >(RequestAccessDocument, baseOptions);
 }
+
 export type RequestAccessMutationHookResult = ReturnType<
     typeof useRequestAccessMutation
 >;
@@ -4075,6 +4136,7 @@ export function useModifyClearbitIntegrationMutation(
         Types.ModifyClearbitIntegrationMutationVariables
     >(ModifyClearbitIntegrationDocument, baseOptions);
 }
+
 export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
     typeof useModifyClearbitIntegrationMutation
 >;
@@ -4133,6 +4195,7 @@ export function useGetWebVitalDashboardQuery(
         Types.GetWebVitalDashboardQueryVariables
     >(GetWebVitalDashboardDocument, baseOptions);
 }
+
 export function useGetWebVitalDashboardLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWebVitalDashboardQuery,
@@ -4144,6 +4207,7 @@ export function useGetWebVitalDashboardLazyQuery(
         Types.GetWebVitalDashboardQueryVariables
     >(GetWebVitalDashboardDocument, baseOptions);
 }
+
 export type GetWebVitalDashboardQueryHookResult = ReturnType<
     typeof useGetWebVitalDashboardQuery
 >;
@@ -4203,6 +4267,7 @@ export function useGetMetricPreviewQuery(
         Types.GetMetricPreviewQueryVariables
     >(GetMetricPreviewDocument, baseOptions);
 }
+
 export function useGetMetricPreviewLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetMetricPreviewQuery,
@@ -4214,6 +4279,7 @@ export function useGetMetricPreviewLazyQuery(
         Types.GetMetricPreviewQueryVariables
     >(GetMetricPreviewDocument, baseOptions);
 }
+
 export type GetMetricPreviewQueryHookResult = ReturnType<
     typeof useGetMetricPreviewQuery
 >;
@@ -4311,6 +4377,7 @@ export function useGetSessionPayloadQuery(
         Types.GetSessionPayloadQueryVariables
     >(GetSessionPayloadDocument, baseOptions);
 }
+
 export function useGetSessionPayloadLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionPayloadQuery,
@@ -4322,6 +4389,7 @@ export function useGetSessionPayloadLazyQuery(
         Types.GetSessionPayloadQueryVariables
     >(GetSessionPayloadDocument, baseOptions);
 }
+
 export type GetSessionPayloadQueryHookResult = ReturnType<
     typeof useGetSessionPayloadQuery
 >;
@@ -4368,6 +4436,7 @@ export function useGetCommentTagsForProjectQuery(
         Types.GetCommentTagsForProjectQueryVariables
     >(GetCommentTagsForProjectDocument, baseOptions);
 }
+
 export function useGetCommentTagsForProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetCommentTagsForProjectQuery,
@@ -4379,6 +4448,7 @@ export function useGetCommentTagsForProjectLazyQuery(
         Types.GetCommentTagsForProjectQueryVariables
     >(GetCommentTagsForProjectDocument, baseOptions);
 }
+
 export type GetCommentTagsForProjectQueryHookResult = ReturnType<
     typeof useGetCommentTagsForProjectQuery
 >;
@@ -4423,6 +4493,7 @@ export function useGetEventChunkUrlQuery(
         Types.GetEventChunkUrlQueryVariables
     >(GetEventChunkUrlDocument, baseOptions);
 }
+
 export function useGetEventChunkUrlLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetEventChunkUrlQuery,
@@ -4434,6 +4505,7 @@ export function useGetEventChunkUrlLazyQuery(
         Types.GetEventChunkUrlQueryVariables
     >(GetEventChunkUrlDocument, baseOptions);
 }
+
 export type GetEventChunkUrlQueryHookResult = ReturnType<
     typeof useGetEventChunkUrlQuery
 >;
@@ -4481,6 +4553,7 @@ export function useGetEventChunksQuery(
         Types.GetEventChunksQueryVariables
     >(GetEventChunksDocument, baseOptions);
 }
+
 export function useGetEventChunksLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetEventChunksQuery,
@@ -4492,6 +4565,7 @@ export function useGetEventChunksLazyQuery(
         Types.GetEventChunksQueryVariables
     >(GetEventChunksDocument, baseOptions);
 }
+
 export type GetEventChunksQueryHookResult = ReturnType<
     typeof useGetEventChunksQuery
 >;
@@ -4580,6 +4654,7 @@ export function useGetSessionQuery(
         Types.GetSessionQueryVariables
     >(GetSessionDocument, baseOptions);
 }
+
 export function useGetSessionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionQuery,
@@ -4591,6 +4666,7 @@ export function useGetSessionLazyQuery(
         Types.GetSessionQueryVariables
     >(GetSessionDocument, baseOptions);
 }
+
 export type GetSessionQueryHookResult = ReturnType<typeof useGetSessionQuery>;
 export type GetSessionLazyQueryHookResult = ReturnType<
     typeof useGetSessionLazyQuery
@@ -4638,6 +4714,7 @@ export function useGetWorkspaceAdminsByProjectIdQuery(
         Types.GetWorkspaceAdminsByProjectIdQueryVariables
     >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
 }
+
 export function useGetWorkspaceAdminsByProjectIdLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceAdminsByProjectIdQuery,
@@ -4649,6 +4726,7 @@ export function useGetWorkspaceAdminsByProjectIdLazyQuery(
         Types.GetWorkspaceAdminsByProjectIdQueryVariables
     >(GetWorkspaceAdminsByProjectIdDocument, baseOptions);
 }
+
 export type GetWorkspaceAdminsByProjectIdQueryHookResult = ReturnType<
     typeof useGetWorkspaceAdminsByProjectIdQuery
 >;
@@ -4711,6 +4789,7 @@ export function useGetWorkspaceAdminsQuery(
         Types.GetWorkspaceAdminsQueryVariables
     >(GetWorkspaceAdminsDocument, baseOptions);
 }
+
 export function useGetWorkspaceAdminsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceAdminsQuery,
@@ -4722,6 +4801,7 @@ export function useGetWorkspaceAdminsLazyQuery(
         Types.GetWorkspaceAdminsQueryVariables
     >(GetWorkspaceAdminsDocument, baseOptions);
 }
+
 export type GetWorkspaceAdminsQueryHookResult = ReturnType<
     typeof useGetWorkspaceAdminsQuery
 >;
@@ -4803,6 +4883,7 @@ export function useGetSessionCommentsQuery(
         Types.GetSessionCommentsQueryVariables
     >(GetSessionCommentsDocument, baseOptions);
 }
+
 export function useGetSessionCommentsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionCommentsQuery,
@@ -4814,6 +4895,7 @@ export function useGetSessionCommentsLazyQuery(
         Types.GetSessionCommentsQueryVariables
     >(GetSessionCommentsDocument, baseOptions);
 }
+
 export type GetSessionCommentsQueryHookResult = ReturnType<
     typeof useGetSessionCommentsQuery
 >;
@@ -4887,6 +4969,7 @@ export function useGetNotificationsQuery(
         Types.GetNotificationsQueryVariables
     >(GetNotificationsDocument, baseOptions);
 }
+
 export function useGetNotificationsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetNotificationsQuery,
@@ -4898,6 +4981,7 @@ export function useGetNotificationsLazyQuery(
         Types.GetNotificationsQueryVariables
     >(GetNotificationsDocument, baseOptions);
 }
+
 export type GetNotificationsQueryHookResult = ReturnType<
     typeof useGetNotificationsQuery
 >;
@@ -4953,6 +5037,7 @@ export function useGetSessionCommentsForAdminQuery(
         Types.GetSessionCommentsForAdminQueryVariables
     >(GetSessionCommentsForAdminDocument, baseOptions);
 }
+
 export function useGetSessionCommentsForAdminLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionCommentsForAdminQuery,
@@ -4964,6 +5049,7 @@ export function useGetSessionCommentsForAdminLazyQuery(
         Types.GetSessionCommentsForAdminQueryVariables
     >(GetSessionCommentsForAdminDocument, baseOptions);
 }
+
 export type GetSessionCommentsForAdminQueryHookResult = ReturnType<
     typeof useGetSessionCommentsForAdminQuery
 >;
@@ -5021,6 +5107,7 @@ export function useGetAccountsQuery(
         Types.GetAccountsQueryVariables
     >(GetAccountsDocument, baseOptions);
 }
+
 export function useGetAccountsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAccountsQuery,
@@ -5032,6 +5119,7 @@ export function useGetAccountsLazyQuery(
         Types.GetAccountsQueryVariables
     >(GetAccountsDocument, baseOptions);
 }
+
 export type GetAccountsQueryHookResult = ReturnType<typeof useGetAccountsQuery>;
 export type GetAccountsLazyQueryHookResult = ReturnType<
     typeof useGetAccountsLazyQuery
@@ -5085,6 +5173,7 @@ export function useGetAccountDetailsQuery(
         Types.GetAccountDetailsQueryVariables
     >(GetAccountDetailsDocument, baseOptions);
 }
+
 export function useGetAccountDetailsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAccountDetailsQuery,
@@ -5096,6 +5185,7 @@ export function useGetAccountDetailsLazyQuery(
         Types.GetAccountDetailsQueryVariables
     >(GetAccountDetailsDocument, baseOptions);
 }
+
 export type GetAccountDetailsQueryHookResult = ReturnType<
     typeof useGetAccountDetailsQuery
 >;
@@ -5168,6 +5258,7 @@ export function useGetErrorCommentsQuery(
         Types.GetErrorCommentsQueryVariables
     >(GetErrorCommentsDocument, baseOptions);
 }
+
 export function useGetErrorCommentsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorCommentsQuery,
@@ -5179,6 +5270,7 @@ export function useGetErrorCommentsLazyQuery(
         Types.GetErrorCommentsQueryVariables
     >(GetErrorCommentsDocument, baseOptions);
 }
+
 export type GetErrorCommentsQueryHookResult = ReturnType<
     typeof useGetErrorCommentsQuery
 >;
@@ -5232,6 +5324,7 @@ export function useGetEnhancedUserDetailsQuery(
         Types.GetEnhancedUserDetailsQueryVariables
     >(GetEnhancedUserDetailsDocument, baseOptions);
 }
+
 export function useGetEnhancedUserDetailsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetEnhancedUserDetailsQuery,
@@ -5243,6 +5336,7 @@ export function useGetEnhancedUserDetailsLazyQuery(
         Types.GetEnhancedUserDetailsQueryVariables
     >(GetEnhancedUserDetailsDocument, baseOptions);
 }
+
 export type GetEnhancedUserDetailsQueryHookResult = ReturnType<
     typeof useGetEnhancedUserDetailsQuery
 >;
@@ -5301,6 +5395,7 @@ export function useGetOnboardingStepsQuery(
         Types.GetOnboardingStepsQueryVariables
     >(GetOnboardingStepsDocument, baseOptions);
 }
+
 export function useGetOnboardingStepsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetOnboardingStepsQuery,
@@ -5312,6 +5407,7 @@ export function useGetOnboardingStepsLazyQuery(
         Types.GetOnboardingStepsQueryVariables
     >(GetOnboardingStepsDocument, baseOptions);
 }
+
 export type GetOnboardingStepsQueryHookResult = ReturnType<
     typeof useGetOnboardingStepsQuery
 >;
@@ -5373,6 +5469,7 @@ export function useSendAdminWorkspaceInviteMutation(
         Types.SendAdminWorkspaceInviteMutationVariables
     >(SendAdminWorkspaceInviteDocument, baseOptions);
 }
+
 export type SendAdminWorkspaceInviteMutationHookResult = ReturnType<
     typeof useSendAdminWorkspaceInviteMutation
 >;
@@ -5419,6 +5516,7 @@ export function useGetSessionIntervalsQuery(
         Types.GetSessionIntervalsQueryVariables
     >(GetSessionIntervalsDocument, baseOptions);
 }
+
 export function useGetSessionIntervalsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionIntervalsQuery,
@@ -5430,6 +5528,7 @@ export function useGetSessionIntervalsLazyQuery(
         Types.GetSessionIntervalsQueryVariables
     >(GetSessionIntervalsDocument, baseOptions);
 }
+
 export type GetSessionIntervalsQueryHookResult = ReturnType<
     typeof useGetSessionIntervalsQuery
 >;
@@ -5478,6 +5577,7 @@ export function useGetTimelineIndicatorEventsQuery(
         Types.GetTimelineIndicatorEventsQueryVariables
     >(GetTimelineIndicatorEventsDocument, baseOptions);
 }
+
 export function useGetTimelineIndicatorEventsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetTimelineIndicatorEventsQuery,
@@ -5489,6 +5589,7 @@ export function useGetTimelineIndicatorEventsLazyQuery(
         Types.GetTimelineIndicatorEventsQueryVariables
     >(GetTimelineIndicatorEventsDocument, baseOptions);
 }
+
 export type GetTimelineIndicatorEventsQueryHookResult = ReturnType<
     typeof useGetTimelineIndicatorEventsQuery
 >;
@@ -5535,6 +5636,7 @@ export function useGetFieldTypesQuery(
         Types.GetFieldTypesQueryVariables
     >(GetFieldTypesDocument, baseOptions);
 }
+
 export function useGetFieldTypesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetFieldTypesQuery,
@@ -5546,6 +5648,7 @@ export function useGetFieldTypesLazyQuery(
         Types.GetFieldTypesQueryVariables
     >(GetFieldTypesDocument, baseOptions);
 }
+
 export type GetFieldTypesQueryHookResult = ReturnType<
     typeof useGetFieldTypesQuery
 >;
@@ -5605,6 +5708,7 @@ export function useGetFieldsOpensearchQuery(
         Types.GetFieldsOpensearchQueryVariables
     >(GetFieldsOpensearchDocument, baseOptions);
 }
+
 export function useGetFieldsOpensearchLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetFieldsOpensearchQuery,
@@ -5616,6 +5720,7 @@ export function useGetFieldsOpensearchLazyQuery(
         Types.GetFieldsOpensearchQueryVariables
     >(GetFieldsOpensearchDocument, baseOptions);
 }
+
 export type GetFieldsOpensearchQueryHookResult = ReturnType<
     typeof useGetFieldsOpensearchQuery
 >;
@@ -5673,6 +5778,7 @@ export function useGetQuickFieldsOpensearchQuery(
         Types.GetQuickFieldsOpensearchQueryVariables
     >(GetQuickFieldsOpensearchDocument, baseOptions);
 }
+
 export function useGetQuickFieldsOpensearchLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetQuickFieldsOpensearchQuery,
@@ -5684,6 +5790,7 @@ export function useGetQuickFieldsOpensearchLazyQuery(
         Types.GetQuickFieldsOpensearchQueryVariables
     >(GetQuickFieldsOpensearchDocument, baseOptions);
 }
+
 export type GetQuickFieldsOpensearchQueryHookResult = ReturnType<
     typeof useGetQuickFieldsOpensearchQuery
 >;
@@ -5743,6 +5850,7 @@ export function useGetErrorFieldsOpensearchQuery(
         Types.GetErrorFieldsOpensearchQueryVariables
     >(GetErrorFieldsOpensearchDocument, baseOptions);
 }
+
 export function useGetErrorFieldsOpensearchLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorFieldsOpensearchQuery,
@@ -5754,6 +5862,7 @@ export function useGetErrorFieldsOpensearchLazyQuery(
         Types.GetErrorFieldsOpensearchQueryVariables
     >(GetErrorFieldsOpensearchDocument, baseOptions);
 }
+
 export type GetErrorFieldsOpensearchQueryHookResult = ReturnType<
     typeof useGetErrorFieldsOpensearchQuery
 >;
@@ -5848,6 +5957,7 @@ export function useGetSessionsOpenSearchQuery(
         Types.GetSessionsOpenSearchQueryVariables
     >(GetSessionsOpenSearchDocument, baseOptions);
 }
+
 export function useGetSessionsOpenSearchLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionsOpenSearchQuery,
@@ -5859,6 +5969,7 @@ export function useGetSessionsOpenSearchLazyQuery(
         Types.GetSessionsOpenSearchQueryVariables
     >(GetSessionsOpenSearchDocument, baseOptions);
 }
+
 export type GetSessionsOpenSearchQueryHookResult = ReturnType<
     typeof useGetSessionsOpenSearchQuery
 >;
@@ -5940,6 +6051,7 @@ export function useGetErrorGroupsOpenSearchQuery(
         Types.GetErrorGroupsOpenSearchQueryVariables
     >(GetErrorGroupsOpenSearchDocument, baseOptions);
 }
+
 export function useGetErrorGroupsOpenSearchLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorGroupsOpenSearchQuery,
@@ -5951,6 +6063,7 @@ export function useGetErrorGroupsOpenSearchLazyQuery(
         Types.GetErrorGroupsOpenSearchQueryVariables
     >(GetErrorGroupsOpenSearchDocument, baseOptions);
 }
+
 export type GetErrorGroupsOpenSearchQueryHookResult = ReturnType<
     typeof useGetErrorGroupsOpenSearchQuery
 >;
@@ -5997,6 +6110,7 @@ export function useGetProjectsQuery(
         Types.GetProjectsQueryVariables
     >(GetProjectsDocument, baseOptions);
 }
+
 export function useGetProjectsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectsQuery,
@@ -6008,6 +6122,7 @@ export function useGetProjectsLazyQuery(
         Types.GetProjectsQueryVariables
     >(GetProjectsDocument, baseOptions);
 }
+
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<
     typeof useGetProjectsLazyQuery
@@ -6059,6 +6174,7 @@ export function useGetWorkspaceQuery(
         Types.GetWorkspaceQueryVariables
     >(GetWorkspaceDocument, baseOptions);
 }
+
 export function useGetWorkspaceLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceQuery,
@@ -6070,6 +6186,7 @@ export function useGetWorkspaceLazyQuery(
         Types.GetWorkspaceQueryVariables
     >(GetWorkspaceDocument, baseOptions);
 }
+
 export type GetWorkspaceQueryHookResult = ReturnType<
     typeof useGetWorkspaceQuery
 >;
@@ -6119,6 +6236,7 @@ export function useGetWorkspacesQuery(
         Types.GetWorkspacesQueryVariables
     >(GetWorkspacesDocument, baseOptions);
 }
+
 export function useGetWorkspacesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspacesQuery,
@@ -6130,6 +6248,7 @@ export function useGetWorkspacesLazyQuery(
         Types.GetWorkspacesQueryVariables
     >(GetWorkspacesDocument, baseOptions);
 }
+
 export type GetWorkspacesQueryHookResult = ReturnType<
     typeof useGetWorkspacesQuery
 >;
@@ -6172,6 +6291,7 @@ export function useGetWorkspacesCountQuery(
         Types.GetWorkspacesCountQueryVariables
     >(GetWorkspacesCountDocument, baseOptions);
 }
+
 export function useGetWorkspacesCountLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspacesCountQuery,
@@ -6183,6 +6303,7 @@ export function useGetWorkspacesCountLazyQuery(
         Types.GetWorkspacesCountQueryVariables
     >(GetWorkspacesCountDocument, baseOptions);
 }
+
 export type GetWorkspacesCountQueryHookResult = ReturnType<
     typeof useGetWorkspacesCountQuery
 >;
@@ -6232,6 +6353,7 @@ export function useGetProjectsAndWorkspacesQuery(
         Types.GetProjectsAndWorkspacesQueryVariables
     >(GetProjectsAndWorkspacesDocument, baseOptions);
 }
+
 export function useGetProjectsAndWorkspacesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectsAndWorkspacesQuery,
@@ -6243,6 +6365,7 @@ export function useGetProjectsAndWorkspacesLazyQuery(
         Types.GetProjectsAndWorkspacesQueryVariables
     >(GetProjectsAndWorkspacesDocument, baseOptions);
 }
+
 export type GetProjectsAndWorkspacesQueryHookResult = ReturnType<
     typeof useGetProjectsAndWorkspacesQuery
 >;
@@ -6300,6 +6423,7 @@ export function useGetProjectOrWorkspaceQuery(
         Types.GetProjectOrWorkspaceQueryVariables
     >(GetProjectOrWorkspaceDocument, baseOptions);
 }
+
 export function useGetProjectOrWorkspaceLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectOrWorkspaceQuery,
@@ -6311,6 +6435,7 @@ export function useGetProjectOrWorkspaceLazyQuery(
         Types.GetProjectOrWorkspaceQueryVariables
     >(GetProjectOrWorkspaceDocument, baseOptions);
 }
+
 export type GetProjectOrWorkspaceQueryHookResult = ReturnType<
     typeof useGetProjectOrWorkspaceQuery
 >;
@@ -6373,6 +6498,7 @@ export function useGetProjectDropdownOptionsQuery(
         Types.GetProjectDropdownOptionsQueryVariables
     >(GetProjectDropdownOptionsDocument, baseOptions);
 }
+
 export function useGetProjectDropdownOptionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectDropdownOptionsQuery,
@@ -6384,6 +6510,7 @@ export function useGetProjectDropdownOptionsLazyQuery(
         Types.GetProjectDropdownOptionsQueryVariables
     >(GetProjectDropdownOptionsDocument, baseOptions);
 }
+
 export type GetProjectDropdownOptionsQueryHookResult = ReturnType<
     typeof useGetProjectDropdownOptionsQuery
 >;
@@ -6438,6 +6565,7 @@ export function useGetWorkspaceDropdownOptionsQuery(
         Types.GetWorkspaceDropdownOptionsQueryVariables
     >(GetWorkspaceDropdownOptionsDocument, baseOptions);
 }
+
 export function useGetWorkspaceDropdownOptionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceDropdownOptionsQuery,
@@ -6449,6 +6577,7 @@ export function useGetWorkspaceDropdownOptionsLazyQuery(
         Types.GetWorkspaceDropdownOptionsQueryVariables
     >(GetWorkspaceDropdownOptionsDocument, baseOptions);
 }
+
 export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<
     typeof useGetWorkspaceDropdownOptionsQuery
 >;
@@ -6501,6 +6630,7 @@ export function useGetAdminQuery(
         baseOptions
     );
 }
+
 export function useGetAdminLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAdminQuery,
@@ -6512,6 +6642,7 @@ export function useGetAdminLazyQuery(
         Types.GetAdminQueryVariables
     >(GetAdminDocument, baseOptions);
 }
+
 export type GetAdminQueryHookResult = ReturnType<typeof useGetAdminQuery>;
 export type GetAdminLazyQueryHookResult = ReturnType<
     typeof useGetAdminLazyQuery
@@ -6557,6 +6688,7 @@ export function useGetAdminAboutYouQuery(
         Types.GetAdminAboutYouQueryVariables
     >(GetAdminAboutYouDocument, baseOptions);
 }
+
 export function useGetAdminAboutYouLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAdminAboutYouQuery,
@@ -6568,6 +6700,7 @@ export function useGetAdminAboutYouLazyQuery(
         Types.GetAdminAboutYouQueryVariables
     >(GetAdminAboutYouDocument, baseOptions);
 }
+
 export type GetAdminAboutYouQueryHookResult = ReturnType<
     typeof useGetAdminAboutYouQuery
 >;
@@ -6621,6 +6754,7 @@ export function useGetProjectQuery(
         Types.GetProjectQueryVariables
     >(GetProjectDocument, baseOptions);
 }
+
 export function useGetProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectQuery,
@@ -6632,6 +6766,7 @@ export function useGetProjectLazyQuery(
         Types.GetProjectQueryVariables
     >(GetProjectDocument, baseOptions);
 }
+
 export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
 export type GetProjectLazyQueryHookResult = ReturnType<
     typeof useGetProjectLazyQuery
@@ -6692,6 +6827,7 @@ export function useGetBillingDetailsForProjectQuery(
         Types.GetBillingDetailsForProjectQueryVariables
     >(GetBillingDetailsForProjectDocument, baseOptions);
 }
+
 export function useGetBillingDetailsForProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetBillingDetailsForProjectQuery,
@@ -6703,6 +6839,7 @@ export function useGetBillingDetailsForProjectLazyQuery(
         Types.GetBillingDetailsForProjectQueryVariables
     >(GetBillingDetailsForProjectDocument, baseOptions);
 }
+
 export type GetBillingDetailsForProjectQueryHookResult = ReturnType<
     typeof useGetBillingDetailsForProjectQuery
 >;
@@ -6763,6 +6900,7 @@ export function useGetBillingDetailsQuery(
         Types.GetBillingDetailsQueryVariables
     >(GetBillingDetailsDocument, baseOptions);
 }
+
 export function useGetBillingDetailsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetBillingDetailsQuery,
@@ -6774,6 +6912,7 @@ export function useGetBillingDetailsLazyQuery(
         Types.GetBillingDetailsQueryVariables
     >(GetBillingDetailsDocument, baseOptions);
 }
+
 export type GetBillingDetailsQueryHookResult = ReturnType<
     typeof useGetBillingDetailsQuery
 >;
@@ -6821,6 +6960,7 @@ export function useGetSubscriptionDetailsQuery(
         Types.GetSubscriptionDetailsQueryVariables
     >(GetSubscriptionDetailsDocument, baseOptions);
 }
+
 export function useGetSubscriptionDetailsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSubscriptionDetailsQuery,
@@ -6832,6 +6972,7 @@ export function useGetSubscriptionDetailsLazyQuery(
         Types.GetSubscriptionDetailsQueryVariables
     >(GetSubscriptionDetailsDocument, baseOptions);
 }
+
 export type GetSubscriptionDetailsQueryHookResult = ReturnType<
     typeof useGetSubscriptionDetailsQuery
 >;
@@ -6914,6 +7055,7 @@ export function useGetErrorGroupQuery(
         Types.GetErrorGroupQueryVariables
     >(GetErrorGroupDocument, baseOptions);
 }
+
 export function useGetErrorGroupLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorGroupQuery,
@@ -6925,6 +7067,7 @@ export function useGetErrorGroupLazyQuery(
         Types.GetErrorGroupQueryVariables
     >(GetErrorGroupDocument, baseOptions);
 }
+
 export type GetErrorGroupQueryHookResult = ReturnType<
     typeof useGetErrorGroupQuery
 >;
@@ -6968,6 +7111,7 @@ export function useGetMessagesQuery(
         Types.GetMessagesQueryVariables
     >(GetMessagesDocument, baseOptions);
 }
+
 export function useGetMessagesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetMessagesQuery,
@@ -6979,6 +7123,7 @@ export function useGetMessagesLazyQuery(
         Types.GetMessagesQueryVariables
     >(GetMessagesDocument, baseOptions);
 }
+
 export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>;
 export type GetMessagesLazyQueryHookResult = ReturnType<
     typeof useGetMessagesLazyQuery
@@ -7020,6 +7165,7 @@ export function useGetResourcesQuery(
         Types.GetResourcesQueryVariables
     >(GetResourcesDocument, baseOptions);
 }
+
 export function useGetResourcesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetResourcesQuery,
@@ -7031,6 +7177,7 @@ export function useGetResourcesLazyQuery(
         Types.GetResourcesQueryVariables
     >(GetResourcesDocument, baseOptions);
 }
+
 export type GetResourcesQueryHookResult = ReturnType<
     typeof useGetResourcesQuery
 >;
@@ -7083,6 +7230,7 @@ export function useGetFieldSuggestionQuery(
         Types.GetFieldSuggestionQueryVariables
     >(GetFieldSuggestionDocument, baseOptions);
 }
+
 export function useGetFieldSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetFieldSuggestionQuery,
@@ -7094,6 +7242,7 @@ export function useGetFieldSuggestionLazyQuery(
         Types.GetFieldSuggestionQueryVariables
     >(GetFieldSuggestionDocument, baseOptions);
 }
+
 export type GetFieldSuggestionQueryHookResult = ReturnType<
     typeof useGetFieldSuggestionQuery
 >;
@@ -7140,6 +7289,7 @@ export function useGetEnvironmentsQuery(
         Types.GetEnvironmentsQueryVariables
     >(GetEnvironmentsDocument, baseOptions);
 }
+
 export function useGetEnvironmentsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetEnvironmentsQuery,
@@ -7151,6 +7301,7 @@ export function useGetEnvironmentsLazyQuery(
         Types.GetEnvironmentsQueryVariables
     >(GetEnvironmentsDocument, baseOptions);
 }
+
 export type GetEnvironmentsQueryHookResult = ReturnType<
     typeof useGetEnvironmentsQuery
 >;
@@ -7194,6 +7345,7 @@ export function useGetAppVersionsQuery(
         Types.GetAppVersionsQueryVariables
     >(GetAppVersionsDocument, baseOptions);
 }
+
 export function useGetAppVersionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAppVersionsQuery,
@@ -7205,6 +7357,7 @@ export function useGetAppVersionsLazyQuery(
         Types.GetAppVersionsQueryVariables
     >(GetAppVersionsDocument, baseOptions);
 }
+
 export type GetAppVersionsQueryHookResult = ReturnType<
     typeof useGetAppVersionsQuery
 >;
@@ -7256,6 +7409,7 @@ export function useGetProjectSuggestionQuery(
         Types.GetProjectSuggestionQueryVariables
     >(GetProjectSuggestionDocument, baseOptions);
 }
+
 export function useGetProjectSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetProjectSuggestionQuery,
@@ -7267,6 +7421,7 @@ export function useGetProjectSuggestionLazyQuery(
         Types.GetProjectSuggestionQueryVariables
     >(GetProjectSuggestionDocument, baseOptions);
 }
+
 export type GetProjectSuggestionQueryHookResult = ReturnType<
     typeof useGetProjectSuggestionQuery
 >;
@@ -7323,6 +7478,7 @@ export function useGetErrorFieldSuggestionQuery(
         Types.GetErrorFieldSuggestionQueryVariables
     >(GetErrorFieldSuggestionDocument, baseOptions);
 }
+
 export function useGetErrorFieldSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorFieldSuggestionQuery,
@@ -7334,6 +7490,7 @@ export function useGetErrorFieldSuggestionLazyQuery(
         Types.GetErrorFieldSuggestionQueryVariables
     >(GetErrorFieldSuggestionDocument, baseOptions);
 }
+
 export type GetErrorFieldSuggestionQueryHookResult = ReturnType<
     typeof useGetErrorFieldSuggestionQuery
 >;
@@ -7393,6 +7550,7 @@ export function useGetErrorSearchSuggestionsQuery(
         Types.GetErrorSearchSuggestionsQueryVariables
     >(GetErrorSearchSuggestionsDocument, baseOptions);
 }
+
 export function useGetErrorSearchSuggestionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorSearchSuggestionsQuery,
@@ -7404,6 +7562,7 @@ export function useGetErrorSearchSuggestionsLazyQuery(
         Types.GetErrorSearchSuggestionsQueryVariables
     >(GetErrorSearchSuggestionsDocument, baseOptions);
 }
+
 export type GetErrorSearchSuggestionsQueryHookResult = ReturnType<
     typeof useGetErrorSearchSuggestionsQuery
 >;
@@ -7483,6 +7642,7 @@ export function useGetSessionSearchResultsQuery(
         Types.GetSessionSearchResultsQueryVariables
     >(GetSessionSearchResultsDocument, baseOptions);
 }
+
 export function useGetSessionSearchResultsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSessionSearchResultsQuery,
@@ -7494,6 +7654,7 @@ export function useGetSessionSearchResultsLazyQuery(
         Types.GetSessionSearchResultsQueryVariables
     >(GetSessionSearchResultsDocument, baseOptions);
 }
+
 export type GetSessionSearchResultsQueryHookResult = ReturnType<
     typeof useGetSessionSearchResultsQuery
 >;
@@ -7546,6 +7707,7 @@ export function useGetTrackSuggestionQuery(
         Types.GetTrackSuggestionQueryVariables
     >(GetTrackSuggestionDocument, baseOptions);
 }
+
 export function useGetTrackSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetTrackSuggestionQuery,
@@ -7557,6 +7719,7 @@ export function useGetTrackSuggestionLazyQuery(
         Types.GetTrackSuggestionQueryVariables
     >(GetTrackSuggestionDocument, baseOptions);
 }
+
 export type GetTrackSuggestionQueryHookResult = ReturnType<
     typeof useGetTrackSuggestionQuery
 >;
@@ -7609,6 +7772,7 @@ export function useGetUserSuggestionQuery(
         Types.GetUserSuggestionQueryVariables
     >(GetUserSuggestionDocument, baseOptions);
 }
+
 export function useGetUserSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetUserSuggestionQuery,
@@ -7620,6 +7784,7 @@ export function useGetUserSuggestionLazyQuery(
         Types.GetUserSuggestionQueryVariables
     >(GetUserSuggestionDocument, baseOptions);
 }
+
 export type GetUserSuggestionQueryHookResult = ReturnType<
     typeof useGetUserSuggestionQuery
 >;
@@ -7700,6 +7865,7 @@ export function useGetSegmentsQuery(
         Types.GetSegmentsQueryVariables
     >(GetSegmentsDocument, baseOptions);
 }
+
 export function useGetSegmentsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSegmentsQuery,
@@ -7711,6 +7877,7 @@ export function useGetSegmentsLazyQuery(
         Types.GetSegmentsQueryVariables
     >(GetSegmentsDocument, baseOptions);
 }
+
 export type GetSegmentsQueryHookResult = ReturnType<typeof useGetSegmentsQuery>;
 export type GetSegmentsLazyQueryHookResult = ReturnType<
     typeof useGetSegmentsLazyQuery
@@ -7767,6 +7934,7 @@ export function useGetErrorSegmentsQuery(
         Types.GetErrorSegmentsQueryVariables
     >(GetErrorSegmentsDocument, baseOptions);
 }
+
 export function useGetErrorSegmentsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorSegmentsQuery,
@@ -7778,6 +7946,7 @@ export function useGetErrorSegmentsLazyQuery(
         Types.GetErrorSegmentsQueryVariables
     >(GetErrorSegmentsDocument, baseOptions);
 }
+
 export type GetErrorSegmentsQueryHookResult = ReturnType<
     typeof useGetErrorSegmentsQuery
 >;
@@ -7821,6 +7990,7 @@ export function useIsIntegratedQuery(
         Types.IsIntegratedQueryVariables
     >(IsIntegratedDocument, baseOptions);
 }
+
 export function useIsIntegratedLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.IsIntegratedQuery,
@@ -7832,6 +8002,7 @@ export function useIsIntegratedLazyQuery(
         Types.IsIntegratedQueryVariables
     >(IsIntegratedDocument, baseOptions);
 }
+
 export type IsIntegratedQueryHookResult = ReturnType<
     typeof useIsIntegratedQuery
 >;
@@ -7875,6 +8046,7 @@ export function useIsBackendIntegratedQuery(
         Types.IsBackendIntegratedQueryVariables
     >(IsBackendIntegratedDocument, baseOptions);
 }
+
 export function useIsBackendIntegratedLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.IsBackendIntegratedQuery,
@@ -7886,6 +8058,7 @@ export function useIsBackendIntegratedLazyQuery(
         Types.IsBackendIntegratedQueryVariables
     >(IsBackendIntegratedDocument, baseOptions);
 }
+
 export type IsBackendIntegratedQueryHookResult = ReturnType<
     typeof useIsBackendIntegratedQuery
 >;
@@ -7949,6 +8122,7 @@ export function useGetKeyPerformanceIndicatorsQuery(
         Types.GetKeyPerformanceIndicatorsQueryVariables
     >(GetKeyPerformanceIndicatorsDocument, baseOptions);
 }
+
 export function useGetKeyPerformanceIndicatorsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetKeyPerformanceIndicatorsQuery,
@@ -7960,6 +8134,7 @@ export function useGetKeyPerformanceIndicatorsLazyQuery(
         Types.GetKeyPerformanceIndicatorsQueryVariables
     >(GetKeyPerformanceIndicatorsDocument, baseOptions);
 }
+
 export type GetKeyPerformanceIndicatorsQueryHookResult = ReturnType<
     typeof useGetKeyPerformanceIndicatorsQuery
 >;
@@ -8008,6 +8183,7 @@ export function useGetReferrersCountQuery(
         Types.GetReferrersCountQueryVariables
     >(GetReferrersCountDocument, baseOptions);
 }
+
 export function useGetReferrersCountLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetReferrersCountQuery,
@@ -8019,6 +8195,7 @@ export function useGetReferrersCountLazyQuery(
         Types.GetReferrersCountQueryVariables
     >(GetReferrersCountDocument, baseOptions);
 }
+
 export type GetReferrersCountQueryHookResult = ReturnType<
     typeof useGetReferrersCountQuery
 >;
@@ -8068,6 +8245,7 @@ export function useGetNewUsersCountQuery(
         Types.GetNewUsersCountQueryVariables
     >(GetNewUsersCountDocument, baseOptions);
 }
+
 export function useGetNewUsersCountLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetNewUsersCountQuery,
@@ -8079,6 +8257,7 @@ export function useGetNewUsersCountLazyQuery(
         Types.GetNewUsersCountQueryVariables
     >(GetNewUsersCountDocument, baseOptions);
 }
+
 export type GetNewUsersCountQueryHookResult = ReturnType<
     typeof useGetNewUsersCountQuery
 >;
@@ -8128,6 +8307,7 @@ export function useGetAverageSessionLengthQuery(
         Types.GetAverageSessionLengthQueryVariables
     >(GetAverageSessionLengthDocument, baseOptions);
 }
+
 export function useGetAverageSessionLengthLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAverageSessionLengthQuery,
@@ -8139,6 +8319,7 @@ export function useGetAverageSessionLengthLazyQuery(
         Types.GetAverageSessionLengthQueryVariables
     >(GetAverageSessionLengthDocument, baseOptions);
 }
+
 export type GetAverageSessionLengthQueryHookResult = ReturnType<
     typeof useGetAverageSessionLengthQuery
 >;
@@ -8189,6 +8370,7 @@ export function useGetTopUsersQuery(
         Types.GetTopUsersQueryVariables
     >(GetTopUsersDocument, baseOptions);
 }
+
 export function useGetTopUsersLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetTopUsersQuery,
@@ -8200,6 +8382,7 @@ export function useGetTopUsersLazyQuery(
         Types.GetTopUsersQueryVariables
     >(GetTopUsersDocument, baseOptions);
 }
+
 export type GetTopUsersQueryHookResult = ReturnType<typeof useGetTopUsersQuery>;
 export type GetTopUsersLazyQueryHookResult = ReturnType<
     typeof useGetTopUsersLazyQuery
@@ -8248,6 +8431,7 @@ export function useGetDailySessionsCountQuery(
         Types.GetDailySessionsCountQueryVariables
     >(GetDailySessionsCountDocument, baseOptions);
 }
+
 export function useGetDailySessionsCountLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetDailySessionsCountQuery,
@@ -8259,6 +8443,7 @@ export function useGetDailySessionsCountLazyQuery(
         Types.GetDailySessionsCountQueryVariables
     >(GetDailySessionsCountDocument, baseOptions);
 }
+
 export type GetDailySessionsCountQueryHookResult = ReturnType<
     typeof useGetDailySessionsCountQuery
 >;
@@ -8306,6 +8491,7 @@ export function useGetDailyErrorsCountQuery(
         Types.GetDailyErrorsCountQueryVariables
     >(GetDailyErrorsCountDocument, baseOptions);
 }
+
 export function useGetDailyErrorsCountLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetDailyErrorsCountQuery,
@@ -8317,6 +8503,7 @@ export function useGetDailyErrorsCountLazyQuery(
         Types.GetDailyErrorsCountQueryVariables
     >(GetDailyErrorsCountDocument, baseOptions);
 }
+
 export type GetDailyErrorsCountQueryHookResult = ReturnType<
     typeof useGetDailyErrorsCountQuery
 >;
@@ -8369,6 +8556,7 @@ export function useGetRageClicksForProjectQuery(
         Types.GetRageClicksForProjectQueryVariables
     >(GetRageClicksForProjectDocument, baseOptions);
 }
+
 export function useGetRageClicksForProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetRageClicksForProjectQuery,
@@ -8380,6 +8568,7 @@ export function useGetRageClicksForProjectLazyQuery(
         Types.GetRageClicksForProjectQueryVariables
     >(GetRageClicksForProjectDocument, baseOptions);
 }
+
 export type GetRageClicksForProjectQueryHookResult = ReturnType<
     typeof useGetRageClicksForProjectQuery
 >;
@@ -8433,6 +8622,7 @@ export function useGetDailyErrorFrequencyQuery(
         Types.GetDailyErrorFrequencyQueryVariables
     >(GetDailyErrorFrequencyDocument, baseOptions);
 }
+
 export function useGetDailyErrorFrequencyLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetDailyErrorFrequencyQuery,
@@ -8444,6 +8634,7 @@ export function useGetDailyErrorFrequencyLazyQuery(
         Types.GetDailyErrorFrequencyQueryVariables
     >(GetDailyErrorFrequencyDocument, baseOptions);
 }
+
 export type GetDailyErrorFrequencyQueryHookResult = ReturnType<
     typeof useGetDailyErrorFrequencyQuery
 >;
@@ -8500,6 +8691,7 @@ export function useGetErrorDistributionQuery(
         Types.GetErrorDistributionQueryVariables
     >(GetErrorDistributionDocument, baseOptions);
 }
+
 export function useGetErrorDistributionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetErrorDistributionQuery,
@@ -8511,6 +8703,7 @@ export function useGetErrorDistributionLazyQuery(
         Types.GetErrorDistributionQueryVariables
     >(GetErrorDistributionDocument, baseOptions);
 }
+
 export type GetErrorDistributionQueryHookResult = ReturnType<
     typeof useGetErrorDistributionQuery
 >;
@@ -8557,6 +8750,7 @@ export function useGetSlackChannelSuggestionQuery(
         Types.GetSlackChannelSuggestionQueryVariables
     >(GetSlackChannelSuggestionDocument, baseOptions);
 }
+
 export function useGetSlackChannelSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetSlackChannelSuggestionQuery,
@@ -8568,6 +8762,7 @@ export function useGetSlackChannelSuggestionLazyQuery(
         Types.GetSlackChannelSuggestionQueryVariables
     >(GetSlackChannelSuggestionDocument, baseOptions);
 }
+
 export type GetSlackChannelSuggestionQueryHookResult = ReturnType<
     typeof useGetSlackChannelSuggestionQuery
 >;
@@ -8614,6 +8809,7 @@ export function useGetWorkspaceIsIntegratedWithSlackQuery(
         Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
     >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
 }
+
 export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceIsIntegratedWithSlackQuery,
@@ -8625,6 +8821,7 @@ export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(
         Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
     >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
 }
+
 export type GetWorkspaceIsIntegratedWithSlackQueryHookResult = ReturnType<
     typeof useGetWorkspaceIsIntegratedWithSlackQuery
 >;
@@ -8671,6 +8868,7 @@ export function useGetWorkspaceIsIntegratedWithLinearQuery(
         Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
     >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
 }
+
 export function useGetWorkspaceIsIntegratedWithLinearLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceIsIntegratedWithLinearQuery,
@@ -8682,6 +8880,7 @@ export function useGetWorkspaceIsIntegratedWithLinearLazyQuery(
         Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
     >(GetWorkspaceIsIntegratedWithLinearDocument, baseOptions);
 }
+
 export type GetWorkspaceIsIntegratedWithLinearQueryHookResult = ReturnType<
     typeof useGetWorkspaceIsIntegratedWithLinearQuery
 >;
@@ -8728,6 +8927,7 @@ export function useGetWorkspaceIsIntegratedWithZapierQuery(
         Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
     >(GetWorkspaceIsIntegratedWithZapierDocument, baseOptions);
 }
+
 export function useGetWorkspaceIsIntegratedWithZapierLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWorkspaceIsIntegratedWithZapierQuery,
@@ -8739,6 +8939,7 @@ export function useGetWorkspaceIsIntegratedWithZapierLazyQuery(
         Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
     >(GetWorkspaceIsIntegratedWithZapierDocument, baseOptions);
 }
+
 export type GetWorkspaceIsIntegratedWithZapierQueryHookResult = ReturnType<
     typeof useGetWorkspaceIsIntegratedWithZapierQuery
 >;
@@ -8782,6 +8983,7 @@ export function useGenerateNewZapierAccessTokenJwtQuery(
         Types.GenerateNewZapierAccessTokenJwtQueryVariables
     >(GenerateNewZapierAccessTokenJwtDocument, baseOptions);
 }
+
 export function useGenerateNewZapierAccessTokenJwtLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GenerateNewZapierAccessTokenJwtQuery,
@@ -8793,6 +8995,7 @@ export function useGenerateNewZapierAccessTokenJwtLazyQuery(
         Types.GenerateNewZapierAccessTokenJwtQueryVariables
     >(GenerateNewZapierAccessTokenJwtDocument, baseOptions);
 }
+
 export type GenerateNewZapierAccessTokenJwtQueryHookResult = ReturnType<
     typeof useGenerateNewZapierAccessTokenJwtQuery
 >;
@@ -8998,6 +9201,7 @@ export function useGetAlertsPagePayloadQuery(
         Types.GetAlertsPagePayloadQueryVariables
     >(GetAlertsPagePayloadDocument, baseOptions);
 }
+
 export function useGetAlertsPagePayloadLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAlertsPagePayloadQuery,
@@ -9009,6 +9213,7 @@ export function useGetAlertsPagePayloadLazyQuery(
         Types.GetAlertsPagePayloadQueryVariables
     >(GetAlertsPagePayloadDocument, baseOptions);
 }
+
 export type GetAlertsPagePayloadQueryHookResult = ReturnType<
     typeof useGetAlertsPagePayloadQuery
 >;
@@ -9061,6 +9266,7 @@ export function useGetCommentMentionSuggestionsQuery(
         Types.GetCommentMentionSuggestionsQueryVariables
     >(GetCommentMentionSuggestionsDocument, baseOptions);
 }
+
 export function useGetCommentMentionSuggestionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetCommentMentionSuggestionsQuery,
@@ -9072,6 +9278,7 @@ export function useGetCommentMentionSuggestionsLazyQuery(
         Types.GetCommentMentionSuggestionsQueryVariables
     >(GetCommentMentionSuggestionsDocument, baseOptions);
 }
+
 export type GetCommentMentionSuggestionsQueryHookResult = ReturnType<
     typeof useGetCommentMentionSuggestionsQuery
 >;
@@ -9115,6 +9322,7 @@ export function useGetCustomerPortalUrlQuery(
         Types.GetCustomerPortalUrlQueryVariables
     >(GetCustomerPortalUrlDocument, baseOptions);
 }
+
 export function useGetCustomerPortalUrlLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetCustomerPortalUrlQuery,
@@ -9126,6 +9334,7 @@ export function useGetCustomerPortalUrlLazyQuery(
         Types.GetCustomerPortalUrlQueryVariables
     >(GetCustomerPortalUrlDocument, baseOptions);
 }
+
 export type GetCustomerPortalUrlQueryHookResult = ReturnType<
     typeof useGetCustomerPortalUrlQuery
 >;
@@ -9179,6 +9388,7 @@ export function useOnSessionPayloadAppendedSubscription(
         Types.OnSessionPayloadAppendedSubscriptionVariables
     >(OnSessionPayloadAppendedDocument, baseOptions);
 }
+
 export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
     typeof useOnSessionPayloadAppendedSubscription
 >;
@@ -9219,6 +9429,7 @@ export function useGetWebVitalsQuery(
         Types.GetWebVitalsQueryVariables
     >(GetWebVitalsDocument, baseOptions);
 }
+
 export function useGetWebVitalsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetWebVitalsQuery,
@@ -9230,6 +9441,7 @@ export function useGetWebVitalsLazyQuery(
         Types.GetWebVitalsQueryVariables
     >(GetWebVitalsDocument, baseOptions);
 }
+
 export type GetWebVitalsQueryHookResult = ReturnType<
     typeof useGetWebVitalsQuery
 >;
