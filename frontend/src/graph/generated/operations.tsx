@@ -1451,6 +1451,15 @@ export type RequestAccessMutation = { __typename?: 'Mutation' } & Pick<
     'requestAccess'
 >;
 
+export type ModifyClearbitIntegrationMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    enabled: Types.Scalars['Boolean'];
+}>;
+
+export type ModifyClearbitIntegrationMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'modifyClearbitIntegration'>;
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2292,7 +2301,7 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret'
+            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
@@ -3670,6 +3679,7 @@ export const namedOperations = {
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
         SyncSlackIntegration: 'SyncSlackIntegration' as const,
         RequestAccess: 'RequestAccess' as const,
+        ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {

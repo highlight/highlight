@@ -24,6 +24,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -2638,6 +2639,21 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	return &model.T, nil
 }
 
+func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
+	}
+	if pricing.MustUpgradeForClearbit(workspace.PlanTier) {
+		return nil, nil
+	}
+	workspace.ClearbitEnabled = enabled
+	if err := r.DB.Model(workspace).Update("ClearbitEnabled", &enabled).Error; err != nil {
+		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
+	}
+	return &enabled, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
@@ -3010,8 +3026,10 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not workspace owner")
 	}
-	pt := modelInputs.PlanType(w.PlanTier)
-	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+	if !w.ClearbitEnabled {
+		return nil, nil
+	}
+	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
 	}
 	// preload `Fields` children
@@ -3040,7 +3058,12 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
 			log.Infof("retrieving api response for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			clearbitApiRequestSpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
+				tracer.ResourceName("clearbit.api.request"),
+				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			clearbitApiRequestSpan.Finish()
 			if err != nil {
 				log.Errorf("error w/ clearbit request: %v", err)
 			}
@@ -3068,6 +3091,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			})
 		} else {
 			log.Infof("retrieving db entry for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.Errorf("error unmarshaling person: %v", err)

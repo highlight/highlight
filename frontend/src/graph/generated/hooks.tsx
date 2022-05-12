@@ -4044,6 +4044,56 @@ export type RequestAccessMutationOptions = Apollo.BaseMutationOptions<
     Types.RequestAccessMutation,
     Types.RequestAccessMutationVariables
 >;
+export const ModifyClearbitIntegrationDocument = gql`
+    mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+        modifyClearbitIntegration(
+            workspace_id: $workspace_id
+            enabled: $enabled
+        )
+    }
+`;
+export type ModifyClearbitIntegrationMutationFn = Apollo.MutationFunction<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
+
+/**
+ * __useModifyClearbitIntegrationMutation__
+ *
+ * To run a mutation, you first call `useModifyClearbitIntegrationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useModifyClearbitIntegrationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [modifyClearbitIntegrationMutation, { data, loading, error }] = useModifyClearbitIntegrationMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      enabled: // value for 'enabled'
+ *   },
+ * });
+ */
+export function useModifyClearbitIntegrationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >(ModifyClearbitIntegrationDocument, baseOptions);
+}
+export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
+    typeof useModifyClearbitIntegrationMutation
+>;
+export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
+export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
 export const GetWebVitalDashboardDocument = gql`
     query GetWebVitalDashboard(
         $project_id: ID!
@@ -5983,6 +6033,8 @@ export const GetWorkspaceDocument = gql`
             id
             name
             secret
+            plan_tier
+            clearbit_enabled
             projects {
                 id
                 name

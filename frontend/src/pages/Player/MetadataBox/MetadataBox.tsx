@@ -5,10 +5,13 @@ import { Skeleton } from '@components/Skeleton/Skeleton';
 import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetEnhancedUserDetailsQuery,
+    useGetProjectQuery,
+    useGetWorkspaceQuery,
     useMarkSessionAsStarredMutation,
 } from '@graph/hooks';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas';
+import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
@@ -160,6 +163,13 @@ export const UserDetailsBox = React.memo(() => {
         project_id: string;
         session_secure_id: string;
     }>();
+    const { data: project } = useGetProjectQuery({
+        variables: { id: project_id },
+    });
+    const { data: workspace } = useGetWorkspaceQuery({
+        variables: { id: project?.workspace?.id || '' },
+        skip: !project?.workspace?.id,
+    });
     const { data, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
         fetchPolicy: 'no-cache',
@@ -170,47 +180,62 @@ export const UserDetailsBox = React.memo(() => {
     }
 
     if (!data?.enhanced_user_details) {
-        return (
-            <Tooltip
-                mouseEnterDelay={0.3}
-                title={
+        if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
+            return (
+                <Tooltip
+                    mouseEnterDelay={0.3}
+                    title={
+                        <a
+                            href={`/w/${project_id}/billing`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Workspace tier does not include enhanced user
+                            details. Click here to see upgrade options
+                        </a>
+                    }
+                >
+                    <div className={styles.userEnhanced}>
+                        <div style={{ width: 36 }}>
+                            <div className={styles.blurred}>
+                                <Avatar
+                                    seed="test"
+                                    className={styles.enhancedAvatar}
+                                />
+                            </div>
+                        </div>
+                        <div className={styles.enhancedTextSection}>
+                            <div className={styles.blurred}>
+                                <SocialComponent
+                                    disabled
+                                    socialLink={
+                                        {
+                                            link: 'http://example.com',
+                                            type: 'Github',
+                                        } as SocialLink
+                                    }
+                                    key={'example'}
+                                />
+                                SOME INTERESTING DETAILS HERE
+                            </div>
+                        </div>
+                    </div>
+                </Tooltip>
+            );
+        }
+        if (!workspace?.workspace?.clearbit_enabled) {
+            return (
+                <div className={styles.enableClearbit}>
                     <a
-                        href={`/w/${project_id}/billing`}
+                        href={`/${project_id}/integrations`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        Workspace tier does not include enhanced user details.
-                        Click here to see upgrade options
+                        Enable Clearbit to collect more user details.
                     </a>
-                }
-            >
-                <div className={styles.userEnhanced}>
-                    <div style={{ width: 36 }}>
-                        <div className={styles.blurred}>
-                            <Avatar
-                                seed="test"
-                                className={styles.enhancedAvatar}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.enhancedTextSection}>
-                        <div className={styles.blurred}>
-                            <SocialComponent
-                                disabled
-                                socialLink={
-                                    {
-                                        link: 'http://example.com',
-                                        type: 'Github',
-                                    } as SocialLink
-                                }
-                                key={'example'}
-                            />
-                            SOME INTERESTING DETAILS HERE
-                        </div>
-                    </div>
                 </div>
-            </Tooltip>
-        );
+            );
+        }
     }
 
     if (!hasEnrichedData(data)) {

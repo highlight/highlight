@@ -625,6 +625,8 @@ query GetWorkspace($id: ID!) {
         id
         name
         secret
+        plan_tier
+        clearbit_enabled
         projects {
             id
             name

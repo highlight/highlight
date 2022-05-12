@@ -153,6 +153,12 @@ func ToPriceID(plan backend.PlanType) string {
 	return ""
 }
 
+// MustUpgradeForClearbit shows when tier is insufficient for Clearbit.
+func MustUpgradeForClearbit(tier string) bool {
+	pt := backend.PlanType(tier)
+	return pt != backend.PlanTypeStartup && pt != backend.PlanTypeEnterprise
+}
+
 // Returns a Stripe lookup key which maps to a single Stripe Price
 func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval) string {
 	return fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))

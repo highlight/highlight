@@ -221,6 +221,7 @@ type Workspace struct {
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
+	ClearbitEnabled             bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {

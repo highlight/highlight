@@ -376,6 +376,7 @@ type ComplexityRoot struct {
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
+		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
@@ -756,10 +757,12 @@ type ComplexityRoot struct {
 		AllowMeterOverage           func(childComplexity int) int
 		AllowedAutoJoinEmailOrigins func(childComplexity int) int
 		BillingPeriodEnd            func(childComplexity int) int
+		ClearbitEnabled             func(childComplexity int) int
 		EligibleForTrialExtension   func(childComplexity int) int
 		ID                          func(childComplexity int) int
 		Name                        func(childComplexity int) int
 		NextInvoiceDate             func(childComplexity int) int
+		PlanTier                    func(childComplexity int) int
 		Projects                    func(childComplexity int) int
 		Secret                      func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
@@ -881,6 +884,7 @@ type MutationResolver interface {
 	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
 	SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error)
 	RequestAccess(ctx context.Context, projectID int) (*bool, error)
+	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -2782,6 +2786,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["secure_id"].(string), args["viewed"].(*bool)), true
+
+	case "Mutation.modifyClearbitIntegration":
+		if e.complexity.Mutation.ModifyClearbitIntegration == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_modifyClearbitIntegration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ModifyClearbitIntegration(childComplexity, args["workspace_id"].(int), args["enabled"].(bool)), true
 
 	case "Mutation.openSlackConversation":
 		if e.complexity.Mutation.OpenSlackConversation == nil {
@@ -5302,6 +5318,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.BillingPeriodEnd(childComplexity), true
 
+	case "Workspace.clearbit_enabled":
+		if e.complexity.Workspace.ClearbitEnabled == nil {
+			break
+		}
+
+		return e.complexity.Workspace.ClearbitEnabled(childComplexity), true
+
 	case "Workspace.eligible_for_trial_extension":
 		if e.complexity.Workspace.EligibleForTrialExtension == nil {
 			break
@@ -5329,6 +5352,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.NextInvoiceDate(childComplexity), true
+
+	case "Workspace.plan_tier":
+		if e.complexity.Workspace.PlanTier == nil {
+			break
+		}
+
+		return e.complexity.Workspace.PlanTier(childComplexity), true
 
 	case "Workspace.projects":
 		if e.complexity.Workspace.Projects == nil {
@@ -5714,6 +5744,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    plan_tier: String!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -5721,6 +5752,7 @@ type Workspace {
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
     trial_extension_enabled: Boolean!
+    clearbit_enabled: Boolean!
 }
 
 type Segment {
@@ -6706,6 +6738,10 @@ type Mutation {
         pun: String
     ): Boolean
     requestAccess(project_id: ID!): Boolean
+    modifyClearbitIntegration(
+        workspace_id: ID!
+        enabled: Boolean!
+    ): Boolean
 }
 
 type Subscription {
@@ -8438,6 +8474,30 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 		}
 	}
 	args["viewed"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_modifyClearbitIntegration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["enabled"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["enabled"] = arg1
 	return args, nil
 }
 
@@ -20036,6 +20096,45 @@ func (ec *executionContext) _Mutation_requestAccess(ctx context.Context, field g
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_modifyClearbitIntegration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_modifyClearbitIntegration_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ModifyClearbitIntegration(rctx, args["workspace_id"].(int), args["enabled"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NamedCount_name(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29661,6 +29760,41 @@ func (ec *executionContext) _Workspace_projects(ctx context.Context, field graph
 	return ec.marshalNProject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_plan_tier(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlanTier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29878,6 +30012,41 @@ func (ec *executionContext) _Workspace_trial_extension_enabled(ctx context.Conte
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.TrialExtensionEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Workspace_clearbit_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClearbitEnabled, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34777,6 +34946,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "modifyClearbitIntegration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_modifyClearbitIntegration(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39076,6 +39252,16 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "plan_tier":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Workspace_plan_tier(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "trial_end_date":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Workspace_trial_end_date(ctx, field, obj)
@@ -39127,6 +39313,16 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "trial_extension_enabled":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Workspace_trial_extension_enabled(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clearbit_enabled":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Workspace_clearbit_enabled(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
