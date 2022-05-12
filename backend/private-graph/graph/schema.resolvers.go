@@ -25,7 +25,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4467,7 +4467,7 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 			Key:    team.Key,
 		}
 	})
-	
+
 	return ret, nil
 }
 
