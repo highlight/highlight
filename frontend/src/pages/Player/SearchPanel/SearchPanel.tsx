@@ -13,13 +13,13 @@ const SearchPanel = React.memo(({ visible }: Props) => {
     return (
         <div className={styles.searchPanel}>
             {visible && (
-                <>
+                <div className={styles.searchContainer}>
                     <div className={styles.filtersContainer}>
                         <SegmentPickerForPlayer />
                         <SessionsQueryBuilder />
                     </div>
                     <SessionFeed />
-                </>
+                </div>
             )}
         </div>
     );
