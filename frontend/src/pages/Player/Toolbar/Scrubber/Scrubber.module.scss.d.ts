@@ -1,5 +1,7 @@
 export const clickChangeTime: string;
 export const handleContainer: string;
+export const handleLeft: string;
+export const handleRight: string;
 export const innerBounds: string;
 export const scrubberBackground: string;
 export const scrubHandle: string;

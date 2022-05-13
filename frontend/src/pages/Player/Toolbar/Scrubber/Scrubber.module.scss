@@ -19,6 +19,7 @@
     border-radius: 5px;
     height: 12px;
     position: relative;
+    top: 10px;
     width: 100%;
     z-index: 2;
 }
@@ -64,10 +65,26 @@
     cursor: pointer;
     height: 22px;
     position: absolute;
-    top: -27px;
+    top: -2px;
     width: 100%;
 }
 
 .zoomAreaHandle {
     cursor: move;
+}
+
+.handleLeft {
+    background: var(--color-red-200);
+    height: 12px;
+    position: absolute;
+    width: 12px;
+    z-index: 200;
+}
+
+.handleRight {
+    background: var(--color-red-200);
+    height: 12px;
+    position: absolute;
+    width: 12px;
+    z-index: 200;
 }

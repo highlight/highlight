@@ -144,7 +144,6 @@ const Scrubber = ({}: {}) => {
                             setShouldPlay(false);
                         }
                     }}
-                    // disabled={disableControls}
                     position={{
                         x: Math.max(getSliderPercent(time) * wrapperWidth, 0),
                         y: -40,
@@ -157,11 +156,53 @@ const Scrubber = ({}: {}) => {
                         </div>
                     </div>
                 </Draggable>
-                <Draggable>
-                    <div className={styles.zoomAreaHandle} ref={leftRef}></div>
+                <Draggable
+                    nodeRef={leftRef}
+                    axis="x"
+                    position={{
+                        x: (dragAreaLeft / 100) * wrapperWidth,
+                        y: 10,
+                    }}
+                    onStop={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        setZoomAreaLeft(sliderPercent * 100);
+                    }}
+                    onDrag={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        setDragAreaLeft(sliderPercent * 100);
+                    }}
+                >
+                    <div
+                        className={classNames(
+                            styles.zoomAreaHandle,
+                            styles.handleLeft
+                        )}
+                        ref={leftRef}
+                    ></div>
                 </Draggable>
-                <Draggable>
-                    <div className={styles.zoomAreaHandle} ref={rightRef}></div>
+                <Draggable
+                    nodeRef={rightRef}
+                    axis="x"
+                    position={{
+                        x: (dragAreaRight / 100) * wrapperWidth,
+                        y: 10,
+                    }}
+                    onStop={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        setZoomAreaRight(sliderPercent * 100);
+                    }}
+                    onDrag={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        setDragAreaRight(sliderPercent * 100);
+                    }}
+                >
+                    <div
+                        className={classNames(
+                            styles.zoomAreaHandle,
+                            styles.handleRight
+                        )}
+                        ref={rightRef}
+                    ></div>
                 </Draggable>
                 <div
                     className={classNames(styles.zoomArea, {
@@ -176,7 +217,6 @@ const Scrubber = ({}: {}) => {
                         setZoomAreaRight(100);
                     }}
                 ></div>
-                <Draggable></Draggable>
             </div>
         </div>
     );
