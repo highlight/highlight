@@ -8,7 +8,7 @@
     max-width: var(--right-panel-width);
     position: relative;
 }
-.enhancedAvatar {
+.avatar {
     height: 36px;
     width: 36px;
 }
@@ -40,10 +40,7 @@
 }
 
 .userEnhanced {
-    column-gap: 14px;
-    display: grid;
-    grid-template-columns: fit-content(20px) auto;
-    padding: 20px;
+    padding: 16px 28px;
     position: relative;
 }
 
