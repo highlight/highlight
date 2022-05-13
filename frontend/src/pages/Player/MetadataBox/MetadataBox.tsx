@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { Avatar } from '@components/Avatar/Avatar';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetEnhancedUserDetailsQuery,
     useGetProjectQuery,
@@ -10,7 +9,14 @@ import {
     useMarkSessionAsStarredMutation,
 } from '@graph/hooks';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
-import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas';
+import {
+    Maybe,
+    PlanType,
+    Session,
+    SocialLink,
+    SocialType,
+} from '@graph/schemas';
+import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip';
 import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -182,19 +188,7 @@ export const UserDetailsBox = React.memo(() => {
     if (!data?.enhanced_user_details) {
         if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
             return (
-                <Tooltip
-                    mouseEnterDelay={0.3}
-                    title={
-                        <a
-                            href={`/w/${project_id}/billing`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Workspace tier does not include enhanced user
-                            details. Click here to see upgrade options
-                        </a>
-                    }
-                >
+                <PaywallTooltip tier={PlanType.Startup}>
                     <div className={styles.userEnhanced}>
                         <div style={{ width: 36 }}>
                             <div className={styles.blurred}>
@@ -220,7 +214,7 @@ export const UserDetailsBox = React.memo(() => {
                             </div>
                         </div>
                     </div>
-                </Tooltip>
+                </PaywallTooltip>
             );
         }
         if (!workspace?.workspace?.clearbit_enabled) {
