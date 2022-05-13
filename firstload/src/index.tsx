@@ -39,6 +39,7 @@ declare var window: HighlightWindow;
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
 var first_load_listeners: FirstLoadListeners;
+var init_called = false;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -60,6 +61,12 @@ export const H: HighlightPublicInterface = {
                 );
                 return;
             }
+
+            // `init` was already called, do not reinitialize
+            if (init_called) {
+                return;
+            }
+            init_called = true;
 
             script = document.createElement('script');
             var scriptSrc = options?.scriptUrl
