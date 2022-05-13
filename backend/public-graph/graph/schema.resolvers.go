@@ -29,10 +29,11 @@ import (
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
+	ip := ctx.Value(model.ContextKeys.IP).(string)
 
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.initializeSessionMinimal")
 	querySessionSpan.SetTag("projectVerboseID", organizationVerboseID)
-	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, sessionSecureID)
+	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID)
 	querySessionSpan.Finish()
 
 	projectID := session.ProjectID
@@ -54,7 +55,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionID: session.ID,
-				IP:        ctx.Value(model.ContextKeys.IP).(string),
+				IP:        ip,
 			}}, strconv.Itoa(session.ID))
 	}
 

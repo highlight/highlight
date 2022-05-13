@@ -34,6 +34,13 @@ const CUSTOM_FIELDS: CustomField[] = [
     },
     {
         type: CUSTOM_TYPE,
+        name: 'city',
+        options: {
+            type: 'text',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
         name: 'created_at',
         options: {
             operators: DATE_OPERATORS,
@@ -171,6 +178,9 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
                 params.app_versions.map((ver) => ver ?? '')
             )
         );
+    }
+    if (params.city) {
+        rules.push(deserializeGroup('city', 'is', [params.city]));
     }
     if (params.device_id) {
         rules.push(
