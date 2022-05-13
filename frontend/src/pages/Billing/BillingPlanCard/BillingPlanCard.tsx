@@ -20,6 +20,7 @@ export const BillingPlanCard = ({
     subscriptionInterval,
     disabled,
     memberCount,
+    glowing,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
@@ -28,6 +29,7 @@ export const BillingPlanCard = ({
     subscriptionInterval: SubscriptionInterval;
     disabled?: boolean;
     memberCount: number;
+    glowing?: boolean;
 }) => {
     let membersOverage = 0;
     if (!!billingPlan.membersIncluded) {
@@ -39,6 +41,7 @@ export const BillingPlanCard = ({
         <div
             className={classNames(styles.billingPlanCard, {
                 [styles.currentPlan]: current,
+                [styles.glowingPlan]: glowing,
             })}
         >
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>

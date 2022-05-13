@@ -1,6 +1,14 @@
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
 import Switch from '@components/Switch/Switch';
+import {
+    useCreateOrUpdateStripeSubscriptionMutation,
+    useGetBillingDetailsQuery,
+    useGetCustomerPortalUrlLazyQuery,
+    useGetSubscriptionDetailsQuery,
+    useUpdateBillingDetailsMutation,
+} from '@graph/hooks';
+import { AdminRole, PlanType, SubscriptionInterval } from '@graph/schemas';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -16,20 +24,9 @@ import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
+import { StringParam, useQueryParams } from 'use-query-params';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import {
-    useCreateOrUpdateStripeSubscriptionMutation,
-    useGetBillingDetailsQuery,
-    useGetCustomerPortalUrlLazyQuery,
-    useGetSubscriptionDetailsQuery,
-    useUpdateBillingDetailsMutation,
-} from '../../graph/generated/hooks';
-import {
-    AdminRole,
-    PlanType,
-    SubscriptionInterval,
-} from '../../graph/generated/schemas';
 import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
@@ -46,7 +43,12 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { workspace_id } = useParams<{ workspace_id: string }>();
+    const { workspace_id } = useParams<{
+        workspace_id: string;
+    }>();
+    const [{ tier }] = useQueryParams({
+        tier: StringParam,
+    });
     const { pathname } = useLocation();
     const { currentWorkspace } = useApplicationContext();
     const { checkPolicyAccess } = useAuthorization();
@@ -325,6 +327,7 @@ const BillingPage = () => {
                                         policyName: POLICY_NAMES.BillingUpdate,
                                     })
                                 }
+                                glowing={billingPlan.type === tier}
                                 key={billingPlan.type}
                                 current={
                                     billingData?.billingDetails.plan.type ===
