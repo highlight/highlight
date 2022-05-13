@@ -916,6 +916,11 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		}
 		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
+
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return nil, e.Wrap(err, "error indexing session in opensearch")
+	}
+
 	return session, nil
 }
 
@@ -967,8 +972,14 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 		return nil, e.Wrap(err, "error updating session")
 	}
 
-	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
-		return nil, e.Wrap(err, "error indexing session in opensearch")
+	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{
+		"city":      session.City,
+		"state":     session.State,
+		"postal":    session.Postal,
+		"latitude":  session.Latitude,
+		"longitude": session.Longitude,
+	}); err != nil {
+		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
