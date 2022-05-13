@@ -856,7 +856,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -864,6 +864,10 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "project doesn't exist")
+	}
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
 	}
 
 	var fingerprintInt int = 0
@@ -903,6 +907,31 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		session.SecureID = *sessionSecureID
 	}
 
+	// Get the user's ip, get geolocation data
+	location := &Location{
+		City:      "",
+		Postal:    "",
+		Latitude:  0.0,
+		Longitude: 0.0,
+		State:     "",
+	}
+	fetchedLocation, err := GetLocationFromIP(ip)
+	if err != nil || fetchedLocation == nil {
+		log.Errorf("error getting user's location: %v", err)
+	} else {
+		location = fetchedLocation
+	}
+
+	// determine if session is within billing quota
+	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+
+	session.City = location.City
+	session.State = location.State
+	session.Postal = location.Postal
+	session.Latitude = location.Latitude.(float64)
+	session.Longitude = location.Longitude.(float64)
+	session.WithinBillingQuota = &withinBillingQuota
+
 	if err := r.DB.Create(session).Error; err != nil {
 		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return nil, e.Wrap(err, "error creating session")
@@ -917,8 +946,24 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("initialized session: %s", session.Identifier)
+
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
-		return nil, e.Wrap(err, "error indexing session in opensearch")
+		return nil, e.Wrap(err, "error indexing new session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+	}
+	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
 	return session, nil
@@ -934,6 +979,8 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 		return nil, e.Wrap(err, "project doesn't exist")
 	}
 
+	// TODO(vkorolik) TO BE REMOVED, MOVED TO InitializeSessionMinimal
+	// TODO(vkorolik) remove once all new sessions are being initialized with new logic. /*
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
@@ -996,6 +1043,7 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
+	// TODO(vkorolik) TO BE REMOVED */
 
 	go func() {
 		defer util.Recover()

@@ -24,6 +24,7 @@ export type SearchParams = {
     identified: boolean;
     hide_viewed?: boolean;
     device_id?: string;
+    city?: string;
     /** Whether this session is the user's first session. */
     first_time?: boolean;
     /** Whether to show sessions that have not been processed yet. */
