@@ -32,6 +32,8 @@ interface Suggestion {
     options: QuickSearchOption[];
 }
 
+const SESSIONS_SEARCH = 'Sessions';
+const ERRORS_SEARCH = 'Errors';
 const ERROR_TYPE = 'error-field';
 // keys where we should use the 'contains' verb rather than the 'is' default
 const CONTAINS_KEYS = new Set<string>(['email', 'identifier']);
@@ -155,6 +157,12 @@ const QuickSearch = () => {
     const [lastSearches, setLastSearches] = useLocalStorage<
         QuickSearchOption[]
     >('highlightQuickSearchLastSearches');
+    const lastSessionSearches = lastSearches?.filter(
+        (s) => s.type !== ERROR_TYPE
+    );
+    const lastErrorSearches = lastSearches?.filter(
+        (s) => s.type === ERROR_TYPE
+    );
 
     const addLastSearch = (field: QuickSearchOption) => {
         // remove existing duplicates
@@ -238,13 +246,13 @@ const QuickSearch = () => {
             const shownErrors = RESULT_COUNT - shownSessions;
 
             suggestions.push({
-                label: 'Sessions',
+                label: SESSIONS_SEARCH,
                 tooltip: 'Fields recorded for sessions.',
                 options: sessionOptions.slice(0, shownSessions),
             });
 
             suggestions.push({
-                label: 'Errors',
+                label: ERRORS_SEARCH,
                 tooltip: 'Fields recorded for errors.',
                 options: errorOptions.slice(0, shownErrors),
             });
@@ -325,6 +333,25 @@ const QuickSearch = () => {
         }
     }, [isMenuOpen]);
 
+    const defaultOptions = [
+        {
+            label: SESSIONS_SEARCH,
+            tooltip: 'Search sessions.',
+            options: lastTyped.length
+                ? [getDefaultField(lastTyped)]
+                : lastSessionSearches?.length
+                ? lastSessionSearches
+                : [],
+        },
+    ];
+    if (!lastTyped.length && lastErrorSearches?.length) {
+        defaultOptions.push({
+            label: ERRORS_SEARCH,
+            tooltip: 'Search errors.',
+            options: lastErrorSearches,
+        });
+    }
+
     return (
         <div className={styles.container}>
             <DropdownIndicator isLoading={isLoading} />
@@ -334,11 +361,15 @@ const QuickSearch = () => {
                     loadOptions(input, (options) => {
                         const def = getDefaultField(input);
                         if (def.value.length) {
-                            options.unshift({
-                                label: 'Default',
-                                tooltip: 'Search by user identifier.',
-                                options: [def],
-                            });
+                            if (options.length) {
+                                options[0].options.unshift(def);
+                            } else {
+                                options.unshift({
+                                    label: SESSIONS_SEARCH,
+                                    tooltip: 'Search by user identifier.',
+                                    options: [def],
+                                });
+                            }
                         }
                         callback(options);
                     });
@@ -409,17 +440,7 @@ const QuickSearch = () => {
                     },
                 }}
                 isSearchable
-                defaultOptions={[
-                    {
-                        label: 'Default',
-                        tooltip: 'Search by user identifier.',
-                        options: lastTyped.length
-                            ? [getDefaultField(lastTyped)]
-                            : lastSearches?.length
-                            ? lastSearches
-                            : [],
-                    },
-                ]}
+                defaultOptions={defaultOptions}
                 maxMenuHeight={500}
                 menuIsOpen={isMenuOpen === true ? true : undefined}
             />
