@@ -1694,9 +1694,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					}
 					event.Data = d
 				} else if event.Type == parse.IncrementalSnapshot {
-					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
+					var mouseInteractionEventData parse.MouseInteractionEventData
+					err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 					if err != nil {
 						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
+						continue
+					}
+					if mouseInteractionEventData.Source == nil {
+						// all user interaction events must have a source
 						continue
 					}
 					if _, ok := map[parse.EventSource]bool{

@@ -1207,10 +1207,15 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				a.ClickEventQueue.Remove(elem)
 			}
 
-			mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
+			var mouseInteractionEventData parse.MouseInteractionEventData
+			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 			if err != nil {
 				a.Error = err
 				return a
+			}
+			if mouseInteractionEventData.Source == nil {
+				// all user interaction events must have a source
+				continue
 			}
 			if _, ok := map[parse.EventSource]bool{
 				parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
@@ -1254,7 +1259,8 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				if el == event {
 					continue
 				}
-				prev, err := parse.UnmarshallMouseInteractionEvent(el.Data)
+				var prev *parse.MouseInteractionEventData
+				err = json.Unmarshal(el.Data, &prev)
 				if err != nil {
 					a.Error = err
 					return a
