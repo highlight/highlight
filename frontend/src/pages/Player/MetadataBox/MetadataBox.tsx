@@ -61,6 +61,11 @@ export const MetadataBox = React.memo(() => {
         session as Maybe<Session>
     );
 
+    // clear enhanced avatar when session changes
+    useEffect(() => {
+        setEnhancedAvatar(undefined);
+    }, [session_secure_id]);
+
     return (
         <div className={styles.userBox}>
             <div className={styles.userMainSection}>
