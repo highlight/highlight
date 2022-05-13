@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
@@ -117,6 +118,8 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
 			log.Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
+		} else if fv == "" {
+			// Skip when the field value is blank
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
