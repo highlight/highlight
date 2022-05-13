@@ -70,8 +70,15 @@ export type DeviceMetricInput = {
   value: Scalars['Float'];
 };
 
+export type ReplayEventInput = {
+  type: Scalars['Int'];
+  timestamp: Scalars['Float'];
+  _sid: Scalars['Float'];
+  data: Scalars['Any'];
+};
+
 export type ReplayEventsInput = {
-  events: Array<Maybe<Scalars['Any']>>;
+  events: Array<Maybe<ReplayEventInput>>;
 };
 
 export type Mutation = {

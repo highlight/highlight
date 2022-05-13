@@ -4,7 +4,6 @@ import { GraphQLClient } from 'graphql-request';
 import * as Dom from 'graphql-request/dist/types.dom';
 import { print } from 'graphql';
 import gql from 'graphql-tag';
-
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
@@ -77,8 +76,15 @@ export type DeviceMetricInput = {
   value: Scalars['Float'];
 };
 
+export type ReplayEventInput = {
+  type: Scalars['Int'];
+  timestamp: Scalars['Float'];
+  _sid: Scalars['Float'];
+  data: Scalars['Any'];
+};
+
 export type ReplayEventsInput = {
-  events: Array<Maybe<Scalars['Any']>>;
+  events: Array<Maybe<ReplayEventInput>>;
 };
 
 export type Mutation = {

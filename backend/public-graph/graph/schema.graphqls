@@ -56,8 +56,15 @@ input DeviceMetricInput {
     value: Float!
 }
 
+input ReplayEventInput {
+    type: Int!
+    timestamp: Float!
+    _sid: Float!
+    data: Any!
+}
+
 input ReplayEventsInput {
-    events: [Any]!
+    events: [ReplayEventInput]!
 }
 
 type Mutation {
