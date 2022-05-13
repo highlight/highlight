@@ -206,7 +206,7 @@ export const UserDetailsBox = React.memo(
             if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
                 return (
                     <PaywallTooltip tier={PlanType.Startup}>
-                        <div className={styles.userEnhanced}>
+                        <div className={styles.userEnhancedGrid}>
                             <div style={{ width: 36 }}>
                                 <div className={styles.blurred}>
                                     <Avatar
