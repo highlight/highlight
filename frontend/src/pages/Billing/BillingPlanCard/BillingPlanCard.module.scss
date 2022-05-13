@@ -71,9 +71,9 @@
 }
 
 .glowingPlan {
+    animation: pulse 2s ease-out infinite;
     border-color: var(--color-green-400);
     box-shadow: 0 8px 32px rgba(52, 211, 153, 0.2);
-    animation: pulse 2s ease-out infinite;
 }
 
 @keyframes pulse {
