@@ -361,11 +361,15 @@ const QuickSearch = () => {
                     loadOptions(input, (options) => {
                         const def = getDefaultField(input);
                         if (def.value.length) {
-                            options.unshift({
-                                label: SESSIONS_SEARCH,
-                                tooltip: 'Search by user identifier.',
-                                options: [def],
-                            });
+                            if (options.length) {
+                                options[0].options.unshift(def);
+                            } else {
+                                options.unshift({
+                                    label: SESSIONS_SEARCH,
+                                    tooltip: 'Search by user identifier.',
+                                    options: [def],
+                                });
+                            }
                         }
                         callback(options);
                     });
