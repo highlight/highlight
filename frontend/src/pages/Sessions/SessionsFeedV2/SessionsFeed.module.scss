@@ -175,7 +175,7 @@
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
-    height: 67vh;
+    height: calc(100vh - 320px);
     overflow: auto;
 
     &.hasScrolled {
