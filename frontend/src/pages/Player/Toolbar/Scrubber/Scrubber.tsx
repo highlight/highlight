@@ -1,10 +1,13 @@
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useReplayerContext } from '@pages/Player/ReplayerContext';
+import {
+    ReplayerState,
+    useReplayerContext,
+} from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 
 import styles from './Scrubber.module.scss';
@@ -20,12 +23,26 @@ const Scrubber = ({}: {}) => {
         zoomAreaRight,
         setZoomAreaRight,
     } = useToolbarItemsContext();
-    const { time, sessionMetadata, sessionIntervals } = useReplayerContext();
+    const {
+        state,
+        time,
+        pause,
+        play,
+        setTime,
+        sessionMetadata,
+        sessionIntervals,
+    } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const draggableRef = useRef(null);
+    const leftRef = useRef(null);
+    const rightRef = useRef(null);
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
+    const [dragTime, setDragTime] = useState(time);
+    const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft);
+    const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight);
+    const [shouldPlay, setShouldPlay] = useState(false);
 
     const getSliderPercent = useCallback(
         (time: number) => {
@@ -47,53 +64,120 @@ const Scrubber = ({}: {}) => {
         [sessionIntervals]
     );
 
+    const getSliderTime = useCallback(
+        (sliderPercent: number) => {
+            let newTime = 0;
+            for (const interval of sessionIntervals) {
+                if (
+                    sliderPercent < interval.endPercent &&
+                    sliderPercent >= interval.startPercent
+                ) {
+                    if (!interval.active) {
+                        return interval.endTime;
+                    }
+                    const segmentPercent =
+                        (sliderPercent - interval.startPercent) /
+                        (interval.endPercent - interval.startPercent);
+                    newTime =
+                        segmentPercent * interval.duration + interval.startTime;
+                    return newTime;
+                }
+            }
+            return newTime;
+        },
+        [sessionIntervals]
+    );
+
+    useEffect(() => {
+        setDragTime(time);
+    }, [time]);
+
+    useEffect(() => {
+        setDragAreaLeft(zoomAreaLeft);
+    }, [zoomAreaLeft]);
+
+    useEffect(() => {
+        setDragAreaRight(dragAreaRight);
+    }, [dragAreaRight]);
+
     const isZoomed = zoomAreaLeft > 0 || zoomAreaRight < 100;
     const curTime = showPlayerAbsoluteTime
         ? playerTimeToSessionAbsoluteTime({
               sessionStartTime: sessionMetadata.startTime,
-              relativeTime: time,
+              relativeTime: dragTime,
           }).toString()
-        : MillisToMinutesAndSeconds(time);
+        : MillisToMinutesAndSeconds(dragTime);
 
     return (
-        <div className={styles.scrubberBackground} ref={sliderWrapperRef}>
-            <Draggable
-                nodeRef={draggableRef}
-                axis="x"
-                bounds="parent"
-                onStop={() => {
-                    console.log('draggable onStop');
+        <div className={styles.scrubberBackground}>
+            <div
+                className={styles.clickChangeTime}
+                onClick={(e) => {
+                    const target = e.target as HTMLDivElement;
+                    const rect = target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const sliderPercent = x / wrapperWidth;
+                    const newTime = getSliderTime(sliderPercent);
+                    setTime(newTime);
                 }}
-                onDrag={() => {
-                    console.log('draggable onDrag');
-                }}
-                onStart={() => {
-                    console.log('draggable onStart');
-                }}
-                // disabled={disableControls}
-                position={{
-                    x: Math.max(getSliderPercent(time) * wrapperWidth - 10, 0),
-                    y: 0,
-                }}
-            >
-                <div className={styles.scrubHandle}>
-                    <div className={styles.timeText}>{curTime}</div>
-                    <div className={styles.timeMarker}></div>
-                </div>
-            </Draggable>
-            <button
-                className={classNames(styles.zoomArea, {
-                    [styles.zoomAreaCanReset]: isZoomed,
-                })}
-                style={{
-                    left: `${zoomAreaLeft}%`,
-                    width: `${zoomAreaRight - zoomAreaLeft}%`,
-                }}
-                onClick={() => {
-                    setZoomAreaLeft(0);
-                    setZoomAreaRight(100);
-                }}
-            ></button>
+            ></div>
+            <div className={styles.innerBounds} ref={sliderWrapperRef}>
+                <Draggable
+                    nodeRef={draggableRef}
+                    axis="x"
+                    bounds={{ left: 0, right: wrapperWidth }}
+                    onStop={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        const newTime = getSliderTime(sliderPercent);
+                        setTime(newTime);
+                    }}
+                    onDrag={(e, data) => {
+                        const sliderPercent = data.x / wrapperWidth;
+                        const newTime = getSliderTime(sliderPercent);
+                        setDragTime(newTime);
+                    }}
+                    onStart={() => {
+                        if (state === ReplayerState.Playing) {
+                            setShouldPlay(true);
+                            pause();
+                        } else {
+                            setShouldPlay(false);
+                        }
+                    }}
+                    // disabled={disableControls}
+                    position={{
+                        x: Math.max(getSliderPercent(time) * wrapperWidth, 0),
+                        y: -40,
+                    }}
+                >
+                    <div className={styles.handleContainer} ref={draggableRef}>
+                        <div className={styles.scrubHandle}>
+                            <div className={styles.timeText}>{curTime}</div>
+                            <div className={styles.timeMarker}></div>
+                        </div>
+                    </div>
+                </Draggable>
+                <Draggable>
+                    <div className={styles.zoomAreaHandle} ref={leftRef}></div>
+                </Draggable>
+                <Draggable>
+                    <div className={styles.zoomAreaHandle} ref={rightRef}></div>
+                </Draggable>
+                <div
+                    className={classNames(styles.zoomArea, {
+                        [styles.zoomAreaCanReset]: isZoomed,
+                    })}
+                    style={{
+                        left: `${dragAreaLeft}%`,
+                        width: `${dragAreaRight - dragAreaLeft}%`,
+                    }}
+                    onClick={() => {
+                        setZoomAreaLeft(0);
+                        setZoomAreaRight(100);
+                    }}
+                ></div>
+                <Draggable></Draggable>
+            </div>
         </div>
     );
 };

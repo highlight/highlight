@@ -1,24 +1,34 @@
 .scrubberBackground {
+    align-items: center;
     background-color: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
+    display: flex;
     height: 40px;
+    justify-content: center;
+    position: relative;
     width: 100%;
 }
 
+.innerBounds {
+    width: 90%;
+}
+
 .zoomArea {
-    background: var(--color-gray-700);
-    border: 2px solid rgba(var(--color-yellow-800), 0.5);
-    border-radius: 10px;
-    height: 8px;
+    background: var(--color-gray-800);
+    border-radius: 5px;
+    height: 12px;
     position: relative;
     width: 100%;
-    // top: -40px;
-    z-index: 999999999;
+    z-index: 2;
 }
 
 .zoomAreaCanReset {
     cursor: pointer;
+}
+
+.handleContainer {
+    position: absolute;
 }
 
 .scrubHandle {
@@ -26,18 +36,38 @@
     background: var(--color-red-500);
     border-radius: var(--border-radius);
     cursor: move;
+    display: flex;
     height: fit-content;
     justify-content: center;
+    padding: 0 var(--size-xSmall);
     position: absolute;
-    transform: translateY(-24px);
+    transform: translateX(-28px);
     user-select: none;
-    width: fit-content;
+    width: 56px;
+    z-index: 200;
 }
 
 .timeMarker {
-    color: var(--color-red-500);
+    background: var(--color-red-500);
+    height: 46px;
+    position: absolute;
+    top: 20px;
+    width: 2px;
+    z-index: 200;
 }
 
 .timeText {
     color: var(--color-text-primary);
+}
+
+.clickChangeTime {
+    cursor: pointer;
+    height: 22px;
+    position: absolute;
+    top: -27px;
+    width: 100%;
+}
+
+.zoomAreaHandle {
+    cursor: move;
 }
