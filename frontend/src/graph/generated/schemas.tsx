@@ -119,11 +119,20 @@ export type BillingDetails = {
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
+export type Invoice = {
+    __typename?: 'Invoice';
+    amount?: Maybe<Scalars['Int64']>;
+    date?: Maybe<Scalars['Timestamp']>;
+    url?: Maybe<Scalars['String']>;
+    status?: Maybe<Scalars['String']>;
+};
+
 export type SubscriptionDetails = {
     __typename?: 'SubscriptionDetails';
     baseAmount: Scalars['Int64'];
     discountPercent: Scalars['Float'];
     discountAmount: Scalars['Int64'];
+    lastInvoice?: Maybe<Invoice>;
 };
 
 export type Plan = {

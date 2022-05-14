@@ -74,12 +74,9 @@ func New(topic string, mode Mode) *Queue {
 		client := &kafka.Client{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
-				SASL:        mechanism,
-				TLS:         tlsConfig,
-				DialTimeout: KafkaOperationTimeout,
-				IdleTimeout: KafkaOperationTimeout,
+				SASL: mechanism,
+				TLS:  tlsConfig,
 			},
-			Timeout: KafkaOperationTimeout,
 		}
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
@@ -89,7 +86,7 @@ func New(topic string, mode Mode) *Queue {
 			}},
 		})
 		if err != nil {
-			log.Fatal(errors.Wrap(err, "failed to create necessary topic"))
+			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
 	}
 

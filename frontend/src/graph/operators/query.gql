@@ -800,6 +800,12 @@ query GetSubscriptionDetails($workspace_id: ID!) {
         baseAmount
         discountAmount
         discountPercent
+        lastInvoice {
+            amount
+            date
+            url
+            status
+        }
     }
 }
 

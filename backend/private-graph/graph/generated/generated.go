@@ -301,6 +301,13 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	Invoice struct {
+		Amount func(childComplexity int) int
+		Date   func(childComplexity int) int
+		Status func(childComplexity int) int
+		URL    func(childComplexity int) int
+	}
+
 	LengthRange struct {
 		Max func(childComplexity int) int
 		Min func(childComplexity int) int
@@ -706,6 +713,7 @@ type ComplexityRoot struct {
 		BaseAmount      func(childComplexity int) int
 		DiscountAmount  func(childComplexity int) int
 		DiscountPercent func(childComplexity int) int
+		LastInvoice     func(childComplexity int) int
 	}
 
 	TimelineIndicatorEvent struct {
@@ -2178,6 +2186,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "Invoice.amount":
+		if e.complexity.Invoice.Amount == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Amount(childComplexity), true
+
+	case "Invoice.date":
+		if e.complexity.Invoice.Date == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Date(childComplexity), true
+
+	case "Invoice.status":
+		if e.complexity.Invoice.Status == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Status(childComplexity), true
+
+	case "Invoice.url":
+		if e.complexity.Invoice.URL == nil {
+			break
+		}
+
+		return e.complexity.Invoice.URL(childComplexity), true
 
 	case "LengthRange.max":
 		if e.complexity.LengthRange.Max == nil {
@@ -5129,6 +5165,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.DiscountPercent(childComplexity), true
 
+	case "SubscriptionDetails.lastInvoice":
+		if e.complexity.SubscriptionDetails.LastInvoice == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.LastInvoice(childComplexity), true
+
 	case "TimelineIndicatorEvent.data":
 		if e.complexity.TimelineIndicatorEvent.Data == nil {
 			break
@@ -5617,10 +5660,18 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type Invoice {
+    amount: Int64
+    date: Timestamp
+    url: String
+    status: String
+}
+
 type SubscriptionDetails {
     baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
+    lastInvoice: Invoice
 }
 
 type Plan {
@@ -16925,6 +16976,134 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_amount(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Amount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_date(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_url(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_status(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
@@ -28722,6 +28901,38 @@ func (ec *executionContext) _SubscriptionDetails_discountAmount(ctx context.Cont
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SubscriptionDetails_lastInvoice(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastInvoice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invoice)
+	fc.Result = res
+	return ec.marshalOInvoice2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐInvoice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TimelineIndicatorEvent_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -34139,6 +34350,55 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var invoiceImplementors = []string{"Invoice"}
+
+func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, obj *model.Invoice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, invoiceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Invoice")
+		case "amount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_amount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var lengthRangeImplementors = []string{"LengthRange"}
 
 func (ec *executionContext) _LengthRange(ctx context.Context, sel ast.SelectionSet, obj *model1.LengthRange) graphql.Marshaler {
@@ -38786,6 +39046,13 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "lastInvoice":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SubscriptionDetails_lastInvoice(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42930,6 +43197,13 @@ func (ec *executionContext) marshalOIntegrationType2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOInvoice2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Invoice(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
