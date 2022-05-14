@@ -58,7 +58,7 @@ export const Pagination = ({
                             showSizeChanger={false}
                             size={'small'}
                             pageSize={PAGE_SIZE}
-                            total={PAGE_SIZE * (maxPage + 1)}
+                            total={PAGE_SIZE * maxPage}
                             current={page || STARTING_PAGE}
                             onChange={setPage}
                         />
