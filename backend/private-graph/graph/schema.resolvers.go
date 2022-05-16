@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3338,12 +3338,15 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil
 	}
-	var count int64
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{ProjectID: projectID}).Find(&firstSession).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-	if count > 0 {
+
+	// If a session exists with the input project id, return true
+	if firstSession.ProjectID == projectID {
 		return &model.T, nil
 	}
 	return &model.F, nil
