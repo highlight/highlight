@@ -996,8 +996,7 @@ func (w *Worker) RefreshMaterializedViews() {
 	defer span.Finish()
 
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		var err error
-		err = tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
 		if err != nil {
 			return err
 		}
@@ -1011,8 +1010,7 @@ func (w *Worker) RefreshMaterializedViews() {
 	}
 
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		var err error
-		err = tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
 		if err != nil {
 			return err
 		}
