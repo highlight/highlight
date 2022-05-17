@@ -1,14 +1,20 @@
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React from 'react';
 
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
+import {
+    ErrorGroup,
+    ErrorObject,
+    Maybe,
+} from '../../../../graph/generated/schemas';
 
 interface Props {
     errorGroup: Maybe<Pick<ErrorGroup, 'event'>> | undefined;
+    errorObject?: ErrorObject;
 }
 
-const ErrorDescription = ({ errorGroup }: Props) => {
-    const jsonOrText = formatErrorDescription(errorGroup?.event);
+const ErrorDescription = ({ errorGroup, errorObject }: Props) => {
+    const event = errorObject?.event ?? errorGroup?.event;
+    const jsonOrText = formatErrorDescription(event);
     return (
         <JsonOrTextCard
             jsonOrText={jsonOrText.toString()}

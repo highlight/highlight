@@ -3338,15 +3338,17 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil
 	}
-	var count int64
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return &model.F, nil
+	}
 	if err != nil {
-		return nil, e.Wrap(err, "error getting associated admins")
+		return nil, e.Wrap(err, "error querying session for project")
 	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
+
+	return &model.T, nil
 }
 
 func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
