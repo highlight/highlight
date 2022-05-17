@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -3342,7 +3341,7 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 
 	firstSession := model.Session{}
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if e.Is(err, gorm.ErrRecordNotFound) {
 		return &model.F, nil
 	}
 	if err != nil {
