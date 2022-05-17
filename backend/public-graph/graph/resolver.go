@@ -1606,7 +1606,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
-			r.DB.Scopes(model.EventsObjectTable(sessionID)).Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -1651,7 +1651,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Scopes(model.EventsObjectTable(sessionID)).Create(obj).Error; err != nil {
+			if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
 			if !lastUserInteractionTimestamp.IsZero() {

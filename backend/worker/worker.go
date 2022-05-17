@@ -158,7 +158,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
 		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
 
-		eventRows, err = tx.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
+		eventRows, err = tx.Table("events_objects_partitioned").Model(&model.EventsObject{}).
 			Where(&model.EventsObject{SessionID: s.ID}).
 			Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
 		if err != nil {
@@ -363,7 +363,7 @@ func (w *Worker) DeleteCompletedSessions() {
 				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
-	for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
+	for _, table := range []string{"resources_objects", "messages_objects"} {
 		deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteObjects",
 			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
 		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
