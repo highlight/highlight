@@ -4477,8 +4477,9 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 		return ret, err
 	}
 
+	// Workspace does not have linear set up yet, don't have to treat this as an error
 	if workspace.LinearAccessToken == nil {
-		return ret, e.New("linear access token not found")
+		return ret, nil
 	}
 
 	res, err := r.GetLinearTeams(*workspace.LinearAccessToken)
