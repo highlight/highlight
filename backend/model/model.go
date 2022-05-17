@@ -899,7 +899,7 @@ type TimelineIndicatorEvent struct {
 type RageClickEvent struct {
 	Model
 	ProjectID       int    `deep:"-"`
-	SessionSecureID string `deep:"-"`
+	SessionSecureID string `gorm:"index" deep:"-"`
 	TotalClicks     int
 	StartTimestamp  time.Time `deep:"-"`
 	EndTimestamp    time.Time `deep:"-"`
