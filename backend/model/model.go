@@ -690,16 +690,6 @@ func (m *EventsObject) Contents() string {
 
 const PARTITION_SESSION_ID = 30000000
 
-func EventsObjectTable(sessionID int) func(tx *gorm.DB) *gorm.DB {
-	return func(tx *gorm.DB) *gorm.DB {
-		if sessionID >= PARTITION_SESSION_ID {
-			return tx.Table("events_objects_partitioned")
-		} else {
-			return tx.Table("events_objects")
-		}
-	}
-}
-
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
 	TotalCount  int64
