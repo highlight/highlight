@@ -54,6 +54,9 @@ const MAX_RETRIES = 5
 // cancel events_objects reads after 5 minutes
 const EVENTS_READ_TIMEOUT = 300000
 
+// cancel refreshing materialized views after 15 minutes
+const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 15 * 60 * 1000
+
 type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
@@ -992,15 +995,31 @@ func (w *Worker) RefreshMaterializedViews() {
 		tracer.ResourceName("worker.refreshMaterializedViews"))
 	defer span.Finish()
 
-	if err := w.Resolver.DB.Exec(`
-		REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
-	`).Error; err != nil {
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
+		`).Error
+
+	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
-	if err := w.Resolver.DB.Exec(`
-		REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
-	`).Error; err != nil {
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
+		`).Error
+
+	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
 	}
 }
