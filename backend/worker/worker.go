@@ -160,7 +160,9 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 
 		eventRows, err = tx.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
 			Where(&model.EventsObject{SessionID: s.ID}).
-			Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
+			Distinct("events", "substring(events, '\"timestamp\":[0-9]+') as event_time").
+			Order("event_time asc").
+			Rows()
 		if err != nil {
 			return errors.Wrap(err, "error retrieving events objects")
 		}
