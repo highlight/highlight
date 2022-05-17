@@ -1,5 +1,5 @@
 import Tag from '@components/Tag/Tag';
-import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
+import { ErrorGroup, Maybe } from '@graph/schemas';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
 
@@ -11,23 +11,17 @@ interface Props {
         | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
         | undefined;
     showShareButton?: boolean;
-    errorObject?: ErrorObject;
 }
 
-const ErrorTitle = ({
-    errorGroup,
-    showShareButton = true,
-    errorObject,
-}: Props) => {
+const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
     const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null);
 
-    const event = errorObject?.event ?? errorGroup?.event;
-    const headerText = getHeaderFromError(event ?? []);
+    const headerText = getHeaderFromError(errorGroup?.event ?? []);
 
     useEffect(() => {
         if (headerText) {
-            if (event) {
-                const title = getErrorTitle(event);
+            if (errorGroup?.event) {
+                const title = getErrorTitle(errorGroup.event);
                 if (title) {
                     setHeaderTextAsJson(title);
                 } else {
@@ -37,7 +31,7 @@ const ErrorTitle = ({
                 setHeaderTextAsJson(null);
             }
         }
-    }, [event, headerText]);
+    }, [errorGroup?.event, headerText]);
 
     return (
         <header className={styles.header}>

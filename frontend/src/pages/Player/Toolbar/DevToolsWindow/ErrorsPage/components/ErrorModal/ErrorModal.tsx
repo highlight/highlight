@@ -62,7 +62,6 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
                             <ErrorTitle
                                 errorGroup={data.error_group}
                                 showShareButton={false}
-                                errorObject={error}
                             />
                         ) : (
                             <Skeleton height="57px" />
@@ -71,10 +70,7 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
 
                     <div className={styles.errorDescriptionContainer}>
                         {data ? (
-                            <ErrorDescription
-                                errorGroup={data.error_group}
-                                errorObject={error}
-                            />
+                            <ErrorDescription errorGroup={data.error_group} />
                         ) : (
                             <Skeleton height="217px" />
                         )}
