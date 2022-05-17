@@ -3338,15 +3338,12 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil
 	}
-
-	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{ProjectID: projectID}).Find(&firstSession).Error
+	var count int64
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-
-	// If a session exists with the input project id, return true
-	if firstSession.ProjectID == projectID {
+	if count > 0 {
 		return &model.T, nil
 	}
 	return &model.F, nil
