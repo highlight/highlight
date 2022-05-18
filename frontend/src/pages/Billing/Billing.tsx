@@ -23,6 +23,7 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { dinero, down, toUnit } from 'dinero.js';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
@@ -263,7 +264,8 @@ const BillingPage = () => {
                         >
                             last invoice
                         </a>{' '}
-                        failed to process.{' '}
+                        failed to process.
+                        <br />
                         <span className={styles.subtotal}>
                             $
                             {toUnit(outstandingAmount, {
@@ -271,10 +273,13 @@ const BillingPage = () => {
                                 round: down,
                             })}
                         </span>{' '}
-                        is past due.
-                        <br />
-                        Please retry with an updated payment method to maintain
-                        a valid subscription.
+                        is past due as of{' '}
+                        {moment(
+                            subscriptionData?.subscription_details?.lastInvoice
+                                ?.date
+                        ).format('M/D/YY')}
+                        . Please retry with an updated payment method to
+                        maintain the subscription.
                     </div>
                     {subscriptionData?.subscription_details?.lastInvoice?.url
                         ?.length && (
