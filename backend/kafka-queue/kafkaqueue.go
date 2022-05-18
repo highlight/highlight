@@ -21,7 +21,7 @@ import (
 const KafkaOperationTimeout = 25 * time.Second
 
 const (
-	prefetchSizeBytes = 1 * 1000          // 1 KB
+	prefetchSizeBytes = 64 * 1000         // 64 KB
 	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -135,7 +135,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     1,
+			QueueCapacity:     100,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: 100 * time.Millisecond,
