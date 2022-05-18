@@ -289,6 +289,11 @@ export const SessionFeed = React.memo(() => {
             </div>
             <div className={styles.feedContent}>
                 <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
+                />
+                <div
                     onScroll={onFeedScrollListener}
                     className={classNames(styles.feedItems, {
                         [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
