@@ -5,6 +5,7 @@ import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
+    useGetProjectQuery,
     useGetSubscriptionDetailsQuery,
     useUpdateBillingDetailsMutation,
 } from '@graph/hooks';
@@ -31,6 +32,39 @@ import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
 import { didUpgradePlan } from './utils/utils';
+
+export const useBillingHook = ({
+    workspace_id,
+    project_id,
+}: {
+    workspace_id?: string;
+    project_id?: string;
+}) => {
+    const { data: projectData } = useGetProjectQuery({
+        variables: { id: project_id || '' },
+        skip: !project_id?.length || !!workspace_id?.length,
+    });
+
+    const {
+        loading: subscriptionLoading,
+        data: subscriptionData,
+        refetch: refetchSubscription,
+    } = useGetSubscriptionDetailsQuery({
+        variables: {
+            workspace_id: workspace_id || projectData?.workspace?.id || '',
+        },
+        skip: !workspace_id?.length && !projectData?.workspace?.id,
+    });
+
+    return {
+        loading: subscriptionLoading,
+        subscriptionData: subscriptionData,
+        refetchSubscription: refetchSubscription,
+        issues:
+            subscriptionData?.subscription_details.lastInvoice?.status !==
+            'paid',
+    };
+};
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
@@ -84,13 +118,9 @@ const BillingPage = () => {
 
     const {
         loading: subscriptionLoading,
-        data: subscriptionData,
-        refetch: refetchSubscription,
-    } = useGetSubscriptionDetailsQuery({
-        variables: {
-            workspace_id,
-        },
-    });
+        subscriptionData,
+        refetchSubscription,
+    } = useBillingHook({ workspace_id });
 
     const [
         createOrUpdateStripeSubscription,

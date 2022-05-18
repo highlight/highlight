@@ -4,6 +4,7 @@ export const bannerShown: string;
 export const commandPaletteOverlay: string;
 export const demoLink: string;
 export const demoWorkspaceContainer: string;
+export const error: string;
 export const guest: string;
 export const hamburger: string;
 export const header: string;
