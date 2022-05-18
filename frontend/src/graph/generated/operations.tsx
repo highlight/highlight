@@ -2580,7 +2580,12 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
             lastInvoice?: Types.Maybe<
                 { __typename?: 'Invoice' } & Pick<
                     Types.Invoice,
-                    'amount' | 'date' | 'url' | 'status'
+                    | 'amountDue'
+                    | 'amountPaid'
+                    | 'attemptCount'
+                    | 'date'
+                    | 'url'
+                    | 'status'
                 >
             >;
         };

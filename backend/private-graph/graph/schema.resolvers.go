@@ -4771,15 +4771,24 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		details.DiscountPercent = discount.Coupon.PercentOff
 	}
 
-	invoice := c.Subscriptions.Data[0].LatestInvoice
+	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+	invoiceParams := &stripe.InvoiceParams{}
+	customerParams.AddExpand("invoice_items")
+	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe invoice")
+	}
+
 	if invoice != nil {
-		invoiceDue := time.UnixMilli(invoice.Created)
+		invoiceDue := time.Unix(invoice.Created, 0)
 		status := string(invoice.Status)
 		details.LastInvoice = &modelInputs.Invoice{
-			Date:   &invoiceDue,
-			Amount: &invoice.AmountDue,
-			Status: &status,
-			URL:    &invoice.HostedInvoiceURL,
+			Date:         &invoiceDue,
+			AmountDue:    &invoice.AmountDue,
+			AmountPaid:   &invoice.AmountPaid,
+			AttemptCount: &invoice.AttemptCount,
+			Status:       &status,
+			URL:          &invoice.HostedInvoiceURL,
 		}
 	}
 

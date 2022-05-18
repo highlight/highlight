@@ -109,10 +109,12 @@ type ErrorTrace struct {
 }
 
 type Invoice struct {
-	Amount *int64     `json:"amount"`
-	Date   *time.Time `json:"date"`
-	URL    *string    `json:"url"`
-	Status *string    `json:"status"`
+	AmountDue    *int64     `json:"amountDue"`
+	AmountPaid   *int64     `json:"amountPaid"`
+	AttemptCount *int64     `json:"attemptCount"`
+	Date         *time.Time `json:"date"`
+	URL          *string    `json:"url"`
+	Status       *string    `json:"status"`
 }
 
 type LengthRangeInput struct {

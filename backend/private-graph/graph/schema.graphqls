@@ -98,7 +98,9 @@ type BillingDetails {
 }
 
 type Invoice {
-    amount: Int64
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
     date: Timestamp
     url: String
     status: String

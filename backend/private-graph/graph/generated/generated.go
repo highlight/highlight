@@ -302,10 +302,12 @@ type ComplexityRoot struct {
 	}
 
 	Invoice struct {
-		Amount func(childComplexity int) int
-		Date   func(childComplexity int) int
-		Status func(childComplexity int) int
-		URL    func(childComplexity int) int
+		AmountDue    func(childComplexity int) int
+		AmountPaid   func(childComplexity int) int
+		AttemptCount func(childComplexity int) int
+		Date         func(childComplexity int) int
+		Status       func(childComplexity int) int
+		URL          func(childComplexity int) int
 	}
 
 	LengthRange struct {
@@ -2187,12 +2189,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Field.Value(childComplexity), true
 
-	case "Invoice.amount":
-		if e.complexity.Invoice.Amount == nil {
+	case "Invoice.amountDue":
+		if e.complexity.Invoice.AmountDue == nil {
 			break
 		}
 
-		return e.complexity.Invoice.Amount(childComplexity), true
+		return e.complexity.Invoice.AmountDue(childComplexity), true
+
+	case "Invoice.amountPaid":
+		if e.complexity.Invoice.AmountPaid == nil {
+			break
+		}
+
+		return e.complexity.Invoice.AmountPaid(childComplexity), true
+
+	case "Invoice.attemptCount":
+		if e.complexity.Invoice.AttemptCount == nil {
+			break
+		}
+
+		return e.complexity.Invoice.AttemptCount(childComplexity), true
 
 	case "Invoice.date":
 		if e.complexity.Invoice.Date == nil {
@@ -5661,7 +5677,9 @@ type BillingDetails {
 }
 
 type Invoice {
-    amount: Int64
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
     date: Timestamp
     url: String
     status: String
@@ -16978,7 +16996,7 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Invoice_amount(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+func (ec *executionContext) _Invoice_amountDue(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16996,7 +17014,71 @@ func (ec *executionContext) _Invoice_amount(ctx context.Context, field graphql.C
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Amount, nil
+		return obj.AmountDue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_amountPaid(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountPaid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_attemptCount(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AttemptCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34360,9 +34442,23 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Invoice")
-		case "amount":
+		case "amountDue":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Invoice_amount(ctx, field, obj)
+				return ec._Invoice_amountDue(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "amountPaid":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_amountPaid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "attemptCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_attemptCount(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

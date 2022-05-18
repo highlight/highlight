@@ -121,7 +121,9 @@ export type BillingDetails = {
 
 export type Invoice = {
     __typename?: 'Invoice';
-    amount?: Maybe<Scalars['Int64']>;
+    amountDue?: Maybe<Scalars['Int64']>;
+    amountPaid?: Maybe<Scalars['Int64']>;
+    attemptCount?: Maybe<Scalars['Int64']>;
     date?: Maybe<Scalars['Timestamp']>;
     url?: Maybe<Scalars['String']>;
     status?: Maybe<Scalars['String']>;

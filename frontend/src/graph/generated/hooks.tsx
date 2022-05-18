@@ -6802,7 +6802,9 @@ export const GetSubscriptionDetailsDocument = gql`
             discountAmount
             discountPercent
             lastInvoice {
-                amount
+                amountDue
+                amountPaid
+                attemptCount
                 date
                 url
                 status
