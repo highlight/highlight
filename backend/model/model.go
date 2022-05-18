@@ -252,9 +252,12 @@ type Project struct {
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
 
+	// Maximum time window considered for a rage click event
 	RageClickWindowSeconds int `gorm:"default:5"`
-	RageClickRadiusPixels  int `gorm:"default:8"`
-	RageClickCount         int `gorm:"default:5"`
+	// Maximum distance between clicks for a rage click event
+	RageClickRadiusPixels int `gorm:"default:8"`
+	// Minimum count of clicks in a rage click event
+	RageClickCount int `gorm:"default:5"`
 }
 
 type HasSecret interface {
