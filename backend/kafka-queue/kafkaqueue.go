@@ -17,7 +17,8 @@ import (
 	"time"
 )
 
-const KafkaOperationTimeout = 30 * time.Second
+// KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
+const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	prefetchSizeBytes = 1 * 1000          // 1 KB
@@ -113,7 +114,7 @@ func New(topic string, mode Mode) *Queue {
 			BatchBytes:   messageSizeBytes,
 			BatchSize:    1,
 			ReadTimeout:  KafkaOperationTimeout,
-			WriteTimeout: 5 * time.Minute,
+			WriteTimeout: KafkaOperationTimeout,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,

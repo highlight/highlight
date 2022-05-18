@@ -18,6 +18,7 @@ const (
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
+	log.SetLevel(log.DebugLevel)
 	log.Infof("Starting benchmark")
 
 	rand.Seed(time.Now().UnixNano())
@@ -66,8 +67,11 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		go func() {
 			for receive {
 				msg := reader.Receive()
-				if receive && msg == nil {
-					b.Errorf("expected to get a message")
+				if msg == nil {
+					if receive {
+						b.Errorf("expected to get a message")
+					}
+					continue
 				} else if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
 				} else if msg.PushPayload.SessionID != -1 {
