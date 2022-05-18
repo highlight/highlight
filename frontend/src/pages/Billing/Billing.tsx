@@ -1,6 +1,7 @@
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
 import Switch from '@components/Switch/Switch';
+import { USD } from '@dinero.js/currencies';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
@@ -21,6 +22,7 @@ import {
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import { dinero, down, toUnit } from 'dinero.js';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
@@ -118,6 +120,7 @@ const BillingPage = () => {
 
     const {
         loading: subscriptionLoading,
+        issues: subscriptionIssues,
         subscriptionData,
         refetchSubscription,
     } = useBillingHook({ workspace_id });
@@ -234,9 +237,73 @@ const BillingPage = () => {
 
     const allowOverage = billingData?.workspace?.allow_meter_overage ?? true;
 
+    const outstandingAmount = dinero({
+        amount:
+            subscriptionData?.subscription_details?.lastInvoice?.amountDue ?? 0,
+        currency: USD,
+    });
+
     return (
         <>
             {rainConfetti && <Confetti recycle={false} />}
+            {subscriptionIssues && (
+                <div
+                    className={styles.titleContainer}
+                    style={{ marginBottom: 0, marginTop: 24 }}
+                >
+                    <div className={styles.billingIssues}>
+                        Your{' '}
+                        <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href={
+                                subscriptionData?.subscription_details
+                                    ?.lastInvoice?.url || ''
+                            }
+                        >
+                            last invoice
+                        </a>{' '}
+                        failed to process.{' '}
+                        <span className={styles.subtotal}>
+                            $
+                            {toUnit(outstandingAmount, {
+                                digits: 2,
+                                round: down,
+                            })}
+                        </span>{' '}
+                        is past due.
+                        <br />
+                        Please retry with an updated payment method to maintain
+                        a valid subscription.
+                    </div>
+                    {subscriptionData?.subscription_details?.lastInvoice?.url
+                        ?.length && (
+                        <Authorization allowedRoles={[AdminRole.Admin]}>
+                            <div className={styles.portalButtonContainer}>
+                                <Button
+                                    trackingId="RedirectToFailedInvoice"
+                                    type="primary"
+                                    onClick={() => {
+                                        window.open(
+                                            subscriptionData
+                                                ?.subscription_details
+                                                ?.lastInvoice?.url || '',
+                                            '_self'
+                                        );
+                                    }}
+                                    loading={loadingCustomerPortal && !isCancel}
+                                    className={styles.portalButton}
+                                >
+                                    <SvgLogInIcon
+                                        className={styles.portalButtonIcon}
+                                    />{' '}
+                                    Correct Payment
+                                </Button>
+                            </div>
+                        </Authorization>
+                    )}
+                </div>
+            )}
             <div className={styles.titleContainer}>
                 <div>
                     <h3>Billing</h3>
@@ -248,7 +315,7 @@ const BillingPage = () => {
                     <div className={styles.portalButtonContainer}>
                         <Button
                             trackingId="RedirectToCustomerPortal"
-                            type="primary"
+                            type="default"
                             onClick={() => {
                                 setIsCancel(false);
                                 getCustomerPortalUrl({
