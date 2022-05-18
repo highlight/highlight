@@ -15,7 +15,7 @@
 
 #enhancedName {
     font-weight: 400 !important;
-    margin-bottom: var(--size-xSmall) !important;
+    margin-bottom: 0 !important;
 }
 
 .enhancedBio {
@@ -23,11 +23,11 @@
     display: flex;
     font-size: 12px;
     font-weight: 300;
-    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-line-clamp: 9; /* number of lines to show */
     line-height: 16px; /* fallback */
     margin-bottom: 4px !important;
     margin-top: 0 !important;
-    max-height: 32px; /* fallback */
+    max-height: 144px; /* fallback */
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
