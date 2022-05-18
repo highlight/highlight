@@ -237,7 +237,7 @@ export const SessionFeed = React.memo(() => {
                                             sessionFeedConfiguration.countFormat
                                         )}`}
                                     />
-                                    {' sessions'}
+                                    {' sessions '}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
