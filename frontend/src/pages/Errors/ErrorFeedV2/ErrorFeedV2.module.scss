@@ -98,6 +98,14 @@
     }
 }
 
+.feedLine {
+    box-shadow: initial;
+
+    &.hasScrolled {
+        box-shadow: 0 0 32px 8px var(--color-gray-300);
+    }
+}
+
 .fixedContent {
     align-items: center;
     display: flex;
