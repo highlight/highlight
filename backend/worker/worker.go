@@ -495,8 +495,19 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
+	project := &model.Project{}
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
+	}
+
+	var rageClickSettings = RageClickSettings{
+		Window: time.Duration(project.RageClickCount) * time.Second,
+		Radius: project.RageClickRadiusPixels,
+		Count:  project.RageClickCount,
+	}
+
 	var userInteractionEvents []*parse.ReplayEvent
-	accumulator := MakeEventProcessingAccumulator(s.SecureID)
+	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
@@ -732,10 +743,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	var g errgroup.Group
 	projectID := s.ProjectID
-	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
 
 	g.Go(func() error {
 		if len(accumulator.RageClickSets) < 1 {
@@ -1112,6 +1119,12 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
+type RageClickSettings struct {
+	Window time.Duration
+	Radius int
+	Count  int
+}
+
 type EventProcessingAccumulator struct {
 	SessionSecureID string
 	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
@@ -1140,9 +1153,11 @@ type EventProcessingAccumulator struct {
 	AreEventsOutOfOrder bool
 	// Error
 	Error error
+	// Parameters for triggering rage click detection
+	RageClickSettings RageClickSettings
 }
 
-func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccumulator {
+func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings RageClickSettings) EventProcessingAccumulator {
 	return EventProcessingAccumulator{
 		SessionSecureID:            sessionSecureID,
 		ClickEventQueue:            list.New(),
@@ -1158,6 +1173,7 @@ func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccum
 		LatestSID:                  0,
 		AreEventsOutOfOrder:        false,
 		Error:                      nil,
+		RageClickSettings:          rageClickSettings,
 	}
 }
 
@@ -1219,7 +1235,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 			// purge old clicks
 			var toRemove []*list.Element
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
-				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
+				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > a.RageClickSettings.Window {
 					toRemove = append(toRemove, element)
 				}
 			}
@@ -1268,7 +1284,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 
 			numTotal := 0
 			rageClick := model.RageClickEvent{
-				TotalClicks: 5,
+				TotalClicks: a.RageClickSettings.Count,
 			}
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				el := element.Value.(*parse.ReplayEvent)
@@ -1283,16 +1299,15 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
 				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
 
-				RADIUS := 8.0
 				// if the distance between the current and previous click is less than the threshold
-				if math.Sqrt(first+second) <= RADIUS {
+				if math.Sqrt(first+second) <= float64(a.RageClickSettings.Radius) {
 					numTotal += 1
 					if !a.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
 						rageClick.StartTimestamp = el.Timestamp
 					}
 				}
 			}
-			if numTotal >= 5 {
+			if numTotal >= a.RageClickSettings.Count {
 				if a.CurrentlyInRageClickSet {
 					a.RageClickSets[len(a.RageClickSets)-1].TotalClicks += 1
 					a.RageClickSets[len(a.RageClickSets)-1].EndTimestamp = event.Timestamp

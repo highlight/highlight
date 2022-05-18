@@ -251,6 +251,10 @@ type Project struct {
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
+
+	RageClickWindowSeconds int `gorm:"default:5"`
+	RageClickRadiusPixels  int `gorm:"default:8"`
+	RageClickCount         int `gorm:"default:5"`
 }
 
 type HasSecret interface {
