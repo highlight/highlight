@@ -34,13 +34,6 @@ const CUSTOM_FIELDS: CustomField[] = [
     },
     {
         type: CUSTOM_TYPE,
-        name: 'city',
-        options: {
-            type: 'text',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
         name: 'created_at',
         options: {
             operators: DATE_OPERATORS,

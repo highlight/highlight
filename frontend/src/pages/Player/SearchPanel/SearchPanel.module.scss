@@ -18,7 +18,7 @@
 
 .searchContainer {
     @include hide-scrollbar;
-    max-height: 84vh;
+    height: calc(100vh - 170px);
     overflow-x: hidden;
     overflow-y: auto;
 }

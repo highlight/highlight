@@ -23,6 +23,7 @@ export const userAvatarWrapper: string;
 export const userBox: string;
 export const userDetailsSection: string;
 export const userEnhanced: string;
+export const userEnhancedGrid: string;
 export const userIdentifier: string;
 export const userIdHeader: string;
 export const userIdSubHeader: string;

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
@@ -117,6 +118,8 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
 			log.Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
+		} else if fv == "" {
+			// Skip when the field value is blank
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
@@ -979,72 +982,6 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 		return nil, e.Wrap(err, "project doesn't exist")
 	}
 
-	// TODO(vkorolik) TO BE REMOVED, MOVED TO InitializeSessionMinimal
-	// TODO(vkorolik) remove once all new sessions are being initialized with new logic. /*
-	// Get the user's ip, get geolocation data
-	location := &Location{
-		City:      "",
-		Postal:    "",
-		Latitude:  0.0,
-		Longitude: 0.0,
-		State:     "",
-	}
-	fetchedLocation, err := GetLocationFromIP(ip)
-	if err != nil || fetchedLocation == nil {
-		log.Errorf("error getting user's location: %v", err)
-	} else {
-		location = fetchedLocation
-	}
-
-	workspace, err := r.getWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
-	}
-	if session.PayloadUpdatedAt == nil {
-		log.Warnf("saw nil PayloadUpdatedAt for session id %d", session.ID)
-		n := time.Now()
-		session.PayloadUpdatedAt = &n
-	}
-	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
-
-	session.City = location.City
-	session.State = location.State
-	session.Postal = location.Postal
-	session.Latitude = location.Latitude.(float64)
-	session.Longitude = location.Longitude.(float64)
-	session.WithinBillingQuota = &withinBillingQuota
-
-	if err := r.DB.Save(session).Error; err != nil {
-		return nil, e.Wrap(err, "error updating session")
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{
-		"city":      session.City,
-		"state":     session.State,
-		"postal":    session.Postal,
-		"latitude":  session.Latitude,
-		"longitude": session.Longitude,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
-		Infof("initialized session: %s", session.Identifier)
-
-	sessionProperties := map[string]string{
-		"os_name":         session.OSName,
-		"os_version":      session.OSVersion,
-		"browser_name":    session.BrowserName,
-		"browser_version": session.BrowserVersion,
-		"environment":     session.Environment,
-		"device_id":       strconv.Itoa(session.Fingerprint),
-	}
-	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-	// TODO(vkorolik) TO BE REMOVED */
-
 	go func() {
 		defer util.Recover()
 		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
@@ -1669,7 +1606,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
-			r.DB.Scopes(model.EventsObjectTable(sessionID)).Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -1714,7 +1651,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Scopes(model.EventsObjectTable(sessionID)).Create(obj).Error; err != nil {
+			if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
 			if !lastUserInteractionTimestamp.IsZero() {
