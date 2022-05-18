@@ -213,6 +213,9 @@ export type Project = {
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type Account = {
@@ -1298,6 +1301,9 @@ export type MutationEditProjectArgs = {
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type MutationEditWorkspaceArgs = {

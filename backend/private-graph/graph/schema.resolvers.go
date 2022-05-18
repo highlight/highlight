@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -321,7 +321,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -332,11 +332,26 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
 		}
 	}
-	if err := r.DB.Model(project).Updates(&model.Project{
+
+	updates := &model.Project{
 		Name:          name,
 		BillingEmail:  billingEmail,
 		ExcludedUsers: excludedUsers,
-	}).Error; err != nil {
+	}
+
+	if rageClickWindowSeconds != nil {
+		updates.RageClickWindowSeconds = *rageClickWindowSeconds
+	}
+
+	if rageClickRadiusPixels != nil {
+		updates.RageClickRadiusPixels = *rageClickRadiusPixels
+	}
+
+	if rageClickCount != nil {
+		updates.RageClickCount = *rageClickCount
+	}
+
+	if err := r.DB.Model(project).Updates(updates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
 	return project, nil
