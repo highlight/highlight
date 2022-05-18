@@ -97,8 +97,10 @@ func TestPartitionKey(t *testing.T) {
 	h := kafka.Hash{}
 	partitions := make([]int, 768)
 	partitionID := h.Balance(kafka.Message{
-		Key:   []byte("37630774"),
+		Key:   []byte("37683927"),
 		Value: []byte(""),
 	}, partitions...)
-	log.Errorf("partition %d", partitionID)
+	if partitionID != 730 {
+		t.Fatalf("unexpected partition %d", partitionID)
+	}
 }
