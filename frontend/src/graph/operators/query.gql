@@ -744,6 +744,9 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
     workspace: workspace_for_project(project_id: $id) {
         id

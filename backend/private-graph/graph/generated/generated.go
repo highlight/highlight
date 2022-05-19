@@ -378,7 +378,7 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -429,13 +429,16 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
-		BillingEmail  func(childComplexity int) int
-		ExcludedUsers func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Name          func(childComplexity int) int
-		Secret        func(childComplexity int) int
-		VerboseID     func(childComplexity int) int
-		WorkspaceID   func(childComplexity int) int
+		BillingEmail           func(childComplexity int) int
+		ExcludedUsers          func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		RageClickCount         func(childComplexity int) int
+		RageClickRadiusPixels  func(childComplexity int) int
+		RageClickWindowSeconds func(childComplexity int) int
+		Secret                 func(childComplexity int) int
+		VerboseID              func(childComplexity int) int
+		WorkspaceID            func(childComplexity int) int
 	}
 
 	Query struct {
@@ -834,7 +837,7 @@ type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -2765,7 +2768,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -3215,6 +3218,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Name(childComplexity), true
+
+	case "Project.rage_click_count":
+		if e.complexity.Project.RageClickCount == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickCount(childComplexity), true
+
+	case "Project.rage_click_radius_pixels":
+		if e.complexity.Project.RageClickRadiusPixels == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickRadiusPixels(childComplexity), true
+
+	case "Project.rage_click_window_seconds":
+		if e.complexity.Project.RageClickWindowSeconds == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickWindowSeconds(childComplexity), true
 
 	case "Project.secret":
 		if e.complexity.Project.Secret == nil {
@@ -5774,6 +5798,9 @@ type Project {
     secret: String
     workspace_id: ID!
     excluded_users: StringArray
+    rage_click_window_seconds: Int
+    rage_click_radius_pixels: Int
+    rage_click_count: Int
 }
 
 type Account {
@@ -6464,6 +6491,9 @@ type Mutation {
         name: String
         billing_email: String
         excluded_users: StringArray
+        rage_click_window_seconds: Int
+        rage_click_radius_pixels: Int
+        rage_click_count: Int
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
@@ -6807,10 +6837,7 @@ type Mutation {
         pun: String
     ): Boolean
     requestAccess(project_id: ID!): Boolean
-    modifyClearbitIntegration(
-        workspace_id: ID!
-        enabled: Boolean!
-    ): Boolean
+    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
 }
 
 type Subscription {
@@ -8408,6 +8435,33 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["excluded_users"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_window_seconds"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_radius_pixels"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["rage_click_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_count"] = arg6
 	return args, nil
 }
 
@@ -18027,7 +18081,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray))
+		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20875,6 +20929,102 @@ func (ec *executionContext) _Project_excluded_users(ctx context.Context, field g
 	res := resTmp.(pq.StringArray)
 	fc.Result = res
 	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_window_seconds(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickWindowSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_radius_pixels(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickRadiusPixels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_count(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -35520,6 +35670,27 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "excluded_users":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Project_excluded_users(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_window_seconds":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_window_seconds(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_radius_pixels":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_radius_pixels(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_count(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
