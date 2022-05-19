@@ -4763,19 +4763,36 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
 
 	discount := c.Subscriptions.Data[0].Discount
-	if discount == nil || discount.Coupon == nil {
-		return &modelInputs.SubscriptionDetails{
-			BaseAmount: amount,
-		}, nil
+	if discount != nil && discount.Coupon != nil {
+		details.DiscountAmount = discount.Coupon.AmountOff
+		details.DiscountPercent = discount.Coupon.PercentOff
 	}
 
-	return &modelInputs.SubscriptionDetails{
-		BaseAmount:      amount,
-		DiscountAmount:  discount.Coupon.AmountOff,
-		DiscountPercent: discount.Coupon.PercentOff,
-	}, nil
+	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+	invoiceParams := &stripe.InvoiceParams{}
+	customerParams.AddExpand("invoice_items")
+	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe invoice")
+	}
+
+	if invoice != nil {
+		invoiceDue := time.Unix(invoice.Created, 0)
+		status := string(invoice.Status)
+		details.LastInvoice = &modelInputs.Invoice{
+			Date:         &invoiceDue,
+			AmountDue:    &invoice.AmountDue,
+			AmountPaid:   &invoice.AmountPaid,
+			AttemptCount: &invoice.AttemptCount,
+			Status:       &status,
+			URL:          &invoice.HostedInvoiceURL,
+		}
+	}
+
+	return details, nil
 }
 
 func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {

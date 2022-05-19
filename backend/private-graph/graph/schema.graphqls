@@ -97,10 +97,20 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type Invoice {
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
+    date: Timestamp
+    url: String
+    status: String
+}
+
 type SubscriptionDetails {
     baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
+    lastInvoice: Invoice
 }
 
 type Plan {

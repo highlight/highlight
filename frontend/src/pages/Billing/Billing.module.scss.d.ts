@@ -1,6 +1,7 @@
 export const annualToggleAltText: string;
 export const annualToggleBox: string;
 export const annualToggleText: string;
+export const billingIssues: string;
 export const billingPlanCardWrapper: string;
 export const detailsCard: string;
 export const detailsCardTitle: string;
@@ -10,4 +11,5 @@ export const portalButton: string;
 export const portalButtonContainer: string;
 export const portalButtonIcon: string;
 export const subTitle: string;
+export const subtotal: string;
 export const titleContainer: string;

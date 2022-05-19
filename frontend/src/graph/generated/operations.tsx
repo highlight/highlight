@@ -2576,7 +2576,19 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
     subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
         Types.SubscriptionDetails,
         'baseAmount' | 'discountAmount' | 'discountPercent'
-    >;
+    > & {
+            lastInvoice?: Types.Maybe<
+                { __typename?: 'Invoice' } & Pick<
+                    Types.Invoice,
+                    | 'amountDue'
+                    | 'amountPaid'
+                    | 'attemptCount'
+                    | 'date'
+                    | 'url'
+                    | 'status'
+                >
+            >;
+        };
 };
 
 export type GetErrorGroupQueryVariables = Types.Exact<{

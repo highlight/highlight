@@ -6801,6 +6801,14 @@ export const GetSubscriptionDetailsDocument = gql`
             baseAmount
             discountAmount
             discountPercent
+            lastInvoice {
+                amountDue
+                amountPaid
+                attemptCount
+                date
+                url
+                status
+            }
         }
     }
 `;
