@@ -334,20 +334,31 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
 	}
 
+	parallelWorkers := 8
+	workerPrefetch := 8
 	// receive messages and submit them to worker pool for processing
+	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
+	for i := 0; i < parallelWorkers; i++ {
+		go func() {
+			for {
+				func() {
+					defer util.Recover()
+					task := <-messages
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
+					defer s.Finish()
+					w.processPublicWorkerMessage(task)
+					hlog.Incr("worker.kafka.processed.total", nil, 1)
+				}()
+			}
+		}()
+	}
 	for {
 		task := w.KafkaQueue.Receive()
 		if task == nil {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
-		func() {
-			defer util.Recover()
-			s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
-			defer s.Finish()
-			w.processPublicWorkerMessage(task)
-			hlog.Incr("worker.kafka.processed.total", nil, 1)
-		}()
+		messages <- task
 	}
 }
 
@@ -826,7 +837,7 @@ func (w *Worker) Start() {
 	lockPeriod := 10            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 8
+		payloadLookbackPeriod = 16
 		lockPeriod = 1
 	}
 
