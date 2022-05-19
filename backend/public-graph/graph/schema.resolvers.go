@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -113,25 +112,24 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
-	// Get a list of unique session ids to query
-	sessionSecureIdSet := make(map[string]bool)
-	for _, errInput := range errors {
-		sessionSecureIdSet[errInput.SessionSecureID] = true
+	for _, backendError := range errors {
+		session := &model.Session{}
+		if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", backendError.SessionSecureID).First(&session).Error; err != nil {
+			log.Error(err)
+			continue
+		}
+		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+			Type: kafkaqueue.PushBackendPayload,
+			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+				SessionSecureID: backendError.SessionSecureID,
+				Errors:          errors,
+			}}, strconv.Itoa(session.ID))
+		if err != nil {
+			log.Error(err)
+			continue
+		}
 	}
-	sessionSecureIds := make([]string, 0, len(sessionSecureIdSet))
-	for sId := range sessionSecureIdSet {
-		sessionSecureIds = append(sessionSecureIds, sId)
-	}
-
-	// we don't care about the order of these messages for a particular secureSessionID
-	// so distribute messages to any partition
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.PushBackendPayload,
-		PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-			SessionSecureIDs: sessionSecureIds,
-			Errors:           errors,
-		}}, strings.Join(sessionSecureIds, ","))
-	return nil, err
+	return nil, nil
 }
 
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
