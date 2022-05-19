@@ -132,7 +132,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     100,
+			QueueCapacity:     512,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
