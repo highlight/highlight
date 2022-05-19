@@ -323,7 +323,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureIDs, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, []string{task.PushBackendPayload.SessionSecureID}, task.PushBackendPayload.Errors)
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
