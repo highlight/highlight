@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
 	"strconv"
 	"time"
@@ -18,6 +17,7 @@ import (
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"

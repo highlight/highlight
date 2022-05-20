@@ -1417,7 +1417,6 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 }
 
 func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
-	log.Warnf("push metrics impl %d %d %+v", sessionID, projectID, metrics)
 	for _, m := range metrics {
 		if m.Type == customModels.MetricTypeBackend {
 			r.addNewMetric(sessionID, projectID, m)
