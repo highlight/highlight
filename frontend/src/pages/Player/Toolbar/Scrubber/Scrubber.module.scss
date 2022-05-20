@@ -1,3 +1,4 @@
+/* stylelint-disable color-no-hex */
 .scrubberBackground {
     align-items: center;
     background-color: var(--color-primary-background);
@@ -6,20 +7,24 @@
     display: flex;
     height: 40px;
     justify-content: center;
+    margin-bottom: var(--size-small);
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
     position: relative;
     width: 100%;
 }
 
 .innerBounds {
-    width: 90%;
+    position: relative;
+    width: 100%;
 }
 
 .zoomArea {
-    background: var(--color-gray-800);
+    background: #565656;
     border-radius: 5px;
-    height: 12px;
+    height: 16px;
     position: relative;
-    top: 10px;
+    top: 6px;
     width: 100%;
     z-index: 2;
 }
@@ -30,11 +35,12 @@
 
 .handleContainer {
     position: absolute;
+    z-index: 200;
 }
 
 .scrubHandle {
     align-items: center;
-    background: var(--color-red-500);
+    background: #ca0000;
     border-radius: var(--border-radius);
     cursor: move;
     display: flex;
@@ -49,8 +55,8 @@
 }
 
 .timeMarker {
-    background: var(--color-red-500);
-    height: 46px;
+    background: #ca0000;
+    height: 44px;
     position: absolute;
     top: 20px;
     width: 2px;
@@ -58,33 +64,61 @@
 }
 
 .timeText {
-    color: var(--color-text-primary);
+    color: var(--color-primary-background);
 }
 
-.clickChangeTime {
+.tickWrapper {
     cursor: pointer;
+    display: inline-flex;
     height: 22px;
+    justify-content: space-between;
     position: absolute;
-    top: -2px;
+    top: -14px;
+    width: 100%;
+}
+
+.tick {
+    position: relative;
+}
+
+.zoomControlsWrapper {
+    display: inline-flex;
+    justify-content: flex-end;
+    position: absolute;
+    top: -24px;
     width: 100%;
 }
 
 .zoomAreaHandle {
-    cursor: move;
+    background: #565656;
+    cursor: ew-resize;
+    height: 16px;
+    position: absolute;
+    width: 16px;
+    z-index: 150;
 }
 
 .handleLeft {
-    background: var(--color-red-200);
-    height: 12px;
-    position: absolute;
-    width: 12px;
-    z-index: 200;
+    border-radius: 5px 0 0 5px;
 }
 
 .handleRight {
-    background: var(--color-red-200);
-    height: 12px;
+    border-radius: 0 5px 5px 0;
     position: absolute;
-    width: 12px;
-    z-index: 200;
+}
+
+.inactiveArea {
+    background: #c17272;
+    border-radius: 0 0 5px 5px;
+    height: 100%;
+    position: absolute;
+}
+
+.inactiveContainer {
+    height: 6px;
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
+    position: absolute;
+    top: 28px;
+    width: 100%;
 }

@@ -18,11 +18,9 @@ import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
-import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
@@ -50,7 +48,6 @@ import {
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = React.memo(() => {
@@ -266,8 +263,8 @@ export const Toolbar = React.memo(() => {
                     />
                     <Scrubber />
                 </HighlightGate>
-                <TimelineIndicators />
-                {!isLiveMode ? (
+                {/* <TimelineIndicators /> */}
+                {/* {!isLiveMode ? (
                     <div className={styles.playerRail}>
                         <div
                             className={styles.sliderRail}
@@ -351,7 +348,7 @@ export const Toolbar = React.memo(() => {
                     <div className={styles.playerRail}>
                         <div className={styles.livePlayerRail} />
                     </div>
-                )}
+                )} */}
                 {!isLiveMode && (
                     <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
                         <DevToolsWindow

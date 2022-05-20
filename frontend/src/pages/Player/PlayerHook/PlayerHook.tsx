@@ -1011,6 +1011,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const play = useCallback(
         (newTime?: number) => {
+            const timeChanged = newTime !== time;
             if (isLiveMode) {
                 // Return if no events
                 if (events.length === 0) {
@@ -1053,19 +1054,24 @@ export const usePlayer = (): ReplayerContextInterface => {
                     replayer?.play(newTimeWithOffset);
                 }
             });
-            if (needsLoad) {
+            if (timeChanged || needsLoad) {
                 setIsLoadingEvents(true);
-                replayer?.pause();
-            } else {
-                replayer?.play(newTimeWithOffset);
             }
+            setTimeout(() => {
+                if (needsLoad) {
+                    replayer?.pause();
+                } else {
+                    replayer?.play(newTimeWithOffset);
+                    setIsLoadingEvents(false);
+                }
 
-            // Log how long it took to move to the new time.
-            const timelineChangeTime = timerEnd('timelineChangeTime');
-            console.log({ timelineChangeTime });
-            datadogLogs.logger.info('Timeline Change Time', {
-                duration: timelineChangeTime,
-                sessionId: session?.secure_id,
+                // Log how long it took to move to the new time.
+                const timelineChangeTime = timerEnd('timelineChangeTime');
+                console.log({ timelineChangeTime });
+                datadogLogs.logger.info('Timeline Change Time', {
+                    duration: timelineChangeTime,
+                    sessionId: session?.secure_id,
+                });
             });
         },
         [
@@ -1083,6 +1089,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const pause = useCallback(
         (newTime?: number) => {
+            const timeChanged = newTime !== time;
             setIsLiveMode(false);
             setState(ReplayerState.Paused);
             if (newTime !== undefined) {
@@ -1103,19 +1110,25 @@ export const usePlayer = (): ReplayerContextInterface => {
                     replayer?.pause(newTimeWithOffset);
                 }
             });
-            if (needsLoad) {
-                setIsLoadingEvents(true);
-                replayer?.pause();
-            } else {
-                replayer?.pause(newTimeWithOffset);
-            }
 
-            // Log how long it took to move to the new time.
-            const timelineChangeTime = timerEnd('timelineChangeTime');
-            console.log({ timelineChangeTime });
-            datadogLogs.logger.info('Timeline Change Time', {
-                duration: timelineChangeTime,
-                sessionId: session?.secure_id,
+            if (timeChanged || needsLoad) {
+                setIsLoadingEvents(true);
+            }
+            setTimeout(() => {
+                if (needsLoad) {
+                    replayer?.pause();
+                } else {
+                    replayer?.pause(newTimeWithOffset);
+                    setIsLoadingEvents(false);
+                }
+
+                // Log how long it took to move to the new time.
+                const timelineChangeTime = timerEnd('timelineChangeTime');
+                console.log({ timelineChangeTime });
+                datadogLogs.logger.info('Timeline Change Time', {
+                    duration: timelineChangeTime,
+                    sessionId: session?.secure_id,
+                });
             });
         },
         [
@@ -1123,6 +1136,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             replayer,
             session?.secure_id,
             sessionMetadata.startTime,
+            time,
         ]
     );
 
@@ -1256,6 +1270,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
         isLoadingEvents,
+        setIsLoadingEvents,
         sessionMetadata,
     };
 };

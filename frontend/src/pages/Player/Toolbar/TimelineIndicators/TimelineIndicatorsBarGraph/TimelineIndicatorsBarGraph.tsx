@@ -337,28 +337,32 @@ const TimelineIndicatorsBarGraph = React.memo(
                 : MillisToMinutesAndSeconds(t);
 
         return (
-            <Histogram
-                startTime={combined.startTime}
-                endTime={combined.endTime}
-                onAreaChanged={(left, right) => {
-                    setZoomAreaLeft(
-                        (zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
-                            (zoomAreaLeft ?? 0)
-                    );
-                    setZoomAreaRight(
-                        (zoomAreaRight - zoomAreaLeft) *
-                            (right * percentPerBar + percentPerBar) +
-                            zoomAreaLeft
-                    );
-                }}
-                onBucketClicked={(bucketIndex) => {
-                    setTime(bucketTimes[bucketIndex]);
-                }}
-                seriesList={series}
-                timeFormatter={timeFormatter}
-                bucketTimes={bucketTimes}
-                tooltipContent={tooltipContent}
-            />
+            <div className={styles.histogramContainer}>
+                <Histogram
+                    startTime={combined.startTime}
+                    endTime={combined.endTime}
+                    onAreaChanged={(left, right) => {
+                        setZoomAreaLeft(
+                            (zoomAreaRight - zoomAreaLeft) *
+                                left *
+                                percentPerBar +
+                                (zoomAreaLeft ?? 0)
+                        );
+                        setZoomAreaRight(
+                            (zoomAreaRight - zoomAreaLeft) *
+                                (right * percentPerBar + percentPerBar) +
+                                zoomAreaLeft
+                        );
+                    }}
+                    onBucketClicked={(bucketIndex) => {
+                        setTime(bucketTimes[bucketIndex]);
+                    }}
+                    seriesList={series}
+                    timeFormatter={timeFormatter}
+                    bucketTimes={bucketTimes}
+                    tooltipContent={tooltipContent}
+                />
+            </div>
         );
     }
 );
