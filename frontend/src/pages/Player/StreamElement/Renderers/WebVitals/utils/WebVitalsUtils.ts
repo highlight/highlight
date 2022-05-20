@@ -1,3 +1,5 @@
+import { MetricConfig } from '@pages/Dashboards/Metrics';
+
 export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
     FCP = 'First Contentful Paint',
@@ -5,17 +7,9 @@ export enum WebVitalName {
     LCP = 'Largest Contentful Paint',
     TTFB = 'Time to First Byte',
 }
-export interface WebVitalDescriptor {
-    name: WebVitalName;
-    maxGoodValue: number;
-    maxNeedsImprovementValue: number;
-    poorValue: number;
-    units: string;
-    helpArticle: string;
-}
 
 export const WEB_VITALS_CONFIGURATION: {
-    [key in string]: WebVitalDescriptor;
+    [key in string]: MetricConfig;
 } = {
     CLS: {
         maxGoodValue: 0.1,

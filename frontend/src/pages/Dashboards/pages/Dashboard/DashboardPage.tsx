@@ -6,6 +6,7 @@ import { StandardDropdown } from '@components/Dropdown/StandardDropdown/Standard
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
+import { Dashboard } from '@pages/Dashboards/DashboardsRouter';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
@@ -16,8 +17,6 @@ import { useHistory } from 'react-router-dom';
 import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
-const SUPPORTED_WEB_VITALS = ['CLS', 'FCP', 'FID', 'LCP', 'TTFB'] as const;
 
 const timeFilter = [
     { label: 'Last 24 hours', value: 2 },
@@ -36,13 +35,19 @@ const DashboardPage = () => {
     );
     const [layout, setLayout] = useState<Layouts>(DEFAULT_WEB_VITALS_LAYOUT);
     const [isEditing, setIsEditing] = useState(false);
+    const [dashboard, setDashboard] = useState<Dashboard>();
 
     useEffect(() => {
         const dashboard = dashboards.find((d) => d.id === parseInt(id, 10));
         const name = dashboard?.name || '';
+        setDashboard(dashboard);
 
         history.replace({ state: { dashboardName: name } });
     }, [dashboards, history, id]);
+
+    if (!dashboard) {
+        return null;
+    }
 
     return (
         <>
@@ -92,12 +97,13 @@ const DashboardPage = () => {
                         });
                     }}
                 >
-                    {SUPPORTED_WEB_VITALS.map((webVital, index) => (
+                    {dashboard.metrics.map((metric, index) => (
                         <div key={index.toString()}>
                             <DashboardCard
                                 isEditing={isEditing}
-                                webVitalName={webVital}
-                                key={webVital}
+                                metricName={metric}
+                                metricConfig={dashboard?.metricConfigs[metric]}
+                                key={metric}
                                 dateRange={{
                                     startDate: moment(new Date())
                                         .subtract(dateRangeLength, 'days')

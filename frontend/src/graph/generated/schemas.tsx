@@ -424,7 +424,7 @@ export type SearchParamsInput = {
     query?: Maybe<Scalars['String']>;
 };
 
-export type WebVitalDashboardParamsInput = {
+export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
 };
 
@@ -755,8 +755,8 @@ export type Metric = {
     value: Scalars['Float'];
 };
 
-export type WebVitalDashboardPayload = {
-    __typename?: 'WebVitalDashboardPayload';
+export type DashboardPayload = {
+    __typename?: 'DashboardPayload';
     date: Scalars['String'];
     avg: Scalars['Float'];
     p50: Scalars['Float'];
@@ -874,7 +874,7 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
-    web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
+    metrics_dashboard: Array<Maybe<DashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1205,10 +1205,10 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
-export type QueryWeb_Vital_DashboardArgs = {
+export type QueryMetrics_DashboardArgs = {
     project_id: Scalars['ID'];
-    web_vital_name: Scalars['String'];
-    params: WebVitalDashboardParamsInput;
+    metric_name: Scalars['String'];
+    params: DashboardParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {

@@ -4847,8 +4847,8 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return details, nil
 }
 
-func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
-	payload := []*modelInputs.WebVitalDashboardPayload{}
+func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
@@ -4867,7 +4867,7 @@ func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, we
 	AND created_at >= ?
 	AND created_at <= ?
 	GROUP BY created_at::date, name;
-	`, webVitalName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	`, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}
