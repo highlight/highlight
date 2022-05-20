@@ -2479,6 +2479,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'uid'
             | 'name'
             | 'email'
+            | 'phone'
             | 'photo_url'
             | 'slack_im_channel_id'
             | 'role'

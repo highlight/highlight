@@ -247,6 +247,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
+	admin.Phone = adminDetails.Phone
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -4627,6 +4628,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			Email:         &firebaseUser.Email,
 			PhotoURL:      &firebaseUser.PhotoURL,
 			EmailVerified: &firebaseUser.EmailVerified,
+			Phone:         &firebaseUser.PhoneNumber,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -4659,6 +4661,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating org fields")
 			adminSpan.Finish(tracer.WithError(spanError))
@@ -4667,6 +4670,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
 		firebaseSpan.Finish()
 	}
 

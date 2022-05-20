@@ -27,6 +27,7 @@ const AboutYouPage = () => {
     const { admin } = useAuthContext();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
     const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false);
     const [isProductRole, toggleIsProductRole] = useToggle(false);
     const [role, setRole] = useState('');
@@ -49,6 +50,7 @@ const AboutYouPage = () => {
             const [adminFirstName, adminLastName] = admin.name.split(' ');
             setFirstName(adminFirstName || '');
             setLastName(adminLastName || '');
+            setPhone(admin.phone || '');
         }
     }, [admin]);
 
@@ -70,6 +72,7 @@ const AboutYouPage = () => {
                 variables: {
                     adminDetails: {
                         name: `${firstName} ${lastName}`,
+                        phone: phone,
                         user_defined_role: role,
                         referral: signUpReferral,
                         user_defined_persona: persona,
@@ -118,22 +121,37 @@ const AboutYouPage = () => {
                 <CardForm onSubmit={onFormSubmit}>
                     <section className={styles.section}>
                         <h3>What's your name?</h3>
+                        <div className={styles.name}>
+                            <Input
+                                placeholder="First Name"
+                                name="First Name"
+                                value={firstName}
+                                onChange={(e) => {
+                                    setFirstName(e.target.value);
+                                }}
+                                autoFocus
+                            />
+                            <Input
+                                placeholder="Last Name"
+                                name="Last Name"
+                                value={lastName}
+                                onChange={(e) => {
+                                    setLastName(e.target.value);
+                                }}
+                            />
+                        </div>
+                    </section>
+                    <section className={styles.section}>
+                        <h3>What's your phone number?</h3>
                         <Input
-                            placeholder="First Name"
-                            name="First Name"
-                            value={firstName}
+                            placeholder="Phone #"
+                            name="Phone #"
+                            type={'tel'}
+                            value={phone}
                             onChange={(e) => {
-                                setFirstName(e.target.value);
+                                setPhone(e.target.value);
                             }}
                             autoFocus
-                        />
-                        <Input
-                            placeholder="Last Name"
-                            name="Last Name"
-                            value={lastName}
-                            onChange={(e) => {
-                                setLastName(e.target.value);
-                            }}
                         />
                     </section>
 

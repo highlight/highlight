@@ -6489,6 +6489,7 @@ export const GetAdminDocument = gql`
             uid
             name
             email
+            phone
             photo_url
             slack_im_channel_id
             role
