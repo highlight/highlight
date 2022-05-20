@@ -1421,7 +1421,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 	for _, m := range metrics {
 		if m.Type == customModels.MetricTypeBackend {
 			r.addNewMetric(sessionID, projectID, m)
-			return
+			continue
 		}
 
 		existingMetric := &model.Metric{
