@@ -17,7 +17,6 @@ import (
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -134,7 +133,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
 	if len(metrics) == 0 {
 		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
-		return -1, errors.New("no metrics provided")
+		return -1, e.New("no metrics provided")
 	}
 	secureID := metrics[0].SessionSecureID
 
