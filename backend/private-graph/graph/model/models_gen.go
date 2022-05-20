@@ -35,10 +35,11 @@ type AccountDetails struct {
 }
 
 type AdminAboutYouDetails struct {
-	Name               string `json:"name"`
-	UserDefinedRole    string `json:"user_defined_role"`
-	UserDefinedPersona string `json:"user_defined_persona"`
-	Referral           string `json:"referral"`
+	Name               string  `json:"name"`
+	UserDefinedRole    string  `json:"user_defined_role"`
+	UserDefinedPersona string  `json:"user_defined_persona"`
+	Referral           string  `json:"referral"`
+	Phone              *string `json:"phone"`
 }
 
 type AverageSessionLength struct {

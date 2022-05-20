@@ -91,6 +91,7 @@ type ComplexityRoot struct {
 		EmailVerified      func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Name               func(childComplexity int) int
+		Phone              func(childComplexity int) int
 		PhotoURL           func(childComplexity int) int
 		Referral           func(childComplexity int) int
 		Role               func(childComplexity int) int
@@ -1197,6 +1198,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Name(childComplexity), true
+
+	case "Admin.phone":
+		if e.complexity.Admin.Phone == nil {
+			break
+		}
+
+		return e.complexity.Admin.Phone(childComplexity), true
 
 	case "Admin.photo_url":
 		if e.complexity.Admin.PhotoURL == nil {
@@ -6013,6 +6021,7 @@ input AdminAboutYouDetails {
     user_defined_role: String!
     user_defined_persona: String!
     referral: String!
+    phone: String
 }
 
 input ErrorSearchParamsInput {
@@ -6077,6 +6086,7 @@ type Admin {
     name: String!
     uid: String!
     email: String!
+    phone: String
     photo_url: String
     role: String!
     slack_im_channel_id: String
@@ -12243,6 +12253,38 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_phone(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -31905,6 +31947,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -32694,6 +32744,13 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "phone":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Admin_phone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "photo_url":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Admin_photo_url(ctx, field, obj)

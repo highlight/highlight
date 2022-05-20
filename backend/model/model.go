@@ -367,6 +367,7 @@ type Admin struct {
 	Model
 	Name             *string
 	Email            *string
+	Phone            *string
 	EmailVerified    *bool            `gorm:"default:false"`
 	PhotoURL         *string          `json:"photo_url"`
 	UID              *string          `gorm:"unique_index"`

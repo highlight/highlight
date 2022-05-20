@@ -454,6 +454,7 @@ export type AdminAboutYouDetails = {
     user_defined_role: Scalars['String'];
     user_defined_persona: Scalars['String'];
     referral: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -524,6 +525,7 @@ export type Admin = {
     name: Scalars['String'];
     uid: Scalars['String'];
     email: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
