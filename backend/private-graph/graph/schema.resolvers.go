@@ -4661,6 +4661,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating org fields")
 			adminSpan.Finish(tracer.WithError(spanError))
@@ -4669,6 +4670,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
 		firebaseSpan.Finish()
 	}
 
