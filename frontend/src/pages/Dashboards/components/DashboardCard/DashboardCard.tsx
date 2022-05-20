@@ -4,6 +4,7 @@ import LineChart from '@components/LineChart/LineChart';
 import MenuItem from '@components/Menu/MenuItem';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetMetricsDashboardQuery } from '@graph/hooks';
+import { DashboardResolution } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import { MetricConfig } from '@pages/Dashboards/Metrics';
@@ -43,6 +44,10 @@ const DashboardCard = ({
                     end_date: dateRange.endDate,
                     start_date: dateRange.startDate,
                 },
+                resolution:
+                    metricName === 'delayMS'
+                        ? DashboardResolution.Minute
+                        : DashboardResolution.Day,
             },
         },
     });

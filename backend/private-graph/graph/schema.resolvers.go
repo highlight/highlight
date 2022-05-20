@@ -4853,21 +4853,70 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 		return payload, nil
 	}
 
-	if err := r.DB.Raw(`
-	SELECT
-		created_at::date as date,
-		AVG(value) as avg,
-		percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
-		percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
-		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
-		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
-	FROM metrics
-	WHERE name=?
-	AND project_id=?
-	AND created_at >= ?
-	AND created_at <= ?
-	GROUP BY created_at::date, name;
-	`, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	query := `
+		SELECT
+			created_at::date as date,
+			AVG(value) as avg,
+			percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
+			percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
+			percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
+			percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
+		FROM metrics
+		WHERE name=?
+		AND project_id=?
+		AND created_at >= ?
+		AND created_at <= ?
+		GROUP BY created_at::date, name;
+	`
+
+	if params.Resolution != nil && *params.Resolution == modelInputs.DashboardResolutionHour {
+		query = `
+		SELECT s.date + interval '1 hour' * s.hour as date,
+			   s.avg,
+			   s.p50,
+			   s.p75,
+			   s.p90,
+			   s.p99
+		FROM (SELECT created_at::date                                    as date,
+					 date_part('hour', created_at)                       as hour,
+					 AVG(value)                                          as avg,
+					 percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
+					 percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
+					 percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
+					 percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
+			  FROM metrics
+			  WHERE name=?
+				AND project_id=?
+				AND created_at >= ?
+				AND created_at <= ?
+			  GROUP BY created_at::date, hour, name) as s;
+		`
+	} else if params.Resolution != nil && *params.Resolution == modelInputs.DashboardResolutionMinute {
+		query = `
+		SELECT s.date + interval '1 hour' * s.hour + interval '1 minute' * s.minute as date,
+			   s.avg,
+			   s.p50,
+			   s.p75,
+			   s.p90,
+			   s.p99
+		FROM (SELECT created_at::date                                    as date,
+					 date_part('hour', created_at)                       as hour,
+					 date_part('minute', created_at)                     as minute,
+					 AVG(value)                                          as avg,
+					 percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
+					 percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
+					 percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
+					 percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
+			  FROM metrics
+			  WHERE name=?
+				AND project_id=?
+				AND created_at >= ?
+				AND created_at <= ?
+			  GROUP BY created_at::date, hour, minute, name) as s;
+		`
+	}
+
+	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

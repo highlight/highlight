@@ -55,7 +55,8 @@ type BillingDetails struct {
 }
 
 type DashboardParamsInput struct {
-	DateRange *DateRangeInput `json:"date_range"`
+	DateRange  *DateRangeInput      `json:"date_range"`
+	Resolution *DashboardResolution `json:"resolution"`
 }
 
 type DashboardPayload struct {
@@ -269,6 +270,49 @@ type UserPropertyInput struct {
 	ID    *int   `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type DashboardResolution string
+
+const (
+	DashboardResolutionDay    DashboardResolution = "Day"
+	DashboardResolutionHour   DashboardResolution = "Hour"
+	DashboardResolutionMinute DashboardResolution = "Minute"
+)
+
+var AllDashboardResolution = []DashboardResolution{
+	DashboardResolutionDay,
+	DashboardResolutionHour,
+	DashboardResolutionMinute,
+}
+
+func (e DashboardResolution) IsValid() bool {
+	switch e {
+	case DashboardResolutionDay, DashboardResolutionHour, DashboardResolutionMinute:
+		return true
+	}
+	return false
+}
+
+func (e DashboardResolution) String() string {
+	return string(e)
+}
+
+func (e *DashboardResolution) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DashboardResolution(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DashboardResolution", str)
+	}
+	return nil
+}
+
+func (e DashboardResolution) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type ErrorState string

@@ -381,8 +381,15 @@ input SearchParamsInput {
     query: String
 }
 
+enum DashboardResolution {
+    Day
+    Hour
+    Minute
+}
+
 input DashboardParamsInput {
     date_range: DateRangeInput
+    resolution: DashboardResolution
 }
 
 type SearchParams {

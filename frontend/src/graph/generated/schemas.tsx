@@ -424,8 +424,15 @@ export type SearchParamsInput = {
     query?: Maybe<Scalars['String']>;
 };
 
+export enum DashboardResolution {
+    Day = 'Day',
+    Hour = 'Hour',
+    Minute = 'Minute',
+}
+
 export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
+    resolution?: Maybe<DashboardResolution>;
 };
 
 export type SearchParams = {
