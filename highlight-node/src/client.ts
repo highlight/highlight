@@ -5,6 +5,7 @@ import {
     MetricInput,
     MetricType,
     PushBackendPayloadMutationVariables,
+    PushMetricsMutationVariables,
     Sdk,
 } from './graph/generated/operations';
 import ErrorStackParser from 'error-stack-parser';
@@ -139,7 +140,7 @@ export class Highlight {
         }
     }
 
-    flush() {
+    flushErrors() {
         if (this.errors.length === 0) {
             return;
         }
@@ -151,7 +152,28 @@ export class Highlight {
             .PushBackendPayload(variables)
             .then(() => {})
             .catch((e) => {
-                console.log('highlight-node error: ', e);
+                console.log('highlight-node pushErrors error: ', e);
             });
+    }
+
+    flushMetrics() {
+        if (this.metrics.length === 0) {
+            return;
+        }
+        const variables: PushMetricsMutationVariables = {
+            metrics: this.metrics,
+        };
+        this.metrics = [];
+        this._graphqlSdk
+            .PushMetrics(variables)
+            .then(() => {})
+            .catch((e) => {
+                console.log('highlight-node pushMetrics error: ', e);
+            });
+    }
+
+    flush() {
+        this.flushErrors();
+        this.flushMetrics();
     }
 }

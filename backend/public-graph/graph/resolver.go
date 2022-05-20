@@ -1427,7 +1427,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 			Name:      m.Name,
 			ProjectID: projectID,
 			SessionID: sessionID,
-			Type:      modelInputs.MetricTypeBackend,
+			Type:      modelInputs.MetricType(m.Type),
 		}
 		recordAlreadyExists := true
 
