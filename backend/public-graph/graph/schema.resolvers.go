@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -22,7 +22,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
@@ -115,7 +114,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 	for _, backendError := range errors {
 		session := &model.Session{}
 		if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", backendError.SessionSecureID).First(&session).Error; err != nil {
-			log.Error(err)
+			log.Error(e.Wrapf(err, "unknown session for push backend payload %s", backendError.SessionSecureID))
 			continue
 		}
 		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
@@ -125,11 +124,35 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 				Errors:          errors,
 			}}, strconv.Itoa(session.ID))
 		if err != nil {
-			log.Error(err)
+			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", backendError.SessionSecureID))
 			continue
 		}
 	}
 	return nil, nil
+}
+
+func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+	if len(metrics) == 0 {
+		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
+		return -1, errors.New("no metrics provided")
+	}
+	secureID := metrics[0].SessionSecureID
+
+	session := &model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
+		log.Error(err)
+		return -1, e.Wrap(err, "no session found for push metrics")
+	}
+
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+		Type: kafkaqueue.PushMetrics,
+		PushMetrics: &kafkaqueue.PushMetricsArgs{
+			SessionID: session.ID,
+			ProjectID: session.ProjectID,
+			Metrics:   metrics,
+		}}, strconv.Itoa(session.ID))
+
+	return session.ID, err
 }
 
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
@@ -255,111 +278,6 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	})
 
 	return feedbackComment.ID, nil
-}
-
-func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
-	if sessionID == 0 {
-		log.Errorf("received web vitals %+v for sessionID 0", metric)
-		return -1, nil
-	}
-
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, nil
-	}
-
-	existingMetric := &model.Metric{
-		Name:      metric.Name,
-		ProjectID: session.ProjectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricTypeWebVital,
-	}
-	recordAlreadyExists := true
-
-	// Check to see if this metric already exists.
-	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			recordAlreadyExists = false
-		} else {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	if !recordAlreadyExists {
-		newMetric := &model.Metric{
-			Name:      metric.Name,
-			Value:     metric.Value,
-			ProjectID: session.ProjectID,
-			SessionID: sessionID,
-			Type:      modelInputs.MetricTypeWebVital,
-		}
-
-		if err := r.DB.Create(&newMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	} else {
-		// Update the existing record if it already exists
-		existingMetric.Value = metric.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	return sessionID, nil
-}
-
-func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, nil
-	}
-
-	existingMetric := &model.Metric{
-		Name:      metric.Name,
-		ProjectID: session.ProjectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricTypeDevice,
-	}
-	recordAlreadyExists := true
-
-	// Check to see if this metric already exists.
-	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			recordAlreadyExists = false
-		} else {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	if !recordAlreadyExists {
-		newMetric := &model.Metric{
-			Name:      metric.Name,
-			Value:     metric.Value,
-			ProjectID: session.ProjectID,
-			SessionID: sessionID,
-			Type:      modelInputs.MetricTypeDevice,
-		}
-
-		if err := r.DB.Create(&newMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	} else {
-		// Update the existing record if it already exists
-		existingMetric.Value = metric.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	return sessionID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

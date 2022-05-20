@@ -50,7 +50,7 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { ReplayEventsInput } from './graph/generated/schemas';
+import { MetricType, ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -676,13 +676,18 @@ export class Highlight {
                     const { getDeviceDetails } = getPerformanceMethods();
                     if (getDeviceDetails) {
                         const deviceDetails = getDeviceDetails();
-
-                        this.graphqlSDK.addDeviceMetric({
-                            session_id: this.sessionData.sessionID.toString(),
-                            metric: {
-                                name: 'DeviceMemory',
-                                value: deviceDetails.deviceMemory,
-                            },
+                        this.graphqlSDK.pushMetrics({
+                            metrics: [
+                                {
+                                    name: 'DeviceMemory',
+                                    value: deviceDetails.deviceMemory,
+                                    session_secure_id: this.sessionData
+                                        .sessionSecureID,
+                                    type: MetricType.Device,
+                                    url: window.location.href,
+                                    timestamp: new Date().toISOString(),
+                                },
+                            ],
                         });
                     }
                 } catch (e) {
@@ -818,7 +823,10 @@ export class Highlight {
                         }
                     }
                     highlightThis.addProperties(
-                        { clickTextContent: textContent, clickSelector: selector },
+                        {
+                            clickTextContent: textContent,
+                            clickSelector: selector,
+                        },
                         { type: 'session' }
                     );
                 })
@@ -835,9 +843,18 @@ export class Highlight {
                 WebVitalsListener((data) => {
                     const { name, value } = data;
                     try {
-                        this.graphqlSDK.addWebVitals({
-                            session_id: this.sessionData.sessionID.toString(),
-                            metric: { name, value },
+                        this.graphqlSDK.pushMetrics({
+                            metrics: [
+                                {
+                                    name,
+                                    value,
+                                    session_secure_id: this.sessionData
+                                        .sessionSecureID,
+                                    type: MetricType.WebVital,
+                                    url: window.location.href,
+                                    timestamp: new Date().toISOString(),
+                                },
+                            ],
                         });
                     } catch {}
                 })

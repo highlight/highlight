@@ -44,24 +44,33 @@ export type ErrorObjectInput = {
   url: Scalars['String'];
 };
 
+export type MetricInput = {
+  name: Scalars['String'];
+  request_id?: InputMaybe<Scalars['String']>;
+  session_secure_id: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  type: MetricType;
+  url: Scalars['String'];
+  value: Scalars['Float'];
+};
+
+export enum MetricType {
+  Backend = 'Backend',
+  Device = 'Device',
+  WebVital = 'WebVital'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
-  addDeviceMetric: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
   addSessionProperties?: Maybe<Scalars['ID']>;
   addTrackProperties?: Maybe<Scalars['ID']>;
-  addWebVitals: Scalars['ID'];
   identifySession?: Maybe<Scalars['ID']>;
   initializeSession?: Maybe<Session>;
   markBackendSetup: Scalars['ID'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
+  pushMetrics: Scalars['ID'];
   pushPayload: Scalars['Int'];
-};
-
-
-export type MutationAddDeviceMetricArgs = {
-  metric: DeviceMetricInput;
-  session_id: Scalars['ID'];
 };
 
 
@@ -82,12 +91,6 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationAddTrackPropertiesArgs = {
   properties_object?: InputMaybe<Scalars['Any']>;
-  session_id: Scalars['ID'];
-};
-
-
-export type MutationAddWebVitalsArgs = {
-  metric: WebVitalMetricInput;
   session_id: Scalars['ID'];
 };
 
@@ -123,6 +126,11 @@ export type MutationPushBackendPayloadArgs = {
 };
 
 
+export type MutationPushMetricsArgs = {
+  metrics: Array<InputMaybe<MetricInput>>;
+};
+
+
 export type MutationPushPayloadArgs = {
   errors: Array<InputMaybe<ErrorObjectInput>>;
   events: ReplayEventsInput;
@@ -144,8 +152,15 @@ export type QueryIgnoreArgs = {
   id: Scalars['ID'];
 };
 
+export type ReplayEventInput = {
+  _sid: Scalars['Float'];
+  data: Scalars['Any'];
+  timestamp: Scalars['Float'];
+  type: Scalars['Int'];
+};
+
 export type ReplayEventsInput = {
-  events: Array<InputMaybe<Scalars['Any']>>;
+  events: Array<InputMaybe<ReplayEventInput>>;
 };
 
 export type Session = {
@@ -165,9 +180,4 @@ export type StackFrameInput = {
   isNative?: InputMaybe<Scalars['Boolean']>;
   lineNumber?: InputMaybe<Scalars['Int']>;
   source?: InputMaybe<Scalars['String']>;
-};
-
-export type WebVitalMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
 };

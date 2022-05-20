@@ -5794,6 +5794,7 @@ enum ErrorState {
 enum MetricType {
     WebVital
     Device
+    Backend
 }
 
 enum AdminRole {

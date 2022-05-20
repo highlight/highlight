@@ -203,6 +203,7 @@ export enum ErrorState {
 export enum MetricType {
     WebVital = 'WebVital',
     Device = 'Device',
+    Backend = 'Backend',
 }
 
 export enum AdminRole {

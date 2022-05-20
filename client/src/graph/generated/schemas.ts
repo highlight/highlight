@@ -60,9 +60,20 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
-export type WebVitalMetricInput = {
+export enum MetricType {
+  WebVital = 'WebVital',
+  Device = 'Device',
+  Backend = 'Backend'
+}
+
+export type MetricInput = {
+  session_secure_id: Scalars['String'];
   name: Scalars['String'];
   value: Scalars['Float'];
+  type: MetricType;
+  url: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  request_id?: Maybe<Scalars['String']>;
 };
 
 export type DeviceMetricInput = {
@@ -89,10 +100,9 @@ export type Mutation = {
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload: Scalars['Int'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
+  pushMetrics: Scalars['ID'];
   markBackendSetup: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
-  addWebVitals: Scalars['ID'];
-  addDeviceMetric: Scalars['ID'];
 };
 
 
@@ -146,6 +156,11 @@ export type MutationPushBackendPayloadArgs = {
 };
 
 
+export type MutationPushMetricsArgs = {
+  metrics: Array<Maybe<MetricInput>>;
+};
+
+
 export type MutationMarkBackendSetupArgs = {
   session_secure_id: Scalars['String'];
 };
@@ -157,18 +172,6 @@ export type MutationAddSessionFeedbackArgs = {
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
   timestamp: Scalars['Timestamp'];
-};
-
-
-export type MutationAddWebVitalsArgs = {
-  session_id: Scalars['ID'];
-  metric: WebVitalMetricInput;
-};
-
-
-export type MutationAddDeviceMetricArgs = {
-  session_id: Scalars['ID'];
-  metric: DeviceMetricInput;
 };
 
 export type Query = {

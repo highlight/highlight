@@ -1401,6 +1401,57 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 	})
 }
 
+func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
+	newMetric := &model.Metric{
+		Name:      m.Name,
+		Value:     m.Value,
+		ProjectID: projectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricType(m.Type),
+	}
+
+	if err := r.DB.Create(&newMetric).Error; err != nil {
+		log.Error(err)
+	}
+}
+
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+	log.Warnf("push metrics impl %d %d %+v", sessionID, projectID, metrics)
+	for _, m := range metrics {
+		if m.Type == customModels.MetricTypeBackend {
+			r.addNewMetric(sessionID, projectID, m)
+			return
+		}
+
+		existingMetric := &model.Metric{
+			Name:      m.Name,
+			ProjectID: projectID,
+			SessionID: sessionID,
+			Type:      modelInputs.MetricTypeBackend,
+		}
+		recordAlreadyExists := true
+
+		// Check to see if this metric already exists.
+		if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
+			if e.Is(err, gorm.ErrRecordNotFound) {
+				recordAlreadyExists = false
+			} else {
+				log.Error(err)
+			}
+		}
+
+		if !recordAlreadyExists {
+			r.addNewMetric(sessionID, projectID, m)
+		} else {
+			// Update the existing record if it already exists
+			existingMetric.Value = m.Value
+			if err := r.DB.Save(&existingMetric).Error; err != nil {
+				log.Error(err)
+			}
+		}
+	}
+}
+
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))

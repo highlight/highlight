@@ -12,6 +12,12 @@ export interface HighlightInterface {
         requestId: string
     ) => void;
     consumeEvent: (secureSessionId: string) => void;
+    recordMetric: (
+        secureSessionId: string,
+        name: string,
+        value: number,
+        requestId?: string
+    ) => void;
 }
 
 var highlight_obj: Highlight;
@@ -40,6 +46,18 @@ export const H: HighlightInterface = {
             highlight_obj.consumeCustomEvent(secureSessionId);
         } catch (e) {
             console.log('highlight-node consumeEvent error: ', e);
+        }
+    },
+    recordMetric: (
+        secureSessionId: string,
+        name: string,
+        value: number,
+        requestId?: string
+    ) => {
+        try {
+            highlight_obj.recordMetric(secureSessionId, name, value, requestId);
+        } catch (e) {
+            console.log('highlight-node recordMetric error: ', e);
         }
     },
 };
