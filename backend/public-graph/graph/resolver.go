@@ -1408,6 +1408,7 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 		ProjectID: projectID,
 		SessionID: sessionID,
 		Type:      modelInputs.MetricType(m.Type),
+		RequestID: m.RequestID,
 	}
 
 	if err := r.DB.Create(&newMetric).Error; err != nil {
@@ -1428,6 +1429,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 			ProjectID: projectID,
 			SessionID: sessionID,
 			Type:      modelInputs.MetricType(m.Type),
+			RequestID: m.RequestID,
 		}
 		recordAlreadyExists := true
 

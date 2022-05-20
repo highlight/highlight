@@ -671,6 +671,7 @@ type Metric struct {
 	Type      modelInputs.MetricType `gorm:"index;not null;"`
 	Name      string                 `gorm:"index;not null;"`
 	Value     float64
+	RequestID *string // From X-Highlight-Request header
 }
 
 type MetricMonitor struct {

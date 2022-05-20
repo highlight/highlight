@@ -5,8 +5,8 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"strconv"
 	"time"
