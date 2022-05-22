@@ -13,7 +13,6 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-
 	"os"
 	"regexp"
 	"sort"
@@ -34,7 +33,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/k0kubun/pp/v3"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -246,11 +244,18 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		return false, err
 	}
 
-	admin.Name = &adminDetails.Name
+	fullName := adminDetails.FirstName + " " + adminDetails.LastName
+	admin.FirstName = &adminDetails.FirstName
+	admin.LastName = &adminDetails.LastName
+	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = adminDetails.Phone
+
+	go func() {
+		r.createHubspotContactForAdmin(admin.ID, *admin.Email, *admin.UserDefinedRole, *admin.UserDefinedPersona, *admin.FirstName, *admin.LastName, *admin.Phone)
+	}()
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -303,32 +308,9 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
-	workspaceUpdates := &model.Workspace{}
+	r.createHubspotCompanyForWorkspace(workspace.ID, *admin.Email, name)
 
-	components := strings.Split(*admin.Email, "@")[0]
-	var domain string
-	if len(components) > 1 {
-		domain = string(components[1])
-	}
-	resp, err := r.HubspotClient.Companies().Create(hubspot.CompaniesRequest{
-		Properties: []hubspot.Property{
-			{
-				Property: "name",
-				Name:     "name",
-				Value:    name,
-			},
-			{
-				Property: "domain",
-				Name:     "domain",
-				Value:    domain,
-			},
-		},
-	})
-	if err != nil {
-		log.Error(err, " failed to add new hubspot account")
-	} else {
-		workspaceUpdates.HubspotCustomerID = &resp.CompanyID
-	}
+	workspaceUpdates := 
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -342,9 +324,8 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
 	}
-	workspaceUpdates.StripeCustomerID = &c.ID
 
-	if err := r.DB.Model(&workspace).Updates(workspaceUpdates).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
@@ -571,6 +552,8 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		log.Error(err, " failed to add admin to workspace")
 		return adminId, err
 	}
+
+	r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{})
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
@@ -4666,45 +4649,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		firebaseSpan.Finish()
 
-		fullName := "John Doe"
-		if newAdmin.Name != nil {
-			fullName = *newAdmin.Name
-		}
-		nameSplit := strings.Split(fullName, " ")
-		var first, last string
-		if len(nameSplit) < 2 {
-			first = nameSplit[0]
-		}
-		if len(nameSplit) < 3 {
-			first = nameSplit[0]
-			last = nameSplit[1]
-		}
-
-		resp, err := r.HubspotClient.Contacts().Create(hubspot.ContactsRequest{
-			Properties: []hubspot.Property{
-				{
-					Property: "email",
-					Name:     "email",
-					Value:    newAdmin.Email,
-				},
-				{
-					Property: "firstname",
-					Name:     "firstname",
-					Value:    first,
-				},
-				{
-					Property: "lastname",
-					Name:     "lastname",
-					Value:    last,
-				},
-			},
-		})
-		if err != nil {
-			log.Error(err, "error pushing contact data")
-			pp.Println(newAdmin.Email, first, last)
-		} else {
-			pp.Println(resp)
-		}
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

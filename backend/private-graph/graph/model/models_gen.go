@@ -35,7 +35,8 @@ type AccountDetails struct {
 }
 
 type AdminAboutYouDetails struct {
-	Name               string  `json:"name"`
+	FirstName          string  `json:"first_name"`
+	LastName           string  `json:"last_name"`
 	UserDefinedRole    string  `json:"user_defined_role"`
 	UserDefinedPersona string  `json:"user_defined_persona"`
 	Referral           string  `json:"referral"`

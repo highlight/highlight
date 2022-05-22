@@ -367,6 +367,9 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 type Admin struct {
 	Model
 	Name             *string
+	FirstName        *string
+	LastName         *string
+	HubspotContactID *int
 	Email            *string
 	Phone            *string
 	EmailVerified    *bool            `gorm:"default:false"`

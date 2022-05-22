@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/k0kubun/pp"
 
 	"github.com/pkg/errors"
 
@@ -90,6 +91,87 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
+}
+
+// Creates a hubspot contact and writes the contact ID to the db.
+func (r *Resolver) createHubspotContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
+	resp, err := r.HubspotClient.Contacts().Create(hubspot.ContactsRequest{
+		Properties: []hubspot.Property{
+			{
+				Property: "email",
+				Name:     "email",
+				Value:    email,
+			},
+			{
+				Property: "user_defined_role",
+				Name:     "user_defined_role",
+				Value:    userDefinedRole,
+			},
+			{
+				Property: "user_defined_persona",
+				Name:     "user_defined_persona",
+				Value:    userDefinedPersona,
+			},
+			{
+				Property: "firstname",
+				Name:     "firstname",
+				Value:    first,
+			},
+			{
+				Property: "lastname",
+				Name:     "lastname",
+				Value:    last,
+			},
+			{
+				Property: "phone",
+				Name:     "phone",
+				Value:    phone,
+			},
+		},
+	})
+	if err != nil {
+		return e.Wrap(err, "error pushing hubspot contact data")
+	}
+	pp.Println("Created a contact!!!", resp)
+	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).
+		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
+		return e.Wrap(err, "error updating workspace HubspotCustomerID")
+	}
+}
+
+func (r *Resolver) createHubspotCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
+	components := strings.Split(adminEmail, "@")[0]
+	var domain string
+	if len(components) > 1 {
+		domain = string(components[1])
+	}
+	resp, err := r.HubspotClient.Companies().Create(hubspot.CompaniesRequest{
+		Properties: []hubspot.Property{
+			{
+				Property: "name",
+				Name:     "name",
+				Value:    name,
+			},
+			{
+				Property: "domain",
+				Name:     "domain",
+				Value:    domain,
+			},
+		},
+	})
+	if err != nil {
+		return e.Wrap(err, "error creating company in hubspot")
+	}
+	pp.Println("Created a company!!!", resp)
+	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Updates(&model.Workspace{HubspotCustomerID: &resp.CompanyID}).Error; err != nil {
+		return e.Wrap(err, "error updating workspace HubspotCustomerID")
+	}
+	return nil
+}
+
+func (r *Resolver) createHubspotContactCompanyAssociation() {
+
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {

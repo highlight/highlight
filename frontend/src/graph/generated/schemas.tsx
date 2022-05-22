@@ -450,7 +450,8 @@ export type SearchParams = {
 };
 
 export type AdminAboutYouDetails = {
-    name: Scalars['String'];
+    first_name: Scalars['String'];
+    last_name: Scalars['String'];
     user_defined_role: Scalars['String'];
     user_defined_persona: Scalars['String'];
     referral: Scalars['String'];

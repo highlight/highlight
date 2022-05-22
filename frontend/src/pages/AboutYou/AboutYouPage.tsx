@@ -71,7 +71,8 @@ const AboutYouPage = () => {
             await updateAdminAboutYourDetails({
                 variables: {
                     adminDetails: {
-                        name: `${firstName} ${lastName}`,
+                        first_name: firstName,
+                        last_name: lastName,
                         phone: phone,
                         user_defined_role: role,
                         referral: signUpReferral,
@@ -94,12 +95,12 @@ const AboutYouPage = () => {
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-            if (window.rudderanalytics) {
-                window.rudderanalytics.identify(admin?.id, {
-                    isProductPersona: isProductRole,
-                    isEngineeringPersona: isEngineeringRole,
-                });
-            }
+            // if (window.rudderanalytics) {
+            //     window.rudderanalytics.identify(admin?.id, {
+            //         isProductPersona: isProductRole,
+            //         isEngineeringPersona: isEngineeringRole,
+            //     });
+            // }
             history.push('/');
         } catch {
             message.error('Something went wrong, try again?');

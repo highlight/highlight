@@ -87,9 +87,9 @@ const OnboardingBubble = () => {
                     is_integrated: data.isIntegrated,
                 },
             });
-            window.rudderanalytics.group(data.workspace.id, {
-                is_integrated: data.isIntegrated,
-            });
+            // window.rudderanalytics.group(data.workspace.id, {
+            //     is_integrated: data.isIntegrated,
+            // });
         }
     }, [data]);
 
