@@ -208,6 +208,7 @@ type Workspace struct {
 	LinearAccessToken           *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
+	HubspotCustomerID           *int
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`

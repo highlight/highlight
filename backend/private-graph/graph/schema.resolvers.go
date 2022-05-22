@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+
 	"os"
 	"regexp"
 	"sort"
@@ -26,13 +27,15 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/k0kubun/pp/v3"
+	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -299,6 +302,33 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
+	workspaceUpdates := &model.Workspace{}
+
+	components := strings.Split(*admin.Email, "@")[0]
+	var domain string
+	if len(components) > 1 {
+		domain = string(components[1])
+	}
+	resp, err := r.HubspotClient.Companies().Create(hubspot.CompaniesRequest{
+		Properties: []hubspot.Property{
+			{
+				Property: "name",
+				Name:     "name",
+				Value:    name,
+			},
+			{
+				Property: "domain",
+				Name:     "domain",
+				Value:    domain,
+			},
+		},
+	})
+	if err != nil {
+		log.Error(err, " failed to add new hubspot account")
+	} else {
+		workspaceUpdates.HubspotCustomerID = &resp.CompanyID
+	}
+
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
 		params := &stripe.CustomerParams{
@@ -311,10 +341,9 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
 	}
+	workspaceUpdates.StripeCustomerID = &c.ID
 
-	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
-		StripeCustomerID: &c.ID,
-	}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(workspaceUpdates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
@@ -4619,16 +4648,46 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
-				log.Errorf("error creating apollo contact: %v", err)
-			} else {
-				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
-				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-					log.Errorf("error adding new contact to sequence: %v", err)
-				}
-			}
+
+		fullName := "John Doe"
+		if newAdmin.Name != nil {
+			fullName = *newAdmin.Name
+		}
+		nameSplit := strings.Split(fullName, " ")
+		var first, last string
+		if len(nameSplit) < 2 {
+			first = nameSplit[0]
+		}
+		if len(nameSplit) < 3 {
+			first = nameSplit[0]
+			last = nameSplit[1]
+		}
+
+		resp, err := r.HubspotClient.Contacts().Create(hubspot.ContactsRequest{
+			Properties: []hubspot.Property{
+				{
+					Property: "email",
+					Name:     "email",
+					Value:    newAdmin.Email,
+				},
+				{
+					Property: "firstname",
+					Name:     "firstname",
+					Value:    first,
+				},
+				{
+					Property: "lastname",
+					Name:     "lastname",
+					Value:    last,
+				},
+			},
 		})
+		if err != nil {
+			log.Error(err, "error pushing contact data")
+			pp.Println(newAdmin.Email, first, last)
+		} else {
+			pp.Println(resp)
+		}
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

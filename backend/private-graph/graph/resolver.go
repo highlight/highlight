@@ -41,6 +41,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/leonelquinteros/hubspot"
 )
 
 // This file will not be regenerated automatically.
@@ -61,6 +62,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	HubspotClient          hubspot.Client
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,
