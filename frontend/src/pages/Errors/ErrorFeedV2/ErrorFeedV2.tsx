@@ -84,6 +84,11 @@ export const ErrorFeedV2 = () => {
             </div>
             <div className={styles.feedContent}>
                 <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                    })}
+                />
+                <div
                     className={classNames(styles.feedItems, {
                         [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
                     })}

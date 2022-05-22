@@ -119,11 +119,22 @@ export type BillingDetails = {
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
+export type Invoice = {
+    __typename?: 'Invoice';
+    amountDue?: Maybe<Scalars['Int64']>;
+    amountPaid?: Maybe<Scalars['Int64']>;
+    attemptCount?: Maybe<Scalars['Int64']>;
+    date?: Maybe<Scalars['Timestamp']>;
+    url?: Maybe<Scalars['String']>;
+    status?: Maybe<Scalars['String']>;
+};
+
 export type SubscriptionDetails = {
     __typename?: 'SubscriptionDetails';
     baseAmount: Scalars['Int64'];
     discountPercent: Scalars['Float'];
     discountAmount: Scalars['Int64'];
+    lastInvoice?: Maybe<Invoice>;
 };
 
 export type Plan = {
@@ -213,6 +224,9 @@ export type Project = {
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type Account = {
@@ -440,6 +454,7 @@ export type AdminAboutYouDetails = {
     user_defined_role: Scalars['String'];
     user_defined_persona: Scalars['String'];
     referral: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -510,6 +525,7 @@ export type Admin = {
     name: Scalars['String'];
     uid: Scalars['String'];
     email: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
@@ -1298,6 +1314,9 @@ export type MutationEditProjectArgs = {
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type MutationEditWorkspaceArgs = {

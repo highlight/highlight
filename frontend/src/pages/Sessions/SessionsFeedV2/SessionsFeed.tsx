@@ -237,7 +237,7 @@ export const SessionFeed = React.memo(() => {
                                             sessionFeedConfiguration.countFormat
                                         )}`}
                                     />
-                                    {' sessions'}
+                                    {' sessions '}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -288,6 +288,11 @@ export const SessionFeed = React.memo(() => {
                 </div>
             </div>
             <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
+                />
                 <div
                     onScroll={onFeedScrollListener}
                     className={classNames(styles.feedItems, {

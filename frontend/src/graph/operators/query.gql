@@ -720,6 +720,7 @@ query GetAdmin {
         uid
         name
         email
+        phone
         photo_url
         slack_im_channel_id
         role
@@ -744,6 +745,9 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -800,6 +804,14 @@ query GetSubscriptionDetails($workspace_id: ID!) {
         baseAmount
         discountAmount
         discountPercent
+        lastInvoice {
+            amountDue
+            amountPaid
+            attemptCount
+            date
+            url
+            status
+        }
     }
 }
 

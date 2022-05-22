@@ -108,7 +108,7 @@ export const MetadataBox = React.memo(() => {
                             className={styles.avatar}
                             seed={session?.identifier ?? ''}
                             shape="rounded"
-                            customImage={enhancedAvatar || customAvatarImage}
+                            customImage={customAvatarImage || enhancedAvatar}
                         />
                     )}
                 </div>
@@ -258,7 +258,7 @@ export const UserDetailsBox = React.memo(
                 {!loading && (
                     <div className={styles.tooltip}>
                         <InfoTooltip
-                            title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
+                            title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
                             size="medium"
                             hideArrow
                             placement="topLeft"
@@ -275,12 +275,12 @@ export const UserDetailsBox = React.memo(
                                     {data?.enhanced_user_details?.name}
                                 </h4>
                             )}
+                            {data?.enhanced_user_details?.bio && (
+                                <p className={styles.enhancedBio}>
+                                    {data?.enhanced_user_details?.bio}
+                                </p>
+                            )}
                             <div className={styles.enhancedLinksGrid}>
-                                {data?.enhanced_user_details?.bio && (
-                                    <p className={styles.enhancedBio}>
-                                        {data?.enhanced_user_details?.bio}
-                                    </p>
-                                )}
                                 {data?.enhanced_user_details?.socials?.map(
                                     (e) =>
                                         e && (

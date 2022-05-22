@@ -988,17 +988,26 @@ export const EditProjectDocument = gql`
         $name: String
         $billing_email: String
         $excluded_users: StringArray
+        $rage_click_window_seconds: Int
+        $rage_click_radius_pixels: Int
+        $rage_click_count: Int
     ) {
         editProject(
             id: $id
             name: $name
             billing_email: $billing_email
             excluded_users: $excluded_users
+            rage_click_window_seconds: $rage_click_window_seconds
+            rage_click_radius_pixels: $rage_click_radius_pixels
+            rage_click_count: $rage_click_count
         ) {
             id
             name
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
     }
 `;
@@ -1024,6 +1033,9 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
+ *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
+ *      rage_click_count: // value for 'rage_click_count'
  *   },
  * });
  */
@@ -6477,6 +6489,7 @@ export const GetAdminDocument = gql`
             uid
             name
             email
+            phone
             photo_url
             slack_im_channel_id
             role
@@ -6597,6 +6610,9 @@ export const GetProjectDocument = gql`
             verbose_id
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
         workspace: workspace_for_project(project_id: $id) {
             id
@@ -6801,6 +6817,14 @@ export const GetSubscriptionDetailsDocument = gql`
             baseAmount
             discountAmount
             discountPercent
+            lastInvoice {
+                amountDue
+                amountPaid
+                attemptCount
+                date
+                url
+                status
+            }
         }
     }
 `;

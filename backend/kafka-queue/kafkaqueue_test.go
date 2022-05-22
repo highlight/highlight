@@ -3,6 +3,7 @@ package kafka_queue
 import (
 	"fmt"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/segmentio/kafka-go"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"sync"
@@ -12,11 +13,12 @@ import (
 
 const (
 	workers          = 24
-	submitsPerWorker = 4
-	msgSizeBytes     = 1 * 1000 * 1000
+	submitsPerWorker = 32
+	msgSizeBytes     = 128 * 1000
 )
 
 func BenchmarkQueue_Submit(b *testing.B) {
+	log.SetLevel(log.DebugLevel)
 	log.Infof("Starting benchmark")
 
 	rand.Seed(time.Now().UnixNano())
@@ -66,13 +68,13 @@ func BenchmarkQueue_Submit(b *testing.B) {
 			for receive {
 				msg := reader.Receive()
 				if msg == nil {
-					b.Errorf("expected to get a message")
+					if receive {
+						b.Errorf("expected to get a message")
+					}
 					continue
-				}
-				if msg.Type != PushPayload {
+				} else if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
-				}
-				if msg.PushPayload.SessionID != -1 {
+				} else if msg.PushPayload.SessionID != -1 {
 					b.Errorf("expected to consume dummy session -1")
 				}
 			}
@@ -89,4 +91,16 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	recWg.Wait()
 	log.Infof("Receivers finished. Stopping reader.")
 	reader.Stop()
+}
+
+func TestPartitionKey(t *testing.T) {
+	h := kafka.Hash{}
+	partitions := make([]int, 768)
+	partitionID := h.Balance(kafka.Message{
+		Key:   []byte("37683927"),
+		Value: []byte(""),
+	}, partitions...)
+	if partitionID != 730 {
+		t.Fatalf("unexpected partition %d", partitionID)
+	}
 }

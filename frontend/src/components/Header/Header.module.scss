@@ -69,6 +69,10 @@
         background-color: var(--color-green-600);
     }
 
+    &.error {
+        background-color: var(--color-red-400);
+    }
+
     button {
         --button-size: var(--size-medium);
         --icon-size: var(--size-xSmall);

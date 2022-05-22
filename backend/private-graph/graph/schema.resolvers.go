@@ -250,6 +250,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
+	admin.Phone = adminDetails.Phone
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -350,7 +351,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -361,11 +362,26 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
 		}
 	}
-	if err := r.DB.Model(project).Updates(&model.Project{
+
+	updates := &model.Project{
 		Name:          name,
 		BillingEmail:  billingEmail,
 		ExcludedUsers: excludedUsers,
-	}).Error; err != nil {
+	}
+
+	if rageClickWindowSeconds != nil {
+		updates.RageClickWindowSeconds = *rageClickWindowSeconds
+	}
+
+	if rageClickRadiusPixels != nil {
+		updates.RageClickRadiusPixels = *rageClickRadiusPixels
+	}
+
+	if rageClickCount != nil {
+		updates.RageClickCount = *rageClickCount
+	}
+
+	if err := r.DB.Model(project).Updates(updates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
 	return project, nil
@@ -4641,6 +4657,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			Email:         &firebaseUser.Email,
 			PhotoURL:      &firebaseUser.PhotoURL,
 			EmailVerified: &firebaseUser.EmailVerified,
+			Phone:         &firebaseUser.PhoneNumber,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -4703,6 +4720,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating org fields")
 			adminSpan.Finish(tracer.WithError(spanError))
@@ -4711,6 +4729,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
 		firebaseSpan.Finish()
 	}
 
@@ -4822,19 +4841,36 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
 
 	discount := c.Subscriptions.Data[0].Discount
-	if discount == nil || discount.Coupon == nil {
-		return &modelInputs.SubscriptionDetails{
-			BaseAmount: amount,
-		}, nil
+	if discount != nil && discount.Coupon != nil {
+		details.DiscountAmount = discount.Coupon.AmountOff
+		details.DiscountPercent = discount.Coupon.PercentOff
 	}
 
-	return &modelInputs.SubscriptionDetails{
-		BaseAmount:      amount,
-		DiscountAmount:  discount.Coupon.AmountOff,
-		DiscountPercent: discount.Coupon.PercentOff,
-	}, nil
+	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+	invoiceParams := &stripe.InvoiceParams{}
+	customerParams.AddExpand("invoice_items")
+	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe invoice")
+	}
+
+	if invoice != nil {
+		invoiceDue := time.Unix(invoice.Created, 0)
+		status := string(invoice.Status)
+		details.LastInvoice = &modelInputs.Invoice{
+			Date:         &invoiceDue,
+			AmountDue:    &invoice.AmountDue,
+			AmountPaid:   &invoice.AmountPaid,
+			AttemptCount: &invoice.AttemptCount,
+			Status:       &status,
+			URL:          &invoice.HostedInvoiceURL,
+		}
+	}
+
+	return details, nil
 }
 
 func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
