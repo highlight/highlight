@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/lambda"
-	"github.com/k0kubun/pp"
 
 	"github.com/pkg/errors"
 
@@ -132,18 +131,20 @@ func (r *Resolver) createHubspotContactForAdmin(adminID int, email string, userD
 	if err != nil {
 		return e.Wrap(err, "error pushing hubspot contact data")
 	}
-	pp.Println("Created a contact!!!", resp)
+	log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
 	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).
 		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
-		return e.Wrap(err, "error updating workspace HubspotCustomerID")
+		return e.Wrap(err, "error updating workspace HubspotContactID")
 	}
+	return nil
 }
 
 func (r *Resolver) createHubspotCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
-	components := strings.Split(adminEmail, "@")[0]
+	// adminEmail = "jay@highlightrecord.com"
+	components := strings.Split(adminEmail, "@")
 	var domain string
 	if len(components) > 1 {
-		domain = string(components[1])
+		domain = components[1]
 	}
 	resp, err := r.HubspotClient.Companies().Create(hubspot.CompaniesRequest{
 		Properties: []hubspot.Property{
@@ -162,16 +163,47 @@ func (r *Resolver) createHubspotCompanyForWorkspace(workspaceID int, adminEmail 
 	if err != nil {
 		return e.Wrap(err, "error creating company in hubspot")
 	}
-	pp.Println("Created a company!!!", resp)
+	log.Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
 	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Updates(&model.Workspace{HubspotCustomerID: &resp.CompanyID}).Error; err != nil {
-		return e.Wrap(err, "error updating workspace HubspotCustomerID")
+		Updates(&model.Workspace{HubspotCompanyID: &resp.CompanyID}).Error; err != nil {
+		return e.Wrap(err, "error updating workspace HubspotCompanyID")
 	}
 	return nil
 }
 
-func (r *Resolver) createHubspotContactCompanyAssociation() {
-
+func (r *Resolver) createHubspotContactCompanyAssociation(adminID int, workspaceID int) error {
+	admin := &model.Admin{}
+	if err := r.DB.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+		return e.Wrap(err, "error retrieving admin details")
+	}
+	workspace := &model.Workspace{}
+	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+		return e.Wrap(err, "error retrieving workspace details")
+	}
+	if workspace.HubspotCompanyID == nil {
+		return e.New("hubspot company id is empy")
+	} else if admin.HubspotContactID == nil {
+		return e.New("hubspot contact id is empy")
+	}
+	if err := r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
+		DefinitionID: hubspot.CRMAssociationCompanyToContact,
+		FromObjectID: *workspace.HubspotCompanyID,
+		ToObjectID:   *admin.HubspotContactID,
+	}); err != nil {
+		return e.Wrap(err, "error creating company to contact association")
+	} else {
+		log.Info("success creating company to contact association")
+	}
+	if err := r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
+		DefinitionID: hubspot.CRMAssociationContactToCompany,
+		FromObjectID: *admin.HubspotContactID,
+		ToObjectID:   *workspace.HubspotCompanyID,
+	}); err != nil {
+		return e.Wrap(err, "error creating contact to copmany association")
+	} else {
+		log.Info("success creating contact to company association")
+	}
+	return nil
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -291,7 +323,8 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
+	workspace := &model.Workspace{}
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
@@ -334,7 +367,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
-	return &workspaceId, nil
+	return &admin.ID, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {

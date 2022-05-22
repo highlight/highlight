@@ -33,9 +33,9 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
@@ -253,9 +253,18 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = adminDetails.Phone
 
-	go func() {
-		r.createHubspotContactForAdmin(admin.ID, *admin.Email, *admin.UserDefinedRole, *admin.UserDefinedPersona, *admin.FirstName, *admin.LastName, *admin.Phone)
-	}()
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.createHubspotContactForAdmin(
+			admin.ID,
+			*admin.Email,
+			*admin.UserDefinedRole,
+			*admin.UserDefinedPersona,
+			*admin.FirstName,
+			*admin.LastName,
+			*admin.Phone); err != nil {
+			log.Error(err, "error creating hubspot contact")
+		}
+	})
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -308,9 +317,14 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
-	r.createHubspotCompanyForWorkspace(workspace.ID, *admin.Email, name)
-
-	workspaceUpdates := 
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// For the first admin in a workspace, we explicitly create the ssociation
+		if err := r.createHubspotCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+			log.Error(err, "error creating hubspot company")
+		} else if err := r.createHubspotContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+		}
+	})
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -546,14 +560,21 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	workspace := &model.Workspace{}
-	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(err, " failed to add admin to workspace")
-		return adminId, err
+		log.Error(errors.Wrap(err, "failed to add admin to workspace"))
+		return adminID, err
 	}
-
-	r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{})
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.createHubspotContactCompanyAssociation(*adminID, workspaceID); err != nil {
+			log.Error(errors.Wrapf(
+				err,
+				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
+				*adminID,
+				workspaceID,
+			))
+		}
+	})
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
@@ -561,17 +582,17 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 	}
 
-	return adminId, nil
+	return adminID, nil
 }
 
 func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
