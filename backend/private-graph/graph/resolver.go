@@ -140,7 +140,6 @@ func (r *Resolver) createHubspotContactForAdmin(adminID int, email string, userD
 }
 
 func (r *Resolver) createHubspotCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
-	// adminEmail = "jay@highlightrecord.com"
 	components := strings.Split(adminEmail, "@")
 	var domain string
 	if len(components) > 1 {

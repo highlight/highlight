@@ -318,7 +318,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		// For the first admin in a workspace, we explicitly create the ssociation
+		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
 		if err := r.createHubspotCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
 			log.Error(err, "error creating hubspot company")
 		} else if err := r.createHubspotContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
