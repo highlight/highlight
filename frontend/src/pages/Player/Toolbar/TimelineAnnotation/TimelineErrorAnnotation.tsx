@@ -1,17 +1,15 @@
+import { Replayer } from '@highlight-run/rrweb';
+import { playerMetaData } from '@highlight-run/rrweb/dist/types';
 import { getHeaderFromError } from '@pages/Error/ErrorPage';
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 
 import GoToButton from '../../../../components/Button/GoToButton';
 import Popover from '../../../../components/Popover/Popover';
-import { PlayerSearchParameters } from '../../PlayerHook/utils';
-import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
+import { ParsedErrorObject } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation, { getPopoverPlacement } from './TimelineAnnotation';
 import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
@@ -19,23 +17,26 @@ import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 interface Props {
     error: ParsedErrorObject;
     relativeStartPercent: number;
+    errorId: string | null;
+    setShowDevTools: (val: boolean) => void;
+    setSelectedDevToolsTab: (val: DevToolTabType) => void;
+    setErrorPanel: (val: ParsedErrorObject) => void;
+    replayer: Replayer;
+    sessionMetadata: playerMetaData;
+    pause: (val: number) => void;
 }
 
 function TimelineErrorAnnotation({
     error,
     relativeStartPercent,
+    errorId,
+    setShowDevTools,
+    setSelectedDevToolsTab,
+    setErrorPanel,
+    replayer,
+    sessionMetadata,
+    pause,
 }: Props): ReactElement {
-    const location = useLocation();
-    const errorId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.errorId
-    );
-    const { pause, replayer, sessionMetadata } = useReplayerContext();
-    const {
-        setShowDevTools,
-        setSelectedDevToolsTab,
-    } = usePlayerConfiguration();
-    const { setErrorPanel } = useResourceOrErrorDetailPanel();
-
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     useEffect(() => {

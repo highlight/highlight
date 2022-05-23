@@ -3393,10 +3393,17 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 		projectID = 1
 	}
 
+	// lookback based on DeleteCompletedSessions
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
-		Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	if err := r.DB.Raw(`
+		SELECT COUNT(*)
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil
@@ -3419,6 +3426,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 		WHERE project_id = ?
 		AND processed = false
 		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
 	`, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving live users count")
 	}

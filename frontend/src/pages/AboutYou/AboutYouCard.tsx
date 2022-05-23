@@ -101,13 +101,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-            if (window.rudderanalytics) {
-                window.rudderanalytics.identify(admin?.id, {
-                    isProductPersona: isProductRole,
-                    isEngineeringPersona: isEngineeringRole,
-                });
-            }
-
             getAdminQuery();
             message.success(
                 `Nice to meet you ${firstName}, let's get started!`

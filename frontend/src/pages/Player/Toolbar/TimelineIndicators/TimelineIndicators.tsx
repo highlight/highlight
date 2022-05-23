@@ -1,21 +1,30 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
+import { Replayer } from '@highlight-run/rrweb';
+import { playerMetaData } from '@highlight-run/rrweb/dist/types';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
 import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router';
 
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import {
+    ParsedErrorObject,
     ParsedSessionInterval,
     RageClick,
     ReplayerState,
     useReplayerContext,
 } from '../../ReplayerContext';
-import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
+import {
+    DevToolTabType,
+    useDevToolsContext,
+} from '../DevToolsContext/DevToolsContext';
 import TimelineCommentAnnotation from '../TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineErrorAnnotation from '../TimelineAnnotation/TimelineErrorAnnotation';
 import TimelineEventAnnotation from '../TimelineAnnotation/TimelineEventAnnotation';
@@ -30,6 +39,12 @@ interface Props {
     startTime: number;
     pause: (time?: number | undefined) => void;
     activeEvent: HighlightEvent | undefined;
+    errorId: string | null;
+    setShowDevTools: (val: boolean) => void;
+    setSelectedDevToolsTab: (val: DevToolTabType) => void;
+    setErrorPanel: (val: ParsedErrorObject) => void;
+    replayer: Replayer;
+    sessionMetadata: playerMetaData;
 }
 
 const TimelineIndicatorsMemoized = React.memo(
@@ -41,6 +56,12 @@ const TimelineIndicatorsMemoized = React.memo(
         startTime,
         pause,
         activeEvent,
+        errorId,
+        setShowDevTools,
+        setSelectedDevToolsTab,
+        setErrorPanel,
+        replayer,
+        sessionMetadata,
     }: Props) => {
         const getRelativeStart = (
             sessionInterval: ParsedSessionInterval,
@@ -109,6 +130,15 @@ const TimelineIndicatorsMemoized = React.memo(
                                             sessionInterval,
                                             new Date(error.timestamp).getTime()
                                         )}
+                                        errorId={errorId}
+                                        setShowDevTools={setShowDevTools}
+                                        setSelectedDevToolsTab={
+                                            setSelectedDevToolsTab
+                                        }
+                                        setErrorPanel={setErrorPanel}
+                                        replayer={replayer}
+                                        sessionMetadata={sessionMetadata}
+                                        pause={pause}
                                     />
                                 ))}
                             {selectedTimelineAnnotationTypes.includes(
@@ -151,6 +181,11 @@ const TimelineIndicatorsMemoized = React.memo(
 );
 
 const TimelineIndicators = React.memo(() => {
+    const location = useLocation();
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
+    );
+
     const {
         state,
         replayer,
@@ -162,7 +197,10 @@ const TimelineIndicators = React.memo(() => {
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
+        setShowDevTools,
+        setSelectedDevToolsTab,
     } = usePlayerConfiguration();
+    const { setErrorPanel } = useResourceOrErrorDetailPanel();
     const { openDevTools } = useDevToolsContext();
     const refContainer = useRef<HTMLDivElement>(null);
 
@@ -216,6 +254,12 @@ const TimelineIndicators = React.memo(() => {
                 startTime={sessionMetadata.startTime || 0}
                 pause={pause}
                 activeEvent={activeEvent}
+                errorId={errorId}
+                setShowDevTools={setShowDevTools}
+                setSelectedDevToolsTab={setSelectedDevToolsTab}
+                setErrorPanel={setErrorPanel}
+                replayer={replayer}
+                sessionMetadata={sessionMetadata}
             />
         </>
     );
