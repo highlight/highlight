@@ -225,7 +225,7 @@ const LoginForm = () => {
                 }}
             />
         );
-    } else if (isLoggedIn && LoginFormState.FinishedOnboarding) {
+    } else if (isLoggedIn && formState === LoginFormState.FinishedOnboarding) {
         return <AuthAdminRouter />;
     }
 
