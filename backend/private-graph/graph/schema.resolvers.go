@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -27,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -567,12 +566,12 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
 	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to add admin to workspace"))
+		log.Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		if err := r.createHubspotContactCompanyAssociation(*adminID, workspaceID); err != nil {
-			log.Error(errors.Wrapf(
+			log.Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
 				*adminID,
