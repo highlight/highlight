@@ -203,9 +203,6 @@ const RegistrationForm = () => {
                                     applied_for_extension: true,
                                 },
                             });
-                            // window.rudderanalytics.group(workspace_id, {
-                            //     applied_for_extension: true,
-                            // });
                         }}
                     >
                         Get Free Software! 🍭

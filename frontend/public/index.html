@@ -127,36 +127,6 @@
                 }
             })();
         </script>
-        <!-- <script>
-            rudderanalytics = window.rudderanalytics = [];
-            const methods = [
-                "load",
-                "page",
-                "track",
-                "identify",
-                "alias",
-                "group",
-                "ready",
-                "reset",
-                "getAnonymousId",
-                "setAnonymousId",
-            ];
-            for (let i = 0; i < methods.length; i++) {
-                const method = methods[i];
-                rudderanalytics[method] = (function (methodName) {
-                    return function () {
-                        rudderanalytics.push(
-                            [methodName].concat(Array.prototype.slice.call(arguments))
-                        );
-                    };
-                })(method);
-            }
-
-            rudderanalytics.load('27nVzMFTSMe6cmHp83TgHx7IWGw', 'https://highlightdnbhuinjitjnrd.dataplane.rudderstack.com\n');
-            rudderanalytics.page();
-        </script> -->
-
-        <!-- <script src="https://cdn.rudderlabs.com/v1.1/rudder-analytics.min.js"></script> -->
         <script>
             window._highlightFirebaseConfigString = `{{.FirebaseConfigString}}`;
         </script>

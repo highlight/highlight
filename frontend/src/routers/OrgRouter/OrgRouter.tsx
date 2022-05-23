@@ -79,9 +79,6 @@ export const ProjectRouter = () => {
                     name: data?.workspace.name,
                 },
             });
-            // window.rudderanalytics.group(data?.workspace.id, {
-            //     name: data?.workspace.name,
-            // });
         }
     }, [data?.workspace]);
 
