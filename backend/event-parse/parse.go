@@ -2,11 +2,15 @@ package parse
 
 import (
 	"context"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -60,7 +64,7 @@ const (
 
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
-	storeBinaryResource(string) (string, error)
+	storeBinaryResource(projectID int, sessionID int, src string) (string, error)
 }
 
 type networkFetcher struct {
@@ -80,14 +84,33 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	return body, nil
 }
 
-func (n networkFetcher) storeBinaryResource(src string) (string, error) {
-	// TODO(vkorolik) implement
-	_, err = n.storageClient.PushFileToS3(context.Background(), sessionId, projectId, file, storage.S3SessionsPayloadBucketName, storage.BinaryResources)
+func (n networkFetcher) storeBinaryResource(projectID int, sessionID int, src string) (string, error) {
+	hasher := sha512.New()
+	hasher.Write([]byte(src))
+	h := hex.EncodeToString(hasher.Sum(nil))
+	key := fmt.Sprintf("%v/%v/%v", projectID, sessionID, h)
+
+	f, err := ioutil.TempFile(os.TempDir(), "storeBinaryResource-")
 	if err != nil {
-		return "", errors.Wrap(err, "failed to put s3 objects")
+		return "", errors.Wrap(err, "failed to create temp file")
+	}
+	defer os.Remove(f.Name())
+
+	if _, err = f.Write([]byte(src)); err != nil {
+		return "", errors.Wrap(err, "failed to write file")
 	}
 
-	return "", nil
+	_, err = n.storageClient.PushFileKeyToS3(context.Background(), f, storage.S3SessionsPayloadBucketName, &key)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to put s3 object")
+	}
+
+	url, err := n.storageClient.GetDirectDownloadKeyURL(&key)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create signed url")
+	}
+
+	return *url, nil
 }
 
 var fetch fetcher
@@ -153,7 +176,7 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 }
 
 // ProcessHTML injects custom stylesheets into a given snapshot event.and processes blob images.
-func ProcessHTML(inputData json.RawMessage) (json.RawMessage, error) {
+func ProcessHTML(projectID int, sessionID int, inputData json.RawMessage) (json.RawMessage, error) {
 	var s interface{}
 	err := json.Unmarshal(inputData, &s)
 	if err != nil {
@@ -211,7 +234,7 @@ func ProcessHTML(inputData json.RawMessage) (json.RawMessage, error) {
 	if err = processHTMLHeadStylesheets(headNode); err != nil {
 		return nil, err
 	}
-	if err = processHTMLResources(bodyNode); err != nil {
+	if err = processHTMLResources(projectID, sessionID, bodyNode); err != nil {
 		return nil, err
 	}
 	b, err := json.Marshal(s)
@@ -221,7 +244,7 @@ func ProcessHTML(inputData json.RawMessage) (json.RawMessage, error) {
 	return json.RawMessage(b), nil
 }
 
-func processHTMLResources(bodyNode map[string]interface{}) error {
+func processHTMLResources(projectID int, sessionID int, bodyNode map[string]interface{}) error {
 	bodyChildNodes, ok := bodyNode["childNodes"].([]interface{})
 	if !ok {
 		return errors.New("error converting to childNodes")
@@ -243,7 +266,7 @@ func processHTMLResources(bodyNode map[string]interface{}) error {
 		if !ok || !strings.Contains(src, "base64") {
 			continue
 		}
-		data, err := fetch.storeBinaryResource(src)
+		data, err := fetch.storeBinaryResource(projectID, sessionID, src)
 		if err != nil || len(data) <= 0 {
 			continue
 		}

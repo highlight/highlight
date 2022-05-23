@@ -1624,7 +1624,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot {
 					// If we see a snapshot event, attempt to inject CORS stylesheets and process blob resources.
-					d, err := parse.ProcessHTML(event.Data)
+					d, err := parse.ProcessHTML(projectID, sessionID, event.Data)
 					if err != nil {
 						log.Error(e.Wrap(err, "Error processing HTML for full snapshot"))
 						continue

@@ -88,13 +88,11 @@ func getURLSigner() *sign.URLSigner {
 	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
 }
 
-func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
+func (s *StorageClient) pushFileKeyToS3WithOptions(ctx context.Context, file *os.File, bucket string, key *string, options s3.PutObjectInput) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
-
-	key := s.bucketKey(sessionId, projectId, payloadType)
 
 	options.Bucket = &bucket
 	options.Key = key
@@ -109,12 +107,17 @@ func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, 
 		Key:    key,
 	}
 
-	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	result, err := s.S3Client.HeadObject(ctx, &headObj)
 	if err != nil {
 		return nil, errors.New("error retrieving head object")
 	}
 
 	return &result.ContentLength, nil
+}
+
+func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
+	key := s.bucketKey(sessionId, projectId, payloadType)
+	return s.pushFileKeyToS3WithOptions(ctx, file, bucket, key, options)
 }
 
 // Push a compressed file to S3, adding the relevant metadata
@@ -128,6 +131,10 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, s3.PutObjectInput{})
+}
+
+func (s *StorageClient) PushFileKeyToS3(ctx context.Context, file *os.File, bucket string, key *string) (*int64, error) {
+	return s.pushFileKeyToS3WithOptions(ctx, file, bucket, key, s3.PutObjectInput{})
 }
 
 func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId int, bucket string, payloadManager *payload.PayloadManager) (int64, error) {
@@ -321,6 +328,20 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	} else {
 		unsignedURL = fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
 	}
+	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	if err != nil {
+		return nil, errors.Wrap(err, "error signing URL")
+	}
+
+	return &signedURL, nil
+}
+
+func (s *StorageClient) GetDirectDownloadKeyURL(key *string) (*string, error) {
+	if s.URLSigner == nil {
+		return nil, nil
+	}
+
+	var unsignedURL = fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
 	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 	if err != nil {
 		return nil, errors.Wrap(err, "error signing URL")
