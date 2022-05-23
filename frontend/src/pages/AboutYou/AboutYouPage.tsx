@@ -94,12 +94,6 @@ const AboutYouPage = () => {
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-            if (window.rudderanalytics) {
-                window.rudderanalytics.identify(admin?.id, {
-                    isProductPersona: isProductRole,
-                    isEngineeringPersona: isEngineeringRole,
-                });
-            }
             history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
