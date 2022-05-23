@@ -3425,6 +3425,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 		WHERE project_id = ?
 		AND processed = false
 		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
 	`, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving live users count")
 	}
