@@ -41,6 +41,7 @@ const (
 	SessionContents            PayloadType = "session-contents"
 	NetworkResources           PayloadType = "network-resources"
 	ConsoleMessages            PayloadType = "console-messages"
+	BinaryResources            PayloadType = "binary-resources"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"

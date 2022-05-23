@@ -1,7 +1,10 @@
 package parse
 
 import (
+	"context"
 	"encoding/json"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -57,9 +60,12 @@ const (
 
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
+	storeBinaryResource(string) (string, error)
 }
 
-type networkFetcher struct{}
+type networkFetcher struct {
+	storageClient *storage.StorageClient
+}
 
 func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	resp, err := http.Get(href)
@@ -74,10 +80,26 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	return body, nil
 }
 
+func (n networkFetcher) storeBinaryResource(src string) (string, error) {
+	// TODO(vkorolik) implement
+	_, err = n.storageClient.PushFileToS3(context.Background(), sessionId, projectId, file, storage.S3SessionsPayloadBucketName, storage.BinaryResources)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to put s3 objects")
+	}
+
+	return "", nil
+}
+
 var fetch fetcher
 
 func init() {
-	fetch = networkFetcher{}
+	storageClient, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatal("failed to initialize s3 client")
+	}
+	fetch = networkFetcher{
+		storageClient: storageClient,
+	}
 }
 
 // ReplayEvent represents a single event that represents a change on the DOM.
@@ -130,8 +152,8 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-// InjectStylesheets injects custom stylesheets into a given snapshot event.
-func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
+// ProcessHTML injects custom stylesheets into a given snapshot event.and processes blob images.
+func ProcessHTML(inputData json.RawMessage) (json.RawMessage, error) {
 	var s interface{}
 	err := json.Unmarshal(inputData, &s)
 	if err != nil {
@@ -166,22 +188,75 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	if !ok {
 		return nil, errors.New("error converting to childNodes")
 	}
-	var headNode map[string]interface{}
+	var headNode map[string]interface{} = nil
+	var bodyNode map[string]interface{} = nil
 	for _, c := range htmlChildNodes {
+		if headNode != nil && bodyNode != nil {
+			break
+		}
 		subNode, ok := c.(map[string]interface{})
 		if !ok {
 			return nil, errors.New("error converting to childNodes")
 		}
 		tagName, ok := subNode["tagName"].(string)
-		if !ok || tagName != "head" {
+		if !ok {
 			continue
 		}
-		headNode = subNode
-		break
+		if tagName == "head" {
+			headNode = subNode
+		} else if tagName == "body" {
+			bodyNode = subNode
+		}
 	}
+	if err = processHTMLHeadStylesheets(headNode); err != nil {
+		return nil, err
+	}
+	if err = processHTMLResources(bodyNode); err != nil {
+		return nil, err
+	}
+	b, err := json.Marshal(s)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling back to json")
+	}
+	return json.RawMessage(b), nil
+}
+
+func processHTMLResources(bodyNode map[string]interface{}) error {
+	bodyChildNodes, ok := bodyNode["childNodes"].([]interface{})
+	if !ok {
+		return errors.New("error converting to childNodes")
+	}
+	for _, c := range bodyChildNodes {
+		subNode, ok := c.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		tagName, ok := subNode["tagName"].(string)
+		if !ok || tagName != "img" {
+			continue
+		}
+		attrs, ok := subNode["attributes"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		src, ok := attrs["src"].(string)
+		if !ok || !strings.Contains(src, "base64") {
+			continue
+		}
+		data, err := fetch.storeBinaryResource(src)
+		if err != nil || len(data) <= 0 {
+			continue
+		}
+
+		attrs["src"] = data
+	}
+	return nil
+}
+
+func processHTMLHeadStylesheets(headNode map[string]interface{}) error {
 	headChildNodes, ok := headNode["childNodes"].([]interface{})
 	if !ok {
-		return nil, errors.New("error converting to childNodes")
+		return errors.New("error converting to childNodes")
 	}
 	for _, c := range headChildNodes {
 		subNode, ok := c.(map[string]interface{})
@@ -218,11 +293,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		// content w/.
 		attrs["_cssText"] = string(data)
 	}
-	b, err := json.Marshal(s)
-	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling back to json")
-	}
-	return json.RawMessage(b), nil
+	return nil
 }
 
 func javascriptToGolangTime(t float64) time.Time {
