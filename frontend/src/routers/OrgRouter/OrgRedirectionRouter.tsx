@@ -11,10 +11,7 @@ import { Redirect, useHistory } from 'react-router-dom';
 
 export const ProjectRedirectionRouter = () => {
     const { loading, error, data } = useGetProjectsAndWorkspacesQuery();
-    const {
-        loading: adminAboutYouLoading,
-        data: adminAboutYouData,
-    } = useGetAdminAboutYouQuery({
+    const { loading: adminAboutYouLoading } = useGetAdminAboutYouQuery({
         fetchPolicy: 'no-cache',
     });
     const { setLoadingState } = useAppLoadingContext();
