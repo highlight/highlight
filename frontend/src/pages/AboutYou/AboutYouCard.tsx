@@ -23,13 +23,12 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useToggle } from 'react-use';
 
-import styles from './AboutYouPage.module.scss';
+import styles from './AboutYouCard.module.scss';
 
 interface Props {
     onSubmitHandler: () => void;
 }
 
-// TODO: Rename this to AboutYouCard
 const AboutYouPage = ({ onSubmitHandler }: Props) => {
     const { setLoadingState } = useAppLoadingContext();
     const { admin } = useAuthContext();

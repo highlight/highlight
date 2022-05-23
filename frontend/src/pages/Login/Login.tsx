@@ -4,7 +4,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
-import AboutYouPage from '@pages/AboutYou/AboutYouPage';
+import AboutYouPage from '@pages/AboutYou/AboutYouCard';
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import useLocalStorage from '@rehooks/local-storage';
 import { AppRouter } from '@routers/AppRouter/AppRouter';
