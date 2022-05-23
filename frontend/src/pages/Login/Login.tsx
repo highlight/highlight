@@ -47,14 +47,6 @@ export const AuthAdminRouter = () => {
             H.identify(email, identifyMetadata);
             H.getSessionURL()
                 .then((sessionUrl) => {
-                    window.rudderanalytics.identify(id, {
-                        avatar: admin.photo_url,
-                        email: email,
-                        name: name,
-                        role: admin?.role,
-                        sessionUrl: sessionUrl,
-                        user_id: admin?.uid,
-                    });
                     window.Intercom('boot', {
                         app_id: 'gm6369ty',
                         alignment: 'right',
