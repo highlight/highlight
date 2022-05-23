@@ -194,7 +194,6 @@ const LoginForm = () => {
     }, [isAuthLoading, setIsLoading]);
 
     useEffect(() => {
-        console.log('there was a form state change!!');
         if (isLoggedIn && admin) {
             if (admin.email_verified === false) {
                 setFormState(LoginFormState.VerifyEmail);
