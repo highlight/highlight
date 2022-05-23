@@ -38,9 +38,7 @@ export const ProjectRedirectionRouter = () => {
     }
 
     let redirectTo;
-    if (adminAboutYouData?.admin?.user_defined_role == null) {
-        redirectTo = '/about-you';
-    } else if (data?.projects?.length) {
+    if (data?.projects?.length) {
         redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}${
             history.location.search
         }`;
