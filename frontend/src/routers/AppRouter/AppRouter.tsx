@@ -2,7 +2,6 @@ import '../../App.scss';
 
 import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import AboutYouPage from '@pages/AboutYou/AboutYouPage';
 import { AccountsPage } from '@pages/Accounts/Accounts';
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage';
 import LoginForm from '@pages/Login/Login';
@@ -13,12 +12,7 @@ import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
 import React from 'react';
-import {
-    BrowserRouter as Router,
-    Route,
-    Switch,
-    useHistory,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
@@ -27,17 +21,17 @@ import { ProjectRouter } from '../OrgRouter/OrgRouter';
 import styles from './AppRouter.module.scss';
 
 export const AppRouter = () => {
-    const { isLoggedIn, admin } = useAuthContext();
-    const history = useHistory();
+    const { isLoggedIn } = useAuthContext();
+    // const history = useHistory();
 
-    if (admin && !admin.user_defined_role) {
-        const res = window.sessionStorage.getItem(
-            'HighlightFilledOutAboutYouForm'
-        );
-        if (!res) {
-            history.push('/about-you');
-        }
-    }
+    // if (admin && !admin.user_defined_role) {
+    //     const res = window.sessionStorage.getItem(
+    //         'HighlightFilledOutAboutYouForm'
+    //     );
+    //     if (!res) {
+    //         history.push('/about-you');
+    //     }
+    // }
 
     return (
         <div className={styles.appBody}>
@@ -51,11 +45,11 @@ export const AppRouter = () => {
                             <NewMemberPage />
                         </Landing>
                     </Route>
-                    <Route path="/about-you">
+                    {/* <Route path="/about-you">
                         <Landing>
                             <AboutYouPage />
                         </Landing>
-                    </Route>
+                    </Route> */}
                     <Route path="/new">
                         <Landing>
                             <NewProjectPage />

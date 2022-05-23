@@ -532,6 +532,7 @@ export type Admin = {
     email_verified?: Maybe<Scalars['Boolean']>;
     referral?: Maybe<Scalars['String']>;
     user_defined_role?: Maybe<Scalars['String']>;
+    about_you_details_filled?: Maybe<Scalars['Boolean']>;
     user_defined_persona?: Maybe<Scalars['String']>;
 };
 

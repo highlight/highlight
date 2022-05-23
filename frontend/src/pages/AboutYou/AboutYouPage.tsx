@@ -12,17 +12,25 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
-import { useUpdateAdminAboutYouDetailsMutation } from '@graph/hooks';
+import {
+    useGetAdminLazyQuery,
+    useUpdateAdminAboutYouDetailsMutation,
+} from '@graph/hooks';
+import { Landing } from '@pages/Landing/Landing';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useHistory } from 'react-router';
 import { useToggle } from 'react-use';
 
 import styles from './AboutYouPage.module.scss';
 
-const AboutYouPage = () => {
+interface Props {
+    onSubmitHandler: () => void;
+}
+
+// TODO: Rename this to AboutYouCard
+const AboutYouPage = ({ onSubmitHandler }: Props) => {
     const { setLoadingState } = useAppLoadingContext();
     const { admin } = useAuthContext();
     const [firstName, setFirstName] = useState('');
@@ -31,7 +39,18 @@ const AboutYouPage = () => {
     const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false);
     const [isProductRole, toggleIsProductRole] = useToggle(false);
     const [role, setRole] = useState('');
-    const history = useHistory();
+    // const history = useHistory();
+    const [
+        getAdminQuery,
+        { error: adminError, data: adminData, loading: adminDataLoading },
+    ] = useGetAdminLazyQuery({
+        fetchPolicy: 'network-only',
+        onCompleted: (data) => {
+            console.log('asking for new admin data');
+            console.log(data);
+            onSubmitHandler();
+        },
+    });
     const [
         updateAdminAboutYourDetails,
         { loading },
@@ -80,10 +99,10 @@ const AboutYouPage = () => {
                 },
             });
 
-            window.sessionStorage.setItem(
-                'HighlightFilledOutAboutYouForm',
-                'true'
-            );
+            // window.sessionStorage.setItem(
+            //     'HighlightFilledOutAboutYouForm',
+            //     'true'
+            // );
             setSignUpReferral('');
             message.success(
                 `Nice to meet you ${firstName}, let's get started!`
@@ -100,14 +119,16 @@ const AboutYouPage = () => {
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-            history.push('/');
+
+            getAdminQuery();
+            // history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
         }
     };
 
     return (
-        <>
+        <Landing>
             <Helmet>
                 <title>About You</title>
             </Helmet>
@@ -190,7 +211,7 @@ const AboutYouPage = () => {
                             trackingId="AboutYouPageNext"
                             type="primary"
                             block
-                            loading={loading}
+                            loading={loading || adminDataLoading}
                             htmlType="submit"
                             disabled={
                                 firstName.length === 0 ||
@@ -204,7 +225,7 @@ const AboutYouPage = () => {
                     </CardFormActionsContainer>
                 </CardForm>
             </Card>
-        </>
+        </Landing>
     );
 };
 

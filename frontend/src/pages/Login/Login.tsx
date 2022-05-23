@@ -4,6 +4,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import AboutYouPage from '@pages/AboutYou/AboutYouPage';
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import useLocalStorage from '@rehooks/local-storage';
 import { AppRouter } from '@routers/AppRouter/AppRouter';
@@ -92,11 +93,20 @@ export const AuthAdminRouter = () => {
 };
 
 enum LoginFormState {
+    // User's current state is unkown, this is used as an intermediary state.
+    Unknown,
+    // User is on the SignIn Page
     SignIn,
+    // User is on the SignUp Page
     SignUp,
-    /** The user signed up with email/password. We need to block the user from doing anything until they verify their email. */
-    VerifyEmail,
+    // The user is on the Reset Password page
     ResetPassword,
+    // The user needs to verify their email
+    VerifyEmail,
+    // The user needs to enter missing user details
+    MissingUserDetails,
+    // The user has finished onboarding and can continue to the page in the url
+    FinishedOnboarding,
 }
 
 const LoginForm = () => {
@@ -184,13 +194,14 @@ const LoginForm = () => {
     }, [isAuthLoading, setIsLoading]);
 
     useEffect(() => {
+        console.log('there was a form state change!!');
         if (isLoggedIn && admin) {
             if (admin.email_verified === false) {
                 setFormState(LoginFormState.VerifyEmail);
+            } else if (!admin.about_you_details_filled) {
+                setFormState(LoginFormState.MissingUserDetails);
             } else {
-                if (formState !== LoginFormState.VerifyEmail) {
-                    setFormState(LoginFormState.SignIn);
-                }
+                setFormState(LoginFormState.FinishedOnboarding);
             }
         }
     }, [admin, admin?.email_verified, formState, isLoggedIn]);
@@ -199,18 +210,24 @@ const LoginForm = () => {
         return null;
     }
 
-    if (isLoggedIn && formState !== LoginFormState.VerifyEmail) {
-        return <AuthAdminRouter />;
-    }
-
     if (isLoggedIn && formState === LoginFormState.VerifyEmail) {
         return (
             <VerifyEmailCard
                 onStartHandler={() => {
-                    setFormState(LoginFormState.SignIn);
+                    setFormState(LoginFormState.Unknown);
                 }}
             />
         );
+    } else if (isLoggedIn && formState === LoginFormState.MissingUserDetails) {
+        return (
+            <AboutYouPage
+                onSubmitHandler={() => {
+                    setFormState(LoginFormState.Unknown);
+                }}
+            />
+        );
+    } else if (isLoggedIn && LoginFormState.FinishedOnboarding) {
+        return <AuthAdminRouter />;
     }
 
     return (
