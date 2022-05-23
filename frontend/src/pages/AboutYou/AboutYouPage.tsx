@@ -95,15 +95,6 @@ const AboutYouPage = () => {
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-<<<<<<< HEAD
-            // if (window.rudderanalytics) {
-            //     window.rudderanalytics.identify(admin?.id, {
-            //         isProductPersona: isProductRole,
-            //         isEngineeringPersona: isEngineeringRole,
-            //     });
-            // }
-=======
->>>>>>> jay-khatri-get-rid-of-rudder
             history.push('/');
         } catch {
             message.error('Something went wrong, try again?');
