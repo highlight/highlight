@@ -39,7 +39,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Admin() AdminResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -796,9 +795,6 @@ type ComplexityRoot struct {
 	}
 }
 
-type AdminResolver interface {
-	AboutYouDetailsFilled(ctx context.Context, obj *model1.Admin) (*bool, error)
-}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -12507,14 +12503,14 @@ func (ec *executionContext) _Admin_about_you_details_filled(ctx context.Context,
 		Object:     "Admin",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Admin().AboutYouDetailsFilled(rctx, obj)
+		return obj.AboutYouDetailsFilled, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32766,7 +32762,7 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -32776,7 +32772,7 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "uid":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -32786,7 +32782,7 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "email":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -32796,7 +32792,7 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "phone":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -32820,7 +32816,7 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "slack_im_channel_id":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -32851,22 +32847,12 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = innerFunc(ctx)
 
 		case "about_you_details_filled":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Admin_about_you_details_filled(ctx, field, obj)
-				return res
+				return ec._Admin_about_you_details_filled(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
 		case "user_defined_persona":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Admin_user_defined_persona(ctx, field, obj)
