@@ -6495,6 +6495,7 @@ export const GetAdminDocument = gql`
             role
             email_verified
             user_defined_role
+            about_you_details_filled
         }
     }
 `;

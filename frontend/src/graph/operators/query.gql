@@ -726,6 +726,7 @@ query GetAdmin {
         role
         email_verified
         user_defined_role
+        about_you_details_filled
     }
 }
 

@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -26,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -35,7 +36,6 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
@@ -48,6 +48,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
+
+func (r *adminResolver) AboutYouDetailsFilled(ctx context.Context, obj *model.Admin) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -252,6 +256,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = adminDetails.Phone
+	admin.AboutYouDetailsFilled = &model.T
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		if err := r.createHubspotContactForAdmin(
@@ -3425,10 +3430,17 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 		projectID = 1
 	}
 
+	// lookback based on DeleteCompletedSessions
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
-		Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	if err := r.DB.Raw(`
+		SELECT COUNT(*)
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil
@@ -3451,6 +3463,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 		WHERE project_id = ?
 		AND processed = false
 		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
 	`, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving live users count")
 	}
@@ -4656,12 +4669,13 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
-			UID:           &uid,
-			Name:          &firebaseUser.DisplayName,
-			Email:         &firebaseUser.Email,
-			PhotoURL:      &firebaseUser.PhotoURL,
-			EmailVerified: &firebaseUser.EmailVerified,
-			Phone:         &firebaseUser.PhoneNumber,
+			UID:                   &uid,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -5211,6 +5225,9 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
+// Admin returns generated.AdminResolver implementation.
+func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -5263,6 +5280,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
+type adminResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

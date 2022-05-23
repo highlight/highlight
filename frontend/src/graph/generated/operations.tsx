@@ -2485,6 +2485,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'role'
             | 'email_verified'
             | 'user_defined_role'
+            | 'about_you_details_filled'
         >
     >;
 };
