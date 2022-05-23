@@ -87,18 +87,19 @@ type ComplexityRoot struct {
 	}
 
 	Admin struct {
-		Email              func(childComplexity int) int
-		EmailVerified      func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		Name               func(childComplexity int) int
-		Phone              func(childComplexity int) int
-		PhotoURL           func(childComplexity int) int
-		Referral           func(childComplexity int) int
-		Role               func(childComplexity int) int
-		SlackIMChannelID   func(childComplexity int) int
-		UID                func(childComplexity int) int
-		UserDefinedPersona func(childComplexity int) int
-		UserDefinedRole    func(childComplexity int) int
+		AboutYouDetailsFilled func(childComplexity int) int
+		Email                 func(childComplexity int) int
+		EmailVerified         func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		Phone                 func(childComplexity int) int
+		PhotoURL              func(childComplexity int) int
+		Referral              func(childComplexity int) int
+		Role                  func(childComplexity int) int
+		SlackIMChannelID      func(childComplexity int) int
+		UID                   func(childComplexity int) int
+		UserDefinedPersona    func(childComplexity int) int
+		UserDefinedRole       func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -1170,6 +1171,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AccountDetails.StripeCustomerID(childComplexity), true
+
+	case "Admin.about_you_details_filled":
+		if e.complexity.Admin.AboutYouDetailsFilled == nil {
+			break
+		}
+
+		return e.complexity.Admin.AboutYouDetailsFilled(childComplexity), true
 
 	case "Admin.email":
 		if e.complexity.Admin.Email == nil {
@@ -6093,6 +6101,7 @@ type Admin {
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    about_you_details_filled: Boolean
     user_defined_persona: String
 }
 
@@ -12480,6 +12489,38 @@ func (ec *executionContext) _Admin_user_defined_role(ctx context.Context, field 
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_about_you_details_filled(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AboutYouDetailsFilled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_user_defined_persona(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -32792,6 +32833,13 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 		case "user_defined_role":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Admin_user_defined_role(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "about_you_details_filled":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Admin_about_you_details_filled(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

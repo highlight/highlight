@@ -365,19 +365,20 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name             *string
-	Email            *string
-	Phone            *string
-	EmailVerified    *bool            `gorm:"default:false"`
-	PhotoURL         *string          `json:"photo_url"`
-	UID              *string          `gorm:"unique_index"`
-	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
-	Projects         []Project        `gorm:"many2many:project_admins;"`
-	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
-	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
-	Workspaces       []Workspace      `gorm:"many2many:workspace_admins;"`
-	SlackIMChannelID *string
-	Role             *string `json:"role" gorm:"default:ADMIN"`
+	Name                  *string
+	Email                 *string
+	Phone                 *string
+	EmailVerified         *bool            `gorm:"default:false"`
+	AboutYouDetailsFilled *bool            `gorm:"default:false"`
+	PhotoURL              *string          `json:"photo_url"`
+	UID                   *string          `gorm:"unique_index"`
+	Organizations         []Organization   `gorm:"many2many:organization_admins;"`
+	Projects              []Project        `gorm:"many2many:project_admins;"`
+	SessionComments       []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments         []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Workspaces            []Workspace      `gorm:"many2many:workspace_admins;"`
+	SlackIMChannelID      *string
+	Role                  *string `json:"role" gorm:"default:ADMIN"`
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.

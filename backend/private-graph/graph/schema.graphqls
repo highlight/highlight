@@ -482,6 +482,7 @@ type Admin {
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    about_you_details_filled: Boolean
     user_defined_persona: String
 }
 
