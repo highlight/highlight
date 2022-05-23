@@ -22,16 +22,6 @@ import styles from './AppRouter.module.scss';
 
 export const AppRouter = () => {
     const { isLoggedIn } = useAuthContext();
-    // const history = useHistory();
-
-    // if (admin && !admin.user_defined_role) {
-    //     const res = window.sessionStorage.getItem(
-    //         'HighlightFilledOutAboutYouForm'
-    //     );
-    //     if (!res) {
-    //         history.push('/about-you');
-    //     }
-    // }
 
     return (
         <div className={styles.appBody}>
@@ -45,11 +35,6 @@ export const AppRouter = () => {
                             <NewMemberPage />
                         </Landing>
                     </Route>
-                    {/* <Route path="/about-you">
-                        <Landing>
-                            <AboutYouPage />
-                        </Landing>
-                    </Route> */}
                     <Route path="/new">
                         <Landing>
                             <NewProjectPage />

@@ -39,18 +39,14 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
     const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false);
     const [isProductRole, toggleIsProductRole] = useToggle(false);
     const [role, setRole] = useState('');
-    // const history = useHistory();
-    const [
-        getAdminQuery,
-        { error: adminError, data: adminData, loading: adminDataLoading },
-    ] = useGetAdminLazyQuery({
-        fetchPolicy: 'network-only',
-        onCompleted: (data) => {
-            console.log('asking for new admin data');
-            console.log(data);
-            onSubmitHandler();
-        },
-    });
+    const [getAdminQuery, { loading: adminDataLoading }] = useGetAdminLazyQuery(
+        {
+            fetchPolicy: 'network-only',
+            onCompleted: () => {
+                onSubmitHandler();
+            },
+        }
+    );
     const [
         updateAdminAboutYourDetails,
         { loading },
@@ -99,14 +95,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
                 },
             });
 
-            // window.sessionStorage.setItem(
-            //     'HighlightFilledOutAboutYouForm',
-            //     'true'
-            // );
             setSignUpReferral('');
-            message.success(
-                `Nice to meet you ${firstName}, let's get started!`
-            );
             if (window.Intercom) {
                 window.Intercom('update', {
                     isProductPersona: isProductRole,
@@ -121,7 +110,9 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
             }
 
             getAdminQuery();
-            // history.push('/');
+            message.success(
+                `Nice to meet you ${firstName}, let's get started!`
+            );
         } catch {
             message.error('Something went wrong, try again?');
         }
