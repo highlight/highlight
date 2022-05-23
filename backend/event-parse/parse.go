@@ -234,46 +234,11 @@ func ProcessHTML(projectID int, sessionID int, inputData json.RawMessage) (json.
 	if err = processHTMLHeadStylesheets(headNode); err != nil {
 		return nil, err
 	}
-	if err = processHTMLResources(projectID, sessionID, bodyNode); err != nil {
-		return nil, err
-	}
 	b, err := json.Marshal(s)
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
 	return json.RawMessage(b), nil
-}
-
-func processHTMLResources(projectID int, sessionID int, bodyNode map[string]interface{}) error {
-	bodyChildNodes, ok := bodyNode["childNodes"].([]interface{})
-	if !ok {
-		return errors.New("error converting to childNodes")
-	}
-	for _, c := range bodyChildNodes {
-		subNode, ok := c.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		tagName, ok := subNode["tagName"].(string)
-		if !ok || tagName != "img" {
-			continue
-		}
-		attrs, ok := subNode["attributes"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		src, ok := attrs["src"].(string)
-		if !ok || !strings.Contains(src, "base64") {
-			continue
-		}
-		data, err := fetch.storeBinaryResource(projectID, sessionID, src)
-		if err != nil || len(data) <= 0 {
-			continue
-		}
-
-		attrs["src"] = data
-	}
-	return nil
 }
 
 func processHTMLHeadStylesheets(headNode map[string]interface{}) error {

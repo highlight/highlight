@@ -6,7 +6,7 @@ import {
 import { SampleBuggyButton } from '@highlight-run/react';
 import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
 import styles from './Buttons.module.scss';
@@ -26,6 +26,16 @@ export const Buttons = () => {
     const {} = useGetCommentTagsForProjectQuery({
         variables: { project_id: '1' },
     });
+    const [blob, setBlob] = useState<Blob>();
+
+    const fetchBlob = () => {
+        fetch(
+            'https://pbs.twimg.com/profile_images/1455185376876826625/s1AjSxph_400x400.jpg'
+        )
+            .then((r) => r.blob())
+            .then(setBlob);
+    };
+    useEffect(fetchBlob, []);
 
     return (
         <div className={styles.buttonBody}>
@@ -46,6 +56,16 @@ export const Buttons = () => {
                 {showBadComponent && <BadComponent />}
             </div>
             <DO_NOT_USE_Canvas />
+            <div>
+                <button onClick={fetchBlob}>reset blob</button>
+                {blob && (
+                    <img
+                        src={URL.createObjectURL(blob)}
+                        height={128}
+                        width={128}
+                    />
+                )}
+            </div>
             <div>
                 <button
                     className={commonStyles.submitButton}

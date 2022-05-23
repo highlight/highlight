@@ -3,7 +3,7 @@
     display: grid;
     gap: 0 0;
     grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
-    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
+    grid-template-columns: 100px 300px minmax(200px, 700px) 200px 100px auto;
     height: 100%;
     padding-left: 100px;
     padding-top: 100px;
