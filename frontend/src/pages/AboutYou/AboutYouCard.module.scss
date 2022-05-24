@@ -24,3 +24,9 @@
     column-gap: var(--size-large);
     display: flex;
 }
+
+.name {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 1fr 1fr;
+}

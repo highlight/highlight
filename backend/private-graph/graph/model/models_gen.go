@@ -35,10 +35,12 @@ type AccountDetails struct {
 }
 
 type AdminAboutYouDetails struct {
-	Name               string `json:"name"`
-	UserDefinedRole    string `json:"user_defined_role"`
-	UserDefinedPersona string `json:"user_defined_persona"`
-	Referral           string `json:"referral"`
+	FirstName          string  `json:"first_name"`
+	LastName           string  `json:"last_name"`
+	UserDefinedRole    string  `json:"user_defined_role"`
+	UserDefinedPersona string  `json:"user_defined_persona"`
+	Referral           string  `json:"referral"`
+	Phone              *string `json:"phone"`
 }
 
 type AverageSessionLength struct {
@@ -108,9 +110,24 @@ type ErrorTrace struct {
 	LinesAfter   *string `json:"linesAfter"`
 }
 
+type Invoice struct {
+	AmountDue    *int64     `json:"amountDue"`
+	AmountPaid   *int64     `json:"amountPaid"`
+	AttemptCount *int64     `json:"attemptCount"`
+	Date         *time.Time `json:"date"`
+	URL          *string    `json:"url"`
+	Status       *string    `json:"status"`
+}
+
 type LengthRangeInput struct {
 	Min *float64 `json:"min"`
 	Max *float64 `json:"max"`
+}
+
+type LinearTeam struct {
+	TeamID string `json:"team_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
 }
 
 type MetricPreview struct {
@@ -207,9 +224,10 @@ type SocialLink struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount      int64   `json:"baseAmount"`
-	DiscountPercent float64 `json:"discountPercent"`
-	DiscountAmount  int64   `json:"discountAmount"`
+	BaseAmount      int64    `json:"baseAmount"`
+	DiscountPercent float64  `json:"discountPercent"`
+	DiscountAmount  int64    `json:"discountAmount"`
+	LastInvoice     *Invoice `json:"lastInvoice"`
 }
 
 type TopUsersPayload struct {

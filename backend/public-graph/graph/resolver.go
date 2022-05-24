@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
@@ -117,6 +118,8 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
 			log.Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
+		} else if fv == "" {
+			// Skip when the field value is blank
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
@@ -856,7 +859,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string) (*model.Session, error) {
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -864,6 +867,10 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "project doesn't exist")
+	}
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
 	}
 
 	var fingerprintInt int = 0
@@ -903,32 +910,6 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		session.SecureID = *sessionSecureID
 	}
 
-	if err := r.DB.Create(session).Error; err != nil {
-		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-			return nil, e.Wrap(err, "error creating session")
-		}
-		sessionObj := &model.Session{}
-		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
-			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
-		}
-		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
-			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
-		}
-		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
-	}
-	return session, nil
-}
-
-func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*model.Session, error) {
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "session doesn't exist")
-	}
-	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "project doesn't exist")
-	}
-
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
@@ -944,15 +925,6 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 		location = fetchedLocation
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
-	}
-	if session.PayloadUpdatedAt == nil {
-		log.Warnf("saw nil PayloadUpdatedAt for session id %d", session.ID)
-		n := time.Now()
-		session.PayloadUpdatedAt = &n
-	}
 	// determine if session is within billing quota
 	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 
@@ -963,16 +935,26 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	session.Longitude = location.Longitude.(float64)
 	session.WithinBillingQuota = &withinBillingQuota
 
-	if err := r.DB.Save(session).Error; err != nil {
-		return nil, e.Wrap(err, "error updating session")
-	}
-
-	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
-		return nil, e.Wrap(err, "error indexing session in opensearch")
+	if err := r.DB.Create(session).Error; err != nil {
+		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return nil, e.Wrap(err, "error creating session")
+		}
+		sessionObj := &model.Session{}
+		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
+		}
+		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
+		}
+		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session: %s", session.Identifier)
+
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
+		return nil, e.Wrap(err, "error indexing new session in opensearch")
+	}
 
 	sessionProperties := map[string]string{
 		"os_name":         session.OSName,
@@ -981,9 +963,23 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 		"browser_version": session.BrowserVersion,
 		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+
+	return session, nil
+}
+
+func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*model.Session, error) {
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "session doesn't exist")
+	}
+	project := &model.Project{}
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "project doesn't exist")
 	}
 
 	go func() {
@@ -1610,7 +1606,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
-			r.DB.Scopes(model.EventsObjectTable(sessionID)).Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
+			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -1655,7 +1651,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Scopes(model.EventsObjectTable(sessionID)).Create(obj).Error; err != nil {
+			if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating events object")
 			}
 			if !lastUserInteractionTimestamp.IsZero() {

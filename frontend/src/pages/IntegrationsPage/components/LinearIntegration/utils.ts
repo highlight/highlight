@@ -62,6 +62,7 @@ export const useLinearIntegration = () => {
         addLinearIntegrationToProject,
         removeLinearIntegrationFromProject,
         isLinearIntegratedWithProject: data?.is_integrated_with_linear,
+        teams: data?.linear_teams,
         loading,
         error,
     };

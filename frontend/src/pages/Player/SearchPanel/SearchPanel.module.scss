@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .filtersContainer {
     align-items: center;
     column-gap: var(--size-small);
@@ -12,4 +14,11 @@
     flex-direction: column;
     flex-grow: 1;
     height: 100%;
+}
+
+.searchContainer {
+    @include hide-scrollbar;
+    height: calc(100vh - 170px);
+    overflow-x: hidden;
+    overflow-y: auto;
 }

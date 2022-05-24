@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/lambda"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,11 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/lambda"
+
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+	"github.com/leonelquinteros/hubspot"
 
 	"github.com/sendgrid/sendgrid-go"
 
@@ -188,6 +192,7 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.

@@ -53,7 +53,7 @@ export const ErrorFeedV2 = () => {
             setShowLoadingSkeleton(false);
             if (r?.error_groups_opensearch) {
                 setData(gqlSanitize(r?.error_groups_opensearch));
-                totalPages.current = Math.floor(
+                totalPages.current = Math.ceil(
                     r?.error_groups_opensearch.totalCount / PAGE_SIZE
                 );
             }
@@ -83,6 +83,11 @@ export const ErrorFeedV2 = () => {
                 </div>
             </div>
             <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                    })}
+                />
                 <div
                     className={classNames(styles.feedItems, {
                         [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,

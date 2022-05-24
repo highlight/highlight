@@ -5,6 +5,7 @@ import {
 import {
     PAGE_SIZE,
     Pagination,
+    RESET_PAGE_MS,
     STARTING_PAGE,
 } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
@@ -15,7 +16,6 @@ import {
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
 import { PlanType } from '@graph/schemas';
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
@@ -28,7 +28,6 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
-import _ from 'lodash';
 import React, {
     useCallback,
     useEffect,
@@ -44,7 +43,6 @@ import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/L
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
-    SearchParams,
     showLiveSessions,
     useSearchContext,
 } from '../SearchContext/SearchContext';
@@ -82,9 +80,7 @@ export const SessionFeed = React.memo(() => {
         setPage,
     } = useSearchContext();
     const { integrated } = useIntegrated();
-    const previousSearchParams = useRef<SearchParams>(
-        EmptySessionsSearchParams
-    );
+    const searchParamsChanged = useRef<Date>();
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
@@ -108,14 +104,8 @@ export const SessionFeed = React.memo(() => {
 
     const addSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
-            setSessionResults((prev) => ({
-                ...response.sessions_opensearch,
-                totalCount: Math.max(
-                    prev.totalCount,
-                    response.sessions_opensearch.totalCount
-                ),
-            }));
-            totalPages.current = Math.floor(
+            setSessionResults(response.sessions_opensearch);
+            totalPages.current = Math.ceil(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
         }
@@ -145,16 +135,14 @@ export const SessionFeed = React.memo(() => {
     useEffect(() => {
         // we just loaded the page for the first time
         if (
-            _.isEqual(previousSearchParams.current, EmptySessionsSearchParams)
+            searchParamsChanged.current &&
+            new Date().getTime() - searchParamsChanged.current.getTime() >
+                RESET_PAGE_MS
         ) {
-            previousSearchParams.current = searchParams;
-        } else if (!_.isEqual(previousSearchParams.current, searchParams)) {
             // the search query actually changed, reset the page
             setPage(STARTING_PAGE);
-            previousSearchParams.current = searchParams;
         }
-        // only if the search params change, not the previous search params
-        // eslint-disable-next-line
+        searchParamsChanged.current = new Date();
     }, [searchParams, setPage]);
 
     const enableLiveSessions = useCallback(() => {
@@ -249,7 +237,7 @@ export const SessionFeed = React.memo(() => {
                                             sessionFeedConfiguration.countFormat
                                         )}`}
                                     />
-                                    {' sessions'}
+                                    {' sessions '}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -300,6 +288,11 @@ export const SessionFeed = React.memo(() => {
                 </div>
             </div>
             <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
+                />
                 <div
                     onScroll={onFeedScrollListener}
                     className={classNames(styles.feedItems, {

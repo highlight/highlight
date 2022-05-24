@@ -672,7 +672,11 @@ func TestGetActiveDuration(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			a := MakeEventProcessingAccumulator("fakeSecureID")
+			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
+				Window: 5 * time.Second,
+				Radius: 8,
+				Count:  5,
+			})
 			for _, event := range tt.events {
 				a = processEventChunk(a, event)
 				if a.Error != nil {
@@ -793,7 +797,11 @@ func TestFullSnapshotValidation(t *testing.T) {
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
 			log.SetOutput(ioutil.Discard)
-			a := MakeEventProcessingAccumulator("fakeSecureID")
+			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
+				Window: 5 * time.Second,
+				Radius: 8,
+				Count:  5,
+			})
 			for _, event := range tt.events {
 				a = processEventChunk(a, event)
 				if a.Error != nil {

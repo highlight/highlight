@@ -148,17 +148,26 @@ mutation EditProject(
     $name: String
     $billing_email: String
     $excluded_users: StringArray
+    $rage_click_window_seconds: Int
+    $rage_click_radius_pixels: Int
+    $rage_click_count: Int
 ) {
     editProject(
         id: $id
         name: $name
         billing_email: $billing_email
         excluded_users: $excluded_users
+        rage_click_window_seconds: $rage_click_window_seconds
+        rage_click_radius_pixels: $rage_click_radius_pixels
+        rage_click_count: $rage_click_count
     ) {
         id
         name
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
 }
 
@@ -233,6 +242,7 @@ mutation CreateSessionComment(
     $tags: [SessionCommentTagInput]!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createSessionComment(
@@ -252,6 +262,7 @@ mutation CreateSessionComment(
         tags: $tags
         integrations: $integrations
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
     ) {
         id
@@ -284,6 +295,7 @@ mutation CreateIssueForSessionComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createIssueForSessionComment(
@@ -295,6 +307,7 @@ mutation CreateIssueForSessionComment(
         time: $time
         issue_title: $issue_title
         issue_description: $issue_description
+        issue_team_id: $issue_team_id
         integrations: $integrations
     ) {
         id
@@ -362,6 +375,7 @@ mutation CreateErrorComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createErrorComment(
@@ -375,6 +389,7 @@ mutation CreateErrorComment(
         author_name: $author_name
         integrations: $integrations
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
     ) {
         id
@@ -396,6 +411,7 @@ mutation CreateIssueForErrorComment(
     $author_name: String!
     $integrations: [IntegrationType]!
     $issue_title: String
+    $issue_team_id: String
     $issue_description: String
 ) {
     createIssueForErrorComment(
@@ -405,6 +421,7 @@ mutation CreateIssueForErrorComment(
         author_name: $author_name
         text_for_attachment: $text_for_attachment
         issue_title: $issue_title
+        issue_team_id: $issue_team_id
         issue_description: $issue_description
         integrations: $integrations
     ) {
@@ -1181,4 +1198,8 @@ mutation SyncSlackIntegration($project_id: ID!) {
 
 mutation RequestAccess($project_id: ID!) {
     requestAccess(project_id: $project_id)
+}
+
+mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+    modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
 }

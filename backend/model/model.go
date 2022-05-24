@@ -208,6 +208,7 @@ type Workspace struct {
 	LinearAccessToken           *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
+	HubspotCompanyID            *int
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
@@ -221,6 +222,7 @@ type Workspace struct {
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
+	ClearbitEnabled             bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -250,6 +252,13 @@ type Project struct {
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
+
+	// Maximum time window considered for a rage click event
+	RageClickWindowSeconds int `gorm:"default:5"`
+	// Maximum distance between clicks for a rage click event
+	RageClickRadiusPixels int `gorm:"default:8"`
+	// Minimum count of clicks in a rage click event
+	RageClickCount int `gorm:"default:5"`
 }
 
 type HasSecret interface {
@@ -357,18 +366,23 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name             *string
-	Email            *string
-	EmailVerified    *bool            `gorm:"default:false"`
-	PhotoURL         *string          `json:"photo_url"`
-	UID              *string          `gorm:"unique_index"`
-	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
-	Projects         []Project        `gorm:"many2many:project_admins;"`
-	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
-	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
-	Workspaces       []Workspace      `gorm:"many2many:workspace_admins;"`
-	SlackIMChannelID *string
-	Role             *string `json:"role" gorm:"default:ADMIN"`
+	Name                  *string
+	FirstName             *string
+	LastName              *string
+	HubspotContactID      *int
+	Email                 *string
+	AboutYouDetailsFilled *bool
+	Phone                 *string
+	EmailVerified         *bool            `gorm:"default:false"`
+	PhotoURL              *string          `json:"photo_url"`
+	UID                   *string          `gorm:"unique_index"`
+	Organizations         []Organization   `gorm:"many2many:organization_admins;"`
+	Projects              []Project        `gorm:"many2many:project_admins;"`
+	SessionComments       []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments         []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Workspaces            []Workspace      `gorm:"many2many:workspace_admins;"`
+	SlackIMChannelID      *string
+	Role                  *string `json:"role" gorm:"default:ADMIN"`
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
@@ -688,16 +702,6 @@ func (m *EventsObject) Contents() string {
 }
 
 const PARTITION_SESSION_ID = 30000000
-
-func EventsObjectTable(sessionID int) func(tx *gorm.DB) *gorm.DB {
-	return func(tx *gorm.DB) *gorm.DB {
-		if sessionID >= PARTITION_SESSION_ID {
-			return tx.Table("events_objects_partitioned")
-		} else {
-			return tx.Table("events_objects")
-		}
-	}
-}
 
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
@@ -1055,6 +1059,33 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
+		SELECT DISTINCT f.type, f.name, f.project_id
+		FROM fields f
+		WHERE type IS NOT null
+		AND EXISTS (
+			SELECT 1
+			FROM session_fields sf
+			WHERE f.id = sf.field_id
+		);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
 	}
 
 	if err := DB.Exec(`

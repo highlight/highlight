@@ -20,4 +20,5 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     app_versions: [],
     show_live_sessions: false,
     query: undefined,
+    city: undefined,
 };

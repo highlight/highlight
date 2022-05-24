@@ -625,6 +625,8 @@ query GetWorkspace($id: ID!) {
         id
         name
         secret
+        plan_tier
+        clearbit_enabled
         projects {
             id
             name
@@ -718,11 +720,13 @@ query GetAdmin {
         uid
         name
         email
+        phone
         photo_url
         slack_im_channel_id
         role
         email_verified
         user_defined_role
+        about_you_details_filled
     }
 }
 
@@ -742,6 +746,9 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -798,6 +805,14 @@ query GetSubscriptionDetails($workspace_id: ID!) {
         baseAmount
         discountAmount
         discountPercent
+        lastInvoice {
+            amountDue
+            amountPaid
+            attemptCount
+            date
+            url
+            status
+        }
     }
 }
 
@@ -1164,6 +1179,11 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
         integration_type: Linear
         project_id: $project_id
     )
+    linear_teams(project_id: $project_id) {
+        team_id
+        name
+        key
+    }
 }
 
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {

@@ -1,3 +1,4 @@
+import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig';
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration';
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig';
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig';
@@ -48,10 +49,21 @@ export const ZAPIER_INTEGRATION: Integration = {
     configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
 };
 
+export const CLEARBIT_INTEGRATION: Integration = {
+    key: 'clearbit',
+    name: 'Clearbit',
+    configurationPath: 'clearbit',
+    onlyShowForHighlightAdmin: true,
+    description: 'Collect enhanced user analytics.',
+    icon: '/images/integrations/clearbit.svg',
+    configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
+};
+
 const INTEGRATIONS: Integration[] = [
     SLACK_INTEGRATION,
     LINEAR_INTEGRATION,
     ZAPIER_INTEGRATION,
+    CLEARBIT_INTEGRATION,
 ];
 
 export default INTEGRATIONS;

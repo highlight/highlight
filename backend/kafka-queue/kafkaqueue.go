@@ -17,7 +17,8 @@ import (
 	"time"
 )
 
-const KafkaOperationTimeout = 30 * time.Second
+// KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
+const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
@@ -74,12 +75,9 @@ func New(topic string, mode Mode) *Queue {
 		client := &kafka.Client{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
-				SASL:        mechanism,
-				TLS:         tlsConfig,
-				DialTimeout: KafkaOperationTimeout,
-				IdleTimeout: KafkaOperationTimeout,
+				SASL: mechanism,
+				TLS:  tlsConfig,
 			},
-			Timeout: KafkaOperationTimeout,
 		}
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
@@ -89,7 +87,7 @@ func New(topic string, mode Mode) *Queue {
 			}},
 		})
 		if err != nil {
-			log.Fatal(errors.Wrap(err, "failed to create necessary topic"))
+			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
 	}
 
@@ -111,11 +109,11 @@ func New(topic string, mode Mode) *Queue {
 			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
-			BatchSize:    1000,
+			BatchSize:    1,
 			ReadTimeout:  KafkaOperationTimeout,
-			WriteTimeout: 5 * time.Minute,
+			WriteTimeout: KafkaOperationTimeout,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
-			BatchTimeout: 10 * time.Millisecond,
+			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
 	} else if mode == Consumer {
@@ -134,10 +132,10 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     1000,
+			QueueCapacity:     512,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: 100 * time.Millisecond,
+			CommitInterval: time.Second,
 			MaxAttempts:    10,
 		})
 	}
@@ -174,7 +172,9 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
 		return err
 	}
-	err = p.kafkaP.WriteMessages(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), KafkaOperationTimeout)
+	defer cancel()
+	err = p.kafkaP.WriteMessages(ctx,
 		kafka.Message{
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
@@ -191,9 +191,11 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 
 func (p *Queue) Receive() (msg *Message) {
 	start := time.Now()
-	m, err := p.kafkaC.ReadMessage(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), KafkaOperationTimeout)
+	defer cancel()
+	m, err := p.kafkaC.ReadMessage(ctx)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to deserialize message"))
+		log.Error(errors.Wrap(err, "failed to receive message"))
 		return nil
 	}
 	msgBytes := m.Value
@@ -217,6 +219,8 @@ func (p *Queue) LogStats() {
 		hlog.Histogram("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
 		hlog.Histogram("worker.kafka.produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hlog.Histogram("worker.kafka.produceQueueLength", float64(stats.QueueLength), nil, 1)
 		hlog.Histogram("worker.kafka.produceBytes", float64(stats.Bytes), nil, 1)
 		hlog.Histogram("worker.kafka.produceErrors", float64(stats.Errors), nil, 1)
 	}
@@ -228,6 +232,8 @@ func (p *Queue) LogStats() {
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
 		hlog.Histogram("worker.kafka.consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hlog.Histogram("worker.kafka.consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hlog.Histogram("worker.kafka.consumeQueueLength", float64(stats.QueueLength), nil, 1)
 		hlog.Histogram("worker.kafka.consumeBytes", float64(stats.Bytes), nil, 1)
 		hlog.Histogram("worker.kafka.consumeErrors", float64(stats.Errors), nil, 1)
 	}

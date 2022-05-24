@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const BATCH_SIZE = 2000
+const BATCH_SIZE = 200
 
 func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	val := reflect.ValueOf(item).Elem()

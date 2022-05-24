@@ -24,6 +24,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -242,10 +243,28 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		return false, err
 	}
 
-	admin.Name = &adminDetails.Name
+	fullName := adminDetails.FirstName + " " + adminDetails.LastName
+	admin.FirstName = &adminDetails.FirstName
+	admin.LastName = &adminDetails.LastName
+	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
+	admin.Phone = adminDetails.Phone
+	admin.AboutYouDetailsFilled = &model.T
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.HubspotApi.CreateContactForAdmin(
+			admin.ID,
+			*admin.Email,
+			*admin.UserDefinedRole,
+			*admin.UserDefinedPersona,
+			*admin.FirstName,
+			*admin.LastName,
+			*admin.Phone); err != nil {
+			log.Error(err, "error creating hubspot contact")
+		}
+	})
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -298,6 +317,15 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+		if err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+			log.Error(err, "error creating hubspot company")
+		} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+		}
+	})
+
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
 		params := &stripe.CustomerParams{
@@ -311,16 +339,14 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		}
 	}
 
-	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
-		StripeCustomerID: &c.ID,
-	}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -331,11 +357,26 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
 		}
 	}
-	if err := r.DB.Model(project).Updates(&model.Project{
+
+	updates := &model.Project{
 		Name:          name,
 		BillingEmail:  billingEmail,
 		ExcludedUsers: excludedUsers,
-	}).Error; err != nil {
+	}
+
+	if rageClickWindowSeconds != nil {
+		updates.RageClickWindowSeconds = *rageClickWindowSeconds
+	}
+
+	if rageClickRadiusPixels != nil {
+		updates.RageClickRadiusPixels = *rageClickRadiusPixels
+	}
+
+	if rageClickCount != nil {
+		updates.RageClickCount = *rageClickCount
+	}
+
+	if err := r.DB.Model(project).Updates(updates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
 	return project, nil
@@ -519,12 +560,21 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	workspace := &model.Workspace{}
-	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(err, " failed to add admin to workspace")
-		return adminId, err
+		log.Error(e.Wrap(err, "failed to add admin to workspace"))
+		return adminID, err
 	}
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(*adminID, workspaceID); err != nil {
+			log.Error(e.Wrapf(
+				err,
+				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
+				*adminID,
+				workspaceID,
+			))
+		}
+	})
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
@@ -532,17 +582,17 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 	}
 
-	return adminId, nil
+	return adminID, nil
 }
 
 func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
@@ -896,7 +946,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1024,7 +1074,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 					SessionCommentID: sessionComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1051,7 +1101,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	return sessionComment, nil
 }
 
-func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -1077,7 +1127,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 					SessionCommentID: sessionComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1182,7 +1232,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	return commentReply, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -1241,7 +1291,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 					ErrorCommentID:  errorComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -1268,7 +1318,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	return errorComment, nil
 }
 
-func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -1294,7 +1344,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 					ErrorCommentID:  errorComment.ID,
 				}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink); err != nil {
+				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
 					return nil, e.Wrap(err, "error creating linear ticket or workspace")
 				}
 
@@ -2638,6 +2688,21 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	return &model.T, nil
 }
 
+func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
+	}
+	if pricing.MustUpgradeForClearbit(workspace.PlanTier) {
+		return nil, nil
+	}
+	workspace.ClearbitEnabled = enabled
+	if err := r.DB.Model(workspace).Update("ClearbitEnabled", &enabled).Error; err != nil {
+		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
+	}
+	return &enabled, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
@@ -3010,8 +3075,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not workspace owner")
 	}
-	pt := modelInputs.PlanType(w.PlanTier)
-	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
 	}
 	// preload `Fields` children
@@ -3039,35 +3103,45 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		userDetailsModel := &model.EnhancedUserDetails{}
 		p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+			if !w.ClearbitEnabled {
+				return nil, nil
+			}
 			log.Infof("retrieving api response for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			clearbitApiRequestSpan := tracer.StartSpan("private-graph.EnhancedUserDetails",
+				tracer.ResourceName("clearbit.api.request"),
+				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			clearbitApiRequestSpan.Finish()
+			p, co = pc.Person, pc.Company
 			if err != nil {
 				log.Errorf("error w/ clearbit request: %v", err)
+			} else if len(p.ID) > 0 {
+				// Store the data for this email in the DB.
+				r.PrivateWorkerPool.SubmitRecover(func() {
+					log.Infof("caching response data in the db")
+					modelToSave := &model.EnhancedUserDetails{}
+					modelToSave.Email = &email
+					if personBytes, err := json.Marshal(p); err == nil {
+						sPersonBytes := string(personBytes)
+						modelToSave.PersonJSON = &sPersonBytes
+					} else {
+						log.Errorf("error marshaling clearbit person: %v", err)
+					}
+					if companyBytes, err := json.Marshal(co); err == nil {
+						sCompanyBytes := string(companyBytes)
+						modelToSave.CompanyJSON = &sCompanyBytes
+					} else {
+						log.Errorf("error marshaling clearbit company: %v", err)
+					}
+					if err := r.DB.Create(modelToSave).Error; err != nil {
+						log.Errorf("error creating clearbit details model")
+					}
+				})
 			}
-			p, co = pc.Person, pc.Company
-			// Store the data for this email in the DB.
-			r.PrivateWorkerPool.SubmitRecover(func() {
-				log.Infof("caching response data in the db")
-				modelToSave := &model.EnhancedUserDetails{}
-				modelToSave.Email = &email
-				if personBytes, err := json.Marshal(p); err == nil {
-					sPersonBytes := string(personBytes)
-					modelToSave.PersonJSON = &sPersonBytes
-				} else {
-					log.Errorf("error marshaling clearbit person: %v", err)
-				}
-				if companyBytes, err := json.Marshal(co); err == nil {
-					sCompanyBytes := string(companyBytes)
-					modelToSave.CompanyJSON = &sCompanyBytes
-				} else {
-					log.Errorf("error marshaling clearbit company: %v", err)
-				}
-				if err := r.DB.Create(modelToSave).Error; err != nil {
-					log.Errorf("error creating clearbit details model")
-				}
-			})
 		} else {
-			log.Infof("retrieving db entry for clearbit lookup")
+			log.Infof("retrieving cache db entry of clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.Errorf("error unmarshaling person: %v", err)
@@ -3313,15 +3387,17 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil
 	}
-	var count int64
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return &model.F, nil
+	}
 	if err != nil {
-		return nil, e.Wrap(err, "error getting associated admins")
+		return nil, e.Wrap(err, "error querying session for project")
 	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
+
+	return &model.T, nil
 }
 
 func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
@@ -3349,10 +3425,17 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 		projectID = 1
 	}
 
+	// lookback based on DeleteCompletedSessions
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
-		Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	if err := r.DB.Raw(`
+		SELECT COUNT(*)
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil
@@ -3375,6 +3458,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 		WHERE project_id = ?
 		AND processed = false
 		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
 	`, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving live users count")
 	}
@@ -3759,15 +3843,9 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	res := []*model.Field{}
 
 	if err := r.DB.Raw(`
-		SELECT DISTINCT type, name
-		FROM fields f
+		SELECT type, name
+		FROM fields_in_use_view f
 		WHERE project_id = ?
-		AND type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		)
 	`, projectID).Scan(&res).Error; err != nil {
 		return nil, e.Wrap(err, "error querying field types for project")
 	}
@@ -4443,6 +4521,43 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	return false, e.New("invalid integrationType")
 }
 
+func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*modelInputs.LinearTeam, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	ret := []*modelInputs.LinearTeam{}
+
+	if err != nil {
+		return ret, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	// Workspace does not have linear set up yet, don't have to treat this as an error
+	if workspace.LinearAccessToken == nil {
+		return ret, nil
+	}
+
+	res, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+
+	if err != nil {
+		return ret, e.Wrap(err, "error getting linear teams")
+	}
+
+	teamResponse := res.Data.Teams.Nodes
+
+	ret = lo.Map[LinearTeam, *modelInputs.LinearTeam](teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
+		return &modelInputs.LinearTeam{
+			TeamID: team.ID,
+			Name:   team.Name,
+			Key:    team.Key,
+		}
+	})
+
+	return ret, nil
+}
+
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
 	if err != nil {
@@ -4549,11 +4664,13 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
-			UID:           &uid,
-			Name:          &firebaseUser.DisplayName,
-			Email:         &firebaseUser.Email,
-			PhotoURL:      &firebaseUser.PhotoURL,
-			EmailVerified: &firebaseUser.EmailVerified,
+			UID:                   &uid,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -4561,16 +4678,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
-				log.Errorf("error creating apollo contact: %v", err)
-			} else {
-				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
-				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-					log.Errorf("error adding new contact to sequence: %v", err)
-				}
-			}
-		})
+
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
@@ -4586,6 +4694,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating org fields")
 			adminSpan.Finish(tracer.WithError(spanError))
@@ -4594,6 +4703,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
 		firebaseSpan.Finish()
 	}
 
@@ -4705,19 +4815,36 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
 
 	discount := c.Subscriptions.Data[0].Discount
-	if discount == nil || discount.Coupon == nil {
-		return &modelInputs.SubscriptionDetails{
-			BaseAmount: amount,
-		}, nil
+	if discount != nil && discount.Coupon != nil {
+		details.DiscountAmount = discount.Coupon.AmountOff
+		details.DiscountPercent = discount.Coupon.PercentOff
 	}
 
-	return &modelInputs.SubscriptionDetails{
-		BaseAmount:      amount,
-		DiscountAmount:  discount.Coupon.AmountOff,
-		DiscountPercent: discount.Coupon.PercentOff,
-	}, nil
+	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+	invoiceParams := &stripe.InvoiceParams{}
+	customerParams.AddExpand("invoice_items")
+	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe invoice")
+	}
+
+	if invoice != nil {
+		invoiceDue := time.Unix(invoice.Created, 0)
+		status := string(invoice.Status)
+		details.LastInvoice = &modelInputs.Invoice{
+			Date:         &invoiceDue,
+			AmountDue:    &invoice.AmountDue,
+			AmountPaid:   &invoice.AmountPaid,
+			AttemptCount: &invoice.AttemptCount,
+			Status:       &status,
+			URL:          &invoice.HostedInvoiceURL,
+		}
+	}
+
+	return details, nil
 }
 
 func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {

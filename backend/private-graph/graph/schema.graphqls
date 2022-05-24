@@ -97,10 +97,20 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type Invoice {
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
+    date: Timestamp
+    url: String
+    status: String
+}
+
 type SubscriptionDetails {
     baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
+    lastInvoice: Invoice
 }
 
 type Plan {
@@ -129,6 +139,12 @@ type EnhancedUserDetailsResult {
     bio: String
     socials: [SocialLink]
     email: String
+}
+
+type LinearTeam {
+    team_id: String!
+    name: String!
+    key: String!
 }
 
 type SocialLink {
@@ -179,6 +195,9 @@ type Project {
     secret: String
     workspace_id: ID!
     excluded_users: StringArray
+    rage_click_window_seconds: Int
+    rage_click_radius_pixels: Int
+    rage_click_count: Int
 }
 
 type Account {
@@ -218,6 +237,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    plan_tier: String!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -225,6 +245,7 @@ type Workspace {
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
     trial_extension_enabled: Boolean!
+    clearbit_enabled: Boolean!
 }
 
 type Segment {
@@ -385,10 +406,12 @@ type SearchParams {
 }
 
 input AdminAboutYouDetails {
-    name: String!
+    first_name: String!
+    last_name: String!
     user_defined_role: String!
     user_defined_persona: String!
     referral: String!
+    phone: String
 }
 
 input ErrorSearchParamsInput {
@@ -453,12 +476,14 @@ type Admin {
     name: String!
     uid: String!
     email: String!
+    phone: String
     photo_url: String
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    about_you_details_filled: Boolean
     user_defined_persona: String
 }
 
@@ -831,6 +856,7 @@ type Query {
         integration_type: IntegrationType!
         project_id: ID!
     ): Boolean!
+    linear_teams(project_id: ID!): [LinearTeam!]
     project(id: ID!): Project
     workspace(id: ID!): Workspace
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -866,6 +892,9 @@ type Mutation {
         name: String
         billing_email: String
         excluded_users: StringArray
+        rage_click_window_seconds: Int
+        rage_click_radius_pixels: Int
+        rage_click_count: Int
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
@@ -939,6 +968,7 @@ type Mutation {
         session_image: String
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
     ): SessionComment
@@ -951,6 +981,7 @@ type Mutation {
         time: Float!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
@@ -973,6 +1004,7 @@ type Mutation {
         author_name: String!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): ErrorComment
     createIssueForErrorComment(
@@ -983,6 +1015,7 @@ type Mutation {
         text_for_attachment: String!
         issue_title: String
         issue_description: String
+        issue_team_id: String
         integrations: [IntegrationType]!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
@@ -1204,9 +1237,8 @@ type Mutation {
         heard_about: String!
         pun: String
     ): Boolean
-    requestAccess(
-        project_id: ID!
-    ): Boolean
+    requestAccess(project_id: ID!): Boolean
+    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
 }
 
 type Subscription {

@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io"
 	"math"
 	"math/rand"
@@ -15,6 +14,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
 
@@ -52,6 +53,9 @@ const MAX_RETRIES = 5
 
 // cancel events_objects reads after 5 minutes
 const EVENTS_READ_TIMEOUT = 300000
+
+// cancel refreshing materialized views after 15 minutes
+const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 15 * 60 * 1000
 
 type Worker struct {
 	Resolver       *mgraph.Resolver
@@ -157,9 +161,11 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
 		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
 
-		eventRows, err = tx.Scopes(model.EventsObjectTable(s.ID)).Model(&model.EventsObject{}).
+		eventRows, err = tx.Table("events_objects_partitioned").Model(&model.EventsObject{}).
 			Where(&model.EventsObject{SessionID: s.ID}).
-			Order("substring(events, '\"timestamp\":[0-9]+') asc").Rows()
+			Distinct("events", "substring(events, '\"timestamp\":[0-9]+') as event_time").
+			Order("event_time asc").
+			Rows()
 		if err != nil {
 			return errors.Wrap(err, "error retrieving events objects")
 		}
@@ -317,7 +323,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureIDs, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, []string{task.PushBackendPayload.SessionSecureID}, task.PushBackendPayload.Errors)
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
@@ -328,17 +334,31 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
 	}
 
-	wp := workerpool.New(1)
-	wp.SetPanicHandler(util.Recover)
-
+	parallelWorkers := 16
+	workerPrefetch := 16
 	// receive messages and submit them to worker pool for processing
+	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
+	for i := 0; i < parallelWorkers; i++ {
+		go func() {
+			for {
+				func() {
+					defer util.Recover()
+					task := <-messages
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
+					defer s.Finish()
+					w.processPublicWorkerMessage(task)
+					hlog.Incr("worker.kafka.processed.total", nil, 1)
+				}()
+			}
+		}()
+	}
 	for {
 		task := w.KafkaQueue.Receive()
 		if task == nil {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
-		wp.SubmitRecover(func() { w.processPublicWorkerMessage(task) })
+		messages <- task
 	}
 }
 
@@ -357,7 +377,7 @@ func (w *Worker) DeleteCompletedSessions() {
 				AND s.created_at < NOW() - (? * INTERVAL '1 MINUTE')
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
-	for _, table := range []string{"events_objects", "resources_objects", "messages_objects"} {
+	for _, table := range []string{"resources_objects", "messages_objects"} {
 		deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteObjects",
 			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
 		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
@@ -484,8 +504,19 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart()
 
+	project := &model.Project{}
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
+	}
+
+	var rageClickSettings = RageClickSettings{
+		Window: time.Duration(project.RageClickCount) * time.Second,
+		Radius: project.RageClickRadiusPixels,
+		Count:  project.RageClickCount,
+	}
+
 	var userInteractionEvents []*parse.ReplayEvent
-	accumulator := MakeEventProcessingAccumulator(s.SecureID)
+	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
 	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
 	re := p.Reader()
 	hasNext := true
@@ -721,10 +752,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	var g errgroup.Group
 	projectID := s.ProjectID
-	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
 
 	g.Go(func() error {
 		if len(accumulator.RageClickSets) < 1 {
@@ -810,7 +837,7 @@ func (w *Worker) Start() {
 	lockPeriod := 10            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 8
+		payloadLookbackPeriod = 16
 		lockPeriod = 1
 	}
 
@@ -984,10 +1011,32 @@ func (w *Worker) RefreshMaterializedViews() {
 		tracer.ResourceName("worker.refreshMaterializedViews"))
 	defer span.Finish()
 
-	if err := w.Resolver.DB.Exec(`
-		REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
-	`).Error; err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing materialized views"))
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY daily_session_counts_view;
+		`).Error
+
+	}); err != nil {
+		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
+	}
+
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
+		`).Error
+
+	}); err != nil {
+		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
 	}
 }
 
@@ -1079,6 +1128,12 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
+type RageClickSettings struct {
+	Window time.Duration
+	Radius int
+	Count  int
+}
+
 type EventProcessingAccumulator struct {
 	SessionSecureID string
 	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
@@ -1107,9 +1162,11 @@ type EventProcessingAccumulator struct {
 	AreEventsOutOfOrder bool
 	// Error
 	Error error
+	// Parameters for triggering rage click detection
+	RageClickSettings RageClickSettings
 }
 
-func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccumulator {
+func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings RageClickSettings) EventProcessingAccumulator {
 	return EventProcessingAccumulator{
 		SessionSecureID:            sessionSecureID,
 		ClickEventQueue:            list.New(),
@@ -1125,6 +1182,7 @@ func MakeEventProcessingAccumulator(sessionSecureID string) EventProcessingAccum
 		LatestSID:                  0,
 		AreEventsOutOfOrder:        false,
 		Error:                      nil,
+		RageClickSettings:          rageClickSettings,
 	}
 }
 
@@ -1186,7 +1244,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 			// purge old clicks
 			var toRemove []*list.Element
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
-				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
+				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > a.RageClickSettings.Window {
 					toRemove = append(toRemove, element)
 				}
 			}
@@ -1235,7 +1293,7 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 
 			numTotal := 0
 			rageClick := model.RageClickEvent{
-				TotalClicks: 5,
+				TotalClicks: a.RageClickSettings.Count,
 			}
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				el := element.Value.(*parse.ReplayEvent)
@@ -1250,16 +1308,15 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
 				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
 
-				RADIUS := 8.0
 				// if the distance between the current and previous click is less than the threshold
-				if math.Sqrt(first+second) <= RADIUS {
+				if math.Sqrt(first+second) <= float64(a.RageClickSettings.Radius) {
 					numTotal += 1
 					if !a.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
 						rageClick.StartTimestamp = el.Timestamp
 					}
 				}
 			}
-			if numTotal >= 5 {
+			if numTotal >= a.RageClickSettings.Count {
 				if a.CurrentlyInRageClickSet {
 					a.RageClickSets[len(a.RageClickSets)-1].TotalClicks += 1
 					a.RageClickSets[len(a.RageClickSets)-1].EndTimestamp = event.Timestamp

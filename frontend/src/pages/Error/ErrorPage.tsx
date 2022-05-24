@@ -1,7 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { ErrorState } from '@components/ErrorState/ErrorState';
-import { STARTING_PAGE } from '@components/Pagination/Pagination';
+import {
+    RESET_PAGE_MS,
+    STARTING_PAGE,
+} from '@components/Pagination/Pagination';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetDailyErrorFrequencyQuery,
@@ -24,7 +27,6 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import _ from 'lodash';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -100,6 +102,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const dateFromSearchParams = new URLSearchParams(location.search).get(
         SessionPageSearchParams.date
     );
+    const searchParamsChanged = useRef<Date>();
     const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
         new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
@@ -186,15 +189,15 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     useEffect(() => {
         // we just loaded the page for the first time
-        if (_.isEqual(existingParams, {})) {
-            setExistingParams(searchParams);
-        } else if (!_.isEqual(existingParams, searchParams)) {
+        if (
+            searchParamsChanged.current &&
+            new Date().getTime() - searchParamsChanged.current.getTime() >
+                RESET_PAGE_MS
+        ) {
             // the search query actually changed, reset the page
             setPage(STARTING_PAGE);
-            setExistingParams(searchParams);
         }
-        // only if the search params change, not the previous search params
-        // eslint-disable-next-line
+        searchParamsChanged.current = new Date();
     }, [searchParams, setPage]);
 
     return (

@@ -1,3 +1,4 @@
+import { RageClicksForm } from '@pages/WorkspaceSettings/RageClicksForm/RageClicksForm';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { Helmet } from 'react-helmet';
@@ -27,6 +28,10 @@ const ProjectSettings = () => {
                 <div className={styles.fieldsBox}>
                     <h3>Excluded Sessions</h3>
                     <ExcludedUsersForm />
+                </div>
+                <div className={styles.fieldsBox}>
+                    <h3>Rage Clicks</h3>
+                    <RageClicksForm />
                 </div>
                 <div className={styles.fieldsBox}>
                     <h3 className={classNames(styles.dangerTitle)}>

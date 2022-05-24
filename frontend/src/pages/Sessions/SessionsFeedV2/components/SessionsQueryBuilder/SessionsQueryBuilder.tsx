@@ -172,6 +172,9 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
             )
         );
     }
+    if (params.city) {
+        rules.push(deserializeGroup('city', 'is', [params.city]));
+    }
     if (params.device_id) {
         rules.push(
             deserializeGroup('session_device_id', 'is', [params.device_id])

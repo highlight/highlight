@@ -988,17 +988,26 @@ export const EditProjectDocument = gql`
         $name: String
         $billing_email: String
         $excluded_users: StringArray
+        $rage_click_window_seconds: Int
+        $rage_click_radius_pixels: Int
+        $rage_click_count: Int
     ) {
         editProject(
             id: $id
             name: $name
             billing_email: $billing_email
             excluded_users: $excluded_users
+            rage_click_window_seconds: $rage_click_window_seconds
+            rage_click_radius_pixels: $rage_click_radius_pixels
+            rage_click_count: $rage_click_count
         ) {
             id
             name
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
     }
 `;
@@ -1024,6 +1033,9 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
+ *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
+ *      rage_click_count: // value for 'rage_click_count'
  *   },
  * });
  */
@@ -1337,6 +1349,7 @@ export const CreateSessionCommentDocument = gql`
         $tags: [SessionCommentTagInput]!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createSessionComment(
@@ -1356,6 +1369,7 @@ export const CreateSessionCommentDocument = gql`
             tags: $tags
             integrations: $integrations
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
         ) {
             id
@@ -1413,6 +1427,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      tags: // value for 'tags'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1446,6 +1461,7 @@ export const CreateIssueForSessionCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createIssueForSessionComment(
@@ -1457,6 +1473,7 @@ export const CreateIssueForSessionCommentDocument = gql`
             time: $time
             issue_title: $issue_title
             issue_description: $issue_description
+            issue_team_id: $issue_team_id
             integrations: $integrations
         ) {
             id
@@ -1506,6 +1523,7 @@ export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1663,6 +1681,7 @@ export const CreateErrorCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createErrorComment(
@@ -1676,6 +1695,7 @@ export const CreateErrorCommentDocument = gql`
             author_name: $author_name
             integrations: $integrations
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
         ) {
             id
@@ -1718,6 +1738,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -1750,6 +1771,7 @@ export const CreateIssueForErrorCommentDocument = gql`
         $author_name: String!
         $integrations: [IntegrationType]!
         $issue_title: String
+        $issue_team_id: String
         $issue_description: String
     ) {
         createIssueForErrorComment(
@@ -1759,6 +1781,7 @@ export const CreateIssueForErrorCommentDocument = gql`
             author_name: $author_name
             text_for_attachment: $text_for_attachment
             issue_title: $issue_title
+            issue_team_id: $issue_team_id
             issue_description: $issue_description
             integrations: $integrations
         ) {
@@ -1805,6 +1828,7 @@ export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
  *      author_name: // value for 'author_name'
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
+ *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -4032,6 +4056,56 @@ export type RequestAccessMutationOptions = Apollo.BaseMutationOptions<
     Types.RequestAccessMutation,
     Types.RequestAccessMutationVariables
 >;
+export const ModifyClearbitIntegrationDocument = gql`
+    mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+        modifyClearbitIntegration(
+            workspace_id: $workspace_id
+            enabled: $enabled
+        )
+    }
+`;
+export type ModifyClearbitIntegrationMutationFn = Apollo.MutationFunction<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
+
+/**
+ * __useModifyClearbitIntegrationMutation__
+ *
+ * To run a mutation, you first call `useModifyClearbitIntegrationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useModifyClearbitIntegrationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [modifyClearbitIntegrationMutation, { data, loading, error }] = useModifyClearbitIntegrationMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      enabled: // value for 'enabled'
+ *   },
+ * });
+ */
+export function useModifyClearbitIntegrationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >(ModifyClearbitIntegrationDocument, baseOptions);
+}
+export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
+    typeof useModifyClearbitIntegrationMutation
+>;
+export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
+export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
 export const GetWebVitalDashboardDocument = gql`
     query GetWebVitalDashboard(
         $project_id: ID!
@@ -5971,6 +6045,8 @@ export const GetWorkspaceDocument = gql`
             id
             name
             secret
+            plan_tier
+            clearbit_enabled
             projects {
                 id
                 name
@@ -6413,11 +6489,13 @@ export const GetAdminDocument = gql`
             uid
             name
             email
+            phone
             photo_url
             slack_im_channel_id
             role
             email_verified
             user_defined_role
+            about_you_details_filled
         }
     }
 `;
@@ -6533,6 +6611,9 @@ export const GetProjectDocument = gql`
             verbose_id
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
         workspace: workspace_for_project(project_id: $id) {
             id
@@ -6737,6 +6818,14 @@ export const GetSubscriptionDetailsDocument = gql`
             baseAmount
             discountAmount
             discountPercent
+            lastInvoice {
+                amountDue
+                amountPaid
+                attemptCount
+                date
+                url
+                status
+            }
         }
     }
 `;
@@ -8588,6 +8677,11 @@ export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
             integration_type: Linear
             project_id: $project_id
         )
+        linear_teams(project_id: $project_id) {
+            team_id
+            name
+            key
+        }
     }
 `;
 

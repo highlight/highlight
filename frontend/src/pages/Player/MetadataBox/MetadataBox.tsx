@@ -2,16 +2,25 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { Avatar } from '@components/Avatar/Avatar';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetEnhancedUserDetailsQuery,
+    useGetProjectQuery,
+    useGetWorkspaceQuery,
     useMarkSessionAsStarredMutation,
 } from '@graph/hooks';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
-import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas';
+import {
+    Maybe,
+    PlanType,
+    Session,
+    SocialLink,
+    SocialType,
+} from '@graph/schemas';
+import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip';
+import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     FaExternalLinkSquareAlt,
     FaFacebookSquare,
@@ -32,6 +41,7 @@ export const MetadataBox = React.memo(() => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
+    const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>();
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -50,6 +60,11 @@ export const MetadataBox = React.memo(() => {
     const customAvatarImage = getIdentifiedUserProfileImage(
         session as Maybe<Session>
     );
+
+    // clear enhanced avatar when session changes
+    useEffect(() => {
+        setEnhancedAvatar(undefined);
+    }, [session_secure_id]);
 
     return (
         <div className={styles.userBox}>
@@ -90,10 +105,10 @@ export const MetadataBox = React.memo(() => {
                         <Skeleton circle={true} height={36} width={36} />
                     ) : (
                         <Avatar
-                            style={{ width: '36px', height: '36px' }}
+                            className={styles.avatar}
                             seed={session?.identifier ?? ''}
                             shape="rounded"
-                            customImage={customAvatarImage}
+                            customImage={customAvatarImage || enhancedAvatar}
                         />
                     )}
                 </div>
@@ -150,128 +165,139 @@ export const MetadataBox = React.memo(() => {
                     )}
                 </div>
             </div>
-            <UserDetailsBox />
+            <UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
         </div>
     );
 });
 
-export const UserDetailsBox = React.memo(() => {
-    const { project_id, session_secure_id } = useParams<{
-        project_id: string;
-        session_secure_id: string;
-    }>();
-    const { data, loading } = useGetEnhancedUserDetailsQuery({
-        variables: { session_secure_id },
-        fetchPolicy: 'no-cache',
-    });
+export const UserDetailsBox = React.memo(
+    ({
+        setEnhancedAvatar,
+    }: {
+        setEnhancedAvatar: (avatar: string) => void;
+    }) => {
+        const { project_id, session_secure_id } = useParams<{
+            project_id: string;
+            session_secure_id: string;
+        }>();
+        const { data: project } = useGetProjectQuery({
+            variables: { id: project_id },
+        });
+        const { data: workspace } = useGetWorkspaceQuery({
+            variables: { id: project?.workspace?.id || '' },
+            skip: !project?.workspace?.id,
+        });
+        const { data, loading } = useGetEnhancedUserDetailsQuery({
+            variables: { session_secure_id },
+            fetchPolicy: 'no-cache',
+        });
 
-    if (loading) {
-        return null;
-    }
+        useEffect(() => {
+            if (data?.enhanced_user_details?.avatar) {
+                setEnhancedAvatar(data.enhanced_user_details.avatar);
+            }
+        }, [setEnhancedAvatar, data]);
 
-    if (!data?.enhanced_user_details) {
-        return (
-            <Tooltip
-                mouseEnterDelay={0.3}
-                title={
-                    <a
-                        href={`/w/${project_id}/billing`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Workspace tier does not include enhanced user details.
-                        Click here to see upgrade options
-                    </a>
-                }
-            >
-                <div className={styles.userEnhanced}>
-                    <div style={{ width: 36 }}>
-                        <div className={styles.blurred}>
-                            <Avatar
-                                seed="test"
-                                className={styles.enhancedAvatar}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.enhancedTextSection}>
-                        <div className={styles.blurred}>
-                            <SocialComponent
-                                disabled
-                                socialLink={
-                                    {
-                                        link: 'http://example.com',
-                                        type: 'Github',
-                                    } as SocialLink
-                                }
-                                key={'example'}
-                            />
-                            SOME INTERESTING DETAILS HERE
-                        </div>
-                    </div>
-                </div>
-            </Tooltip>
-        );
-    }
+        if (loading) {
+            return null;
+        }
 
-    if (!hasEnrichedData(data)) {
-        return null;
-    }
-
-    return (
-        <div className={styles.userEnhanced}>
-            {!loading && (
-                <div className={styles.tooltip}>
-                    <InfoTooltip
-                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
-                        size="medium"
-                        hideArrow
-                        placement="topLeft"
-                    />
-                </div>
-            )}
-            {loading ? (
-                <Skeleton circle={true} height={36} width={36} />
-            ) : (
-                <div style={{ width: 36 }}>
-                    {data?.enhanced_user_details?.avatar && (
-                        <Avatar
-                            seed="test"
-                            customImage={data.enhanced_user_details.avatar}
-                            className={styles.enhancedAvatar}
-                        />
-                    )}
-                </div>
-            )}
-            <div className={styles.enhancedTextSection}>
-                {loading ? (
-                    <Skeleton height="2rem" />
-                ) : (
-                    <div className={styles.enhancedLinksGrid}>
-                        {data?.enhanced_user_details?.name && (
-                            <h4 id={styles.enhancedName}>
-                                {data?.enhanced_user_details?.name}
-                            </h4>
-                        )}
-                        {data?.enhanced_user_details?.bio && (
-                            <p className={styles.enhancedBio}>
-                                {data?.enhanced_user_details?.bio}
-                            </p>
-                        )}
-                        {data?.enhanced_user_details?.socials?.map(
-                            (e) =>
-                                e && (
-                                    <SocialComponent
-                                        socialLink={e}
-                                        key={e.type}
+        if (!data?.enhanced_user_details) {
+            if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
+                return (
+                    <PaywallTooltip tier={PlanType.Startup}>
+                        <div className={styles.userEnhancedGrid}>
+                            <div style={{ width: 36 }}>
+                                <div className={styles.blurred}>
+                                    <Avatar
+                                        seed="test"
+                                        className={styles.avatar}
                                     />
-                                )
-                        )}
+                                </div>
+                            </div>
+                            <div className={styles.enhancedTextSection}>
+                                <div className={styles.blurred}>
+                                    <SocialComponent
+                                        disabled
+                                        socialLink={
+                                            {
+                                                link: 'http://example.com',
+                                                type: 'Github',
+                                            } as SocialLink
+                                        }
+                                        key={'example'}
+                                    />
+                                    SOME INTERESTING DETAILS HERE
+                                </div>
+                            </div>
+                        </div>
+                    </PaywallTooltip>
+                );
+            }
+            if (!workspace?.workspace?.clearbit_enabled) {
+                return (
+                    <div className={styles.enableClearbit}>
+                        <a
+                            href={`/${project_id}/integrations`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Enable Clearbit to collect more user details.
+                        </a>
+                    </div>
+                );
+            }
+        }
+
+        if (!hasEnrichedData(data)) {
+            return null;
+        }
+
+        return (
+            <div className={styles.userEnhanced}>
+                {!loading && (
+                    <div className={styles.tooltip}>
+                        <InfoTooltip
+                            title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
+                            size="medium"
+                            hideArrow
+                            placement="topLeft"
+                        />
                     </div>
                 )}
+                <div className={styles.enhancedTextSection}>
+                    {loading ? (
+                        <Skeleton height="2rem" />
+                    ) : (
+                        <>
+                            {data?.enhanced_user_details?.name && (
+                                <h4 id={styles.enhancedName}>
+                                    {data?.enhanced_user_details?.name}
+                                </h4>
+                            )}
+                            {data?.enhanced_user_details?.bio && (
+                                <p className={styles.enhancedBio}>
+                                    {data?.enhanced_user_details?.bio}
+                                </p>
+                            )}
+                            <div className={styles.enhancedLinksGrid}>
+                                {data?.enhanced_user_details?.socials?.map(
+                                    (e) =>
+                                        e && (
+                                            <SocialComponent
+                                                socialLink={e}
+                                                key={e.type}
+                                            />
+                                        )
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
-    );
-});
+        );
+    }
+);
 
 const SocialComponent = ({
     socialLink,

@@ -12,25 +12,40 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
-import { useUpdateAdminAboutYouDetailsMutation } from '@graph/hooks';
+import {
+    useGetAdminLazyQuery,
+    useUpdateAdminAboutYouDetailsMutation,
+} from '@graph/hooks';
+import { Landing } from '@pages/Landing/Landing';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useHistory } from 'react-router';
 import { useToggle } from 'react-use';
 
-import styles from './AboutYouPage.module.scss';
+import styles from './AboutYouCard.module.scss';
 
-const AboutYouPage = () => {
+interface Props {
+    onSubmitHandler: () => void;
+}
+
+const AboutYouPage = ({ onSubmitHandler }: Props) => {
     const { setLoadingState } = useAppLoadingContext();
     const { admin } = useAuthContext();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
     const [isEngineeringRole, toggleIsEngineeringRole] = useToggle(false);
     const [isProductRole, toggleIsProductRole] = useToggle(false);
     const [role, setRole] = useState('');
-    const history = useHistory();
+    const [getAdminQuery, { loading: adminDataLoading }] = useGetAdminLazyQuery(
+        {
+            fetchPolicy: 'network-only',
+            onCompleted: () => {
+                onSubmitHandler();
+            },
+        }
+    );
     const [
         updateAdminAboutYourDetails,
         { loading },
@@ -49,6 +64,7 @@ const AboutYouPage = () => {
             const [adminFirstName, adminLastName] = admin.name.split(' ');
             setFirstName(adminFirstName || '');
             setLastName(adminLastName || '');
+            setPhone(admin.phone || '');
         }
     }, [admin]);
 
@@ -69,7 +85,9 @@ const AboutYouPage = () => {
             await updateAdminAboutYourDetails({
                 variables: {
                     adminDetails: {
-                        name: `${firstName} ${lastName}`,
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone: phone,
                         user_defined_role: role,
                         referral: signUpReferral,
                         user_defined_persona: persona,
@@ -77,34 +95,24 @@ const AboutYouPage = () => {
                 },
             });
 
-            window.sessionStorage.setItem(
-                'HighlightFilledOutAboutYouForm',
-                'true'
-            );
             setSignUpReferral('');
-            message.success(
-                `Nice to meet you ${firstName}, let's get started!`
-            );
             if (window.Intercom) {
                 window.Intercom('update', {
                     isProductPersona: isProductRole,
                     isEngineeringPersona: isEngineeringRole,
                 });
             }
-            if (window.rudderanalytics) {
-                window.rudderanalytics.identify(admin?.id, {
-                    isProductPersona: isProductRole,
-                    isEngineeringPersona: isEngineeringRole,
-                });
-            }
-            history.push('/');
+            getAdminQuery();
+            message.success(
+                `Nice to meet you ${firstName}, let's get started!`
+            );
         } catch {
             message.error('Something went wrong, try again?');
         }
     };
 
     return (
-        <>
+        <Landing>
             <Helmet>
                 <title>About You</title>
             </Helmet>
@@ -118,22 +126,37 @@ const AboutYouPage = () => {
                 <CardForm onSubmit={onFormSubmit}>
                     <section className={styles.section}>
                         <h3>What's your name?</h3>
+                        <div className={styles.name}>
+                            <Input
+                                placeholder="First Name"
+                                name="First Name"
+                                value={firstName}
+                                onChange={(e) => {
+                                    setFirstName(e.target.value);
+                                }}
+                                autoFocus
+                            />
+                            <Input
+                                placeholder="Last Name"
+                                name="Last Name"
+                                value={lastName}
+                                onChange={(e) => {
+                                    setLastName(e.target.value);
+                                }}
+                            />
+                        </div>
+                    </section>
+                    <section className={styles.section}>
+                        <h3>What's your phone number?</h3>
                         <Input
-                            placeholder="First Name"
-                            name="First Name"
-                            value={firstName}
+                            placeholder="Phone #"
+                            name="Phone #"
+                            type={'tel'}
+                            value={phone}
                             onChange={(e) => {
-                                setFirstName(e.target.value);
+                                setPhone(e.target.value);
                             }}
                             autoFocus
-                        />
-                        <Input
-                            placeholder="Last Name"
-                            name="Last Name"
-                            value={lastName}
-                            onChange={(e) => {
-                                setLastName(e.target.value);
-                            }}
                         />
                     </section>
 
@@ -172,12 +195,13 @@ const AboutYouPage = () => {
                             trackingId="AboutYouPageNext"
                             type="primary"
                             block
-                            loading={loading}
+                            loading={loading || adminDataLoading}
                             htmlType="submit"
                             disabled={
                                 firstName.length === 0 ||
                                 lastName.length === 0 ||
                                 role.length === 0 ||
+                                (phone.length > 0 && phone.length < 10) ||
                                 (!isEngineeringRole && !isProductRole)
                             }
                         >
@@ -186,7 +210,7 @@ const AboutYouPage = () => {
                     </CardFormActionsContainer>
                 </CardForm>
             </Card>
-        </>
+        </Landing>
     );
 };
 

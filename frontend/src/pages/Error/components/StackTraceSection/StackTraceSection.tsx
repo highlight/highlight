@@ -9,7 +9,11 @@ import Skeleton from 'react-loading-skeleton';
 
 import Alert from '../../../../components/Alert/Alert';
 import ButtonLink from '../../../../components/Button/ButtonLink/ButtonLink';
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
+import {
+    ErrorGroup,
+    ErrorObject,
+    Maybe,
+} from '../../../../graph/generated/schemas';
 import ErrorPageStyles from '../../ErrorPage.module.scss';
 import styles from './StackTraceSection.module.scss';
 
@@ -27,30 +31,37 @@ interface Props {
         | undefined;
     loading: boolean;
     compact?: boolean;
+    errorObject?: ErrorObject;
 }
 
-const StackTraceSection = ({ errorGroup, loading, compact = false }: Props) => {
+const StackTraceSection = ({
+    errorGroup,
+    loading,
+    compact = false,
+    errorObject,
+}: Props) => {
+    const structuredStackTrace =
+        errorGroup?.structured_stack_trace ??
+        errorObject?.structured_stack_trace;
+
     /**
      * The length of the longest line number in all the stack frames.
      * We use this to figure out the minimal amount of spacing needed to show all the line numbers.
      */
     const longestLineNumberCharacterLength =
-        errorGroup?.structured_stack_trace?.reduce(
-            (longestLineNumber, currentStackTrace) => {
-                if (
-                    currentStackTrace?.lineNumber &&
-                    currentStackTrace?.lineNumber?.toString().length >
-                        longestLineNumber
-                ) {
-                    return currentStackTrace?.lineNumber?.toString().length;
-                }
+        structuredStackTrace?.reduce((longestLineNumber, currentStackTrace) => {
+            if (
+                currentStackTrace?.lineNumber &&
+                currentStackTrace?.lineNumber?.toString().length >
+                    longestLineNumber
+            ) {
+                return currentStackTrace?.lineNumber?.toString().length;
+            }
 
-                return longestLineNumber;
-            },
-            0
-        ) ?? 0;
+            return longestLineNumber;
+        }, 0) ?? 0;
 
-    const everyFrameHasError = errorGroup?.structured_stack_trace?.every(
+    const everyFrameHasError = structuredStackTrace?.every(
         (frame) =>
             !!frame?.error &&
             !frame.error.includes('file does not contain source map url')
@@ -92,8 +103,8 @@ const StackTraceSection = ({ errorGroup, loading, compact = false }: Props) => {
                     .map((_, index) => (
                         <Skeleton key={index} className={styles.skeleton} />
                     ))
-            ) : errorGroup?.structured_stack_trace?.length ? (
-                errorGroup?.structured_stack_trace?.map((e, i) => (
+            ) : structuredStackTrace?.length ? (
+                structuredStackTrace?.map((e, i) => (
                     <StackSection
                         key={i}
                         fileName={e?.fileName ?? ''}

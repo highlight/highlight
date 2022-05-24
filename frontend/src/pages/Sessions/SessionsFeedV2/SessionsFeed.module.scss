@@ -170,12 +170,19 @@
     transition: border 0.2s ease-in-out;
 }
 
+.feedLine {
+    box-shadow: initial;
+
+    &.hasScrolled {
+        box-shadow: 0 0 32px 8px var(--color-gray-300);
+    }
+}
+
 .feedItems {
-    @include hide-scrollbar;
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
-    height: calc(100vh - 385px);
+    height: calc(100vh - 382px);
     overflow: auto;
 
     &.hasScrolled {

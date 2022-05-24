@@ -53,6 +53,8 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
+require github.com/mattn/go-isatty v0.0.14 // indirect
+
 require (
 	cloud.google.com/go v0.65.0 // indirect
 	cloud.google.com/go/firestore v1.3.0 // indirect
@@ -94,6 +96,7 @@ require (
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
+	github.com/leonelquinteros/hubspot v0.1.0
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

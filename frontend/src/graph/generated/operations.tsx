@@ -195,13 +195,22 @@ export type EditProjectMutationVariables = Types.Exact<{
     name?: Types.Maybe<Types.Scalars['String']>;
     billing_email?: Types.Maybe<Types.Scalars['String']>;
     excluded_users?: Types.Maybe<Types.Scalars['StringArray']>;
+    rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>;
+    rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>;
+    rage_click_count?: Types.Maybe<Types.Scalars['Int']>;
 }>;
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
     editProject?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'billing_email' | 'excluded_users'
+            | 'id'
+            | 'name'
+            | 'billing_email'
+            | 'excluded_users'
+            | 'rage_click_window_seconds'
+            | 'rage_click_radius_pixels'
+            | 'rage_click_count'
         >
     >;
 };
@@ -324,6 +333,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -368,6 +378,7 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -456,6 +467,7 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -483,6 +495,7 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.IntegrationType>>
         | Types.Maybe<Types.IntegrationType>;
     issue_title?: Types.Maybe<Types.Scalars['String']>;
+    issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
@@ -1447,6 +1460,15 @@ export type RequestAccessMutation = { __typename?: 'Mutation' } & Pick<
     'requestAccess'
 >;
 
+export type ModifyClearbitIntegrationMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    enabled: Types.Scalars['Boolean'];
+}>;
+
+export type ModifyClearbitIntegrationMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'modifyClearbitIntegration'>;
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -2288,7 +2310,7 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret'
+            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
@@ -2457,11 +2479,13 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'uid'
             | 'name'
             | 'email'
+            | 'phone'
             | 'photo_url'
             | 'slack_im_channel_id'
             | 'role'
             | 'email_verified'
             | 'user_defined_role'
+            | 'about_you_details_filled'
         >
     >;
 };
@@ -2487,7 +2511,14 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'verbose_id' | 'billing_email' | 'excluded_users'
+            | 'id'
+            | 'name'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'excluded_users'
+            | 'rage_click_window_seconds'
+            | 'rage_click_radius_pixels'
+            | 'rage_click_count'
         >
     >;
     workspace?: Types.Maybe<
@@ -2563,7 +2594,19 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
     subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
         Types.SubscriptionDetails,
         'baseAmount' | 'discountAmount' | 'discountPercent'
-    >;
+    > & {
+            lastInvoice?: Types.Maybe<
+                { __typename?: 'Invoice' } & Pick<
+                    Types.Invoice,
+                    | 'amountDue'
+                    | 'amountPaid'
+                    | 'attemptCount'
+                    | 'date'
+                    | 'url'
+                    | 'status'
+                >
+            >;
+        };
 };
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
@@ -3173,7 +3216,16 @@ export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithLinearQuery = {
     __typename?: 'Query';
-} & { is_integrated_with_linear: Types.Query['is_integrated_with'] };
+} & { is_integrated_with_linear: Types.Query['is_integrated_with'] } & {
+    linear_teams?: Types.Maybe<
+        Array<
+            { __typename?: 'LinearTeam' } & Pick<
+                Types.LinearTeam,
+                'team_id' | 'name' | 'key'
+            >
+        >
+    >;
+};
 
 export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -3657,6 +3709,7 @@ export const namedOperations = {
         UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
         SyncSlackIntegration: 'SyncSlackIntegration' as const,
         RequestAccess: 'RequestAccess' as const,
+        ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {

@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils';
 import Integration from '@pages/IntegrationsPage/components/Integration';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils';
@@ -32,9 +33,14 @@ const IntegrationsPage = () => {
         loading: loadingZapier,
     } = useZapierIntegration();
 
+    const {
+        isClearbitIntegratedWithWorkspace,
+        loading: loadingClearbit,
+    } = useClearbitIntegration();
+
     const loading = useMemo(
-        () => loadingLinear || loadingSlack || loadingZapier,
-        [loadingLinear, loadingSlack, loadingZapier]
+        () => loadingLinear || loadingSlack || loadingZapier || loadingClearbit,
+        [loadingLinear, loadingSlack, loadingZapier, loadingClearbit]
     );
 
     const integrations = useMemo(() => {
@@ -45,12 +51,14 @@ const IntegrationsPage = () => {
             defaultEnable:
                 (inter.key === 'slack' && isSlackConnectedToWorkspace) ||
                 (inter.key === 'linear' && isLinearIntegratedWithProject) ||
-                (inter.key === 'zapier' && isZapierIntegratedWithProject),
+                (inter.key === 'zapier' && isZapierIntegratedWithProject) ||
+                (inter.key === 'clearbit' && isClearbitIntegratedWithWorkspace),
         }));
     }, [
         isSlackConnectedToWorkspace,
         isLinearIntegratedWithProject,
         isZapierIntegratedWithProject,
+        isClearbitIntegratedWithWorkspace,
         isHighlightAdmin,
     ]);
 

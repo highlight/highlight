@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/lambda"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/lambda"
 
 	"github.com/pkg/errors"
 
@@ -60,6 +61,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	HubspotApi             HubspotApiInterface
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,
@@ -87,6 +89,12 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
+}
+
+type HubspotApiInterface interface {
+	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error
+	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(adminID int, workspaceID int) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -206,7 +214,8 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
+	workspace := &model.Workspace{}
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
@@ -249,7 +258,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
-	return &workspaceId, nil
+	return &admin.ID, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
@@ -1454,12 +1463,15 @@ func (r *Resolver) MakeLinearGraphQLRequest(accessToken string, body string) ([]
 	return b, nil
 }
 
+type LinearTeam struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
+}
 type LinearTeamsResponse struct {
 	Data struct {
 		Teams struct {
-			Nodes []struct {
-				ID string `json:"id"`
-			} `json:"nodes"`
+			Nodes []LinearTeam `json:"nodes"`
 		} `json:"teams"`
 	} `json:"data"`
 }
@@ -1470,6 +1482,8 @@ func (r *Resolver) GetLinearTeams(accessToken string) (*LinearTeamsResponse, err
 		teams {
 			nodes {
 				id
+				name
+				key
 			}
 		}
 	}
@@ -1614,19 +1628,21 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 	return createAttachmentRes, nil
 }
 
-func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string) error {
-	teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
-	if err != nil {
-		return err
+func (r *Resolver) CreateLinearIssueAndAttachment(workspace *model.Workspace, attachment *model.ExternalAttachment, issueTitle string, issueDescription string, commentText string, authorName string, viewLink string, teamId *string) error {
+	if teamId == nil {
+		teamRes, err := r.GetLinearTeams(*workspace.LinearAccessToken)
+		if err != nil {
+			return err
+		}
+
+		if len(teamRes.Data.Teams.Nodes) <= 0 {
+			return e.New("no teams to make a linear issue to")
+		}
+
+		teamId = &teamRes.Data.Teams.Nodes[0].ID
 	}
 
-	if len(teamRes.Data.Teams.Nodes) <= 0 {
-		return e.New("no teams to make a linear issue to")
-	}
-
-	teamId := teamRes.Data.Teams.Nodes[0].ID
-
-	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, teamId, issueTitle, issueDescription)
+	issueRes, err := r.CreateLinearIssue(*workspace.LinearAccessToken, *teamId, issueTitle, issueDescription)
 	if err != nil {
 		return err
 	}
@@ -1923,7 +1939,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Scopes(model.EventsObjectTable(s.ID)).Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
+	if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()
