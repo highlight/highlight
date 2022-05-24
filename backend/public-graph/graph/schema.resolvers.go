@@ -259,13 +259,13 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	return feedbackComment.ID, nil
 }
 
-// TODO(vkorolik) deprecate as clients migrate to pushMetrics
 func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
 	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeWebVital, metric.Name, metric.Value)
 }
 
-// TODO(vkorolik) deprecate as clients migrate to pushMetrics
 func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
+	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
 	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeDevice, metric.Name, metric.Value)
 }
 
