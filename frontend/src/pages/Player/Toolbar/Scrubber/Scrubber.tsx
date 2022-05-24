@@ -2,10 +2,7 @@ import Button from '@components/Button/Button/Button';
 import Tooltip from '@components/Tooltip/Tooltip';
 import SvgDragIcon from '@icons/DragIcon';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import {
-    ReplayerState,
-    useReplayerContext,
-} from '@pages/Player/ReplayerContext';
+import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
@@ -15,10 +12,6 @@ import Draggable from 'react-draggable';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
 import styles from './Scrubber.module.scss';
-
-interface Props {
-    zanetodo: boolean;
-}
 
 const TICK_COUNT = 5;
 
@@ -30,10 +23,7 @@ const Scrubber = ({}: {}) => {
         setZoomAreaRight,
     } = useToolbarItemsContext();
     const {
-        state,
         time,
-        pause,
-        play,
         setTime,
         sessionMetadata,
         sessionIntervals,
@@ -46,7 +36,7 @@ const Scrubber = ({}: {}) => {
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
         (sliderWrapperRef.current?.getBoundingClientRect().width ?? 1) - 12;
-    const [dragTime, setDragTime] = useState(time);
+    const [dragTime, setDragTime] = useState(0);
     const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft);
     const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight);
     const [zoomAreaLeftUrlParam, setZoomAreaLeftUrlParam] = useQueryParam(
@@ -57,7 +47,7 @@ const Scrubber = ({}: {}) => {
         'zoomEnd',
         NumberParam
     );
-    const [shouldPlay, setShouldPlay] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [zoomHistory, setZoomHistory] = useState<[number, number][]>([]);
 
     const getSliderPercent = useCallback(
@@ -103,8 +93,10 @@ const Scrubber = ({}: {}) => {
     );
 
     useEffect(() => {
-        setDragTime(time);
-    }, [time]);
+        if (!isDragging) {
+            setDragTime(time);
+        }
+    }, [time, isDragging]);
 
     useEffect(() => {
         setDragAreaLeft(zoomAreaLeft);
@@ -233,6 +225,7 @@ const Scrubber = ({}: {}) => {
                         const sliderPercent = data.x / wrapperWidth;
                         const newTime = getSliderTime(sliderPercent);
                         setTime(newTime);
+                        setIsDragging(false);
                     }}
                     onDrag={(e, data) => {
                         const sliderPercent = data.x / wrapperWidth;
@@ -241,15 +234,13 @@ const Scrubber = ({}: {}) => {
                         setDragTime(newTime);
                     }}
                     onStart={() => {
-                        if (state === ReplayerState.Playing) {
-                            setShouldPlay(true);
-                            pause();
-                        } else {
-                            setShouldPlay(false);
-                        }
+                        setIsDragging(true);
                     }}
                     position={{
-                        x: Math.max(getSliderPercent(time) * wrapperWidth, 0),
+                        x: Math.max(
+                            getSliderPercent(dragTime) * wrapperWidth,
+                            0
+                        ),
                         y: -36,
                     }}
                 >
@@ -289,7 +280,7 @@ const Scrubber = ({}: {}) => {
                     >
                         <SvgDragIcon
                             style={{
-                                color: '#757575',
+                                color: 'var(--color-scrubber-zoom-handle)',
                                 transform: 'translateY(-1px)',
                             }}
                         />
@@ -324,7 +315,7 @@ const Scrubber = ({}: {}) => {
                     >
                         <SvgDragIcon
                             style={{
-                                color: '#757575',
+                                color: 'var(--color-scrubber-zoom-handle)',
                                 transform: 'translateY(-1px)',
                             }}
                         />
@@ -346,7 +337,7 @@ const Scrubber = ({}: {}) => {
                         }
 
                         return (
-                            <Tooltip key={i.startPercent} title={'Inactivity'}>
+                            <Tooltip key={i.startPercent} title={'Inactive'}>
                                 <div
                                     className={styles.inactiveArea}
                                     style={{

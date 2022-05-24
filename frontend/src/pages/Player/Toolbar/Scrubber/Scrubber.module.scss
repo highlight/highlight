@@ -1,4 +1,3 @@
-/* stylelint-disable color-no-hex */
 .scrubberBackground {
     align-items: center;
     background-color: var(--color-primary-background);
@@ -20,7 +19,7 @@
 }
 
 .zoomArea {
-    background: #565656;
+    background: var(--color-scrubber-zoom-region);
     border-radius: 5px;
     height: 16px;
     position: relative;
@@ -40,7 +39,7 @@
 
 .scrubHandle {
     align-items: center;
-    background: #ca0000;
+    background: var(--color-scrubber-scrub-handle);
     border-radius: var(--border-radius);
     cursor: move;
     display: flex;
@@ -55,7 +54,7 @@
 }
 
 .timeMarker {
-    background: #ca0000;
+    background: var(--color-scrubber-scrub-handle);
     height: 44px;
     position: absolute;
     top: 20px;
@@ -90,7 +89,7 @@
 }
 
 .zoomAreaHandle {
-    background: #565656;
+    background: var(--color-scrubber-zoom-region);
     cursor: ew-resize;
     height: 16px;
     position: absolute;
@@ -108,7 +107,7 @@
 }
 
 .inactiveArea {
-    background: #c17272;
+    background: var(--color-scrubber-inactive-region);
     border-radius: 0 0 5px 5px;
     height: 100%;
     position: absolute;

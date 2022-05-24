@@ -15,8 +15,6 @@ interface Series {
     counts: number[];
 }
 
-// interface TooltipProps {}
-
 const POPOVER_TIMEOUT_MS = 1000;
 
 interface Props {
