@@ -647,6 +647,11 @@ export class Highlight {
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
                     );
+                    if (!this.sessionData.sessionID) {
+                        this.logger.log(`Highlight Session Initialization got
+  session ID ${this.sessionData.sessionID} as response: ${JSON.stringify(gr)}.
+                        `)
+                    }
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
                     window.sessionStorage.setItem(
