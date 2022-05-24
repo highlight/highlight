@@ -1,5 +1,5 @@
-import { useAuthContext } from '@authentication/AuthContext';
-import { datadogLogs } from '@datadog/browser-logs';
+import { useAuthContext } from "@authentication/AuthContext";
+import { datadogLogs } from "@datadog/browser-logs";
 import {
     OnSessionPayloadAppendedDocument,
     useGetEventChunksQuery,
@@ -8,44 +8,34 @@ import {
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useGetTimelineIndicatorEventsQuery,
-    useMarkSessionAsViewedMutation,
-} from '@graph/hooks';
-import {
-    ErrorObject,
-    Session,
-    SessionComment,
-    SessionResults,
-} from '@graph/schemas';
-import { Replayer } from '@highlight-run/rrweb';
-import {
-    customEvent,
-    playerMetaData,
-    SessionInterval,
-    viewportResizeDimension,
-} from '@highlight-run/rrweb/dist/types';
+    useMarkSessionAsViewedMutation
+} from "@graph/hooks";
+import { ErrorObject, Session, SessionComment, SessionResults } from "@graph/schemas";
+import { Replayer } from "@highlight-run/rrweb";
+import { customEvent, playerMetaData, SessionInterval, viewportResizeDimension } from "@highlight-run/rrweb/dist/types";
 import {
     findLatestUrl,
     getAllPerformanceEvents,
     getAllUrlEvents,
-    getBrowserExtensionScriptURLs,
-} from '@pages/Player/SessionLevelBar/utils/utils';
-import { useParams } from '@util/react-router/useParams';
-import { timerEnd } from '@util/timer/timer';
-import useMap from '@util/useMap';
-import { H } from 'highlight.run';
-import moment from 'moment';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { BooleanParam, useQueryParam } from 'use-query-params';
+    getBrowserExtensionScriptURLs
+} from "@pages/Player/SessionLevelBar/utils/utils";
+import { useParams } from "@util/react-router/useParams";
+import { timerEnd } from "@util/timer/timer";
+import useMap from "@util/useMap";
+import { H } from "highlight.run";
+import moment from "moment";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { BooleanParam, useQueryParam } from "use-query-params";
 
-import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
+import { HighlightEvent, HighlightPerformancePayload } from "../HighlightEvent";
 import {
     ParsedHighlightEvent,
     ParsedSessionInterval,
     RageClick,
     ReplayerContextInterface,
-    ReplayerState,
-} from '../ReplayerContext';
+    ReplayerState
+} from "../ReplayerContext";
 import {
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
@@ -54,9 +44,9 @@ import {
     getEventsForTimelineIndicator,
     getSessionIntervals,
     PlayerSearchParameters,
-    useSetPlayerTimestampFromSearchParam,
-} from './utils';
-import usePlayerConfiguration from './utils/usePlayerConfiguration';
+    useSetPlayerTimestampFromSearchParam
+} from "./utils";
+import usePlayerConfiguration from "./utils/usePlayerConfiguration";
 
 const LOOKAHEAD_MS = 30000;
 const MAX_CHUNK_COUNT = 5;
@@ -593,12 +583,17 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
+    // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
     const initReplayer = (newEvents: HighlightEvent[]) => {
-        setState(ReplayerState.Loading);
-        // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
         const playerMountingRoot = document.getElementById(
             'player'
         ) as HTMLElement;
+        if (!playerMountingRoot) {
+            setState(ReplayerState.Empty);
+            return;
+        } else {
+            setState(ReplayerState.Loading);
+        }
         // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
         // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
         if (playerMountingRoot?.childNodes?.length > 0) {
