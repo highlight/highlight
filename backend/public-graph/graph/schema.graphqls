@@ -118,6 +118,15 @@ type Mutation {
         verbatim: String!
         timestamp: Timestamp!
     ): ID!
+    # TODO(vkorolik) deprecate as clients migrate to pushMetrics
+    addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
+    addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
+}
+
+# TODO(vkorolik) deprecate as clients migrate to pushMetrics
+input WebVitalMetricInput {
+    name: String!
+    value: Float!
 }
 
 type Query {

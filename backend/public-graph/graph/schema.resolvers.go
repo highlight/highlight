@@ -131,27 +131,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 }
 
 func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
-	if len(metrics) == 0 {
-		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
-		return -1, e.New("no metrics provided")
-	}
-	secureID := metrics[0].SessionSecureID
-
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, e.Wrap(err, "no session found for push metrics")
-	}
-
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.PushMetrics,
-		PushMetrics: &kafkaqueue.PushMetricsArgs{
-			SessionID: session.ID,
-			ProjectID: session.ProjectID,
-			Metrics:   metrics,
-		}}, strconv.Itoa(session.ID))
-
-	return session.ID, err
+	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
@@ -277,6 +257,16 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	})
 
 	return feedbackComment.ID, nil
+}
+
+// TODO(vkorolik) deprecate as clients migrate to pushMetrics
+func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
+	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeWebVital, metric.Name, metric.Value)
+}
+
+// TODO(vkorolik) deprecate as clients migrate to pushMetrics
+func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
+	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeDevice, metric.Name, metric.Value)
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

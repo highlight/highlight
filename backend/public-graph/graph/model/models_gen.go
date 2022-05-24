@@ -70,6 +70,11 @@ type StackFrameInput struct {
 	Source       *string       `json:"source"`
 }
 
+type WebVitalMetricInput struct {
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
+}
+
 type MetricType string
 
 const (

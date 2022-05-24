@@ -1400,6 +1400,48 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 		}
 	})
 }
+func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+	if len(metrics) == 0 {
+		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
+		return -1, e.New("no metrics provided")
+	}
+	// pushMetrics expects all metrics to be part of the same session
+	secureID := metrics[0].SessionSecureID
+	for _, m := range metrics {
+		if m.SessionSecureID != secureID {
+			return -1, e.New(fmt.Sprintf("got metric for different session from first %s: %+v", secureID, m))
+		}
+	}
+	session := &model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
+		log.Error(err)
+		return -1, e.Wrap(err, "no session found for push metrics")
+	}
+
+	err := r.ProducerQueue.Submit(&kafka_queue.Message{
+		Type: kafka_queue.PushMetrics,
+		PushMetrics: &kafka_queue.PushMetricsArgs{
+			SessionID: session.ID,
+			ProjectID: session.ProjectID,
+			Metrics:   metrics,
+		}}, strconv.Itoa(session.ID))
+
+	return session.ID, err
+}
+
+func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
+		return -1, e.Wrapf(err, "error querying device metric session")
+	}
+	return r.SubmitMetricsMessage(ctx, []*customModels.MetricInput{{
+		SessionSecureID: session.SecureID,
+		Name:            name,
+		Value:           value,
+		Type:            metricType,
+		Timestamp:       time.Now(),
+	}})
+}
 
 func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
 	newMetric := &model.Metric{
