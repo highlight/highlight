@@ -200,6 +200,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
                                 firstName.length === 0 ||
                                 lastName.length === 0 ||
                                 role.length === 0 ||
+                                (phone.length > 0 && phone.length < 10) ||
                                 (!isEngineeringRole && !isProductRole)
                             }
                         >
