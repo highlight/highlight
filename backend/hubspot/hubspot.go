@@ -24,7 +24,8 @@ func NewHubspotAPI(client hubspot.Client, db *gorm.DB) *HubspotApi {
 }
 
 func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
-	resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
+	var hubspotContactId int
+	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
 			{
 				Property: "email",
@@ -57,13 +58,19 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 				Value:    phone,
 			},
 		},
-	})
-	if err != nil {
-		return e.Wrap(err, "error pushing hubspot contact data")
+	}); err != nil {
+		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
+		if getResp, getErr := h.hubspotClient.Contacts().GetByEmail(email); err != nil {
+			return e.Wrap(err, e.Wrap(getErr, "error pushing hubspot contact data").Error())
+		} else {
+			hubspotContactId = getResp.Vid
+		}
+	} else {
+		hubspotContactId = resp.Vid
 	}
-	log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
+	log.Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
 	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
+		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
 		return e.Wrap(err, "error updating workspace HubspotContactID")
 	}
 	return nil
