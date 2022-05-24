@@ -68,9 +68,9 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 	} else {
 		hubspotContactId = resp.Vid
 	}
-	log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
+	log.Infof("succesfully created a hubspot contact with id: %v", hubspotContactId)
 	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
+		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
 		return e.Wrap(err, "error updating workspace HubspotContactID")
 	}
 	return nil
