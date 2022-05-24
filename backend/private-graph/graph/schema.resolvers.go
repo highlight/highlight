@@ -243,12 +243,28 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		return false, err
 	}
 
-	admin.Name = &adminDetails.Name
+	fullName := adminDetails.FirstName + " " + adminDetails.LastName
+	admin.FirstName = &adminDetails.FirstName
+	admin.LastName = &adminDetails.LastName
+	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = adminDetails.Phone
 	admin.AboutYouDetailsFilled = &model.T
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.HubspotApi.CreateContactForAdmin(
+			admin.ID,
+			*admin.Email,
+			*admin.UserDefinedRole,
+			*admin.UserDefinedPersona,
+			*admin.FirstName,
+			*admin.LastName,
+			*admin.Phone); err != nil {
+			log.Error(err, "error creating hubspot contact")
+		}
+	})
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -301,6 +317,15 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+		if err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+			log.Error(err, "error creating hubspot company")
+		} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+		}
+	})
+
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
 		params := &stripe.CustomerParams{
@@ -314,9 +339,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		}
 	}
 
-	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
-		StripeCustomerID: &c.ID,
-	}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
@@ -537,12 +560,21 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	workspace := &model.Workspace{}
-	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(err, " failed to add admin to workspace")
-		return adminId, err
+		log.Error(e.Wrap(err, "failed to add admin to workspace"))
+		return adminID, err
 	}
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(*adminID, workspaceID); err != nil {
+			log.Error(e.Wrapf(
+				err,
+				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
+				*adminID,
+				workspaceID,
+			))
+		}
+	})
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
@@ -550,17 +582,17 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 	}
 
-	return adminId, nil
+	return adminID, nil
 }
 
 func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
@@ -4646,16 +4678,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
-				log.Errorf("error creating apollo contact: %v", err)
-			} else {
-				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
-				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-					log.Errorf("error adding new contact to sequence: %v", err)
-				}
-			}
-		})
+
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

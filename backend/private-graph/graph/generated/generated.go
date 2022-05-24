@@ -6025,7 +6025,8 @@ type SearchParams {
 }
 
 input AdminAboutYouDetails {
-    name: String!
+    first_name: String!
+    last_name: String!
     user_defined_role: String!
     user_defined_persona: String!
     referral: String!
@@ -31956,11 +31957,19 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
-		case "name":
+		case "first_name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "last_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

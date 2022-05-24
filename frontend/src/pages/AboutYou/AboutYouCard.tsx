@@ -85,7 +85,8 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
             await updateAdminAboutYourDetails({
                 variables: {
                     adminDetails: {
-                        name: `${firstName} ${lastName}`,
+                        first_name: firstName,
+                        last_name: lastName,
                         phone: phone,
                         user_defined_role: role,
                         referral: signUpReferral,

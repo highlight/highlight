@@ -61,6 +61,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	HubspotApi             HubspotApiInterface
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,
@@ -88,6 +89,12 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
+}
+
+type HubspotApiInterface interface {
+	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error
+	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(adminID int, workspaceID int) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -207,7 +214,8 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
+	workspace := &model.Workspace{}
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
@@ -250,7 +258,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
-	return &workspaceId, nil
+	return &admin.ID, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {

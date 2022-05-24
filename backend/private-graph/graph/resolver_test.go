@@ -2,13 +2,15 @@ package graph
 
 import (
 	"context"
+	"os"
+	"testing"
+
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
-	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -72,6 +74,20 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 	})
 }
 
+type HubspotMock struct{}
+
+func (h *HubspotMock) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
+	return nil
+}
+
+func (h *HubspotMock) CreateContactCompanyAssociation(adminID int, workspaceID int) error {
+	return nil
+}
+
+func (h *HubspotMock) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
+	return nil
+}
+
 // ensure that invite link email is checked case-insensitively with admin email
 func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 	tests := map[string]struct {
@@ -126,7 +142,10 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 			// test logic
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
-			r := &mutationResolver{Resolver: &Resolver{DB: DB}}
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+
+			t.Logf("workspace id: %v", workspace.ID)
+			t.Logf("invite link: %v", *inviteLink.Secret)
 			workspaceID, err := r.AddAdminToWorkspace(ctx, workspace.ID, *inviteLink.Secret)
 			if v.errorExpected != (err != nil) {
 				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)

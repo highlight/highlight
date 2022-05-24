@@ -208,6 +208,7 @@ type Workspace struct {
 	LinearAccessToken           *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
+	HubspotCompanyID            *int
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
@@ -366,10 +367,13 @@ func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
 type Admin struct {
 	Model
 	Name                  *string
+	FirstName             *string
+	LastName              *string
+	HubspotContactID      *int
 	Email                 *string
+	AboutYouDetailsFilled *bool
 	Phone                 *string
 	EmailVerified         *bool            `gorm:"default:false"`
-	AboutYouDetailsFilled *bool            `gorm:"default:false"`
 	PhotoURL              *string          `json:"photo_url"`
 	UID                   *string          `gorm:"unique_index"`
 	Organizations         []Organization   `gorm:"many2many:organization_admins;"`
