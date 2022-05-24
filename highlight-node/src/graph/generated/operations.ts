@@ -67,15 +67,23 @@ export enum MetricType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addDeviceMetric: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
   addSessionProperties?: Maybe<Scalars['ID']>;
   addTrackProperties?: Maybe<Scalars['ID']>;
+  addWebVitals: Scalars['ID'];
   identifySession?: Maybe<Scalars['ID']>;
   initializeSession?: Maybe<Session>;
   markBackendSetup: Scalars['ID'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
   pushMetrics: Scalars['ID'];
   pushPayload: Scalars['Int'];
+};
+
+
+export type MutationAddDeviceMetricArgs = {
+  metric: DeviceMetricInput;
+  session_id: Scalars['ID'];
 };
 
 
@@ -96,6 +104,12 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationAddTrackPropertiesArgs = {
   properties_object?: InputMaybe<Scalars['Any']>;
+  session_id: Scalars['ID'];
+};
+
+
+export type MutationAddWebVitalsArgs = {
+  metric: WebVitalMetricInput;
   session_id: Scalars['ID'];
 };
 
@@ -185,6 +199,11 @@ export type StackFrameInput = {
   isNative?: InputMaybe<Scalars['Boolean']>;
   lineNumber?: InputMaybe<Scalars['Int']>;
   source?: InputMaybe<Scalars['String']>;
+};
+
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type PushBackendPayloadMutationVariables = Types.Exact<{

@@ -109,6 +109,8 @@ export type Mutation = {
   pushMetrics: Scalars['ID'];
   markBackendSetup: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
+  addWebVitals: Scalars['ID'];
+  addDeviceMetric: Scalars['ID'];
 };
 
 
@@ -178,6 +180,23 @@ export type MutationAddSessionFeedbackArgs = {
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
   timestamp: Scalars['Timestamp'];
+};
+
+
+export type MutationAddWebVitalsArgs = {
+  session_id: Scalars['ID'];
+  metric: WebVitalMetricInput;
+};
+
+
+export type MutationAddDeviceMetricArgs = {
+  session_id: Scalars['ID'];
+  metric: DeviceMetricInput;
+};
+
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type Query = {
