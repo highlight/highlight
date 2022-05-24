@@ -24,50 +24,48 @@ func NewHubspotAPI(client hubspot.Client, db *gorm.DB) *HubspotApi {
 }
 
 func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
-	go func() {
-		resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
-			Properties: []hubspot.Property{
-				{
-					Property: "email",
-					Name:     "email",
-					Value:    email,
-				},
-				{
-					Property: "user_defined_role",
-					Name:     "user_defined_role",
-					Value:    userDefinedRole,
-				},
-				{
-					Property: "user_defined_persona",
-					Name:     "user_defined_persona",
-					Value:    userDefinedPersona,
-				},
-				{
-					Property: "firstname",
-					Name:     "firstname",
-					Value:    first,
-				},
-				{
-					Property: "lastname",
-					Name:     "lastname",
-					Value:    last,
-				},
-				{
-					Property: "phone",
-					Name:     "phone",
-					Value:    phone,
-				},
+	resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
+		Properties: []hubspot.Property{
+			{
+				Property: "email",
+				Name:     "email",
+				Value:    email,
 			},
-		})
-		if err != nil {
-			return e.Wrap(err, "error pushing hubspot contact data")
-		}
-		log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
-		if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-			Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
-			return e.Wrap(err, "error updating workspace HubspotContactID")
-		}
-	}()
+			{
+				Property: "user_defined_role",
+				Name:     "user_defined_role",
+				Value:    userDefinedRole,
+			},
+			{
+				Property: "user_defined_persona",
+				Name:     "user_defined_persona",
+				Value:    userDefinedPersona,
+			},
+			{
+				Property: "firstname",
+				Name:     "firstname",
+				Value:    first,
+			},
+			{
+				Property: "lastname",
+				Name:     "lastname",
+				Value:    last,
+			},
+			{
+				Property: "phone",
+				Name:     "phone",
+				Value:    phone,
+			},
+		},
+	})
+	if err != nil {
+		return e.Wrap(err, "error pushing hubspot contact data")
+	}
+	log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
+	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
+		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
+		return e.Wrap(err, "error updating workspace HubspotContactID")
+	}
 	return nil
 }
 
