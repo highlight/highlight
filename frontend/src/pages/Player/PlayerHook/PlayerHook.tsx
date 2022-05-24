@@ -1,5 +1,5 @@
-import { useAuthContext } from "@authentication/AuthContext";
-import { datadogLogs } from "@datadog/browser-logs";
+import { useAuthContext } from '@authentication/AuthContext';
+import { datadogLogs } from '@datadog/browser-logs';
 import {
     OnSessionPayloadAppendedDocument,
     useGetEventChunksQuery,
@@ -8,34 +8,44 @@ import {
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useGetTimelineIndicatorEventsQuery,
-    useMarkSessionAsViewedMutation
-} from "@graph/hooks";
-import { ErrorObject, Session, SessionComment, SessionResults } from "@graph/schemas";
-import { Replayer } from "@highlight-run/rrweb";
-import { customEvent, playerMetaData, SessionInterval, viewportResizeDimension } from "@highlight-run/rrweb/dist/types";
+    useMarkSessionAsViewedMutation,
+} from '@graph/hooks';
+import {
+    ErrorObject,
+    Session,
+    SessionComment,
+    SessionResults,
+} from '@graph/schemas';
+import { Replayer } from '@highlight-run/rrweb';
+import {
+    customEvent,
+    playerMetaData,
+    SessionInterval,
+    viewportResizeDimension,
+} from '@highlight-run/rrweb/dist/types';
 import {
     findLatestUrl,
     getAllPerformanceEvents,
     getAllUrlEvents,
-    getBrowserExtensionScriptURLs
-} from "@pages/Player/SessionLevelBar/utils/utils";
-import { useParams } from "@util/react-router/useParams";
-import { timerEnd } from "@util/timer/timer";
-import useMap from "@util/useMap";
-import { H } from "highlight.run";
-import moment from "moment";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { BooleanParam, useQueryParam } from "use-query-params";
+    getBrowserExtensionScriptURLs,
+} from '@pages/Player/SessionLevelBar/utils/utils';
+import { useParams } from '@util/react-router/useParams';
+import { timerEnd } from '@util/timer/timer';
+import useMap from '@util/useMap';
+import { H } from 'highlight.run';
+import moment from 'moment';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { HighlightEvent, HighlightPerformancePayload } from "../HighlightEvent";
+import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
     ParsedSessionInterval,
     RageClick,
     ReplayerContextInterface,
-    ReplayerState
-} from "../ReplayerContext";
+    ReplayerState,
+} from '../ReplayerContext';
 import {
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
@@ -44,9 +54,9 @@ import {
     getEventsForTimelineIndicator,
     getSessionIntervals,
     PlayerSearchParameters,
-    useSetPlayerTimestampFromSearchParam
-} from "./utils";
-import usePlayerConfiguration from "./utils/usePlayerConfiguration";
+    useSetPlayerTimestampFromSearchParam,
+} from './utils';
+import usePlayerConfiguration from './utils/usePlayerConfiguration';
 
 const LOOKAHEAD_MS = 30000;
 const MAX_CHUNK_COUNT = 5;
