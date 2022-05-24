@@ -1,39 +1,96 @@
 package zapier
 
 import (
+	"net/http"
+
+	resthooks "github.com/highlight-run/go-resthooks"
 	model "github.com/highlight-run/highlight/backend/model"
-	resthooks "github.com/marconi/go-resthooks"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type ZapierResthookStore struct {
-	db          *gorm.DB
-	project     *model.Project
-	parsedToken *ParsedZapierToken
+	DB *gorm.DB
 }
 
-// TODO actually implement
-func (s *ZapierResthookStore) Save(sub *resthooks.Subscription) error {
-	sub.UserId = s.parsedToken.ProjectID
-	log.Infof("New Zapier subscription: %s", sub.TargetUrl)
+func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request) error {
+	if r == nil {
+		return e.New("request is nil")
+	}
+	parsedToken := r.Context().Value(model.ContextKeys.ZapierToken).(*ParsedZapierToken)
+	sub.UserId = parsedToken.ProjectID
+
+	subscription := model.ResthookSubscription{
+		ProjectID: sub.UserId,
+		Event:     &sub.Event,
+		TargetUrl: &sub.TargetUrl,
+	}
+
+	if err := s.DB.Create(&subscription).Error; err != nil {
+		return e.Wrap(err, "error saving resthook subscription to database")
+	}
+
+	sub.Id = subscription.ID
+
+	log.Infof("New Zapier subscription: %d; %s", sub.Id, sub.TargetUrl)
 	return nil
 }
 
-// TODO actually implement
-func (s *ZapierResthookStore) FindById(int) (*resthooks.Subscription, error) {
-	sub := resthooks.Subscription{}
+func (s *ZapierResthookStore) FindById(id int) (*resthooks.Subscription, error) {
+	hookSub := model.ResthookSubscription{}
+
+	if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: id}}).First(&hookSub).Error; err != nil {
+		return nil, e.Wrap(err, "error finding resthook subscription by id")
+	}
+
+	sub := resthooks.Subscription{
+		Id:        hookSub.ID,
+		UserId:    hookSub.ProjectID,
+		Event:     *hookSub.Event,
+		TargetUrl: *hookSub.TargetUrl,
+	}
+
 	return &sub, nil
 }
 
-// TODO actually implement
-func (s *ZapierResthookStore) FindByUserId(int, string) (*resthooks.Subscription, error) {
-	sub := resthooks.Subscription{}
+func (s *ZapierResthookStore) FindByUserId(project_id int, event string) (*resthooks.Subscription, error) {
+	hookSub := model.ResthookSubscription{}
+
+	if err := s.DB.Where(&model.ResthookSubscription{ProjectID: project_id, Event: &event}).First(&hookSub).Error; err != nil {
+		return nil, e.Wrap(err, "error finding resthook subscription by event and project id")
+	}
+
+	sub := resthooks.Subscription{
+		Id:        hookSub.ID,
+		UserId:    hookSub.ProjectID,
+		Event:     *hookSub.Event,
+		TargetUrl: *hookSub.TargetUrl,
+	}
+
 	return &sub, nil
 }
 
-// TODO actually implement
-func (s *ZapierResthookStore) DeleteById(id int) error {
-	log.Infof("Delete Zapier subscription: %d", id)
+func (s *ZapierResthookStore) DeleteById(id int, r *http.Request) error {
+
+	// if request is passed in, check if the user is authorized to delete the subscription
+	// request could be nil as DeleteById is sometimes called by Notify and Notify does not pass in a request
+	if r != nil {
+		sub, err := s.FindById(id)
+		if err != nil {
+			return err
+		}
+
+		parsedToken := r.Context().Value(model.ContextKeys.ZapierProject).(*ParsedZapierToken)
+		if parsedToken.ProjectID != sub.UserId {
+			return e.New("Request is not authorized to delete this subscription")
+		}
+	}
+
+	if err := s.DB.Delete(&model.ResthookSubscription{Model: model.Model{ID: id}}).Error; err != nil {
+		return e.Wrap(err, "error deleting resthook subscription by id")
+	}
+
+	log.Infof("Deleting Zapier subscription: %d", id)
 	return nil
 }

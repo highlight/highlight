@@ -6,11 +6,13 @@ package graph
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/util"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -245,6 +247,14 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
+
+		hookPayload := zapier.HookPayload{
+			UserIdentifier: identifier,
+			CommentID:      &feedbackComment.ID,
+			CommentText:    feedbackComment.Text,
+		}
+
+		r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionFeedbackAlert.ID), hookPayload)
 
 		sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,

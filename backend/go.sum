@@ -242,6 +242,8 @@ github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hasura/go-graphql-client v0.3.0 h1:OazwBX920Fx+FEOPVVe7Xgax/Qbcnc2MoTyeVQVPRr8=
 github.com/hasura/go-graphql-client v0.3.0/go.mod h1:ovhXpnBL/+pYmmdYHndovgAc/wmhaXKvKwJETjtMomQ=
+github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20 h1:fDVd3qWijBuQfAQXg2EE4l61we3LeyYDdLD4vaHrXd4=
+github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20/go.mod h1:dOtaACP0/P9aQNzT/8yAxueBspswjmZqt5TyPnQbD8A=
 github.com/highlight-run/highlight-go v0.4.0 h1:I+a/BgUJ+L7etFptSF9HBIbThKcLgZN8hEK0tsvx4WU=
 github.com/highlight-run/highlight-go v0.4.0/go.mod h1:5s0djwmGhlGcM67M8/ZLf2TWd9C5rNkyyRSb4KDQyeo=
 github.com/highlight-run/opensearch-go v1.0.1 h1:LNe4qAgQnw8YwXpAzK2Uu2RLtx61wka08Kza5c4gj30=

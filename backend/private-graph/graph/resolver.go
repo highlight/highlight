@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/lambda"
 
 	"github.com/pkg/errors"
@@ -61,6 +62,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	RH                     *resthooks.Resthook
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,

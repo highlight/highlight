@@ -156,6 +156,7 @@ var Models = []interface{}{
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
+	&ResthookSubscription{},
 }
 
 func init() {
@@ -264,6 +265,13 @@ type EnhancedUserDetails struct {
 	Email       *string `gorm:"unique_index"`
 	PersonJSON  *string
 	CompanyJSON *string
+}
+
+type ResthookSubscription struct {
+	Model
+	ProjectID int     `json:"project_id"`
+	Event     *string `json:"event"`
+	TargetUrl *string `json:"target_url"`
 }
 
 type RegistrationData struct {

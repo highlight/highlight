@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/go-resthooks"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/zapier"
 
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
@@ -50,6 +53,7 @@ type Resolver struct {
 	MailClient            *sendgrid.Client
 	StorageClient         *storage.StorageClient
 	OpenSearch            *opensearch.Client
+	RH                    *resthooks.Resthook
 }
 
 type Location struct {
@@ -210,6 +214,11 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				return
 			}
 
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
+			}
+			r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
 		}
 	})
@@ -276,6 +285,11 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				log.Error(e.Wrap(err, "error querying workspace"))
 				return
 			}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
+			}
+			r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
 		}
@@ -1069,6 +1083,11 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 					}
 				}
 
+				hookPayload := zapier.HookPayload{
+					UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl,
+				}
+				r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
 			}
 		})
@@ -1197,6 +1216,11 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 				log.Error(e.Wrapf(err, "[project_id: %d] error querying workspace", session.ProjectID))
 				return
 			}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject,
+			}
+			r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
 		}
@@ -1399,6 +1423,11 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			if err != nil {
 				log.Error(err)
 			}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject,
+			}
+			r.RH.Notify(sessionObj.ID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload)
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}

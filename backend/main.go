@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/lambda"
 	"html/template"
 	"io"
 	"net/http"
@@ -12,17 +11,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/lambda"
+
 	"github.com/sendgrid/sendgrid-go"
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
-	"github.com/gorilla/websocket"
-	H "github.com/highlight-run/highlight-go"
-	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
-
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/gorilla/websocket"
+	H "github.com/highlight-run/highlight-go"
+	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
@@ -205,6 +206,15 @@ func main() {
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
 	r.HandleFunc("/health", healthRouter(runtimeParsed))
+
+	zapierStore := zapier.ZapierResthookStore{
+		DB: db,
+	}
+	rh := resthooks.NewResthook(&zapierStore)
+
+	privateResolver.RH = &rh
+	defer rh.Close()
+
 	/*
 		Selectively turn on backends depending on the input flag
 		If type is 'all', we run public-graph on /public and private-graph on /private
@@ -218,7 +228,7 @@ func main() {
 		}
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
-			zapier.CreateZapierRoutes(r, db)
+			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(slackSigningSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
@@ -291,6 +301,7 @@ func main() {
 						PushPayloadWorkerPool: pushPayloadWorkerPool,
 						AlertWorkerPool:       alertWorkerpool,
 						OpenSearch:            opensearchClient,
+						RH:                    &rh,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -371,6 +382,7 @@ func main() {
 			PushPayloadWorkerPool: pushPayloadWorkerPool,
 			AlertWorkerPool:       alertWorkerpool,
 			OpenSearch:            opensearchClient,
+			RH:                    &rh,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
