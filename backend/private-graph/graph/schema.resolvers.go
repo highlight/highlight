@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -254,7 +254,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.AboutYouDetailsFilled = &model.T
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.createHubspotContactForAdmin(
+		if err := r.HubspotApi.CreateContactForAdmin(
 			admin.ID,
 			*admin.Email,
 			*admin.UserDefinedRole,
@@ -319,9 +319,9 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-		if err := r.createHubspotCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+		if err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
 			log.Error(err, "error creating hubspot company")
-		} else if err := r.createHubspotContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+		} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
 			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
 		}
 	})
@@ -566,7 +566,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		return adminID, err
 	}
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.createHubspotContactCompanyAssociation(*adminID, workspaceID); err != nil {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(*adminID, workspaceID); err != nil {
 			log.Error(e.Wrapf(
 				err,
 				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",

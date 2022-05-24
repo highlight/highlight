@@ -13,6 +13,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/lambda"
 
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/leonelquinteros/hubspot"
 
 	"github.com/sendgrid/sendgrid-go"
@@ -191,7 +192,7 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
-		HubspotClient:          hubspot.NewClient(hubspot.NewClientConfig()),
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.

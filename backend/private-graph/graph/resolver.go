@@ -41,7 +41,6 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/leonelquinteros/hubspot"
 )
 
 // This file will not be regenerated automatically.
@@ -62,7 +61,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
-	HubspotClient          hubspot.Client
+	HubspotApi             HubspotApiInterface
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,
@@ -92,117 +91,10 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	return domain, nil
 }
 
-// Creates a hubspot contact and writes the contact ID to the db.
-func (r *Resolver) createHubspotContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
-	resp, err := r.HubspotClient.Contacts().Create(hubspot.ContactsRequest{
-		Properties: []hubspot.Property{
-			{
-				Property: "email",
-				Name:     "email",
-				Value:    email,
-			},
-			{
-				Property: "user_defined_role",
-				Name:     "user_defined_role",
-				Value:    userDefinedRole,
-			},
-			{
-				Property: "user_defined_persona",
-				Name:     "user_defined_persona",
-				Value:    userDefinedPersona,
-			},
-			{
-				Property: "firstname",
-				Name:     "firstname",
-				Value:    first,
-			},
-			{
-				Property: "lastname",
-				Name:     "lastname",
-				Value:    last,
-			},
-			{
-				Property: "phone",
-				Name:     "phone",
-				Value:    phone,
-			},
-		},
-	})
-	if err != nil {
-		return e.Wrap(err, "error pushing hubspot contact data")
-	}
-	log.Infof("succesfully created a hubspot contact with id: %v", resp.Vid)
-	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).
-		Updates(&model.Admin{HubspotContactID: &resp.Vid}).Error; err != nil {
-		return e.Wrap(err, "error updating workspace HubspotContactID")
-	}
-	return nil
-}
-
-func (r *Resolver) createHubspotCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
-	components := strings.Split(adminEmail, "@")
-	var domain string
-	if len(components) > 1 {
-		domain = components[1]
-	}
-	resp, err := r.HubspotClient.Companies().Create(hubspot.CompaniesRequest{
-		Properties: []hubspot.Property{
-			{
-				Property: "name",
-				Name:     "name",
-				Value:    name,
-			},
-			{
-				Property: "domain",
-				Name:     "domain",
-				Value:    domain,
-			},
-		},
-	})
-	if err != nil {
-		return e.Wrap(err, "error creating company in hubspot")
-	}
-	log.Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
-	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Updates(&model.Workspace{HubspotCompanyID: &resp.CompanyID}).Error; err != nil {
-		return e.Wrap(err, "error updating workspace HubspotCompanyID")
-	}
-	return nil
-}
-
-func (r *Resolver) createHubspotContactCompanyAssociation(adminID int, workspaceID int) error {
-	admin := &model.Admin{}
-	if err := r.DB.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
-		return e.Wrap(err, "error retrieving admin details")
-	}
-	workspace := &model.Workspace{}
-	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
-		return e.Wrap(err, "error retrieving workspace details")
-	}
-	if workspace.HubspotCompanyID == nil {
-		return e.New("hubspot company id is empy")
-	} else if admin.HubspotContactID == nil {
-		return e.New("hubspot contact id is empy")
-	}
-	if err := r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
-		DefinitionID: hubspot.CRMAssociationCompanyToContact,
-		FromObjectID: *workspace.HubspotCompanyID,
-		ToObjectID:   *admin.HubspotContactID,
-	}); err != nil {
-		return e.Wrap(err, "error creating company to contact association")
-	} else {
-		log.Info("success creating company to contact association")
-	}
-	if err := r.HubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
-		DefinitionID: hubspot.CRMAssociationContactToCompany,
-		FromObjectID: *admin.HubspotContactID,
-		ToObjectID:   *workspace.HubspotCompanyID,
-	}); err != nil {
-		return e.Wrap(err, "error creating contact to copmany association")
-	} else {
-		log.Info("success creating contact to company association")
-	}
-	return nil
+type HubspotApiInterface interface {
+	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error
+	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(adminID int, workspaceID int) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
