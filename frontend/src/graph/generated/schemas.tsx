@@ -857,6 +857,7 @@ export type Query = {
     workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
+    identifier_suggestion: Array<Scalars['String']>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     generate_zapier_access_token: Scalars['String'];
@@ -1140,6 +1141,11 @@ export type QueryEnvironment_SuggestionArgs = {
 
 export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryIdentifier_SuggestionArgs = {
+    project_id: Scalars['ID'];
+    query: Scalars['String'];
 };
 
 export type QuerySlack_Channel_SuggestionArgs = {

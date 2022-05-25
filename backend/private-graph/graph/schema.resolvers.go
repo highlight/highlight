@@ -3053,7 +3053,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
 
-	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3864,7 +3864,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			%s
 		]
 	}}`, query)
-	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3928,7 +3928,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3978,7 +3978,7 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
+	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -4029,7 +4029,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	errorResults := []*model.Field{}
 
 	g.Go(func() error {
-		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 		if err != nil {
 			return err
 		}
@@ -4037,7 +4037,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	})
 
 	g.Go(func() error {
-		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
 		if err != nil {
 			return err
 		}
@@ -4444,6 +4444,26 @@ func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int)
 	}
 
 	return appVersions, nil
+}
+
+func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
+	options := opensearch.SearchOptions{
+		MaxResults:     pointy.Int(0),
+		AggregateField: pointy.String("identifier.keyword"),
+	}
+
+	results := []model.Session{}
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, input, options, &results)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying identifier aggregates")
+	}
+
+	return lo.Keys(aggs), nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
