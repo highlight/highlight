@@ -33,6 +33,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -405,6 +406,19 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")
 	}
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		sessionCountForAdmin := admin.NumberOfSessionsViewed + 1
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: sessionCountForAdmin}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+		}
+		r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{hubspot.Property{
+			Name:     "number_of_highlight_sessions_viewed",
+			Property: "number_of_highlight_sessions_viewed",
+			Value:    sessionCountForAdmin,
+		}})
+	})
+
 	session := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
