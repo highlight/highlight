@@ -1405,28 +1405,34 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
 		return -1, e.New("no metrics provided")
 	}
-	// pushMetrics expects all metrics to be part of the same session
-	secureID := metrics[0].SessionSecureID
+	sessionMetrics := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
-		if m.SessionSecureID != secureID {
-			return -1, e.New(fmt.Sprintf("got metric for different session from first %s: %+v", secureID, m))
+		if _, ok := sessionMetrics[m.SessionSecureID]; !ok {
+			sessionMetrics[m.SessionSecureID] = []*customModels.MetricInput{}
+		}
+		sessionMetrics[m.SessionSecureID] = append(sessionMetrics[m.SessionSecureID], m)
+	}
+
+	for secureID, metrics := range sessionMetrics {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
+			log.Error(err)
+			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+		}
+
+		err := r.ProducerQueue.Submit(&kafka_queue.Message{
+			Type: kafka_queue.PushMetrics,
+			PushMetrics: &kafka_queue.PushMetricsArgs{
+				SessionID: session.ID,
+				ProjectID: session.ProjectID,
+				Metrics:   metrics,
+			}}, strconv.Itoa(session.ID))
+		if err != nil {
+			return -1, err
 		}
 	}
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, e.Wrap(err, "no session found for push metrics")
-	}
 
-	err := r.ProducerQueue.Submit(&kafka_queue.Message{
-		Type: kafka_queue.PushMetrics,
-		PushMetrics: &kafka_queue.PushMetricsArgs{
-			SessionID: session.ID,
-			ProjectID: session.ProjectID,
-			Metrics:   metrics,
-		}}, strconv.Itoa(session.ID))
-
-	return session.ID, err
+	return 0, nil
 }
 
 func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
