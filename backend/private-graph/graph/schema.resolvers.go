@@ -406,28 +406,32 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "admin not logged in")
 	}
 
+	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		var newSessionCountForAdmin int
-		if admin.NumberOfSessionsViewed != nil {
-			newSessionCountForAdmin = *admin.NumberOfSessionsViewed
-		}
-		newSessionCountForAdmin += 1
-		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &newSessionCountForAdmin}).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
-		} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
-			Name:     "number_of_highlight_sessions_viewed",
-			Property: "number_of_highlight_sessions_viewed",
-			Value:    newSessionCountForAdmin,
-		}}); err != nil {
-			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+		// Only update the the admin's view count if its the first time this session is viewed.
+		if s.Viewed == nil || !*s.Viewed {
+			var newSessionCountForAdmin int
+			if admin.NumberOfSessionsViewed != nil {
+				newSessionCountForAdmin = *admin.NumberOfSessionsViewed
+			}
+			newSessionCountForAdmin += 1
+			if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &newSessionCountForAdmin}).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+			} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_sessions_viewed",
+				Property: "number_of_highlight_sessions_viewed",
+				Value:    newSessionCountForAdmin,
+			}}); err != nil {
+				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+			}
 		}
 	})
 
-	session := &model.Session{}
+	newSession := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&newSession).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -441,7 +445,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		ID: admin.ID,
 	}
 
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, newSession.ID, "viewed_by_admins", []interface{}{
 		newAdminView}); err != nil {
 		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
 	}
@@ -450,7 +454,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return session, nil
+	return newSession, nil
 }
 
 func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
