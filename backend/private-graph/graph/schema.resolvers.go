@@ -4463,7 +4463,7 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "error querying identifier aggregates")
 	}
 
-	return lo.Keys(aggs), nil
+	return lo.Filter(lo.Keys(aggs), func(k string, idx int) bool { return len(k) > 0 }), nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
