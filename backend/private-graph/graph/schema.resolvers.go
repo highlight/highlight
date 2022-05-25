@@ -408,22 +408,38 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		// Only update the the admin's view count if its the first time this session is viewed.
-		if s.Viewed == nil || !*s.Viewed {
-			var newSessionCountForAdmin int
-			if admin.NumberOfSessionsViewed != nil {
-				newSessionCountForAdmin = *admin.NumberOfSessionsViewed
-			}
-			newSessionCountForAdmin += 1
-			if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &newSessionCountForAdmin}).Error; err != nil {
-				log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
-			} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
-				Name:     "number_of_highlight_sessions_viewed",
-				Property: "number_of_highlight_sessions_viewed",
-				Value:    newSessionCountForAdmin,
-			}}); err != nil {
-				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
-			}
+		// Check if this admin has already viewed
+		var currentSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where session_id = ? and admin_id = ?
+	`, s.ID, admin.ID).Scan(&currentSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying count of session views from admin"))
+			return
+		} else if currentSessionCount > 0 {
+			log.Info("not updating hubspot session count; admin has already viewed this session")
+		}
+
+		var totalSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where session_id = ? and admin_id = ?
+	`, s.ID, admin.ID).Scan(&totalSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying total count of session views from admin"))
+			return
+		}
+		totalSessionCountAsInt := int(totalSessionCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+		} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+			Name:     "number_of_highlight_sessions_viewed",
+			Property: "number_of_highlight_sessions_viewed",
+			Value:    totalSessionCountAsInt,
+		}}); err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
 		}
 	})
 
