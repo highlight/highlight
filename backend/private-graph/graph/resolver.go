@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/leonelquinteros/hubspot"
 
 	"github.com/pkg/errors"
 
@@ -95,6 +96,8 @@ type HubspotApiInterface interface {
 	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error
 	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error
 	CreateContactCompanyAssociation(adminID int, workspaceID int) error
+	UpdateContactProperty(adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {

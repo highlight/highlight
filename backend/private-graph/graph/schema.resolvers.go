@@ -26,13 +26,14 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -404,11 +405,51 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")
 	}
-	session := &model.Session{}
+
+	// Update the the number of sessions viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// Check if this admin has already viewed
+		var currentSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where session_id = ? and admin_id = ?
+	`, s.ID, admin.ID).Scan(&currentSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying count of session views from admin"))
+			return
+		} else if currentSessionCount > 0 {
+			log.Info("not updating hubspot session count; admin has already viewed this session")
+			return
+		}
+
+		var totalSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying total count of session views from admin"))
+			return
+		}
+		totalSessionCountAsInt := int(totalSessionCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+		} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+			Name:     "number_of_highlight_sessions_viewed",
+			Property: "number_of_highlight_sessions_viewed",
+			Value:    totalSessionCountAsInt,
+		}}); err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+		}
+		log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
+	})
+
+	newSession := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&newSession).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -422,7 +463,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		ID: admin.ID,
 	}
 
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, newSession.ID, "viewed_by_admins", []interface{}{
 		newAdminView}); err != nil {
 		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
 	}
@@ -431,7 +472,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return session, nil
+	return newSession, nil
 }
 
 func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {

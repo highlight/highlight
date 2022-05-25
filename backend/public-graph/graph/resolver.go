@@ -44,13 +44,12 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	PushPayloadWorkerPool *workerpool.WorkerPool
-	AlertWorkerPool       *workerpool.WorkerPool
-	DB                    *gorm.DB
-	ProducerQueue         *kafka_queue.Queue
-	MailClient            *sendgrid.Client
-	StorageClient         *storage.StorageClient
-	OpenSearch            *opensearch.Client
+	AlertWorkerPool *workerpool.WorkerPool
+	DB              *gorm.DB
+	ProducerQueue   *kafka_queue.Queue
+	MailClient      *sendgrid.Client
+	StorageClient   *storage.StorageClient
+	OpenSearch      *opensearch.Client
 }
 
 type Location struct {

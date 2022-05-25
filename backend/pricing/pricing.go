@@ -6,8 +6,10 @@ import (
 	"os"
 	"time"
 
+	hubspotAPI "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -261,14 +263,14 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 }
 
 func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
-	return reportUsage(DB, stripeClient, workspaceID, &productType)
+	return reportUsage(DB, stripeClient, workspaceID, &productType, true)
 }
 
 func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
-	return reportUsage(DB, stripeClient, workspaceID, nil)
+	return reportUsage(DB, stripeClient, workspaceID, nil, true)
 }
 
-func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
+func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType, reportToHubspot bool) error {
 	var workspace model.Workspace
 	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
@@ -403,6 +405,18 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		if err != nil {
 			return e.Wrap(err, "error getting sessions meter")
 		}
+		if reportToHubspot {
+			go func() {
+				api := hubspotAPI.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), DB)
+				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{hubspot.Property{
+					Name:     "highlight_session_count",
+					Property: "highlight_session_count",
+					Value:    meter,
+				}}); err != nil {
+					log.Error(e.Wrap(err, "error updating highlight session count in hubspot"))
+				}
+			}()
+		}
 
 		limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
 		if workspace.MonthlySessionLimit != nil {
@@ -453,7 +467,7 @@ func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
 	}
 
 	for _, workspaceID := range workspaceIDs {
-		if err := reportUsage(DB, stripeClient, workspaceID, nil); err != nil {
+		if err := reportUsage(DB, stripeClient, workspaceID, nil, true); err != nil {
 			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
 		}
 	}
