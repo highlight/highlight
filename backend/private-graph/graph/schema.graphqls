@@ -848,6 +848,7 @@ type Query {
     workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
+    identifier_suggestion(project_id: ID!, query: String!): [String!]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     generate_zapier_access_token(project_id: ID!): String!

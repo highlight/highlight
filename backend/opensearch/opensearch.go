@@ -67,12 +67,13 @@ type Client struct {
 }
 
 type SearchOptions struct {
-	MaxResults    *int
-	ResultsFrom   *int
-	SortField     *string
-	SortOrder     *string
-	ReturnCount   *bool
-	ExcludeFields []string
+	MaxResults     *int
+	ResultsFrom    *int
+	SortField      *string
+	SortOrder      *string
+	ReturnCount    *bool
+	ExcludeFields  []string
+	AggregateField *string
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -293,7 +294,132 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, err error) {
+func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, aggregateResults map[string]int, err error) {
+	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
+		return 0, nil, e.Wrap(err, "query is not valid JSON")
+	}
+
+	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+
+	sort := ""
+	if options.SortField != nil {
+		sortOrder := "asc"
+		if options.SortOrder != nil {
+			sortOrder = *options.SortOrder
+		}
+		sort = fmt.Sprintf(`, "sort" : [{"%s" : {"order" : "%s"}}]`, *options.SortField, sortOrder)
+	}
+
+	trackTotalHits := "false"
+	if options.ReturnCount != nil && *options.ReturnCount {
+		trackTotalHits = "true"
+	}
+
+	count := 10
+	if options.MaxResults != nil {
+		count = *options.MaxResults
+	}
+
+	from := 0
+	if options.ResultsFrom != nil {
+		from = *options.ResultsFrom
+	}
+
+	excludesStr := ""
+	for _, e := range options.ExcludeFields {
+		if excludesStr != "" {
+			excludesStr += ", "
+		}
+
+		excludesStr += `"` + e + `"`
+	}
+
+	aggs := ""
+	if options.AggregateField != nil {
+		aggs = fmt.Sprintf(`, "aggs" : {"aggregate" : {"terms" : {"field" : "%s"}}}`, *options.AggregateField)
+	}
+
+	content := strings.NewReader(
+		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+			excludesStr, count, from, q, sort, trackTotalHits, aggs))
+
+	searchIndexes := []string{}
+	for _, index := range indexes {
+		searchIndexes = append(searchIndexes, GetIndex(index))
+	}
+	search := opensearchapi.SearchRequest{
+		Index: searchIndexes,
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(context.Background(), c.ReadClient)
+	if err != nil {
+		return 0, nil, e.Wrap(err, "failed to search index")
+	}
+
+	res, err := ioutil.ReadAll(searchResponse.Body)
+	if err != nil {
+		return 0, nil, e.Wrap(err, "failed to read search response")
+	}
+
+	if err := searchResponse.Body.Close(); err != nil {
+		return 0, nil, e.Wrap(err, "failed to close search response")
+	}
+
+	var response struct {
+		Hits struct {
+			Total struct {
+				Value int64 `json:"value"`
+			} `json:"total"`
+			Hits []struct {
+				Source interface{} `json:"_source"`
+			} `json:"hits"`
+		} `json:"hits"`
+	}
+
+	if err := json.Unmarshal(res, &response); err != nil {
+		return 0, nil, e.Wrap(err, "failed to unmarshal response")
+	}
+
+	sources := []interface{}{}
+	for _, hit := range response.Hits.Hits {
+		sources = append(sources, hit.Source)
+	}
+
+	marshalled, err := json.Marshal(sources)
+	if err != nil {
+		return 0, nil, e.Wrap(err, "failed to re-marshal sources")
+	}
+
+	if err := json.Unmarshal(marshalled, results); err != nil {
+		return 0, nil, e.Wrap(err, "failed to unmarshal sources")
+	}
+
+	var aggregate struct {
+		Aggregations struct {
+			Aggregate struct {
+				Buckets []struct {
+					Key      string `json:"key"`
+					DocCount int    `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"aggregate"`
+		} `json:"aggregations"`
+	}
+
+	aggregates := map[string]int{}
+	if options.AggregateField != nil {
+		if err := json.Unmarshal(res, &aggregate); err != nil {
+			return 0, nil, e.Wrap(err, "failed to unmarshal aggregations")
+		}
+		for _, agg := range aggregate.Aggregations.Aggregate.Buckets {
+			aggregates[agg.Key] = agg.DocCount
+		}
+	}
+
+	return response.Hits.Total.Value, aggregates, nil
+}
+
+func (c *Client) Aggregate(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
 		return 0, e.Wrap(err, "query is not valid JSON")
 	}
