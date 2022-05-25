@@ -425,8 +425,8 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		if err := r.DB.Raw(`
 			select count(*)
 			from session_admins_views
-			where session_id = ? and admin_id = ?
-	`, s.ID, admin.ID).Scan(&totalSessionCount).Error; err != nil {
+			where admin_id = ?
+	`, admin.ID).Scan(&totalSessionCount).Error; err != nil {
 			log.Error(e.Wrap(err, "error querying total count of session views from admin"))
 			return
 		}
