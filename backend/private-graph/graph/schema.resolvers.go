@@ -419,6 +419,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 			return
 		} else if currentSessionCount > 0 {
 			log.Info("not updating hubspot session count; admin has already viewed this session")
+			return
 		}
 
 		var totalSessionCount int64
