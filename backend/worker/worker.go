@@ -955,7 +955,6 @@ func (w *Worker) Start() {
 }
 
 func (w *Worker) ReportStripeUsage() {
-	//TODO hubspot instro.
 	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
 }
 

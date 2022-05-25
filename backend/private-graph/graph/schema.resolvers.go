@@ -397,7 +397,6 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 }
 
 func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model.Session, error) {
-	// TODO hubspot instro.
 	s, err := r.canAdminModifySession(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
