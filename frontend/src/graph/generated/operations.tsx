@@ -1469,15 +1469,25 @@ export type ModifyClearbitIntegrationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'modifyClearbitIntegration'>;
 
+export type UpsertDashboardMutationVariables = Types.Exact<{
+    id?: Types.Maybe<Types.Scalars['ID']>;
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    metrics:
+        | Array<Types.DashboardMetricConfigInput>
+        | Types.DashboardMetricConfigInput;
+    layout?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpsertDashboardMutation = { __typename?: 'Mutation' } & Pick<Types.Mutation,
+    'upsertDashboard'>;
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
-        errors: Array<
-            Types.Maybe<
-                { __typename?: 'ErrorObject' } & Pick<
-                    Types.ErrorObject,
-                    | 'id'
-                    | 'error_group_secure_id'
+    errors: Array<Types.Maybe<{ __typename?: 'ErrorObject' } & Pick<Types.ErrorObject,
+        | 'id'
+        | 'error_group_secure_id'
                     | 'event'
                     | 'type'
                     | 'url'
@@ -3569,9 +3579,29 @@ export type GetWebVitalsQueryVariables = Types.Exact<{
 }>;
 
 export type GetWebVitalsQuery = { __typename?: 'Query' } & {
-    web_vitals: Array<
-        { __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
-    >;
+    web_vitals: Array<{ __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>>;
+};
+
+export type GetDashboardDefinitionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
+    dashboard_definitions: Array<Types.Maybe<{ __typename?: 'DashboardDefinition' } & Pick<Types.DashboardDefinition,
+        | 'id'
+        | 'updated_at'
+        | 'project_id'
+        | 'name'
+        | 'last_admin_to_edit_id'
+        | 'layout'> & {
+        metrics: Array<{ __typename?: 'DashboardMetricConfig' } & Pick<Types.DashboardMetricConfig,
+            | 'name'
+            | 'max_good_value'
+            | 'max_needs_improvement_value'
+            | 'poor_value'
+            | 'units'
+            | 'help_article'>>;
+    }>>;
 };
 
 export const namedOperations = {
@@ -3651,6 +3681,7 @@ export const namedOperations = {
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
         GetWebVitals: 'GetWebVitals' as const,
+        GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
@@ -3715,6 +3746,7 @@ export const namedOperations = {
         SyncSlackIntegration: 'SyncSlackIntegration' as const,
         RequestAccess: 'RequestAccess' as const,
         ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
+        UpsertDashboard: 'UpsertDashboard' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {

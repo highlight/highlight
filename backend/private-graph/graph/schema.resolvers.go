@@ -2744,6 +2744,63 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 	return &enabled, nil
 }
 
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return -1, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+		return -1, err
+	}
+
+	var dashboard *model.Dashboard = &model.Dashboard{ProjectID: projectID}
+	if id != nil {
+		if err := r.DB.Preload("Metrics").Where(&model.Dashboard{Model: model.Model{ID: *id}}).FirstOrCreate(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	} else {
+		if err := r.DB.Create(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	}
+
+	for _, m := range dashboard.Metrics {
+		if m != nil {
+			if err := r.DB.Delete(&m).Error; err != nil {
+				return -1, err
+			}
+		}
+	}
+	if err := r.DB.Model(&dashboard).Association("Metrics").Clear(); err != nil {
+		return -1, e.Wrap(err, "failed to clear previous metrics")
+	}
+
+	for _, m := range metrics {
+		dashboardMetric := model.DashboardMetric{
+			Name:                     m.Name,
+			MaxGoodValue:             m.MaxGoodValue,
+			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
+			PoorValue:                m.PoorValue,
+			Units:                    m.Units,
+			HelpArticle:              m.HelpArticle,
+		}
+		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
+			return -1, e.Wrap(err, "error updating fields")
+		}
+	}
+
+	// Update the existing record if it already exists
+	dashboard.Name = name
+	dashboard.LastAdminToEditID = &admin.ID
+	dashboard.Layout = layout
+	if err := r.DB.Save(&dashboard).Error; err != nil {
+		return dashboard.ID, err
+	}
+
+	return dashboard.ID, nil
+}
+
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
 		return nil, e.New("You don't have access to this data")
@@ -4887,6 +4944,42 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	return details, nil
+}
+
+func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int) ([]*modelInputs.DashboardDefinition, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var dashboards []*model.Dashboard
+	if err := r.DB.Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+		return nil, err
+	}
+
+	var results []*modelInputs.DashboardDefinition
+	for _, d := range dashboards {
+		var metrics []*modelInputs.DashboardMetricConfig
+		for _, metric := range d.Metrics {
+			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
+				Name:                     metric.Name,
+				MaxGoodValue:             metric.MaxGoodValue,
+				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
+				PoorValue:                metric.PoorValue,
+				Units:                    metric.Units,
+				HelpArticle:              metric.HelpArticle,
+			})
+		}
+		results = append(results, &modelInputs.DashboardDefinition{
+			ID:                d.ID,
+			UpdatedAt:         d.UpdatedAt,
+			ProjectID:         d.ProjectID,
+			Name:              d.Name,
+			Metrics:           metrics,
+			LastAdminToEditID: d.LastAdminToEditID,
+			Layout:            d.Layout,
+		})
+	}
+	return results, nil
 }
 
 func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {

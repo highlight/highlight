@@ -1401,3 +1401,22 @@ query GetWebVitals($session_secure_id: String!) {
         value
     }
 }
+
+query GetDashboardDefinitions($project_id: ID!) {
+    dashboard_definitions(project_id: $project_id) {
+        id
+        updated_at
+        project_id
+        name
+        metrics {
+            name
+            max_good_value
+            max_needs_improvement_value
+            poor_value
+            units
+            help_article
+        }
+        last_admin_to_edit_id
+        layout
+    }
+}

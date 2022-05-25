@@ -54,6 +54,34 @@ type BillingDetails struct {
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
+type DashboardDefinition struct {
+	ID                int                      `json:"id"`
+	UpdatedAt         time.Time                `json:"updated_at"`
+	ProjectID         int                      `json:"project_id"`
+	Name              string                   `json:"name"`
+	Metrics           []*DashboardMetricConfig `json:"metrics"`
+	LastAdminToEditID *int                     `json:"last_admin_to_edit_id"`
+	Layout            *string                  `json:"layout"`
+}
+
+type DashboardMetricConfig struct {
+	Name                     string  `json:"name"`
+	MaxGoodValue             float64 `json:"max_good_value"`
+	MaxNeedsImprovementValue float64 `json:"max_needs_improvement_value"`
+	PoorValue                float64 `json:"poor_value"`
+	Units                    string  `json:"units"`
+	HelpArticle              string  `json:"help_article"`
+}
+
+type DashboardMetricConfigInput struct {
+	Name                     string  `json:"name"`
+	MaxGoodValue             float64 `json:"max_good_value"`
+	MaxNeedsImprovementValue float64 `json:"max_needs_improvement_value"`
+	PoorValue                float64 `json:"poor_value"`
+	Units                    string  `json:"units"`
+	HelpArticle              string  `json:"help_article"`
+}
+
 type DashboardParamsInput struct {
 	DateRange         *DateRangeInput `json:"date_range"`
 	ResolutionMinutes *int            `json:"resolution_minutes"`

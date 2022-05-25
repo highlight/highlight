@@ -1203,3 +1203,9 @@ mutation RequestAccess($project_id: ID!) {
 mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
     modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
 }
+
+mutation UpsertDashboard($id: ID, $project_id: ID!, $name: String!,
+                         $metrics: [DashboardMetricConfigInput!]!, $layout: String) {
+    upsertDashboard(id: $id, project_id: $project_id, name: $name,
+                    metrics: $metrics, layout: $layout)
+}

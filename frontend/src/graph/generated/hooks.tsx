@@ -1,7 +1,8 @@
 import * as Types from './operations';
 
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import {gql} from '@apollo/client';
+
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
         events
@@ -4095,17 +4096,66 @@ export function useModifyClearbitIntegrationMutation(
 ) {
     return Apollo.useMutation<
         Types.ModifyClearbitIntegrationMutation,
-        Types.ModifyClearbitIntegrationMutationVariables
-    >(ModifyClearbitIntegrationDocument, baseOptions);
+        Types.ModifyClearbitIntegrationMutationVariables>(ModifyClearbitIntegrationDocument, baseOptions);
 }
-export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
-    typeof useModifyClearbitIntegrationMutation
->;
+
+export type ModifyClearbitIntegrationMutationHookResult = ReturnType<typeof useModifyClearbitIntegrationMutation>;
 export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
-export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
-    Types.ModifyClearbitIntegrationMutation,
-    Types.ModifyClearbitIntegrationMutationVariables
->;
+export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables>;
+export const UpsertDashboardDocument = gql`
+    mutation UpsertDashboard(
+        $id: ID
+        $project_id: ID!
+        $name: String!
+        $metrics: [DashboardMetricConfigInput!]!
+        $layout: String
+    ) {
+        upsertDashboard(
+            id: $id
+            project_id: $project_id
+            name: $name
+            metrics: $metrics
+            layout: $layout
+        )
+    }
+`;
+export type UpsertDashboardMutationFn = Apollo.MutationFunction<Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables>;
+
+/**
+ * __useUpsertDashboardMutation__
+ *
+ * To run a mutation, you first call `useUpsertDashboardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertDashboardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertDashboardMutation, { data, loading, error }] = useUpsertDashboardMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      metrics: // value for 'metrics'
+ *      layout: // value for 'layout'
+ *   },
+ * });
+ */
+export function useUpsertDashboardMutation(
+    baseOptions?: Apollo.MutationHookOptions<Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables>
+) {
+    return Apollo.useMutation<Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables>(UpsertDashboardDocument, baseOptions);
+}
+
+export type UpsertDashboardMutationHookResult = ReturnType<typeof useUpsertDashboardMutation>;
+export type UpsertDashboardMutationResult = Apollo.MutationResult<Types.UpsertDashboardMutation>;
+export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables>;
 export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
@@ -9325,13 +9375,65 @@ export function useGetWebVitalsLazyQuery(
         Types.GetWebVitalsQueryVariables
     >(GetWebVitalsDocument, baseOptions);
 }
-export type GetWebVitalsQueryHookResult = ReturnType<
-    typeof useGetWebVitalsQuery
->;
-export type GetWebVitalsLazyQueryHookResult = ReturnType<
-    typeof useGetWebVitalsLazyQuery
->;
-export type GetWebVitalsQueryResult = Apollo.QueryResult<
-    Types.GetWebVitalsQuery,
-    Types.GetWebVitalsQueryVariables
->;
+
+export type GetWebVitalsQueryHookResult = ReturnType<typeof useGetWebVitalsQuery>;
+export type GetWebVitalsLazyQueryHookResult = ReturnType<typeof useGetWebVitalsLazyQuery>;
+export type GetWebVitalsQueryResult = Apollo.QueryResult<Types.GetWebVitalsQuery,
+    Types.GetWebVitalsQueryVariables>;
+export const GetDashboardDefinitionsDocument = gql`
+    query GetDashboardDefinitions($project_id: ID!) {
+        dashboard_definitions(project_id: $project_id) {
+            id
+            updated_at
+            project_id
+            name
+            metrics {
+                name
+                max_good_value
+                max_needs_improvement_value
+                poor_value
+                units
+                help_article
+            }
+            last_admin_to_edit_id
+            layout
+        }
+    }
+`;
+
+/**
+ * __useGetDashboardDefinitionsQuery__
+ *
+ * To run a query within a React component, call `useGetDashboardDefinitionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDashboardDefinitionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDashboardDefinitionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetDashboardDefinitionsQuery(
+    baseOptions: Apollo.QueryHookOptions<Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables>
+) {
+    return Apollo.useQuery<Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables>(GetDashboardDefinitionsDocument, baseOptions);
+}
+
+export function useGetDashboardDefinitionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables>
+) {
+    return Apollo.useLazyQuery<Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables>(GetDashboardDefinitionsDocument, baseOptions);
+}
+
+export type GetDashboardDefinitionsQueryHookResult = ReturnType<typeof useGetDashboardDefinitionsQuery>;
+export type GetDashboardDefinitionsLazyQueryHookResult = ReturnType<typeof useGetDashboardDefinitionsLazyQuery>;
+export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<Types.GetDashboardDefinitionsQuery,
+    Types.GetDashboardDefinitionsQueryVariables>;

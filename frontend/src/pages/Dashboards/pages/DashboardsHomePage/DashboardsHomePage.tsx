@@ -19,18 +19,26 @@ const DashboardsHomePage = () => {
         variables: { project_id },
     });
     const history = useHistory();
-    const { dashboards } = useDashboardsContext();
+    const { dashboards, updateDashboard, allAdmins } = useDashboardsContext();
 
     const onCreateNewDashboard = () => {
-        // TODO: Create a new dashboard in DB.
-        alert(
-            "Hi I don't do anything yet. I only show up for Highlight staff."
-        );
-        if (false) {
-            const newId = 2;
-
+        // TODO(vkorolik)
+        updateDashboard({
+            name: 'TODO',
+            metrics: [
+                {
+                    name: 'delayMS',
+                    help_article: '',
+                    units: '',
+                    max_good_value: 10,
+                    max_needs_improvement_value: 100,
+                    poor_value: 1000,
+                },
+            ],
+        }).then((r) => {
+            const newId = r.data?.upsertDashboard || '';
             history.push(`/${project_id}/dashboards/${newId}`);
-        }
+        });
     };
 
     return (
@@ -56,7 +64,7 @@ const DashboardsHomePage = () => {
                 <Table
                     columns={TABLE_COLUMNS}
                     loading={loading}
-                    dataSource={dashboards}
+                    dataSource={dashboards.map((d) => ({ ...d, allAdmins }))}
                     pagination={false}
                     showHeader={false}
                     rowHasPadding
@@ -103,7 +111,7 @@ const TABLE_COLUMNS = [
         key: 'name',
         render: (name: string, record: any) => {
             return (
-                <div className={alertStyles.nameCell}>
+                <div className={alertStyles.nameCell} key={name}>
                     <div className={alertStyles.primary}>{name}</div>
                     <div>
                         <AlertLastEditedBy

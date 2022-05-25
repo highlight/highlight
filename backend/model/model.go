@@ -156,6 +156,8 @@ var Models = []interface{}{
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
+	&Dashboard{},
+	&DashboardMetric{},
 }
 
 func init() {
@@ -287,10 +289,22 @@ type RegistrationData struct {
 
 type Dashboard struct {
 	Model
-	ProjectID         int
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	LastAdminToEditID *int
 	Layout            *string
-	Name              *string
-	LastAdminToEditID int
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+}
+
+type DashboardMetric struct {
+	Model
+	DashboardID              int `gorm:"index;not null;"`
+	Name                     string
+	MaxGoodValue             float64
+	MaxNeedsImprovementValue float64
+	PoorValue                float64
+	Units                    string
+	HelpArticle              string
 }
 
 type SlackChannel struct {

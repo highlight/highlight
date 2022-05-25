@@ -4,9 +4,9 @@ import LineChart from '@components/LineChart/LineChart';
 import MenuItem from '@components/Menu/MenuItem';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { useGetMetricsDashboardQuery } from '@graph/hooks';
+import { DashboardMetricConfig } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
@@ -18,8 +18,7 @@ import { useHistory } from 'react-router-dom';
 import styles from './DashboardCard.module.scss';
 
 interface Props {
-    metricName: string;
-    metricConfig: MetricConfig;
+    metricConfig: DashboardMetricConfig;
     dateRange: {
         startDate: string;
         endDate: string;
@@ -27,24 +26,20 @@ interface Props {
     isEditing?: boolean;
 }
 
-const DashboardCard = ({
-    metricName,
-    metricConfig,
-    dateRange,
-    isEditing,
-}: Props) => {
+const DashboardCard = ({ metricConfig, dateRange, isEditing }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetMetricsDashboardQuery({
         variables: {
             project_id,
-            metric_name: metricName,
+            metric_name: metricConfig.name,
             params: {
                 date_range: {
                     end_date: dateRange.endDate,
                     start_date: dateRange.startDate,
                 },
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                resolution_minutes: metricName === 'delayMS' ? 1 : 24 * 60,
+                resolution_minutes:
+                    metricConfig.name === 'delayMS' ? 1 : 24 * 60,
             },
         },
     });
@@ -74,7 +69,7 @@ const DashboardCard = ({
                                             icon={<SvgAnnouncementIcon />}
                                             onClick={() => {
                                                 history.push(
-                                                    `/${project_id}/alerts/new/monitor?type=${metricName}`
+                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
                                                 );
                                             }}
                                         >
@@ -96,7 +91,7 @@ const DashboardCard = ({
               data.metrics_dashboard.length === 0 ? (
                 <div className={styles.noDataContainer}>
                     <EmptyCardPlaceholder
-                        message={`Doesn't look like we've gotten any ${metricName} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                        message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
                     />
                 </div>
             ) : (
@@ -106,12 +101,12 @@ const DashboardCard = ({
                     referenceLines={[
                         {
                             label: 'Goal',
-                            value: metricConfig.maxGoodValue,
+                            value: metricConfig.max_good_value,
                             color: 'var(--color-green-300)',
                         },
                         {
                             label: 'Needs Improvement',
-                            value: metricConfig.maxNeedsImprovementValue,
+                            value: metricConfig.max_needs_improvement_value,
                             color: 'var(--color-red-300)',
                         },
                     ]}

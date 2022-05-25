@@ -703,6 +703,34 @@ type DashboardPayload {
     p99: Float!
 }
 
+input DashboardMetricConfigInput {
+    name: String!
+    max_good_value: Float!
+    max_needs_improvement_value: Float!
+    poor_value: Float!
+    units: String!
+    help_article: String!
+}
+
+type DashboardMetricConfig {
+    name: String!
+    max_good_value: Float!
+    max_needs_improvement_value: Float!
+    poor_value: Float!
+    units: String!
+    help_article: String!
+}
+
+type DashboardDefinition {
+    id: ID!
+    updated_at: Timestamp!
+    project_id: ID!
+    name: String!
+    metrics: [DashboardMetricConfig!]!
+    last_admin_to_edit_id: Int
+    layout: String
+}
+
 type MetricPreview {
     date: Timestamp!
     value: Float!
@@ -870,6 +898,7 @@ type Query {
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
+    dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
@@ -1242,6 +1271,13 @@ type Mutation {
     ): Boolean
     requestAccess(project_id: ID!): Boolean
     modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
+    upsertDashboard(
+        id: ID
+        project_id: ID!
+        name: String!
+        metrics: [DashboardMetricConfigInput!]!
+        layout: String
+    ): ID!
 }
 
 type Subscription {

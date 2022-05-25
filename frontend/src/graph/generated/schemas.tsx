@@ -767,6 +767,36 @@ export type DashboardPayload = {
     p99: Scalars['Float'];
 };
 
+export type DashboardMetricConfigInput = {
+    name: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+};
+
+export type DashboardMetricConfig = {
+    __typename?: 'DashboardMetricConfig';
+    name: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+};
+
+export type DashboardDefinition = {
+    __typename?: 'DashboardDefinition';
+    id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfig>;
+    last_admin_to_edit_id?: Maybe<Scalars['Int']>;
+    layout?: Maybe<Scalars['String']>;
+};
+
 export type MetricPreview = {
     __typename?: 'MetricPreview';
     date: Scalars['Timestamp'];
@@ -876,6 +906,7 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
+    dashboard_definitions: Array<Maybe<DashboardDefinition>>;
     metrics_dashboard: Array<Maybe<DashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
@@ -1208,6 +1239,10 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
+export type QueryDashboard_DefinitionsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryMetrics_DashboardArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
@@ -1300,6 +1335,7 @@ export type Mutation = {
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
     requestAccess?: Maybe<Scalars['Boolean']>;
     modifyClearbitIntegration?: Maybe<Scalars['Boolean']>;
+    upsertDashboard: Scalars['ID'];
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1781,6 +1817,14 @@ export type MutationRequestAccessArgs = {
 export type MutationModifyClearbitIntegrationArgs = {
     workspace_id: Scalars['ID'];
     enabled: Scalars['Boolean'];
+};
+
+export type MutationUpsertDashboardArgs = {
+    id?: Maybe<Scalars['ID']>;
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfigInput>;
+    layout?: Maybe<Scalars['String']>;
 };
 
 export type Subscription = {

@@ -4,9 +4,9 @@ import 'react-resizable/css/styles.css';
 import Button from '@components/Button/Button/Button';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
+import { DashboardDefinition } from '@graph/schemas';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
-import { Dashboard } from '@pages/Dashboards/DashboardsRouter';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
@@ -29,20 +29,24 @@ const timeFilter = [
 const DashboardPage = () => {
     const history = useHistory();
     const { id } = useParams<{ id: string }>();
-    const { dashboards } = useDashboardsContext();
+    const { dashboards, updateDashboard } = useDashboardsContext();
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[2].value
     );
     const [layout, setLayout] = useState<Layouts>(DEFAULT_WEB_VITALS_LAYOUT);
     const [isEditing, setIsEditing] = useState(false);
-    const [dashboard, setDashboard] = useState<Dashboard>();
+    const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
-        const dashboard = dashboards.find((d) => d.id === parseInt(id, 10));
-        const name = dashboard?.name || '';
-        setDashboard(dashboard);
-
-        history.replace({ state: { dashboardName: name } });
+        const dashboard = dashboards.find((d) => d?.id === id);
+        if (dashboard) {
+            const name = dashboard.name || '';
+            setDashboard(dashboard);
+            if (dashboard.layout?.length) {
+                setLayout(JSON.parse(dashboard.layout));
+            }
+            history.replace({ state: { dashboardName: name } });
+        }
     }, [dashboards, history, id]);
 
     if (!dashboard) {
@@ -58,6 +62,14 @@ const DashboardPage = () => {
                         type="ghost"
                         onClick={() => {
                             setIsEditing((prev) => !prev);
+                            if (isEditing && dashboard) {
+                                updateDashboard({
+                                    id: id,
+                                    name: dashboard.name,
+                                    metrics: dashboard.metrics,
+                                    layout: JSON.stringify(layout),
+                                });
+                            }
                         }}
                     >
                         {isEditing ? 'Done' : 'Edit'}
@@ -101,9 +113,8 @@ const DashboardPage = () => {
                         <div key={index.toString()}>
                             <DashboardCard
                                 isEditing={isEditing}
-                                metricName={metric}
-                                metricConfig={dashboard?.metricConfigs[metric]}
-                                key={metric}
+                                metricConfig={metric}
+                                key={metric.name}
                                 dateRange={{
                                     startDate: moment(new Date())
                                         .subtract(dateRangeLength, 'days')
