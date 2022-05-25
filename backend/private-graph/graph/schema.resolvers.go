@@ -414,12 +414,13 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		newSessionCountForAdmin += 1
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &newSessionCountForAdmin}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
-		}
-		r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+		} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
 			Name:     "number_of_highlight_sessions_viewed",
 			Property: "number_of_highlight_sessions_viewed",
 			Value:    newSessionCountForAdmin,
-		}})
+		}}); err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+		}
 	})
 
 	session := &model.Session{}
