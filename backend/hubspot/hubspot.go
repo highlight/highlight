@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
+	"github.com/goware/emailproviders"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
@@ -26,6 +27,9 @@ func NewHubspotAPI(client hubspot.Client, db *gorm.DB) *HubspotApi {
 
 func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (contactId *int, err error) {
 	var hubspotContactId int
+	if emailproviders.Exists(email) {
+		email = ""
+	}
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
 			{
@@ -113,6 +117,9 @@ func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID in
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (companyID *int, err error) {
+	if emailproviders.Exists(adminEmail) {
+		adminEmail = ""
+	}
 	components := strings.Split(adminEmail, "@")
 	var domain string
 	if len(components) > 1 {
