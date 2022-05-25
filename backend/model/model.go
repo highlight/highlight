@@ -1090,6 +1090,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
+	}
+
+	if err := DB.Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {

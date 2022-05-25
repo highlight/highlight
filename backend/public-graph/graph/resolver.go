@@ -1478,25 +1478,15 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 			Type:      modelInputs.MetricType(m.Type),
 			RequestID: m.RequestID,
 		}
-		recordAlreadyExists := true
-
-		// Check to see if this metric already exists.
-		if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
-			if e.Is(err, gorm.ErrRecordNotFound) {
-				recordAlreadyExists = false
-			} else {
-				log.Error(err)
-			}
+		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
+		if err := tx.Error; err != nil {
+			log.Error(err)
+			return
 		}
-
-		if !recordAlreadyExists {
-			r.addNewMetric(sessionID, projectID, m)
-		} else {
-			// Update the existing record if it already exists
-			existingMetric.Value = m.Value
-			if err := r.DB.Save(&existingMetric).Error; err != nil {
-				log.Error(err)
-			}
+		// Update the existing record if it already exists
+		existingMetric.Value = m.Value
+		if err := r.DB.Save(&existingMetric).Error; err != nil {
+			log.Error(err)
 		}
 	}
 }
