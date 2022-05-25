@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -396,6 +396,7 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 }
 
 func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model.Session, error) {
+	// TODO hubspot instro.
 	s, err := r.canAdminModifySession(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
