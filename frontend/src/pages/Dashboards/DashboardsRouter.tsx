@@ -1,6 +1,7 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
+import { MetricType } from '@graph/schemas';
 import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
@@ -45,7 +46,7 @@ const DashboardsRouter = () => {
                 },
                 {
                     id: 2,
-                    name: 'Backend Latency',
+                    name: 'Backend Request Latency',
                     updated_at: '2022-05-20T13:05:13.997412-08:00',
                     LastAdminToEditID: '0',
                     allAdmins: data?.admins || [],
@@ -53,7 +54,28 @@ const DashboardsRouter = () => {
                     metricConfigs: {
                         delayMS: {
                             maxGoodValue: 0.1,
-                            name: 'Backend Handler Delay',
+                            name: 'Request Latency',
+                            type: MetricType.Backend,
+                            maxNeedsImprovementValue: 0.25,
+                            poorValue: 0,
+                            units: 'ms',
+                            helpArticle: '',
+                        },
+                    },
+                    loading,
+                },
+                {
+                    id: 3,
+                    name: 'Frontend Request Latency',
+                    updated_at: '2022-05-25T13:05:13.997412-08:00',
+                    LastAdminToEditID: '0',
+                    allAdmins: data?.admins || [],
+                    metrics: ['delayMS'] as const,
+                    metricConfigs: {
+                        delayMS: {
+                            maxGoodValue: 0.1,
+                            name: 'Request Latency',
+                            type: MetricType.Frontend,
                             maxNeedsImprovementValue: 0.25,
                             poorValue: 0,
                             units: 'ms',

@@ -1432,8 +1432,8 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	for secureID, metrics := range sessionMetrics {
 		session := &model.Session{}
 		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-			log.Error(err)
-			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+			log.Error(e.Wrapf(err, "no session found for push metrics: %s", secureID))
+			continue
 		}
 
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
@@ -1482,11 +1482,13 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 
 func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
 	for _, m := range metrics {
-		if m.Type == customModels.MetricTypeBackend {
+		// for certain metrics, we always want to save them as new metrics
+		if m.Type == customModels.MetricTypeBackend || m.Type == customModels.MetricTypeFrontend {
 			r.addNewMetric(sessionID, projectID, m)
 			continue
 		}
 
+		// other metrics are for an entire session so if we get duplicates, just update existing
 		existingMetric := &model.Metric{
 			Name:      m.Name,
 			ProjectID: projectID,
@@ -1803,6 +1805,49 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
+			var metrics []*customModels.MetricInput
+			for _, r := range resourcesParsed["resources"] {
+				attrs := r.(map[string]interface{})
+				start, ok := attrs["startTime"]
+				if !ok {
+					continue
+				}
+				end, ok := attrs["responseEnd"]
+				if !ok {
+					continue
+				}
+				url, ok := attrs["name"]
+				if !ok {
+					continue
+				}
+				pairs, ok := attrs["requestResponsePairs"]
+				if !ok {
+					continue
+				}
+				request, ok := pairs.(map[string]interface{})["request"]
+				if !ok {
+					continue
+				}
+				id, ok := request.(map[string]interface{})["id"]
+				if !ok {
+					continue
+				}
+				requestID := id.(string)
+				metrics = append(metrics, &customModels.MetricInput{
+					SessionSecureID: sessionObj.SecureID,
+					Name:            "delayMS",
+					Value:           end.(float64) - start.(float64),
+					Type:            customModels.MetricTypeFrontend,
+					URL:             url.(string),
+					Timestamp:       time.UnixMilli(int64(start.(float64))),
+					RequestID:       &requestID,
+				})
+			}
+			if len(metrics) > 0 {
+				if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
+					return e.Wrap(err, "failed to submit metrics message")
+				}
+			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")

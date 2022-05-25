@@ -4889,7 +4889,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return details, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType *modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -4902,6 +4902,10 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 	tz := "PDT"
 	if params.Timezone != nil {
 		tz = *params.Timezone
+	}
+	extraFilter := ""
+	if metricType != nil {
+		extraFilter = fmt.Sprintf("AND type = '%s'\n", metricType.String())
 	}
 	query := fmt.Sprintf(`
 		SELECT to_timestamp(cast(extract(
@@ -4917,8 +4921,9 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 			AND project_id=?
 			AND created_at >= ?
 			AND created_at <= ?
+			%s
 		  GROUP BY date;
-	`, tz, resMins, resMins, tz)
+	`, tz, resMins, resMins, tz, extraFilter)
 	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil

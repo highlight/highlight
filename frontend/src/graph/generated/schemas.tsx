@@ -204,6 +204,7 @@ export enum MetricType {
     WebVital = 'WebVital',
     Device = 'Device',
     Backend = 'Backend',
+    Frontend = 'Frontend',
 }
 
 export enum AdminRole {
@@ -1211,6 +1212,7 @@ export type QuerySubscription_DetailsArgs = {
 export type QueryMetrics_DashboardArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
+    metric_type?: Maybe<MetricType>;
     params: DashboardParamsInput;
 };
 

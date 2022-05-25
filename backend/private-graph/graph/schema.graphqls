@@ -176,6 +176,7 @@ enum MetricType {
     WebVital
     Device
     Backend
+    Frontend
 }
 
 enum AdminRole {
@@ -873,6 +874,7 @@ type Query {
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
+        metric_type: MetricType
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metric_preview(
