@@ -255,7 +255,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.AboutYouDetailsFilled = &model.T
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := r.HubspotApi.CreateContactForAdmin(
+		if _, err := r.HubspotApi.CreateContactForAdmin(
 			admin.ID,
 			*admin.Email,
 			*admin.UserDefinedRole,
@@ -320,7 +320,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-		if err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+		if _, err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
 			log.Error(err, "error creating hubspot company")
 		} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
 			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)

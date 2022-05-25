@@ -77,16 +77,16 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 
 type HubspotMock struct{}
 
-func (h *HubspotMock) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) error {
-	return nil
+func (h *HubspotMock) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (*int, error) {
+	return nil, nil
 }
 
 func (h *HubspotMock) CreateContactCompanyAssociation(adminID int, workspaceID int) error {
 	return nil
 }
 
-func (h *HubspotMock) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
-	return nil
+func (h *HubspotMock) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (*int, error) {
+	return nil, nil
 }
 
 func (h *HubspotMock) UpdateContactProperty(adminID int, properties []hubspot.Property) error {

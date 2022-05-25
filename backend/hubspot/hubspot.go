@@ -74,7 +74,7 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 		Updates(&model.Admin{HubspotContactID: &hubspotContactId}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace HubspotContactID")
 	}
-	return hubspotContactId, nil
+	return &hubspotContactId, nil
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID int) error {
