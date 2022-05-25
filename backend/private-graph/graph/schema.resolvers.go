@@ -408,14 +408,18 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		sessionCountForAdmin := admin.NumberOfSessionsViewed + 1
-		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: sessionCountForAdmin}).Error; err != nil {
+		var newSessionCountForAdmin int
+		if admin.NumberOfSessionsViewed != nil {
+			newSessionCountForAdmin = *admin.NumberOfSessionsViewed
+		}
+		newSessionCountForAdmin += 1
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &newSessionCountForAdmin}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
-		r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{hubspot.Property{
+		r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
 			Name:     "number_of_highlight_sessions_viewed",
 			Property: "number_of_highlight_sessions_viewed",
-			Value:    sessionCountForAdmin,
+			Value:    newSessionCountForAdmin,
 		}})
 	})
 

@@ -263,11 +263,11 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 }
 
 func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
-	return reportUsage(DB, stripeClient, workspaceID, &productType)
+	return reportUsage(DB, stripeClient, workspaceID, &productType, true)
 }
 
 func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
-	return reportUsage(DB, stripeClient, workspaceID, nil)
+	return reportUsage(DB, stripeClient, workspaceID, nil, true)
 }
 
 func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType, reportToHubspot bool) error {
@@ -467,7 +467,7 @@ func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
 	}
 
 	for _, workspaceID := range workspaceIDs {
-		if err := reportUsage(DB, stripeClient, workspaceID, nil); err != nil {
+		if err := reportUsage(DB, stripeClient, workspaceID, nil, true); err != nil {
 			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
 		}
 	}
