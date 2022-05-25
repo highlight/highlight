@@ -26,6 +26,7 @@ import {
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
+    useGetIdentifierSuggestionsQuery,
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
@@ -507,6 +508,17 @@ export const AlertConfigurationCard = ({
         },
     });
 
+    const {
+        refetch: refetchIdentifierSuggestions,
+        loading: identifierSuggestionsLoading,
+        data: identifierSuggestionsApiResponse,
+    } = useGetIdentifierSuggestionsQuery({
+        variables: {
+            project_id,
+            query: '',
+        },
+    });
+
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
             displayValue: webhook_channel,
@@ -543,6 +555,16 @@ export const AlertConfigurationCard = ({
               trackSuggestionsApiResponse?.property_suggestion || []
           ).map((suggestion) => getPropertiesOption(suggestion));
 
+    const identifierSuggestions = identifierSuggestionsLoading
+        ? []
+        : (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
+              (suggestion) => ({
+                  value: suggestion,
+                  displayValue: suggestion,
+                  id: suggestion,
+              })
+          );
+
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
         refetchUserSuggestions({ query, project_id });
@@ -550,6 +572,10 @@ export const AlertConfigurationCard = ({
 
     const handleTrackPropertiesSearch = (query = '') => {
         refetchTrackSuggestions({ query, project_id });
+    };
+
+    const handleIdentifierSearch = (query = '') => {
+        refetchIdentifierSuggestions({ query, project_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -949,8 +975,10 @@ export const AlertConfigurationCard = ({
                                 </p>
                                 <Form.Item name={excludedIdentifiersFormName}>
                                     <Select
+                                        onSearch={handleIdentifierSearch}
                                         className={styles.channelSelect}
-                                        mode="tags"
+                                        options={identifierSuggestions}
+                                        mode="multiple"
                                         placeholder={`Select a identifier(s) that should not trigger alerts.`}
                                         onChange={() => {
                                             setFormTouched(true);

@@ -3243,6 +3243,16 @@ export type GenerateNewZapierAccessTokenJwtQuery = {
     __typename?: 'Query';
 } & Pick<Types.Query, 'generate_zapier_access_token'>;
 
+export type GetIdentifierSuggestionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetIdentifierSuggestionsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'identifier_suggestion'
+>;
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3636,6 +3646,7 @@ export const namedOperations = {
         GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
         GetWorkspaceIsIntegratedWithZapier: 'GetWorkspaceIsIntegratedWithZapier' as const,
         GenerateNewZapierAccessTokenJwt: 'GenerateNewZapierAccessTokenJwt' as const,
+        GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,

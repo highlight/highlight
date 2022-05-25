@@ -8844,6 +8844,61 @@ export type GenerateNewZapierAccessTokenJwtQueryResult = Apollo.QueryResult<
     Types.GenerateNewZapierAccessTokenJwtQuery,
     Types.GenerateNewZapierAccessTokenJwtQueryVariables
 >;
+export const GetIdentifierSuggestionsDocument = gql`
+    query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
+        identifier_suggestion(project_id: $project_id, query: $query)
+    }
+`;
+
+/**
+ * __useGetIdentifierSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetIdentifierSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetIdentifierSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetIdentifierSuggestionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetIdentifierSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >(GetIdentifierSuggestionsDocument, baseOptions);
+}
+export function useGetIdentifierSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >(GetIdentifierSuggestionsDocument, baseOptions);
+}
+export type GetIdentifierSuggestionsQueryHookResult = ReturnType<
+    typeof useGetIdentifierSuggestionsQuery
+>;
+export type GetIdentifierSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetIdentifierSuggestionsLazyQuery
+>;
+export type GetIdentifierSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetIdentifierSuggestionsQuery,
+    Types.GetIdentifierSuggestionsQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
         is_integrated_with_slack: is_integrated_with(

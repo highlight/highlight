@@ -1197,6 +1197,10 @@ query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
     generate_zapier_access_token(project_id: $project_id)
 }
 
+query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
+    identifier_suggestion(project_id: $project_id, query: $query)
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
     is_integrated_with_slack: is_integrated_with(
         integration_type: Slack
