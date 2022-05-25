@@ -4410,7 +4410,7 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*"}}}`, query)
+	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
 	options := opensearch.SearchOptions{
 		MaxResults:     pointy.Int(0),
 		AggregateField: pointy.String("identifier.keyword"),
