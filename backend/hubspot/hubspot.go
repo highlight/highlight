@@ -141,3 +141,29 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 	}
 	return nil
 }
+
+func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Property) error {
+	admin := &model.Admin{}
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+		return e.Wrap(err, "error retrieving admin details")
+	}
+	if err := h.hubspotClient.Contacts().Update(*admin.HubspotContactID, hubspot.ContactsRequest{
+		Properties: properties,
+	}); err != nil {
+		return e.Wrap(err, "error updating contact property")
+	}
+	return nil
+}
+
+func (h *HubspotApi) UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error {
+	workspace := &model.Workspace{}
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+		return e.Wrap(err, "error retrieving workspace details")
+	}
+	if _, err := h.hubspotClient.Companies().Update(*workspace.HubspotCompanyID, hubspot.CompaniesRequest{
+		Properties: properties,
+	}); err != nil {
+		return e.Wrap(err, "error updating company property")
+	}
+	return nil
+}

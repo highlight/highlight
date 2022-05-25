@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/workerpool"
+	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
@@ -86,6 +87,16 @@ func (h *HubspotMock) CreateContactCompanyAssociation(adminID int, workspaceID i
 
 func (h *HubspotMock) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) error {
 	return nil
+}
+
+func (h *HubspotMock) UpdateContactProperty(adminID int, properties []hubspot.Property) error {
+	return nil
+
+}
+
+func (h *HubspotMock) UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error {
+	return nil
+
 }
 
 // ensure that invite link email is checked case-insensitively with admin email
