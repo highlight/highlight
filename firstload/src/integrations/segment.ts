@@ -1,4 +1,4 @@
-import { HighlightPublicInterface } from '../types/types';
+import { HighlightPublicInterface } from "../types/types";
 
 interface SegmentContext {
     payload: any;
@@ -18,8 +18,12 @@ const HighlightSegmentMiddleware = ({ next, payload }: SegmentContext) => {
             window.H.track(trackEventName, trackEventProperties);
         } else if (payload.obj.type === 'identify') {
             const identifier = payload.obj.userId;
-            const identifyMetadata = payload.obj.traits;
-            window.H.identify(identifier, identifyMetadata);
+            // only send identify call if segment identify was called
+            // with a user ID, since highlight identify requires a user ID.
+            if (identifier?.length) {
+                const identifyMetadata = payload.obj.traits;
+                window.H.identify(identifier, identifyMetadata);
+            }
         }
     }
 
