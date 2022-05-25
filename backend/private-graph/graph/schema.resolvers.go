@@ -442,6 +442,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		}}); err != nil {
 			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
 		}
+		log.Info("succesfully added to total session count for admin")
 	})
 
 	newSession := &model.Session{}
