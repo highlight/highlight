@@ -856,7 +856,6 @@ export type Query = {
     projectSuggestion: Array<Maybe<Project>>;
     workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
-    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
@@ -1136,10 +1135,6 @@ export type QueryWorkspaceSuggestionArgs = {
 };
 
 export type QueryEnvironment_SuggestionArgs = {
-    project_id: Scalars['ID'];
-};
-
-export type QueryIdentifier_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 

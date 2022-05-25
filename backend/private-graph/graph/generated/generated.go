@@ -477,7 +477,6 @@ type ComplexityRoot struct {
 		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
-		IdentifierSuggestion         func(childComplexity int, projectID int) int
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
@@ -965,7 +964,6 @@ type QueryResolver interface {
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
 	WorkspaceSuggestion(ctx context.Context, query string) ([]*model1.Workspace, error)
 	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
-	IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
@@ -3657,18 +3655,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GenerateZapierAccessToken(childComplexity, args["project_id"].(int)), true
-
-	case "Query.identifier_suggestion":
-		if e.complexity.Query.IdentifierSuggestion == nil {
-			break
-		}
-
-		args, err := ec.field_Query_identifier_suggestion_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.IdentifierSuggestion(childComplexity, args["project_id"].(int)), true
 
 	case "Query.isBackendIntegrated":
 		if e.complexity.Query.IsBackendIntegrated == nil {
@@ -6466,7 +6452,6 @@ type Query {
     projectSuggestion(query: String!): [Project]!
     workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
-    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
@@ -10517,21 +10502,6 @@ func (ec *executionContext) field_Query_fields_opensearch_args(ctx context.Conte
 }
 
 func (ec *executionContext) field_Query_generate_zapier_access_token_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_identifier_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -23628,48 +23598,6 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	res := resTmp.([]*model1.Field)
 	fc.Result = res
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_identifier_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_identifier_suggestion_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IdentifierSuggestion(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_app_version_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -37200,29 +37128,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_environment_suggestion(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "identifier_suggestion":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_identifier_suggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 

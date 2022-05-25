@@ -52,7 +52,6 @@ interface Props {
     alert: any;
     configuration: AlertConfiguration;
     environmentOptions: any[];
-    identifierOptions: any[];
     channelSuggestions: any[];
     slackUrl: string;
     onDeleteHandler?: (alertId: string) => void;
@@ -75,7 +74,6 @@ export const AlertConfigurationCard = ({
     slackUrl,
     onDeleteHandler,
     isCreatingNewAlert = false,
-    identifierOptions,
     isSlackIntegrated,
     emailSuggestions,
 }: Props) => {
@@ -533,12 +531,6 @@ export const AlertConfigurationCard = ({
         ),
     ];
 
-    const identifiers = identifierOptions.map((identifier) => ({
-        displayValue: identifier,
-        value: identifier,
-        id: identifier,
-    }));
-
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
         : (
@@ -963,7 +955,6 @@ export const AlertConfigurationCard = ({
                                         onChange={() => {
                                             setFormTouched(true);
                                         }}
-                                        options={identifiers}
                                     />
                                 </Form.Item>
                             </section>

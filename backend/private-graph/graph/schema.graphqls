@@ -847,7 +847,6 @@ type Query {
     projectSuggestion(query: String!): [Project]!
     workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
-    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
