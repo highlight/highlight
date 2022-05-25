@@ -6000,15 +6000,10 @@ input SearchParamsInput {
     query: String
 }
 
-enum DashboardResolution {
-    Day
-    Hour
-    Minute
-}
-
 input DashboardParamsInput {
     date_range: DateRangeInput
-    resolution: DashboardResolution
+    resolution_minutes: Int
+    timezone: String
 }
 
 type SearchParams {
@@ -32036,11 +32031,19 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "resolution":
+		case "resolution_minutes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution"))
-			it.Resolution, err = ec.unmarshalODashboardResolution2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardResolution(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_minutes"))
+			it.ResolutionMinutes, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timezone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timezone"))
+			it.Timezone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43198,22 +43201,6 @@ func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlight
 		return graphql.Null
 	}
 	return ec._DashboardPayload(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalODashboardResolution2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardResolution(ctx context.Context, v interface{}) (*model.DashboardResolution, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.DashboardResolution)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalODashboardResolution2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardResolution(ctx context.Context, sel ast.SelectionSet, v *model.DashboardResolution) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
