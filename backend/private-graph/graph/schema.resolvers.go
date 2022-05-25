@@ -4392,25 +4392,6 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	return fields, nil
 }
 
-func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	identifiers := []*string{}
-	if err := r.DB.Raw(`
-		SELECT
-			DISTINCT identifier
-		FROM sessions
-		WHERE project_id=?
-			AND identifier <> ''
-			AND identifier IS NOT NULL
-		ORDER BY identifier ASC
-		`, projectID).Scan(&identifiers).Error; err != nil {
-		return nil, e.Wrap(err, "error querying identifier suggestion")
-	}
-	return identifiers, nil
-}
-
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")

@@ -8864,7 +8864,6 @@ export const GetAlertsPagePayloadDocument = gql`
             name
             value
         }
-        identifier_suggestion(project_id: $project_id)
         error_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
