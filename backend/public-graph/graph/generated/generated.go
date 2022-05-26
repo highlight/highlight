@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) int
 		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
 		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
+		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
 		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
 	}
 
@@ -76,6 +77,7 @@ type MutationResolver interface {
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
+	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
 	MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error)
 	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 	AddWebVitals(ctx context.Context, sessionID int, metric model.WebVitalMetricInput) (int, error)
@@ -207,6 +209,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PushBackendPayload(childComplexity, args["errors"].([]*model.BackendErrorObjectInput)), true
+
+	case "Mutation.pushMetrics":
+		if e.complexity.Mutation.PushMetrics == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_pushMetrics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PushMetrics(childComplexity, args["metrics"].([]*model.MetricInput)), true
 
 	case "Mutation.pushPayload":
 		if e.complexity.Mutation.PushPayload == nil {
@@ -372,9 +386,20 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-input WebVitalMetricInput {
+enum MetricType {
+    WebVital
+    Device
+    Backend
+}
+
+input MetricInput {
+    session_secure_id: String!
     name: String!
     value: Float!
+    type: MetricType!
+    url: String!
+    timestamp: Timestamp!
+    request_id: String
 }
 
 input DeviceMetricInput {
@@ -424,6 +449,7 @@ type Mutation {
         highlight_logs: String
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+    pushMetrics(metrics: [MetricInput]!): ID!
     markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
         session_id: ID!
@@ -432,8 +458,15 @@ type Mutation {
         verbatim: String!
         timestamp: Timestamp!
     ): ID!
+    # TODO(vkorolik) deprecate as clients migrate to pushMetrics
     addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
     addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
+}
+
+# TODO(vkorolik) deprecate as clients migrate to pushMetrics
+input WebVitalMetricInput {
+    name: String!
+    value: Float!
 }
 
 type Query {
@@ -750,6 +783,21 @@ func (ec *executionContext) field_Mutation_pushBackendPayload_args(ctx context.C
 		}
 	}
 	args["errors"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_pushMetrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*model.MetricInput
+	if tmp, ok := rawArgs["metrics"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metrics"))
+		arg0, err = ec.unmarshalNMetricInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metrics"] = arg0
 	return args, nil
 }
 
@@ -1134,6 +1182,48 @@ func (ec *executionContext) _Mutation_pushBackendPayload(ctx context.Context, fi
 	res := resTmp.(interface{})
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_pushMetrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_pushMetrics_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().PushMetrics(rctx, args["metrics"].([]*model.MetricInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markBackendSetup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2945,6 +3035,77 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj interface{}) (model.MetricInput, error) {
+	var it model.MetricInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "session_secure_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+			it.SessionSecureID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timestamp":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
+			it.Timestamp, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "request_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("request_id"))
+			it.RequestID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputReplayEventInput(ctx context.Context, obj interface{}) (model.ReplayEventInput, error) {
 	var it model.ReplayEventInput
 	asMap := map[string]interface{}{}
@@ -3197,6 +3358,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "pushMetrics":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_pushMetrics(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "markBackendSetup":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_markBackendSetup(ctx, field)
@@ -3916,6 +4087,33 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) unmarshalNMetricInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx context.Context, v interface{}) ([]*model.MetricInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.MetricInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOMetricInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (model.MetricType, error) {
+	var res model.MetricType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v model.MetricType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNReplayEventInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx context.Context, v interface{}) ([]*model.ReplayEventInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -4363,6 +4561,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOMetricInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx context.Context, v interface{}) (*model.MetricInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputMetricInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOReplayEventInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx context.Context, v interface{}) (*model.ReplayEventInput, error) {

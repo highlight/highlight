@@ -672,6 +672,7 @@ type Metric struct {
 	Type      modelInputs.MetricType `gorm:"index;not null;"`
 	Name      string                 `gorm:"index;not null;"`
 	Value     float64
+	RequestID *string // From X-Highlight-Request header
 }
 
 type MetricMonitor struct {
@@ -1087,6 +1088,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
 	}
 
 	if err := DB.Exec(`
