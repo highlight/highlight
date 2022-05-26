@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andybalholm/brotli"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
@@ -38,13 +39,17 @@ const (
 type PayloadType string
 
 const (
-	SessionContents            PayloadType = "session-contents"
-	NetworkResources           PayloadType = "network-resources"
-	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 )
+
+// StoredPayloadTypes configures what payloads are uploaded with this config.
+var StoredPayloadTypes = map[payload.FileType]PayloadType{
+	payload.EventsCompressed:    SessionContentsCompressed,
+	payload.ResourcesCompressed: NetworkResourcesCompressed,
+	payload.MessagesCompressed:  ConsoleMessagesCompressed,
+}
 
 func GetChunkedPayloadType(offset int) PayloadType {
 	return SessionContentsCompressed + PayloadType(fmt.Sprintf("-%04d", offset))
@@ -130,17 +135,8 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId i
 }
 
 func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId int, bucket string, payloadManager *payload.PayloadManager) (int64, error) {
-	payloadTypes := map[payload.FileType]PayloadType{
-		payload.Events:              SessionContents,
-		payload.Resources:           NetworkResources,
-		payload.Messages:            ConsoleMessages,
-		payload.EventsCompressed:    SessionContentsCompressed,
-		payload.ResourcesCompressed: NetworkResourcesCompressed,
-		payload.MessagesCompressed:  ConsoleMessagesCompressed,
-	}
-
 	var totalSize int64
-	for fileType, payloadType := range payloadTypes {
+	for fileType, payloadType := range StoredPayloadTypes {
 		var size *int64
 		var err error
 		if payloadType == SessionContentsCompressed ||
@@ -162,10 +158,21 @@ func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId 
 
 	return totalSize, nil
 }
+func (s *StorageClient) decompress(data *bytes.Buffer) (*bytes.Buffer, error) {
+	out := &bytes.Buffer{}
+	if _, err := io.Copy(out, brotli.NewReader(data)); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, projectId, SessionContents)})
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket:                  aws.String(S3SessionsPayloadBucketName),
+		Key:                     s.bucketKey(sessionId, projectId, SessionContentsCompressed),
+		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -174,8 +181,9 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	type events struct {
-		Events []interface{}
+	buf, err = s.decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
 	}
 	eventsSlice := strings.Split(buf.String(), "\n\n\n")
 	var retEvents []interface{}
@@ -183,18 +191,22 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 		if e == "" {
 			continue
 		}
-		var tempEvents events
+		var tempEvents []interface{}
 		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
 			return nil, errors.Wrap(err, "error decoding event data")
 		}
-		retEvents = append(retEvents, tempEvents.Events...)
+		retEvents = append(retEvents, tempEvents...)
 	}
 	return retEvents, nil
 }
 
 func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket:                  aws.String(S3SessionsPayloadBucketName),
+		Key:                     s.bucketKey(sessionId, projectId, NetworkResourcesCompressed),
+		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -202,6 +214,10 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	buf, err = s.decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
 	}
 	type resources struct {
 		Resources []interface{}
@@ -222,8 +238,12 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 }
 
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, projectId, ConsoleMessages)})
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket:                  aws.String(S3SessionsPayloadBucketName),
+		Key:                     s.bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
+		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -231,6 +251,10 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	buf, err = s.decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
 	}
 	type messages struct {
 		Messages []interface{}
