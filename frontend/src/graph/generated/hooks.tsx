@@ -1,8 +1,7 @@
 import * as Types from './operations';
 
+import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
-import {gql} from '@apollo/client';
-
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
         events
@@ -4094,14 +4093,19 @@ export function useModifyClearbitIntegrationMutation(
         Types.ModifyClearbitIntegrationMutationVariables
     >
 ) {
-    return Apollo.useMutation<Types.ModifyClearbitIntegrationMutation,
-        Types.ModifyClearbitIntegrationMutationVariables>(ModifyClearbitIntegrationDocument, baseOptions);
+    return Apollo.useMutation<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >(ModifyClearbitIntegrationDocument, baseOptions);
 }
-
-export type ModifyClearbitIntegrationMutationHookResult = ReturnType<typeof useModifyClearbitIntegrationMutation>;
+export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
+    typeof useModifyClearbitIntegrationMutation
+>;
 export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
-export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<Types.ModifyClearbitIntegrationMutation,
-    Types.ModifyClearbitIntegrationMutationVariables>;
+export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
 export const UpsertDashboardDocument = gql`
     mutation UpsertDashboard(
         $id: ID
@@ -4119,8 +4123,10 @@ export const UpsertDashboardDocument = gql`
         )
     }
 `;
-export type UpsertDashboardMutationFn = Apollo.MutationFunction<Types.UpsertDashboardMutation,
-    Types.UpsertDashboardMutationVariables>;
+export type UpsertDashboardMutationFn = Apollo.MutationFunction<
+    Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables
+>;
 
 /**
  * __useUpsertDashboardMutation__
@@ -4144,17 +4150,24 @@ export type UpsertDashboardMutationFn = Apollo.MutationFunction<Types.UpsertDash
  * });
  */
 export function useUpsertDashboardMutation(
-    baseOptions?: Apollo.MutationHookOptions<Types.UpsertDashboardMutation,
-        Types.UpsertDashboardMutationVariables>
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables
+    >
 ) {
-    return Apollo.useMutation<Types.UpsertDashboardMutation,
-        Types.UpsertDashboardMutationVariables>(UpsertDashboardDocument, baseOptions);
+    return Apollo.useMutation<
+        Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables
+    >(UpsertDashboardDocument, baseOptions);
 }
-
-export type UpsertDashboardMutationHookResult = ReturnType<typeof useUpsertDashboardMutation>;
+export type UpsertDashboardMutationHookResult = ReturnType<
+    typeof useUpsertDashboardMutation
+>;
 export type UpsertDashboardMutationResult = Apollo.MutationResult<Types.UpsertDashboardMutation>;
-export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<Types.UpsertDashboardMutation,
-    Types.UpsertDashboardMutationVariables>;
+export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables
+>;
 export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
@@ -9364,17 +9377,26 @@ export function useGetWebVitalsQuery(
     >(GetWebVitalsDocument, baseOptions);
 }
 export function useGetWebVitalsLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWebVitalsQuery,
-        Types.GetWebVitalsQueryVariables>
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >
 ) {
-    return Apollo.useLazyQuery<Types.GetWebVitalsQuery,
-        Types.GetWebVitalsQueryVariables>(GetWebVitalsDocument, baseOptions);
+    return Apollo.useLazyQuery<
+        Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables
+    >(GetWebVitalsDocument, baseOptions);
 }
-
-export type GetWebVitalsQueryHookResult = ReturnType<typeof useGetWebVitalsQuery>;
-export type GetWebVitalsLazyQueryHookResult = ReturnType<typeof useGetWebVitalsLazyQuery>;
-export type GetWebVitalsQueryResult = Apollo.QueryResult<Types.GetWebVitalsQuery,
-    Types.GetWebVitalsQueryVariables>;
+export type GetWebVitalsQueryHookResult = ReturnType<
+    typeof useGetWebVitalsQuery
+>;
+export type GetWebVitalsLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalsLazyQuery
+>;
+export type GetWebVitalsQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalsQuery,
+    Types.GetWebVitalsQueryVariables
+>;
 export const GetDashboardDefinitionsDocument = gql`
     query GetDashboardDefinitions($project_id: ID!) {
         dashboard_definitions(project_id: $project_id) {
@@ -9413,25 +9435,37 @@ export const GetDashboardDefinitionsDocument = gql`
  * });
  */
 export function useGetDashboardDefinitionsQuery(
-    baseOptions: Apollo.QueryHookOptions<Types.GetDashboardDefinitionsQuery,
-        Types.GetDashboardDefinitionsQueryVariables>
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >
 ) {
-    return Apollo.useQuery<Types.GetDashboardDefinitionsQuery,
-        Types.GetDashboardDefinitionsQueryVariables>(GetDashboardDefinitionsDocument, baseOptions);
+    return Apollo.useQuery<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >(GetDashboardDefinitionsDocument, baseOptions);
 }
-
 export function useGetDashboardDefinitionsLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDashboardDefinitionsQuery,
-        Types.GetDashboardDefinitionsQueryVariables>
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >
 ) {
-    return Apollo.useLazyQuery<Types.GetDashboardDefinitionsQuery,
-        Types.GetDashboardDefinitionsQueryVariables>(GetDashboardDefinitionsDocument, baseOptions);
+    return Apollo.useLazyQuery<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >(GetDashboardDefinitionsDocument, baseOptions);
 }
-
-export type GetDashboardDefinitionsQueryHookResult = ReturnType<typeof useGetDashboardDefinitionsQuery>;
-export type GetDashboardDefinitionsLazyQueryHookResult = ReturnType<typeof useGetDashboardDefinitionsLazyQuery>;
-export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<Types.GetDashboardDefinitionsQuery,
-    Types.GetDashboardDefinitionsQueryVariables>;
+export type GetDashboardDefinitionsQueryHookResult = ReturnType<
+    typeof useGetDashboardDefinitionsQuery
+>;
+export type GetDashboardDefinitionsLazyQueryHookResult = ReturnType<
+    typeof useGetDashboardDefinitionsLazyQuery
+>;
+export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<
+    Types.GetDashboardDefinitionsQuery,
+    Types.GetDashboardDefinitionsQueryVariables
+>;
 export const GetSuggestedMetricsDocument = gql`
     query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
         suggested_metrics(project_id: $project_id, prefix: $prefix)
@@ -9456,22 +9490,34 @@ export const GetSuggestedMetricsDocument = gql`
  * });
  */
 export function useGetSuggestedMetricsQuery(
-    baseOptions: Apollo.QueryHookOptions<Types.GetSuggestedMetricsQuery,
-        Types.GetSuggestedMetricsQueryVariables>
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >
 ) {
-    return Apollo.useQuery<Types.GetSuggestedMetricsQuery,
-        Types.GetSuggestedMetricsQueryVariables>(GetSuggestedMetricsDocument, baseOptions);
+    return Apollo.useQuery<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >(GetSuggestedMetricsDocument, baseOptions);
 }
-
 export function useGetSuggestedMetricsLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<Types.GetSuggestedMetricsQuery,
-        Types.GetSuggestedMetricsQueryVariables>
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >
 ) {
-    return Apollo.useLazyQuery<Types.GetSuggestedMetricsQuery,
-        Types.GetSuggestedMetricsQueryVariables>(GetSuggestedMetricsDocument, baseOptions);
+    return Apollo.useLazyQuery<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >(GetSuggestedMetricsDocument, baseOptions);
 }
-
-export type GetSuggestedMetricsQueryHookResult = ReturnType<typeof useGetSuggestedMetricsQuery>;
-export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<typeof useGetSuggestedMetricsLazyQuery>;
-export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<Types.GetSuggestedMetricsQuery,
-    Types.GetSuggestedMetricsQueryVariables>;
+export type GetSuggestedMetricsQueryHookResult = ReturnType<
+    typeof useGetSuggestedMetricsQuery
+>;
+export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
+    typeof useGetSuggestedMetricsLazyQuery
+>;
+export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
+    Types.GetSuggestedMetricsQuery,
+    Types.GetSuggestedMetricsQueryVariables
+>;
