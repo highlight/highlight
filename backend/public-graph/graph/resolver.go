@@ -1805,47 +1805,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			var metrics []*customModels.MetricInput
-			for _, r := range resourcesParsed["resources"] {
-				attrs := r.(map[string]interface{})
-				start, ok := attrs["startTime"]
-				if !ok {
-					continue
-				}
-				end, ok := attrs["responseEnd"]
-				if !ok {
-					continue
-				}
-				url, ok := attrs["name"]
-				if !ok {
-					continue
-				}
-				pairs, ok := attrs["requestResponsePairs"]
-				if !ok {
-					continue
-				}
-				request, ok := pairs.(map[string]interface{})["request"]
-				if !ok {
-					continue
-				}
-				id, ok := request.(map[string]interface{})["id"]
-				if !ok {
-					continue
-				}
-				requestID := id.(string)
-				metrics = append(metrics, &customModels.MetricInput{
-					SessionSecureID: sessionObj.SecureID,
-					Name:            "delayMS",
-					Value:           end.(float64) - start.(float64),
-					Type:            customModels.MetricTypeFrontend,
-					URL:             url.(string),
-					Timestamp:       time.UnixMilli(int64(start.(float64))),
-					RequestID:       &requestID,
-				})
-			}
-			if len(metrics) > 0 {
-				if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
-					return e.Wrap(err, "failed to submit metrics message")
+			// TODO(vkorolik) frontend metrics recording only
+			// for highlight project for now to ensure we do not overwhelm our message processing
+			if projectID == 1 {
+				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
 				}
 			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
@@ -2032,4 +1996,51 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return
 		}
 	}
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []interface{}) error {
+	var metrics []*customModels.MetricInput
+	for _, r := range resources {
+		attrs := r.(map[string]interface{})
+		start, ok := attrs["startTime"]
+		if !ok {
+			continue
+		}
+		end, ok := attrs["responseEnd"]
+		if !ok {
+			continue
+		}
+		url, ok := attrs["name"]
+		if !ok {
+			continue
+		}
+		pairs, ok := attrs["requestResponsePairs"]
+		if !ok {
+			continue
+		}
+		request, ok := pairs.(map[string]interface{})["request"]
+		if !ok {
+			continue
+		}
+		id, ok := request.(map[string]interface{})["id"]
+		if !ok {
+			continue
+		}
+		requestID := id.(string)
+		metrics = append(metrics, &customModels.MetricInput{
+			SessionSecureID: sessionObj.SecureID,
+			Name:            "delayMS",
+			Value:           end.(float64) - start.(float64),
+			Type:            customModels.MetricTypeFrontend,
+			URL:             url.(string),
+			Timestamp:       time.UnixMilli(int64(start.(float64))),
+			RequestID:       &requestID,
+		})
+	}
+	if len(metrics) > 0 {
+		if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
+			return e.Wrap(err, "failed to submit metrics message")
+		}
+	}
+	return nil
 }
