@@ -8,8 +8,10 @@ import { useGetMetricPreviewQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { MetricType } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import {
+    WEB_VITALS_CONFIGURATION,
+    WebVitalDescriptor,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { Divider } from 'antd';
@@ -34,8 +36,8 @@ interface Props {
     onSlackChannelsChange: (newChannels: string[]) => void;
     emails: string[];
     onEmailsChange: (newEmails: string[]) => void;
-    config: MetricConfig;
-    onConfigChange: (newConfig: MetricConfig) => void;
+    config: WebVitalDescriptor;
+    onConfigChange: (newConfig: WebVitalDescriptor) => void;
     onFormSubmit: (values: any) => void;
     channelSuggestions: any[];
     emailSuggestions: string[];

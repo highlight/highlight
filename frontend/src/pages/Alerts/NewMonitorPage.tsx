@@ -3,8 +3,10 @@ import { useCreateMetricMonitorMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import {
+    WEB_VITALS_CONFIGURATION,
+    WebVitalDescriptor,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import message from 'antd/lib/message';
 import React, { useEffect, useState } from 'react';
@@ -37,7 +39,7 @@ const NewMonitorPage = ({
             newMonitorTypeSearchParam) ||
             'LCP'
     );
-    const [config, setConfig] = useState<MetricConfig>(
+    const [config, setConfig] = useState<WebVitalDescriptor>(
         WEB_VITALS_CONFIGURATION[metricToMonitorName]
     );
     const [monitorName, setMonitorName] = useState('New Monitor');

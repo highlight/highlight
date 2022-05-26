@@ -1,12 +1,9 @@
 import {
-    BackendErrorObjectInput,
     getSdk,
-    InputMaybe,
-    MetricInput,
-    MetricType,
-    PushBackendPayloadMutationVariables,
-    PushMetricsMutationVariables,
     Sdk,
+    PushBackendPayloadMutationVariables,
+    InputMaybe,
+    BackendErrorObjectInput,
 } from './graph/generated/operations';
 import ErrorStackParser from 'error-stack-parser';
 import { GraphQLClient } from 'graphql-request';
@@ -42,7 +39,6 @@ export class Highlight {
     _backendUrl: string;
     _intervalFunction: ReturnType<typeof setInterval>;
     errors: Array<InputMaybe<BackendErrorObjectInput>> = [];
-    metrics: Array<InputMaybe<MetricInput>> = [];
     lastBackendSetupEvent: number = 0;
     _errorContext: ErrorContext | undefined;
 
@@ -63,23 +59,6 @@ export class Highlight {
         }
     }
 
-    recordMetric(
-        secureSessionId: string,
-        name: string,
-        value: number,
-        requestId?: string
-    ) {
-        this.metrics.push({
-            session_secure_id: secureSessionId,
-            name: name,
-            value: value,
-            timestamp: new Date().toISOString(),
-            type: MetricType.Backend,
-            url: '',
-            request_id: requestId,
-        });
-    }
-
     consumeCustomError(
         error: Error,
         secureSessionId: string,
@@ -94,10 +73,11 @@ export class Highlight {
                         frame.fileName !== undefined &&
                         frame.lineNumber !== undefined
                     ) {
-                        const context = this._errorContext?.getStackFrameContext(
-                            frame.fileName,
-                            frame.lineNumber
-                        );
+                        const context =
+                            this._errorContext?.getStackFrameContext(
+                                frame.fileName,
+                                frame.lineNumber
+                            );
                         return { ...frame, ...context };
                     }
                 } catch {}
@@ -140,7 +120,7 @@ export class Highlight {
         }
     }
 
-    flushErrors() {
+    flush() {
         if (this.errors.length === 0) {
             return;
         }
@@ -152,28 +132,7 @@ export class Highlight {
             .PushBackendPayload(variables)
             .then(() => {})
             .catch((e) => {
-                console.log('highlight-node pushErrors error: ', e);
+                console.log('highlight-node error: ', e);
             });
-    }
-
-    flushMetrics() {
-        if (this.metrics.length === 0) {
-            return;
-        }
-        const variables: PushMetricsMutationVariables = {
-            metrics: this.metrics,
-        };
-        this.metrics = [];
-        this._graphqlSdk
-            .PushMetrics(variables)
-            .then(() => {})
-            .catch((e) => {
-                console.log('highlight-node pushMetrics error: ', e);
-            });
-    }
-
-    flush() {
-        this.flushErrors();
-        this.flushMetrics();
     }
 }

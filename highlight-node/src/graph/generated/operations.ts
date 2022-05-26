@@ -49,22 +49,6 @@ export type ErrorObjectInput = {
   url: Scalars['String'];
 };
 
-export type MetricInput = {
-  name: Scalars['String'];
-  request_id?: InputMaybe<Scalars['String']>;
-  session_secure_id: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-  type: MetricType;
-  url: Scalars['String'];
-  value: Scalars['Float'];
-};
-
-export enum MetricType {
-  Backend = 'Backend',
-  Device = 'Device',
-  WebVital = 'WebVital'
-}
-
 export type Mutation = {
   __typename?: 'Mutation';
   addDeviceMetric: Scalars['ID'];
@@ -76,7 +60,6 @@ export type Mutation = {
   initializeSession?: Maybe<Session>;
   markBackendSetup: Scalars['ID'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
-  pushMetrics: Scalars['ID'];
   pushPayload: Scalars['Int'];
 };
 
@@ -145,11 +128,6 @@ export type MutationPushBackendPayloadArgs = {
 };
 
 
-export type MutationPushMetricsArgs = {
-  metrics: Array<InputMaybe<MetricInput>>;
-};
-
-
 export type MutationPushPayloadArgs = {
   errors: Array<InputMaybe<ErrorObjectInput>>;
   events: ReplayEventsInput;
@@ -171,15 +149,8 @@ export type QueryIgnoreArgs = {
   id: Scalars['ID'];
 };
 
-export type ReplayEventInput = {
-  _sid: Scalars['Float'];
-  data: Scalars['Any'];
-  timestamp: Scalars['Float'];
-  type: Scalars['Int'];
-};
-
 export type ReplayEventsInput = {
-  events: Array<InputMaybe<ReplayEventInput>>;
+  events: Array<InputMaybe<Scalars['Any']>>;
 };
 
 export type Session = {
@@ -220,13 +191,6 @@ export type MarkBackendSetupMutationVariables = Types.Exact<{
 
 export type MarkBackendSetupMutation = { __typename?: 'Mutation', markBackendSetup: string };
 
-export type PushMetricsMutationVariables = Types.Exact<{
-  metrics: Array<Types.InputMaybe<Types.MetricInput>> | Types.InputMaybe<Types.MetricInput>;
-}>;
-
-
-export type PushMetricsMutation = { __typename?: 'Mutation', pushMetrics: string };
-
 
 export const PushBackendPayloadDocument = gql`
     mutation PushBackendPayload($errors: [BackendErrorObjectInput]!) {
@@ -236,11 +200,6 @@ export const PushBackendPayloadDocument = gql`
 export const MarkBackendSetupDocument = gql`
     mutation MarkBackendSetup($session_secure_id: String!) {
   markBackendSetup(session_secure_id: $session_secure_id)
-}
-    `;
-export const PushMetricsDocument = gql`
-    mutation PushMetrics($metrics: [MetricInput]!) {
-  pushMetrics(metrics: $metrics)
 }
     `;
 
@@ -256,9 +215,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     MarkBackendSetup(variables: MarkBackendSetupMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<MarkBackendSetupMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<MarkBackendSetupMutation>(MarkBackendSetupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'MarkBackendSetup');
-    },
-    PushMetrics(variables: PushMetricsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushMetricsMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<PushMetricsMutation>(PushMetricsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'PushMetrics');
     }
   };
 }

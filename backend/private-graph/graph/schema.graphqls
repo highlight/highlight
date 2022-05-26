@@ -175,7 +175,6 @@ enum ErrorState {
 enum MetricType {
     WebVital
     Device
-    Backend
 }
 
 enum AdminRole {
@@ -381,10 +380,8 @@ input SearchParamsInput {
     query: String
 }
 
-input DashboardParamsInput {
+input WebVitalDashboardParamsInput {
     date_range: DateRangeInput
-    resolution_minutes: Int
-    timezone: String
 }
 
 type SearchParams {
@@ -694,7 +691,7 @@ type Metric {
     value: Float!
 }
 
-type DashboardPayload {
+type WebVitalDashboardPayload {
     date: String!
     avg: Float!
     p50: Float!
@@ -870,11 +867,11 @@ type Query {
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
-    metrics_dashboard(
+    web_vital_dashboard(
         project_id: ID!
-        metric_name: String!
-        params: DashboardParamsInput!
-    ): [DashboardPayload]!
+        web_vital_name: String!
+        params: WebVitalDashboardParamsInput!
+    ): [WebVitalDashboardPayload]!
     metric_preview(
         project_id: ID!
         type: MetricType!

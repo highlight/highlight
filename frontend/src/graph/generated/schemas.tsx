@@ -203,7 +203,6 @@ export enum ErrorState {
 export enum MetricType {
     WebVital = 'WebVital',
     Device = 'Device',
-    Backend = 'Backend',
 }
 
 export enum AdminRole {
@@ -424,10 +423,8 @@ export type SearchParamsInput = {
     query?: Maybe<Scalars['String']>;
 };
 
-export type DashboardParamsInput = {
+export type WebVitalDashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
-    resolution_minutes?: Maybe<Scalars['Int']>;
-    timezone?: Maybe<Scalars['String']>;
 };
 
 export type SearchParams = {
@@ -757,8 +754,8 @@ export type Metric = {
     value: Scalars['Float'];
 };
 
-export type DashboardPayload = {
-    __typename?: 'DashboardPayload';
+export type WebVitalDashboardPayload = {
+    __typename?: 'WebVitalDashboardPayload';
     date: Scalars['String'];
     avg: Scalars['Float'];
     p50: Scalars['Float'];
@@ -876,7 +873,7 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
-    metrics_dashboard: Array<Maybe<DashboardPayload>>;
+    web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1208,10 +1205,10 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
-export type QueryMetrics_DashboardArgs = {
+export type QueryWeb_Vital_DashboardArgs = {
     project_id: Scalars['ID'];
-    metric_name: Scalars['String'];
-    params: DashboardParamsInput;
+    web_vital_name: Scalars['String'];
+    params: WebVitalDashboardParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {
