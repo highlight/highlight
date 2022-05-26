@@ -84,8 +84,6 @@ export const ExcludedUsersForm = () => {
         return <LoadingBar />;
     }
 
-    console.log('identifierQuery', identifierQuery);
-
     const identifierSuggestions = identifierSuggestionsLoading
         ? []
         : (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
@@ -100,10 +98,6 @@ export const ExcludedUsersForm = () => {
                   id: suggestion,
               })
           );
-    console.log(
-        'displayValue',
-        identifierSuggestions[0] && identifierSuggestions[0].displayValue
-    );
 
     const handleIdentifierSearch = (query = '') => {
         setIdentifierQuery(query);
