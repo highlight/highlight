@@ -340,7 +340,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	// Constantly writing to `updated_at` is a source of DB contention for session updates.
 	if err := r.DB.Table("session_fields").Clauses(clause.OnConflict{
 		DoNothing: true,
-	}).CreateInBatches(entries, 100).Error; err != nil {
+	}).Create(entries).Error; err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
