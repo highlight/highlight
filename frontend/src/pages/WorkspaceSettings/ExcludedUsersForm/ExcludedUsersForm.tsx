@@ -1,7 +1,13 @@
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
+import Select from '@components/Select/Select';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import {
+    useEditProjectMutation,
+    useGetIdentifierSuggestionsQuery,
+    useGetProjectQuery,
+} from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
-import { message, Select } from 'antd';
+import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useEffect, useState } from 'react';
 
@@ -18,6 +24,7 @@ export const ExcludedUsersForm = () => {
         project_id: string;
     }>();
     const [excludedUsers, setExcludedUsers] = useState<string[]>([]);
+    const [identifierQuery, setIdentifierQuery] = useState('');
     const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
         []
     );
@@ -35,6 +42,17 @@ export const ExcludedUsersForm = () => {
             namedOperations.Query.GetProjects,
             namedOperations.Query.GetProject,
         ],
+    });
+
+    const {
+        refetch: refetchIdentifierSuggestions,
+        loading: identifierSuggestionsLoading,
+        data: identifierSuggestionsApiResponse,
+    } = useGetIdentifierSuggestionsQuery({
+        variables: {
+            project_id,
+            query: '',
+        },
     });
 
     const onSubmit = (e: { preventDefault: () => void }) => {
@@ -66,6 +84,32 @@ export const ExcludedUsersForm = () => {
         return <LoadingBar />;
     }
 
+    console.log('identifierQuery', identifierQuery);
+
+    const identifierSuggestions = identifierSuggestionsLoading
+        ? []
+        : (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
+              (suggestion) => ({
+                  value: suggestion,
+                  displayValue: (
+                      <TextHighlighter
+                          searchWords={[identifierQuery]}
+                          textToHighlight={suggestion}
+                      />
+                  ),
+                  id: suggestion,
+              })
+          );
+    console.log(
+        'displayValue',
+        identifierSuggestions[0] && identifierSuggestions[0].displayValue
+    );
+
+    const handleIdentifierSearch = (query = '') => {
+        setIdentifierQuery(query);
+        refetchIdentifierSuggestions({ query, project_id });
+    };
+
     return (
         <form onSubmit={onSubmit} key={project_id}>
             <p>
@@ -75,10 +119,11 @@ export const ExcludedUsersForm = () => {
             </p>
             <div className={styles.inputAndButtonRow}>
                 <Select
-                    size={'large'}
                     mode="tags"
                     placeholder={`.*@yourdomain.com`}
                     defaultValue={data?.project?.excluded_users || undefined}
+                    onSearch={handleIdentifierSearch}
+                    options={identifierSuggestions}
                     onChange={(excluded: string[]) => {
                         const validRegexes: string[] = [];
                         const invalidRegexes: string[] = [];
