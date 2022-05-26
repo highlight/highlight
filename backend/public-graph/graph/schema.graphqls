@@ -46,20 +46,9 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-}
-
-input MetricInput {
-    session_secure_id: String!
+input WebVitalMetricInput {
     name: String!
     value: Float!
-    type: MetricType!
-    url: String!
-    timestamp: Timestamp!
-    request_id: String
 }
 
 input DeviceMetricInput {
@@ -109,7 +98,6 @@ type Mutation {
         highlight_logs: String
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
-    pushMetrics(metrics: [MetricInput]!): ID!
     markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
         session_id: ID!
@@ -118,15 +106,8 @@ type Mutation {
         verbatim: String!
         timestamp: Timestamp!
     ): ID!
-    # TODO(vkorolik) deprecate as clients migrate to pushMetrics
     addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
     addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
-}
-
-# TODO(vkorolik) deprecate as clients migrate to pushMetrics
-input WebVitalMetricInput {
-    name: String!
-    value: Float!
 }
 
 type Query {

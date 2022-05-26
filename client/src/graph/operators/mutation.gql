@@ -39,8 +39,12 @@ mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
     )
 }
 
-mutation pushMetrics($metrics: [MetricInput]!) {
-    pushMetrics(metrics: $metrics)
+mutation addWebVitals($session_id: ID!, $metric: WebVitalMetricInput!) {
+    addWebVitals(session_id: $session_id, metric: $metric)
+}
+
+mutation addDeviceMetric($session_id: ID!, $metric: DeviceMetricInput!) {
+    addDeviceMetric(session_id: $session_id, metric: $metric)
 }
 
 mutation addTrackProperties($session_id: ID!, $properties_object: Any) {

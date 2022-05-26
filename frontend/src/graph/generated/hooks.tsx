@@ -4106,15 +4106,15 @@ export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOption
     Types.ModifyClearbitIntegrationMutation,
     Types.ModifyClearbitIntegrationMutationVariables
 >;
-export const GetMetricsDashboardDocument = gql`
-    query GetMetricsDashboard(
+export const GetWebVitalDashboardDocument = gql`
+    query GetWebVitalDashboard(
         $project_id: ID!
-        $metric_name: String!
-        $params: DashboardParamsInput!
+        $web_vital_name: String!
+        $params: WebVitalDashboardParamsInput!
     ) {
-        metrics_dashboard(
+        web_vital_dashboard(
             project_id: $project_id
-            metric_name: $metric_name
+            web_vital_name: $web_vital_name
             params: $params
         ) {
             date
@@ -4128,54 +4128,54 @@ export const GetMetricsDashboardDocument = gql`
 `;
 
 /**
- * __useGetMetricsDashboardQuery__
+ * __useGetWebVitalDashboardQuery__
  *
- * To run a query within a React component, call `useGetMetricsDashboardQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetWebVitalDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWebVitalDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetMetricsDashboardQuery({
+ * const { data, loading, error } = useGetWebVitalDashboardQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      metric_name: // value for 'metric_name'
+ *      web_vital_name: // value for 'web_vital_name'
  *      params: // value for 'params'
  *   },
  * });
  */
-export function useGetMetricsDashboardQuery(
+export function useGetWebVitalDashboardQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
 }
-export function useGetMetricsDashboardLazyQuery(
+export function useGetWebVitalDashboardLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetWebVitalDashboardQuery,
+        Types.GetWebVitalDashboardQueryVariables
+    >(GetWebVitalDashboardDocument, baseOptions);
 }
-export type GetMetricsDashboardQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardQuery
+export type GetWebVitalDashboardQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardQuery
 >;
-export type GetMetricsDashboardLazyQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardLazyQuery
+export type GetWebVitalDashboardLazyQueryHookResult = ReturnType<
+    typeof useGetWebVitalDashboardLazyQuery
 >;
-export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
-    Types.GetMetricsDashboardQuery,
-    Types.GetMetricsDashboardQueryVariables
+export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<
+    Types.GetWebVitalDashboardQuery,
+    Types.GetWebVitalDashboardQueryVariables
 >;
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(

@@ -4889,37 +4889,27 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return details, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	payload := []*modelInputs.DashboardPayload{}
+func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
+	payload := []*modelInputs.WebVitalDashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
 
-	resMins := 60
-	if params.ResolutionMinutes != nil {
-		resMins = *params.ResolutionMinutes
-	}
-	tz := "PDT"
-	if params.Timezone != nil {
-		tz = *params.Timezone
-	}
-	query := fmt.Sprintf(`
-		SELECT to_timestamp(cast(extract(
-				       EPOCH FROM created_at AT TIME ZONE '%s'
-				   ) / 60 / %d AS INT) * %d * 60)::timestamp AT TIME ZONE '%s'               as date,
-			   avg(value)                                                                    as avg,
-			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
-			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value)                           as p90,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value)                           as p99
-		  FROM metrics
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?
-		  GROUP BY date;
-	`, tz, resMins, resMins, tz)
-	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	if err := r.DB.Raw(`
+	SELECT
+		created_at::date as date,
+		AVG(value) as avg,
+		percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
+		percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
+		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
+		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
+	FROM metrics
+	WHERE name=?
+	AND project_id=?
+	AND created_at >= ?
+	AND created_at <= ?
+	GROUP BY created_at::date, name;
+	`, webVitalName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}
