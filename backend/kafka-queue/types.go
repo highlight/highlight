@@ -11,6 +11,7 @@ const (
 	AddTrackProperties   PayloadType = iota
 	AddSessionProperties PayloadType = iota
 	PushBackendPayload   PayloadType = iota
+	PushMetrics          PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -47,6 +48,12 @@ type PushBackendPayloadArgs struct {
 	Errors          []*customModels.BackendErrorObjectInput
 }
 
+type PushMetricsArgs struct {
+	SessionID int
+	ProjectID int
+	Metrics   []*customModels.MetricInput
+}
+
 type Message struct {
 	Type                 PayloadType
 	PushPayload          *PushPayloadArgs
@@ -55,6 +62,7 @@ type Message struct {
 	AddTrackProperties   *AddTrackPropertiesArgs
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
+	PushMetrics          *PushMetricsArgs
 }
 
 type PartitionMessage struct {
