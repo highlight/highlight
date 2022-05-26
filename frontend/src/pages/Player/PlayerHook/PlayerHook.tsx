@@ -593,12 +593,17 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
+    // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
     const initReplayer = (newEvents: HighlightEvent[]) => {
-        setState(ReplayerState.Loading);
-        // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
         const playerMountingRoot = document.getElementById(
             'player'
         ) as HTMLElement;
+        if (!playerMountingRoot) {
+            setState(ReplayerState.Empty);
+            return;
+        } else {
+            setState(ReplayerState.Loading);
+        }
         // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
         // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
         if (playerMountingRoot?.childNodes?.length > 0) {
@@ -1011,7 +1016,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const play = useCallback(
         (newTime?: number) => {
-            const timeChanged = newTime !== time;
             if (isLiveMode) {
                 // Return if no events
                 if (events.length === 0) {
@@ -1054,24 +1058,19 @@ export const usePlayer = (): ReplayerContextInterface => {
                     replayer?.play(newTimeWithOffset);
                 }
             });
-            if (timeChanged || needsLoad) {
+            if (needsLoad) {
                 setIsLoadingEvents(true);
+                replayer?.pause();
+            } else {
+                replayer?.play(newTimeWithOffset);
             }
-            setTimeout(() => {
-                if (needsLoad) {
-                    replayer?.pause();
-                } else {
-                    replayer?.play(newTimeWithOffset);
-                    setIsLoadingEvents(false);
-                }
 
-                // Log how long it took to move to the new time.
-                const timelineChangeTime = timerEnd('timelineChangeTime');
-                console.log({ timelineChangeTime });
-                datadogLogs.logger.info('Timeline Change Time', {
-                    duration: timelineChangeTime,
-                    sessionId: session?.secure_id,
-                });
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
             });
         },
         [
@@ -1089,7 +1088,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const pause = useCallback(
         (newTime?: number) => {
-            const timeChanged = newTime !== time;
             setIsLiveMode(false);
             setState(ReplayerState.Paused);
             if (newTime !== undefined) {
@@ -1110,25 +1108,19 @@ export const usePlayer = (): ReplayerContextInterface => {
                     replayer?.pause(newTimeWithOffset);
                 }
             });
-
-            if (timeChanged || needsLoad) {
+            if (needsLoad) {
                 setIsLoadingEvents(true);
+                replayer?.pause();
+            } else {
+                replayer?.pause(newTimeWithOffset);
             }
-            setTimeout(() => {
-                if (needsLoad) {
-                    replayer?.pause();
-                } else {
-                    replayer?.pause(newTimeWithOffset);
-                    setIsLoadingEvents(false);
-                }
 
-                // Log how long it took to move to the new time.
-                const timelineChangeTime = timerEnd('timelineChangeTime');
-                console.log({ timelineChangeTime });
-                datadogLogs.logger.info('Timeline Change Time', {
-                    duration: timelineChangeTime,
-                    sessionId: session?.secure_id,
-                });
+            // Log how long it took to move to the new time.
+            const timelineChangeTime = timerEnd('timelineChangeTime');
+            console.log({ timelineChangeTime });
+            datadogLogs.logger.info('Timeline Change Time', {
+                duration: timelineChangeTime,
+                sessionId: session?.secure_id,
             });
         },
         [
@@ -1136,7 +1128,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             replayer,
             session?.secure_id,
             sessionMetadata.startTime,
-            time,
         ]
     );
 
