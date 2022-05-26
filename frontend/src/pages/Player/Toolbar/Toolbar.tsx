@@ -2,6 +2,9 @@ import Switch from '@components/Switch/Switch';
 import ActivityIcon from '@icons/ActivityIcon';
 import SvgReload from '@icons/Reload';
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
+import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
+import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators';
+import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -14,6 +17,7 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems';
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
+import useLocalStorage from '@rehooks/local-storage';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { timerStart } from '@util/timer/timer';
 import classNames from 'classnames';
@@ -47,7 +51,6 @@ import {
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = React.memo(() => {
@@ -81,6 +84,7 @@ export const Toolbar = React.memo(() => {
         setAutoPlayVideo,
         enableInspectElement,
         showPlayerAbsoluteTime,
+        selectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
@@ -95,6 +99,8 @@ export const Toolbar = React.memo(() => {
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused = ReplayerPausedStates.includes(state);
+
+    const [histogramOn] = useLocalStorage(`highlight-session-histogram`, false);
 
     useEffect(() => {
         if (replayer) {
@@ -250,104 +256,108 @@ export const Toolbar = React.memo(() => {
                     setDevToolsTab: setSelectedDevToolsTab,
                 }}
             >
-                <TimelineIndicators />
-                {!isLiveMode ? (
-                    <div className={styles.playerRail}>
-                        {toolbarItems.zoomAreaLeft !== undefined &&
-                        toolbarItems.zoomAreaRight !== undefined ? (
-                            <div
-                                className={styles.zoomArea}
-                                style={{
-                                    left: `${toolbarItems.zoomAreaLeft}%`,
-                                    width: `${
-                                        toolbarItems.zoomAreaRight -
-                                        toolbarItems.zoomAreaLeft
-                                    }%`,
-                                }}
-                            ></div>
-                        ) : null}
-                        <div
-                            className={styles.sliderRail}
-                            style={{
-                                position: 'absolute',
-                                display: 'flex',
-                                background:
-                                    sessionIntervals.length > 0
-                                        ? 'none'
-                                        : '#e4e8eb',
-                            }}
-                        >
-                            {sessionIntervals.map((e, ind) => (
-                                <SessionSegment
-                                    key={ind}
-                                    interval={e}
-                                    sliderClientX={sliderClientX}
-                                    wrapperWidth={wrapperWidth}
-                                    getSliderTime={getSliderTime}
-                                    isLastSegment={
-                                        ind === sessionIntervals.length - 1
-                                    }
-                                />
-                            ))}
-                        </div>
-                        <button
-                            disabled={disableControls}
-                            className={styles.sliderWrapper}
-                            ref={sliderWrapperRef}
-                            onMouseMove={(
-                                e: React.MouseEvent<HTMLButtonElement>
-                            ) =>
-                                setSliderClientX(
-                                    e.clientX -
-                                        staticSidebarWidth -
-                                        leftSidebarWidth
-                                )
+                {histogramOn && (
+                    <>
+                        <TimelineIndicatorsBarGraph
+                            sessionIntervals={sessionIntervals}
+                            selectedTimelineAnnotationTypes={
+                                selectedTimelineAnnotationTypes
                             }
-                            onMouseLeave={() => setSliderClientX(-1)}
-                            onClick={(
-                                e: React.MouseEvent<HTMLButtonElement>
-                            ) => {
-                                const ratio =
-                                    (e.clientX -
-                                        staticSidebarWidth -
-                                        leftSidebarWidth) /
-                                    wrapperWidth;
-                                timerStart('timelineChangeTime');
-                                setTime(getSliderTime(ratio));
-                            }}
-                        >
-                            <div className={styles.sliderRail}></div>
-
-                            <Draggable
-                                nodeRef={draggableRef}
-                                axis="x"
-                                bounds="parent"
-                                onStop={endLogger}
-                                onDrag={onDraggable}
-                                onStart={startDraggable}
-                                disabled={disableControls}
-                                position={{
-                                    x: Math.max(
-                                        getSliderPercent(time) * wrapperWidth -
-                                            10,
-                                        0
-                                    ),
-                                    y: 0,
-                                }}
-                            >
+                        />
+                        <Scrubber />
+                    </>
+                )}
+                {!histogramOn && (
+                    <>
+                        <TimelineIndicators />
+                        {!isLiveMode ? (
+                            <div className={styles.playerRail}>
                                 <div
-                                    className={styles.indicatorParent}
-                                    ref={draggableRef}
+                                    className={styles.sliderRail}
+                                    style={{
+                                        position: 'absolute',
+                                        display: 'flex',
+                                        background:
+                                            sessionIntervals.length > 0
+                                                ? 'none'
+                                                : '#e4e8eb',
+                                    }}
                                 >
-                                    <div className={styles.indicator} />
+                                    {sessionIntervals.map((e, ind) => (
+                                        <SessionSegment
+                                            key={ind}
+                                            interval={e}
+                                            sliderClientX={sliderClientX}
+                                            wrapperWidth={wrapperWidth}
+                                            getSliderTime={getSliderTime}
+                                            isLastSegment={
+                                                ind ===
+                                                sessionIntervals.length - 1
+                                            }
+                                        />
+                                    ))}
                                 </div>
-                            </Draggable>
-                        </button>
-                    </div>
-                ) : (
-                    <div className={styles.playerRail}>
-                        <div className={styles.livePlayerRail} />
-                    </div>
+                                <button
+                                    disabled={disableControls}
+                                    className={styles.sliderWrapper}
+                                    ref={sliderWrapperRef}
+                                    onMouseMove={(
+                                        e: React.MouseEvent<HTMLButtonElement>
+                                    ) =>
+                                        setSliderClientX(
+                                            e.clientX -
+                                                staticSidebarWidth -
+                                                leftSidebarWidth
+                                        )
+                                    }
+                                    onMouseLeave={() => setSliderClientX(-1)}
+                                    onClick={(
+                                        e: React.MouseEvent<HTMLButtonElement>
+                                    ) => {
+                                        const ratio =
+                                            (e.clientX -
+                                                staticSidebarWidth -
+                                                leftSidebarWidth) /
+                                            wrapperWidth;
+                                        timerStart('timelineChangeTime');
+                                        setTime(getSliderTime(ratio));
+                                    }}
+                                >
+                                    <div className={styles.sliderRail}></div>
+
+                                    <Draggable
+                                        nodeRef={draggableRef}
+                                        axis="x"
+                                        bounds="parent"
+                                        onStop={endLogger}
+                                        onDrag={onDraggable}
+                                        onStart={startDraggable}
+                                        disabled={disableControls}
+                                        position={{
+                                            x: Math.max(
+                                                getSliderPercent(time) *
+                                                    wrapperWidth -
+                                                    10,
+                                                0
+                                            ),
+                                            y: 0,
+                                        }}
+                                    >
+                                        <div
+                                            className={styles.indicatorParent}
+                                            ref={draggableRef}
+                                        >
+                                            <div className={styles.indicator} />
+                                        </div>
+                                    </Draggable>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className={styles.playerRail}>
+                                <div className={styles.livePlayerRail} />
+                            </div>
+                        )}
+                    </>
                 )}
                 {!isLiveMode && (
                     <div id={PlayerPageProductTourSelectors.DevToolsPanel}>

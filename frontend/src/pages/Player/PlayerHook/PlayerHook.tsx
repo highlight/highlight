@@ -1261,6 +1261,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
         isLoadingEvents,
+        setIsLoadingEvents,
         sessionMetadata,
     };
 };

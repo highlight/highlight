@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -15,17 +15,33 @@ interface Series {
     counts: number[];
 }
 
+const POPOVER_TIMEOUT_MS = 1000;
+
 interface Props {
     startTime: number;
     endTime: number;
-    bucketStartTimes: number[];
+    bucketTimes: number[];
     onAreaChanged: (left: number, right: number) => void;
+    onBucketClicked: (bucketIndex: number) => void;
     seriesList: Series[];
+    timeFormatter: (value: number) => string;
+    tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
 }
 
-const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
+const Histogram = ({
+    startTime,
+    onAreaChanged,
+    onBucketClicked,
+    seriesList,
+    bucketTimes,
+    timeFormatter,
+    tooltipContent,
+}: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
+    const [tooltipHidden, setTooltipHidden] = useState(true);
+    const [tooltipWantHidden, setTooltipWantHidden] = useState(true);
+
     let dragLeft: number | undefined;
     let dragRight: number | undefined;
     if (dragStart !== undefined && dragEnd !== undefined) {
@@ -33,18 +49,82 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
         dragRight = Math.max(dragStart, dragEnd);
     }
 
-    const chartData: { [key: string]: number }[] = [];
-    if (series.length > 0) {
-        for (let i = 0; i < series[0].counts.length; i++) {
-            chartData.push({});
-        }
+    const bucketStartTimes = bucketTimes.slice(0, -1);
+    const bucketEndTimes = bucketTimes.slice(1);
 
-        for (const s of series) {
-            for (let i = 0; i < s.counts.length; i++) {
-                chartData[i][s.label] = s.counts[i];
-            }
+    // assert all series have the same length
+    const seriesLength = bucketStartTimes.length;
+    if (!seriesList.every((s) => s.counts.length === seriesLength)) {
+        throw new Error('all series must have the same length');
+    }
+
+    const chartData: {
+        [key: string]: string | number;
+    }[] = [];
+    for (const {} of bucketStartTimes) {
+        chartData.push({});
+    }
+
+    for (const s of seriesList) {
+        for (let i = 0; i < seriesLength; i++) {
+            chartData[i][s.label] = s.counts[i];
         }
     }
+
+    useEffect(() => {
+        // Return if we don't want the tooltip to be hidden or it's already hidden
+        // Any existing timeout will be cleared
+        if (!tooltipWantHidden || tooltipHidden) {
+            return;
+        }
+
+        const id = setTimeout(() => setTooltipHidden(true), POPOVER_TIMEOUT_MS);
+
+        return () => {
+            clearTimeout(id);
+        };
+    }, [tooltipHidden, tooltipWantHidden]);
+
+    const CustomTooltip = ({ label }: any) => {
+        let inner;
+        if (dragLeft !== undefined && dragRight !== undefined) {
+            const leftTime = timeFormatter(bucketStartTimes[dragLeft]);
+            const rightTime = timeFormatter(bucketEndTimes[dragRight]);
+            inner = (
+                <div className={styles.title}>
+                    {leftTime}
+                    {dragLeft !== dragRight && ` to ${rightTime}`}
+                </div>
+            );
+        } else {
+            const leftTime = timeFormatter(bucketStartTimes[label]);
+            const rightTime = timeFormatter(bucketEndTimes[label]);
+            inner = (
+                <>
+                    <div className={styles.title}>
+                        {`${leftTime} to ${rightTime}`}
+                    </div>
+                    <div className={styles.popoverContent}>
+                        {tooltipContent(label)}
+                    </div>
+                </>
+            );
+        }
+        return (
+            <div
+                className={styles.tooltipPopover}
+                onMouseOver={() => {
+                    setTooltipHidden(false);
+                    setTooltipWantHidden(false);
+                }}
+                onMouseLeave={() => {
+                    setTooltipWantHidden(true);
+                }}
+            >
+                {inner}
+            </div>
+        );
+    };
 
     return (
         <div className={styles.container}>
@@ -71,6 +151,8 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
                                 if (!e) {
                                     return;
                                 }
+                                setTooltipHidden(false);
+                                setTooltipWantHidden(false);
                                 if (dragStart !== undefined) {
                                     setDragEnd(e.activeLabel);
                                 }
@@ -80,7 +162,11 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
                                     dragLeft !== undefined &&
                                     dragRight !== undefined
                                 ) {
-                                    onAreaChanged(dragLeft, dragRight);
+                                    if (dragLeft === dragRight) {
+                                        onBucketClicked(dragLeft);
+                                    } else {
+                                        onAreaChanged(dragLeft, dragRight);
+                                    }
                                 }
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
@@ -88,17 +174,35 @@ const Histogram = ({ startTime, onAreaChanged, seriesList: series }: Props) => {
                             onMouseLeave={() => {
                                 setDragStart(undefined);
                                 setDragEnd(undefined);
+                                setTooltipWantHidden(true);
+                            }}
+                            onMouseEnter={() => {
+                                setTooltipHidden(false);
+                                setTooltipWantHidden(false);
                             }}
                         >
                             <Tooltip
-                                content={
-                                    // ZANETODO
-                                    <div>tooltip :)</div>
-                                }
-                                wrapperStyle={{ zIndex: 99999 }}
+                                content={<CustomTooltip />}
+                                wrapperStyle={{
+                                    bottom: '100%',
+                                    top: 'none',
+                                    position: 'absolute',
+                                    zIndex: 100,
+                                    overflow: 'auto',
+                                    visibility: tooltipHidden
+                                        ? 'hidden'
+                                        : 'visible',
+                                    scale: tooltipHidden ? 0 : 1,
+                                    pointerEvents: 'inherit',
+                                }}
+                                allowEscapeViewBox={{
+                                    x: false,
+                                    y: false,
+                                }}
                             />
-                            {series.map((s) => (
+                            {seriesList.map((s) => (
                                 <Bar
+                                    isAnimationActive={false}
                                     key={s.label}
                                     dataKey={s.label}
                                     stackId="a"

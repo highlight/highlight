@@ -66,9 +66,20 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
-export type WebVitalMetricInput = {
+export enum MetricType {
+  WebVital = 'WebVital',
+  Device = 'Device',
+  Backend = 'Backend'
+}
+
+export type MetricInput = {
+  session_secure_id: Scalars['String'];
   name: Scalars['String'];
   value: Scalars['Float'];
+  type: MetricType;
+  url: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  request_id?: Maybe<Scalars['String']>;
 };
 
 export type DeviceMetricInput = {
@@ -95,6 +106,7 @@ export type Mutation = {
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload: Scalars['Int'];
   pushBackendPayload?: Maybe<Scalars['Any']>;
+  pushMetrics: Scalars['ID'];
   markBackendSetup: Scalars['ID'];
   addSessionFeedback: Scalars['ID'];
   addWebVitals: Scalars['ID'];
@@ -152,6 +164,11 @@ export type MutationPushBackendPayloadArgs = {
 };
 
 
+export type MutationPushMetricsArgs = {
+  metrics: Array<Maybe<MetricInput>>;
+};
+
+
 export type MutationMarkBackendSetupArgs = {
   session_secure_id: Scalars['String'];
 };
@@ -175,6 +192,11 @@ export type MutationAddWebVitalsArgs = {
 export type MutationAddDeviceMetricArgs = {
   session_id: Scalars['ID'];
   metric: DeviceMetricInput;
+};
+
+export type WebVitalMetricInput = {
+  name: Scalars['String'];
+  value: Scalars['Float'];
 };
 
 export type Query = {
@@ -227,26 +249,14 @@ export type AddSessionPropertiesMutation = (
   & Pick<Types.Mutation, 'addSessionProperties'>
 );
 
-export type AddWebVitalsMutationVariables = Types.Exact<{
-  session_id: Types.Scalars['ID'];
-  metric: Types.WebVitalMetricInput;
+export type PushMetricsMutationVariables = Types.Exact<{
+  metrics: Array<Types.Maybe<Types.MetricInput>> | Types.Maybe<Types.MetricInput>;
 }>;
 
 
-export type AddWebVitalsMutation = (
+export type PushMetricsMutation = (
   { __typename?: 'Mutation' }
-  & Pick<Types.Mutation, 'addWebVitals'>
-);
-
-export type AddDeviceMetricMutationVariables = Types.Exact<{
-  session_id: Types.Scalars['ID'];
-  metric: Types.DeviceMetricInput;
-}>;
-
-
-export type AddDeviceMetricMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Types.Mutation, 'addDeviceMetric'>
+  & Pick<Types.Mutation, 'pushMetrics'>
 );
 
 export type AddTrackPropertiesMutationVariables = Types.Exact<{
@@ -338,14 +348,9 @@ export const AddSessionPropertiesDocument = gql`
   )
 }
     `;
-export const AddWebVitalsDocument = gql`
-    mutation addWebVitals($session_id: ID!, $metric: WebVitalMetricInput!) {
-  addWebVitals(session_id: $session_id, metric: $metric)
-}
-    `;
-export const AddDeviceMetricDocument = gql`
-    mutation addDeviceMetric($session_id: ID!, $metric: DeviceMetricInput!) {
-  addDeviceMetric(session_id: $session_id, metric: $metric)
+export const PushMetricsDocument = gql`
+    mutation pushMetrics($metrics: [MetricInput]!) {
+  pushMetrics(metrics: $metrics)
 }
     `;
 export const AddTrackPropertiesDocument = gql`
@@ -409,11 +414,8 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     addSessionProperties(variables: AddSessionPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddSessionPropertiesMutation> {
       return withWrapper(() => client.request<AddSessionPropertiesMutation>(print(AddSessionPropertiesDocument), variables, requestHeaders));
     },
-    addWebVitals(variables: AddWebVitalsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddWebVitalsMutation> {
-      return withWrapper(() => client.request<AddWebVitalsMutation>(print(AddWebVitalsDocument), variables, requestHeaders));
-    },
-    addDeviceMetric(variables: AddDeviceMetricMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddDeviceMetricMutation> {
-      return withWrapper(() => client.request<AddDeviceMetricMutation>(print(AddDeviceMetricDocument), variables, requestHeaders));
+    pushMetrics(variables: PushMetricsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushMetricsMutation> {
+      return withWrapper(() => client.request<PushMetricsMutation>(print(PushMetricsDocument), variables, requestHeaders));
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
       return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));
