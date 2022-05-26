@@ -1,8 +1,49 @@
-export interface MetricConfig {
-    name: string;
-    maxGoodValue: number;
-    maxNeedsImprovementValue: number;
-    poorValue: number;
-    units: string;
-    helpArticle: string;
-}
+export const DEFAULT_METRICS_LAYOUT = {
+    lg: [
+        {
+            w: 6,
+            h: 2,
+            x: 0,
+            y: 0,
+            i: '0',
+            minW: 3,
+            static: false,
+        },
+        {
+            w: 6,
+            h: 2,
+            x: 6,
+            y: 0,
+            i: '1',
+            minW: 3,
+            static: false,
+        },
+        {
+            w: 6,
+            h: 2,
+            x: 0,
+            y: 2,
+            i: '2',
+            minW: 3,
+            static: false,
+        },
+        {
+            w: 6,
+            h: 2,
+            x: 6,
+            y: 2,
+            i: '3',
+            minW: 3,
+            static: false,
+        },
+        {
+            w: 6,
+            h: 2,
+            x: 0,
+            y: 4,
+            i: '4',
+            minW: 3,
+            static: false,
+        },
+    ],
+};

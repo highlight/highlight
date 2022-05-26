@@ -7,6 +7,7 @@ import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { DashboardDefinition } from '@graph/schemas';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
+import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
@@ -33,7 +34,7 @@ const DashboardPage = () => {
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[2].value
     );
-    const [layout, setLayout] = useState<Layouts>(DEFAULT_WEB_VITALS_LAYOUT);
+    const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
     const [isEditing, setIsEditing] = useState(false);
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
@@ -134,53 +135,3 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
-
-const DEFAULT_WEB_VITALS_LAYOUT = {
-    lg: [
-        {
-            w: 6,
-            h: 2,
-            x: 0,
-            y: 0,
-            i: '0',
-            minW: 3,
-            static: false,
-        },
-        {
-            w: 6,
-            h: 2,
-            x: 6,
-            y: 0,
-            i: '1',
-            minW: 3,
-            static: false,
-        },
-        {
-            w: 6,
-            h: 2,
-            x: 0,
-            y: 2,
-            i: '2',
-            minW: 3,
-            static: false,
-        },
-        {
-            w: 6,
-            h: 2,
-            x: 6,
-            y: 2,
-            i: '3',
-            minW: 3,
-            static: false,
-        },
-        {
-            w: 6,
-            h: 2,
-            x: 0,
-            y: 4,
-            i: '4',
-            minW: 3,
-            static: false,
-        },
-    ],
-};

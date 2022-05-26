@@ -6,9 +6,8 @@ import { Skeleton } from '@components/Skeleton/Skeleton';
 import Switch from '@components/Switch/Switch';
 import { useGetMetricPreviewQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { MetricType } from '@graph/schemas';
+import { DashboardMetricConfig, MetricType } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
@@ -34,8 +33,8 @@ interface Props {
     onSlackChannelsChange: (newChannels: string[]) => void;
     emails: string[];
     onEmailsChange: (newEmails: string[]) => void;
-    config: MetricConfig;
-    onConfigChange: (newConfig: MetricConfig) => void;
+    config: DashboardMetricConfig;
+    onConfigChange: (newConfig: DashboardMetricConfig) => void;
     onFormSubmit: (values: any) => void;
     channelSuggestions: any[];
     emailSuggestions: string[];
@@ -103,8 +102,8 @@ const MonitorConfiguration = ({
         if (!data) {
             return Array.from(new Array(pointsToGenerate)).map((_, index) => {
                 const randomValue =
-                    Math.random() * (config.maxNeedsImprovementValue * 0.7) +
-                    config.maxGoodValue * 0.2;
+                    Math.random() * (config.max_needs_improvement_value * 0.7) +
+                    config.max_good_value * 0.2;
                 return {
                     value: randomValue,
                     date: moment(now)
@@ -120,7 +119,12 @@ const MonitorConfiguration = ({
                     .format('h:mm A'),
             }));
         }
-    }, [config.maxGoodValue, config.maxNeedsImprovementValue, data, loading]);
+    }, [
+        config.max_good_value,
+        config.max_needs_improvement_value,
+        data,
+        loading,
+    ]);
 
     const metricTypeOptions: OptionType[] = Object.keys(
         WEB_VITALS_CONFIGURATION

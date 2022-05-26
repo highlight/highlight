@@ -1,4 +1,3 @@
-import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
@@ -6,6 +5,7 @@ import Table from '@components/Table/Table';
 import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
+import CreateDashboardModal from '@pages/Dashboards/components/CreateDashboardModal/CreateDashboardModal';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -19,27 +19,7 @@ const DashboardsHomePage = () => {
         variables: { project_id },
     });
     const history = useHistory();
-    const { dashboards, updateDashboard, allAdmins } = useDashboardsContext();
-
-    const onCreateNewDashboard = () => {
-        // TODO(vkorolik)
-        updateDashboard({
-            name: 'TODO',
-            metrics: [
-                {
-                    name: 'delayMS',
-                    help_article: '',
-                    units: '',
-                    max_good_value: 10,
-                    max_needs_improvement_value: 100,
-                    poor_value: 1000,
-                },
-            ],
-        }).then((r) => {
-            const newId = r.data?.upsertDashboard || '';
-            history.push(`/${project_id}/dashboards/${newId}`);
-        });
-    };
+    const { dashboards, allAdmins } = useDashboardsContext();
 
     return (
         <div>
@@ -49,14 +29,7 @@ const DashboardsHomePage = () => {
                     app.
                 </p>
                 <HighlightGate>
-                    <Button
-                        trackingId="NewDashboard"
-                        className={alertStyles.callToAction}
-                        onClick={onCreateNewDashboard}
-                        type="primary"
-                    >
-                        New Dashboard
-                    </Button>
+                    <CreateDashboardModal />
                 </HighlightGate>
             </div>
 
@@ -75,13 +48,7 @@ const DashboardsHomePage = () => {
                             customTitle={`Your project doesn't have any dashboards yet 😔`}
                             customDescription={
                                 <>
-                                    <Button
-                                        trackingId="NewDashboard"
-                                        className={alertStyles.callToAction}
-                                        onClick={onCreateNewDashboard}
-                                    >
-                                        New Dashboard
-                                    </Button>
+                                    <CreateDashboardModal />
                                 </>
                             }
                         />

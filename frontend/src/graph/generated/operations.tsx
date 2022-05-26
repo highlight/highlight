@@ -1488,16 +1488,15 @@ export type SessionPayloadFragmentFragment = {
     errors: Array<Types.Maybe<{ __typename?: 'ErrorObject' } & Pick<Types.ErrorObject,
         | 'id'
         | 'error_group_secure_id'
-                    | 'event'
-                    | 'type'
-                    | 'url'
-                    | 'source'
-                    | 'stack_trace'
-                    | 'timestamp'
-                    | 'payload'
-                    | 'request_id'
-                > & {
-                        structured_stack_trace: Array<
+        | 'event'
+        | 'type'
+        | 'url'
+        | 'source'
+        | 'stack_trace'
+        | 'timestamp'
+        | 'payload'
+        | 'request_id'> & {
+        structured_stack_trace: Array<
                             Types.Maybe<
                                 { __typename?: 'ErrorTrace' } & Pick<
                                     Types.ErrorTrace,

@@ -1,4 +1,4 @@
-import { MetricConfig } from '@pages/Dashboards/Metrics';
+import { DashboardMetricConfig } from '@graph/schemas';
 
 export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
@@ -9,46 +9,46 @@ export enum WebVitalName {
 }
 
 export const WEB_VITALS_CONFIGURATION: {
-    [key in string]: MetricConfig;
+    [key in string]: DashboardMetricConfig;
 } = {
     CLS: {
-        maxGoodValue: 0.1,
+        max_good_value: 0.1,
         name: WebVitalName.CLS,
-        maxNeedsImprovementValue: 0.25,
-        poorValue: 0,
+        max_needs_improvement_value: 0.25,
+        poor_value: 0,
         units: 'LS',
-        helpArticle: 'https://web.dev/cls',
+        help_article: 'https://web.dev/cls',
     },
     FID: {
-        maxGoodValue: 100,
+        max_good_value: 100,
         name: WebVitalName.FID,
-        maxNeedsImprovementValue: 300,
-        poorValue: 0,
+        max_needs_improvement_value: 300,
+        poor_value: 0,
         units: 'ms',
-        helpArticle: 'https://web.dev/fid',
+        help_article: 'https://web.dev/fid',
     },
     LCP: {
-        maxGoodValue: 2500,
+        max_good_value: 2500,
         name: WebVitalName.LCP,
-        maxNeedsImprovementValue: 4000,
-        poorValue: 0,
+        max_needs_improvement_value: 4000,
+        poor_value: 0,
         units: 'ms',
-        helpArticle: 'https://web.dev/lcp',
+        help_article: 'https://web.dev/lcp',
     },
     FCP: {
-        maxGoodValue: 1800,
+        max_good_value: 1800,
         name: WebVitalName.FCP,
-        maxNeedsImprovementValue: 3000,
-        poorValue: 0,
+        max_needs_improvement_value: 3000,
+        poor_value: 0,
         units: 'ms',
-        helpArticle: 'https://web.dev/fcp',
+        help_article: 'https://web.dev/fcp',
     },
     TTFB: {
-        maxGoodValue: 500,
+        max_good_value: 500,
         name: WebVitalName.TTFB,
-        maxNeedsImprovementValue: 3000,
-        poorValue: 0,
+        max_needs_improvement_value: 3000,
+        poor_value: 0,
         units: 'ms',
-        helpArticle: 'https://web.dev/ttfb',
+        help_article: 'https://web.dev/ttfb',
     },
 };

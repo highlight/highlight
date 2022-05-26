@@ -1,5 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
+import { DashboardMetricConfig } from '@graph/schemas';
 import classNames from 'classnames';
 import { motion } from 'framer-motion';
 import React from 'react';
@@ -7,7 +7,7 @@ import React from 'react';
 import styles from './Metric.module.scss';
 
 interface Props {
-    configuration: MetricConfig;
+    configuration: DashboardMetricConfig;
     value: number;
     name: string;
 }
@@ -66,14 +66,17 @@ export enum WebVitalValueScore {
 export function getWebVitalValueScore(
     value: number,
     {
-        maxGoodValue,
-        maxNeedsImprovementValue,
-    }: Pick<MetricConfig, 'maxGoodValue' | 'maxNeedsImprovementValue'>
+        max_good_value,
+        max_needs_improvement_value,
+    }: Pick<
+        DashboardMetricConfig,
+        'max_good_value' | 'max_needs_improvement_value'
+    >
 ): WebVitalValueScore {
-    if (value <= maxGoodValue) {
+    if (value <= max_good_value) {
         return WebVitalValueScore.Good;
     }
-    if (value <= maxNeedsImprovementValue) {
+    if (value <= max_needs_improvement_value) {
         return WebVitalValueScore.NeedsImprovement;
     }
 
@@ -81,7 +84,7 @@ export function getWebVitalValueScore(
 }
 
 function getInfoTooltipText(
-    configuration: MetricConfig,
+    configuration: DashboardMetricConfig,
     value: number
 ): React.ReactNode {
     const valueScore = getWebVitalValueScore(value, configuration);
@@ -108,7 +111,7 @@ function getInfoTooltipText(
         >
             {message}{' '}
             <a
-                href={configuration.helpArticle}
+                href={configuration.help_article}
                 target="_blank"
                 rel="noreferrer"
             >
@@ -120,7 +123,7 @@ function getInfoTooltipText(
 
 interface ScoreVisualizationProps {
     value: number;
-    configuration: MetricConfig;
+    configuration: DashboardMetricConfig;
 }
 
 const ScoreVisualization = ({
@@ -182,7 +185,10 @@ const ScoreVisualization = ({
     );
 };
 
-const getScorePosition = (configuration: MetricConfig, value: number) => {
+const getScorePosition = (
+    configuration: DashboardMetricConfig,
+    value: number
+) => {
     const valueScore = getWebVitalValueScore(value, configuration);
     let offset = 0;
     let min = 0;
@@ -193,16 +199,16 @@ const getScorePosition = (configuration: MetricConfig, value: number) => {
         case WebVitalValueScore.Good:
             offset = 0;
             min = 0;
-            max = configuration.maxGoodValue;
+            max = configuration.max_good_value;
             break;
         case WebVitalValueScore.NeedsImprovement:
             offset = OFFSET_AMOUNT;
-            min = configuration.maxGoodValue;
-            max = configuration.maxNeedsImprovementValue;
+            min = configuration.max_good_value;
+            max = configuration.max_needs_improvement_value;
             break;
         case WebVitalValueScore.Poor:
             offset = OFFSET_AMOUNT * 2;
-            min = configuration.maxNeedsImprovementValue;
+            min = configuration.max_needs_improvement_value;
             max = Infinity;
             break;
     }

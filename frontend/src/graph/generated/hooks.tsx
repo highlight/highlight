@@ -4094,8 +4094,7 @@ export function useModifyClearbitIntegrationMutation(
         Types.ModifyClearbitIntegrationMutationVariables
     >
 ) {
-    return Apollo.useMutation<
-        Types.ModifyClearbitIntegrationMutation,
+    return Apollo.useMutation<Types.ModifyClearbitIntegrationMutation,
         Types.ModifyClearbitIntegrationMutationVariables>(ModifyClearbitIntegrationDocument, baseOptions);
 }
 
@@ -9365,15 +9364,11 @@ export function useGetWebVitalsQuery(
     >(GetWebVitalsDocument, baseOptions);
 }
 export function useGetWebVitalsLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetWebVitalsQuery,
-        Types.GetWebVitalsQueryVariables
-    >
+    baseOptions?: Apollo.LazyQueryHookOptions<Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables>
 ) {
-    return Apollo.useLazyQuery<
-        Types.GetWebVitalsQuery,
-        Types.GetWebVitalsQueryVariables
-    >(GetWebVitalsDocument, baseOptions);
+    return Apollo.useLazyQuery<Types.GetWebVitalsQuery,
+        Types.GetWebVitalsQueryVariables>(GetWebVitalsDocument, baseOptions);
 }
 
 export type GetWebVitalsQueryHookResult = ReturnType<typeof useGetWebVitalsQuery>;
@@ -9424,7 +9419,6 @@ export function useGetDashboardDefinitionsQuery(
     return Apollo.useQuery<Types.GetDashboardDefinitionsQuery,
         Types.GetDashboardDefinitionsQueryVariables>(GetDashboardDefinitionsDocument, baseOptions);
 }
-
 export function useGetDashboardDefinitionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<Types.GetDashboardDefinitionsQuery,
         Types.GetDashboardDefinitionsQueryVariables>

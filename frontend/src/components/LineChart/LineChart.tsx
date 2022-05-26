@@ -154,9 +154,9 @@ const LineChart = ({
                                                                           getWebVitalValueScore(
                                                                               entry.value,
                                                                               {
-                                                                                  maxGoodValue: referenceLines![0]
+                                                                                  max_good_value: referenceLines![0]
                                                                                       .value,
-                                                                                  maxNeedsImprovementValue: referenceLines![1]
+                                                                                  max_needs_improvement_value: referenceLines![1]
                                                                                       .value,
                                                                               }
                                                                           )

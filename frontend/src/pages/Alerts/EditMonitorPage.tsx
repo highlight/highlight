@@ -4,9 +4,9 @@ import {
     useUpdateMetricMonitorMutation,
 } from '@graph/hooks';
 import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations';
+import { DashboardMetricConfig } from '@graph/schemas';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -37,7 +37,7 @@ const EditMonitorPage = ({
     const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
         'LCP'
     );
-    const [config, setConfig] = useState<MetricConfig>(
+    const [config, setConfig] = useState<DashboardMetricConfig>(
         WEB_VITALS_CONFIGURATION[metricToMonitorName]
     );
     const [monitorName, setMonitorName] = useState('');
@@ -82,7 +82,7 @@ const EditMonitorPage = ({
 
     useEffect(() => {
         if (config) {
-            setThreshold(config.maxGoodValue);
+            setThreshold(config.max_good_value);
         }
     }, [config]);
 

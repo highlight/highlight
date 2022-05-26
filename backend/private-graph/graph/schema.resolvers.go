@@ -4952,7 +4952,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
