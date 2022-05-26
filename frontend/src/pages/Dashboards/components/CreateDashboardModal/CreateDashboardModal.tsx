@@ -193,7 +193,12 @@ const CreateDashboardModal = () => {
                                     range
                                     step={1}
                                     tooltipVisible={true}
-                                    tooltipPlacement={'bottom'}
+                                    tooltipPlacement={'top'}
+                                    getTooltipPopupContainer={() =>
+                                        document.querySelector(
+                                            '.ant-slider-step'
+                                        )!
+                                    }
                                     disabled={false}
                                     min={0}
                                     max={1000}
@@ -245,6 +250,9 @@ const CreateDashboardModal = () => {
                                     }}
                                     onInputChange={(newValue) => {
                                         setIsTyping(newValue !== '');
+                                    }}
+                                    onChange={(newValue: MetricOption) => {
+                                        setNewMetric(newValue.value);
                                     }}
                                     isLoading={loading}
                                     isClearable={false}
