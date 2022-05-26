@@ -1,5 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
-import { WebVitalDescriptor } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import { MetricConfig } from '@pages/Dashboards/Metrics';
 import classNames from 'classnames';
 import { motion } from 'framer-motion';
 import React from 'react';
@@ -7,7 +7,7 @@ import React from 'react';
 import styles from './Metric.module.scss';
 
 interface Props {
-    configuration: WebVitalDescriptor;
+    configuration: MetricConfig;
     value: number;
     name: string;
 }
@@ -68,7 +68,7 @@ export function getWebVitalValueScore(
     {
         maxGoodValue,
         maxNeedsImprovementValue,
-    }: Pick<WebVitalDescriptor, 'maxGoodValue' | 'maxNeedsImprovementValue'>
+    }: Pick<MetricConfig, 'maxGoodValue' | 'maxNeedsImprovementValue'>
 ): WebVitalValueScore {
     if (value <= maxGoodValue) {
         return WebVitalValueScore.Good;
@@ -81,7 +81,7 @@ export function getWebVitalValueScore(
 }
 
 function getInfoTooltipText(
-    configuration: WebVitalDescriptor,
+    configuration: MetricConfig,
     value: number
 ): React.ReactNode {
     const valueScore = getWebVitalValueScore(value, configuration);
@@ -120,7 +120,7 @@ function getInfoTooltipText(
 
 interface ScoreVisualizationProps {
     value: number;
-    configuration: WebVitalDescriptor;
+    configuration: MetricConfig;
 }
 
 const ScoreVisualization = ({
@@ -133,7 +133,7 @@ const ScoreVisualization = ({
 
     switch (valueScore) {
         case WebVitalValueScore.NeedsImprovement:
-            gapSpacing = 2 * 1;
+            gapSpacing = 2;
             break;
         case WebVitalValueScore.Poor:
             gapSpacing = 2 * 2;
@@ -182,7 +182,7 @@ const ScoreVisualization = ({
     );
 };
 
-const getScorePosition = (configuration: WebVitalDescriptor, value: number) => {
+const getScorePosition = (configuration: MetricConfig, value: number) => {
     const valueScore = getWebVitalValueScore(value, configuration);
     let offset = 0;
     let min = 0;
@@ -191,12 +191,12 @@ const getScorePosition = (configuration: WebVitalDescriptor, value: number) => {
 
     switch (valueScore) {
         case WebVitalValueScore.Good:
-            offset = OFFSET_AMOUNT * 0;
+            offset = 0;
             min = 0;
             max = configuration.maxGoodValue;
             break;
         case WebVitalValueScore.NeedsImprovement:
-            offset = OFFSET_AMOUNT * 1;
+            offset = OFFSET_AMOUNT;
             min = configuration.maxGoodValue;
             max = configuration.maxNeedsImprovementValue;
             break;

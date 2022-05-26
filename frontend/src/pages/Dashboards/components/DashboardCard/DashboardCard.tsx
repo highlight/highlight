@@ -3,14 +3,11 @@ import DotsMenu from '@components/DotsMenu/DotsMenu';
 import LineChart from '@components/LineChart/LineChart';
 import MenuItem from '@components/Menu/MenuItem';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import { useGetWebVitalDashboardQuery } from '@graph/hooks';
+import { useGetMetricsDashboardQuery } from '@graph/hooks';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
+import { MetricConfig } from '@pages/Dashboards/Metrics';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
-import {
-    WEB_VITALS_CONFIGURATION,
-    WebVitalName,
-} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
 import classNames from 'classnames';
@@ -21,7 +18,8 @@ import { useHistory } from 'react-router-dom';
 import styles from './DashboardCard.module.scss';
 
 interface Props {
-    webVitalName: string;
+    metricName: string;
+    metricConfig: MetricConfig;
     dateRange: {
         startDate: string;
         endDate: string;
@@ -29,22 +27,28 @@ interface Props {
     isEditing?: boolean;
 }
 
-const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
+const DashboardCard = ({
+    metricName,
+    metricConfig,
+    dateRange,
+    isEditing,
+}: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetWebVitalDashboardQuery({
+    const { data, loading } = useGetMetricsDashboardQuery({
         variables: {
             project_id,
-            web_vital_name: webVitalName,
+            metric_name: metricName,
             params: {
                 date_range: {
                     end_date: dateRange.endDate,
                     start_date: dateRange.startDate,
                 },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                resolution_minutes: metricName === 'delayMS' ? 1 : 24 * 60,
             },
         },
     });
 
-    const webVitalConfig = WEB_VITALS_CONFIGURATION[webVitalName];
     const history = useHistory();
 
     return (
@@ -52,8 +56,7 @@ const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
             interactable
             title={
                 <div className={styles.cardHeader}>
-                    {/* @ts-expect-error */}
-                    <h3>{WebVitalName[webVitalName]}</h3>
+                    <h3>{metricConfig.name}</h3>
                     <div
                         className={classNames(styles.headerActions, {
                             [styles.isEditing]: isEditing,
@@ -71,7 +74,7 @@ const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
                                             icon={<SvgAnnouncementIcon />}
                                             onClick={() => {
                                                 history.push(
-                                                    `/${project_id}/alerts/new/monitor?type=${webVitalName}`
+                                                    `/${project_id}/alerts/new/monitor?type=${metricName}`
                                                 );
                                             }}
                                         >
@@ -89,26 +92,26 @@ const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
             {loading ? (
                 <Skeleton height={235} />
             ) : data === undefined ||
-              data.web_vital_dashboard === undefined ||
-              data.web_vital_dashboard.length === 0 ? (
+              data.metrics_dashboard === undefined ||
+              data.metrics_dashboard.length === 0 ? (
                 <div className={styles.noDataContainer}>
                     <EmptyCardPlaceholder
-                        message={`Doesn't look like we've gotten any ${webVitalName} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                        message={`Doesn't look like we've gotten any ${metricName} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
                     />
                 </div>
             ) : (
                 <LineChart
                     height={235}
-                    data={data.web_vital_dashboard}
+                    data={data.metrics_dashboard}
                     referenceLines={[
                         {
                             label: 'Goal',
-                            value: webVitalConfig.maxGoodValue,
+                            value: metricConfig.maxGoodValue,
                             color: 'var(--color-green-300)',
                         },
                         {
                             label: 'Needs Improvement',
-                            value: webVitalConfig.maxNeedsImprovementValue,
+                            value: metricConfig.maxNeedsImprovementValue,
                             color: 'var(--color-red-300)',
                         },
                     ]}
@@ -125,7 +128,7 @@ const DashboardCard = ({ webVitalName, dateRange, isEditing }: Props) => {
                         p50: 'var(--color-blue-400)',
                         avg: 'var(--color-gray-400)',
                     }}
-                    yAxisLabel={WEB_VITALS_CONFIGURATION[webVitalName].units}
+                    yAxisLabel={metricConfig.units}
                 />
             )}
         </Card>
