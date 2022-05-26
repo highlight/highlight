@@ -144,6 +144,7 @@ export const ExcludedUsersForm = () => {
                         }
                         setExcludedUsers(validRegexes);
                         setInvalidExcludedUsers(invalidRegexes);
+                        handleIdentifierSearch('');
                     }}
                 />
                 <Button

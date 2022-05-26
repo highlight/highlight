@@ -990,6 +990,7 @@ export const AlertConfigurationCard = ({
                                         placeholder={`Select a identifier(s) that should not trigger alerts.`}
                                         onChange={() => {
                                             setFormTouched(true);
+                                            handleIdentifierSearch('');
                                         }}
                                     />
                                 </Form.Item>
