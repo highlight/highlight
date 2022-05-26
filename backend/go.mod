@@ -53,7 +53,10 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
-require github.com/mattn/go-isatty v0.0.14 // indirect
+require (
+	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+)
 
 require (
 	cloud.google.com/go v0.65.0 // indirect
