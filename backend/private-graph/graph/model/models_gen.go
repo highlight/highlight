@@ -54,6 +54,21 @@ type BillingDetails struct {
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
+type DashboardParamsInput struct {
+	DateRange         *DateRangeInput `json:"date_range"`
+	ResolutionMinutes *int            `json:"resolution_minutes"`
+	Timezone          *string         `json:"timezone"`
+}
+
+type DashboardPayload struct {
+	Date string  `json:"date"`
+	Avg  float64 `json:"avg"`
+	P50  float64 `json:"p50"`
+	P75  float64 `json:"p75"`
+	P90  float64 `json:"p90"`
+	P99  float64 `json:"p99"`
+}
+
 type DateRangeInput struct {
 	StartDate *time.Time `json:"start_date"`
 	EndDate   *time.Time `json:"end_date"`
@@ -258,19 +273,6 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
-type WebVitalDashboardParamsInput struct {
-	DateRange *DateRangeInput `json:"date_range"`
-}
-
-type WebVitalDashboardPayload struct {
-	Date string  `json:"date"`
-	Avg  float64 `json:"avg"`
-	P50  float64 `json:"p50"`
-	P75  float64 `json:"p75"`
-	P90  float64 `json:"p90"`
-	P99  float64 `json:"p99"`
-}
-
 type ErrorState string
 
 const (
@@ -362,16 +364,18 @@ type MetricType string
 const (
 	MetricTypeWebVital MetricType = "WebVital"
 	MetricTypeDevice   MetricType = "Device"
+	MetricTypeBackend  MetricType = "Backend"
 )
 
 var AllMetricType = []MetricType{
 	MetricTypeWebVital,
 	MetricTypeDevice,
+	MetricTypeBackend,
 }
 
 func (e MetricType) IsValid() bool {
 	switch e {
-	case MetricTypeWebVital, MetricTypeDevice:
+	case MetricTypeWebVital, MetricTypeDevice, MetricTypeBackend:
 		return true
 	}
 	return false

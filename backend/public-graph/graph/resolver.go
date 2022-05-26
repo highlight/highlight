@@ -1399,6 +1399,96 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 		}
 	})
 }
+func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+	if len(metrics) == 0 {
+		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
+		return -1, e.New("no metrics provided")
+	}
+	sessionMetrics := make(map[string][]*customModels.MetricInput)
+	for _, m := range metrics {
+		if _, ok := sessionMetrics[m.SessionSecureID]; !ok {
+			sessionMetrics[m.SessionSecureID] = []*customModels.MetricInput{}
+		}
+		sessionMetrics[m.SessionSecureID] = append(sessionMetrics[m.SessionSecureID], m)
+	}
+
+	for secureID, metrics := range sessionMetrics {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
+			log.Error(err)
+			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+		}
+
+		err := r.ProducerQueue.Submit(&kafka_queue.Message{
+			Type: kafka_queue.PushMetrics,
+			PushMetrics: &kafka_queue.PushMetricsArgs{
+				SessionID: session.ID,
+				ProjectID: session.ProjectID,
+				Metrics:   metrics,
+			}}, strconv.Itoa(session.ID))
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return len(metrics), nil
+}
+
+func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
+		return -1, e.Wrapf(err, "error querying device metric session")
+	}
+	return r.SubmitMetricsMessage(ctx, []*customModels.MetricInput{{
+		SessionSecureID: session.SecureID,
+		Name:            name,
+		Value:           value,
+		Type:            metricType,
+		Timestamp:       time.Now(),
+	}})
+}
+
+func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
+	newMetric := &model.Metric{
+		Name:      m.Name,
+		Value:     m.Value,
+		ProjectID: projectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricType(m.Type),
+		RequestID: m.RequestID,
+	}
+
+	if err := r.DB.Create(&newMetric).Error; err != nil {
+		log.Error(err)
+	}
+}
+
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+	for _, m := range metrics {
+		if m.Type == customModels.MetricTypeBackend {
+			r.addNewMetric(sessionID, projectID, m)
+			continue
+		}
+
+		existingMetric := &model.Metric{
+			Name:      m.Name,
+			ProjectID: projectID,
+			SessionID: sessionID,
+			Type:      modelInputs.MetricType(m.Type),
+			RequestID: m.RequestID,
+		}
+		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
+		if err := tx.Error; err != nil {
+			log.Error(err)
+			return
+		}
+		// Update the existing record if it already exists
+		existingMetric.Value = m.Value
+		if err := r.DB.Save(&existingMetric).Error; err != nil {
+			log.Error(err)
+		}
+	}
+}
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
