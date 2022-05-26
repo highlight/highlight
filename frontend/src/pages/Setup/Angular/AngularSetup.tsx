@@ -30,8 +30,8 @@ export const AngularSetup = ({ projectVerboseId }: Props) => {
                 />
                 <p>
                     and then calling{' '}
-                    <code>{getInitSnippet(projectVerboseId)}</code>.<br />
-                    You can configure how Highlight records with the{' '}
+                    <code>{getInitSnippet(projectVerboseId)}</code> You can
+                    further configure how Highlight records with the init{' '}
                     <a
                         href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
@@ -39,7 +39,7 @@ export const AngularSetup = ({ projectVerboseId }: Props) => {
                     >
                         options
                     </a>
-                    .
+                    , like this:
                 </p>
                 <p>
                     <CodeBlock
