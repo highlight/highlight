@@ -51,14 +51,14 @@ fragment SessionPayloadFragment on SessionPayload {
     last_user_interaction_time
 }
 
-query GetWebVitalDashboard(
+query GetMetricsDashboard(
     $project_id: ID!
-    $web_vital_name: String!
-    $params: WebVitalDashboardParamsInput!
+    $metric_name: String!
+    $params: DashboardParamsInput!
 ) {
-    web_vital_dashboard(
+    metrics_dashboard(
         project_id: $project_id
-        web_vital_name: $web_vital_name
+        metric_name: $metric_name
         params: $params
     ) {
         date
