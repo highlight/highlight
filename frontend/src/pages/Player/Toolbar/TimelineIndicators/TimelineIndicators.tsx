@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { Replayer } from '@highlight-run/rrweb';
 import { playerMetaData } from '@highlight-run/rrweb/dist/types';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
@@ -7,7 +6,6 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
-import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
 import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef } from 'react';
@@ -234,34 +232,22 @@ const TimelineIndicators = React.memo(() => {
     }
 
     return (
-        <>
-            <HighlightGate featureIsOn={false}>
-                <TimelineIndicatorsBarGraph
-                    sessionIntervals={sessionIntervals}
-                    selectedTimelineAnnotationTypes={
-                        selectedTimelineAnnotationTypes
-                    }
-                />
-            </HighlightGate>
-            <TimelineIndicatorsMemoized
-                openDevTools={openDevTools}
-                refContainer={refContainer}
-                sessionIntervals={sessionIntervals}
-                selectedTimelineAnnotationTypes={
-                    selectedTimelineAnnotationTypes
-                }
-                rageClicks={rageClicks}
-                startTime={sessionMetadata.startTime || 0}
-                pause={pause}
-                activeEvent={activeEvent}
-                errorId={errorId}
-                setShowDevTools={setShowDevTools}
-                setSelectedDevToolsTab={setSelectedDevToolsTab}
-                setErrorPanel={setErrorPanel}
-                replayer={replayer}
-                sessionMetadata={sessionMetadata}
-            />
-        </>
+        <TimelineIndicatorsMemoized
+            openDevTools={openDevTools}
+            refContainer={refContainer}
+            sessionIntervals={sessionIntervals}
+            selectedTimelineAnnotationTypes={selectedTimelineAnnotationTypes}
+            rageClicks={rageClicks}
+            startTime={sessionMetadata.startTime || 0}
+            pause={pause}
+            activeEvent={activeEvent}
+            errorId={errorId}
+            setShowDevTools={setShowDevTools}
+            setSelectedDevToolsTab={setSelectedDevToolsTab}
+            setErrorPanel={setErrorPanel}
+            replayer={replayer}
+            sessionMetadata={sessionMetadata}
+        />
     );
 });
 

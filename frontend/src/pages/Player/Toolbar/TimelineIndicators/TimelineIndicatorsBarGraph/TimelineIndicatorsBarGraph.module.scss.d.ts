@@ -1,4 +1,3 @@
-export const container: string;
-export const enter: string;
-export const graphContainer: string;
-export const sessionInterval: string;
+export const eventContent: string;
+export const eventTitle: string;
+export const histogramContainer: string;
