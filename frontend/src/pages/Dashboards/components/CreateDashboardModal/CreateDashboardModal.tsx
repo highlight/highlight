@@ -1,20 +1,30 @@
 import Button from '@components/Button/Button/Button';
+import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
+import { useGetSuggestedMetricsQuery } from '@graph/hooks';
 import { DashboardMetricConfig } from '@graph/schemas';
+import AsyncSelect from '@highlight-run/react-select/async';
 import PlusIcon from '@icons/PlusIcon';
 import alertStyles from '@pages/Alerts/Alerts.module.scss';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
 import { Slider } from 'antd';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import _ from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './CreateDashboardModal.module.scss';
+
+interface MetricOption {
+    value: string;
+    label: string;
+}
 
 const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
     let cfg: DashboardMetricConfig | undefined = undefined;
@@ -37,6 +47,7 @@ const CreateDashboardModal = () => {
     const { updateDashboard } = useDashboardsContext();
     const [showModal, setShowModal] = useState(false);
     const [newMetric, setNewMetric] = useState<string>();
+    const [isTyping, setIsTyping] = useState(false);
     const [newDashboard, setNewDashboard] = useState<{
         name: string;
         metrics: DashboardMetricConfig[];
@@ -44,6 +55,34 @@ const CreateDashboardModal = () => {
         name: '',
         metrics: [],
     });
+    const { loading, refetch } = useGetSuggestedMetricsQuery({
+        variables: {
+            project_id,
+            prefix: '',
+        },
+    });
+
+    const getValueOptions = (
+        input: string,
+        callback: (s: MetricOption[]) => void
+    ) => {
+        refetch({
+            project_id,
+            prefix: input,
+        })?.then((fetched) => {
+            setIsTyping(false);
+            callback(
+                fetched.data.suggested_metrics.map((s) => ({
+                    label: s,
+                    value: s,
+                }))
+            );
+        });
+    };
+
+    // Ignore this so we have a consistent reference so debounce works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), []);
 
     const onCreateNewDashboard = () => {
         if (!newDashboard) return;
@@ -171,18 +210,70 @@ const CreateDashboardModal = () => {
                             </div>
                         ))}
                         <div className={styles.newMetric}>
-                            <Input
-                                placeholder="CLS..."
-                                name="Graph a New Metric"
-                                value={newMetric || ''}
-                                onChange={(e) => {
-                                    const val = e.target?.value || '';
-                                    setNewMetric(val);
-                                }}
-                                autoFocus
-                            />
-                            {/*TODO(vkorolik) async load recommendations*/}
+                            <div className={styles.container}>
+                                <DropdownIndicator
+                                    height={26}
+                                    isLoading={loading || isTyping}
+                                />
+                                <AsyncSelect
+                                    // @ts-expect-error
+                                    styles={{
+                                        ...styleProps,
+                                        valueContainer: (provided) => ({
+                                            ...provided,
+                                            padding: '0 12px',
+                                            height: '40px',
+                                            cursor: 'text',
+                                        }),
+                                    }}
+                                    components={{
+                                        DropdownIndicator: () => (
+                                            <div
+                                                className={
+                                                    styles.dropdownPlaceholder
+                                                }
+                                            ></div>
+                                        ),
+                                    }}
+                                    loadOptions={(
+                                        input,
+                                        callback: (
+                                            options: MetricOption[]
+                                        ) => void
+                                    ) => {
+                                        loadOptions(input, callback);
+                                    }}
+                                    onInputChange={(newValue) => {
+                                        setIsTyping(newValue !== '');
+                                    }}
+                                    isLoading={loading}
+                                    isClearable={false}
+                                    value={{
+                                        value: newMetric,
+                                        label: newMetric,
+                                    }}
+                                    escapeClearsValue={true}
+                                    defaultOptions={Object.keys(
+                                        WEB_VITALS_CONFIGURATION
+                                    ).map(
+                                        (k) =>
+                                            ({
+                                                label: k,
+                                                value: k,
+                                            } as MetricOption)
+                                    )}
+                                    noOptionsMessage={({ inputValue }) =>
+                                        !inputValue
+                                            ? null
+                                            : `No results for "${inputValue}"`
+                                    }
+                                    placeholder="Search for a metric..."
+                                    isSearchable
+                                    maxMenuHeight={500}
+                                />
+                            </div>
                             <Button
+                                style={{ width: 90 }}
                                 trackingId={'AddNewMetric'}
                                 onClick={() => {
                                     if (newMetric?.length) {

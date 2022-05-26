@@ -1420,3 +1420,7 @@ query GetDashboardDefinitions($project_id: ID!) {
         layout
     }
 }
+
+query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
+    suggested_metrics(project_id: $project_id, prefix: $prefix)
+}

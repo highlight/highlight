@@ -4982,6 +4982,25 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	return results, nil
 }
 
+func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var payload []string
+	if err := r.DB.Raw(`
+		SELECT DISTINCT name
+		FROM metrics
+		WHERE project_id = ?
+		  AND name ILIKE ?; 
+	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return payload, nil
+}
+
 func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

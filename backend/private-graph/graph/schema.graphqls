@@ -899,6 +899,7 @@ type Query {
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
+    suggested_metrics(project_id: ID!, prefix: String!): [String!]!
     metrics_dashboard(
         project_id: ID!
         metric_name: String!

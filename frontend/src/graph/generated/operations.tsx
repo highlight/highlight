@@ -1496,17 +1496,11 @@ export type SessionPayloadFragmentFragment = {
         | 'timestamp'
         | 'payload'
         | 'request_id'> & {
-        structured_stack_trace: Array<
-                            Types.Maybe<
-                                { __typename?: 'ErrorTrace' } & Pick<
-                                    Types.ErrorTrace,
-                                    | 'fileName'
-                                    | 'lineNumber'
-                                    | 'functionName'
-                                    | 'columnNumber'
-                                >
-                            >
-                        >;
+        structured_stack_trace: Array<Types.Maybe<{ __typename?: 'ErrorTrace' } & Pick<Types.ErrorTrace,
+            | 'fileName'
+            | 'lineNumber'
+            | 'functionName'
+            | 'columnNumber'>>>;
                     }
             >
         >;
@@ -3603,6 +3597,14 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
     }>>;
 };
 
+export type GetSuggestedMetricsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    prefix: Types.Scalars['String'];
+}>;
+
+export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<Types.Query,
+    'suggested_metrics'>;
+
 export const namedOperations = {
     Query: {
         GetMetricsDashboard: 'GetMetricsDashboard' as const,
@@ -3681,6 +3683,7 @@ export const namedOperations = {
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
         GetWebVitals: 'GetWebVitals' as const,
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
+        GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

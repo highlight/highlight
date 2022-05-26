@@ -544,6 +544,7 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
+		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
 		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
@@ -1005,6 +1006,7 @@ type QueryResolver interface {
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
+	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
 	MetricsDashboard(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
@@ -4267,6 +4269,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SubscriptionDetails(childComplexity, args["workspace_id"].(int)), true
 
+	case "Query.suggested_metrics":
+		if e.complexity.Query.SuggestedMetrics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_suggested_metrics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SuggestedMetrics(childComplexity, args["project_id"].(int), args["prefix"].(string)), true
+
 	case "Query.timeline_indicator_events":
 		if e.complexity.Query.TimelineIndicatorEvents == nil {
 			break
@@ -6656,6 +6670,7 @@ type Query {
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
+    suggested_metrics(project_id: ID!, prefix: String!): [String!]!
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
@@ -11443,6 +11458,30 @@ func (ec *executionContext) field_Query_subscription_details_args(ctx context.Co
 		}
 	}
 	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_suggested_metrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["prefix"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("prefix"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["prefix"] = arg1
 	return args, nil
 }
 
@@ -25305,6 +25344,48 @@ func (ec *executionContext) _Query_dashboard_definitions(ctx context.Context, fi
 	return ec.marshalNDashboardDefinition2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardDefinition(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_suggested_metrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_suggested_metrics_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SuggestedMetrics(rctx, args["project_id"].(int), args["prefix"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_metrics_dashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -38705,6 +38786,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_dashboard_definitions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "suggested_metrics":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_suggested_metrics(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

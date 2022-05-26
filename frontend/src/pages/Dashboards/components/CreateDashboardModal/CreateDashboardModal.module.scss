@@ -49,8 +49,16 @@
 }
 
 .newMetric {
-    display: grid;
-    grid-gap: var(--size-medium);
-    grid-template-columns: 3fr 1fr;
+    display: flex;
+    justify-content: space-between;
 }
 
+.container {
+    position: relative;
+    width: 80%;
+}
+
+.dropdownPlaceholder {
+    height: 20px;
+    width: 20px;
+}

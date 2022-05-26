@@ -907,6 +907,7 @@ export type Query = {
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
     dashboard_definitions: Array<Maybe<DashboardDefinition>>;
+    suggested_metrics: Array<Scalars['String']>;
     metrics_dashboard: Array<Maybe<DashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
@@ -1241,6 +1242,11 @@ export type QuerySubscription_DetailsArgs = {
 
 export type QueryDashboard_DefinitionsArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QuerySuggested_MetricsArgs = {
+    project_id: Scalars['ID'];
+    prefix: Scalars['String'];
 };
 
 export type QueryMetrics_DashboardArgs = {
