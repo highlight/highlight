@@ -254,18 +254,20 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Phone = adminDetails.Phone
 	admin.AboutYouDetailsFilled = &model.T
 
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if _, err := r.HubspotApi.CreateContactForAdmin(
-			admin.ID,
-			*admin.Email,
-			*admin.UserDefinedRole,
-			*admin.UserDefinedPersona,
-			*admin.FirstName,
-			*admin.LastName,
-			*admin.Phone); err != nil {
-			log.Error(err, "error creating hubspot contact")
-		}
-	})
+	if !util.IsDevEnv() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
+			if _, err := r.HubspotApi.CreateContactForAdmin(
+				admin.ID,
+				*admin.Email,
+				*admin.UserDefinedRole,
+				*admin.UserDefinedPersona,
+				*admin.FirstName,
+				*admin.LastName,
+				*admin.Phone); err != nil {
+				log.Error(err, "error creating hubspot contact")
+			}
+		})
+	}
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -318,14 +320,16 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-		if _, err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
-			log.Error(err, "error creating hubspot company")
-		} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
-			log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
-		}
-	})
+	if !util.IsDevEnv() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
+			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+			if _, err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+				log.Error(err, "error creating hubspot company")
+			} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+				log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+			}
+		})
+	}
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -435,14 +439,17 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
-		} else if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
-			Name:     "number_of_highlight_sessions_viewed",
-			Property: "number_of_highlight_sessions_viewed",
-			Value:    totalSessionCountAsInt,
-		}}); err != nil {
-			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
 		}
-		log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
+		if !util.IsDevEnv() {
+			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_sessions_viewed",
+				Property: "number_of_highlight_sessions_viewed",
+				Value:    totalSessionCountAsInt,
+			}}); err != nil {
+				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+			}
+			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
+		}
 	})
 
 	newSession := &model.Session{}
