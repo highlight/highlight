@@ -2733,12 +2733,12 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	}
 
 	var workspaceAdmins []*model.Admin
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+	if err := r.DB.Order("created_at ASC").Model(workspace).Limit(2).Association("Admins").Find(&workspaceAdmins, "role=?", model.AdminRole.ADMIN); err != nil {
 		log.Error(e.Wrap(err, "error getting admins for the workspace"))
 		return &model.T, nil
 	}
 
-	for _, a := range workspaceAdmins[:2] {
+	for _, a := range workspaceAdmins {
 		if a != nil {
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
 				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
