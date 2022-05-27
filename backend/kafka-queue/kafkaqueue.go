@@ -89,6 +89,28 @@ func New(topic string, mode Mode) *Queue {
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
+		res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+			Addr: kafka.TCP(brokers...),
+			Resources: []kafka.AlterConfigRequestResource{
+				{
+					ResourceType: kafka.ResourceTypeTopic,
+					ResourceName: topic,
+					Configs: []kafka.AlterConfigRequestConfig{
+						{
+							Name:  "delete.retention.ms",
+							Value: "604800000",
+						},
+					},
+				},
+			},
+		})
+		e := res.Errors[kafka.AlterConfigsResponseResource{
+			Type: int8(kafka.ResourceTypeTopic),
+			Name: topic,
+		}]
+		if err != nil || e != nil {
+			log.Error(errors.Wrapf(err, "failed to update topic retention %s", e))
+		}
 	}
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
