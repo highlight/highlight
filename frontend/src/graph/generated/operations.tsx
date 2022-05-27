@@ -2422,12 +2422,32 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'Project' } & Pick<
                             Types.Project,
-                            'id' | 'name'>>>;
-    }>;
-    workspaces?: Types.Maybe<Array<Types.Maybe<{ __typename?: 'Workspace' } & Pick<Types.Workspace,
-        'id' | 'name'>>>>;
-    joinable_workspaces?: Types.Maybe<Array<Types.Maybe<{ __typename?: 'Workspace' } & Pick<Types.Workspace,
-        'id' | 'name'>>>>;
+                            'id' | 'name'
+                        >
+                    >
+                >;
+            }
+    >;
+    workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    joinable_workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
 };
 
 export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
@@ -2442,12 +2462,31 @@ export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
                         { __typename?: 'Project' } & Pick<
                             Types.Project,
                             'id' | 'name'
-                        >>>;
-    }>;
-    workspaces?: Types.Maybe<Array<Types.Maybe<{ __typename?: 'Workspace' } & Pick<Types.Workspace,
-        'id' | 'name'>>>>;
-    joinable_workspaces?: Types.Maybe<Array<Types.Maybe<{ __typename?: 'Workspace' } & Pick<Types.Workspace,
-        'id' | 'name'>>>>;
+                        >
+                    >
+                >;
+            }
+    >;
+    workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    joinable_workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
 };
 
 export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>;
