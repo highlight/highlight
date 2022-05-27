@@ -184,7 +184,7 @@ export const NewCommentForm = ({
                         ? [selectedIssueService]
                         : [],
                     issue_title: selectedIssueService ? issueTitle : null,
-                    issue_team_id: selectedlinearTeamId,
+                    issue_team_id: selectedlinearTeamId || undefined,
                     issue_description: selectedIssueService
                         ? issueDescription
                         : null,
@@ -247,7 +247,7 @@ export const NewCommentForm = ({
                     time: commentTime / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     tags: getTags(tags, commentTagsData),
-                    issue_team_id: selectedlinearTeamId,
+                    issue_team_id: selectedlinearTeamId || undefined,
                     integrations: selectedIssueService
                         ? [selectedIssueService]
                         : [],
@@ -427,6 +427,12 @@ export const NewCommentForm = ({
     }, [teams]);
 
     useEffect(() => {
+        if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
+            setLinearTeamId(linearTeamsOptions[0].value);
+        }
+    }, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId]);
+
+    useEffect(() => {
         const idx = modalHeader?.toLowerCase().indexOf('issue') || -1;
         if (idx !== -1) {
             setSelectedIssueService(IntegrationType.Linear);
@@ -523,16 +529,12 @@ export const NewCommentForm = ({
                         <Form.Item label={`${issueServiceDetail?.name} Team`}>
                             <Select
                                 aria-label={`${issueServiceDetail?.name} Team`}
-                                defaultActiveFirstOption
                                 placeholder={
                                     'Choose a team to create the issue in'
                                 }
                                 options={linearTeamsOptions}
                                 onChange={setLinearTeamId}
-                                value={
-                                    selectedlinearTeamId ||
-                                    linearTeamsOptions[0]?.id
-                                }
+                                value={selectedlinearTeamId}
                                 notFoundContent={<p>No teams found</p>}
                             />
                         </Form.Item>

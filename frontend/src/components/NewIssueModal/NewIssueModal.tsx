@@ -69,6 +69,12 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
         );
     }, [teams]);
 
+    useEffect(() => {
+        if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
+            setLinearTeamId(linearTeamsOptions[0].value);
+        }
+    }, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId]);
+
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -111,7 +117,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         session_comment_id: commentId,
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
-                        issue_team_id: selectedlinearTeamId,
+                        issue_team_id: selectedlinearTeamId || undefined,
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
@@ -130,7 +136,7 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         error_comment_id: commentId,
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
-                        issue_team_id: selectedlinearTeamId,
+                        issue_team_id: selectedlinearTeamId || undefined,
                         issue_description: form.getFieldValue(
                             'issueDescription'
                         ),
@@ -192,16 +198,12 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                             >
                                 <Select
                                     aria-label={`${selectedIntegration.name} Team`}
-                                    defaultActiveFirstOption
                                     placeholder={
                                         'Choose a team to create the issue in'
                                     }
                                     options={linearTeamsOptions}
                                     onChange={setLinearTeamId}
-                                    value={
-                                        selectedlinearTeamId ||
-                                        linearTeamsOptions[0]?.id
-                                    }
+                                    value={selectedlinearTeamId}
                                     notFoundContent={<p>No teams found</p>}
                                 />
                             </Form.Item>
