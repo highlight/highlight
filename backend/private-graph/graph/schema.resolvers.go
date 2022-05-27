@@ -2687,6 +2687,9 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
+const RequestAccessMinimumDelay = time.Minute * 10
+
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
@@ -2713,6 +2716,22 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		return &model.T, nil
 	}
 
+	var request model.WorkspaceAccessRequest
+	if err := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).FirstOrInit(&request).Error; err != nil {
+		log.Error(e.Wrap(err, "error querying access requests"))
+		return &model.T, nil
+	}
+	if time.Since(request.UpdatedAt) < RequestAccessMinimumDelay {
+		return &model.T, nil
+	}
+
+	request.LastRequestedWorkspace = workspace.ID
+	request.UpdatedAt = time.Now()
+	if err := r.DB.Save(&request).Error; err != nil {
+		log.Error(e.Wrap(err, "error updating access request"))
+		return &model.T, nil
+	}
+
 	var workspaceAdmins []*model.Admin
 	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
 		log.Error(e.Wrap(err, "error getting admins for the workspace"))
@@ -2720,10 +2739,12 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	}
 
 	for _, a := range workspaceAdmins[:2] {
-		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
-			log.Error(e.Wrap(err, "failed to send request access email"))
-			return &model.T, nil
+		if a != nil {
+			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				log.Error(e.Wrap(err, "failed to send request access email"))
+				return &model.T, nil
+			}
 		}
 	}
 	return &model.T, nil

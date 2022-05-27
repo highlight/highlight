@@ -149,6 +149,7 @@ var Models = []interface{}{
 	&RageClickEvent{},
 	&Workspace{},
 	&WorkspaceInviteLink{},
+	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
@@ -232,6 +233,12 @@ type WorkspaceInviteLink struct {
 	InviteeRole    *string
 	ExpirationDate *time.Time
 	Secret         *string
+}
+
+type WorkspaceAccessRequest struct {
+	Model
+	AdminID                int `gorm:"unique_index"`
+	LastRequestedWorkspace int
 }
 
 type Project struct {
