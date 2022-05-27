@@ -187,7 +187,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 	}
 
 	var events []interface{}
-	if err := json.Unmarshal([]byte(buf.String()), &events); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &events); err != nil {
 		return nil, errors.Wrap(err, "error decoding event data")
 	}
 	return events, nil
@@ -214,7 +214,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 	}
 
 	var resources []interface{}
-	if err := json.Unmarshal([]byte(buf.String()), &resources); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &resources); err != nil {
 		return nil, errors.Wrap(err, "error decoding resource data")
 	}
 	return resources, nil
@@ -241,7 +241,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 	}
 
 	var messages []interface{}
-	if err := json.Unmarshal([]byte(buf.String()), &messages); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &messages); err != nil {
 		return nil, errors.Wrap(err, "error decoding message data")
 	}
 	return messages, nil
