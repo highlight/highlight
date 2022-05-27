@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
 	"os"
@@ -153,8 +152,6 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	var eventRows *sql.Rows
 	var err error
-	var numberOfRows int64 = 0
-	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
 	// Fetch/write events.
@@ -176,13 +173,9 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			if err != nil {
 				return errors.Wrap(err, "error scanning event row")
 			}
-			if err := eventsWriter.Write(&eventObject); err != nil {
-				return errors.Wrap(err, "error writing event row")
-			}
 			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 				return errors.Wrap(err, "error writing compressed event row")
 			}
-			numberOfRows += 1
 			if writeChunks {
 				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
 					return errors.Wrap(err, "error writing event chunk")
@@ -196,7 +189,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		return e.Wrap(err, "error reading events_objects")
 	}
 
-	manager.Events.Length = numberOfRows
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
 	}
@@ -218,23 +210,16 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	if err != nil {
 		return errors.Wrap(err, "error retrieving resources objects")
 	}
-	resourceWriter := manager.Resources.Writer()
-	numberOfRows = 0
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
 		if err != nil {
 			return errors.Wrap(err, "error scanning resource row")
 		}
-		if err := resourceWriter.Write(&resourcesObject); err != nil {
-			return errors.Wrap(err, "error writing resource row")
-		}
 		if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
-		numberOfRows += 1
 	}
-	manager.Resources.Length = numberOfRows
 	if err := manager.ResourcesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed resources writer")
 	}
@@ -245,22 +230,15 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		return errors.Wrap(err, "error retrieving messages objects")
 	}
 
-	numberOfRows = 0
-	messagesWriter := manager.Messages.Writer()
 	for messageRows.Next() {
 		messageObject := model.MessagesObject{}
 		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
 			return errors.Wrap(err, "error scanning message row")
 		}
-		if err := messagesWriter.Write(&messageObject); err != nil {
-			return errors.Wrap(err, "error writing messages object")
-		}
 		if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
-		numberOfRows += 1
 	}
-	manager.Messages.Length = numberOfRows
 	if err := manager.MessagesCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed messages writer")
 	}
@@ -488,7 +466,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	//Delete the session if there's no events.
-	if payloadManager.Events.Length == 0 && s.Length <= 0 {
+	if !payloadManager.EventsCompressed.HasContents && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
@@ -523,45 +501,36 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	var userInteractionEvents []*parse.ReplayEvent
 	accumulator := MakeEventProcessingAccumulator(s.SecureID, rageClickSettings)
-	p := payload.NewPayloadReadWriter(payloadManager.GetFile(payload.Events))
-	re := p.Reader()
-	hasNext := true
-	for hasNext {
-		se, err := re.Next()
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				return e.Wrap(err, "error reading next line")
-			}
-			hasNext = false
-		}
-		if se != nil && *se != "" {
-			eventsObject := model.EventsObject{Events: *se}
-			accumulator = processEventChunk(accumulator, eventsObject)
-			if accumulator.Error != nil {
-				return e.Wrap(accumulator.Error, "error processing event chunk")
-			}
-			userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
 
-			if len(accumulator.EventsForTimelineIndicator) > 0 {
-				var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
-				for _, customEvent := range accumulator.EventsForTimelineIndicator {
-					var parsedData model.JSONB
-					err = json.Unmarshal(customEvent.Data, &parsedData)
-					if err != nil {
-						return e.Wrap(err, "error unmarshalling event chunk")
-					}
-					eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
-						SessionSecureID: s.SecureID,
-						Timestamp:       customEvent.TimestampRaw,
-						SID:             customEvent.SID,
-						Type:            int(customEvent.Type),
-						Data:            parsedData,
-					})
-				}
-				if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
-					log.Error(e.Wrap(err, "error creating events for timeline indicator"))
-				}
+	se, err := payload.ReadCompressedJSONArrayString(payloadManager.GetFile(payload.EventsCompressed))
+	if err != nil {
+		return e.Wrap(err, "error reading compressed events string")
+	}
+	eventsObject := model.EventsObject{Events: fmt.Sprintf(`{"events":%s}`, *se)}
+	accumulator = processEventChunk(accumulator, eventsObject)
+	if accumulator.Error != nil {
+		return e.Wrap(accumulator.Error, "error processing event chunk")
+	}
+	userInteractionEvents = append(userInteractionEvents, accumulator.UserInteractionEvents...)
+
+	if len(accumulator.EventsForTimelineIndicator) > 0 {
+		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
+		for _, customEvent := range accumulator.EventsForTimelineIndicator {
+			var parsedData model.JSONB
+			err = json.Unmarshal(customEvent.Data, &parsedData)
+			if err != nil {
+				return e.Wrap(err, "error unmarshalling event chunk")
 			}
+			eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
+				SessionSecureID: s.SecureID,
+				Timestamp:       customEvent.TimestampRaw,
+				SID:             customEvent.SID,
+				Type:            int(customEvent.Type),
+				Data:            parsedData,
+			})
+		}
+		if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+			log.Error(e.Wrap(err, "error creating events for timeline indicator"))
 		}
 	}
 
@@ -843,7 +812,7 @@ func (w *Worker) Start() {
 	lockPeriod := 10            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 16
+		payloadLookbackPeriod = 8
 		lockPeriod = 1
 	}
 

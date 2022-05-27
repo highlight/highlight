@@ -1,107 +1,46 @@
 package payload
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"strings"
-
 	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"io"
+	"os"
 )
 
-var Delimiter = "\n\n\n"
-
-type PayloadReadWriter struct {
-	file   *os.File
-	Length int64
-}
-
-func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {
-	p := &PayloadReadWriter{file: file}
-	return p
-}
-
-func (p *PayloadReadWriter) Reader() *ObjectReader {
-	return NewObjectReader(p.file)
-}
-
-func (p *PayloadReadWriter) Writer() *ObjectWriter {
-	return NewObjectWriter(p.file)
-}
-
-type ObjectReader struct {
-	reader *bufio.Reader
-}
-
-func NewObjectReader(file *os.File) *ObjectReader {
-	return &ObjectReader{reader: bufio.NewReader(file)}
-}
-
-// {resources: []}
-// {events: []}
-// {messages: []}
-func (o *ObjectReader) Next() (linePtr *string, e error) {
-	// Keep reading until the end of the line has the delimitter.
-	line := ""
-	linePtr = &line
-	for {
-		strBytes, err := o.reader.ReadBytes('\n')
-		str := string(strBytes)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				line += str
-				e = err
-				break
-			}
-			return nil, errors.Wrap(err, "error reading line from bufio reader")
-		}
-		line += str
-		if strings.HasSuffix(line, Delimiter) {
-			break
-		}
-	}
-	return linePtr, e
-}
-
-type ObjectWriter struct {
-	writer *bufio.Writer
-}
-
-func NewObjectWriter(file *os.File) *ObjectWriter {
-	return &ObjectWriter{writer: bufio.NewWriter(file)}
-}
-
-func (o *ObjectWriter) Write(m model.Object) error {
-	if _, err := o.writer.WriteString(m.Contents()); err != nil {
-		return errors.Wrap(err, "error writing payload to file")
-	}
-	if _, err := o.writer.WriteString(Delimiter); err != nil {
-		return errors.Wrap(err, "error writing message delimiter")
-	}
-	o.writer.Flush()
-	return nil
-}
-
 type CompressedJSONArrayWriter struct {
+	HasContents bool
 	writer      *brotli.Writer
-	hasContents bool
 }
 
-const BROTLI_COMPRESSION_LEVEL = 9
+const BrotliCompressionLevel = 9
 
-// Initializes a new writer with the configured compression level
+// NewCompressedJSONArrayWriter initializes a new writer with the configured compression level
 func NewCompressedJSONArrayWriter(brFile *os.File) *CompressedJSONArrayWriter {
-	brWriter := brotli.NewWriterLevel(brFile, BROTLI_COMPRESSION_LEVEL)
+	brWriter := brotli.NewWriterLevel(brFile, BrotliCompressionLevel)
 	return &CompressedJSONArrayWriter{
-		writer:      (brWriter),
-		hasContents: false,
+		HasContents: false,
+		writer:      brWriter,
 	}
+}
+
+type CompressedJSONArrayReader struct {
+	decoder *json.Decoder
+	opened  bool
+}
+
+func ReadCompressedJSONArrayString(brFile *os.File) (*string, error) {
+	out := &bytes.Buffer{}
+	if _, err := io.Copy(out, brotli.NewReader(brFile)); err != nil {
+		return nil, err
+	}
+	str := out.String()
+	return &str, nil
 }
 
 type Unmarshalled interface {
@@ -148,7 +87,7 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 	}
 
 	// If nothing has been written yet, start with an opening bracket
-	if !w.hasContents {
+	if !w.HasContents {
 		if _, err := w.writer.Write([]byte("[")); err != nil {
 			return errors.Wrap(err, "error writing message start")
 		}
@@ -163,14 +102,14 @@ func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalle
 		return errors.Wrap(err, "error writing compressed payload to file")
 	}
 
-	w.hasContents = true
+	w.HasContents = true
 
 	return nil
 }
 
 // Appends a closing bracket to close the JSON array, and closes the underlying writer
 func (w *CompressedJSONArrayWriter) Close() error {
-	if w.hasContents {
+	if w.HasContents {
 		if _, err := w.writer.Write([]byte("]")); err != nil {
 			return errors.Wrap(err, "error writing message end")
 		}
@@ -186,9 +125,6 @@ func (w *CompressedJSONArrayWriter) Close() error {
 }
 
 type PayloadManager struct {
-	Events              *PayloadReadWriter
-	Resources           *PayloadReadWriter
-	Messages            *PayloadReadWriter
 	EventsCompressed    *CompressedJSONArrayWriter
 	ResourcesCompressed *CompressedJSONArrayWriter
 	MessagesCompressed  *CompressedJSONArrayWriter
@@ -200,9 +136,6 @@ type PayloadManager struct {
 type FileType string
 
 const (
-	Events              FileType = "Events"
-	Resources           FileType = "Resources"
-	Messages            FileType = "Messages"
 	EventsCompressed    FileType = "EventsCompressed"
 	ResourcesCompressed FileType = "ResourcesCompressed"
 	MessagesCompressed  FileType = "MessagesCompressed"
@@ -237,18 +170,6 @@ func createFile(name string) (func(), *os.File, error) {
 
 func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	files := map[FileType]*FileInfo{
-		Events: {
-			suffix: ".events.txt",
-			ddTag:  "eventPayloadSize",
-		},
-		Resources: {
-			suffix: ".resources.txt",
-			ddTag:  "resourcePayloadSize",
-		},
-		Messages: {
-			suffix: ".messages.txt",
-			ddTag:  "messagePayloadSize",
-		},
 		EventsCompressed: {
 			suffix: ".events.json.br",
 			ddTag:  "eventsCompressedPayloadSize",
@@ -268,21 +189,15 @@ func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
 	}
 
 	for fileType, fileInfo := range files {
-		close, file, err := createFile(filenamePrefix + fileInfo.suffix)
+		c, file, err := createFile(filenamePrefix + fileInfo.suffix)
 		if err != nil {
 			manager.Close()
 			return nil, errors.Wrapf(err, "error creating %s file", string(fileType))
 		}
 		fileInfo.file = file
-		fileInfo.close = close
+		fileInfo.close = c
 
 		switch fileType {
-		case Events:
-			manager.Events = NewPayloadReadWriter(fileInfo.file)
-		case Resources:
-			manager.Resources = NewPayloadReadWriter(fileInfo.file)
-		case Messages:
-			manager.Messages = NewPayloadReadWriter(fileInfo.file)
 		case EventsCompressed:
 			manager.EventsCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
 		case ResourcesCompressed:
@@ -308,13 +223,13 @@ func (pm *PayloadManager) NewChunkedFile(filenamePrefix string) error {
 	pm.ChunkIndex += 1
 	suffix := fmt.Sprintf(".eventschunked%04d.json.br", pm.ChunkIndex)
 	fileInfo.suffix = suffix
-	close, file, err := createFile(filenamePrefix + suffix)
+	c, file, err := createFile(filenamePrefix + suffix)
 
 	if err != nil {
 		return errors.Wrapf(err, "error creating new EventsChunked file")
 	}
 	fileInfo.file = file
-	fileInfo.close = close
+	fileInfo.close = c
 
 	pm.EventsChunked = NewCompressedJSONArrayWriter(fileInfo.file)
 	return nil
