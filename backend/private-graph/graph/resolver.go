@@ -845,6 +845,8 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 }
 
 func (r *Resolver) SendWorkspaceRequestEmail(fromName string, fromEmail string, workspaceName string, toName string, toEmail string, inviteLink string) (*string, error) {
+	// TODO(vkorolik) workspace access request, only once per person per 10 mins?
+
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
