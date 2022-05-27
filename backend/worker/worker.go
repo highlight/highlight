@@ -352,6 +352,7 @@ func (w *Worker) PublicWorker() {
 					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
 					defer s.Finish()
 					w.processPublicWorkerMessage(task)
+					w.KafkaQueue.Commit(task.KafkaMessage)
 					hlog.Incr("worker.kafka.processed.total", nil, 1)
 				}()
 			}

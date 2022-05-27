@@ -198,8 +198,8 @@ func (p *Queue) Receive() (msg *Message) {
 		log.Error(errors.Wrap(err, "failed to receive message"))
 		return nil
 	}
-	msgBytes := m.Value
-	msg, err = p.deserializeMessage(msgBytes)
+	msg, err = p.deserializeMessage(m.Value)
+	msg.KafkaMessage = &m
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
@@ -207,6 +207,19 @@ func (p *Queue) Receive() (msg *Message) {
 	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
 	hlog.Histogram("worker.kafka.receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
+}
+
+func (p *Queue) Commit(msg *kafka.Message) {
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(context.Background(), KafkaOperationTimeout)
+	defer cancel()
+	err := p.kafkaC.CommitMessages(ctx, *msg)
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to commit message"))
+	} else {
+		hlog.Incr("worker.kafka.commitMessageCount", nil, 1)
+		hlog.Histogram("worker.kafka.commitSec", time.Since(start).Seconds(), nil, 1)
+	}
 }
 
 func (p *Queue) LogStats() {
