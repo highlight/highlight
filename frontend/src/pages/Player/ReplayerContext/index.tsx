@@ -113,6 +113,7 @@ export interface ReplayerContextInterface {
         React.SetStateAction<string[]>
     >;
     isLoadingEvents: boolean;
+    setIsLoadingEvents: React.Dispatch<React.SetStateAction<boolean>>;
     sessionMetadata: playerMetaData;
 }
 

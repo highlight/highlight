@@ -15,17 +15,6 @@ import (
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
-	"github.com/highlight-run/workerpool"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
@@ -36,6 +25,16 @@ import (
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/workerpool"
+	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // This file will not be regenerated automatically.
@@ -322,8 +321,26 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		return fieldsToAppend[i].ID < fieldsToAppend[j].ID
 	})
 
-	// We append to this session in the join table regardless.
-	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
+	var entries []struct {
+		SessionID int
+		FieldID   int
+	}
+	for _, f := range fieldsToAppend {
+		entries = append(entries, struct {
+			SessionID int
+			FieldID   int
+		}{
+			SessionID: session.ID,
+			FieldID:   f.ID,
+		})
+	}
+	// Associate the fields with this session.
+	// Do this manually to avoid updating the session `updated_at` column since this operation
+	// is typically done as part of other steps that update the session `updated_at`.
+	// Constantly writing to `updated_at` is a source of DB contention for session updates.
+	if err := r.DB.Table("session_fields").Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(entries).Error; err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
@@ -1398,6 +1415,96 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
 	})
+}
+func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+	if len(metrics) == 0 {
+		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
+		return -1, e.New("no metrics provided")
+	}
+	sessionMetrics := make(map[string][]*customModels.MetricInput)
+	for _, m := range metrics {
+		if _, ok := sessionMetrics[m.SessionSecureID]; !ok {
+			sessionMetrics[m.SessionSecureID] = []*customModels.MetricInput{}
+		}
+		sessionMetrics[m.SessionSecureID] = append(sessionMetrics[m.SessionSecureID], m)
+	}
+
+	for secureID, metrics := range sessionMetrics {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
+			log.Error(err)
+			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+		}
+
+		err := r.ProducerQueue.Submit(&kafka_queue.Message{
+			Type: kafka_queue.PushMetrics,
+			PushMetrics: &kafka_queue.PushMetricsArgs{
+				SessionID: session.ID,
+				ProjectID: session.ProjectID,
+				Metrics:   metrics,
+			}}, strconv.Itoa(session.ID))
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return len(metrics), nil
+}
+
+func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
+	session := &model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
+		return -1, e.Wrapf(err, "error querying device metric session")
+	}
+	return r.SubmitMetricsMessage(ctx, []*customModels.MetricInput{{
+		SessionSecureID: session.SecureID,
+		Name:            name,
+		Value:           value,
+		Type:            metricType,
+		Timestamp:       time.Now(),
+	}})
+}
+
+func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
+	newMetric := &model.Metric{
+		Name:      m.Name,
+		Value:     m.Value,
+		ProjectID: projectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricType(m.Type),
+		RequestID: m.RequestID,
+	}
+
+	if err := r.DB.Create(&newMetric).Error; err != nil {
+		log.Error(err)
+	}
+}
+
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+	for _, m := range metrics {
+		if m.Type == customModels.MetricTypeBackend {
+			r.addNewMetric(sessionID, projectID, m)
+			continue
+		}
+
+		existingMetric := &model.Metric{
+			Name:      m.Name,
+			ProjectID: projectID,
+			SessionID: sessionID,
+			Type:      modelInputs.MetricType(m.Type),
+			RequestID: m.RequestID,
+		}
+		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
+		if err := tx.Error; err != nil {
+			log.Error(err)
+			return
+		}
+		// Update the existing record if it already exists
+		existingMetric.Value = m.Value
+		if err := r.DB.Save(&existingMetric).Error; err != nil {
+			log.Error(err)
+		}
+	}
 }
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {

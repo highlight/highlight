@@ -54,8 +54,8 @@ const useToolbarItems = () => {
         }
     );
 
-    const [zoomAreaLeft, setZoomAreaLeft] = useState<number | undefined>();
-    const [zoomAreaRight, setZoomAreaRight] = useState<number | undefined>();
+    const [zoomAreaLeft, setZoomAreaLeft] = useState<number>(0);
+    const [zoomAreaRight, setZoomAreaRight] = useState<number>(100);
 
     return {
         devToolsButton,

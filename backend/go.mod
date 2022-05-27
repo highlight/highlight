@@ -22,6 +22,7 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/websocket v1.4.2
+	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kylelemons/godebug v1.1.0
@@ -53,10 +54,7 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
-require (
-	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
-)
+require github.com/mattn/go-isatty v0.0.14 // indirect
 
 require (
 	cloud.google.com/go v0.65.0 // indirect

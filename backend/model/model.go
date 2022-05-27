@@ -1031,8 +1031,15 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	// This is necessary for replacing the error_groups.fingerprints association through GORM
 	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
 	if err := DB.Exec(`
-		ALTER TABLE error_fingerprints
-    		ALTER COLUMN error_group_id DROP NOT NULL
+		DO $$
+		BEGIN
+			IF EXISTS
+				(select * from information_schema.columns where table_name = 'error_fingerprints' and column_name = 'error_group_id' and is_nullable = 'NO')
+			THEN
+				ALTER TABLE error_fingerprints
+    				ALTER COLUMN error_group_id DROP NOT NULL;
+			END IF;
+		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
 	}

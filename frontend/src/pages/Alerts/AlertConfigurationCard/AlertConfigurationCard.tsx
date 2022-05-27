@@ -2,6 +2,7 @@ import Card from '@components/Card/Card';
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -92,6 +93,7 @@ export const AlertConfigurationCard = ({
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
     const [searchQuery, setSearchQuery] = useState('');
+    const [identifierQuery, setIdentifierQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
@@ -560,7 +562,12 @@ export const AlertConfigurationCard = ({
         : (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
               (suggestion) => ({
                   value: suggestion,
-                  displayValue: suggestion,
+                  displayValue: (
+                      <TextHighlighter
+                          searchWords={[identifierQuery]}
+                          textToHighlight={suggestion}
+                      />
+                  ),
                   id: suggestion,
               })
           );
@@ -575,6 +582,7 @@ export const AlertConfigurationCard = ({
     };
 
     const handleIdentifierSearch = (query = '') => {
+        setIdentifierQuery(query);
         refetchIdentifierSuggestions({ query, project_id });
     };
 
@@ -978,10 +986,11 @@ export const AlertConfigurationCard = ({
                                         onSearch={handleIdentifierSearch}
                                         className={styles.channelSelect}
                                         options={identifierSuggestions}
-                                        mode="multiple"
+                                        mode="tags"
                                         placeholder={`Select a identifier(s) that should not trigger alerts.`}
                                         onChange={() => {
                                             setFormTouched(true);
+                                            handleIdentifierSearch('');
                                         }}
                                     />
                                 </Form.Item>
