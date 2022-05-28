@@ -6,6 +6,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/k0kubun/pp"
 	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 
@@ -77,8 +78,9 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 	}); err != nil {
 		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
 		r := CustomContactsResponse{}
-		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
-			return nil, e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); getErr != nil {
+			errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+			return nil, errr
 		} else {
 			hubspotContactId = r.Vid
 		}
@@ -163,12 +165,14 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 }
 
 func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Property) error {
+	pp.Println("top of the method")
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
 	}
 	hubspotContactID := admin.HubspotContactID
 	if hubspotContactID == nil {
+		pp.Println("creating a brand new account")
 		id, err := h.CreateContactForAdmin(
 			adminID,
 			ptr.ToString(admin.Email),

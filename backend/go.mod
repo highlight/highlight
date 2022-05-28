@@ -54,7 +54,11 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
-require github.com/mattn/go-isatty v0.0.14 // indirect
+require (
+	github.com/k0kubun/pp v3.0.1+incompatible // indirect
+	github.com/mattn/go-colorable v0.1.6 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+)
 
 require (
 	cloud.google.com/go v0.65.0 // indirect

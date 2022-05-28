@@ -9,7 +9,6 @@ import (
 	hubspotAPI "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -406,18 +405,18 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		if err != nil {
 			return e.Wrap(err, "error getting sessions meter")
 		}
-		if reportToHubspot && !util.IsDevEnv() {
-			go func() {
-				api := hubspotAPI.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), DB)
-				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{hubspot.Property{
-					Name:     "highlight_session_count",
-					Property: "highlight_session_count",
-					Value:    meter,
-				}}); err != nil {
-					log.Error(e.Wrap(err, "error updating highlight session count in hubspot"))
-				}
-			}()
-		}
+		// if reportToHubspot && !util.IsDevEnv() {
+		go func() {
+			api := hubspotAPI.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), DB)
+			if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{{
+				Name:     "highlight_session_count",
+				Property: "highlight_session_count",
+				Value:    meter,
+			}}); err != nil {
+				log.Error(e.Wrap(err, "error updating highlight session count in hubspot"))
+			}
+		}()
+		// }
 
 		limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
 		if workspace.MonthlySessionLimit != nil {
