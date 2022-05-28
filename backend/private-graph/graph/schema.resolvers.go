@@ -26,14 +26,13 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/k0kubun/pp"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -441,18 +440,16 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
-		// if !util.IsDevEnv() {
-		pp.Println("updating contact property!")
-
-		if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
-			Name:     "number_of_highlight_sessions_viewed",
-			Property: "number_of_highlight_sessions_viewed",
-			Value:    totalSessionCountAsInt,
-		}}); err != nil {
-			log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+		if !util.IsDevEnv() {
+			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_sessions_viewed",
+				Property: "number_of_highlight_sessions_viewed",
+				Value:    totalSessionCountAsInt,
+			}}); err != nil {
+				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+			}
+			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
-		log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
-		// }
 	})
 
 	newSession := &model.Session{}

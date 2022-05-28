@@ -6,7 +6,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/k0kubun/pp"
 	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 
@@ -165,14 +164,12 @@ func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail strin
 }
 
 func (h *HubspotApi) UpdateContactProperty(adminID int, properties []hubspot.Property) error {
-	pp.Println("top of the method")
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
 		return e.Wrap(err, "error retrieving admin details")
 	}
 	hubspotContactID := admin.HubspotContactID
 	if hubspotContactID == nil {
-		pp.Println("creating a brand new account")
 		id, err := h.CreateContactForAdmin(
 			adminID,
 			ptr.ToString(admin.Email),
