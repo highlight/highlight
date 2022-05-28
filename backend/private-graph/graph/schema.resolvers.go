@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -2716,19 +2717,32 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		return &model.T, nil
 	}
 
-	var request model.WorkspaceAccessRequest
-	if err := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).FirstOrInit(&request).Error; err != nil {
-		log.Error(e.Wrap(err, "error querying access requests"))
-		return &model.T, nil
+	request := &model.WorkspaceAccessRequest{
+		AdminID:                admin.ID,
+		LastRequestedWorkspace: workspace.ID,
 	}
-	if time.Since(request.UpdatedAt) < RequestAccessMinimumDelay {
+	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
+		Columns: []clause.Column{{Name: "admin_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"updated_at":               time.Now(),
+			"last_requested_workspace": workspace.ID,
+		}),
+		Where: clause.Where{
+			Exprs: []clause.Expression{
+				clause.Lt{
+					Column: "workspace_access_requests.updated_at",
+					Value:  time.Now().Add(-RequestAccessMinimumDelay),
+				},
+			},
+		},
+	}).Create(&request)
+	if err := query.Error; err != nil {
+		log.Error(e.Wrap(err, "error upserting access requests"))
 		return &model.T, nil
 	}
 
-	request.LastRequestedWorkspace = workspace.ID
-	request.UpdatedAt = time.Now()
-	if err := r.DB.Save(&request).Error; err != nil {
-		log.Error(e.Wrap(err, "error updating access request"))
+	// no rows updated, so user recently requested access. ignore the request
+	if query.RowsAffected == 0 {
 		return &model.T, nil
 	}
 
