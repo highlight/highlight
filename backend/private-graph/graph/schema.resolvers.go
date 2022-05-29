@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -413,6 +413,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// Check if this admin has already viewed
+		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
+			log.Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
+			return
+		}
 		var currentSessionCount int64
 		if err := r.DB.Raw(`
 			select count(*)
