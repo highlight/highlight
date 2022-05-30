@@ -1,0 +1,3 @@
+boto3[crt]~=1.23
+pytest-mock~=3.7
+pytest~=7.1
