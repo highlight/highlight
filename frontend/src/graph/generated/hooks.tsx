@@ -6366,6 +6366,10 @@ export const GetProjectDropdownOptionsDocument = gql`
             id
             name
         }
+        joinable_workspaces {
+            id
+            name
+        }
     }
 `;
 
@@ -6428,6 +6432,10 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
             }
         }
         workspaces {
+            id
+            name
+        }
+        joinable_workspaces {
             id
             name
         }

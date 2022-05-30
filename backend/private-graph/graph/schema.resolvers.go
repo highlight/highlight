@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -2698,6 +2699,9 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
+// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
+const RequestAccessMinimumDelay = time.Minute * 10
+
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
@@ -2724,17 +2728,48 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		return &model.T, nil
 	}
 
+	request := &model.WorkspaceAccessRequest{
+		AdminID:                admin.ID,
+		LastRequestedWorkspace: workspace.ID,
+	}
+	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
+		Columns: []clause.Column{{Name: "admin_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"updated_at":               time.Now(),
+			"last_requested_workspace": workspace.ID,
+		}),
+		Where: clause.Where{
+			Exprs: []clause.Expression{
+				clause.Lt{
+					Column: "workspace_access_requests.updated_at",
+					Value:  time.Now().Add(-RequestAccessMinimumDelay),
+				},
+			},
+		},
+	}).Create(&request)
+	if err := query.Error; err != nil {
+		log.Error(e.Wrap(err, "error upserting access requests"))
+		return &model.T, nil
+	}
+
+	// no rows updated, so user recently requested access. ignore the request
+	if query.RowsAffected == 0 {
+		return &model.T, nil
+	}
+
 	var workspaceAdmins []*model.Admin
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+	if err := r.DB.Order("created_at ASC").Model(workspace).Limit(2).Association("Admins").Find(&workspaceAdmins, "role=?", model.AdminRole.ADMIN); err != nil {
 		log.Error(e.Wrap(err, "error getting admins for the workspace"))
 		return &model.T, nil
 	}
 
-	for _, a := range workspaceAdmins[:2] {
-		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
-			log.Error(e.Wrap(err, "failed to send request access email"))
-			return &model.T, nil
+	for _, a := range workspaceAdmins {
+		if a != nil {
+			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				log.Error(e.Wrap(err, "failed to send request access email"))
+				return &model.T, nil
+			}
 		}
 	}
 	return &model.T, nil

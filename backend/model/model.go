@@ -149,6 +149,7 @@ var Models = []interface{}{
 	&RageClickEvent{},
 	&Workspace{},
 	&WorkspaceInviteLink{},
+	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
@@ -234,6 +235,12 @@ type WorkspaceInviteLink struct {
 	Secret         *string
 }
 
+type WorkspaceAccessRequest struct {
+	Model
+	AdminID                int `gorm:"uniqueIndex"`
+	LastRequestedWorkspace int
+}
+
 type Project struct {
 	Model
 	Name              *string
@@ -270,7 +277,7 @@ func (workspace *Workspace) GetSecret() *string { return workspace.Secret }
 
 type EnhancedUserDetails struct {
 	Model
-	Email       *string `gorm:"unique_index"`
+	Email       *string `gorm:"uniqueIndex"`
 	PersonJSON  *string
 	CompanyJSON *string
 }
@@ -376,7 +383,7 @@ type Admin struct {
 	NumberOfSessionsViewed *int
 	EmailVerified          *bool            `gorm:"default:false"`
 	PhotoURL               *string          `json:"photo_url"`
-	UID                    *string          `gorm:"unique_index"`
+	UID                    *string          `gorm:"uniqueIndex"`
 	Organizations          []Organization   `gorm:"many2many:organization_admins;"`
 	Projects               []Project        `gorm:"many2many:project_admins;"`
 	SessionComments        []SessionComment `gorm:"many2many:session_comment_admins;"`
@@ -393,7 +400,7 @@ type Admin struct {
 
 type EmailSignup struct {
 	Model
-	Email               string `gorm:"unique_index"`
+	Email               string `gorm:"uniqueIndex"`
 	ApolloData          string
 	ApolloDataShortened string
 }
