@@ -217,7 +217,9 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 			hookPayload := zapier.HookPayload{
 				UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
 			}
-			r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrap(err, "error notifying zapier"))
+			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
 		}
@@ -289,7 +291,9 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 			hookPayload := zapier.HookPayload{
 				UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
 			}
-			r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrap(err, "error notifying zapier"))
+			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
 		}
@@ -1086,7 +1090,9 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 				hookPayload := zapier.HookPayload{
 					UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl,
 				}
-				r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+				if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+					log.Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
+				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
 			}
@@ -1220,7 +1226,9 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 			hookPayload := zapier.HookPayload{
 				UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject,
 			}
-			r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
+			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
 		}
@@ -1429,7 +1437,9 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			}
 
 			log.Infof("sending error alert to zapier. id=ErrorAlert_%d", errorAlert.ID)
-			r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload)
+			if err := r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrap(err, "error sending error alert to Zapier"))
+			}
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}

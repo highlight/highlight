@@ -83,7 +83,9 @@ func processMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client, metricMonit
 				MetricValue:     &value,
 				MetricThreshold: &metricMonitor.Threshold,
 			}
-			rh.Notify(project.ID, fmt.Sprintf("MetricMonitor_%d", metricMonitor.ID), hookPayload)
+			if err := rh.Notify(project.ID, fmt.Sprintf("MetricMonitor_%d", metricMonitor.ID), hookPayload); err != nil {
+				log.Error("error notifying zapier", err)
+			}
 
 			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f` over the threshold.\n(Value: `%s`, Threshold: `%s`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros)
 

@@ -26,7 +26,6 @@ require (
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
-	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2

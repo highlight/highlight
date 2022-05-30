@@ -254,7 +254,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			CommentText:    feedbackComment.Text,
 		}
 
-		r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionFeedbackAlert.ID), hookPayload)
+		if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionFeedbackAlert.ID), hookPayload); err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error sending alert to zapier"))
+		}
 
 		sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
