@@ -27,11 +27,22 @@ func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request)
 		TargetUrl: &sub.TargetUrl,
 	}
 
-	if err := s.DB.Create(&subscription).Error; err != nil {
-		return e.Wrap(err, "error saving resthook subscription to database")
-	}
+	existingSub, err := s.FindByUserId(sub.UserId, sub.Event)
+	if err != nil {
+		// the subscription does not exist yet, so create it
+		if err := s.DB.Create(&subscription).Error; err != nil {
+			return e.Wrap(err, "error saving resthook subscription to database")
+		}
 
-	sub.Id = subscription.ID
+		sub.Id = subscription.ID
+	} else {
+		// the subscription already exists, so update it
+		if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: existingSub.Id}}).Updates(subscription).Error; err != nil {
+			return e.Wrap(err, "error updating resthook subscription in database")
+		}
+
+		sub.Id = existingSub.Id
+	}
 
 	log.Infof("New Zapier subscription: %d; %s", sub.Id, sub.TargetUrl)
 	return nil
@@ -76,6 +87,8 @@ func (s *ZapierResthookStore) DeleteById(id int, r *http.Request) error {
 	// if request is passed in, check if the user is authorized to delete the subscription
 	// request could be nil as DeleteById is sometimes called by Notify and Notify does not pass in a request
 	if r != nil {
+		// there is right now a limitation where there can only be one subscription per event
+		// TODO: modify the resthooks package to allow multiple subscriptions per event
 		sub, err := s.FindById(id)
 		if err != nil {
 			return err

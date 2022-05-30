@@ -254,7 +254,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			CommentText:    feedbackComment.Text,
 		}
 
-		r.RH.Notify(session.ID, fmt.Sprintf("SessionAlert_%d", sessionFeedbackAlert.ID), hookPayload)
+		r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionFeedbackAlert.ID), hookPayload)
 
 		sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,

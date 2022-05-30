@@ -790,7 +790,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
 			}
 
-			w.Resolver.RH.Notify(s.ID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+			w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
 			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
 		}
 		return nil
