@@ -1,22 +1,29 @@
 import argparse
+import multiprocessing.pool
 import os
+import threading
 
 import boto3
 
+ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
 HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
 
-s3 = boto3.Session().resource('s3')
+pool = multiprocessing.pool.ThreadPool()
+
+
+def init_bucket(bucket):
+    s3 = boto3.Session().resource('s3')
+    return s3.Bucket(bucket)
 
 
 def process(bucket, prefix, do_archive=False):
-    b = s3.Bucket(bucket)
+    b = init_bucket(bucket)
     last = {'project': 0, 'session': 0}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
-    to_archive = []
 
     def process_if_compressed():
         if all(has_compressed.values()):
-            process_uncompressed(b, to_archive, **last, do_archive=do_archive)
+            pool.apply_async(process_uncompressed, args=(bucket,), kwds={'do_archive': do_archive, **last})
 
     for idx, f in enumerate(b.objects.filter(Prefix=prefix)):
         try:
@@ -29,24 +36,29 @@ def process(bucket, prefix, do_archive=False):
             process_if_compressed()
             last = {'project': p, 'session': s}
             has_compressed = {k: False for k in HIGHLIGHT_FILES}
-            to_archive = []
 
         for k in HIGHLIGHT_FILES:
             if f'{k}-compressed' == obj:
                 has_compressed[k] = True
                 break
-        else:
-            to_archive.append(f)
 
     process_if_compressed()
+    print('thread pool closed')
+    pool.close()
+    print('waiting for thread pool to finish...')
+    pool.join()
+    print('done!')
 
 
-def process_uncompressed(b, files_to_archive, project=0, session=0, do_archive=False):
-    for f in files_to_archive:
+def process_uncompressed(bucket, project=0, session=0, do_archive=False):
+    local = threading.local()
+    if not getattr(local, 'b', None):
+        local.b = init_bucket(bucket)
+    for f in local.b.objects.filter(Prefix='/'.join(map(str, [project, session]))):
         if 'compressed' in f.key:
             continue
-        if f.storage_class == 'DEEP_ARCHIVE':
-            print(project, session, f, 'already', f.storage_class, 'skipping')
+        if f.storage_class == ARCHIVE_STORAGE_CLASS:
+            print(project, session, f, 'already', ARCHIVE_STORAGE_CLASS, 'skipping')
 
             # In case the object needs to be restored:
             # r = f.restore_object(Bucket=BUCKET, Key=f.key, RestoreRequest={'Days': 1})
@@ -57,10 +69,10 @@ def process_uncompressed(b, files_to_archive, project=0, session=0, do_archive=F
             print('dry run, not actually archiving', project, session, f)
             continue
         print('ARCHIVING', project, session, f)
-        b.copy(
-            {'Bucket': b.name, 'Key': f.key}, f.key,
+        local.b.copy(
+            {'Bucket': local.b.name, 'Key': f.key}, f.key,
             ExtraArgs={
-                'StorageClass': 'DEEP_ARCHIVE',
+                'StorageClass': ARCHIVE_STORAGE_CLASS,
                 'MetadataDirective': 'COPY'
             }
         )
