@@ -3,7 +3,7 @@ from unittest.mock import call
 
 import pytest
 
-from remove_uncompressed import process, HIGHLIGHT_FILES
+from remove_uncompressed import process, HIGHLIGHT_FILES, process_uncompressed
 
 
 def create_file(project, session, k):
@@ -24,15 +24,19 @@ def test(mocker, session_compressed, console_compressed, network_compressed):
     if network_compressed:
         files.add('network-resources-compressed')
 
-    p = mocker.patch('remove_uncompressed.process_uncompressed')
+    mock_pool = mocker.patch('remove_uncompressed.multiprocessing.pool.Pool')
+    p = mock_pool.return_value.apply_async
     mocker.patch('remove_uncompressed.boto3')
-    bucket = mocker.patch('remove_uncompressed.bucket')
-    bucket.objects.filter.return_value = [
+    create_bucket = mocker.patch('remove_uncompressed.init_bucket')
+    create_bucket.return_value.objects.filter.return_value = [
         create_file(p, s, k)
         for p in range(1, 10) for s in range(1, 10) for k in files
     ]
-    process()
+    process('mock-bucket', '1/')
     if session_compressed and console_compressed and network_compressed:
-        p.assert_has_calls(calls=[call(project=p, session=s) for p in range(1, 10) for s in range(1, 10)])
+        p.assert_has_calls(calls=[
+            call(process_uncompressed, args=('mock-bucket',), kwds={'project': p, 'session': s, 'do_archive': False})
+            for p in range(1, 10) for s in range(1, 10)
+        ])
     else:
         p.assert_not_called()
