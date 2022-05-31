@@ -1,7 +1,7 @@
 import 'antd/dist/antd.css';
 import './index.scss';
 import '@highlight-run/react/dist/highlight.css';
-import '@highlight-run/rrweb/dist/index.css';
+import '@highlight-run/rrweb/dist/rrweb.min.css';
 
 import { ApolloProvider } from '@apollo/client';
 import {

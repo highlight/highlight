@@ -3,7 +3,7 @@ import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
     SessionInterval,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { message } from 'antd';
 import * as H from 'history';
 import { useCallback, useState } from 'react';

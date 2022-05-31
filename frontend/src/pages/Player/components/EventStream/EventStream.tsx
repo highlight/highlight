@@ -3,7 +3,7 @@ import Switch from '@components/Switch/Switch';
 import { useGetWebVitalsQuery } from '@graph/hooks';
 import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { EventType } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { EventStreamTypesFilter } from '@pages/Player/components/EventStream/components/EventStreamTypesFilter';
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters';

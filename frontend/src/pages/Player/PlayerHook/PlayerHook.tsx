@@ -22,7 +22,7 @@ import {
     playerMetaData,
     SessionInterval,
     viewportResizeDimension,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import {
     findLatestUrl,
     getAllPerformanceEvents,

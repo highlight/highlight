@@ -6,7 +6,7 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -650,7 +650,7 @@ export class Highlight {
                     if (!this.sessionData.sessionID) {
                         this.logger.log(`Highlight Session Initialization got
   session ID ${this.sessionData.sessionID} as response: ${JSON.stringify(gr)}.
-                        `)
+                        `);
                     }
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
