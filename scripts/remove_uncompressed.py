@@ -8,8 +8,6 @@ import boto3
 ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
 HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
 
-pool = multiprocessing.pool.ThreadPool()
-
 
 def init_bucket(bucket):
     s3 = boto3.Session().resource('s3')
@@ -17,6 +15,7 @@ def init_bucket(bucket):
 
 
 def process(bucket, prefix, do_archive=False):
+    pool = multiprocessing.pool.Pool()
     b = init_bucket(bucket)
     last = {'project': 0, 'session': 0}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
