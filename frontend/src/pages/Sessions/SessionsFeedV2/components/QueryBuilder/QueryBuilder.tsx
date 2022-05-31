@@ -13,6 +13,7 @@ import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilde
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
+import * as chrono from 'chrono-node';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
@@ -234,12 +235,17 @@ const ScrolledTextHighlighter = ({
         />
     );
 };
+const getIndividualDateLabel = (date: string): string => {
+    return date.toLowerCase() === 'now'
+        ? 'Now'
+        : moment(chrono.parseDate(date)).format('MMM D');
+};
 const getDateLabel = (value: string): string => {
     const split = value.split('_');
     const start = split[0];
     const end = split[1];
-    const startStr = moment(start).format('MMM D');
-    const endStr = moment(end).format('MMM D');
+    const startStr = getIndividualDateLabel(start);
+    const endStr = getIndividualDateLabel(end);
     return `${startStr} to ${endStr}`;
 };
 
@@ -535,12 +541,20 @@ const PopoutContent = ({
                 <DateInput
                     startDate={
                         value?.kind === 'multi'
-                            ? new Date(value.options[0]?.value.split('_')[0])
+                            ? new Date(
+                                  chrono.parseDate(
+                                      value.options[0]?.value.split('_')[0]
+                                  )
+                              )
                             : undefined
                     }
                     endDate={
                         value?.kind === 'multi'
-                            ? new Date(value.options[0]?.value.split('_')[1])
+                            ? new Date(
+                                  chrono.parseDate(
+                                      value.options[0]?.value.split('_')[1]
+                                  )
+                              )
                             : undefined
                     }
                     onChange={(start, end) => {
@@ -1177,8 +1191,12 @@ const QueryBuilder = ({
                         return {
                             range: {
                                 [name]: {
-                                    gte: value?.split('_')[0],
-                                    lte: value?.split('_')[1],
+                                    gte: chrono.parseDate(
+                                        value?.split('_')[0] || ''
+                                    ),
+                                    lte: chrono.parseDate(
+                                        value?.split('_')[1] || ''
+                                    ),
                                 },
                             },
                         };
@@ -1361,14 +1379,13 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: 'May 6 to May 6',
-                    value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
+                    label: '30 days ago to Now',
+                    value: '30 days ago_Now',
                 },
             ],
         },
     };
-    const [rules, setRulesImpl] = useState<RuleProps[]>([]);
-    console.log('Rich', JSON.stringify(rules));
+    const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
     const timeRangeRule = useMemo<RuleProps | undefined>(
         () => rules.find((rule) => rule.field?.value === 'custom_created_at'),
         [rules]
@@ -1593,6 +1610,10 @@ const QueryBuilder = ({
     // Don't render anything if this is a readonly query builder and there are no rules
     if (readonly && rules.length === 0) {
         return null;
+    }
+
+    if (!timeRangeRule) {
+        updateTimeRangeRule(defaultTimeRangeRule.val);
     }
 
     return (

@@ -127,6 +127,10 @@ export const SessionFeed = React.memo(() => {
         setShowLoadingSkeleton(false);
     };
 
+    useEffect(() => {
+        console.log('Rich query: ', searchQuery);
+    }, [searchQuery]);
+
     const { loading, called } = useGetSessionsOpenSearchQuery({
         variables: {
             query: searchQuery,
