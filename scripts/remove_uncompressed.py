@@ -102,7 +102,7 @@ def compress_uncompressed(local, files: List[str], project='0', session='0'):
                     datum.append(json.loads(msg_str))
 
             new_data_format = []
-            if datum:
+            if datum and any(x for x in datum):
                 keys = set()
                 for d in datum:
                     keys |= set(d)
