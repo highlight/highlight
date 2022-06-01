@@ -144,7 +144,10 @@
 }
 
 .containerHeading {
-    padding-bottom: var(--size-xSmall) !important;
+    color: var(--color-gray-500) !important;
+    font-size: 8pt !important;
+    font-weight: normal !important;
+    margin-bottom: var(--size-xSmall) !important;
 }
 
 .separator {
@@ -232,7 +235,7 @@ span:last-child {
     color: var(--color-purple-500) !important;
     font-size: 12px;
     height: 100%;
-    margin-top: var(--size-xxSmall);
+    margin-top: var(--size-xSmall);
     padding: 0 4px;
 }
 
