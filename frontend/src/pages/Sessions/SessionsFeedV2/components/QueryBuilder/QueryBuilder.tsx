@@ -751,28 +751,6 @@ export const DateRangeFilter = ({
     return (
         <div className={styles.rulesContainer}>
             <SelectPopout
-                value={{
-                    kind: 'single',
-                    label: 'created_at',
-                    value: 'custom_created_at',
-                }}
-                onChange={() => {}}
-                loadOptions={() => Promise.resolve([])}
-                type="select"
-                disabled={true}
-            />
-            <SelectPopout
-                value={{
-                    kind: 'single',
-                    label: 'is between',
-                    value: 'between_date',
-                }}
-                onChange={() => {}}
-                loadOptions={() => Promise.resolve([])}
-                type="select"
-                disabled={true}
-            />
-            <SelectPopout
                 value={rule.val}
                 onChange={onChangeValue}
                 loadOptions={() => Promise.resolve([])}
