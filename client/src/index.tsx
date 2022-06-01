@@ -1,13 +1,6 @@
-import {
-    addCustomEvent as rrwebAddCustomEvent,
-    getRecordSequentialIdPlugin,
-    record,
-} from '@highlight-run/rrweb';
-import {
-    eventWithTime,
-    listenerHandler,
-} from '@highlight-run/rrweb/typings/types';
-import { FirstLoadListeners } from './listeners/first-load-listeners';
+import {addCustomEvent as rrwebAddCustomEvent, getRecordSequentialIdPlugin, record,} from '@highlight-run/rrweb';
+import {eventWithTime, listenerHandler,} from '@highlight-run/rrweb/typings/types';
+import {FirstLoadListeners} from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
     DebugOptions,
@@ -15,46 +8,34 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../firstload/src/types/client';
-import { PathListener } from './listeners/path-listener';
-import { GraphQLClient } from 'graphql-request';
+import {PathListener} from './listeners/path-listener';
+import {GraphQLClient} from 'graphql-request';
 import ErrorStackParser from 'error-stack-parser';
-import {
-    getSdk,
-    PushPayloadDocument,
-    PushPayloadMutationVariables,
-    Sdk,
-} from './graph/generated/operations';
+import {getSdk, PushPayloadDocument, PushPayloadMutationVariables, Sdk,} from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
-import { print } from 'graphql';
+import {print} from 'graphql';
 
-import { ViewportResizeListener } from './listeners/viewport-resize-listener';
-import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
-import { ClickListener } from './listeners/click-listener/click-listener';
-import { FocusListener } from './listeners/focus-listener/focus-listener';
+import {ViewportResizeListener} from './listeners/viewport-resize-listener';
+import {SegmentIntegrationListener} from './listeners/segment-integration-listener';
+import {ClickListener} from './listeners/click-listener/click-listener';
+import {FocusListener} from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
+import {SESSION_STORAGE_KEYS} from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
-import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
-import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
-import { getPerformanceMethods } from './utils/performance/performance';
-import {
-    PerformanceListener,
-    PerformancePayload,
-} from './listeners/performance-listener/performance-listener';
-import { PageVisibilityListener } from './listeners/page-visibility-listener';
-import {
-    clearHighlightLogs,
-    getHighlightLogs,
-    logForHighlight,
-} from './utils/highlight-logging';
-import { GenerateSecureID } from './utils/secure-id';
-import { MetricType, ReplayEventsInput } from './graph/generated/schemas';
-import { getSimpleSelector } from './utils/dom';
+import {WebVitalsListener} from './listeners/web-vitals-listener/web-vitals-listener';
+import {initializeFeedbackWidget} from './ui/feedback-widget/feedback-widget';
+import {getPerformanceMethods} from './utils/performance/performance';
+import {PerformanceListener, PerformancePayload,} from './listeners/performance-listener/performance-listener';
+import {PageVisibilityListener} from './listeners/page-visibility-listener';
+import {clearHighlightLogs, getHighlightLogs, logForHighlight,} from './utils/highlight-logging';
+import {GenerateSecureID} from './utils/secure-id';
+import {MetricType, ReplayEventsInput} from './graph/generated/schemas';
+import {getSimpleSelector} from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, { output: msg });
+    console.warn(`Highlight Warning: (${context}): `, {output: msg});
 };
 
 class Logger {
@@ -723,6 +704,8 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineStylesheet: true,
+                    inlineImages: true,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
