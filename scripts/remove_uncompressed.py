@@ -13,7 +13,7 @@ from typing import List
 import boto3
 import brotli
 
-WORKER_PREFETCH = 64
+WORKER_PREFETCH = 4
 MAX_TASKS_WAITING = cpu_count() * WORKER_PREFETCH
 
 ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
