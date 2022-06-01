@@ -28,10 +28,10 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     b = init_bucket(bucket)
     last = {'project': '0', 'session': '0'}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
+    session_files = []
 
     def process_if_compressed():
-        files = [x.key for x in b.objects.filter(Prefix='/'.join(map(str, [last['project'], last['session']])))
-                 if x.storage_class != ARCHIVE_STORAGE_CLASS and not x.key.endswith('/')]
+        files = [x.key for x in session_files if x.storage_class != ARCHIVE_STORAGE_CLASS and not x.key.endswith('/')]
         if not files:
             return
         if debug:
@@ -50,8 +50,10 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
 
         if p != last['project'] or s != last['session']:
             process_if_compressed()
+            session_files = []
             last = {'project': p, 'session': s}
             has_compressed = {k: False for k in HIGHLIGHT_FILES}
+        session_files.append(f)
 
         for k in HIGHLIGHT_FILES:
             if f'{k}-compressed' == obj:
