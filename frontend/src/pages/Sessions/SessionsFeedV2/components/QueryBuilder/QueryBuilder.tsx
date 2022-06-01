@@ -236,9 +236,10 @@ const ScrolledTextHighlighter = ({
     );
 };
 const getIndividualDateLabel = (date: string): string => {
-    return date.toLowerCase() === 'now'
-        ? 'Now'
-        : moment(chrono.parseDate(date)).format('MMM D');
+    // Allow relative ranges like '7 days ago'
+    return moment(date).isValid()
+        ? moment(chrono.parseDate(date)).format('MMM D')
+        : date;
 };
 const getDateLabel = (value: string): string => {
     const split = value.split('_');
@@ -1357,8 +1358,8 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: '30 days ago to Now',
-                    value: '30 days ago_Now',
+                    label: '7 days ago to Now',
+                    value: '7 days ago_Now',
                 },
             ],
         },

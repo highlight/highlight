@@ -35,6 +35,9 @@ export const DateInput = ({ startDate, endDate, onChange }: DateInputProps) => {
                 suffixIcon={<SvgCalendarIcon height="16px" width="16px" />}
                 className={inputStyles.datePicker}
                 onChange={(_date: any, dateStrings: [string, string]) => {
+                    //const startIso = moment(start).toISOString();
+                    // const endIso = moment(end).toISOString();
+                    // const value = `${startIso}_${endIso}`;
                     // Dates in local timezone.
                     const start_date = dateStrings[0]
                         ? moment(dateStrings[0])
