@@ -749,7 +749,7 @@ export const DateRangeFilter = ({
     onChangeValue: OnChange;
 }) => {
     return (
-        <div className={styles.ruleContainer}>
+        <div className={styles.rulesContainer}>
             <SelectPopout
                 value={{
                     kind: 'single',
@@ -1617,12 +1617,16 @@ const QueryBuilder = ({
     }
 
     return (
-        <>
-            <DateRangeFilter
-                rule={timeRangeRule || defaultTimeRangeRule}
-                onChangeValue={updateTimeRangeRule}
-            />
-            <div className={styles.builderContainer}>
+        <div className={styles.builderContainer}>
+            <div>
+                <h5 className={styles.containerHeading}>Time Range</h5>
+                <DateRangeFilter
+                    rule={timeRangeRule || defaultTimeRangeRule}
+                    onChangeValue={updateTimeRangeRule}
+                />
+            </div>
+            <div>
+                <h5 className={styles.containerHeading}>Filters</h5>
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>
                         {filterRules.flatMap((rule, index) => [
@@ -1784,7 +1788,7 @@ const QueryBuilder = ({
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 

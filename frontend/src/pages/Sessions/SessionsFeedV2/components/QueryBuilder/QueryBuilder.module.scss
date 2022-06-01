@@ -121,9 +121,17 @@
     border-radius: var(--border-radius);
     display: flex;
     flex-direction: column;
+    width: 100%;
+}
+
+.builderContainer > div {
+    border-bottom: 1px solid var(--color-gray-300);
     gap: var(--size-xSmall);
     padding: var(--size-xSmall);
-    width: 100%;
+}
+
+.builderContainer > div:last-child {
+    border-bottom: 0;
 }
 
 .rulesContainer {
@@ -133,6 +141,10 @@
     flex-wrap: wrap;
     justify-content: flex-start;
     row-gap: var(--size-xSmall);
+}
+
+.containerHeading {
+    padding-bottom: var(--size-xSmall) !important;
 }
 
 .separator {
@@ -220,6 +232,7 @@ span:last-child {
     color: var(--color-purple-500) !important;
     font-size: 12px;
     height: 100%;
+    margin-top: var(--size-xxSmall);
     padding: 0 4px;
 }
 
@@ -253,4 +266,11 @@ span:last-child {
         font-size: 10px;
         row-gap: var(--size-xxSmall);
     }
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid var(--color-gray-300);
+    margin: 0;
+    width: 100%;
 }
