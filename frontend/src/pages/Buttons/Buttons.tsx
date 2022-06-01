@@ -30,6 +30,11 @@ export const Buttons = () => {
     return (
         <div className={styles.buttonBody}>
             <i className="mdi mdi-progress-check mdi-48px"></i>
+            <style>
+                button &#123; background-image:
+                url('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png')
+                &#125;
+            </style>
 
             <iframe
                 title="Introducing Superhuman"
@@ -39,6 +44,10 @@ export const Buttons = () => {
                 <button
                     onClick={() => {
                         setShowBadComponent(true);
+                    }}
+                    style={{
+                        backgroundImage:
+                            "url('https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD')",
                     }}
                 >
                     Show Error Boundary

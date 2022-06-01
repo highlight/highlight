@@ -1,13 +1,24 @@
 package parse
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/tdewolff/parse/css"
+	"gorm.io/gorm"
 )
 
 type EventType int
@@ -55,6 +66,8 @@ const (
 	TouchCancel
 )
 
+var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
+
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
 }
@@ -66,10 +79,12 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error fetching styles")
 	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
+
 	body = append([]byte("/*highlight-inject*/\n"), body...)
 	return body, nil
 }
@@ -192,6 +207,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		if !ok || tagName != "link" {
 			continue
 		}
+
 		attrs, ok := subNode["attributes"].(map[string]interface{})
 		if !ok {
 			continue
@@ -223,6 +239,124 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
 	return json.RawMessage(b), nil
+}
+
+var srcTags map[string]bool = map[string]bool{
+	"audio":  true,
+	"embed":  true,
+	"img":    true,
+	"input":  true,
+	"source": true,
+	"track":  true,
+	"video":  true,
+}
+
+func GetOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient, db *gorm.DB) (string, error) {
+	// project id, original url,
+	db.Where()
+
+	response, err := http.Get(originalUrl)
+	if err != nil {
+		return "", errors.Wrap(err, "error retrieving resource from original url")
+	}
+
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		return "", errors.Wrap(err, "error generating new UUID")
+	}
+
+	uuidStr := uuid.String()
+
+	s.UploadResource(uuidStr, response.Body)
+
+	return fmt.Sprintf("%s/%s, ResourcesBasePath, uuidStr"), nil
+}
+
+func ReplaceUrl(styleText string) error {
+	reader := bytes.NewReader([]byte(styleText))
+	lexer := css.NewLexer(reader)
+	for {
+		tt, text := lexer.Next()
+		doExit := false
+		switch tt {
+		case css.ErrorToken:
+			if !errors.Is(lexer.Err(), io.EOF) {
+				log.Warnf("error parsing stylesheet data: %s", lexer.Err().Error())
+			}
+
+			doExit = true
+			break
+		case css.URLToken:
+			asString := string(text)
+			inner := asString[4 : len(asString)-1]
+			noQuote := strings.Trim(inner, "'\"")
+			quoted := `"` + noQuote + `"`
+			url, err := strconv.Unquote(quoted)
+			if err != nil {
+				log.Warnf("could not unquote url: %s", quoted)
+			} else {
+				if strings.HasPrefix(url, "#") {
+					// path, skipping
+				} else if strings.HasPrefix(url, "blob:") {
+					// blob url, skipping
+				} else if strings.HasPrefix(url, "data:") {
+					// data url, skipping
+				} else {
+					resp, err := http.Get(url)
+					if err != nil {
+						return nil, errors.Wrap(err, "error fetching referenced url")
+					}
+
+					// ZANETODO: continue from here
+					log.Info(resp)
+				}
+				// see if url is already saved with short enough TTL
+				// url + day -> uuid
+				// If not, fetch it from the source and save in S3
+				// s3 key = uuid
+				// newUrl := 1
+			}
+		}
+
+		if doExit {
+			break
+		}
+	}
+}
+
+func ReplaceResourceInNode(node map[string]interface{}) error {
+	// 	traverse all nodes
+	if node["isStyle"] == true {
+		log.Info("sup")
+		//     replace(node.textContent)
+		// ZANETODO: node["tagName"].(string) might need validation
+	} else if srcTags[node["tagName"].(string)] && len(node["src"].(string)) > 0 {
+
+	} else if node["tagName"] == "object" && len(node["data"].(string)) > 0 {
+	} else if node["tagName"] == "source" && len(node["srcset"].(string)) > 0 {
+		srcset.Parse(node["srcset"].(string))
+	}
+
+	childNodes, ok := node["childNodes"].([]map[string]interface{})
+	if ok {
+		for _, childNode := range childNodes {
+			err := ReplaceResourceInNode(childNode)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func ReplaceResourceUrls(data json.RawMessage) (json.RawMessage, error) {
+	// fileMap := map[string]string{}
+	// if it has _cssText attribute -> attrs["_cssText"]
+	// or it has a style attribute -> attrs["style"]
+	// or it's a <style> tag -> innerText ???
+
+	return data, nil
 }
 
 func javascriptToGolangTime(t float64) time.Time {

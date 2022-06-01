@@ -7,10 +7,11 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"io"
 	"os"
 	"time"
+
+	"github.com/openlyinc/pointy"
 
 	"github.com/andybalholm/brotli"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,6 +26,7 @@ import (
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	S3ResourcesBucketName       = os.Getenv("AWS_S3_RESOURCES_BUCKET")
 	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
 	CloudfrontPublicKeyID       = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
 	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
@@ -323,4 +325,16 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	}
 
 	return &signedURL, nil
+}
+
+func (s *StorageClient) UploadResource(uuid string, reader io.Reader) error {
+	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: pointy.String(S3ResourcesBucketName),
+		Key:    pointy.String(uuid),
+		Body:   reader,
+	})
+	if err != nil {
+		return errors.Wrap(err, "error calling PutObject")
+	}
+	return nil
 }

@@ -54,7 +54,10 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
-require github.com/mattn/go-isatty v0.0.14 // indirect
+require (
+	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+)
 
 require (
 	cloud.google.com/go v0.65.0 // indirect
@@ -102,6 +105,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
+	github.com/tdewolff/parse v2.3.4+incompatible
 	github.com/tinylib/msgp v1.1.2 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect

@@ -1750,6 +1750,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					}
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
+				d, err := parse.ReplaceResourceUrls(event.Data)
+				if err != nil {
+					log.Error(e.Wrap(err, "Error unmarshalling full snapshot"))
+					continue
+				}
+				event.Data = d
 			}
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
