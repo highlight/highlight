@@ -35,7 +35,7 @@ def test(mocker, session_compressed, console_compressed, network_compressed):
     process('mock-bucket', '1/')
     if session_compressed and console_compressed and network_compressed:
         p.assert_has_calls(calls=[
-            call(process_uncompressed, args=('mock-bucket',), kwds={'project': p, 'session': s, 'do_archive': False})
+            call(process_uncompressed, args=('mock-bucket',), kwds={'project': str(p), 'session': str(s), 'do_archive': False})
             for p in range(1, 10) for s in range(1, 10)
         ])
     else:

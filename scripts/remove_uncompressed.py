@@ -17,7 +17,7 @@ def init_bucket(bucket):
 def process(bucket, prefix, do_archive=False):
     pool = multiprocessing.pool.Pool()
     b = init_bucket(bucket)
-    last = {'project': 0, 'session': 0}
+    last = {'project': '0', 'session': '0'}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
 
     def process_if_compressed():
@@ -29,7 +29,6 @@ def process(bucket, prefix, do_archive=False):
             p, s, obj = str(f.key).split(os.path.sep)
         except ValueError:
             continue
-        p, s = int(p), int(s)
 
         if p != last['project'] or s != last['session']:
             process_if_compressed()
@@ -49,7 +48,7 @@ def process(bucket, prefix, do_archive=False):
     print('done!')
 
 
-def process_uncompressed(bucket, project=0, session=0, do_archive=False):
+def process_uncompressed(bucket, project='0', session='0', do_archive=False):
     local = threading.local()
     if not getattr(local, 'b', None):
         local.b = init_bucket(bucket)
