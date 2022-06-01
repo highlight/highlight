@@ -9,6 +9,8 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
         subTitle = 'We appreciate your feedback!',
         submitButtonLabel = 'Send Feedback',
         title = 'Got Feedback?',
+        onSubmit,
+        onCancel,
     } = options;
     const container = createContainer(CONTAINER_ID);
     const formContainer = createFormContainer(FORM_CONTAINER_ID);
@@ -63,7 +65,15 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
             });
         }
         onToggleFeedbackFormVisibility();
-    }, onToggleFeedbackFormVisibility);
+        if (onSubmit) {
+            onSubmit(nameInput.value, emailInput.value, verbatimInput.value);
+        }
+    }, () => {
+        onToggleFeedbackFormVisibility();
+        if (onCancel) {
+            onCancel();
+        }
+    });
 
     const submitButton = createSubmitButton(submitButtonLabel);
     const backdrop = createBackdrop();
