@@ -44,7 +44,7 @@ def init_bucket(bucket):
 def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     pool = None
     if not debug:
-        pool = BoundedPool()
+        pool = BoundedPool(maxtasksperchild=WORKER_PREFETCH)
 
     b = init_bucket(bucket)
     last = {'project': '0', 'session': '0'}
