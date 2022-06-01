@@ -321,6 +321,8 @@ export class Highlight {
             subTitle: options.feedbackWidget?.subTitle,
             submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
             title: options.feedbackWidget?.title,
+            onSubmit: options.feedbackWidget?.onSubmit,
+            onCancel: options.feedbackWidget?.onCancel,
         };
         this._onToggleFeedbackFormVisibility = () => {};
         this.sessionData = {
@@ -650,7 +652,7 @@ export class Highlight {
                     if (!this.sessionData.sessionID) {
                         this.logger.log(`Highlight Session Initialization got
   session ID ${this.sessionData.sessionID} as response: ${JSON.stringify(gr)}.
-                        `)
+                        `);
                     }
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
