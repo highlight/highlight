@@ -6,11 +6,16 @@ import re
 import shutil
 import tempfile
 import threading
+import time
 from json import JSONDecodeError
+from multiprocessing import cpu_count
 from typing import List
 
 import boto3
 import brotli
+
+WORKER_PREFETCH = 64
+MAX_TASKS_WAITING = cpu_count() * WORKER_PREFETCH
 
 ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
 HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
@@ -24,7 +29,8 @@ def init_bucket(bucket):
 def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     pool = None
     if not debug:
-        pool = multiprocessing.pool.Pool()
+        pool = multiprocessing.pool.Pool(maxtasksperchild=1024)
+
     b = init_bucket(bucket)
     last = {'project': '0', 'session': '0'}
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
@@ -41,6 +47,11 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
             pool.apply_async(process_session, args=(bucket, files),
                              kwds={'all_compressed': all(has_compressed.values()),
                                    'do_compress': do_compress, 'do_archive': do_archive, **last})
+            # noinspection PyUnresolvedReferences
+            waiting = pool._taskqueue.qsize()
+            while waiting > MAX_TASKS_WAITING:
+                print(f'waiting for task backlog to go down, at {waiting}')
+                time.sleep(1)
 
     for idx, f in enumerate(b.objects.filter(Prefix=prefix)):
         try:
