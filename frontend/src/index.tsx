@@ -79,6 +79,17 @@ if (dev) {
             Math.floor(Math.random() * sampleEnvironmentNames.length)
         ]
     }-localhost`;
+    options.feedbackWidget = {
+        title: 'Test Feedback Widget',
+        subTitle: '(subtitle)',
+        enabled: true,
+        onSubmit: () => {
+            console.log('feedbackWidget onSubmit called!');
+        },
+        onCancel: () => {
+            console.log('feedbackWidget onCancel called!');
+        },
+    };
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
