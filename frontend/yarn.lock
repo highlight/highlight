@@ -3116,17 +3116,27 @@
     babel-plugin-css-modules-transform "^1.6.2"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb-snapshot@^1.1.15":
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.15.tgz#2f4c6bd11f50e7bd596ec75f076cd6eade555402"
-  integrity sha512-OOfjdyxPLVkaDrQHh9nAMWawbh5/gMHoKoG102Z98pwUtYkWSrFD+jlhbz3wqnX/Y3FsXxDbEfEYx7MvsXjj1w==
-
-"@highlight-run/rrweb@2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.1.tgz#a81453e741b7566819f796b29a3e4c0bdb9b688f"
-  integrity sha512-A+a/YZdqfTtGHPaw+2CCtWndHbu71PtxvcvbYOwh2T8O3SO3iZ58Rs66Ex/iecYFPITfZjM7qVTbZ4hKsW4HSA==
+"@highlight-run/rrdom@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.5.tgz#f84067dd62a07278d1ce81e0b6a4c4dcebcac963"
+  integrity sha512-t8EC40pUuPikKrWN8kY+nOQSMH8/rV/d8CWVZztJTelcYXeQD0CnrLXdEkmpd/CPt7hXMjtte5vdStCiE9OguA==
   dependencies:
-    "@highlight-run/rrweb-snapshot" "^1.1.15"
+    cssom "^0.5.0"
+    cssstyle "^2.3.0"
+    nwsapi "^2.2.0"
+
+"@highlight-run/rrweb-snapshot@^1.1.18":
+  version "1.1.18"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.18.tgz#86f41a30005b550bdf786d8c8426f96155f04956"
+  integrity sha512-v1oOvH/sv3tVmaRhJNWzoH3blLe9Ryj4UiH1eO/ISrhLRoBhY1S/WfNhywba46MWt7qp8YLAG5AAiI05URcCxQ==
+
+"@highlight-run/rrweb@2.0.6":
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.6.tgz#c4926d6bc9e16e1dd263b38778c94f99d4ad50b2"
+  integrity sha512-Q47J42j6iqx+LGkFwfDFxL0/U/3sg4GWKWWT/ypc7/Qnvz45WyWTZhJuczdZUk2NNCSuz/1O4grtU0Knjkq6Gg==
+  dependencies:
+    "@highlight-run/rrdom" "^0.1.5"
+    "@highlight-run/rrweb-snapshot" "^1.1.18"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
@@ -6878,12 +6888,17 @@ cssom@^0.4.4:
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
   integrity sha512-p3pvU7r1MyyqbTk+WbNJIgJjG2VmTIaB10rI93LzVPrmDJKkzKYMtxxyAvQXR/NS6otuzveI7+7BBq3SjBS2mw==
 
+cssom@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.5.0.tgz#d254fa92cd8b6fbd83811b9fbaed34663cc17c36"
+  integrity sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==
+
 cssom@~0.3.6:
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.3.8.tgz#9f1276f5b2b463f2114d3f2c75250af8c1a36f4a"
   integrity sha512-b0tGHbfegbhPJpxpiBPU2sCkigAqtM9O121le6bbOlgyV+NyGyCmVfJ6QW9eRjz8CpNfWEOYBIMIGRYkLwsIYg==
 
-cssstyle@^2.2.0:
+cssstyle@^2.2.0, cssstyle@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/cssstyle/-/cssstyle-2.3.0.tgz#ff665a0ddbdc31864b09647f34163443d90b0852"
   integrity sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==

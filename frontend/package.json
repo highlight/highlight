@@ -10,7 +10,7 @@
         "@highlight-run/react-mentions": "4.4.1",
         "@highlight-run/react-select": "^5.2.2",
         "@highlight-run/react-virtuoso": "^2.2.7",
-        "@highlight-run/rrweb": "2.0.1",
+        "@highlight-run/rrweb": "2.0.6",
         "@rehooks/local-storage": "^2.4.0",
         "@rehooks/window-size": "^1.0.2",
         "@stripe/stripe-js": "^1.11.0",
