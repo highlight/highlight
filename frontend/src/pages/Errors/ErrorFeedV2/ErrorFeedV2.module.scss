@@ -107,8 +107,8 @@
 
 .fixedContent {
     align-items: center;
-    flex-shrink: 1;
     display: flex;
+    flex-shrink: 1;
     padding-bottom: var(--size-xSmall);
     position: relative;
 }
@@ -221,10 +221,10 @@
 }
 
 .filtersContainer {
-    flex-shrink: 1;
     align-items: center;
     column-gap: var(--size-small);
     display: flex;
+    flex-shrink: 1;
     flex-wrap: wrap;
     margin-bottom: var(--size-medium);
     row-gap: var(--size-small);
