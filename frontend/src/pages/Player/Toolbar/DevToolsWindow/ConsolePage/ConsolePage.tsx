@@ -179,9 +179,9 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             .toLocaleLowerCase()
                             .includes(filterSearchTerm.toLocaleLowerCase());
                     case 'object':
-                        return message.value.some((line: string) => {
+                        return message.value.some((line: string | null) => {
                             return line
-                                .toString()
+                                ?.toString()
                                 .toLocaleLowerCase()
                                 .includes(filterSearchTerm.toLocaleLowerCase());
                         });
