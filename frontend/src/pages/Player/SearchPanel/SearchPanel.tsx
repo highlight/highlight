@@ -1,3 +1,5 @@
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import classNames from 'classnames';
 import React from 'react';
 
 import { SessionFeed } from '../../Sessions/SessionsFeedV2/SessionsFeed';
@@ -8,8 +10,15 @@ interface Props {
 }
 
 const SearchPanel = React.memo(({ visible }: Props) => {
+    const { showBanner } = useGlobalContext();
     return (
-        <div className={styles.searchPanel}>{visible && <SessionFeed />}</div>
+        <div
+            className={classNames(styles.searchPanel, {
+                [styles.bannerShown]: showBanner,
+            })}
+        >
+            {visible && <SessionFeed />}
+        </div>
     );
 });
 
