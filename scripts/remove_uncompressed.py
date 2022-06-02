@@ -13,8 +13,9 @@ from typing import List
 import boto3
 import brotli
 
-WORKER_PREFETCH = 4
-MAX_TASKS_WAITING = cpu_count() * WORKER_PREFETCH
+WORKER_PREFETCH = 16
+WORKERS = cpu_count() * 2
+MAX_TASKS_WAITING = WORKERS * WORKER_PREFETCH
 
 ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
 HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
@@ -44,7 +45,7 @@ def init_bucket(bucket):
 def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     pool = None
     if not debug:
-        pool = BoundedPool(maxtasksperchild=WORKER_PREFETCH)
+        pool = BoundedPool(processes=WORKERS, maxtasksperchild=WORKER_PREFETCH)
 
     b = init_bucket(bucket)
     last = {'project': '0', 'session': '0'}
