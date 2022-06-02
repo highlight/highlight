@@ -1,24 +1,7 @@
 @import 'src/static/shared.scss';
 
-.filtersContainer {
-    align-items: center;
-    column-gap: var(--size-small);
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: var(--size-large);
-    row-gap: var(--size-small);
-}
-
 .searchPanel {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    height: 100%;
-}
-
-.searchContainer {
-    @include hide-scrollbar;
-    height: calc(100vh - 170px);
-    overflow-x: hidden;
-    overflow-y: auto;
+    height: calc(100vh - 145px);;
 }
