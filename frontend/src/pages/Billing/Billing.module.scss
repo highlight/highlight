@@ -47,6 +47,41 @@
     flex-shrink: 0;
 }
 
+.invoiceFailedCard {
+    background-color: rgba(242, 106, 76, 0.37);
+    font-size: 16px;
+    max-width: 700px;
+    padding: var(--size-large);
+}
+
+.invoiceFailedBell {
+    color: rgb(131, 38, 17);
+    padding-top: 4px;
+}
+
+.invoiceFailedHeader {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.invoiceFailedContainer {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+}
+
+.invoiceFailedUpdatePayment {
+    --color-failed-button: rgb(156, 80, 64);
+    background-color: var(--color-failed-button) !important;
+    border: var(--color-failed-button) !important;
+    color: white !important;
+    margin: 16px 0 0 0;
+
+    &:focus &:hover {
+        background-color: var(--color-failed-button) !important;
+        border: var(--color-failed-button) !important;
+    }
+}
+
 .titleContainer {
     align-items: flex-start;
     display: flex;
