@@ -86,11 +86,10 @@
 }
 
 .feedItems {
-    @include hide-scrollbar;
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
-    height: calc(100vh - 382px);
+    height: 100%;
     overflow: auto;
 
     &.hasScrolled {
@@ -109,13 +108,16 @@
 .fixedContent {
     align-items: center;
     display: flex;
-    padding-bottom: var(--size-small);
+    flex-shrink: 1;
+    padding-bottom: var(--size-xSmall);
     position: relative;
 }
 
 .resultCount {
+    align-items: center;
     color: var(--color-gray-500);
     font-family: var(--header-font-family);
+    justify-content: space-between;
     width: 100%;
 }
 
@@ -216,4 +218,14 @@
     @media screen and (max-width: 1200px) {
         flex-direction: column;
     }
+}
+
+.filtersContainer {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex;
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    margin-bottom: var(--size-medium);
+    row-gap: var(--size-small);
 }
