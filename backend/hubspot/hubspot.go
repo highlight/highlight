@@ -25,6 +25,17 @@ func NewHubspotAPI(client hubspot.Client, db *gorm.DB) *HubspotApi {
 	return h
 }
 
+// this is taken/edits from https://sourcegraph.com/github.com/leonelquinteros/hubspot/-/blob/contacts.go, but I got rid of 'AssociatedCompany' because of errors.
+type CustomContactsResponse struct {
+	PortalID     int    `json:"portal-id"`
+	Vid          int    `json:"vid"`
+	CanonicalVid int    `json:"canonical-vid"`
+	MergeVids    []int  `json:"merge-vids"`
+	IsContact    bool   `json:"is-contact"`
+	ProfileToken string `json:"profile-token"`
+	ProfileURL   string `json:"profile-url"`
+}
+
 func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (contactId *int, err error) {
 	var hubspotContactId int
 	if emailproviders.Exists(email) {
@@ -65,10 +76,12 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 		},
 	}); err != nil {
 		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
-		if getResp, getErr := h.hubspotClient.Contacts().GetByEmail(email); err != nil {
-			return nil, e.Wrap(err, e.Wrap(getErr, "error pushing hubspot contact data").Error())
+		r := CustomContactsResponse{}
+		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); getErr != nil {
+			errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+			return nil, errr
 		} else {
-			hubspotContactId = getResp.Vid
+			hubspotContactId = r.Vid
 		}
 	} else {
 		hubspotContactId = resp.Vid

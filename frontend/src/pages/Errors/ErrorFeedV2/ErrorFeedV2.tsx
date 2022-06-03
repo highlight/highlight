@@ -7,6 +7,8 @@ import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
+import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
+import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
@@ -73,6 +75,10 @@ export const ErrorFeedV2 = () => {
 
     return (
         <>
+            <div className={styles.filtersContainer}>
+                <SegmentPickerForErrors />
+                <ErrorQueryBuilder />
+            </div>
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {loading ? (
@@ -123,12 +129,8 @@ export const ErrorFeedV2 = () => {
                         </>
                     )}
                 </div>
-                <Pagination
-                    page={page}
-                    setPage={setPage}
-                    totalPages={totalPages}
-                />
             </div>
+            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </>
     );
 };

@@ -2453,6 +2453,16 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    joinable_workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
 };
 
 export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
@@ -2473,6 +2483,16 @@ export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
             }
     >;
     workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    joinable_workspaces?: Types.Maybe<
         Array<
             Types.Maybe<
                 { __typename?: 'Workspace' } & Pick<

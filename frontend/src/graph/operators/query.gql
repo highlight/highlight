@@ -697,6 +697,10 @@ query GetProjectDropdownOptions($project_id: ID!) {
         id
         name
     }
+    joinable_workspaces {
+        id
+        name
+    }
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
@@ -709,6 +713,10 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
         }
     }
     workspaces {
+        id
+        name
+    }
+    joinable_workspaces {
         id
         name
     }

@@ -15,17 +15,6 @@ import (
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 
-	"github.com/highlight-run/workerpool"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
@@ -36,6 +25,16 @@ import (
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/workerpool"
+	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // This file will not be regenerated automatically.
@@ -322,8 +321,26 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		return fieldsToAppend[i].ID < fieldsToAppend[j].ID
 	})
 
-	// We append to this session in the join table regardless.
-	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
+	var entries []struct {
+		SessionID int
+		FieldID   int
+	}
+	for _, f := range fieldsToAppend {
+		entries = append(entries, struct {
+			SessionID int
+			FieldID   int
+		}{
+			SessionID: session.ID,
+			FieldID:   f.ID,
+		})
+	}
+	// Associate the fields with this session.
+	// Do this manually to avoid updating the session `updated_at` column since this operation
+	// is typically done as part of other steps that update the session `updated_at`.
+	// Constantly writing to `updated_at` is a source of DB contention for session updates.
+	if err := r.DB.Table("session_fields").Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(entries).Error; err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil

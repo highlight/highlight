@@ -16,11 +16,13 @@ import {
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
 import { PlanType } from '@graph/schemas';
+import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
 import { useIntegrated } from '@util/integrated';
@@ -220,6 +222,10 @@ export const SessionFeed = React.memo(() => {
         <SessionFeedConfigurationContextProvider
             value={sessionFeedConfiguration}
         >
+            <div className={styles.filtersContainer}>
+                <SegmentPickerForPlayer />
+                <SessionsQueryBuilder />
+            </div>
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (
@@ -353,12 +359,8 @@ export const SessionFeed = React.memo(() => {
                         </>
                     )}
                 </div>
-                <Pagination
-                    page={page}
-                    setPage={setPage}
-                    totalPages={totalPages}
-                />
             </div>
+            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </SessionFeedConfigurationContextProvider>
     );
 });

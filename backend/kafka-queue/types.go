@@ -1,6 +1,9 @@
 package kafka_queue
 
-import customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+import (
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/segmentio/kafka-go"
+)
 
 type PayloadType = int
 
@@ -56,6 +59,7 @@ type PushMetricsArgs struct {
 
 type Message struct {
 	Type                 PayloadType
+	KafkaMessage         *kafka.Message
 	PushPayload          *PushPayloadArgs
 	InitializeSession    *InitializeSessionArgs
 	IdentifySession      *IdentifySessionArgs
