@@ -1,10 +1,15 @@
 @import 'src/static/shared.scss';
 
 .errorPageCenterColumn {
-    height: 100vh;
+    height: calc(100vh - var(--top-padding));
+    overflow-y: auto;
 
     &.hidden {
         padding-left: var(--size-xxLarge);
+    }
+
+    &.bannerShown {
+        height: calc(100vh - var(--top-padding) - var(--banner-height));
     }
 }
 
