@@ -73,8 +73,8 @@
     --color-failed-button: rgb(156, 80, 64);
     background-color: var(--color-failed-button) !important;
     border: var(--color-failed-button) !important;
-    color: white !important;
-    margin: 16px 0 0 0;
+    color: var(--color-white) !important;
+    margin: 16px 0 0;
 
     &:focus &:hover {
         background-color: var(--color-failed-button) !important;
