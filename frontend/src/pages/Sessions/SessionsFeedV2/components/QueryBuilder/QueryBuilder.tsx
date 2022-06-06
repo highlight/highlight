@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
+import Reload from '@icons/Reload';
 import SvgXIcon from '@icons/XIcon';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
@@ -750,15 +751,13 @@ export const TimeRangeFilter = ({
     onChangeValue: OnChange;
 }) => {
     return (
-        <div className={styles.rulesContainer}>
-            <SelectPopout
-                value={rule.val}
-                onChange={onChangeValue}
-                loadOptions={() => Promise.resolve([])}
-                type={'date_range'}
-                disabled={false}
-            />
-        </div>
+        <SelectPopout
+            value={rule.val}
+            onChange={onChangeValue}
+            loadOptions={() => Promise.resolve([])}
+            type={'date_range'}
+            disabled={false}
+        />
     );
 };
 
@@ -1602,6 +1601,21 @@ const QueryBuilder = ({
                     rule={timeRangeRule || defaultTimeRangeRule}
                     onChangeValue={updateTimeRangeRule}
                 />
+                <Button
+                    className={styles.syncButton}
+                    type="text"
+                    // onClick={onClick}
+                    loading={false}
+                    trackingId={'RefreshSearchResults'}
+                >
+                    <Tooltip
+                        title={
+                            'Refresh the channels & people in your Slack Workspace.'
+                        }
+                    >
+                        <Reload />
+                    </Tooltip>
+                </Button>
             </div>
             <div>
                 {filterRules.length > 0 && (

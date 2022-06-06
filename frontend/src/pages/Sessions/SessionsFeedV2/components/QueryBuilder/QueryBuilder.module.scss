@@ -223,13 +223,15 @@ span:last-child {
     gap: 1px;
 }
 
-/*.syncButton {
-    background-color: purple;
-    color: var(--color-link) !important;
+.syncButton {
+    background-color: var(--color-green-600);
+    color: var(--color-white) !important;
     display: inline-block;
     font-weight: 400;
-    padding: 0;
-}*/
+    line-height: 0;
+    margin-left: var(--size-xSmall);
+    padding: var(--size-xxSmall);
+}
 
 .addFilter {
     border: 1px dashed var(--color-purple-500);
@@ -271,11 +273,4 @@ span:last-child {
         font-size: 10px;
         row-gap: var(--size-xxSmall);
     }
-}
-
-.divider {
-    border: 0;
-    border-top: 1px solid var(--color-gray-300);
-    margin: 0;
-    width: 100%;
 }
