@@ -1597,25 +1597,27 @@ const QueryBuilder = ({
     return (
         <div className={styles.builderContainer}>
             <div>
-                <TimeRangeFilter
-                    rule={timeRangeRule || defaultTimeRangeRule}
-                    onChangeValue={updateTimeRangeRule}
-                />
-                <Button
-                    className={styles.syncButton}
-                    type="text"
-                    // onClick={onClick}
-                    loading={false}
-                    trackingId={'RefreshSearchResults'}
-                >
-                    <Tooltip
-                        title={
-                            'Refresh the channels & people in your Slack Workspace.'
-                        }
+                <div className={styles.rulesContainer}>
+                    <TimeRangeFilter
+                        rule={timeRangeRule || defaultTimeRangeRule}
+                        onChangeValue={updateTimeRangeRule}
+                    />
+                    <Button
+                        className={styles.syncButton}
+                        type="text"
+                        // onClick={onClick}
+                        loading={false}
+                        trackingId={'RefreshSearchResults'}
                     >
-                        <Reload />
-                    </Tooltip>
-                </Button>
+                        <Tooltip
+                            title={
+                                'Refresh the channels & people in your Slack Workspace.'
+                            }
+                        >
+                            <Reload />
+                        </Tooltip>
+                    </Button>
+                </div>
             </div>
             <div>
                 {filterRules.length > 0 && (
