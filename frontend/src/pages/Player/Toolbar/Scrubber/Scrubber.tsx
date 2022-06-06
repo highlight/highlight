@@ -230,7 +230,6 @@ const Scrubber = ({}: {}) => {
                     onDrag={(e, data) => {
                         const sliderPercent = data.x / wrapperWidth;
                         const newTime = getSliderTime(sliderPercent);
-                        setIsLoadingEvents(true);
                         setDragTime(newTime);
                     }}
                     onStart={() => {
