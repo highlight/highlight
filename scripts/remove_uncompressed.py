@@ -17,7 +17,6 @@ WORKER_PREFETCH = 4
 WORKERS = cpu_count() * 4
 MAX_TASKS_WAITING = WORKERS * WORKER_PREFETCH
 
-ARCHIVE_STORAGE_CLASS = 'DEEP_ARCHIVE'
 HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
 
 
@@ -42,7 +41,7 @@ def init_bucket(bucket):
     return s3.Bucket(bucket)
 
 
-def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
+def process(bucket, prefix, do_compress=False, do_delete=False, debug=False):
     pool = None
     if not debug:
         pool = BoundedPool(processes=WORKERS)
@@ -52,17 +51,17 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     has_compressed = {k: False for k in HIGHLIGHT_FILES}
     session_files = []
 
-    def process_if_compressed():
-        files = [x.key for x in session_files if x.storage_class != ARCHIVE_STORAGE_CLASS and not x.key.endswith('/')]
+    def process_session_files():
+        files = [x.key for x in session_files if not x.key.endswith('/')]
         if not files:
             return
         if debug:
             process_session(bucket, files, all_compressed=all(has_compressed.values()),
-                            do_compress=do_compress, do_archive=do_archive, **last)
+                            do_compress=do_compress, do_delete=do_delete, **last)
         else:
             pool.apply_async(process_session, args=(bucket, files),
                              kwds={'all_compressed': all(has_compressed.values()),
-                                   'do_compress': do_compress, 'do_archive': do_archive, **last})
+                                   'do_compress': do_compress, 'do_delete': do_delete, **last})
 
     for idx, f in enumerate(b.objects.filter(Prefix=prefix)):
         try:
@@ -71,7 +70,7 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
             continue
 
         if p != last['project'] or s != last['session']:
-            process_if_compressed()
+            process_session_files()
             session_files = []
             last = {'project': p, 'session': s}
             has_compressed = {k: False for k in HIGHLIGHT_FILES}
@@ -82,7 +81,7 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
                 has_compressed[k] = True
                 break
 
-    process_if_compressed()
+    process_session_files()
     if pool:
         pool.close()
         print('waiting for thread pool to finish...')
@@ -90,17 +89,17 @@ def process(bucket, prefix, do_compress=False, do_archive=False, debug=False):
     print('done!')
 
 
-def process_session(bucket, files, all_compressed=False, do_archive=False, do_compress=False, project='0', session='0'):
+def process_session(bucket, files, all_compressed=False, do_delete=False, do_compress=False, project='0', session='0'):
     local = threading.local()
     if not getattr(local, 'b', None):
         local.b = init_bucket(bucket)
 
-    if all_compressed and do_archive:
-        archive_uncompressed(local, files, project, session)
+    if all_compressed and do_delete:
+        delete_uncompressed(local, files, project, session)
     elif not all_compressed and do_compress:
         compress_uncompressed(local, files, project, session)
-        if do_archive:
-            archive_uncompressed(local, files, project, session)
+        if do_delete:
+            delete_uncompressed(local, files, project, session)
 
 
 def compress_uncompressed(local, files: List[str], project='0', session='0'):
@@ -145,30 +144,22 @@ def compress_uncompressed(local, files: List[str], project='0', session='0'):
             shutil.rmtree(tmpdir)
 
 
-def archive_uncompressed(local, files: List[str], project='0', session='0'):
-    for f in files:
-        if 'compressed' in f:
-            continue
-
-        print('ARCHIVING', project, session, f)
-        local.b.copy(
-            {'Bucket': local.b.name, 'Key': f}, f,
-            ExtraArgs={
-                'StorageClass': ARCHIVE_STORAGE_CLASS,
-                'MetadataDirective': 'COPY'
-            }
-        )
+def delete_uncompressed(local, files: List[str], project='0', session='0'):
+    files = list(filter(lambda x: 'compressed' not in x, files))
+    if not files:
+        return
+    print('DELETING', project, session, files)
+    local.b.delete_objects(
+        Delete={'Objects': [{'Key': f} for f in files]}
+    )
 
 
 def main():
-    # In case the object needs to be restored:
-    # r = f.restore_object(Bucket=BUCKET, Key=f.key, RestoreRequest={'Days': 1})
-    # print(project, session, f, 'already', f.storage_class, 'RESTORED', r)
     parser = argparse.ArgumentParser(description='Description of your program')
     parser.add_argument('-b', '--bucket', help='the s3 bucket to process', default='highlight-session-s3-test')
     parser.add_argument('-p', '--prefix', help='the bucket prefix to process', default='1/')
     parser.add_argument('--do-compress', help='confirm compress files', default=False, action='store_true')
-    parser.add_argument('--do-archive', help='confirm archive files', default=False, action='store_true')
+    parser.add_argument('--do-delete', help='confirm delete files', default=False, action='store_true')
     parser.add_argument('-d', '--debug', help='debug (no multiprocessing)', default=False, action='store_true')
     process(**vars(parser.parse_args()))
 
