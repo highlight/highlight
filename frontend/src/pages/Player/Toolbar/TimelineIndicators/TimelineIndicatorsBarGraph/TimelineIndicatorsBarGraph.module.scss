@@ -9,5 +9,6 @@
 }
 
 .histogramContainer {
-    margin-bottom: 26px;
+    margin-bottom: var(--size-small);
+    z-index: 300;
 }
