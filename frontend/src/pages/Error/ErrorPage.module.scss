@@ -3,6 +3,7 @@
 .errorPageCenterColumn {
     height: calc(100vh - var(--top-padding));
     overflow-y: auto;
+    padding-top: var(--size-large);
 
     &.hidden {
         padding-left: var(--size-xxLarge);
@@ -28,6 +29,7 @@
     height: calc(100vh - var(--top-padding));
     padding-bottom: var(--size-large);
     padding-right: var(--size-medium);
+    padding-top: var(--size-large);
     position: sticky;
     row-gap: var(--size-large);
     top: 120px;
