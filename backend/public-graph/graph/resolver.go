@@ -220,7 +220,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
 			}
 			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.Error(e.Wrap(err, "error notifying zapier"))
+				log.Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
@@ -294,7 +294,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 				UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
 			}
 			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.Error(e.Wrap(err, "error notifying zapier"))
+				log.Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
@@ -1451,7 +1451,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 
 			log.Infof("sending error alert to zapier. id=ErrorAlert_%d", errorAlert.ID)
 			if err := r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload); err != nil {
-				log.Error(e.Wrap(err, "error sending error alert to Zapier"))
+				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
