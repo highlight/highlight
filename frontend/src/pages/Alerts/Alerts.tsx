@@ -230,14 +230,6 @@ const TABLE_COLUMNS = [
             );
         },
     },
-    // {
-    //     title: 'Enabled',
-    //     dataIndex: 'enabled',
-    //     key: 'enabled',
-    //     render: (name: string, record: any) => {
-    //         return <div>{record.disabled ? 'Disabled' : ''}</div>;
-    //     },
-    // },
     {
         title: 'Configure',
         dataIndex: 'configure',
