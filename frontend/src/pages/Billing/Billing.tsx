@@ -1,5 +1,6 @@
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
+import Card from '@components/Card/Card';
 import Switch from '@components/Switch/Switch';
 import { USD } from '@dinero.js/currencies';
 import {
@@ -11,6 +12,7 @@ import {
     useUpdateBillingDetailsMutation,
 } from '@graph/hooks';
 import { AdminRole, PlanType, SubscriptionInterval } from '@graph/schemas';
+import BellRingingIcon from '@icons/BellRingingIcon';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -250,46 +252,36 @@ const BillingPage = () => {
         <>
             {rainConfetti && <Confetti recycle={false} />}
             {subscriptionIssues && (
-                <div
-                    className={styles.titleContainer}
+                <Card
+                    className={styles.invoiceFailedCard}
                     style={{ marginBottom: 0, marginTop: 24 }}
                 >
-                    <div className={styles.billingIssues}>
-                        Your{' '}
-                        <a
-                            target="_blank"
-                            rel="noreferrer"
-                            href={
+                    <div className={styles.invoiceFailedContainer}>
+                        <div className={styles.invoiceFailedBell}>
+                            <BellRingingIcon />
+                        </div>
+                        <div>
+                            <span className={styles.invoiceFailedHeader}>
+                                Your last invoice failed to process!
+                            </span>
+                            <br />
+                            <span>
+                                $
+                                {toUnit(outstandingAmount, {
+                                    digits: 2,
+                                    round: down,
+                                })}
+                            </span>{' '}
+                            is past due as of{' '}
+                            {moment(
                                 subscriptionData?.subscription_details
-                                    ?.lastInvoice?.url || ''
-                            }
-                        >
-                            last invoice
-                        </a>{' '}
-                        failed to process.
-                        <br />
-                        <span className={styles.subtotal}>
-                            $
-                            {toUnit(outstandingAmount, {
-                                digits: 2,
-                                round: down,
-                            })}
-                        </span>{' '}
-                        is past due as of{' '}
-                        {moment(
-                            subscriptionData?.subscription_details?.lastInvoice
-                                ?.date
-                        ).format('M/D/YY')}
-                        . Please retry with an updated payment method to
-                        maintain the subscription.
-                    </div>
-                    {subscriptionData?.subscription_details?.lastInvoice?.url
-                        ?.length && (
-                        <Authorization allowedRoles={[AdminRole.Admin]}>
-                            <div className={styles.portalButtonContainer}>
+                                    ?.lastInvoice?.date
+                            ).format('M/D/YY')}
+                            . Please add a payment method to maintain the
+                            subscription.
+                            <Authorization allowedRoles={[AdminRole.Admin]}>
                                 <Button
-                                    trackingId="RedirectToFailedInvoice"
-                                    type="primary"
+                                    trackingId="UpdateFailedInvoice"
                                     onClick={() => {
                                         window.open(
                                             subscriptionData
@@ -299,17 +291,16 @@ const BillingPage = () => {
                                         );
                                     }}
                                     loading={loadingCustomerPortal && !isCancel}
-                                    className={styles.portalButton}
+                                    className={
+                                        styles.invoiceFailedUpdatePayment
+                                    }
                                 >
-                                    <SvgLogInIcon
-                                        className={styles.portalButtonIcon}
-                                    />{' '}
-                                    Correct Payment
+                                    Update Payment
                                 </Button>
-                            </div>
-                        </Authorization>
-                    )}
-                </div>
+                            </Authorization>
+                        </div>
+                    </div>
+                </Card>
             )}
             <div className={styles.titleContainer}>
                 <div>
