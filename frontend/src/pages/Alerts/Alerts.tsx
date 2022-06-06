@@ -3,6 +3,7 @@ import BarChart from '@components/BarChart/BarChart';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
@@ -199,6 +200,16 @@ const TABLE_COLUMNS = [
             const hasData = record?.DailyFrequency?.some(
                 (value: number) => value !== 0
             );
+            if (record.disabled) {
+                return (
+                    <div className={styles.statusCell}>
+                        <span className={styles.statusInnerCell}>
+                            Disabled
+                            <InfoTooltip title="This alert won't trigger unless it is enabled by toggling the switch in the configure page."></InfoTooltip>
+                        </span>
+                    </div>
+                );
+            }
             return (
                 <div className={styles.chart}>
                     <div className={styles.innerChart}>
@@ -219,6 +230,14 @@ const TABLE_COLUMNS = [
             );
         },
     },
+    // {
+    //     title: 'Enabled',
+    //     dataIndex: 'enabled',
+    //     key: 'enabled',
+    //     render: (name: string, record: any) => {
+    //         return <div>{record.disabled ? 'Disabled' : ''}</div>;
+    //     },
+    // },
     {
         title: 'Configure',
         dataIndex: 'configure',
