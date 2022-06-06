@@ -4888,7 +4888,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {
-		return nil, e.Wrap(err, "must have ADMIN role to access the subscription details")
+		return nil, nil
 	}
 
 	customerParams := &stripe.CustomerParams{}
