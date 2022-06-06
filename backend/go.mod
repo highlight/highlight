@@ -52,6 +52,8 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
+require github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
+
 require (
 	cloud.google.com/go v0.65.0 // indirect
 	cloud.google.com/go/firestore v1.3.0 // indirect

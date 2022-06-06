@@ -790,7 +790,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
 			}
 
-			w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload)
+			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
+			}
 			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
 		}
 		return nil
