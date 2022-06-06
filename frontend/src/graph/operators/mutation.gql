@@ -148,17 +148,26 @@ mutation EditProject(
     $name: String
     $billing_email: String
     $excluded_users: StringArray
+    $rage_click_window_seconds: Int
+    $rage_click_radius_pixels: Int
+    $rage_click_count: Int
 ) {
     editProject(
         id: $id
         name: $name
         billing_email: $billing_email
         excluded_users: $excluded_users
+        rage_click_window_seconds: $rage_click_window_seconds
+        rage_click_radius_pixels: $rage_click_radius_pixels
+        rage_click_count: $rage_click_count
     ) {
         id
         name
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
 }
 
@@ -1189,4 +1198,8 @@ mutation SyncSlackIntegration($project_id: ID!) {
 
 mutation RequestAccess($project_id: ID!) {
     requestAccess(project_id: $project_id)
+}
+
+mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+    modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
 }

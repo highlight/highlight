@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/util"
@@ -18,23 +17,22 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model.Session, error) {
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
+	ip := ctx.Value(model.ContextKeys.IP).(string)
 
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.initializeSessionMinimal")
 	querySessionSpan.SetTag("projectVerboseID", organizationVerboseID)
-	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, sessionSecureID)
+	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID)
 	querySessionSpan.Finish()
 
 	projectID := session.ProjectID
@@ -56,7 +54,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionID: session.ID,
-				IP:        ctx.Value(model.ContextKeys.IP).(string),
+				IP:        ip,
 			}}, strconv.Itoa(session.ID))
 	}
 
@@ -114,25 +112,28 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
-	// Get a list of unique session ids to query
-	sessionSecureIdSet := make(map[string]bool)
-	for _, errInput := range errors {
-		sessionSecureIdSet[errInput.SessionSecureID] = true
+	for _, backendError := range errors {
+		session := &model.Session{}
+		if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", backendError.SessionSecureID).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "unknown session for push backend payload %s", backendError.SessionSecureID))
+			continue
+		}
+		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+			Type: kafkaqueue.PushBackendPayload,
+			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+				SessionSecureID: backendError.SessionSecureID,
+				Errors:          errors,
+			}}, strconv.Itoa(session.ID))
+		if err != nil {
+			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", backendError.SessionSecureID))
+			continue
+		}
 	}
-	sessionSecureIds := make([]string, 0, len(sessionSecureIdSet))
-	for sId := range sessionSecureIdSet {
-		sessionSecureIds = append(sessionSecureIds, sId)
-	}
+	return nil, nil
+}
 
-	// we don't care about the order of these messages for a particular secureSessionID
-	// so distribute messages to any partition
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.PushBackendPayload,
-		PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-			SessionSecureIDs: sessionSecureIds,
-			Errors:           errors,
-		}}, strings.Join(sessionSecureIds, ","))
-	return nil, err
+func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
@@ -273,108 +274,13 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 }
 
 func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
-	if sessionID == 0 {
-		log.Errorf("received web vitals %+v for sessionID 0", metric)
-		return -1, nil
-	}
-
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, nil
-	}
-
-	existingMetric := &model.Metric{
-		Name:      metric.Name,
-		ProjectID: session.ProjectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricTypeWebVital,
-	}
-	recordAlreadyExists := true
-
-	// Check to see if this metric already exists.
-	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			recordAlreadyExists = false
-		} else {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	if !recordAlreadyExists {
-		newMetric := &model.Metric{
-			Name:      metric.Name,
-			Value:     metric.Value,
-			ProjectID: session.ProjectID,
-			SessionID: sessionID,
-			Type:      modelInputs.MetricTypeWebVital,
-		}
-
-		if err := r.DB.Create(&newMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	} else {
-		// Update the existing record if it already exists
-		existingMetric.Value = metric.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	return sessionID, nil
+	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
+	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeWebVital, metric.Name, metric.Value)
 }
 
 func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
-	session := &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		log.Error(err)
-		return -1, nil
-	}
-
-	existingMetric := &model.Metric{
-		Name:      metric.Name,
-		ProjectID: session.ProjectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricTypeDevice,
-	}
-	recordAlreadyExists := true
-
-	// Check to see if this metric already exists.
-	if err := r.DB.Where(&existingMetric).First(&existingMetric).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			recordAlreadyExists = false
-		} else {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	if !recordAlreadyExists {
-		newMetric := &model.Metric{
-			Name:      metric.Name,
-			Value:     metric.Value,
-			ProjectID: session.ProjectID,
-			SessionID: sessionID,
-			Type:      modelInputs.MetricTypeDevice,
-		}
-
-		if err := r.DB.Create(&newMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	} else {
-		// Update the existing record if it already exists
-		existingMetric.Value = metric.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
-			return -1, nil
-		}
-	}
-
-	return sessionID, nil
+	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
+	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeDevice, metric.Name, metric.Value)
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

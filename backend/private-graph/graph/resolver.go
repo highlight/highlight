@@ -17,6 +17,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/leonelquinteros/hubspot"
 
 	"github.com/pkg/errors"
 
@@ -63,6 +64,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
+	HubspotApi             HubspotApiInterface
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,
@@ -90,6 +92,14 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
+}
+
+type HubspotApiInterface interface {
+	CreateContactForAdmin(adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string) (*int, error)
+	CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (*int, error)
+	CreateContactCompanyAssociation(adminID int, workspaceID int) error
+	UpdateContactProperty(adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -209,7 +219,8 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
+	workspace := &model.Workspace{}
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
@@ -252,7 +263,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 			return nil, e.Wrap(err, "500: error while trying to delete used invite link")
 		}
 	}
-	return &workspaceId, nil
+	return &admin.ID, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
@@ -1933,7 +1944,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Scopes(model.EventsObjectTable(s.ID)).Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
+	if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()

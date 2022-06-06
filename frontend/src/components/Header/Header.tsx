@@ -7,6 +7,7 @@ import {
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import { Maybe, PlanType, Project } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
+import { useBillingHook } from '@pages/Billing/Billing';
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
 import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
@@ -112,11 +113,11 @@ const getBanner = (project_id: string) => {
     } else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;
     } else {
-        return <FreePlanBanner />;
+        return <BillingBanner />;
     }
 };
 
-const FreePlanBanner = () => {
+const BillingBanner = () => {
     const { toggleShowBanner } = useGlobalContext();
     const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
         'highlightHideFreePlanBanner',
@@ -131,6 +132,7 @@ const FreePlanBanner = () => {
         setHasReportedTrialExtension,
     ] = useLocalStorage('highlightReportedTrialExtension', false);
     const { integrated } = useIntegrated();
+    const { issues: billingIssues } = useBillingHook({ project_id });
 
     useEffect(() => {
         if (
@@ -150,6 +152,11 @@ const FreePlanBanner = () => {
         project_id,
         setHasReportedTrialExtension,
     ]);
+
+    if (billingIssues) {
+        toggleShowBanner(true);
+        return <BillingIssuesBanner />;
+    }
 
     if (loading) {
         toggleShowBanner(false);
@@ -324,6 +331,35 @@ const ProductHuntBanner = () => {
 
     return (
         <div className={classNames(styles.trialWrapper, styles.productHunt)}>
+            <div className={classNames(styles.trialTimeText)}>
+                {bannerMessage}
+            </div>
+        </div>
+    );
+};
+
+const BillingIssuesBanner = () => {
+    const { toggleShowBanner } = useGlobalContext();
+    const { currentWorkspace } = useApplicationContext();
+
+    toggleShowBanner(true);
+
+    const bannerMessage = (
+        <span>
+            Looks like there are some issues with your billing details. 😔{' '}
+            <a
+                target="_blank"
+                href={`/w/${currentWorkspace?.id}/billing`}
+                className={styles.trialLink}
+                rel="noreferrer"
+            >
+                Please update your payment method here.
+            </a>
+        </span>
+    );
+
+    return (
+        <div className={classNames(styles.trialWrapper, styles.error)}>
             <div className={classNames(styles.trialTimeText)}>
                 {bannerMessage}
             </div>

@@ -51,14 +51,14 @@ fragment SessionPayloadFragment on SessionPayload {
     last_user_interaction_time
 }
 
-query GetWebVitalDashboard(
+query GetMetricsDashboard(
     $project_id: ID!
-    $web_vital_name: String!
-    $params: WebVitalDashboardParamsInput!
+    $metric_name: String!
+    $params: DashboardParamsInput!
 ) {
-    web_vital_dashboard(
+    metrics_dashboard(
         project_id: $project_id
-        web_vital_name: $web_vital_name
+        metric_name: $metric_name
         params: $params
     ) {
         date
@@ -625,6 +625,8 @@ query GetWorkspace($id: ID!) {
         id
         name
         secret
+        plan_tier
+        clearbit_enabled
         projects {
             id
             name
@@ -695,6 +697,10 @@ query GetProjectDropdownOptions($project_id: ID!) {
         id
         name
     }
+    joinable_workspaces {
+        id
+        name
+    }
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
@@ -710,6 +716,10 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
         id
         name
     }
+    joinable_workspaces {
+        id
+        name
+    }
 }
 
 query GetAdmin {
@@ -718,11 +728,13 @@ query GetAdmin {
         uid
         name
         email
+        phone
         photo_url
         slack_im_channel_id
         role
         email_verified
         user_defined_role
+        about_you_details_filled
     }
 }
 
@@ -742,6 +754,9 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        rage_click_window_seconds
+        rage_click_radius_pixels
+        rage_click_count
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -798,6 +813,14 @@ query GetSubscriptionDetails($workspace_id: ID!) {
         baseAmount
         discountAmount
         discountPercent
+        lastInvoice {
+            amountDue
+            amountPaid
+            attemptCount
+            date
+            url
+            status
+        }
     }
 }
 
@@ -1182,6 +1205,10 @@ query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
     generate_zapier_access_token(project_id: $project_id)
 }
 
+query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
+    identifier_suggestion(project_id: $project_id, query: $query)
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
     is_integrated_with_slack: is_integrated_with(
         integration_type: Slack
@@ -1201,7 +1228,6 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
-    identifier_suggestion(project_id: $project_id)
     error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel

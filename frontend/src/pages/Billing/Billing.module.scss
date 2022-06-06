@@ -7,6 +7,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--size-large);
+    padding-bottom: var(--size-xLarge);
 }
 
 .detailsCard {
@@ -81,4 +82,14 @@
 
 .annualToggleAltText {
     color: var(--color-gray-500);
+}
+
+.subtotal {
+    color: var(--color-purple-600);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.billingIssues {
+    font-size: 18px;
 }

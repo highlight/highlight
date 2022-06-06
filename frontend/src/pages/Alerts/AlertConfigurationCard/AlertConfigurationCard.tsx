@@ -2,6 +2,7 @@ import Card from '@components/Card/Card';
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import { namedOperations } from '@graph/operations';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -26,6 +27,7 @@ import {
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
+    useGetIdentifierSuggestionsQuery,
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
@@ -52,7 +54,6 @@ interface Props {
     alert: any;
     configuration: AlertConfiguration;
     environmentOptions: any[];
-    identifierOptions: any[];
     channelSuggestions: any[];
     slackUrl: string;
     onDeleteHandler?: (alertId: string) => void;
@@ -75,7 +76,6 @@ export const AlertConfigurationCard = ({
     slackUrl,
     onDeleteHandler,
     isCreatingNewAlert = false,
-    identifierOptions,
     isSlackIntegrated,
     emailSuggestions,
 }: Props) => {
@@ -93,6 +93,7 @@ export const AlertConfigurationCard = ({
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
     const [searchQuery, setSearchQuery] = useState('');
+    const [identifierQuery, setIdentifierQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
@@ -509,6 +510,17 @@ export const AlertConfigurationCard = ({
         },
     });
 
+    const {
+        refetch: refetchIdentifierSuggestions,
+        loading: identifierSuggestionsLoading,
+        data: identifierSuggestionsApiResponse,
+    } = useGetIdentifierSuggestionsQuery({
+        variables: {
+            project_id,
+            query: '',
+        },
+    });
+
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
             displayValue: webhook_channel,
@@ -533,12 +545,6 @@ export const AlertConfigurationCard = ({
         ),
     ];
 
-    const identifiers = identifierOptions.map((identifier) => ({
-        displayValue: identifier,
-        value: identifier,
-        id: identifier,
-    }));
-
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
         : (
@@ -551,6 +557,21 @@ export const AlertConfigurationCard = ({
               trackSuggestionsApiResponse?.property_suggestion || []
           ).map((suggestion) => getPropertiesOption(suggestion));
 
+    const identifierSuggestions = identifierSuggestionsLoading
+        ? []
+        : (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
+              (suggestion) => ({
+                  value: suggestion,
+                  displayValue: (
+                      <TextHighlighter
+                          searchWords={[identifierQuery]}
+                          textToHighlight={suggestion}
+                      />
+                  ),
+                  id: suggestion,
+              })
+          );
+
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
         refetchUserSuggestions({ query, project_id });
@@ -558,6 +579,11 @@ export const AlertConfigurationCard = ({
 
     const handleTrackPropertiesSearch = (query = '') => {
         refetchTrackSuggestions({ query, project_id });
+    };
+
+    const handleIdentifierSearch = (query = '') => {
+        setIdentifierQuery(query);
+        refetchIdentifierSuggestions({ query, project_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -957,13 +983,15 @@ export const AlertConfigurationCard = ({
                                 </p>
                                 <Form.Item name={excludedIdentifiersFormName}>
                                     <Select
+                                        onSearch={handleIdentifierSearch}
                                         className={styles.channelSelect}
+                                        options={identifierSuggestions}
                                         mode="tags"
                                         placeholder={`Select a identifier(s) that should not trigger alerts.`}
                                         onChange={() => {
                                             setFormTouched(true);
+                                            handleIdentifierSearch('');
                                         }}
-                                        options={identifiers}
                                     />
                                 </Form.Item>
                             </section>

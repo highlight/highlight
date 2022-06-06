@@ -22,6 +22,7 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/websocket v1.4.2
+	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kylelemons/godebug v1.1.0
@@ -53,6 +54,8 @@ require (
 )
 
 require github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
+
+require github.com/mattn/go-isatty v0.0.14 // indirect
 
 require (
 	cloud.google.com/go v0.65.0 // indirect
@@ -96,6 +99,7 @@ require (
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
+	github.com/leonelquinteros/hubspot v0.1.0
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

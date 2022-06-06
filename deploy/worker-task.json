@@ -301,20 +301,7 @@
     "proxyConfiguration": null,
     "volumes": [
         {
-            "fsxWindowsFileServerVolumeConfiguration": null,
-            "efsVolumeConfiguration": {
-                "transitEncryptionPort": null,
-                "fileSystemId": "fs-976ab3ec",
-                "authorizationConfig": {
-                    "iam": "DISABLED",
-                    "accessPointId": null
-                },
-                "transitEncryption": "DISABLED",
-                "rootDirectory": "/"
-            },
-            "name": "worker-volume",
-            "host": null,
-            "dockerVolumeConfiguration": null
+            "name": "worker-volume"
         }
     ]
 }

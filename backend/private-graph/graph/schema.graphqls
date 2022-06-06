@@ -97,10 +97,20 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type Invoice {
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
+    date: Timestamp
+    url: String
+    status: String
+}
+
 type SubscriptionDetails {
     baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
+    lastInvoice: Invoice
 }
 
 type Plan {
@@ -165,6 +175,7 @@ enum ErrorState {
 enum MetricType {
     WebVital
     Device
+    Backend
 }
 
 enum AdminRole {
@@ -185,6 +196,9 @@ type Project {
     secret: String
     workspace_id: ID!
     excluded_users: StringArray
+    rage_click_window_seconds: Int
+    rage_click_radius_pixels: Int
+    rage_click_count: Int
 }
 
 type Account {
@@ -224,6 +238,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    plan_tier: String!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -231,6 +246,7 @@ type Workspace {
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
     trial_extension_enabled: Boolean!
+    clearbit_enabled: Boolean!
 }
 
 type Segment {
@@ -365,8 +381,10 @@ input SearchParamsInput {
     query: String
 }
 
-input WebVitalDashboardParamsInput {
+input DashboardParamsInput {
     date_range: DateRangeInput
+    resolution_minutes: Int
+    timezone: String
 }
 
 type SearchParams {
@@ -391,10 +409,12 @@ type SearchParams {
 }
 
 input AdminAboutYouDetails {
-    name: String!
+    first_name: String!
+    last_name: String!
     user_defined_role: String!
     user_defined_persona: String!
     referral: String!
+    phone: String
 }
 
 input ErrorSearchParamsInput {
@@ -459,12 +479,14 @@ type Admin {
     name: String!
     uid: String!
     email: String!
+    phone: String
     photo_url: String
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    about_you_details_filled: Boolean
     user_defined_persona: String
 }
 
@@ -672,7 +694,7 @@ type Metric {
     value: Float!
 }
 
-type WebVitalDashboardPayload {
+type DashboardPayload {
     date: String!
     avg: Float!
     p50: Float!
@@ -828,8 +850,8 @@ type Query {
     projectSuggestion(query: String!): [Project]!
     workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
-    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
+    identifier_suggestion(project_id: ID!, query: String!): [String!]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     generate_zapier_access_token(project_id: ID!): String!
@@ -848,11 +870,11 @@ type Query {
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
-    web_vital_dashboard(
+    metrics_dashboard(
         project_id: ID!
-        web_vital_name: String!
-        params: WebVitalDashboardParamsInput!
-    ): [WebVitalDashboardPayload]!
+        metric_name: String!
+        params: DashboardParamsInput!
+    ): [DashboardPayload]!
     metric_preview(
         project_id: ID!
         type: MetricType!
@@ -873,6 +895,9 @@ type Mutation {
         name: String
         billing_email: String
         excluded_users: StringArray
+        rage_click_window_seconds: Int
+        rage_click_radius_pixels: Int
+        rage_click_count: Int
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
@@ -1216,6 +1241,7 @@ type Mutation {
         pun: String
     ): Boolean
     requestAccess(project_id: ID!): Boolean
+    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
 }
 
 type Subscription {

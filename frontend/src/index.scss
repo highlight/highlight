@@ -123,6 +123,12 @@
     --color-error-resolved: var(--color-green-400);
     --color-error-ignored: var(--color-gray-500);
     --color-error-open: var(--color-red-400);
+
+    // Scrubber
+    --color-scrubber-zoom-region: #565656;
+    --color-scrubber-zoom-handle: #757575;
+    --color-scrubber-scrub-handle: #ca0000;
+    --color-scrubber-inactive-region: #c17272;
 }
 
 [data-theme='dark'] {

@@ -35,10 +35,12 @@ type AccountDetails struct {
 }
 
 type AdminAboutYouDetails struct {
-	Name               string `json:"name"`
-	UserDefinedRole    string `json:"user_defined_role"`
-	UserDefinedPersona string `json:"user_defined_persona"`
-	Referral           string `json:"referral"`
+	FirstName          string  `json:"first_name"`
+	LastName           string  `json:"last_name"`
+	UserDefinedRole    string  `json:"user_defined_role"`
+	UserDefinedPersona string  `json:"user_defined_persona"`
+	Referral           string  `json:"referral"`
+	Phone              *string `json:"phone"`
 }
 
 type AverageSessionLength struct {
@@ -50,6 +52,21 @@ type BillingDetails struct {
 	Meter              int64 `json:"meter"`
 	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
+}
+
+type DashboardParamsInput struct {
+	DateRange         *DateRangeInput `json:"date_range"`
+	ResolutionMinutes *int            `json:"resolution_minutes"`
+	Timezone          *string         `json:"timezone"`
+}
+
+type DashboardPayload struct {
+	Date string  `json:"date"`
+	Avg  float64 `json:"avg"`
+	P50  float64 `json:"p50"`
+	P75  float64 `json:"p75"`
+	P90  float64 `json:"p90"`
+	P99  float64 `json:"p99"`
 }
 
 type DateRangeInput struct {
@@ -106,6 +123,15 @@ type ErrorTrace struct {
 	LineContent  *string `json:"lineContent"`
 	LinesBefore  *string `json:"linesBefore"`
 	LinesAfter   *string `json:"linesAfter"`
+}
+
+type Invoice struct {
+	AmountDue    *int64     `json:"amountDue"`
+	AmountPaid   *int64     `json:"amountPaid"`
+	AttemptCount *int64     `json:"attemptCount"`
+	Date         *time.Time `json:"date"`
+	URL          *string    `json:"url"`
+	Status       *string    `json:"status"`
 }
 
 type LengthRangeInput struct {
@@ -213,9 +239,10 @@ type SocialLink struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount      int64   `json:"baseAmount"`
-	DiscountPercent float64 `json:"discountPercent"`
-	DiscountAmount  int64   `json:"discountAmount"`
+	BaseAmount      int64    `json:"baseAmount"`
+	DiscountPercent float64  `json:"discountPercent"`
+	DiscountAmount  int64    `json:"discountAmount"`
+	LastInvoice     *Invoice `json:"lastInvoice"`
 }
 
 type TopUsersPayload struct {
@@ -244,19 +271,6 @@ type UserPropertyInput struct {
 	ID    *int   `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
-}
-
-type WebVitalDashboardParamsInput struct {
-	DateRange *DateRangeInput `json:"date_range"`
-}
-
-type WebVitalDashboardPayload struct {
-	Date string  `json:"date"`
-	Avg  float64 `json:"avg"`
-	P50  float64 `json:"p50"`
-	P75  float64 `json:"p75"`
-	P90  float64 `json:"p90"`
-	P99  float64 `json:"p99"`
 }
 
 type ErrorState string
@@ -350,16 +364,18 @@ type MetricType string
 const (
 	MetricTypeWebVital MetricType = "WebVital"
 	MetricTypeDevice   MetricType = "Device"
+	MetricTypeBackend  MetricType = "Backend"
 )
 
 var AllMetricType = []MetricType{
 	MetricTypeWebVital,
 	MetricTypeDevice,
+	MetricTypeBackend,
 }
 
 func (e MetricType) IsValid() bool {
 	switch e {
-	case MetricTypeWebVital, MetricTypeDevice:
+	case MetricTypeWebVital, MetricTypeDevice, MetricTypeBackend:
 		return true
 	}
 	return false

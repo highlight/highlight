@@ -10,3 +10,5 @@ export const extraMembers: string;
 export const extraMembersBreakdown: string;
 export const extraMembersCost: string;
 export const featureCheckIcon: string;
+export const glowingPlan: string;
+export const pulse: string;

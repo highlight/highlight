@@ -1,3 +1,2 @@
-export const filtersContainer: string;
-export const searchContainer: string;
+export const bannerShown: string;
 export const searchPanel: string;

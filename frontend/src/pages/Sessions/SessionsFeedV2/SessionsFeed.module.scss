@@ -170,12 +170,19 @@
     transition: border 0.2s ease-in-out;
 }
 
+.feedLine {
+    box-shadow: initial;
+
+    &.hasScrolled {
+        box-shadow: 0 0 32px 8px var(--color-gray-300);
+    }
+}
+
 .feedItems {
-    @include hide-scrollbar;
     border-bottom: 1px solid transparent;
     border-bottom-color: var(--color-gray-300);
     border-top: 1px solid transparent;
-    height: 67vh;
+    height: 100%;
     overflow: auto;
 
     &.hasScrolled {
@@ -183,9 +190,20 @@
     }
 }
 
+.filtersContainer {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex;
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    margin-bottom: var(--size-medium);
+    row-gap: var(--size-small);
+}
+
 .fixedContent {
     align-items: center;
     display: flex;
+    flex-shrink: 1;
     padding-bottom: var(--size-xSmall);
     position: relative;
 }

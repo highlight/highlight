@@ -4,6 +4,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
 import SvgXIcon from '@icons/XIcon';
@@ -23,7 +24,6 @@ import { Styles } from 'react-select/src/styles';
 import { OptionTypeBase } from 'react-select/src/types';
 import { useToggle } from 'react-use';
 
-import { useGetAppVersionsQuery } from '../../../../../graph/generated/hooks';
 import styles from './QueryBuilder.module.scss';
 
 export interface RuleProps {
@@ -832,6 +832,7 @@ const LABEL_MAP: { [key: string]: string } = {
     browser: 'Browser',
     'visited-url': 'Visited URL',
     visited_url: 'Visited URL',
+    city: 'City',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',

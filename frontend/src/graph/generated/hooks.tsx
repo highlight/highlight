@@ -988,17 +988,26 @@ export const EditProjectDocument = gql`
         $name: String
         $billing_email: String
         $excluded_users: StringArray
+        $rage_click_window_seconds: Int
+        $rage_click_radius_pixels: Int
+        $rage_click_count: Int
     ) {
         editProject(
             id: $id
             name: $name
             billing_email: $billing_email
             excluded_users: $excluded_users
+            rage_click_window_seconds: $rage_click_window_seconds
+            rage_click_radius_pixels: $rage_click_radius_pixels
+            rage_click_count: $rage_click_count
         ) {
             id
             name
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
     }
 `;
@@ -1024,6 +1033,9 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
+ *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
+ *      rage_click_count: // value for 'rage_click_count'
  *   },
  * });
  */
@@ -4044,15 +4056,65 @@ export type RequestAccessMutationOptions = Apollo.BaseMutationOptions<
     Types.RequestAccessMutation,
     Types.RequestAccessMutationVariables
 >;
-export const GetWebVitalDashboardDocument = gql`
-    query GetWebVitalDashboard(
+export const ModifyClearbitIntegrationDocument = gql`
+    mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
+        modifyClearbitIntegration(
+            workspace_id: $workspace_id
+            enabled: $enabled
+        )
+    }
+`;
+export type ModifyClearbitIntegrationMutationFn = Apollo.MutationFunction<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
+
+/**
+ * __useModifyClearbitIntegrationMutation__
+ *
+ * To run a mutation, you first call `useModifyClearbitIntegrationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useModifyClearbitIntegrationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [modifyClearbitIntegrationMutation, { data, loading, error }] = useModifyClearbitIntegrationMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      enabled: // value for 'enabled'
+ *   },
+ * });
+ */
+export function useModifyClearbitIntegrationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >(ModifyClearbitIntegrationDocument, baseOptions);
+}
+export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
+    typeof useModifyClearbitIntegrationMutation
+>;
+export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
+export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
+    Types.ModifyClearbitIntegrationMutation,
+    Types.ModifyClearbitIntegrationMutationVariables
+>;
+export const GetMetricsDashboardDocument = gql`
+    query GetMetricsDashboard(
         $project_id: ID!
-        $web_vital_name: String!
-        $params: WebVitalDashboardParamsInput!
+        $metric_name: String!
+        $params: DashboardParamsInput!
     ) {
-        web_vital_dashboard(
+        metrics_dashboard(
             project_id: $project_id
-            web_vital_name: $web_vital_name
+            metric_name: $metric_name
             params: $params
         ) {
             date
@@ -4066,54 +4128,54 @@ export const GetWebVitalDashboardDocument = gql`
 `;
 
 /**
- * __useGetWebVitalDashboardQuery__
+ * __useGetMetricsDashboardQuery__
  *
- * To run a query within a React component, call `useGetWebVitalDashboardQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWebVitalDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetMetricsDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetWebVitalDashboardQuery({
+ * const { data, loading, error } = useGetMetricsDashboardQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      web_vital_name: // value for 'web_vital_name'
+ *      metric_name: // value for 'metric_name'
  *      params: // value for 'params'
  *   },
  * });
  */
-export function useGetWebVitalDashboardQuery(
+export function useGetMetricsDashboardQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetWebVitalDashboardQuery,
-        Types.GetWebVitalDashboardQueryVariables
+        Types.GetMetricsDashboardQuery,
+        Types.GetMetricsDashboardQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetWebVitalDashboardQuery,
-        Types.GetWebVitalDashboardQueryVariables
-    >(GetWebVitalDashboardDocument, baseOptions);
+        Types.GetMetricsDashboardQuery,
+        Types.GetMetricsDashboardQueryVariables
+    >(GetMetricsDashboardDocument, baseOptions);
 }
-export function useGetWebVitalDashboardLazyQuery(
+export function useGetMetricsDashboardLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetWebVitalDashboardQuery,
-        Types.GetWebVitalDashboardQueryVariables
+        Types.GetMetricsDashboardQuery,
+        Types.GetMetricsDashboardQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetWebVitalDashboardQuery,
-        Types.GetWebVitalDashboardQueryVariables
-    >(GetWebVitalDashboardDocument, baseOptions);
+        Types.GetMetricsDashboardQuery,
+        Types.GetMetricsDashboardQueryVariables
+    >(GetMetricsDashboardDocument, baseOptions);
 }
-export type GetWebVitalDashboardQueryHookResult = ReturnType<
-    typeof useGetWebVitalDashboardQuery
+export type GetMetricsDashboardQueryHookResult = ReturnType<
+    typeof useGetMetricsDashboardQuery
 >;
-export type GetWebVitalDashboardLazyQueryHookResult = ReturnType<
-    typeof useGetWebVitalDashboardLazyQuery
+export type GetMetricsDashboardLazyQueryHookResult = ReturnType<
+    typeof useGetMetricsDashboardLazyQuery
 >;
-export type GetWebVitalDashboardQueryResult = Apollo.QueryResult<
-    Types.GetWebVitalDashboardQuery,
-    Types.GetWebVitalDashboardQueryVariables
+export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
+    Types.GetMetricsDashboardQuery,
+    Types.GetMetricsDashboardQueryVariables
 >;
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(
@@ -5983,6 +6045,8 @@ export const GetWorkspaceDocument = gql`
             id
             name
             secret
+            plan_tier
+            clearbit_enabled
             projects {
                 id
                 name
@@ -6302,6 +6366,10 @@ export const GetProjectDropdownOptionsDocument = gql`
             id
             name
         }
+        joinable_workspaces {
+            id
+            name
+        }
     }
 `;
 
@@ -6367,6 +6435,10 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
             id
             name
         }
+        joinable_workspaces {
+            id
+            name
+        }
     }
 `;
 
@@ -6425,11 +6497,13 @@ export const GetAdminDocument = gql`
             uid
             name
             email
+            phone
             photo_url
             slack_im_channel_id
             role
             email_verified
             user_defined_role
+            about_you_details_filled
         }
     }
 `;
@@ -6545,6 +6619,9 @@ export const GetProjectDocument = gql`
             verbose_id
             billing_email
             excluded_users
+            rage_click_window_seconds
+            rage_click_radius_pixels
+            rage_click_count
         }
         workspace: workspace_for_project(project_id: $id) {
             id
@@ -6749,6 +6826,14 @@ export const GetSubscriptionDetailsDocument = gql`
             baseAmount
             discountAmount
             discountPercent
+            lastInvoice {
+                amountDue
+                amountPaid
+                attemptCount
+                date
+                url
+                status
+            }
         }
     }
 `;
@@ -8767,6 +8852,61 @@ export type GenerateNewZapierAccessTokenJwtQueryResult = Apollo.QueryResult<
     Types.GenerateNewZapierAccessTokenJwtQuery,
     Types.GenerateNewZapierAccessTokenJwtQueryVariables
 >;
+export const GetIdentifierSuggestionsDocument = gql`
+    query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
+        identifier_suggestion(project_id: $project_id, query: $query)
+    }
+`;
+
+/**
+ * __useGetIdentifierSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetIdentifierSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetIdentifierSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetIdentifierSuggestionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetIdentifierSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >(GetIdentifierSuggestionsDocument, baseOptions);
+}
+export function useGetIdentifierSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetIdentifierSuggestionsQuery,
+        Types.GetIdentifierSuggestionsQueryVariables
+    >(GetIdentifierSuggestionsDocument, baseOptions);
+}
+export type GetIdentifierSuggestionsQueryHookResult = ReturnType<
+    typeof useGetIdentifierSuggestionsQuery
+>;
+export type GetIdentifierSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetIdentifierSuggestionsLazyQuery
+>;
+export type GetIdentifierSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetIdentifierSuggestionsQuery,
+    Types.GetIdentifierSuggestionsQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
         is_integrated_with_slack: is_integrated_with(
@@ -8787,7 +8927,6 @@ export const GetAlertsPagePayloadDocument = gql`
             name
             value
         }
-        identifier_suggestion(project_id: $project_id)
         error_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel

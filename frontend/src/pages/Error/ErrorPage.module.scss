@@ -1,11 +1,8 @@
 @import 'src/static/shared.scss';
 
 .errorPageCenterColumn {
-    @include hide-scrollbar;
-    flex: 1;
     height: calc(100vh - var(--top-padding));
     overflow-y: auto;
-    padding-left: var(--size-medium);
 
     &.hidden {
         padding-left: var(--size-xxLarge);
@@ -55,7 +52,7 @@
 .errorPage {
     --right-panel-width: 370px;
     --left-panel-width: 475px;
-    --top-padding: 120px;
+    --top-padding: 80px;
 
     background: var(--color-gray-200);
     column-gap: var(--size-large);

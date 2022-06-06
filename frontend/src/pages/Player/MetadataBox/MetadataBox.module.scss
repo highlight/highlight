@@ -8,14 +8,14 @@
     max-width: var(--right-panel-width);
     position: relative;
 }
-.enhancedAvatar {
+.avatar {
     height: 36px;
     width: 36px;
 }
 
 #enhancedName {
     font-weight: 400 !important;
-    margin-bottom: var(--size-xSmall) !important;
+    margin-bottom: 0 !important;
 }
 
 .enhancedBio {
@@ -23,11 +23,11 @@
     display: flex;
     font-size: 12px;
     font-weight: 300;
-    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-line-clamp: 9; /* number of lines to show */
     line-height: 16px; /* fallback */
     margin-bottom: 4px !important;
     margin-top: 0 !important;
-    max-height: 32px; /* fallback */
+    max-height: 144px; /* fallback */
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
@@ -40,10 +40,15 @@
 }
 
 .userEnhanced {
+    padding: 16px 28px;
+    position: relative;
+}
+
+.userEnhancedGrid {
     column-gap: 14px;
     display: grid;
     grid-template-columns: fit-content(20px) auto;
-    padding: 20px;
+    padding: 16px 28px;
     position: relative;
 }
 
@@ -231,4 +236,8 @@
     display: grid;
     grid-auto-rows: 20px;
     grid-template-columns: 1fr 1fr;
+}
+
+.enableClearbit {
+    padding: var(--size-medium) 22px;
 }

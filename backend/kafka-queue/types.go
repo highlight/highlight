@@ -1,6 +1,9 @@
 package kafka_queue
 
-import customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+import (
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/segmentio/kafka-go"
+)
 
 type PayloadType = int
 
@@ -11,6 +14,7 @@ const (
 	AddTrackProperties   PayloadType = iota
 	AddSessionProperties PayloadType = iota
 	PushBackendPayload   PayloadType = iota
+	PushMetrics          PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -43,18 +47,26 @@ type AddSessionPropertiesArgs struct {
 	PropertiesObject interface{}
 }
 type PushBackendPayloadArgs struct {
-	SessionSecureIDs []string
-	Errors           []*customModels.BackendErrorObjectInput
+	SessionSecureID string
+	Errors          []*customModels.BackendErrorObjectInput
+}
+
+type PushMetricsArgs struct {
+	SessionID int
+	ProjectID int
+	Metrics   []*customModels.MetricInput
 }
 
 type Message struct {
 	Type                 PayloadType
+	KafkaMessage         *kafka.Message
 	PushPayload          *PushPayloadArgs
 	InitializeSession    *InitializeSessionArgs
 	IdentifySession      *IdentifySessionArgs
 	AddTrackProperties   *AddTrackPropertiesArgs
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
+	PushMetrics          *PushMetricsArgs
 }
 
 type PartitionMessage struct {

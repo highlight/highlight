@@ -11,6 +11,7 @@ import { useGetProjectQuery } from '@graph/hooks';
 import { GetProjectQuery } from '@graph/operations';
 import { Admin } from '@graph/schemas';
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils';
+import { getInitSnippet } from '@pages/Setup/util';
 import useLocalStorage from '@rehooks/local-storage';
 import { useBackendIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -30,6 +31,7 @@ import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
+import { AngularSetup } from './Angular/AngularSetup';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { GatsbySetup } from './Gatsby/GatsbySetup';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
@@ -51,6 +53,7 @@ enum PlatformType {
     NextJs = 'Next.js',
     SvelteKit = 'SvelteKit',
     Gatsby = 'Gatsby.js',
+    Angular = 'Angular',
 }
 
 enum BackendPlatformType {
@@ -271,6 +274,7 @@ const ClientSetup = ({
                     PlatformType.NextJs,
                     PlatformType.SvelteKit,
                     PlatformType.Gatsby,
+                    PlatformType.Angular,
                     PlatformType.Html,
                 ]}
                 onSelect={(p: PlatformType) => setPlatform(p)}
@@ -316,6 +320,10 @@ const ClientSetup = ({
                         />
                     ) : platform === PlatformType.Gatsby ? (
                         <GatsbySetup
+                            projectVerboseId={projectData?.project?.verbose_id}
+                        />
+                    ) : platform === PlatformType.Angular ? (
+                        <AngularSetup
                             projectVerboseId={projectData?.project?.verbose_id}
                         />
                     ) : (
@@ -1320,13 +1328,3 @@ export const Section: FunctionComponent<SectionProps> = ({
 };
 
 export default SetupPage;
-
-const getInitSnippet = (projectId: string, withOptions = false) =>
-    withOptions
-        ? `H.init('${projectId}', {
-  environment: 'production',
-  enableStrictPrivacy: false,${
-      isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
-  }
-});`
-        : `H.init('${projectId}');`;

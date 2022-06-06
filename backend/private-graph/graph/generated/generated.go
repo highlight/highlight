@@ -87,17 +87,19 @@ type ComplexityRoot struct {
 	}
 
 	Admin struct {
-		Email              func(childComplexity int) int
-		EmailVerified      func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		Name               func(childComplexity int) int
-		PhotoURL           func(childComplexity int) int
-		Referral           func(childComplexity int) int
-		Role               func(childComplexity int) int
-		SlackIMChannelID   func(childComplexity int) int
-		UID                func(childComplexity int) int
-		UserDefinedPersona func(childComplexity int) int
-		UserDefinedRole    func(childComplexity int) int
+		AboutYouDetailsFilled func(childComplexity int) int
+		Email                 func(childComplexity int) int
+		EmailVerified         func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		Phone                 func(childComplexity int) int
+		PhotoURL              func(childComplexity int) int
+		Referral              func(childComplexity int) int
+		Role                  func(childComplexity int) int
+		SlackIMChannelID      func(childComplexity int) int
+		UID                   func(childComplexity int) int
+		UserDefinedPersona    func(childComplexity int) int
+		UserDefinedRole       func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -137,6 +139,15 @@ type ComplexityRoot struct {
 		Layout            func(childComplexity int) int
 		Name              func(childComplexity int) int
 		ProjectID         func(childComplexity int) int
+	}
+
+	DashboardPayload struct {
+		Avg  func(childComplexity int) int
+		Date func(childComplexity int) int
+		P50  func(childComplexity int) int
+		P75  func(childComplexity int) int
+		P90  func(childComplexity int) int
+		P99  func(childComplexity int) int
 	}
 
 	DateRange struct {
@@ -301,6 +312,15 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	Invoice struct {
+		AmountDue    func(childComplexity int) int
+		AmountPaid   func(childComplexity int) int
+		AttemptCount func(childComplexity int) int
+		Date         func(childComplexity int) int
+		Status       func(childComplexity int) int
+		URL          func(childComplexity int) int
+	}
+
 	LengthRange struct {
 		Max func(childComplexity int) int
 		Min func(childComplexity int) int
@@ -369,13 +389,14 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
+		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
@@ -419,13 +440,16 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
-		BillingEmail  func(childComplexity int) int
-		ExcludedUsers func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Name          func(childComplexity int) int
-		Secret        func(childComplexity int) int
-		VerboseID     func(childComplexity int) int
-		WorkspaceID   func(childComplexity int) int
+		BillingEmail           func(childComplexity int) int
+		ExcludedUsers          func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		RageClickCount         func(childComplexity int) int
+		RageClickRadiusPixels  func(childComplexity int) int
+		RageClickWindowSeconds func(childComplexity int) int
+		Secret                 func(childComplexity int) int
+		VerboseID              func(childComplexity int) int
+		WorkspaceID            func(childComplexity int) int
 	}
 
 	Query struct {
@@ -462,7 +486,7 @@ type ComplexityRoot struct {
 		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
-		IdentifierSuggestion         func(childComplexity int, projectID int) int
+		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
@@ -472,6 +496,7 @@ type ComplexityRoot struct {
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int) int
 		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
+		MetricsDashboard             func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -504,7 +529,6 @@ type ComplexityRoot struct {
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
 		UserPropertiesAlerts         func(childComplexity int, projectID int) int
-		WebVitalDashboard            func(childComplexity int, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) int
 		WebVitals                    func(childComplexity int, sessionSecureID string) int
 		Workspace                    func(childComplexity int, id int) int
 		WorkspaceAdmins              func(childComplexity int, workspaceID int) int
@@ -705,6 +729,7 @@ type ComplexityRoot struct {
 		BaseAmount      func(childComplexity int) int
 		DiscountAmount  func(childComplexity int) int
 		DiscountPercent func(childComplexity int) int
+		LastInvoice     func(childComplexity int) int
 	}
 
 	TimelineIndicatorEvent struct {
@@ -743,23 +768,16 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
-	WebVitalDashboardPayload struct {
-		Avg  func(childComplexity int) int
-		Date func(childComplexity int) int
-		P50  func(childComplexity int) int
-		P75  func(childComplexity int) int
-		P90  func(childComplexity int) int
-		P99  func(childComplexity int) int
-	}
-
 	Workspace struct {
 		AllowMeterOverage           func(childComplexity int) int
 		AllowedAutoJoinEmailOrigins func(childComplexity int) int
 		BillingPeriodEnd            func(childComplexity int) int
+		ClearbitEnabled             func(childComplexity int) int
 		EligibleForTrialExtension   func(childComplexity int) int
 		ID                          func(childComplexity int) int
 		Name                        func(childComplexity int) int
 		NextInvoiceDate             func(childComplexity int) int
+		PlanTier                    func(childComplexity int) int
 		Projects                    func(childComplexity int) int
 		Secret                      func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
@@ -821,7 +839,7 @@ type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -881,6 +899,7 @@ type MutationResolver interface {
 	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
 	SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error)
 	RequestAccess(ctx context.Context, projectID int) (*bool, error)
+	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -946,8 +965,8 @@ type QueryResolver interface {
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
 	WorkspaceSuggestion(ctx context.Context, query string) ([]*model1.Workspace, error)
 	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
-	IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
+	IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error)
@@ -963,7 +982,7 @@ type QueryResolver interface {
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
-	WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params model.WebVitalDashboardParamsInput) ([]*model.WebVitalDashboardPayload, error)
+	MetricsDashboard(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -1153,6 +1172,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AccountDetails.StripeCustomerID(childComplexity), true
 
+	case "Admin.about_you_details_filled":
+		if e.complexity.Admin.AboutYouDetailsFilled == nil {
+			break
+		}
+
+		return e.complexity.Admin.AboutYouDetailsFilled(childComplexity), true
+
 	case "Admin.email":
 		if e.complexity.Admin.Email == nil {
 			break
@@ -1180,6 +1206,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Name(childComplexity), true
+
+	case "Admin.phone":
+		if e.complexity.Admin.Phone == nil {
+			break
+		}
+
+		return e.complexity.Admin.Phone(childComplexity), true
 
 	case "Admin.photo_url":
 		if e.complexity.Admin.PhotoURL == nil {
@@ -1376,6 +1409,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Dashboard.ProjectID(childComplexity), true
+
+	case "DashboardPayload.avg":
+		if e.complexity.DashboardPayload.Avg == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.Avg(childComplexity), true
+
+	case "DashboardPayload.date":
+		if e.complexity.DashboardPayload.Date == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.Date(childComplexity), true
+
+	case "DashboardPayload.p50":
+		if e.complexity.DashboardPayload.P50 == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.P50(childComplexity), true
+
+	case "DashboardPayload.p75":
+		if e.complexity.DashboardPayload.P75 == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.P75(childComplexity), true
+
+	case "DashboardPayload.p90":
+		if e.complexity.DashboardPayload.P90 == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.P90(childComplexity), true
+
+	case "DashboardPayload.p99":
+		if e.complexity.DashboardPayload.P99 == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.P99(childComplexity), true
 
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
@@ -2175,6 +2250,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Field.Value(childComplexity), true
 
+	case "Invoice.amountDue":
+		if e.complexity.Invoice.AmountDue == nil {
+			break
+		}
+
+		return e.complexity.Invoice.AmountDue(childComplexity), true
+
+	case "Invoice.amountPaid":
+		if e.complexity.Invoice.AmountPaid == nil {
+			break
+		}
+
+		return e.complexity.Invoice.AmountPaid(childComplexity), true
+
+	case "Invoice.attemptCount":
+		if e.complexity.Invoice.AttemptCount == nil {
+			break
+		}
+
+		return e.complexity.Invoice.AttemptCount(childComplexity), true
+
+	case "Invoice.date":
+		if e.complexity.Invoice.Date == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Date(childComplexity), true
+
+	case "Invoice.status":
+		if e.complexity.Invoice.Status == nil {
+			break
+		}
+
+		return e.complexity.Invoice.Status(childComplexity), true
+
+	case "Invoice.url":
+		if e.complexity.Invoice.URL == nil {
+			break
+		}
+
+		return e.complexity.Invoice.URL(childComplexity), true
+
 	case "LengthRange.max":
 		if e.complexity.LengthRange.Max == nil {
 			break
@@ -2709,7 +2826,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -2782,6 +2899,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["secure_id"].(string), args["viewed"].(*bool)), true
+
+	case "Mutation.modifyClearbitIntegration":
+		if e.complexity.Mutation.ModifyClearbitIntegration == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_modifyClearbitIntegration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ModifyClearbitIntegration(childComplexity, args["workspace_id"].(int), args["enabled"].(bool)), true
 
 	case "Mutation.openSlackConversation":
 		if e.complexity.Mutation.OpenSlackConversation == nil {
@@ -3147,6 +3276,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Name(childComplexity), true
+
+	case "Project.rage_click_count":
+		if e.complexity.Project.RageClickCount == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickCount(childComplexity), true
+
+	case "Project.rage_click_radius_pixels":
+		if e.complexity.Project.RageClickRadiusPixels == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickRadiusPixels(childComplexity), true
+
+	case "Project.rage_click_window_seconds":
+		if e.complexity.Project.RageClickWindowSeconds == nil {
+			break
+		}
+
+		return e.complexity.Project.RageClickWindowSeconds(childComplexity), true
 
 	case "Project.secret":
 		if e.complexity.Project.Secret == nil {
@@ -3560,7 +3710,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IdentifierSuggestion(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.IdentifierSuggestion(childComplexity, args["project_id"].(int), args["query"].(string)), true
 
 	case "Query.isBackendIntegrated":
 		if e.complexity.Query.IsBackendIntegrated == nil {
@@ -3664,6 +3814,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MetricPreview(childComplexity, args["project_id"].(int), args["type"].(model.MetricType), args["name"].(string), args["aggregateFunction"].(string)), true
+
+	case "Query.metrics_dashboard":
+		if e.complexity.Query.MetricsDashboard == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metrics_dashboard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricsDashboard(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput)), true
 
 	case "Query.new_session_alerts":
 		if e.complexity.Query.NewSessionAlerts == nil {
@@ -4038,18 +4200,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserPropertiesAlerts(childComplexity, args["project_id"].(int)), true
-
-	case "Query.web_vital_dashboard":
-		if e.complexity.Query.WebVitalDashboard == nil {
-			break
-		}
-
-		args, err := ec.field_Query_web_vital_dashboard_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.WebVitalDashboard(childComplexity, args["project_id"].(int), args["web_vital_name"].(string), args["params"].(model.WebVitalDashboardParamsInput)), true
 
 	case "Query.web_vitals":
 		if e.complexity.Query.WebVitals == nil {
@@ -5113,6 +5263,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.DiscountPercent(childComplexity), true
 
+	case "SubscriptionDetails.lastInvoice":
+		if e.complexity.SubscriptionDetails.LastInvoice == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.LastInvoice(childComplexity), true
+
 	case "TimelineIndicatorEvent.data":
 		if e.complexity.TimelineIndicatorEvent.Data == nil {
 			break
@@ -5239,48 +5396,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProperty.Value(childComplexity), true
 
-	case "WebVitalDashboardPayload.avg":
-		if e.complexity.WebVitalDashboardPayload.Avg == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.Avg(childComplexity), true
-
-	case "WebVitalDashboardPayload.date":
-		if e.complexity.WebVitalDashboardPayload.Date == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.Date(childComplexity), true
-
-	case "WebVitalDashboardPayload.p50":
-		if e.complexity.WebVitalDashboardPayload.P50 == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.P50(childComplexity), true
-
-	case "WebVitalDashboardPayload.p75":
-		if e.complexity.WebVitalDashboardPayload.P75 == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.P75(childComplexity), true
-
-	case "WebVitalDashboardPayload.p90":
-		if e.complexity.WebVitalDashboardPayload.P90 == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.P90(childComplexity), true
-
-	case "WebVitalDashboardPayload.p99":
-		if e.complexity.WebVitalDashboardPayload.P99 == nil {
-			break
-		}
-
-		return e.complexity.WebVitalDashboardPayload.P99(childComplexity), true
-
 	case "Workspace.allow_meter_overage":
 		if e.complexity.Workspace.AllowMeterOverage == nil {
 			break
@@ -5301,6 +5416,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.BillingPeriodEnd(childComplexity), true
+
+	case "Workspace.clearbit_enabled":
+		if e.complexity.Workspace.ClearbitEnabled == nil {
+			break
+		}
+
+		return e.complexity.Workspace.ClearbitEnabled(childComplexity), true
 
 	case "Workspace.eligible_for_trial_extension":
 		if e.complexity.Workspace.EligibleForTrialExtension == nil {
@@ -5329,6 +5451,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.NextInvoiceDate(childComplexity), true
+
+	case "Workspace.plan_tier":
+		if e.complexity.Workspace.PlanTier == nil {
+			break
+		}
+
+		return e.complexity.Workspace.PlanTier(childComplexity), true
 
 	case "Workspace.projects":
 		if e.complexity.Workspace.Projects == nil {
@@ -5587,10 +5716,20 @@ type BillingDetails {
     sessionsOutOfQuota: Int64!
 }
 
+type Invoice {
+    amountDue: Int64
+    amountPaid: Int64
+    attemptCount: Int64
+    date: Timestamp
+    url: String
+    status: String
+}
+
 type SubscriptionDetails {
     baseAmount: Int64!
     discountPercent: Float!
     discountAmount: Int64!
+    lastInvoice: Invoice
 }
 
 type Plan {
@@ -5655,6 +5794,7 @@ enum ErrorState {
 enum MetricType {
     WebVital
     Device
+    Backend
 }
 
 enum AdminRole {
@@ -5675,6 +5815,9 @@ type Project {
     secret: String
     workspace_id: ID!
     excluded_users: StringArray
+    rage_click_window_seconds: Int
+    rage_click_radius_pixels: Int
+    rage_click_count: Int
 }
 
 type Account {
@@ -5714,6 +5857,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    plan_tier: String!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -5721,6 +5865,7 @@ type Workspace {
     allowed_auto_join_email_origins: String
     eligible_for_trial_extension: Boolean!
     trial_extension_enabled: Boolean!
+    clearbit_enabled: Boolean!
 }
 
 type Segment {
@@ -5855,8 +6000,10 @@ input SearchParamsInput {
     query: String
 }
 
-input WebVitalDashboardParamsInput {
+input DashboardParamsInput {
     date_range: DateRangeInput
+    resolution_minutes: Int
+    timezone: String
 }
 
 type SearchParams {
@@ -5881,10 +6028,12 @@ type SearchParams {
 }
 
 input AdminAboutYouDetails {
-    name: String!
+    first_name: String!
+    last_name: String!
     user_defined_role: String!
     user_defined_persona: String!
     referral: String!
+    phone: String
 }
 
 input ErrorSearchParamsInput {
@@ -5949,12 +6098,14 @@ type Admin {
     name: String!
     uid: String!
     email: String!
+    phone: String
     photo_url: String
     role: String!
     slack_im_channel_id: String
     email_verified: Boolean
     referral: String
     user_defined_role: String
+    about_you_details_filled: Boolean
     user_defined_persona: String
 }
 
@@ -6162,7 +6313,7 @@ type Metric {
     value: Float!
 }
 
-type WebVitalDashboardPayload {
+type DashboardPayload {
     date: String!
     avg: Float!
     p50: Float!
@@ -6318,8 +6469,8 @@ type Query {
     projectSuggestion(query: String!): [Project]!
     workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
-    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
+    identifier_suggestion(project_id: ID!, query: String!): [String!]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     generate_zapier_access_token(project_id: ID!): String!
@@ -6338,11 +6489,11 @@ type Query {
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
-    web_vital_dashboard(
+    metrics_dashboard(
         project_id: ID!
-        web_vital_name: String!
-        params: WebVitalDashboardParamsInput!
-    ): [WebVitalDashboardPayload]!
+        metric_name: String!
+        params: DashboardParamsInput!
+    ): [DashboardPayload]!
     metric_preview(
         project_id: ID!
         type: MetricType!
@@ -6363,6 +6514,9 @@ type Mutation {
         name: String
         billing_email: String
         excluded_users: StringArray
+        rage_click_window_seconds: Int
+        rage_click_radius_pixels: Int
+        rage_click_count: Int
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
@@ -6706,6 +6860,7 @@ type Mutation {
         pun: String
     ): Boolean
     requestAccess(project_id: ID!): Boolean
+    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
 }
 
 type Subscription {
@@ -8303,6 +8458,33 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["excluded_users"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_window_seconds"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_radius_pixels"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["rage_click_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_count"] = arg6
 	return args, nil
 }
 
@@ -8438,6 +8620,30 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 		}
 	}
 	args["viewed"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_modifyClearbitIntegration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["enabled"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["enabled"] = arg1
 	return args, nil
 }
 
@@ -10340,6 +10546,15 @@ func (ec *executionContext) field_Query_identifier_suggestion_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
 	return args, nil
 }
 
@@ -10496,6 +10711,39 @@ func (ec *executionContext) field_Query_metric_preview_args(ctx context.Context,
 		}
 	}
 	args["aggregateFunction"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metrics_dashboard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["metric_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_name"] = arg1
+	var arg2 model.DashboardParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -11063,39 +11311,6 @@ func (ec *executionContext) field_Query_user_properties_alerts_args(ctx context.
 		}
 	}
 	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_web_vital_dashboard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["web_vital_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("web_vital_name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["web_vital_name"] = arg1
-	var arg2 model.WebVitalDashboardParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNWebVitalDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
 	return args, nil
 }
 
@@ -12062,6 +12277,38 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Admin_phone(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12255,6 +12502,38 @@ func (ec *executionContext) _Admin_user_defined_role(ctx context.Context, field 
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_about_you_details_filled(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AboutYouDetailsFilled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_user_defined_persona(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -13022,6 +13301,216 @@ func (ec *executionContext) _Dashboard_last_admin_to_edit_id(ctx context.Context
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_avg(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Avg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_p50(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P50, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_p75(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P75, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_p90(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P90, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardPayload_p99(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P99, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
@@ -16867,6 +17356,198 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Invoice_amountDue(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountDue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_amountPaid(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountPaid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_attemptCount(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AttemptCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_date(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_url(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Invoice_status(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17706,7 +18387,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray))
+		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20036,6 +20717,45 @@ func (ec *executionContext) _Mutation_requestAccess(ctx context.Context, field g
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_modifyClearbitIntegration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_modifyClearbitIntegration_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ModifyClearbitIntegration(rctx, args["workspace_id"].(int), args["enabled"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NamedCount_name(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20515,6 +21235,102 @@ func (ec *executionContext) _Project_excluded_users(ctx context.Context, field g
 	res := resTmp.(pq.StringArray)
 	fc.Result = res
 	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_window_seconds(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickWindowSeconds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_radius_pixels(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickRadiusPixels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_rage_click_count(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RageClickCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23036,48 +23852,6 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_identifier_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_identifier_suggestion_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IdentifierSuggestion(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_app_version_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23118,6 +23892,48 @@ func (ec *executionContext) _Query_app_version_suggestion(ctx context.Context, f
 	res := resTmp.([]*string)
 	fc.Result = res
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_identifier_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_identifier_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IdentifierSuggestion(rctx, args["project_id"].(int), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23716,7 +24532,7 @@ func (ec *executionContext) _Query_subscription_details(ctx context.Context, fie
 	return ec.marshalNSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_metrics_dashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -23733,7 +24549,7 @@ func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, fiel
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_web_vital_dashboard_args(ctx, rawArgs)
+	args, err := ec.field_Query_metrics_dashboard_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -23741,7 +24557,7 @@ func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WebVitalDashboard(rctx, args["project_id"].(int), args["web_vital_name"].(string), args["params"].(model.WebVitalDashboardParamsInput))
+		return ec.resolvers.Query().MetricsDashboard(rctx, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23753,9 +24569,9 @@ func (ec *executionContext) _Query_web_vital_dashboard(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.WebVitalDashboardPayload)
+	res := resTmp.([]*model.DashboardPayload)
 	fc.Result = res
-	return ec.marshalNWebVitalDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx, field.Selections, res)
+	return ec.marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_metric_preview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -28623,6 +29439,38 @@ func (ec *executionContext) _SubscriptionDetails_discountAmount(ctx context.Cont
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SubscriptionDetails_lastInvoice(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastInvoice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invoice)
+	fc.Result = res
+	return ec.marshalOInvoice2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐInvoice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TimelineIndicatorEvent_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29250,216 +30098,6 @@ func (ec *executionContext) _UserProperty_value(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WebVitalDashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Date, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WebVitalDashboardPayload_avg(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Avg, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WebVitalDashboardPayload_p50(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P50, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WebVitalDashboardPayload_p75(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P75, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WebVitalDashboardPayload_p90(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P90, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WebVitalDashboardPayload_p99(ctx context.Context, field graphql.CollectedField, obj *model.WebVitalDashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WebVitalDashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P99, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Workspace_id(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29659,6 +30297,41 @@ func (ec *executionContext) _Workspace_projects(ctx context.Context, field graph
 	res := resTmp.([]model1.Project)
 	fc.Result = res
 	return ec.marshalNProject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Workspace_plan_tier(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlanTier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
@@ -29878,6 +30551,41 @@ func (ec *executionContext) _Workspace_trial_extension_enabled(ctx context.Conte
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.TrialExtensionEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Workspace_clearbit_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClearbitEnabled, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31261,11 +31969,19 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
-		case "name":
+		case "first_name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "last_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -31290,6 +32006,53 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referral"))
 			it.Referral, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Context, obj interface{}) (model.DashboardParamsInput, error) {
+	var it model.DashboardParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "resolution_minutes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_minutes"))
+			it.ResolutionMinutes, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timezone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timezone"))
+			it.Timezone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -31778,29 +32541,6 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputWebVitalDashboardParamsInput(ctx context.Context, obj interface{}) (model.WebVitalDashboardParamsInput, error) {
-	var it model.WebVitalDashboardParamsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "date_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -32082,6 +32822,13 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "phone":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Admin_phone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "photo_url":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Admin_photo_url(ctx, field, obj)
@@ -32123,6 +32870,13 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 		case "user_defined_role":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Admin_user_defined_role(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "about_you_details_filled":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Admin_about_you_details_filled(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -32473,6 +33227,87 @@ func (ec *executionContext) _Dashboard(ctx context.Context, sel ast.SelectionSet
 		case "last_admin_to_edit_id":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Dashboard_last_admin_to_edit_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var dashboardPayloadImplementors = []string{"DashboardPayload"}
+
+func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DashboardPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dashboardPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DashboardPayload")
+		case "date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "avg":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_avg(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p50":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_p50(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p75":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_p75(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p90":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_p90(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p99":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardPayload_p99(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -33970,6 +34805,69 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var invoiceImplementors = []string{"Invoice"}
+
+func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, obj *model.Invoice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, invoiceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Invoice")
+		case "amountDue":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_amountDue(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "amountPaid":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_amountPaid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "attemptCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_attemptCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "date":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_date(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Invoice_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var lengthRangeImplementors = []string{"LengthRange"}
 
 func (ec *executionContext) _LengthRange(ctx context.Context, sel ast.SelectionSet, obj *model1.LengthRange) graphql.Marshaler {
@@ -34777,6 +35675,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "modifyClearbitIntegration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_modifyClearbitIntegration(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34988,6 +35893,27 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "excluded_users":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Project_excluded_users(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_window_seconds":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_window_seconds(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_radius_pixels":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_radius_pixels(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rage_click_count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_rage_click_count(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -36393,7 +37319,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "identifier_suggestion":
+		case "app_version_suggestion":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -36402,7 +37328,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_identifier_suggestion(ctx, field)
+				res = ec._Query_app_version_suggestion(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -36416,7 +37342,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "app_version_suggestion":
+		case "identifier_suggestion":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -36425,7 +37351,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_app_version_suggestion(ctx, field)
+				res = ec._Query_identifier_suggestion(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -36757,7 +37683,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "web_vital_dashboard":
+		case "metrics_dashboard":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -36766,7 +37692,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_web_vital_dashboard(ctx, field)
+				res = ec._Query_metrics_dashboard(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -38610,6 +39536,13 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "lastInvoice":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SubscriptionDetails_lastInvoice(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38934,87 +39867,6 @@ func (ec *executionContext) _UserProperty(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var webVitalDashboardPayloadImplementors = []string{"WebVitalDashboardPayload"}
-
-func (ec *executionContext) _WebVitalDashboardPayload(ctx context.Context, sel ast.SelectionSet, obj *model.WebVitalDashboardPayload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, webVitalDashboardPayloadImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("WebVitalDashboardPayload")
-		case "date":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_date(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "avg":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_avg(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p50":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_p50(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p75":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_p75(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p90":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_p90(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p99":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WebVitalDashboardPayload_p99(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var workspaceImplementors = []string{"Workspace"}
 
 func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet, obj *model1.Workspace) graphql.Marshaler {
@@ -39076,6 +39928,16 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "plan_tier":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Workspace_plan_tier(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "trial_end_date":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Workspace_trial_end_date(ctx, field, obj)
@@ -39127,6 +39989,16 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "trial_extension_enabled":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Workspace_trial_extension_enabled(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clearbit_enabled":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Workspace_clearbit_enabled(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -39870,6 +40742,49 @@ func (ec *executionContext) marshalNDailySessionCount2ᚕᚖgithubᚗcomᚋhighl
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalODailySessionCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDailySessionCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx context.Context, v interface{}) (model.DashboardParamsInput, error) {
+	res, err := ec.unmarshalInputDashboardParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx context.Context, sel ast.SelectionSet, v []*model.DashboardPayload) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -41821,49 +42736,6 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNWebVitalDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardParamsInput(ctx context.Context, v interface{}) (model.WebVitalDashboardParamsInput, error) {
-	res, err := ec.unmarshalInputWebVitalDashboardParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNWebVitalDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx context.Context, sel ast.SelectionSet, v []*model.WebVitalDashboardPayload) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOWebVitalDashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) marshalNWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -42333,6 +43205,13 @@ func (ec *executionContext) marshalODailySessionCount2ᚖgithubᚗcomᚋhighligh
 	return ec._DailySessionCount(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx context.Context, sel ast.SelectionSet, v *model.DashboardPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DashboardPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -42734,6 +43613,13 @@ func (ec *executionContext) marshalOIntegrationType2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOInvoice2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Invoice(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
@@ -43377,13 +44263,6 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighli
 	}
 	res, err := ec.unmarshalInputUserPropertyInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOWebVitalDashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐWebVitalDashboardPayload(ctx context.Context, sel ast.SelectionSet, v *model.WebVitalDashboardPayload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._WebVitalDashboardPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {

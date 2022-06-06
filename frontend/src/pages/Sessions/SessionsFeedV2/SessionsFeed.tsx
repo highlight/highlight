@@ -16,11 +16,13 @@ import {
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
 import { PlanType } from '@graph/schemas';
+import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
 import { useIntegrated } from '@util/integrated';
@@ -104,14 +106,8 @@ export const SessionFeed = React.memo(() => {
 
     const addSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
-            setSessionResults((prev) => ({
-                ...response.sessions_opensearch,
-                totalCount: Math.max(
-                    prev.totalCount,
-                    response.sessions_opensearch.totalCount
-                ),
-            }));
-            totalPages.current = Math.floor(
+            setSessionResults(response.sessions_opensearch);
+            totalPages.current = Math.ceil(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
         }
@@ -226,6 +222,10 @@ export const SessionFeed = React.memo(() => {
         <SessionFeedConfigurationContextProvider
             value={sessionFeedConfiguration}
         >
+            <div className={styles.filtersContainer}>
+                <SegmentPickerForPlayer />
+                <SessionsQueryBuilder />
+            </div>
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (
@@ -243,7 +243,7 @@ export const SessionFeed = React.memo(() => {
                                             sessionFeedConfiguration.countFormat
                                         )}`}
                                     />
-                                    {' sessions'}
+                                    {' sessions '}
                                 </Tooltip>
                                 {!!unprocessedSessionsCount &&
                                     unprocessedSessionsCount > 0 &&
@@ -294,6 +294,11 @@ export const SessionFeed = React.memo(() => {
                 </div>
             </div>
             <div className={styles.feedContent}>
+                <div
+                    className={classNames(styles.feedLine, {
+                        [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                    })}
+                />
                 <div
                     onScroll={onFeedScrollListener}
                     className={classNames(styles.feedItems, {
@@ -354,12 +359,8 @@ export const SessionFeed = React.memo(() => {
                         </>
                     )}
                 </div>
-                <Pagination
-                    page={page}
-                    setPage={setPage}
-                    totalPages={totalPages}
-                />
             </div>
+            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
         </SessionFeedConfigurationContextProvider>
     );
 });

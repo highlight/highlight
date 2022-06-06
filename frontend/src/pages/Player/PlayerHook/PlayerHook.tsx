@@ -593,12 +593,17 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
+    // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
     const initReplayer = (newEvents: HighlightEvent[]) => {
-        setState(ReplayerState.Loading);
-        // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
         const playerMountingRoot = document.getElementById(
             'player'
         ) as HTMLElement;
+        if (!playerMountingRoot) {
+            setState(ReplayerState.Empty);
+            return;
+        } else {
+            setState(ReplayerState.Loading);
+        }
         // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
         // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
         if (playerMountingRoot?.childNodes?.length > 0) {
@@ -1256,6 +1261,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         browserExtensionScriptURLs,
         setBrowserExtensionScriptURLs,
         isLoadingEvents,
+        setIsLoadingEvents,
         sessionMetadata,
     };
 };

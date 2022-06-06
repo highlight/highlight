@@ -79,9 +79,6 @@ export const ProjectRouter = () => {
                     name: data?.workspace.name,
                 },
             });
-            window.rudderanalytics.group(data?.workspace.id, {
-                name: data?.workspace.name,
-            });
         }
     }, [data?.workspace]);
 
@@ -289,6 +286,11 @@ export const ProjectRouter = () => {
         return null;
     }
 
+    // if the user can join this workspace, give them that option via the ErrorState
+    const joinableWorkspace = data?.joinable_workspaces
+        ?.filter((w) => w?.id === data?.workspace?.id)
+        ?.pop();
+
     return (
         <GlobalContextProvider
             value={{
@@ -338,17 +340,19 @@ export const ProjectRouter = () => {
                         })}
                     >
                         {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-                        {isLoggedIn && (error || !data?.project) ? (
+                        {isLoggedIn && joinableWorkspace ? (
                             <ErrorState
+                                shownWithHeader
+                                joinableWorkspace={joinableWorkspace}
+                            />
+                        ) : isLoggedIn && (error || !data?.project) ? (
+                            <ErrorState
+                                title={'Enter this Workspace?'}
                                 message={`
-                        Seems like you don’t have access to this page 😢. If you're
-                        part of a team, ask your project admin to send you an
-                        invite. Otherwise, feel free to make an account!
+                        Sadly, you don’t have access to the workspace 😢
+                        Request access and we'll shoot an email to your workspace admin. 
+                        Alternatively, feel free to make an account!
                         `}
-                                errorString={
-                                    'ProjectRouter Error: ' +
-                                    JSON.stringify(error)
-                                }
                                 shownWithHeader
                                 showRequestAccess
                             />

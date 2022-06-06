@@ -1,7 +1,8 @@
+export const avatar: string;
 export const avatarWrapper: string;
 export const blurred: string;
 export const deviceDetails: string;
-export const enhancedAvatar: string;
+export const enableClearbit: string;
 export const enhancedBio: string;
 export const enhancedLinksGrid: string;
 export const enhancedName: string;
@@ -22,6 +23,7 @@ export const userAvatarWrapper: string;
 export const userBox: string;
 export const userDetailsSection: string;
 export const userEnhanced: string;
+export const userEnhancedGrid: string;
 export const userIdentifier: string;
 export const userIdHeader: string;
 export const userIdSubHeader: string;

@@ -14,6 +14,9 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/lambda"
 
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+	"github.com/leonelquinteros/hubspot"
+
 	"github.com/sendgrid/sendgrid-go"
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -189,6 +192,7 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -286,22 +290,19 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-			pushPayloadWorkerPool := workerpool.New(80)
-			pushPayloadWorkerPool.SetPanicHandler(util.Recover)
 			alertWorkerpool := workerpool.New(40)
 			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
-						DB:                    db,
-						ProducerQueue:         kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
-						MailClient:            sendgrid.NewSendClient(sendgridKey),
-						StorageClient:         storage,
-						PushPayloadWorkerPool: pushPayloadWorkerPool,
-						AlertWorkerPool:       alertWorkerpool,
-						OpenSearch:            opensearchClient,
-						RH:                    &rh,
+						DB:              db,
+						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
+						MailClient:      sendgrid.NewSendClient(sendgridKey),
+						StorageClient:   storage,
+						AlertWorkerPool: alertWorkerpool,
+						OpenSearch:      opensearchClient,
+						RH:              &rh,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -371,18 +372,15 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		pushPayloadWorkerPool := workerpool.New(80)
-		pushPayloadWorkerPool.SetPanicHandler(util.Recover)
 		alertWorkerpool := workerpool.New(40)
 		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:                    db,
-			MailClient:            sendgrid.NewSendClient(sendgridKey),
-			StorageClient:         storage,
-			PushPayloadWorkerPool: pushPayloadWorkerPool,
-			AlertWorkerPool:       alertWorkerpool,
-			OpenSearch:            opensearchClient,
-			RH:                    &rh,
+			DB:              db,
+			MailClient:      sendgrid.NewSendClient(sendgridKey),
+			StorageClient:   storage,
+			AlertWorkerPool: alertWorkerpool,
+			OpenSearch:      opensearchClient,
+			RH:              &rh,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {

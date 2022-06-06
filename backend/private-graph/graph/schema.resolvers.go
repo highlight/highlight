@@ -24,6 +24,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -32,6 +33,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -45,6 +47,7 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -242,10 +245,30 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 		return false, err
 	}
 
-	admin.Name = &adminDetails.Name
+	fullName := adminDetails.FirstName + " " + adminDetails.LastName
+	admin.FirstName = &adminDetails.FirstName
+	admin.LastName = &adminDetails.LastName
+	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
+	admin.Phone = adminDetails.Phone
+	admin.AboutYouDetailsFilled = &model.T
+
+	if !util.IsDevEnv() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
+			if _, err := r.HubspotApi.CreateContactForAdmin(
+				admin.ID,
+				*admin.Email,
+				*admin.UserDefinedRole,
+				*admin.UserDefinedPersona,
+				*admin.FirstName,
+				*admin.LastName,
+				*admin.Phone); err != nil {
+				log.Error(err, "error creating hubspot contact")
+			}
+		})
+	}
 
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -298,6 +321,17 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		return nil, e.Wrap(err, "error creating workspace")
 	}
 
+	if !util.IsDevEnv() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
+			// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
+			if _, err := r.HubspotApi.CreateCompanyForWorkspace(workspace.ID, *admin.Email, name); err != nil {
+				log.Error(err, "error creating hubspot company")
+			} else if err := r.HubspotApi.CreateContactCompanyAssociation(admin.ID, workspace.ID); err != nil {
+				log.Error(err, "error creating association between hubspot records with admin ID [%v] and workspace ID [%v]", admin.ID, workspace.ID)
+			}
+		})
+	}
+
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
 		params := &stripe.CustomerParams{
@@ -311,16 +345,14 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		}
 	}
 
-	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
-		StripeCustomerID: &c.ID,
-	}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{StripeCustomerID: &c.ID}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -331,11 +363,26 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 			return nil, e.Wrap(err, "The regular expression '"+expression+"' is not valid")
 		}
 	}
-	if err := r.DB.Model(project).Updates(&model.Project{
+
+	updates := &model.Project{
 		Name:          name,
 		BillingEmail:  billingEmail,
 		ExcludedUsers: excludedUsers,
-	}).Error; err != nil {
+	}
+
+	if rageClickWindowSeconds != nil {
+		updates.RageClickWindowSeconds = *rageClickWindowSeconds
+	}
+
+	if rageClickRadiusPixels != nil {
+		updates.RageClickRadiusPixels = *rageClickRadiusPixels
+	}
+
+	if rageClickCount != nil {
+		updates.RageClickCount = *rageClickCount
+	}
+
+	if err := r.DB.Model(project).Updates(updates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
 	}
 	return project, nil
@@ -363,11 +410,58 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")
 	}
-	session := &model.Session{}
+
+	// Update the the number of sessions viewed for the current admin.
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		// Check if this admin has already viewed
+		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
+			log.Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
+			return
+		}
+		var currentSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where session_id = ? and admin_id = ?
+	`, s.ID, admin.ID).Scan(&currentSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying count of session views from admin"))
+			return
+		} else if currentSessionCount > 0 {
+			log.Info("not updating hubspot session count; admin has already viewed this session")
+			return
+		}
+
+		var totalSessionCount int64
+		if err := r.DB.Raw(`
+			select count(*)
+			from session_admins_views
+			where admin_id = ?
+	`, admin.ID).Scan(&totalSessionCount).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying total count of session views from admin"))
+			return
+		}
+		totalSessionCountAsInt := int(totalSessionCount) + 1
+
+		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating session count for admin in postgres"))
+		}
+		if !util.IsDevEnv() {
+			if err := r.HubspotApi.UpdateContactProperty(admin.ID, []hubspot.Property{{
+				Name:     "number_of_highlight_sessions_viewed",
+				Property: "number_of_highlight_sessions_viewed",
+				Value:    totalSessionCountAsInt,
+			}}); err != nil {
+				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+			}
+			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
+		}
+	})
+
+	newSession := &model.Session{}
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&newSession).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -381,7 +475,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		ID: admin.ID,
 	}
 
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "viewed_by_admins", []interface{}{
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, newSession.ID, "viewed_by_admins", []interface{}{
 		newAdminView}); err != nil {
 		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
 	}
@@ -390,7 +484,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return session, nil
+	return newSession, nil
 }
 
 func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
@@ -519,12 +613,21 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	workspace := &model.Workspace{}
-	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
 	if err != nil {
-		log.Error(err, " failed to add admin to workspace")
-		return adminId, err
+		log.Error(e.Wrap(err, "failed to add admin to workspace"))
+		return adminID, err
 	}
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		if err := r.HubspotApi.CreateContactCompanyAssociation(*adminID, workspaceID); err != nil {
+			log.Error(e.Wrapf(
+				err,
+				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
+				*adminID,
+				workspaceID,
+			))
+		}
+	})
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
@@ -532,17 +635,17 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 		if err := r.DB.Model(admin).Updates(model.Admin{
 			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
-			return adminId, e.New("500")
+			return adminID, e.New("500")
 		}
 	}
 
-	return adminId, nil
+	return adminID, nil
 }
 
 func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
@@ -2622,20 +2725,66 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		return &model.T, nil
 	}
 
+	request := &model.WorkspaceAccessRequest{
+		AdminID:                admin.ID,
+		LastRequestedWorkspace: workspace.ID,
+	}
+	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
+		Columns: []clause.Column{{Name: "admin_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"updated_at":               time.Now(),
+			"last_requested_workspace": workspace.ID,
+		}),
+		Where: clause.Where{
+			Exprs: []clause.Expression{
+				clause.Lt{
+					Column: "workspace_access_requests.updated_at",
+					Value:  time.Now().Add(-RequestAccessMinimumDelay),
+				},
+			},
+		},
+	}).Create(&request)
+	if err := query.Error; err != nil {
+		log.Error(e.Wrap(err, "error upserting access requests"))
+		return &model.T, nil
+	}
+
+	// no rows updated, so user recently requested access. ignore the request
+	if query.RowsAffected == 0 {
+		return &model.T, nil
+	}
+
 	var workspaceAdmins []*model.Admin
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+	if err := r.DB.Order("created_at ASC").Model(workspace).Limit(2).Association("Admins").Find(&workspaceAdmins, "role=?", model.AdminRole.ADMIN); err != nil {
 		log.Error(e.Wrap(err, "error getting admins for the workspace"))
 		return &model.T, nil
 	}
 
-	for _, a := range workspaceAdmins[:2] {
-		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
-			log.Error(e.Wrap(err, "failed to send request access email"))
-			return &model.T, nil
+	for _, a := range workspaceAdmins {
+		if a != nil {
+			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				log.Error(e.Wrap(err, "failed to send request access email"))
+				return &model.T, nil
+			}
 		}
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return &enabled, e.Wrap(err, "admin does not have access to this workspace")
+	}
+	if pricing.MustUpgradeForClearbit(workspace.PlanTier) {
+		return nil, nil
+	}
+	workspace.ClearbitEnabled = enabled
+	if err := r.DB.Model(workspace).Update("ClearbitEnabled", &enabled).Error; err != nil {
+		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
+	}
+	return &enabled, nil
 }
 
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
@@ -2947,7 +3096,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
 
-	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3010,8 +3159,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err != nil {
 		return nil, e.Wrap(err, "admin not workspace owner")
 	}
-	pt := modelInputs.PlanType(w.PlanTier)
-	if pt != modelInputs.PlanTypeStartup && pt != modelInputs.PlanTypeEnterprise {
+	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
 	}
 	// preload `Fields` children
@@ -3039,35 +3187,45 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		userDetailsModel := &model.EnhancedUserDetails{}
 		p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+			if !w.ClearbitEnabled {
+				return nil, nil
+			}
 			log.Infof("retrieving api response for clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			clearbitApiRequestSpan := tracer.StartSpan("private-graph.EnhancedUserDetails",
+				tracer.ResourceName("clearbit.api.request"),
+				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			clearbitApiRequestSpan.Finish()
+			p, co = pc.Person, pc.Company
 			if err != nil {
 				log.Errorf("error w/ clearbit request: %v", err)
+			} else if len(p.ID) > 0 {
+				// Store the data for this email in the DB.
+				r.PrivateWorkerPool.SubmitRecover(func() {
+					log.Infof("caching response data in the db")
+					modelToSave := &model.EnhancedUserDetails{}
+					modelToSave.Email = &email
+					if personBytes, err := json.Marshal(p); err == nil {
+						sPersonBytes := string(personBytes)
+						modelToSave.PersonJSON = &sPersonBytes
+					} else {
+						log.Errorf("error marshaling clearbit person: %v", err)
+					}
+					if companyBytes, err := json.Marshal(co); err == nil {
+						sCompanyBytes := string(companyBytes)
+						modelToSave.CompanyJSON = &sCompanyBytes
+					} else {
+						log.Errorf("error marshaling clearbit company: %v", err)
+					}
+					if err := r.DB.Create(modelToSave).Error; err != nil {
+						log.Errorf("error creating clearbit details model")
+					}
+				})
 			}
-			p, co = pc.Person, pc.Company
-			// Store the data for this email in the DB.
-			r.PrivateWorkerPool.SubmitRecover(func() {
-				log.Infof("caching response data in the db")
-				modelToSave := &model.EnhancedUserDetails{}
-				modelToSave.Email = &email
-				if personBytes, err := json.Marshal(p); err == nil {
-					sPersonBytes := string(personBytes)
-					modelToSave.PersonJSON = &sPersonBytes
-				} else {
-					log.Errorf("error marshaling clearbit person: %v", err)
-				}
-				if companyBytes, err := json.Marshal(co); err == nil {
-					sCompanyBytes := string(companyBytes)
-					modelToSave.CompanyJSON = &sCompanyBytes
-				} else {
-					log.Errorf("error marshaling clearbit company: %v", err)
-				}
-				if err := r.DB.Create(modelToSave).Error; err != nil {
-					log.Errorf("error creating clearbit details model")
-				}
-			})
 		} else {
-			log.Infof("retrieving db entry for clearbit lookup")
+			log.Infof("retrieving cache db entry of clearbit lookup")
+			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.Errorf("error unmarshaling person: %v", err)
@@ -3313,15 +3471,17 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, nil
 	}
-	var count int64
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
+
+	firstSession := model.Session{}
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	if e.Is(err, gorm.ErrRecordNotFound) {
+		return &model.F, nil
+	}
 	if err != nil {
-		return nil, e.Wrap(err, "error getting associated admins")
+		return nil, e.Wrap(err, "error querying session for project")
 	}
-	if count > 0 {
-		return &model.T, nil
-	}
-	return &model.F, nil
+
+	return &model.T, nil
 }
 
 func (r *queryResolver) IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error) {
@@ -3349,10 +3509,17 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 		projectID = 1
 	}
 
+	// lookback based on DeleteCompletedSessions
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Where(&model.Session{Processed: &model.F, Excluded: &model.F}).
-		Count(&count).Error; err != nil {
-		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	if err := r.DB.Raw(`
+		SELECT COUNT(*)
+		FROM sessions
+		WHERE project_id = ?
+		AND processed = false
+		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
+	`, projectID).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving live users count")
 	}
 
 	return &count, nil
@@ -3375,6 +3542,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 		WHERE project_id = ?
 		AND processed = false
 		AND excluded = false
+		AND created_at > NOW() - interval '4 hours 10 minutes'
 	`, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving live users count")
 	}
@@ -3739,7 +3907,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			%s
 		]
 	}}`, query)
-	resultCount, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3759,15 +3927,9 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	res := []*model.Field{}
 
 	if err := r.DB.Raw(`
-		SELECT DISTINCT type, name
-		FROM fields f
+		SELECT type, name
+		FROM fields_in_use_view f
 		WHERE project_id = ?
-		AND type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		)
 	`, projectID).Scan(&res).Error; err != nil {
 		return nil, e.Wrap(err, "error querying field types for project")
 	}
@@ -3809,7 +3971,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3859,7 +4021,7 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(count),
 	}
-	_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
+	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3910,7 +4072,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	errorResults := []*model.Field{}
 
 	g.Go(func() error {
-		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
+		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
 		if err != nil {
 			return err
 		}
@@ -3918,7 +4080,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	})
 
 	g.Go(func() error {
-		_, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
+		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
 		if err != nil {
 			return err
 		}
@@ -4314,25 +4476,6 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	return fields, nil
 }
 
-func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	identifiers := []*string{}
-	if err := r.DB.Raw(`
-		SELECT
-			DISTINCT identifier
-		FROM sessions
-		WHERE project_id=?
-			AND identifier <> ''
-			AND identifier IS NOT NULL
-		ORDER BY identifier ASC
-		`, projectID).Scan(&identifiers).Error; err != nil {
-		return nil, e.Wrap(err, "error querying identifier suggestion")
-	}
-	return identifiers, nil
-}
-
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -4344,6 +4487,26 @@ func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int)
 	}
 
 	return appVersions, nil
+}
+
+func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
+	options := opensearch.SearchOptions{
+		MaxResults:     pointy.Int(0),
+		AggregateField: pointy.String("identifier.keyword"),
+	}
+
+	results := []model.Session{}
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, input, options, &results)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying identifier aggregates")
+	}
+
+	return lo.Filter(lo.Keys(aggs), func(k string, idx int) bool { return len(k) > 0 }), nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -4456,8 +4619,9 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 		return ret, err
 	}
 
+	// Workspace does not have linear set up yet, don't have to treat this as an error
 	if workspace.LinearAccessToken == nil {
-		return ret, e.New("linear access token not found")
+		return ret, nil
 	}
 
 	res, err := r.GetLinearTeams(*workspace.LinearAccessToken)
@@ -4585,11 +4749,13 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
-			UID:           &uid,
-			Name:          &firebaseUser.DisplayName,
-			Email:         &firebaseUser.Email,
-			PhotoURL:      &firebaseUser.PhotoURL,
-			EmailVerified: &firebaseUser.EmailVerified,
+			UID:                   &uid,
+			Name:                  &firebaseUser.DisplayName,
+			Email:                 &firebaseUser.Email,
+			PhotoURL:              &firebaseUser.PhotoURL,
+			EmailVerified:         &firebaseUser.EmailVerified,
+			Phone:                 &firebaseUser.PhoneNumber,
+			AboutYouDetailsFilled: &model.F,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -4597,16 +4763,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		r.PrivateWorkerPool.SubmitRecover(func() {
-			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
-				log.Errorf("error creating apollo contact: %v", err)
-			} else {
-				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
-				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-					log.Errorf("error adding new contact to sequence: %v", err)
-				}
-			}
-		})
+
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
@@ -4622,6 +4779,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
+			Phone:    &firebaseUser.PhoneNumber,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating org fields")
 			adminSpan.Finish(tracer.WithError(spanError))
@@ -4630,6 +4788,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		admin.Phone = &firebaseUser.PhoneNumber
 		firebaseSpan.Finish()
 	}
 
@@ -4741,42 +4900,69 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	amount := c.Subscriptions.Data[0].Items.Data[0].Price.UnitAmount
+	details := &modelInputs.SubscriptionDetails{BaseAmount: amount}
 
 	discount := c.Subscriptions.Data[0].Discount
-	if discount == nil || discount.Coupon == nil {
-		return &modelInputs.SubscriptionDetails{
-			BaseAmount: amount,
-		}, nil
+	if discount != nil && discount.Coupon != nil {
+		details.DiscountAmount = discount.Coupon.AmountOff
+		details.DiscountPercent = discount.Coupon.PercentOff
 	}
 
-	return &modelInputs.SubscriptionDetails{
-		BaseAmount:      amount,
-		DiscountAmount:  discount.Coupon.AmountOff,
-		DiscountPercent: discount.Coupon.PercentOff,
-	}, nil
+	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
+	invoiceParams := &stripe.InvoiceParams{}
+	customerParams.AddExpand("invoice_items")
+	invoice, err := r.StripeClient.Invoices.Get(invoiceID, invoiceParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying stripe invoice")
+	}
+
+	if invoice != nil {
+		invoiceDue := time.Unix(invoice.Created, 0)
+		status := string(invoice.Status)
+		details.LastInvoice = &modelInputs.Invoice{
+			Date:         &invoiceDue,
+			AmountDue:    &invoice.AmountDue,
+			AmountPaid:   &invoice.AmountPaid,
+			AttemptCount: &invoice.AttemptCount,
+			Status:       &status,
+			URL:          &invoice.HostedInvoiceURL,
+		}
+	}
+
+	return details, nil
 }
 
-func (r *queryResolver) WebVitalDashboard(ctx context.Context, projectID int, webVitalName string, params modelInputs.WebVitalDashboardParamsInput) ([]*modelInputs.WebVitalDashboardPayload, error) {
-	payload := []*modelInputs.WebVitalDashboardPayload{}
+func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
 	}
 
-	if err := r.DB.Raw(`
-	SELECT
-		created_at::date as date,
-		AVG(value) as avg,
-		percentile_cont(0.50) WITHIN GROUP (ORDER BY value) as p50,
-		percentile_cont(0.75) WITHIN GROUP (ORDER BY value) as p75,
-		percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90,
-		percentile_cont(0.99) WITHIN GROUP (ORDER BY value) as p99
-	FROM metrics
-	WHERE name=?
-	AND project_id=?
-	AND created_at >= ?
-	AND created_at <= ?
-	GROUP BY created_at::date, name;
-	`, webVitalName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	resMins := 60
+	if params.ResolutionMinutes != nil {
+		resMins = *params.ResolutionMinutes
+	}
+	tz := "PDT"
+	if params.Timezone != nil {
+		tz = *params.Timezone
+	}
+	query := fmt.Sprintf(`
+		SELECT to_timestamp(cast(extract(
+				       EPOCH FROM created_at AT TIME ZONE '%s'
+				   ) / 60 / %d AS INT) * %d * 60)::timestamp AT TIME ZONE '%s'               as date,
+			   avg(value)                                                                    as avg,
+			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
+			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value)                           as p90,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value)                           as p99
+		  FROM metrics
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?
+		  GROUP BY date;
+	`, tz, resMins, resMins, tz)
+	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}
@@ -5197,3 +5383,11 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+const RequestAccessMinimumDelay = time.Minute * 10

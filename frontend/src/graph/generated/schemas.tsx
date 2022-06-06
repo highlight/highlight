@@ -119,11 +119,22 @@ export type BillingDetails = {
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
+export type Invoice = {
+    __typename?: 'Invoice';
+    amountDue?: Maybe<Scalars['Int64']>;
+    amountPaid?: Maybe<Scalars['Int64']>;
+    attemptCount?: Maybe<Scalars['Int64']>;
+    date?: Maybe<Scalars['Timestamp']>;
+    url?: Maybe<Scalars['String']>;
+    status?: Maybe<Scalars['String']>;
+};
+
 export type SubscriptionDetails = {
     __typename?: 'SubscriptionDetails';
     baseAmount: Scalars['Int64'];
     discountPercent: Scalars['Float'];
     discountAmount: Scalars['Int64'];
+    lastInvoice?: Maybe<Invoice>;
 };
 
 export type Plan = {
@@ -192,6 +203,7 @@ export enum ErrorState {
 export enum MetricType {
     WebVital = 'WebVital',
     Device = 'Device',
+    Backend = 'Backend',
 }
 
 export enum AdminRole {
@@ -213,6 +225,9 @@ export type Project = {
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type Account = {
@@ -256,6 +271,7 @@ export type Workspace = {
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
+    plan_tier: Scalars['String'];
     trial_end_date?: Maybe<Scalars['Timestamp']>;
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
@@ -263,6 +279,7 @@ export type Workspace = {
     allowed_auto_join_email_origins?: Maybe<Scalars['String']>;
     eligible_for_trial_extension: Scalars['Boolean'];
     trial_extension_enabled: Scalars['Boolean'];
+    clearbit_enabled: Scalars['Boolean'];
 };
 
 export type Segment = {
@@ -407,8 +424,10 @@ export type SearchParamsInput = {
     query?: Maybe<Scalars['String']>;
 };
 
-export type WebVitalDashboardParamsInput = {
+export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
+    resolution_minutes?: Maybe<Scalars['Int']>;
+    timezone?: Maybe<Scalars['String']>;
 };
 
 export type SearchParams = {
@@ -434,10 +453,12 @@ export type SearchParams = {
 };
 
 export type AdminAboutYouDetails = {
-    name: Scalars['String'];
+    first_name: Scalars['String'];
+    last_name: Scalars['String'];
     user_defined_role: Scalars['String'];
     user_defined_persona: Scalars['String'];
     referral: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -508,12 +529,14 @@ export type Admin = {
     name: Scalars['String'];
     uid: Scalars['String'];
     email: Scalars['String'];
+    phone?: Maybe<Scalars['String']>;
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
     email_verified?: Maybe<Scalars['Boolean']>;
     referral?: Maybe<Scalars['String']>;
     user_defined_role?: Maybe<Scalars['String']>;
+    about_you_details_filled?: Maybe<Scalars['Boolean']>;
     user_defined_persona?: Maybe<Scalars['String']>;
 };
 
@@ -734,8 +757,8 @@ export type Metric = {
     value: Scalars['Float'];
 };
 
-export type WebVitalDashboardPayload = {
-    __typename?: 'WebVitalDashboardPayload';
+export type DashboardPayload = {
+    __typename?: 'DashboardPayload';
     date: Scalars['String'];
     avg: Scalars['Float'];
     p50: Scalars['Float'];
@@ -836,8 +859,8 @@ export type Query = {
     projectSuggestion: Array<Maybe<Project>>;
     workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
-    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
+    identifier_suggestion: Array<Scalars['String']>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     generate_zapier_access_token: Scalars['String'];
@@ -853,7 +876,7 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
-    web_vital_dashboard: Array<Maybe<WebVitalDashboardPayload>>;
+    metrics_dashboard: Array<Maybe<DashboardPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1119,12 +1142,13 @@ export type QueryEnvironment_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryIdentifier_SuggestionArgs = {
+export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryApp_Version_SuggestionArgs = {
+export type QueryIdentifier_SuggestionArgs = {
     project_id: Scalars['ID'];
+    query: Scalars['String'];
 };
 
 export type QuerySlack_Channel_SuggestionArgs = {
@@ -1184,10 +1208,10 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
-export type QueryWeb_Vital_DashboardArgs = {
+export type QueryMetrics_DashboardArgs = {
     project_id: Scalars['ID'];
-    web_vital_name: Scalars['String'];
-    params: WebVitalDashboardParamsInput;
+    metric_name: Scalars['String'];
+    params: DashboardParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {
@@ -1275,6 +1299,7 @@ export type Mutation = {
     updateAllowMeterOverage?: Maybe<Workspace>;
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
     requestAccess?: Maybe<Scalars['Boolean']>;
+    modifyClearbitIntegration?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1295,6 +1320,9 @@ export type MutationEditProjectArgs = {
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
     excluded_users?: Maybe<Scalars['StringArray']>;
+    rage_click_window_seconds?: Maybe<Scalars['Int']>;
+    rage_click_radius_pixels?: Maybe<Scalars['Int']>;
+    rage_click_count?: Maybe<Scalars['Int']>;
 };
 
 export type MutationEditWorkspaceArgs = {
@@ -1748,6 +1776,11 @@ export type MutationSubmitRegistrationFormArgs = {
 
 export type MutationRequestAccessArgs = {
     project_id: Scalars['ID'];
+};
+
+export type MutationModifyClearbitIntegrationArgs = {
+    workspace_id: Scalars['ID'];
+    enabled: Scalars['Boolean'];
 };
 
 export type Subscription = {
