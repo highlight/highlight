@@ -127,6 +127,7 @@
 .builderContainer > div {
     border-bottom: 1px solid var(--color-gray-300);
     gap: var(--size-xSmall);
+    line-height: 0;
     padding: var(--size-xSmall);
 }
 
@@ -141,13 +142,6 @@
     flex-wrap: wrap;
     justify-content: flex-start;
     row-gap: var(--size-xSmall);
-}
-
-.containerHeading {
-    color: var(--color-gray-500) !important;
-    font-size: 8pt !important;
-    font-weight: normal !important;
-    margin-bottom: var(--size-xSmall) !important;
 }
 
 .separator {
@@ -228,6 +222,14 @@ span:last-child {
     display: inline-flex;
     gap: 1px;
 }
+
+/*.syncButton {
+    background-color: purple;
+    color: var(--color-link) !important;
+    display: inline-block;
+    font-weight: 400;
+    padding: 0;
+}*/
 
 .addFilter {
     border: 1px dashed var(--color-purple-500);

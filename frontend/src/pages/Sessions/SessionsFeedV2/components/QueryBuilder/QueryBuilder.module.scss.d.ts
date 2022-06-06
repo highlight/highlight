@@ -1,6 +1,5 @@
 export const addFilter: string;
 export const builderContainer: string;
-export const containerHeading: string;
 export const contentContainer: string;
 export const divider: string;
 export const highlighterStyles: string;

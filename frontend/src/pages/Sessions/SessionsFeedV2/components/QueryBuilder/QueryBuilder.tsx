@@ -742,7 +742,7 @@ const QueryRule = ({
     );
 };
 
-export const DateRangeFilter = ({
+export const TimeRangeFilter = ({
     rule,
     onChangeValue,
 }: {
@@ -1598,14 +1598,12 @@ const QueryBuilder = ({
     return (
         <div className={styles.builderContainer}>
             <div>
-                <h5 className={styles.containerHeading}>Time Range</h5>
-                <DateRangeFilter
+                <TimeRangeFilter
                     rule={timeRangeRule || defaultTimeRangeRule}
                     onChangeValue={updateTimeRangeRule}
                 />
             </div>
             <div>
-                <h5 className={styles.containerHeading}>Filters</h5>
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>
                         {filterRules.flatMap((rule, index) => [
