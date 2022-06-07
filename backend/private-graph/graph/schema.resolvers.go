@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -27,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -48,6 +47,7 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -2699,10 +2699,10 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 	return &model.T, nil
 }
 
-// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
-const RequestAccessMinimumDelay = time.Minute * 10
-
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
+	const RequestAccessMinimumDelay = time.Minute * 10
+
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).

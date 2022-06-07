@@ -53,9 +53,9 @@
 }
 
 .container {
+    flex-grow: 1;
     position: relative;
     width: 80%;
-    flex-grow: 1;
 }
 
 .dropdownPlaceholder {
