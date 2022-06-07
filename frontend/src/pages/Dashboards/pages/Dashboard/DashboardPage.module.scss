@@ -39,3 +39,45 @@
     right: 80px;
     top: 118px;
 }
+
+.metric {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 1fr 1fr 1fr 1fr 90px;
+}
+
+.newMetric {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--size-large);
+}
+
+.container {
+    position: relative;
+    width: 80%;
+    flex-grow: 1;
+}
+
+.dropdownPlaceholder {
+    height: 20px;
+    width: 20px;
+}
+
+.section {
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 0 !important;
+    padding-top: var(--size-small);
+    row-gap: var(--size-medium);
+    width: 100%;
+
+    &:first-of-type {
+        padding-top: 0;
+    }
+
+    h3 {
+        font-size: var(--size-medium);
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+    }
+}
