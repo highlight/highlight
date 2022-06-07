@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
@@ -45,6 +46,7 @@ export const useBillingHook = ({
     workspace_id?: string;
     project_id?: string;
 }) => {
+    const { isAuthLoading, isHighlightAdmin } = useAuthContext();
     const { data: projectData } = useGetProjectQuery({
         variables: { id: project_id || '' },
         skip: !project_id?.length || !!workspace_id?.length,
@@ -58,7 +60,10 @@ export const useBillingHook = ({
         variables: {
             workspace_id: workspace_id || projectData?.workspace?.id || '',
         },
-        skip: !workspace_id?.length && !projectData?.workspace?.id,
+        skip:
+            isAuthLoading ||
+            !isHighlightAdmin ||
+            (!workspace_id?.length && !projectData?.workspace?.id),
     });
 
     return {
