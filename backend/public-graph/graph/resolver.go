@@ -26,7 +26,6 @@ import (
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
-	"github.com/jackc/pgconn"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -1481,7 +1480,7 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricTyp
 	}})
 }
 
-func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
+func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) error {
 	newMetric := &model.Metric{
 		Name:      m.Name,
 		Value:     m.Value,
@@ -1494,18 +1493,25 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 		newMetric.RequestID = nil
 	}
 
-	if err := r.DB.Create(&newMetric).Error; err != nil {
-		if pgError := err.(*pgconn.PgError); pgError.Code != "23505" {
-			log.Errorf("failed to add new metric %s", err)
-		}
+	if err := r.DB.FirstOrCreate(&newMetric, &model.Metric{
+		Name:      m.Name,
+		ProjectID: projectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricType(m.Type),
+		RequestID: m.RequestID,
+	}).Error; err != nil {
+		return err
 	}
+	return nil
 }
 
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
 	for _, m := range metrics {
 		// for certain metrics, we always want to save them as new metrics
 		if m.Type == customModels.MetricTypeBackend || m.Type == customModels.MetricTypeFrontend {
-			r.addNewMetric(sessionID, projectID, m)
+			if err := r.addNewMetric(sessionID, projectID, m); err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -1519,15 +1525,15 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 		}
 		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
 		if err := tx.Error; err != nil {
-			log.Error(err)
-			return
+			return err
 		}
 		// Update the existing record if it already exists
 		existingMetric.Value = m.Value
 		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
+			return err
 		}
 	}
+	return nil
 }
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
