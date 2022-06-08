@@ -366,6 +366,7 @@ func main() {
 		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
 			DB:              db,
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,

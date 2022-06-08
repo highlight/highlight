@@ -1,3 +1,5 @@
+import { MetricType } from '@graph/schemas';
+
 export interface MetricConfig {
     name: string;
     maxGoodValue: number;
@@ -5,4 +7,5 @@ export interface MetricConfig {
     poorValue: number;
     units: string;
     helpArticle: string;
+    type?: MetricType;
 }

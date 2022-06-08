@@ -1546,6 +1546,7 @@ export type SessionPayloadFragmentFragment = {
 export type GetMetricsDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
+    metric_type?: Types.Maybe<Types.MetricType>;
     params: Types.DashboardParamsInput;
 }>;
 

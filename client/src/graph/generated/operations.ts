@@ -69,7 +69,8 @@ export type BackendErrorObjectInput = {
 export enum MetricType {
   WebVital = 'WebVital',
   Device = 'Device',
-  Backend = 'Backend'
+  Backend = 'Backend',
+  Frontend = 'Frontend'
 }
 
 export type MetricInput = {

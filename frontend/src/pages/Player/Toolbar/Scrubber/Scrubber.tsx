@@ -27,7 +27,6 @@ const Scrubber = ({}: {}) => {
         setTime,
         sessionMetadata,
         sessionIntervals,
-        setIsLoadingEvents,
     } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const draggableRef = useRef(null);
@@ -230,7 +229,6 @@ const Scrubber = ({}: {}) => {
                     onDrag={(e, data) => {
                         const sliderPercent = data.x / wrapperWidth;
                         const newTime = getSliderTime(sliderPercent);
-                        setIsLoadingEvents(true);
                         setDragTime(newTime);
                     }}
                     onStart={() => {
