@@ -44,7 +44,14 @@ const CreateDashboardModal = () => {
             >
                 <ModalBody>
                     <section className={dashStyles.section}>
-                        <h3 style={{ fontWeight: 'normal' }}>
+                        <h3
+                            style={{
+                                fontWeight: 'normal',
+                                alignItems: 'center',
+                                alignSelf: 'center',
+                            }}
+                            className={styles.name}
+                        >
                             What do you want to call it?
                         </h3>
                         <div className={styles.name}>

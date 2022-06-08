@@ -19,7 +19,6 @@
 
 
 .name {
-    display: grid;
-    grid-gap: var(--size-medium);
-    grid-template-columns: 1fr;
+    flex-grow: 1;
+    margin-left: var(--size-medium);
 }

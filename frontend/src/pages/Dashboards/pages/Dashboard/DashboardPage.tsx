@@ -256,7 +256,7 @@ const AddMetricModal = ({
     const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), []);
 
     return (
-        <Modal visible={shown} onCancel={onCancel}>
+        <Modal visible={shown} onCancel={onCancel} title={'Add a Metric Chart'}>
             <ModalBody>
                 <div className={styles.newMetric}>
                     <section className={styles.section}>
@@ -331,7 +331,10 @@ const AddMetricModal = ({
                             />
                         </div>
                         <Button
-                            style={{ width: 90 }}
+                            style={{
+                                width: 90,
+                                marginLeft: 'var(--size-medium)',
+                            }}
                             trackingId={'AddNewMetric'}
                             onClick={() => {
                                 onAddNewMetric(metricName);
