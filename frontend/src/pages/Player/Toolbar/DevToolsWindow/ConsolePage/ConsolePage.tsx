@@ -2,7 +2,6 @@ import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { useGetMessagesQuery, useGetSessionQuery } from '@graph/hooks';
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { useParams } from '@util/react-router/useParams';
 import { ConsoleMessage } from '@util/shared-types';
 import { MillisToMinutesAndSeconds } from '@util/time';
@@ -18,6 +17,7 @@ import React, {
 } from 'react';
 import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
@@ -260,12 +260,11 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={720}
-                        increaseViewportBy={720}
-                        useWindowScroll={true}
+                        overscan={4320}
+                        increaseViewportBy={4320}
                         scrollSeekConfiguration={{
-                            enter: (velocity) => Math.abs(velocity) > 50,
-                            exit: (velocity) => Math.abs(velocity) < 10,
+                            enter: (velocity) => Math.abs(velocity) > 500,
+                            exit: (velocity) => Math.abs(velocity) == 0,
                         }}
                         components={{
                             ScrollSeekPlaceholder: ({ height }) => (

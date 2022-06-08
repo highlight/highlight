@@ -1,6 +1,6 @@
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import classNames from 'classnames';
 import React, { useRef } from 'react';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import styles from './PopoverListContent.module.scss';
 

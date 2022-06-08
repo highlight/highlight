@@ -1,9 +1,9 @@
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import Input from '../../../../../components/Input/Input';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';

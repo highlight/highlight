@@ -3097,14 +3097,6 @@
     prop-types "^15.6.0"
     react-transition-group "^4.3.0"
 
-"@highlight-run/react-virtuoso@^2.2.8":
-  version "2.2.8"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react-virtuoso/-/react-virtuoso-2.2.8.tgz#e1c15e24df008858d2015b822a58fcded6d05d59"
-  integrity sha512-v8Ud6NSV6l5oEJVgn3fPdb/tdySAY5pPOVlFO3fb/fjlbFVcftAEOX6gIUa3bHn2wqXVa54ofBQNxZ6YXaIUkw==
-  dependencies:
-    "@virtuoso.dev/react-urx" "^0.2.12"
-    "@virtuoso.dev/urx" "^0.2.12"
-
 "@highlight-run/react@^1.1.6":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.1.6.tgz#b5f045f2797cd7942e1ed82f674d5df6665c6b84"
@@ -14976,6 +14968,14 @@ react-use@^17.2.4:
     throttle-debounce "^3.0.1"
     ts-easing "^0.2.0"
     tslib "^2.1.0"
+
+react-virtuoso@^2.13.1:
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/react-virtuoso/-/react-virtuoso-2.13.1.tgz#55f9f1d6021984d6f6fb91414f6bca8116724fed"
+  integrity sha512-Wek6hYPYU7W1r9fGEF1/sMrFOH8VV8PW64fCRxx9OSSlq5q+5Cp0uf+7eP0jFWqpZtC2DrqFoj+seZXjkiyHrA==
+  dependencies:
+    "@virtuoso.dev/react-urx" "^0.2.12"
+    "@virtuoso.dev/urx" "^0.2.12"
 
 react@^16.13.1, react@^16.7.0-alpha.0:
   version "16.14.0"
