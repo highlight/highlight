@@ -9,7 +9,7 @@
         "@highlight-run/react": "^1.1.6",
         "@highlight-run/react-mentions": "4.4.1",
         "@highlight-run/react-select": "^5.2.2",
-        "@highlight-run/react-virtuoso": "^2.2.7",
+        "@highlight-run/react-virtuoso": "^2.2.8",
         "@highlight-run/rrweb": "1.2.1",
         "@rehooks/local-storage": "^2.4.0",
         "@rehooks/window-size": "^1.0.2",

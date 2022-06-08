@@ -1433,7 +1433,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 		session := &model.Session{}
 		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
 			log.Error(err)
-			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+			continue
 		}
 
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
@@ -1444,7 +1444,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 				Metrics:   metrics,
 			}}, strconv.Itoa(session.ID))
 		if err != nil {
-			return -1, err
+			log.Error(err)
 		}
 	}
 

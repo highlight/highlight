@@ -1,8 +1,11 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { useGetMessagesQuery, useGetSessionQuery } from '@graph/hooks';
 import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { useParams } from '@util/react-router/useParams';
+import { ConsoleMessage } from '@util/shared-types';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message as AntDesignMessage } from 'antd';
 import { H } from 'highlight.run';
 import _ from 'lodash';
@@ -18,12 +21,6 @@ import Skeleton from 'react-loading-skeleton';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
-import {
-    useGetMessagesQuery,
-    useGetSessionQuery,
-} from '../../../../../graph/generated/hooks';
-import { ConsoleMessage } from '../../../../../util/shared-types';
-import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
@@ -263,7 +260,18 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={500}
+                        overscan={720}
+                        increaseViewportBy={720}
+                        useWindowScroll={true}
+                        scrollSeekConfiguration={{
+                            enter: (velocity) => Math.abs(velocity) > 50,
+                            exit: (velocity) => Math.abs(velocity) < 10,
+                        }}
+                        components={{
+                            ScrollSeekPlaceholder: ({ height }) => (
+                                <Skeleton height={height} />
+                            ),
+                        }}
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>

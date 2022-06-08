@@ -390,7 +390,20 @@ export const ResourcePage = React.memo(
                                             );
                                         }}
                                         ref={virtuoso}
-                                        overscan={500}
+                                        overscan={720}
+                                        increaseViewportBy={720}
+                                        useWindowScroll={true}
+                                        scrollSeekConfiguration={{
+                                            enter: (velocity) =>
+                                                Math.abs(velocity) > 50,
+                                            exit: (velocity) =>
+                                                Math.abs(velocity) < 10,
+                                        }}
+                                        components={{
+                                            ScrollSeekPlaceholder: ({
+                                                height,
+                                            }) => <Skeleton height={height} />,
+                                        }}
                                         data={resourcesToRender}
                                         className={styles.virtuoso}
                                         itemContent={(index, resource) => {
