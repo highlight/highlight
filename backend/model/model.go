@@ -1395,7 +1395,7 @@ type Alert struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
-	ThresholdWindow      *int // TODO: make this not a pointer
+	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
 	ChannelsToNotify     *string
 	EmailsToNotify       *string
 	Name                 *string
