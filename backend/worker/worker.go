@@ -328,7 +328,10 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushMetrics == nil {
 			break
 		}
-		w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
