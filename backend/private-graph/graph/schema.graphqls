@@ -1072,13 +1072,13 @@ type Mutation {
     updateMetricMonitor(
         metric_monitor_id: ID!
         project_id: ID!
-        name: String!
-        function: String!
-        threshold: Float!
-        metric_to_monitor: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        disabled: Boolean!
+        name: String
+        function: String
+        threshold: Float
+        metric_to_monitor: String
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        disabled: Boolean
     ): MetricMonitor
     createErrorAlert(
         project_id: ID!
@@ -1093,29 +1093,29 @@ type Mutation {
     ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
-        name: String!
+        name: String
         error_alert_id: ID!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        regex_groups: [String]!
-        frequency: Int!
-        disabled: Boolean!
+        count_threshold: Int
+        threshold_window: Int
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        regex_groups: [String]
+        frequency: Int
+        disabled: Boolean
     ): ErrorAlert
     deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
+        name: String
+        count_threshold: Int
+        threshold_window: Int
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        disabled: Boolean
     ): SessionAlert
     createSessionFeedbackAlert(
         project_id: ID!
@@ -1129,24 +1129,24 @@ type Mutation {
     updateRageClickAlert(
         project_id: ID!
         rage_click_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
+        name: String
+        count_threshold: Int
+        threshold_window: Int
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        disabled: Boolean
     ): SessionAlert
     updateNewUserAlert(
         project_id: ID!
         session_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
+        name: String
+        count_threshold: Int
+        threshold_window: Int
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        disabled: Boolean
     ): SessionAlert
     createNewUserAlert(
         project_id: ID!
@@ -1160,13 +1160,13 @@ type Mutation {
     updateTrackPropertiesAlert(
         project_id: ID!
         session_alert_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        track_properties: [TrackPropertyInput]!
-        threshold_window: Int!
-        disabled: Boolean!
+        name: String
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        track_properties: [TrackPropertyInput]
+        threshold_window: Int
+        disabled: Boolean
     ): SessionAlert
     createTrackPropertiesAlert(
         project_id: ID!
@@ -1190,25 +1190,25 @@ type Mutation {
     updateUserPropertiesAlert(
         project_id: ID!
         session_alert_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        user_properties: [UserPropertyInput]!
-        threshold_window: Int!
-        disabled: Boolean!
+        name: String
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        user_properties: [UserPropertyInput]
+        threshold_window: Int
+        disabled: Boolean
     ): SessionAlert
     updateNewSessionAlert(
         project_id: ID!
         session_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-        exclude_rules: [String]!
-        disabled: Boolean!
+        name: String
+        count_threshold: Int
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        environments: [String]
+        threshold_window: Int
+        exclude_rules: [String]
+        disabled: Boolean
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!

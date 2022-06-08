@@ -1576,13 +1576,13 @@ export type MutationCreateMetricMonitorArgs = {
 export type MutationUpdateMetricMonitorArgs = {
     metric_monitor_id: Scalars['ID'];
     project_id: Scalars['ID'];
-    name: Scalars['String'];
-    function: Scalars['String'];
-    threshold: Scalars['Float'];
-    metric_to_monitor: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    function?: Maybe<Scalars['String']>;
+    threshold?: Maybe<Scalars['Float']>;
+    metric_to_monitor?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateErrorAlertArgs = {
@@ -1599,16 +1599,16 @@ export type MutationCreateErrorAlertArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     project_id: Scalars['ID'];
-    name: Scalars['String'];
+    name?: Maybe<Scalars['String']>;
     error_alert_id: Scalars['ID'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    regex_groups: Array<Maybe<Scalars['String']>>;
-    frequency: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    regex_groups?: Maybe<Array<Maybe<Scalars['String']>>>;
+    frequency?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationDeleteErrorAlertArgs = {
@@ -1624,13 +1624,13 @@ export type MutationDeleteMetricMonitorArgs = {
 export type MutationUpdateSessionFeedbackAlertArgs = {
     project_id: Scalars['ID'];
     session_feedback_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateSessionFeedbackAlertArgs = {
@@ -1646,25 +1646,25 @@ export type MutationCreateSessionFeedbackAlertArgs = {
 export type MutationUpdateRageClickAlertArgs = {
     project_id: Scalars['ID'];
     rage_click_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateNewUserAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateNewUserAlertArgs = {
@@ -1680,13 +1680,13 @@ export type MutationCreateNewUserAlertArgs = {
 export type MutationUpdateTrackPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    track_properties: Array<Maybe<TrackPropertyInput>>;
-    threshold_window: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    track_properties?: Maybe<Array<Maybe<TrackPropertyInput>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateTrackPropertiesAlertArgs = {
@@ -1717,26 +1717,26 @@ export type MutationDeleteSessionAlertArgs = {
 export type MutationUpdateUserPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    user_properties: Array<Maybe<UserPropertyInput>>;
-    threshold_window: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateNewSessionAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    threshold_window: Scalars['Int'];
-    exclude_rules: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    exclude_rules?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {

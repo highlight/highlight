@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -27,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -48,6 +47,7 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -1793,7 +1793,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1806,24 +1806,40 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling slack channels")
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling slack channels")
+		}
+		metricMonitor.ChannelsToNotify = channelsString
 	}
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		metricMonitor.EmailsToNotify = emailsString
 	}
 
-	metricMonitor.ChannelsToNotify = channelsString
-	metricMonitor.EmailsToNotify = emailsString
-	metricMonitor.Name = name
-	metricMonitor.Function = function
-	metricMonitor.Threshold = threshold
-	metricMonitor.MetricToMonitor = metricToMonitor
+	if name != nil {
+		metricMonitor.Name = *name
+	}
+	if function != nil {
+		metricMonitor.Function = *function
+	}
+	if threshold != nil {
+		metricMonitor.Threshold = *threshold
+	}
+	if metricToMonitor != nil {
+		metricMonitor.MetricToMonitor = *metricToMonitor
+	}
+
 	metricMonitor.LastAdminToEditID = admin.ID
-	metricMonitor.Disabled = &disabled
+
+	if disabled != nil {
+		metricMonitor.Disabled = disabled
+	}
 
 	if err := r.DB.Save(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error updating metric monitor")
@@ -1891,7 +1907,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int, disabled bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1904,36 +1920,59 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error querying error alert")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envString, err := r.MarshalEnvironments(environments)
+		if err != nil {
+			return nil, err
+		}
+
+		projectAlert.ExcludedEnvironments = envString
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-	regexGroupsBytes, err := json.Marshal(regexGroups)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling regex groups")
-	}
-	regexGroupsString := string(regexGroupsBytes)
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, err
+		}
+		regexGroupsBytes, err := json.Marshal(regexGroups)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling regex groups")
+		}
+		regexGroupsString := string(regexGroupsBytes)
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+		projectAlert.RegexGroups = &regexGroupsString
+		projectAlert.ChannelsToNotify = channelsString
+		projectAlert.RegexGroups = &regexGroupsString
 	}
 
-	projectAlert.ChannelsToNotify = channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.RegexGroups = &regexGroupsString
-	projectAlert.Frequency = frequency
-	projectAlert.Disabled = &disabled
+
+	if frequency != nil {
+		projectAlert.Frequency = *frequency
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -1996,7 +2035,7 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 	return metricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2009,37 +2048,53 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 		return nil, e.Wrap(err, "error querying session feedback alert")
 	}
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
-	}
-	envString := string(envBytes)
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
 	}
 
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionFeedbackAlertID,
@@ -2102,7 +2157,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2115,29 +2170,46 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 		return nil, e.Wrap(err, "error querying rage click alert")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envString, err := r.MarshalEnvironments(environments)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ExcludedEnvironments = envString
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ChannelsToNotify = channelsString
 	}
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
 	}
 
-	projectAlert.ChannelsToNotify = channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: rageClickAlertID,
@@ -2151,7 +2223,7 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2164,36 +2236,50 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
-	}
-	envString := string(envBytes)
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
 	}
 
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2255,7 +2341,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow *int, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2263,43 +2349,59 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for track properties alert")
-	}
-	envString := string(envBytes)
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for track properties alert")
-	}
-	channelsString := string(channelsBytes)
-
-	trackPropertiesBytes, err := json.Marshal(trackProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
-	}
-	trackPropertiesString := string(trackPropertiesBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.TrackProperties = &trackPropertiesString
-	projectAlert.Name = &name
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for track properties alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for track properties alert")
+		}
+		channelsString := string(channelsBytes)
+
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if trackProperties != nil {
+		trackPropertiesBytes, err := json.Marshal(trackProperties)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing track properties for track properties alert")
+		}
+		trackPropertiesString := string(trackPropertiesBytes)
+		projectAlert.TrackProperties = &trackPropertiesString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2445,7 +2547,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow *int, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2453,43 +2555,57 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for user properties alert")
-	}
-	envString := string(envBytes)
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for user properties alert")
-	}
-	channelsString := string(channelsBytes)
-
-	userPropertiesBytes, err := json.Marshal(userProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
-	}
-	userPropertiesString := string(userPropertiesBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.UserProperties = &userPropertiesString
-	projectAlert.Name = &name
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for user properties alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for user properties alert")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if userProperties != nil {
+		userPropertiesBytes, err := json.Marshal(userProperties)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing user properties for user properties alert")
+		}
+		userPropertiesString := string(userPropertiesBytes)
+		projectAlert.UserProperties = &userPropertiesString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2503,7 +2619,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2511,43 +2627,62 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for new session alert")
-	}
-	envString := string(envBytes)
-
-	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
-	if err != nil {
-		return nil, err
-	}
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for new session alert")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for new session alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if excludeRules != nil {
+		excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ExcludeRules = excludeRulesString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for new session alert")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Name = &name
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.ExcludeRules = excludeRulesString
-	projectAlert.Disabled = &disabled
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	} else {
+		// default to 0 (graph ql does not like this being nil)
+		defaultThresholdWindow := 0
+		projectAlert.ThresholdWindow = &defaultThresholdWindow
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2698,9 +2833,6 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 
 	return &model.T, nil
 }
-
-// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
-const RequestAccessMinimumDelay = time.Minute * 10
 
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
@@ -5386,3 +5518,11 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+const RequestAccessMinimumDelay = time.Minute * 10

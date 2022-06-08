@@ -12,6 +12,4 @@ export const integrationButton: string;
 export const intercomButton: string;
 export const nameCell: string;
 export const primary: string;
-export const statusCell: string;
-export const statusInnerCell: string;
 export const subTitleContainer: string;

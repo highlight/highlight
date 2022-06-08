@@ -1395,7 +1395,7 @@ type Alert struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
-	ThresholdWindow      *int
+	ThresholdWindow      *int // TODO: make this not a pointer
 	ChannelsToNotify     *string
 	EmailsToNotify       *string
 	Name                 *string

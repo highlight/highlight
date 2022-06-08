@@ -93,20 +93,6 @@
     line-height: 1;
 }
 
-.statusCell {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-}
-
-.statusInnerCell {
-    align-items: center;
-    color: var(--color-red);
-    display: flex;
-    gap: 0.25rem;
-    justify-content: center;
-}
-
 .chart {
     display: flex;
     justify-content: center;

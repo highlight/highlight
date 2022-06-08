@@ -3,7 +3,6 @@ import BarChart from '@components/BarChart/BarChart';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
@@ -16,6 +15,7 @@ import SvgQuoteIcon from '@icons/QuoteIcon';
 import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
+import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
@@ -200,16 +200,7 @@ const TABLE_COLUMNS = [
             const hasData = record?.DailyFrequency?.some(
                 (value: number) => value !== 0
             );
-            if (record.disabled) {
-                return (
-                    <div className={styles.statusCell}>
-                        <span className={styles.statusInnerCell}>
-                            Disabled
-                            <InfoTooltip title="This alert won't trigger unless it is enabled by toggling the switch in the configure page."></InfoTooltip>
-                        </span>
-                    </div>
-                );
-            }
+
             return (
                 <div className={styles.chart}>
                     <div className={styles.innerChart}>
@@ -229,6 +220,15 @@ const TABLE_COLUMNS = [
                 </div>
             );
         },
+    },
+    {
+        title: 'Enable Switch',
+        dataIndex: 'enabled',
+        key: 'enabled',
+        width: 160,
+        render: (_: string, record: any) => (
+            <AlertEnableSwitch record={record} />
+        ),
     },
     {
         title: 'Configure',
@@ -301,94 +301,115 @@ const AlertsPage = () => {
     }, [alertsPayload, loading]);
 
     const alertsAsTableRows = [
-        ...(alertsPayload?.error_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
-            type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
-            Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
-            type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
-            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
-            type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
-            Name:
-                alert?.Name ||
-                ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
-            type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
-            Name:
-                alert?.Name ||
-                ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
-            type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
-            Name:
-                alert?.Name ||
-                ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
-            type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
-            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.rage_click_alerts || []).map((alert) => ({
-            ...alert,
-            configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
-            type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
-            Name: alert?.Name || ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
-            key: alert?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
-        ...(alertsPayload?.metric_monitors || []).map((metricMonitor) => ({
-            ...metricMonitor,
-            configuration: ALERT_CONFIGURATIONS['METRIC_MONITOR'],
-            type: ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
-            Name:
-                metricMonitor?.name ||
-                ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
-            key: metricMonitor?.id,
-            frequency: maxNum,
-            allAdmins: alertsPayload?.admins || [],
-            loading,
-        })),
+        ...(alertsPayload?.error_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
+                type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+                Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.new_user_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
+                type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+                Name:
+                    alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.session_feedback_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
+                type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+                Name:
+                    alert?.Name ||
+                    ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.track_properties_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
+                type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+                Name:
+                    alert?.Name ||
+                    ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.user_properties_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+                type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+                Name:
+                    alert?.Name ||
+                    ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.new_session_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
+                type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+                Name:
+                    alert?.Name ||
+                    ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.rage_click_alerts || [])
+            .map((alert) => ({
+                ...alert,
+                configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
+                type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
+                Name:
+                    alert?.Name ||
+                    ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
+                key: alert?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
+        ...(alertsPayload?.metric_monitors || [])
+            .map((metricMonitor) => ({
+                ...metricMonitor,
+                configuration: ALERT_CONFIGURATIONS['METRIC_MONITOR'],
+                type: ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
+                Name:
+                    metricMonitor?.name ||
+                    ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
+                key: metricMonitor?.id,
+                frequency: maxNum,
+                allAdmins: alertsPayload?.admins || [],
+                loading,
+            }))
+            .sort((a, b) => a.Name.localeCompare(b.Name)),
     ];
 
     return (
