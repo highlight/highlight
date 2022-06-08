@@ -156,7 +156,7 @@ var Models = []interface{}{
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
-	&SavedResource{},
+	// &SavedResource{},
 }
 
 func init() {
@@ -919,9 +919,11 @@ type SessionPayload struct {
 	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
 }
 
-type SavedResource struct {
-	Url  string    `gorm:"uniqueIndex:idx_saved_resources_url_date"`
-	Date time.Time `gorm:"uniqueIndex:idx_saved_resources_url_date"`
+type SavedAsset struct {
+	ProjectID   int    `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	NewUrl      string
 }
 
 type AlertEvent struct {

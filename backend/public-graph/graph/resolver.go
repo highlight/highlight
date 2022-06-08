@@ -1709,6 +1709,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
+		defer util.Recover()
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
@@ -1736,7 +1737,22 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 						continue
 					}
 					event.Data = d
-				} else if event.Type == parse.IncrementalSnapshot {
+				}
+
+				var s interface{}
+				err := json.Unmarshal(event.Data, &s)
+				if err != nil {
+					log.Error(e.Wrap(err, "error unmarshalling event"))
+					continue
+				}
+				parse.ReplaceResourceInNodes(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
+				event.Data, err = json.Marshal(s)
+				if err != nil {
+					log.Error(e.Wrap(err, "error remarshalling event"))
+					continue
+				}
+
+				if event.Type == parse.IncrementalSnapshot {
 					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 					if err != nil {
 						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
@@ -1750,12 +1766,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					}
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
-				d, err := parse.ReplaceResourceUrls(event.Data)
-				if err != nil {
-					log.Error(e.Wrap(err, "Error unmarshalling full snapshot"))
-					continue
-				}
-				event.Data = d
 			}
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
@@ -1778,6 +1788,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// unmarshal messages
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
@@ -1799,6 +1810,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// unmarshal resources
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		if hasBeacon {
@@ -1820,6 +1832,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// process errors
 	g.Go(func() error {
+		defer util.Recover()
 		if hasBeacon {
 			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}

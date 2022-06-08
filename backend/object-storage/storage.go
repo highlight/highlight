@@ -327,7 +327,7 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	return &signedURL, nil
 }
 
-func (s *StorageClient) UploadResource(uuid string, reader io.Reader) error {
+func (s *StorageClient) UploadAsset(uuid string, reader io.Reader) error {
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: pointy.String(S3ResourcesBucketName),
 		Key:    pointy.String(uuid),
