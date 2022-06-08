@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgconn"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -93,6 +94,21 @@ type ErrorMetaData struct {
 type FieldData struct {
 	Name  string
 	Value string
+}
+
+type Request struct {
+	ID string `json:"id"`
+}
+
+type RequestResponsePairs struct {
+	Request Request `json:"request"`
+}
+
+type NetworkResource struct {
+	StartTime            float64              `json:"startTime"`
+	ResponseEnd          float64              `json:"responseEnd"`
+	Name                 string               `json:"name"`
+	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
 
 const ERROR_EVENT_MAX_LENGTH = 10000
@@ -1474,9 +1490,20 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 		Type:      modelInputs.MetricType(m.Type),
 		RequestID: m.RequestID,
 	}
+	if newMetric.RequestID != nil && *newMetric.RequestID == "" {
+		newMetric.RequestID = nil
+	}
+
+	if m.RequestID != nil {
+		log.Warnf("vadim new metric %+v has request ID %s", *newMetric, *m.RequestID)
+	} else {
+		log.Warnf("vadim new metric %+v does not have request ID", *newMetric)
+	}
 
 	if err := r.DB.Create(&newMetric).Error; err != nil {
-		log.Error(err)
+		if pgError := err.(*pgconn.PgError); pgError.Code != "23505" {
+			log.Errorf("failed to add new metric %s", err)
+		}
 	}
 }
 
@@ -1800,13 +1827,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
-		resourcesParsed := make(map[string][]interface{})
+		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			// TODO(vkorolik) frontend metrics recording only
-			// for highlight project for now to ensure we do not overwhelm our message processing
+			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
 			if projectID == 1 {
 				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
 					return err
@@ -1998,43 +2024,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	}
 }
 
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []interface{}) error {
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	var metrics []*customModels.MetricInput
 	for _, r := range resources {
-		attrs := r.(map[string]interface{})
-		start, ok := attrs["startTime"]
-		if !ok {
-			continue
-		}
-		end, ok := attrs["responseEnd"]
-		if !ok {
-			continue
-		}
-		url, ok := attrs["name"]
-		if !ok {
-			continue
-		}
-		pairs, ok := attrs["requestResponsePairs"]
-		if !ok {
-			continue
-		}
-		request, ok := pairs.(map[string]interface{})["request"]
-		if !ok {
-			continue
-		}
-		id, ok := request.(map[string]interface{})["id"]
-		if !ok {
-			continue
-		}
-		requestID := id.(string)
 		metrics = append(metrics, &customModels.MetricInput{
 			SessionSecureID: sessionObj.SecureID,
 			Name:            "delayMS",
-			Value:           end.(float64) - start.(float64),
+			Value:           r.ResponseEnd - r.StartTime,
 			Type:            customModels.MetricTypeFrontend,
-			URL:             url.(string),
-			Timestamp:       time.UnixMilli(int64(start.(float64))),
-			RequestID:       &requestID,
+			URL:             r.Name,
+			Timestamp:       time.UnixMilli(int64(r.StartTime)),
+			RequestID:       &r.RequestResponsePairs.Request.ID,
 		})
 	}
 	if len(metrics) > 0 {
