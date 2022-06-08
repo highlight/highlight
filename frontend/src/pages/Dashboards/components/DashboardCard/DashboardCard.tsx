@@ -46,6 +46,7 @@ const DashboardCard = ({
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 resolution_minutes: metricName === 'delayMS' ? 1 : 24 * 60,
             },
+            metric_type: metricConfig.type,
         },
     });
 

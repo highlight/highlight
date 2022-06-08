@@ -496,7 +496,7 @@ type ComplexityRoot struct {
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int) int
 		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
-		MetricsDashboard             func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
+		MetricsDashboard             func(childComplexity int, projectID int, metricName string, metricType *model.MetricType, params model.DashboardParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -982,7 +982,7 @@ type QueryResolver interface {
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
-	MetricsDashboard(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
+	MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType *model.MetricType, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -3825,7 +3825,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricsDashboard(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput)), true
+		return e.complexity.Query.MetricsDashboard(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(*model.MetricType), args["params"].(model.DashboardParamsInput)), true
 
 	case "Query.new_session_alerts":
 		if e.complexity.Query.NewSessionAlerts == nil {
@@ -5795,6 +5795,7 @@ enum MetricType {
     WebVital
     Device
     Backend
+    Frontend
 }
 
 enum AdminRole {
@@ -6492,6 +6493,7 @@ type Query {
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
+        metric_type: MetricType
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metric_preview(
@@ -10735,15 +10737,24 @@ func (ec *executionContext) field_Query_metrics_dashboard_args(ctx context.Conte
 		}
 	}
 	args["metric_name"] = arg1
-	var arg2 model.DashboardParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
+	var arg2 *model.MetricType
+	if tmp, ok := rawArgs["metric_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_type"))
+		arg2, err = ec.unmarshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["metric_type"] = arg2
+	var arg3 model.DashboardParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg3, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg3
 	return args, nil
 }
 
@@ -24557,7 +24568,7 @@ func (ec *executionContext) _Query_metrics_dashboard(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsDashboard(rctx, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput))
+		return ec.resolvers.Query().MetricsDashboard(rctx, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(*model.MetricType), args["params"].(model.DashboardParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43696,6 +43707,22 @@ func (ec *executionContext) marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._MetricPreview(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (*model.MetricType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.MetricType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v *model.MetricType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {

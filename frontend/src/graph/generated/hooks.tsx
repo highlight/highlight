@@ -4110,11 +4110,13 @@ export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
         $metric_name: String!
+        $metric_type: MetricType
         $params: DashboardParamsInput!
     ) {
         metrics_dashboard(
             project_id: $project_id
             metric_name: $metric_name
+            metric_type: $metric_type
             params: $params
         ) {
             date
@@ -4141,6 +4143,7 @@ export const GetMetricsDashboardDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
+ *      metric_type: // value for 'metric_type'
  *      params: // value for 'params'
  *   },
  * });
