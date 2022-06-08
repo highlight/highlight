@@ -54,6 +54,7 @@ import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = React.memo(() => {
+    const { isHighlightAdmin } = useAuthContext();
     const {
         replayer,
         setTime,
@@ -100,7 +101,11 @@ export const Toolbar = React.memo(() => {
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused = ReplayerPausedStates.includes(state);
 
-    const [histogramOn] = useLocalStorage(`highlight-session-histogram`, false);
+    // On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
+    const [histogramOn] = useLocalStorage(
+        `highlight-session-histogram-v2`,
+        isHighlightAdmin
+    );
 
     useEffect(() => {
         if (replayer) {
@@ -258,13 +263,13 @@ export const Toolbar = React.memo(() => {
             >
                 {histogramOn && (
                     <>
+                        <Scrubber />
                         <TimelineIndicatorsBarGraph
                             sessionIntervals={sessionIntervals}
                             selectedTimelineAnnotationTypes={
                                 selectedTimelineAnnotationTypes
                             }
                         />
-                        <Scrubber />
                     </>
                 )}
                 {!histogramOn && (
