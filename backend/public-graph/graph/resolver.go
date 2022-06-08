@@ -1494,12 +1494,6 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 		newMetric.RequestID = nil
 	}
 
-	if m.RequestID != nil {
-		log.Warnf("vadim new metric %+v has request ID %s", *newMetric, *m.RequestID)
-	} else {
-		log.Warnf("vadim new metric %+v does not have request ID", *newMetric)
-	}
-
 	if err := r.DB.Create(&newMetric).Error; err != nil {
 		if pgError := err.(*pgconn.PgError); pgError.Code != "23505" {
 			log.Errorf("failed to add new metric %s", err)
