@@ -27,7 +27,6 @@ const Scrubber = ({}: {}) => {
         setTime,
         sessionMetadata,
         sessionIntervals,
-        setIsLoadingEvents,
     } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const draggableRef = useRef(null);
