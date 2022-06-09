@@ -2591,16 +2591,16 @@ export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
 export const UpdateErrorAlertDocument = gql`
     mutation UpdateErrorAlert(
         $project_id: ID!
-        $name: String!
+        $name: String
         $error_alert_id: ID!
-        $count_threshold: Int!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $regex_groups: [String]!
-        $frequency: Int!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $regex_groups: [String]
+        $frequency: Int
+        $disabled: Boolean
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -2930,13 +2930,13 @@ export const UpdateSessionFeedbackAlertDocument = gql`
     mutation UpdateSessionFeedbackAlert(
         $project_id: ID!
         $session_feedback_alert_id: ID!
-        $count_threshold: Int!
-        $name: String!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $name: String
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $disabled: Boolean
     ) {
         updateSessionFeedbackAlert(
             project_id: $project_id
@@ -3183,14 +3183,14 @@ export const UpdateNewSessionAlertDocument = gql`
     mutation UpdateNewSessionAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $count_threshold: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $threshold_window: Int!
-        $exclude_rules: [String]!
-        $disabled: Boolean!
+        $name: String
+        $count_threshold: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $threshold_window: Int
+        $exclude_rules: [String]
+        $disabled: Boolean
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -3274,13 +3274,13 @@ export const UpdateRageClickAlertDocument = gql`
     mutation UpdateRageClickAlert(
         $project_id: ID!
         $rage_click_alert_id: ID!
-        $name: String!
-        $count_threshold: Int!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $disabled: Boolean!
+        $name: String
+        $count_threshold: Int
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $disabled: Boolean
     ) {
         updateRageClickAlert(
             project_id: $project_id
@@ -3358,13 +3358,13 @@ export const UpdateNewUserAlertDocument = gql`
     mutation UpdateNewUserAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $count_threshold: Int!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateNewUserAlert(
             project_id: $project_id
@@ -3529,13 +3529,13 @@ export const UpdateTrackPropertiesAlertDocument = gql`
     mutation UpdateTrackPropertiesAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $track_properties: [TrackPropertyInput]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $track_properties: [TrackPropertyInput]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateTrackPropertiesAlert(
             project_id: $project_id
@@ -3706,13 +3706,13 @@ export const UpdateUserPropertiesAlertDocument = gql`
     mutation UpdateUserPropertiesAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $user_properties: [UserPropertyInput]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $user_properties: [UserPropertyInput]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateUserPropertiesAlert(
             project_id: $project_id
