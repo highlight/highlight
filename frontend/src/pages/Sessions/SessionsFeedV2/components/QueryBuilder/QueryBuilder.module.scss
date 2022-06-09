@@ -225,12 +225,19 @@ span:last-child {
 
 .syncButton {
     background-color: var(--color-green-600);
+    border-radius: 4px;
     color: var(--color-white) !important;
     display: inline-block;
     font-weight: 400;
+    height: 24.85px;
     line-height: 0;
     margin-left: var(--size-xxSmall);
     padding: var(--size-xxSmall);
+    width: 24.85px;
+}
+
+.syncButton:hover {
+    opacity: 60%;
 }
 
 .addFilter {

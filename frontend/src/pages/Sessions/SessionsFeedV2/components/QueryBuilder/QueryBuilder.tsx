@@ -1602,21 +1602,26 @@ const QueryBuilder = ({
                         rule={timeRangeRule || defaultTimeRangeRule}
                         onChangeValue={updateTimeRangeRule}
                     />
-                    <Button
-                        className={styles.syncButton}
-                        type="text"
-                        // onClick={onClick}
-                        loading={false}
-                        trackingId={'RefreshSearchResults'}
-                    >
-                        <Tooltip
-                            title={
-                                'Refresh the channels & people in your Slack Workspace.'
-                            }
+                    {!readonly && (
+                        <Button
+                            className={styles.syncButton}
+                            type="text"
+                            onClick={() => {
+                                const query = parseGroup(isAnd, rules);
+                                setSearchQuery(JSON.stringify(query));
+                            }}
+                            loading={false}
+                            trackingId={'RefreshSearchResults'}
                         >
-                            <Reload />
-                        </Tooltip>
-                    </Button>
+                            <Tooltip
+                                title={
+                                    'Refresh the channels & people in your Slack Workspace.'
+                                }
+                            >
+                                <Reload width="12px" height="12px" />
+                            </Tooltip>
+                        </Button>
+                    )}
                 </div>
             </div>
             <div>
