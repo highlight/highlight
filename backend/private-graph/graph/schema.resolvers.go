@@ -4392,7 +4392,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	}
 
 	projects := []*model.Project{}
-	if err := r.DB.Order("name ASC").Model(&model.Project{}).Where(`
+	if err := r.DB.Order("id ASC").Model(&model.Project{}).Where(`
 		id IN (
 			SELECT project_id
 			FROM project_admins
@@ -4418,7 +4418,7 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	}
 
 	workspaces := []*model.Workspace{}
-	if err := r.DB.Order("name ASC").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
+	if err := r.DB.Order("id ASC").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
