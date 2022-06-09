@@ -359,10 +359,9 @@ func (w *Worker) PublicWorker() {
 		}()
 	}
 	for {
-		log.Info("looping!")
 		task := w.KafkaQueue.Receive()
 		if task == nil {
-			log.Info("worker retrieved empty message from kafka")
+			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
 		messages <- task

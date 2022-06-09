@@ -69,6 +69,13 @@ const (
 )
 
 var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
+var PrivateGraphBasePath = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
+
+const (
+	ErrAssetTooLarge    = "ErrAssetTooLarge"
+	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
+	ErrFailedToFetch    = "ErrFailedToFetch"
+)
 
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
@@ -257,35 +264,51 @@ var srcTags map[string]bool = map[string]bool{
 // Else, fetch the resource, generate a new url for it, and save to S3
 func GetOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient, db *gorm.DB) (string, error) {
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
-
+	var uuidStr string
 	var result model.SavedAsset
 	if err := db.Where(&model.SavedAsset{ProjectID: projectId, OriginalUrl: originalUrl, Date: dateTrunc}).
 		First(&result).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response, err := http.Get(originalUrl)
-			if err != nil {
-				return "", errors.Wrap(err, "error retrieving resource from original url")
-			}
-
 			uuid, err := uuid.NewRandom()
 			if err != nil {
 				return "", errors.Wrap(err, "error generating UUID")
 			}
 
-			uuidStr := uuid.String()
-
-			err = s.UploadAsset(uuidStr, response.Body)
+			response, err := http.Get(originalUrl)
 			if err != nil {
-				return "", errors.Wrap(err, "error uploading asset")
+				uuidStr = ErrFailedToFetch
+			} else if response.ContentLength == -1 {
+				uuidStr = ErrAssetSizeUnknown
+			} else if response.ContentLength > 30e6 {
+				uuidStr = ErrAssetTooLarge
+			} else {
+				uuidStr = uuid.String()
+				contentType := response.Header.Get("Content-Type")
+				err = s.UploadAsset(uuidStr, response.ContentLength, contentType, response.Body)
+				if err != nil {
+					return "", errors.Wrap(err, "error uploading asset")
+				}
 			}
 
-			return fmt.Sprintf("https://pri.highlight.run/assets/%s", uuidStr), nil
+			if err := db.Debug().Create(&model.SavedAsset{
+				ProjectID: projectId, OriginalUrl: originalUrl, Date: dateTrunc, UUID: uuidStr}).Error; err != nil {
+				return "", errors.Wrap(err, "error writing SavedAsset")
+			}
 		} else {
 			return "", errors.Wrap(err, "error querying saved asset")
 		}
+	} else {
+		uuidStr = result.UUID
 	}
 
-	return result.NewUrl, nil
+	var newUrl string
+	if uuidStr == ErrAssetTooLarge || uuidStr == ErrAssetSizeUnknown {
+		newUrl = originalUrl
+	} else {
+		newUrl = fmt.Sprintf("%s/assets/%s", PrivateGraphBasePath, uuidStr)
+	}
+
+	return newUrl, nil
 }
 
 func ReplaceUrlsInSrcset(projectId int, srcsetText string, s *storage.StorageClient, db *gorm.DB) string {
@@ -362,65 +385,77 @@ func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 	return styleText
 }
 
-func ReplaceResourceInNodes(projectId int, event map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
-	for k, v := range event {
-		if k == "node" {
-			ReplaceResourceInNode(projectId, v.(map[string]interface{}), s, db)
-		}
+func ReplaceResourceInNodes(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
+	TryReplaceResources(projectId, root, s, db)
 
+	for _, v := range root {
 		switch typedVal := v.(type) {
 		case []interface{}:
-			fmt.Println("array!", k, v)
 			for _, item := range typedVal {
-				ReplaceResourceInNode(projectId, item.(map[string]interface{}), s, db)
-				ReplaceResourceInNodes(projectId, item.(map[string]interface{}), s, db)
+				switch typedItem := item.(type) {
+				case map[string]interface{}:
+					ReplaceResourceInNodes(projectId, typedItem, s, db)
+				}
 			}
 			break
 		case map[string]interface{}:
-			fmt.Println("map!", k, v)
 			ReplaceResourceInNodes(projectId, typedVal, s, db)
-			break
-		default:
-			fmt.Println("default!", k, v)
 			break
 		}
 	}
 }
 
-func ReplaceResourceInNode(projectId int, node map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
+func TryReplaceResources(projectId int, node map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
+	// If this is a style node with textContent
 	if node["isStyle"] == true {
 		textContent, textContentOk := node["textContent"].(string)
 		if !textContentOk {
 			return
 		}
 		node["textContent"] = ReplaceUrlsInStyle(projectId, textContent, s, db)
-	} else {
-		tagName, tagNameOk := node["tagName"].(string)
-		if !tagNameOk {
-			return
-		}
+	}
 
-		src, srcOk := node["src"].(string)
-		data, dataOk := node["data"].(string)
-		srcset, srcsetOk := node["srcset"].(string)
+	// If this node has a _cssText attribute
+	cssText, cssTextOk := node["_cssText"].(string)
+	if cssTextOk {
+		node["_cssText"] = ReplaceUrlsInStyle(projectId, cssText, s, db)
+	}
 
-		if srcTags[tagName] && srcOk {
-			newUrl, err := GetOrCreateUrl(projectId, src, s, db)
-			if err != nil {
-				log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
-			} else {
-				node["src"] = newUrl
-			}
-		} else if tagName == "object" && dataOk {
-			newUrl, err := GetOrCreateUrl(projectId, data, s, db)
-			if err != nil {
-				log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
-			} else {
-				node["data"] = newUrl
-			}
-		} else if tagName == "source" && srcsetOk {
-			node["srcset"] = ReplaceUrlsInSrcset(projectId, srcset, s, db)
+	tagName, tagNameOk := node["tagName"].(string)
+	attributes, attributesOk := node["attributes"].(map[string]interface{})
+	if !tagNameOk || !attributesOk {
+		return
+	}
+
+	style, styleOk := attributes["style"].(string)
+	if styleOk {
+		attributes["style"] = ReplaceUrlsInStyle(projectId, style, s, db)
+	}
+
+	src, srcOk := attributes["src"].(string)
+	data, dataOk := attributes["data"].(string)
+	srcset, srcsetOk := attributes["srcset"].(string)
+
+	if srcTags[tagName] && srcOk {
+		newUrl, err := GetOrCreateUrl(projectId, src, s, db)
+		if err != nil {
+			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
+		} else {
+			attributes["src"] = newUrl
 		}
+	}
+
+	if tagName == "object" && dataOk {
+		newUrl, err := GetOrCreateUrl(projectId, data, s, db)
+		if err != nil {
+			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
+		} else {
+			attributes["data"] = newUrl
+		}
+	}
+
+	if tagName == "source" && srcsetOk {
+		attributes["srcset"] = ReplaceUrlsInSrcset(projectId, srcset, s, db)
 	}
 }
 

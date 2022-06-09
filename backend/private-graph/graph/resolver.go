@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/leonelquinteros/hubspot"
 
@@ -1237,6 +1238,36 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 			})()
 		}
 	}
+}
+
+func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
+	uuid := chi.URLParam(req, "uuid")
+	var result model.SavedAsset
+	if err := r.DB.Where(&model.SavedAsset{UUID: uuid}).
+		First(&result).Error; err != nil {
+		log.Error(e.Wrap(err, "error querying saved asset"))
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// ZANETODO: skipping auth checks for now since this is enabled only for project id 1
+	// and anything accessible here is already publicly accessible
+	// ctx := req.Context()
+	// _, err := r.isAdminInProjectOrDemoProject(ctx, result.ProjectID)
+	// if err != nil {
+	// 	log.Error(e.Wrap(err, "admin not authorized"))
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	return
+	// }
+
+	url, err := r.StorageClient.GetAssetURL(uuid)
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to generate asset url"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, req, url, http.StatusFound)
 }
 
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {

@@ -1739,17 +1739,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					event.Data = d
 				}
 
-				var s interface{}
-				err := json.Unmarshal(event.Data, &s)
-				if err != nil {
-					log.Error(e.Wrap(err, "error unmarshalling event"))
-					continue
-				}
-				parse.ReplaceResourceInNodes(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
-				event.Data, err = json.Marshal(s)
-				if err != nil {
-					log.Error(e.Wrap(err, "error remarshalling event"))
-					continue
+				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
+				// This gate will be removed in the future
+				if projectID == 1 {
+					var s interface{}
+					err := json.Unmarshal(event.Data, &s)
+					if err != nil {
+						log.Error(e.Wrap(err, "error unmarshalling event"))
+						continue
+					}
+					parse.ReplaceResourceInNodes(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
+					event.Data, err = json.Marshal(s)
+					if err != nil {
+						log.Error(e.Wrap(err, "error remarshalling event"))
+						continue
+					}
 				}
 
 				if event.Type == parse.IncrementalSnapshot {

@@ -229,6 +229,8 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
+			r.Get("/assets/{uuid}", privateResolver.AssetHandler)
+
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
