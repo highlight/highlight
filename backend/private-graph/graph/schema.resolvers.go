@@ -2835,6 +2835,8 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 }
 
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	const RequestAccessMinimumDelay = time.Minute * 10
+
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
@@ -5523,11 +5525,3 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-const RequestAccessMinimumDelay = time.Minute * 10
