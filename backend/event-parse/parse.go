@@ -250,7 +250,8 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	return json.RawMessage(b), nil
 }
 
-var srcTags map[string]bool = map[string]bool{
+// The tag types which can reference static assets in the src attribute
+var srcTagNames map[string]bool = map[string]bool{
 	"audio":  true,
 	"embed":  true,
 	"img":    true,
@@ -262,7 +263,7 @@ var srcTags map[string]bool = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func GetOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient, db *gorm.DB) (string, error) {
+func getOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient, db *gorm.DB) (string, error) {
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var uuidStr string
 	var result model.SavedAsset
@@ -311,13 +312,13 @@ func GetOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient,
 	return newUrl, nil
 }
 
-func ReplaceUrlsInSrcset(projectId int, srcsetText string, s *storage.StorageClient, db *gorm.DB) string {
+func replaceUrlsInSrcset(projectId int, srcsetText string, s *storage.StorageClient, db *gorm.DB) (string, error) {
 	replacements := map[string]string{}
 	sourceSet := srcset.Parse(srcsetText)
 	for _, source := range sourceSet {
-		newUrl, err := GetOrCreateUrl(projectId, source.URL, s, db)
+		newUrl, err := getOrCreateUrl(projectId, source.URL, s, db)
 		if err != nil {
-			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
+			return "", e.Wrap(err, "error in GetOrCreateUrl")
 		} else {
 			replacements[source.URL] = newUrl
 		}
@@ -327,10 +328,10 @@ func ReplaceUrlsInSrcset(projectId int, srcsetText string, s *storage.StorageCli
 		srcsetText = strings.ReplaceAll(srcsetText, old, new)
 	}
 
-	return srcsetText
+	return srcsetText, nil
 }
 
-func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClient, db *gorm.DB) string {
+func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClient, db *gorm.DB) string {
 	replacements := map[string]string{}
 	reader := bytes.NewReader([]byte(styleText))
 	lexer := css.NewLexer(reader)
@@ -343,12 +344,17 @@ func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 				log.Warnf("error parsing stylesheet data: %s", lexer.Err().Error())
 			}
 
+			// Once an error or EOF is reached, exit the loop
 			doExit = true
 			break
 		case css.URLToken:
+			// Formatted like `url('https://example.com/image.png')`
 			asString := string(text)
+			// Trim the `url(` and `)`
 			inner := asString[4 : len(asString)-1]
+			// Strip any outer quotes (' or ")
 			noQuote := strings.Trim(inner, "'\"")
+			// Replace with double quotes and unquote (to correctly handle escape characters)
 			quoted := `"` + noQuote + `"`
 			url, err := strconv.Unquote(quoted)
 			if err != nil {
@@ -361,13 +367,15 @@ func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 				} else if strings.HasPrefix(url, "data:") {
 					// data url, skipping
 				} else {
-					newUrl, err := GetOrCreateUrl(projectId, url, s, db)
+					newUrl, err := getOrCreateUrl(projectId, url, s, db)
 					if err != nil {
-						log.Warn(e.Wrap(err, "error fetching referenced url, skipping"))
+						log.Warn(e.Wrap(err, "error fetching referenced url, falling back to the original"))
 						continue
 					}
 
-					asCss := fmt.Sprintf(`url("%s")`, newUrl)
+					// Surround with `url(" ... ")`
+					asCss := fmt.Sprintf(`url(%s)`, strconv.Quote(newUrl))
+					// Map the old url substring to the new one
 					replacements[asString] = asCss
 				}
 			}
@@ -378,6 +386,7 @@ func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 		}
 	}
 
+	// Replace every occurrence of the old substrings
 	for old, new := range replacements {
 		styleText = strings.ReplaceAll(styleText, old, new)
 	}
@@ -385,8 +394,8 @@ func ReplaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 	return styleText
 }
 
-func ReplaceResourceInNodes(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
-	TryReplaceResources(projectId, root, s, db)
+func ReplaceAssetsRecursively(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
+	tryReplaceAssets(projectId, root, s, db)
 
 	for _, v := range root {
 		switch typedVal := v.(type) {
@@ -394,50 +403,54 @@ func ReplaceResourceInNodes(projectId int, root map[string]interface{}, s *stora
 			for _, item := range typedVal {
 				switch typedItem := item.(type) {
 				case map[string]interface{}:
-					ReplaceResourceInNodes(projectId, typedItem, s, db)
+					ReplaceAssetsRecursively(projectId, typedItem, s, db)
 				}
 			}
 			break
 		case map[string]interface{}:
-			ReplaceResourceInNodes(projectId, typedVal, s, db)
+			ReplaceAssetsRecursively(projectId, typedVal, s, db)
 			break
 		}
 	}
 }
 
-func TryReplaceResources(projectId int, node map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
+func tryReplaceAssets(projectId int, node map[string]interface{}, s *storage.StorageClient, db *gorm.DB) {
 	// If this is a style node with textContent
 	if node["isStyle"] == true {
 		textContent, textContentOk := node["textContent"].(string)
 		if !textContentOk {
 			return
 		}
-		node["textContent"] = ReplaceUrlsInStyle(projectId, textContent, s, db)
+		node["textContent"] = replaceUrlsInStyle(projectId, textContent, s, db)
 	}
 
 	// If this node has a _cssText attribute
 	cssText, cssTextOk := node["_cssText"].(string)
 	if cssTextOk {
-		node["_cssText"] = ReplaceUrlsInStyle(projectId, cssText, s, db)
+		node["_cssText"] = replaceUrlsInStyle(projectId, cssText, s, db)
 	}
 
+	// Return if this node doesn't have a tagName or attributes
 	tagName, tagNameOk := node["tagName"].(string)
 	attributes, attributesOk := node["attributes"].(map[string]interface{})
 	if !tagNameOk || !attributesOk {
 		return
 	}
 
+	// If this node has a style attribute
 	style, styleOk := attributes["style"].(string)
 	if styleOk {
-		attributes["style"] = ReplaceUrlsInStyle(projectId, style, s, db)
+		attributes["style"] = replaceUrlsInStyle(projectId, style, s, db)
 	}
 
+	// Get the src, data, and srcset attributes (these can all reference static assets)
 	src, srcOk := attributes["src"].(string)
 	data, dataOk := attributes["data"].(string)
 	srcset, srcsetOk := attributes["srcset"].(string)
 
-	if srcTags[tagName] && srcOk {
-		newUrl, err := GetOrCreateUrl(projectId, src, s, db)
+	// If the tag supports the src attribute
+	if srcTagNames[tagName] && srcOk {
+		newUrl, err := getOrCreateUrl(projectId, src, s, db)
 		if err != nil {
 			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
 		} else {
@@ -445,8 +458,9 @@ func TryReplaceResources(projectId int, node map[string]interface{}, s *storage.
 		}
 	}
 
+	// If the object tag has a data attribute
 	if tagName == "object" && dataOk {
-		newUrl, err := GetOrCreateUrl(projectId, data, s, db)
+		newUrl, err := getOrCreateUrl(projectId, data, s, db)
 		if err != nil {
 			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
 		} else {
@@ -454,8 +468,14 @@ func TryReplaceResources(projectId int, node map[string]interface{}, s *storage.
 		}
 	}
 
+	// If the source tag has a srcset attribute
 	if tagName == "source" && srcsetOk {
-		attributes["srcset"] = ReplaceUrlsInSrcset(projectId, srcset, s, db)
+		newSrcset, err := replaceUrlsInSrcset(projectId, srcset, s, db)
+		if err != nil {
+			log.Warn(e.Wrap(err, "error in GetOrCreateUrl"))
+		} else {
+			attributes["srcset"] = newSrcset
+		}
 	}
 }
 
