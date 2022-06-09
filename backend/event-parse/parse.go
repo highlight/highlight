@@ -335,6 +335,8 @@ func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 	replacements := map[string]string{}
 	reader := bytes.NewReader([]byte(styleText))
 	lexer := css.NewLexer(reader)
+
+lexerLoop:
 	for {
 		tt, text := lexer.Next()
 		switch tt {
@@ -344,7 +346,7 @@ func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 			}
 
 			// Once an error or EOF is reached, exit the loop
-			break
+			break lexerLoop
 		case css.URLToken:
 			// Formatted like `url('https://example.com/image.png')`
 			asString := string(text)
