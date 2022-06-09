@@ -337,7 +337,6 @@ func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 	lexer := css.NewLexer(reader)
 	for {
 		tt, text := lexer.Next()
-		doExit := false
 		switch tt {
 		case css.ErrorToken:
 			if !errors.Is(lexer.Err(), io.EOF) {
@@ -345,7 +344,6 @@ func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 			}
 
 			// Once an error or EOF is reached, exit the loop
-			doExit = true
 			break
 		case css.URLToken:
 			// Formatted like `url('https://example.com/image.png')`
@@ -380,10 +378,6 @@ func replaceUrlsInStyle(projectId int, styleText string, s *storage.StorageClien
 				}
 			}
 		}
-
-		if doExit {
-			break
-		}
 	}
 
 	// Replace every occurrence of the old substrings
@@ -406,10 +400,8 @@ func ReplaceAssetsRecursively(projectId int, root map[string]interface{}, s *sto
 					ReplaceAssetsRecursively(projectId, typedItem, s, db)
 				}
 			}
-			break
 		case map[string]interface{}:
 			ReplaceAssetsRecursively(projectId, typedVal, s, db)
-			break
 		}
 	}
 }
