@@ -4,18 +4,20 @@ import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
 import SvgShieldWarningIcon from '@icons/ShieldWarningIcon';
 import SvgSkullIcon from '@icons/SkullIcon';
 import {
-    getWebVitalValueScore,
-    WebVitalValueScore,
+    getMetricValueScore,
+    MetricValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import {
     CartesianGrid,
+    Label,
     Legend,
     Line,
     LineChart as RechartsLineChart,
     ReferenceArea,
     ReferenceAreaProps,
+    ReferenceDot,
     ReferenceLine,
     ResponsiveContainer,
     Tooltip,
@@ -26,9 +28,19 @@ import {
 
 import styles from './LineChart.module.scss';
 
+const CLICK_NEARBY_THRESHOLD = 10;
+
+interface Reference {
+    value: number;
+    color: string;
+    label?: string;
+    onDrag?: (y: number) => void;
+}
+
 interface Props {
     data: any[];
-    referenceLines?: any[];
+    referenceLines?: Reference[];
+    showReferenceLineLabels?: boolean;
     height: number;
     xAxisDataKeyName?: string;
     xAxisTickFormatter?: (value: any, index: number) => string;
@@ -44,6 +56,7 @@ interface Props {
 const LineChart = ({
     height,
     referenceLines,
+    showReferenceLineLabels,
     xAxisDataKeyName = 'date',
     data,
     xAxisTickFormatter,
@@ -67,6 +80,8 @@ const LineChart = ({
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
         nonXAxisKeys
     );
+    const [click, setClick] = useState<{ x: number; y: number }>();
+    const [clickedReferenceLine, setClickedReferenceLine] = useState<number>();
 
     return (
         <ResponsiveContainer width="100%" height={height}>
@@ -74,6 +89,24 @@ const LineChart = ({
                 width={500}
                 height={300}
                 data={data}
+                onClick={(c?: any) => {
+                    if (c?.chartX && c?.chartY) {
+                        setClick((prevState) =>
+                            prevState ? undefined : { x: c.chartX, y: c.chartY }
+                        );
+                    }
+                }}
+                onMouseMove={(m?: any) => {
+                    if (m?.chartX && m?.chartY) {
+                        if (referenceLines && clickedReferenceLine) {
+                            const rl = referenceLines[clickedReferenceLine];
+                            if (rl.onDrag) {
+                                const offset = m.chartY - (click?.y || 0);
+                                rl.onDrag(rl.value + offset);
+                            }
+                        }
+                    }
+                }}
                 margin={{
                     top: 42,
                     right: 4,
@@ -151,7 +184,7 @@ const LineChart = ({
                                                                 {referenceLines?.length ===
                                                                 2
                                                                     ? getScoreIcon(
-                                                                          getWebVitalValueScore(
+                                                                          getMetricValueScore(
                                                                               entry.value,
                                                                               {
                                                                                   max_good_value: referenceLines![0]
@@ -254,22 +287,40 @@ const LineChart = ({
                     <ReferenceLine
                         key={`${referenceLine.label}-${index}`}
                         y={referenceLine.value}
-                        // label={referenceLine.label}
                         stroke={referenceLine.color}
-                        strokeDasharray="3 3"
+                        strokeDasharray={`${CLICK_NEARBY_THRESHOLD} ${CLICK_NEARBY_THRESHOLD}`}
+                        strokeWidth={CLICK_NEARBY_THRESHOLD / 2}
                         isFront
                         ifOverflow="extendDomain"
                     >
-                        {/* <Label
-                            position={'insideLeft'}
-                            alignmentBaseline="before-edge"
-                            offset={10}
-                            className={styles.referenceLineValue}
-                        >
-                            {referenceLine.label}
-                        </Label> */}
+                        {!!showReferenceLineLabels && (
+                            <>
+                                <Label
+                                    position={'center'}
+                                    alignmentBaseline="auto"
+                                    offset={10}
+                                    className={styles.referenceLineValue}
+                                >
+                                    {referenceLine.label}
+                                </Label>
+                            </>
+                        )}
                     </ReferenceLine>
                 ))}
+                {referenceLines
+                    ?.filter((rl) => rl.onDrag)
+                    ?.map((referenceLine, index) => (
+                        <ReferenceDot
+                            x={data[0].date}
+                            y={referenceLine.value}
+                            key={`${referenceLine.label}-${index}-dt`}
+                            onClick={() => {
+                                setClickedReferenceLine((prevState) =>
+                                    prevState ? undefined : index
+                                );
+                            }}
+                        />
+                    ))}
                 {nonXAxisKeys.map((key) => (
                     <Line
                         hide={!dataTypesToShow.includes(key)}
@@ -291,16 +342,16 @@ const LineChart = ({
 
 export default LineChart;
 
-const getScoreIcon = (score: WebVitalValueScore) => {
+const getScoreIcon = (score: MetricValueScore) => {
     let icon = <></>;
     switch (score) {
-        case WebVitalValueScore.Good:
+        case MetricValueScore.Good:
             icon = <SvgCheckCircleIcon />;
             break;
-        case WebVitalValueScore.NeedsImprovement:
+        case MetricValueScore.NeedsImprovement:
             icon = <SvgShieldWarningIcon />;
             break;
-        case WebVitalValueScore.Poor:
+        case MetricValueScore.Poor:
             icon = <SvgSkullIcon />;
             break;
     }

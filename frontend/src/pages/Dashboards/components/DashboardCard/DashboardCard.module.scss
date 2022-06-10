@@ -43,3 +43,26 @@
 .button {
     justify-content: center;
 }
+
+.infoTooltip {
+    margin-left: var(--size-xxSmall);
+}
+
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+    margin-top: var(--size-xLarge);
+
+    > * {
+        width: 50%;
+    }
+
+    .button {
+        justify-content: center;
+    }
+}
+
+.description {
+    color: var(--color-gray-500) !important;
+    margin-top: 0 !important;
+}

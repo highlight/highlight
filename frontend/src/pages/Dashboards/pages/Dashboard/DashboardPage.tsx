@@ -165,7 +165,7 @@ const DashboardPage = () => {
                     isDraggable={isEditing}
                     isResizable={isEditing}
                     containerPadding={[0, 0]}
-                    rowHeight={155}
+                    rowHeight={310}
                     resizeHandles={['e']}
                     onDragStop={(layout) => {
                         setLayout({
@@ -193,6 +193,11 @@ const DashboardPage = () => {
                                         ...dashboard.metrics[idx],
                                         ...value,
                                     };
+                                    pushNewMetricConfig(newMetrics);
+                                }}
+                                deleteMetric={(idx: number) => {
+                                    const newMetrics = [...dashboard.metrics];
+                                    newMetrics.splice(idx, 1);
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
