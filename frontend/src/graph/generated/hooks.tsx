@@ -9422,6 +9422,7 @@ export const GetDashboardDefinitionsDocument = gql`
                 poor_value
                 units
                 help_article
+                type
             }
             last_admin_to_edit_id
             layout

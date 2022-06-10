@@ -711,6 +711,7 @@ input DashboardMetricConfigInput {
     poor_value: Float!
     units: String!
     help_article: String!
+    type: MetricType!
 }
 
 type DashboardMetricConfig {
@@ -720,6 +721,7 @@ type DashboardMetricConfig {
     poor_value: Float!
     units: String!
     help_article: String!
+    type: MetricType!
 }
 
 type DashboardDefinition {

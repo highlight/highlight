@@ -1,4 +1,4 @@
-import { DashboardMetricConfig } from '@graph/schemas';
+import { DashboardMetricConfig, MetricType } from '@graph/schemas';
 
 export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
@@ -18,6 +18,7 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'LS',
         help_article: 'https://web.dev/cls',
+        type: MetricType.WebVital,
     },
     FID: {
         max_good_value: 100,
@@ -26,6 +27,7 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/fid',
+        type: MetricType.WebVital,
     },
     LCP: {
         max_good_value: 2500,
@@ -34,6 +36,7 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/lcp',
+        type: MetricType.WebVital,
     },
     FCP: {
         max_good_value: 1800,
@@ -42,6 +45,7 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/fcp',
+        type: MetricType.WebVital,
     },
     TTFB: {
         max_good_value: 500,
@@ -50,5 +54,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/ttfb',
+        type: MetricType.WebVital,
     },
 };

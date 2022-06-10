@@ -305,6 +305,7 @@ const EditMetricModal = ({
                                     max_good_value: maxGoodValue,
                                     max_needs_improvement_value: maxNeedsImprovementValue,
                                     poor_value: poorValue,
+                                    type: metricConfig.type,
                                 });
                                 onCancel();
                             }}

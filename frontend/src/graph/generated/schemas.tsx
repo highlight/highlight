@@ -775,6 +775,7 @@ export type DashboardMetricConfigInput = {
     poor_value: Scalars['Float'];
     units: Scalars['String'];
     help_article: Scalars['String'];
+    type: MetricType;
 };
 
 export type DashboardMetricConfig = {
@@ -785,6 +786,7 @@ export type DashboardMetricConfig = {
     poor_value: Scalars['Float'];
     units: Scalars['String'];
     help_article: Scalars['String'];
+    type: MetricType;
 };
 
 export type DashboardDefinition = {

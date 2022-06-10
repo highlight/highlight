@@ -3660,6 +3660,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'poor_value'
                             | 'units'
                             | 'help_article'
+                            | 'type'
                         >
                     >;
                 }

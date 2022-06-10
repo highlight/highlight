@@ -8,7 +8,11 @@ import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { useGetSuggestedMetricsQuery } from '@graph/hooks';
-import { DashboardDefinition, DashboardMetricConfig } from '@graph/schemas';
+import {
+    DashboardDefinition,
+    DashboardMetricConfig,
+    MetricType,
+} from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import PlusIcon from '@icons/PlusIcon';
@@ -54,6 +58,7 @@ const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
         max_good_value: cfg?.max_good_value || 10,
         max_needs_improvement_value: cfg?.max_needs_improvement_value || 100,
         poor_value: cfg?.poor_value || 1000,
+        type: cfg?.type || MetricType.Frontend,
     };
 };
 
