@@ -3,13 +3,13 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
+import { GetErrorGroupQuery } from '@graph/operations';
+import { Session } from '@graph/schemas';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
 import React, { useRef } from 'react';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
-import { GetErrorGroupQuery } from '../../../../../../graph/generated/operations';
-import { Session } from '../../../../../../graph/generated/schemas';
-import { PlayerSearchParameters } from '../../../../../Player/PlayerHook/utils';
 import MinimalSessionCard from '../../../../../Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard';
 
 interface Props {

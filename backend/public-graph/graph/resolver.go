@@ -1459,7 +1459,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 				Metrics:   metrics,
 			}}, strconv.Itoa(session.ID))
 		if err != nil {
-			return -1, err
+			log.Error(err)
 		}
 	}
 
