@@ -390,8 +390,8 @@ export const ResourcePage = React.memo(
                                             );
                                         }}
                                         ref={virtuoso}
-                                        overscan={9640}
-                                        increaseViewportBy={9640}
+                                        overscan={500}
+                                        increaseViewportBy={500}
                                         data={resourcesToRender}
                                         className={styles.virtuoso}
                                         itemContent={(index, resource) => {

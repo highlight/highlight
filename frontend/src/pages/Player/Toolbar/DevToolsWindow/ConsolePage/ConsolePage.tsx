@@ -260,8 +260,8 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={9640}
-                        increaseViewportBy={9640}
+                        overscan={500}
+                        increaseViewportBy={500}
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
