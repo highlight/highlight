@@ -64,6 +64,7 @@ const DashboardCard = ({
                 resolution_minutes:
                     metricConfig.name === 'delayMS' ? 1 : 24 * 60,
             },
+            metric_type: metricConfig.type,
         },
     });
 

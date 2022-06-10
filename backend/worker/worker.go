@@ -328,7 +328,10 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushMetrics == nil {
 			break
 		}
-		w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
@@ -391,6 +394,22 @@ func (w *Worker) DeleteCompletedSessions() {
 		}
 		deleteSpan.Finish()
 	}
+}
+
+// DeleteOldMetrics will delete any metrics that are older than 30 days.
+func (w *Worker) DeleteOldMetrics() {
+	const expirationDays = 30
+
+	deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
+		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
+	if err := w.Resolver.DB.Exec(`
+		DELETE FROM metrics m
+		WHERE m.type != ? AND m.type != ?
+		AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
+`, publicModel.MetricTypeWebVital, publicModel.MetricTypeDevice, expirationDays).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting expired metrics"))
+	}
+	deleteSpan.Finish()
 }
 
 func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
@@ -1117,6 +1136,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.RefreshMaterializedViews
 	case "delete-completed-sessions":
 		return w.DeleteCompletedSessions
+	case "delete-old-metrics":
+		return w.DeleteOldMetrics
 	case "public-worker":
 		return w.PublicWorker
 	default:

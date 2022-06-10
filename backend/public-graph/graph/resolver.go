@@ -95,6 +95,21 @@ type FieldData struct {
 	Value string
 }
 
+type Request struct {
+	ID string `json:"id"`
+}
+
+type RequestResponsePairs struct {
+	Request Request `json:"request"`
+}
+
+type NetworkResource struct {
+	StartTime            float64              `json:"startTime"`
+	ResponseEnd          float64              `json:"responseEnd"`
+	Name                 string               `json:"name"`
+	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
+}
+
 const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
@@ -1432,8 +1447,8 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	for secureID, metrics := range sessionMetrics {
 		session := &model.Session{}
 		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-			log.Error(err)
-			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+			log.Error(e.Wrapf(err, "no session found for push metrics: %s", secureID))
+			continue
 		}
 
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
@@ -1444,7 +1459,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 				Metrics:   metrics,
 			}}, strconv.Itoa(session.ID))
 		if err != nil {
-			return -1, err
+			log.Error(err)
 		}
 	}
 
@@ -1465,7 +1480,7 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricTyp
 	}})
 }
 
-func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
+func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) error {
 	newMetric := &model.Metric{
 		Name:      m.Name,
 		Value:     m.Value,
@@ -1474,19 +1489,33 @@ func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.Me
 		Type:      modelInputs.MetricType(m.Type),
 		RequestID: m.RequestID,
 	}
-
-	if err := r.DB.Create(&newMetric).Error; err != nil {
-		log.Error(err)
+	if newMetric.RequestID != nil && *newMetric.RequestID == "" {
+		newMetric.RequestID = nil
 	}
+
+	if err := r.DB.FirstOrCreate(&newMetric, &model.Metric{
+		Name:      m.Name,
+		ProjectID: projectID,
+		SessionID: sessionID,
+		Type:      modelInputs.MetricType(m.Type),
+		RequestID: m.RequestID,
+	}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
 	for _, m := range metrics {
-		if m.Type == customModels.MetricTypeBackend {
-			r.addNewMetric(sessionID, projectID, m)
+		// for certain metrics, we always want to save them as new metrics
+		if m.Type == customModels.MetricTypeBackend || m.Type == customModels.MetricTypeFrontend {
+			if err := r.addNewMetric(sessionID, projectID, m); err != nil {
+				return err
+			}
 			continue
 		}
 
+		// other metrics are for an entire session so if we get duplicates, just update existing
 		existingMetric := &model.Metric{
 			Name:      m.Name,
 			ProjectID: projectID,
@@ -1496,15 +1525,15 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 		}
 		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
 		if err := tx.Error; err != nil {
-			log.Error(err)
-			return
+			return err
 		}
 		// Update the existing record if it already exists
 		existingMetric.Value = m.Value
 		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
+			return err
 		}
 	}
+	return nil
 }
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
@@ -1798,11 +1827,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
-		resourcesParsed := make(map[string][]interface{})
+		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
+			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
+			if projectID == 1 {
+				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
+				}
+			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
@@ -1987,4 +2022,25 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return
 		}
 	}
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	var metrics []*customModels.MetricInput
+	for _, r := range resources {
+		metrics = append(metrics, &customModels.MetricInput{
+			SessionSecureID: sessionObj.SecureID,
+			Name:            "delayMS",
+			Value:           r.ResponseEnd - r.StartTime,
+			Type:            customModels.MetricTypeFrontend,
+			URL:             r.Name,
+			Timestamp:       time.UnixMilli(int64(r.StartTime)),
+			RequestID:       &r.RequestResponsePairs.Request.ID,
+		})
+	}
+	if len(metrics) > 0 {
+		if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
+			return e.Wrap(err, "failed to submit metrics message")
+		}
+	}
+	return nil
 }

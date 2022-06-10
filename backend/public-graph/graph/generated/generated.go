@@ -390,6 +390,7 @@ enum MetricType {
     WebVital
     Device
     Backend
+    Frontend
 }
 
 input MetricInput {

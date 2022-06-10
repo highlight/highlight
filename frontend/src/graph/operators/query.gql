@@ -54,11 +54,13 @@ fragment SessionPayloadFragment on SessionPayload {
 query GetMetricsDashboard(
     $project_id: ID!
     $metric_name: String!
+    $metric_type: MetricType
     $params: DashboardParamsInput!
 ) {
     metrics_dashboard(
         project_id: $project_id
         metric_name: $metric_name
+        metric_type: $metric_type
         params: $params
     ) {
         date

@@ -1,7 +1,6 @@
 import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
 import { useGetWebVitalsQuery } from '@graph/hooks';
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { EventType } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import SvgSearchIcon from '@icons/SearchIcon';
@@ -25,6 +24,7 @@ import React, {
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import styles from './EventStream.module.scss';

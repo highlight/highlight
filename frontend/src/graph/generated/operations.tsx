@@ -812,24 +812,28 @@ export type CreateRageClickAlertMutation = { __typename?: 'Mutation' } & {
 
 export type UpdateErrorAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
+    name?: Types.Maybe<Types.Scalars['String']>;
     error_alert_id: Types.Scalars['ID'];
-    count_threshold: Types.Scalars['Int'];
-    threshold_window: Types.Scalars['Int'];
-    slack_channels:
+    count_threshold?: Types.Maybe<Types.Scalars['Int']>;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    regex_groups:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    regex_groups?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    frequency: Types.Scalars['Int'];
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    frequency?: Types.Maybe<Types.Scalars['Int']>;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -938,19 +942,22 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_feedback_alert_id: Types.Scalars['ID'];
-    count_threshold: Types.Scalars['Int'];
-    name: Types.Scalars['String'];
-    threshold_window: Types.Scalars['Int'];
-    slack_channels:
+    count_threshold?: Types.Maybe<Types.Scalars['Int']>;
+    name?: Types.Maybe<Types.Scalars['String']>;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
@@ -1067,22 +1074,26 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    count_threshold: Types.Scalars['Int'];
-    slack_channels:
+    name?: Types.Maybe<Types.Scalars['String']>;
+    count_threshold?: Types.Maybe<Types.Scalars['Int']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    threshold_window: Types.Scalars['Int'];
-    exclude_rules:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    exclude_rules?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -1114,19 +1125,22 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateRageClickAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     rage_click_alert_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    count_threshold: Types.Scalars['Int'];
-    threshold_window: Types.Scalars['Int'];
-    slack_channels:
+    name?: Types.Maybe<Types.Scalars['String']>;
+    count_threshold?: Types.Maybe<Types.Scalars['Int']>;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
@@ -1154,19 +1168,22 @@ export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateNewUserAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
-    count_threshold: Types.Scalars['Int'];
-    name: Types.Scalars['String'];
-    slack_channels:
+    count_threshold?: Types.Maybe<Types.Scalars['Int']>;
+    name?: Types.Maybe<Types.Scalars['String']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    threshold_window: Types.Scalars['Int'];
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
@@ -1246,21 +1263,25 @@ export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    slack_channels:
+    name?: Types.Maybe<Types.Scalars['String']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    track_properties:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    track_properties?: Types.Maybe<
         | Array<Types.Maybe<Types.TrackPropertyInput>>
-        | Types.Maybe<Types.TrackPropertyInput>;
-    threshold_window: Types.Scalars['Int'];
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.TrackPropertyInput>
+    >;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
@@ -1349,21 +1370,25 @@ export type CreateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateUserPropertiesAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    slack_channels:
+    name?: Types.Maybe<Types.Scalars['String']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    environments:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    environments?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    user_properties:
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    user_properties?: Types.Maybe<
         | Array<Types.Maybe<Types.UserPropertyInput>>
-        | Types.Maybe<Types.UserPropertyInput>;
-    threshold_window: Types.Scalars['Int'];
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.UserPropertyInput>
+    >;
+    threshold_window?: Types.Maybe<Types.Scalars['Int']>;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
@@ -1561,6 +1586,7 @@ export type SessionPayloadFragmentFragment = {
 export type GetMetricsDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
+    metric_type?: Types.Maybe<Types.MetricType>;
     params: Types.DashboardParamsInput;
 }>;
 
