@@ -107,6 +107,7 @@ var ContextKeys = struct {
 	AcceptEncoding contextString
 	ZapierToken    contextString
 	ZapierProject  contextString
+	SessionId      contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -116,6 +117,7 @@ var ContextKeys = struct {
 	AcceptEncoding: "acceptEncoding",
 	ZapierToken:    "parsedToken",
 	ZapierProject:  "project",
+	SessionId:      "sessionId",
 }
 
 var Models = []interface{}{

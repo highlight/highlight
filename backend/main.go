@@ -230,6 +230,7 @@ func main() {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
 			r.Get("/assets/{uuid}", privateResolver.AssetHandler)
+			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{

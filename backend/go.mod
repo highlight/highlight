@@ -55,6 +55,7 @@ require (
 )
 
 require (
+	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 )

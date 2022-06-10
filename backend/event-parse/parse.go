@@ -303,7 +303,7 @@ func getOrCreateUrl(projectId int, originalUrl string, s *storage.StorageClient,
 	}
 
 	var newUrl string
-	if uuidStr == ErrAssetTooLarge || uuidStr == ErrAssetSizeUnknown {
+	if uuidStr == ErrAssetTooLarge || uuidStr == ErrAssetSizeUnknown || uuidStr == ErrFailedToFetch {
 		newUrl = originalUrl
 	} else {
 		newUrl = fmt.Sprintf("%s/assets/%s", PrivateGraphBasePath, uuidStr)

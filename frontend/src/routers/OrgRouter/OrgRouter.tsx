@@ -24,6 +24,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import classNames from 'classnames';
+import firebase from 'firebase';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -70,6 +71,28 @@ export const ProjectRouter = () => {
         `highlight-finished-onboarding-${project_id}`,
         false
     );
+
+    useEffect(() => {
+        const uri =
+            process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+            window.location.origin + '/private';
+        // let intervalId: NodeJS.Timeout;
+        firebase
+            .auth()
+            .currentUser?.getIdToken()
+            .then((t) => {
+                // intervalId = setInterval(
+                //     () =>
+                fetch(`${uri}/project-token/${project_id}`, {
+                    headers: {
+                        token: t,
+                    },
+                }); //,
+                //     30 * 60 * 1000
+                // );
+            });
+        // return () => clearInterval(intervalId);
+    }, [project_id]);
 
     useEffect(() => {
         if (data?.workspace?.id) {

@@ -67,20 +67,12 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("token")
-
-		// If there is no token header, fall back to checking the firebaseAuthToken cookie
-		if token == "" {
-			tokenCookie, err := r.Cookie("firebaseAuthToken")
-			if err == nil && tokenCookie != nil {
-				token = tokenCookie.Value
-			}
-		}
-
 		ctx, err := updateContextWithAuthenticatedUser(r.Context(), token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)

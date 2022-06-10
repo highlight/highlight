@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -50,7 +51,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
 )
 
 type Resolver struct {
@@ -1240,25 +1242,96 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 	}
 }
 
+const (
+	projectCookieName  = "project-token"
+	projectIdClaimName = "project_id"
+	projectIdUrlParam  = "project_id"
+	uuidUrlParam       = "uuid"
+)
+
+func getProjectIdFromToken(tokenString string) (int, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return 0, e.Wrap(err, "invalid id token")
+	}
+
+	projectId, ok := claims[projectIdClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid project_id claim")
+	}
+
+	return int(projectId), nil
+}
+
+func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
+	projectIdStr := chi.URLParam(req, projectIdUrlParam)
+	projectId, err := strconv.Atoi(projectIdStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid project_id", http.StatusBadRequest)
+		return
+	}
+
+	ctx := req.Context()
+	_, err = r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	atClaims := jwt.MapClaims{}
+	atClaims["project_id"] = projectId
+	atClaims["exp"] = time.Now().Add(time.Hour).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(JwtAccessSecret))
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:   projectCookieName,
+		Value:  token,
+		MaxAge: int(time.Hour.Seconds()),
+		// HttpOnly: true,
+		// Secure:   true,
+		Path: "/",
+	})
+}
+
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
-	uuid := chi.URLParam(req, "uuid")
+	uuid := chi.URLParam(req, uuidUrlParam)
 	var result model.SavedAsset
 	if err := r.DB.Where(&model.SavedAsset{UUID: uuid}).
 		First(&result).Error; err != nil {
 		log.Error(e.Wrap(err, "error querying saved asset"))
-		w.WriteHeader(http.StatusForbidden)
+		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
-	// ZANETODO: skipping auth checks for now since this is enabled only for project id 1
-	// and anything accessible here is already publicly accessible
-	// ctx := req.Context()
-	// _, err := r.isAdminInProjectOrDemoProject(ctx, result.ProjectID)
-	// if err != nil {
-	// 	log.Error(e.Wrap(err, "admin not authorized"))
-	// 	w.WriteHeader(http.StatusForbidden)
-	// 	return
-	// }
+	projectCookie, err := req.Cookie(projectCookieName)
+	if err != nil {
+		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	projectId, err := getProjectIdFromToken(projectCookie.Value)
+	if err != nil {
+		log.Error(e.Wrap(err, "error getting project id from token claims"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	if projectId != result.ProjectID {
+		log.Error(e.Wrap(err, "project id mismatch"))
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	url, err := r.StorageClient.GetAssetURL(uuid)
 	if err != nil {
