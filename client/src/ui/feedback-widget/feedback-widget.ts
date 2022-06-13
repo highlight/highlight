@@ -53,27 +53,34 @@ export const initializeFeedbackWidget = (options: FeedbackWidgetOptions) => {
         }
     };
 
-    const form = createFormElement((e) => {
-        e.preventDefault();
-        // @ts-expect-error
-        if (window?.H?.addSessionFeedback) {
+    const form = createFormElement(
+        (e) => {
+            e.preventDefault();
             // @ts-expect-error
-            window.H.addSessionFeedback({
-                verbatim: verbatimInput.value,
-                userEmail: emailInput.value,
-                userName: nameInput.value,
-            });
+            if (window?.H?.addSessionFeedback) {
+                // @ts-expect-error
+                window.H.addSessionFeedback({
+                    verbatim: verbatimInput.value,
+                    userEmail: emailInput.value,
+                    userName: nameInput.value,
+                });
+            }
+            onToggleFeedbackFormVisibility();
+            if (onSubmit) {
+                onSubmit(
+                    nameInput.value,
+                    emailInput.value,
+                    verbatimInput.value
+                );
+            }
+        },
+        () => {
+            onToggleFeedbackFormVisibility();
+            if (onCancel) {
+                onCancel();
+            }
         }
-        onToggleFeedbackFormVisibility();
-        if (onSubmit) {
-            onSubmit(nameInput.value, emailInput.value, verbatimInput.value);
-        }
-    }, () => {
-        onToggleFeedbackFormVisibility();
-        if (onCancel) {
-            onCancel();
-        }
-    });
+    );
 
     const submitButton = createSubmitButton(submitButtonLabel);
     const backdrop = createBackdrop();

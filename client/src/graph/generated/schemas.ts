@@ -1,205 +1,195 @@
 export type Maybe<T> = T | null;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = {
+    [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
+    { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
+    { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-  Any: any;
-  Timestamp: any;
-  Int64: any;
-};
-
-
-
-
-export type Session = {
-  __typename?: 'Session';
-  id: Scalars['ID'];
-  secure_id: Scalars['String'];
-  organization_id: Scalars['ID'];
-  project_id: Scalars['ID'];
-};
-
-export type StackFrameInput = {
-  functionName?: Maybe<Scalars['String']>;
-  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
-  fileName?: Maybe<Scalars['String']>;
-  lineNumber?: Maybe<Scalars['Int']>;
-  columnNumber?: Maybe<Scalars['Int']>;
-  isEval?: Maybe<Scalars['Boolean']>;
-  isNative?: Maybe<Scalars['Boolean']>;
-  source?: Maybe<Scalars['String']>;
-};
-
-export type ErrorObjectInput = {
-  event: Scalars['String'];
-  type: Scalars['String'];
-  url: Scalars['String'];
-  source: Scalars['String'];
-  lineNumber: Scalars['Int'];
-  columnNumber: Scalars['Int'];
-  stackTrace: Array<Maybe<StackFrameInput>>;
-  timestamp: Scalars['Timestamp'];
-  payload?: Maybe<Scalars['String']>;
+    ID: string;
+    String: string;
+    Boolean: boolean;
+    Int: number;
+    Float: number;
+    Any: any;
+    Int64: any;
+    Timestamp: any;
 };
 
 export type BackendErrorObjectInput = {
-  session_secure_id: Scalars['String'];
-  request_id: Scalars['String'];
-  event: Scalars['String'];
-  type: Scalars['String'];
-  url: Scalars['String'];
-  source: Scalars['String'];
-  stackTrace: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-  payload?: Maybe<Scalars['String']>;
-};
-
-export enum MetricType {
-  WebVital = 'WebVital',
-  Device = 'Device',
-  Backend = 'Backend',
-  Frontend = 'Frontend'
-}
-
-export type MetricInput = {
-  session_secure_id: Scalars['String'];
-  name: Scalars['String'];
-  value: Scalars['Float'];
-  type: MetricType;
-  url: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-  request_id?: Maybe<Scalars['String']>;
+    event: Scalars['String'];
+    payload?: InputMaybe<Scalars['String']>;
+    request_id: Scalars['String'];
+    session_secure_id: Scalars['String'];
+    source: Scalars['String'];
+    stackTrace: Scalars['String'];
+    timestamp: Scalars['Timestamp'];
+    type: Scalars['String'];
+    url: Scalars['String'];
 };
 
 export type DeviceMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
+    name: Scalars['String'];
+    value: Scalars['Float'];
 };
 
-export type ReplayEventInput = {
-  type: Scalars['Int'];
-  timestamp: Scalars['Float'];
-  _sid: Scalars['Float'];
-  data: Scalars['Any'];
+export type ErrorObjectInput = {
+    columnNumber: Scalars['Int'];
+    event: Scalars['String'];
+    lineNumber: Scalars['Int'];
+    payload?: InputMaybe<Scalars['String']>;
+    source: Scalars['String'];
+    stackTrace: Array<InputMaybe<StackFrameInput>>;
+    timestamp: Scalars['Timestamp'];
+    type: Scalars['String'];
+    url: Scalars['String'];
 };
 
-export type ReplayEventsInput = {
-  events: Array<Maybe<ReplayEventInput>>;
+export type MetricInput = {
+    name: Scalars['String'];
+    request_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
+    timestamp: Scalars['Timestamp'];
+    type: MetricType;
+    url: Scalars['String'];
+    value: Scalars['Float'];
 };
+
+export enum MetricType {
+    Backend = 'Backend',
+    Device = 'Device',
+    Frontend = 'Frontend',
+    WebVital = 'WebVital',
+}
 
 export type Mutation = {
-  __typename?: 'Mutation';
-  initializeSession?: Maybe<Session>;
-  identifySession?: Maybe<Scalars['ID']>;
-  addTrackProperties?: Maybe<Scalars['ID']>;
-  addSessionProperties?: Maybe<Scalars['ID']>;
-  pushPayload: Scalars['Int'];
-  pushBackendPayload?: Maybe<Scalars['Any']>;
-  pushMetrics: Scalars['ID'];
-  markBackendSetup: Scalars['ID'];
-  addSessionFeedback: Scalars['ID'];
-  addWebVitals: Scalars['ID'];
-  addDeviceMetric: Scalars['ID'];
+    __typename?: 'Mutation';
+    addDeviceMetric: Scalars['ID'];
+    addSessionFeedback: Scalars['ID'];
+    addSessionProperties?: Maybe<Scalars['ID']>;
+    addTrackProperties?: Maybe<Scalars['ID']>;
+    addWebVitals: Scalars['ID'];
+    identifySession?: Maybe<Scalars['ID']>;
+    initializeSession?: Maybe<Session>;
+    markBackendSetup: Scalars['ID'];
+    pushBackendPayload?: Maybe<Scalars['Any']>;
+    pushMetrics: Scalars['ID'];
+    pushPayload: Scalars['Int'];
 };
-
-
-export type MutationInitializeSessionArgs = {
-  organization_verbose_id: Scalars['String'];
-  enable_strict_privacy: Scalars['Boolean'];
-  enable_recording_network_contents: Scalars['Boolean'];
-  clientVersion: Scalars['String'];
-  firstloadVersion: Scalars['String'];
-  clientConfig: Scalars['String'];
-  environment: Scalars['String'];
-  appVersion?: Maybe<Scalars['String']>;
-  fingerprint: Scalars['String'];
-  session_secure_id?: Maybe<Scalars['String']>;
-};
-
-
-export type MutationIdentifySessionArgs = {
-  session_id: Scalars['ID'];
-  user_identifier: Scalars['String'];
-  user_object?: Maybe<Scalars['Any']>;
-};
-
-
-export type MutationAddTrackPropertiesArgs = {
-  session_id: Scalars['ID'];
-  properties_object?: Maybe<Scalars['Any']>;
-};
-
-
-export type MutationAddSessionPropertiesArgs = {
-  session_id: Scalars['ID'];
-  properties_object?: Maybe<Scalars['Any']>;
-};
-
-
-export type MutationPushPayloadArgs = {
-  session_id: Scalars['ID'];
-  events: ReplayEventsInput;
-  messages: Scalars['String'];
-  resources: Scalars['String'];
-  errors: Array<Maybe<ErrorObjectInput>>;
-  is_beacon?: Maybe<Scalars['Boolean']>;
-  has_session_unloaded?: Maybe<Scalars['Boolean']>;
-  highlight_logs?: Maybe<Scalars['String']>;
-};
-
-
-export type MutationPushBackendPayloadArgs = {
-  errors: Array<Maybe<BackendErrorObjectInput>>;
-};
-
-
-export type MutationPushMetricsArgs = {
-  metrics: Array<Maybe<MetricInput>>;
-};
-
-
-export type MutationMarkBackendSetupArgs = {
-  session_secure_id: Scalars['String'];
-};
-
-
-export type MutationAddSessionFeedbackArgs = {
-  session_id: Scalars['ID'];
-  user_name?: Maybe<Scalars['String']>;
-  user_email?: Maybe<Scalars['String']>;
-  verbatim: Scalars['String'];
-  timestamp: Scalars['Timestamp'];
-};
-
-
-export type MutationAddWebVitalsArgs = {
-  session_id: Scalars['ID'];
-  metric: WebVitalMetricInput;
-};
-
 
 export type MutationAddDeviceMetricArgs = {
-  session_id: Scalars['ID'];
-  metric: DeviceMetricInput;
+    metric: DeviceMetricInput;
+    session_id: Scalars['ID'];
 };
 
-export type WebVitalMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
+export type MutationAddSessionFeedbackArgs = {
+    session_id: Scalars['ID'];
+    timestamp: Scalars['Timestamp'];
+    user_email?: InputMaybe<Scalars['String']>;
+    user_name?: InputMaybe<Scalars['String']>;
+    verbatim: Scalars['String'];
+};
+
+export type MutationAddSessionPropertiesArgs = {
+    properties_object?: InputMaybe<Scalars['Any']>;
+    session_id: Scalars['ID'];
+};
+
+export type MutationAddTrackPropertiesArgs = {
+    properties_object?: InputMaybe<Scalars['Any']>;
+    session_id: Scalars['ID'];
+};
+
+export type MutationAddWebVitalsArgs = {
+    metric: WebVitalMetricInput;
+    session_id: Scalars['ID'];
+};
+
+export type MutationIdentifySessionArgs = {
+    session_id: Scalars['ID'];
+    user_identifier: Scalars['String'];
+    user_object?: InputMaybe<Scalars['Any']>;
+};
+
+export type MutationInitializeSessionArgs = {
+    appVersion?: InputMaybe<Scalars['String']>;
+    clientConfig: Scalars['String'];
+    clientVersion: Scalars['String'];
+    enable_recording_network_contents: Scalars['Boolean'];
+    enable_strict_privacy: Scalars['Boolean'];
+    environment: Scalars['String'];
+    fingerprint: Scalars['String'];
+    firstloadVersion: Scalars['String'];
+    organization_verbose_id: Scalars['String'];
+    session_secure_id?: InputMaybe<Scalars['String']>;
+};
+
+export type MutationMarkBackendSetupArgs = {
+    session_secure_id: Scalars['String'];
+};
+
+export type MutationPushBackendPayloadArgs = {
+    errors: Array<InputMaybe<BackendErrorObjectInput>>;
+};
+
+export type MutationPushMetricsArgs = {
+    metrics: Array<InputMaybe<MetricInput>>;
+};
+
+export type MutationPushPayloadArgs = {
+    errors: Array<InputMaybe<ErrorObjectInput>>;
+    events: ReplayEventsInput;
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+    highlight_logs?: InputMaybe<Scalars['String']>;
+    is_beacon?: InputMaybe<Scalars['Boolean']>;
+    messages: Scalars['String'];
+    resources: Scalars['String'];
+    session_id: Scalars['ID'];
 };
 
 export type Query = {
-  __typename?: 'Query';
-  ignore?: Maybe<Scalars['Any']>;
+    __typename?: 'Query';
+    ignore?: Maybe<Scalars['Any']>;
 };
 
-
 export type QueryIgnoreArgs = {
-  id: Scalars['ID'];
+    id: Scalars['ID'];
+};
+
+export type ReplayEventInput = {
+    _sid: Scalars['Float'];
+    data: Scalars['Any'];
+    timestamp: Scalars['Float'];
+    type: Scalars['Int'];
+};
+
+export type ReplayEventsInput = {
+    events: Array<InputMaybe<ReplayEventInput>>;
+};
+
+export type Session = {
+    __typename?: 'Session';
+    id: Scalars['ID'];
+    organization_id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    secure_id: Scalars['String'];
+};
+
+export type StackFrameInput = {
+    args?: InputMaybe<Array<InputMaybe<Scalars['Any']>>>;
+    columnNumber?: InputMaybe<Scalars['Int']>;
+    fileName?: InputMaybe<Scalars['String']>;
+    functionName?: InputMaybe<Scalars['String']>;
+    isEval?: InputMaybe<Scalars['Boolean']>;
+    isNative?: InputMaybe<Scalars['Boolean']>;
+    lineNumber?: InputMaybe<Scalars['Int']>;
+    source?: InputMaybe<Scalars['String']>;
+};
+
+export type WebVitalMetricInput = {
+    name: Scalars['String'];
+    value: Scalars['Float'];
 };
