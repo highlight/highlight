@@ -72,6 +72,11 @@ var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime
 
+const (
+	localhostCertPath = "localhostssl/server.crt"
+	localhostKeyPath  = "localhostssl/server.key"
+)
+
 func init() {
 	flag.Parse()
 	if runtimeFlag == nil {
@@ -309,7 +314,7 @@ func main() {
 
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
-		H.SetGraphqlClientAddress("http://localhost:8082/public")
+		H.SetGraphqlClientAddress("https://localhost:8082/public")
 	}
 	H.Start()
 	defer H.Stop()
@@ -389,7 +394,11 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				log.Fatal(http.ListenAndServe(":"+port, r))
+				if util.IsDevEnv() {
+					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+				} else {
+					log.Fatal(http.ListenAndServe(":"+port, r))
+				}
 			}
 		} else {
 			go func() {
@@ -397,10 +406,18 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			log.Fatal(http.ListenAndServe(":"+port, r))
+			if util.IsDevEnv() {
+				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+			} else {
+				log.Fatal(http.ListenAndServe(":"+port, r))
+			}
 		}
 	} else {
-		log.Fatal(http.ListenAndServe(":"+port, r))
+		if util.IsDevEnv() {
+			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+		} else {
+			log.Fatal(http.ListenAndServe(":"+port, r))
+		}
 	}
 }
 

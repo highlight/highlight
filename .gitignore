@@ -21,3 +21,6 @@ yalc.lock
 
 backend/backend
 
+backend/localhostssl/server.crt
+backend/localhostssl/server.key
+

@@ -1245,9 +1245,14 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 const (
 	projectCookieName  = "project-token"
 	projectIdClaimName = "project_id"
+	expClaimName       = "exp"
 	projectIdUrlParam  = "project_id"
 	uuidUrlParam       = "uuid"
 )
+
+func getProjectCookieName(projectId int) string {
+	return fmt.Sprintf("%s-%d", projectCookieName, projectId)
+}
 
 func getProjectIdFromToken(tokenString string) (int, error) {
 	claims := jwt.MapClaims{}
@@ -1261,6 +1266,16 @@ func getProjectIdFromToken(tokenString string) (int, error) {
 	projectId, ok := claims[projectIdClaimName].(float64)
 	if !ok {
 		return 0, e.Wrap(err, "invalid project_id claim")
+	}
+
+	exp, ok := claims[expClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid exp claim")
+	}
+
+	// Check if the current time is after the expiration
+	if time.Now().After(time.Unix(int64(exp), 0)) {
+		return 0, e.Wrap(err, "token expired")
 	}
 
 	return int(projectId), nil
@@ -1284,8 +1299,8 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	atClaims := jwt.MapClaims{}
-	atClaims["project_id"] = projectId
-	atClaims["exp"] = time.Now().Add(time.Hour).Unix()
+	atClaims[projectIdClaimName] = projectId
+	atClaims[expClaimName] = time.Now().Add(time.Hour).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte(JwtAccessSecret))
 	if err != nil {
@@ -1294,12 +1309,13 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:   projectCookieName,
-		Value:  token,
-		MaxAge: int(time.Hour.Seconds()),
-		// HttpOnly: true,
-		// Secure:   true,
-		Path: "/",
+		Name:     getProjectCookieName(projectId),
+		Value:    token,
+		MaxAge:   int(time.Hour.Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
 	})
 }
 
@@ -1313,7 +1329,7 @@ func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	projectCookie, err := req.Cookie(projectCookieName)
+	projectCookie, err := req.Cookie(getProjectCookieName(result.ProjectID))
 	if err != nil {
 		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
 		http.Error(w, "", http.StatusForbidden)
@@ -1340,6 +1356,8 @@ func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Cache the redirected url for up to 14 minutes
+	w.Header().Set("Cache-Control", "max-age=840")
 	http.Redirect(w, req, url, http.StatusFound)
 }
 

@@ -76,22 +76,26 @@ export const ProjectRouter = () => {
         const uri =
             process.env.REACT_APP_PRIVATE_GRAPH_URI ??
             window.location.origin + '/private';
-        // let intervalId: NodeJS.Timeout;
+        let intervalId: NodeJS.Timeout;
         firebase
             .auth()
             .currentUser?.getIdToken()
             .then((t) => {
-                // intervalId = setInterval(
-                //     () =>
-                fetch(`${uri}/project-token/${project_id}`, {
-                    headers: {
-                        token: t,
-                    },
-                }); //,
-                //     30 * 60 * 1000
-                // );
+                const fetchToken = () => {
+                    fetch(`${uri}/project-token/${project_id}`, {
+                        credentials: 'include',
+                        headers: {
+                            token: t,
+                        },
+                    });
+                };
+                // Fetch a new token now and every 30 mins
+                fetchToken();
+                intervalId = setInterval(fetchToken, 30 * 60 * 1000);
             });
-        // return () => clearInterval(intervalId);
+        return () => {
+            clearInterval(intervalId);
+        };
     }, [project_id]);
 
     useEffect(() => {
