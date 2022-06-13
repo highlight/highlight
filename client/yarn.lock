@@ -1904,27 +1904,27 @@
     is-promise "4.0.0"
     tslib "~2.0.1"
 
-"@highlight-run/rrdom@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.6.tgz#9c4f963c25f68d979164584899c6d680dab8fbf2"
-  integrity sha512-cFz5BmCtgEb1MEZFj6EnNyinYOvVmdVm7Sd1s4xuBdJcnq+LDl08jAXAeL093dcQqGQdH//1ddpGzsZ6nW/j0A==
+"@highlight-run/rrdom@^0.1.2":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.7.tgz#8e956096e8f714a4a6abd483a59061600ebfb78a"
+  integrity sha512-/IeTRQGVTjqhVmxiAXHXOldNxxoith6BMkxkW6q0UryCMqfo77lfHvQAYZxS0CgDJrHB6Th1B5TvTEPhZcv6ng==
   dependencies:
     cssom "^0.5.0"
     cssstyle "^2.3.0"
     nwsapi "^2.2.0"
 
-"@highlight-run/rrweb-snapshot@^1.1.19":
-  version "1.1.19"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.19.tgz#b314f096cee77974e1c27fc9b0cc0cfa33070e12"
-  integrity sha512-bzQb9wlzoDsyXTSV3Txr3tOLl6nn2dIel3kURVgBP4YLdvCoAox51ZdVeCSqIfMSNsp1VCphaA+xLan1LJgHQg==
+"@highlight-run/rrweb-snapshot@^1.1.15":
+  version "1.1.20"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.20.tgz#38de177682de7e3f2f0a1c970505180b4afd23cc"
+  integrity sha512-JyHAEc62deEupwmY5ls6ECnzPSLpsFjA8KCeOZL07Bf4ioIT3a4akhV/r5kTdnyzHa3A0xJktKGWC2lU+/1k2w==
 
-"@highlight-run/rrweb@2.0.7":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.7.tgz#6e1c8e00dbaac230e3d9d9fff9536f9a939c0a4b"
-  integrity sha512-gVFK/clJB4IvJixwTzTdeu3v8GtCXwKNBq8HtEPyluRW0Ny87ZNBgZlONB4bnTff5mKLWhSVr/s+mioHpveRjg==
+"@highlight-run/rrweb@2.0.8":
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.8.tgz#2a4e808666e39796f5e9a9d5b5799165f95a03df"
+  integrity sha512-F3O1ewYH7QRVWaQU6Zr1ecS683bbLVgm8koL0pkm5uHrRsUG7OWNrDfl//0LQNnDlaOBi/DMPBgEq6oObzKBOA==
   dependencies:
-    "@highlight-run/rrdom" "^0.1.6"
-    "@highlight-run/rrweb-snapshot" "^1.1.19"
+    "@highlight-run/rrdom" "^0.1.2"
+    "@highlight-run/rrweb-snapshot" "^1.1.15"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
