@@ -260,8 +260,23 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={4320}
-                        increaseViewportBy={4320}
+                        overscan={512}
+                        increaseViewportBy={512}
+                        components={{
+                            ScrollSeekPlaceholder: () => (
+                                <div
+                                    style={{
+                                        height: 36,
+                                    }}
+                                >
+                                    <Skeleton height={36} />
+                                </div>
+                            ),
+                        }}
+                        scrollSeekConfiguration={{
+                            enter: (v) => v > 128,
+                            exit: (v) => v < 16,
+                        }}
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
