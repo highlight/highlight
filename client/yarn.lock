@@ -1914,16 +1914,31 @@
     is-promise "4.0.0"
     tslib "~2.0.1"
 
-"@highlight-run/rrweb@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.2.1.tgz#be984a82a82b0ac6d81d4aeb36bea9ee10d3fc7b"
-  integrity sha512-yHh+vI4U4YazT54rKsrXLIkQDS5Gut0dOIiGdqsWrNclNHMYjAbJZVNo9n3gFgDW4YlheVbhOcL3ZBCvAdjtPw==
+"@highlight-run/rrdom@>0.1.2":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.8.tgz#ad05a202b46fc361b14834244c401f10dc02b740"
+  integrity sha512-QpTZshgtXHwDDa7jl/YIr5+KHpVjSJ7yhD5Qxb8UdMykFFOEh8PxNAFCMpmx087Q72kpwv8Qo1CJOKk6v0DgZA==
   dependencies:
-    "@types/css-font-loading-module" "0.0.4"
+    cssom "^0.5.0"
+    cssstyle "^2.3.0"
+    nwsapi "^2.2.0"
+
+"@highlight-run/rrweb-snapshot@>1.1.15":
+  version "1.1.21"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.21.tgz#e5cf52b04e3da7fab5d5eaa9093bddfefcf09577"
+  integrity sha512-c3ShfjYs7j30oLYu5mqOCMPICgc0hvR+Tj/DgDXjcfYcDoGxPvDLbtS24SVvTO8nHK7xapKRnNWbo1Z0lccfqQ==
+
+"@highlight-run/rrweb@2.0.9":
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.9.tgz#dce2bb283ce3ee8aad706ecfea357b4f8bba9d86"
+  integrity sha512-Jg7idulz6PZDIxeuQfRaKsbrrTFeNBLqJ1HjCLvblohooLhaIrf85eE+CHC2/J7h7V6HdSEgUk7TStNEZni1rQ==
+  dependencies:
+    "@highlight-run/rrdom" ">0.1.2"
+    "@highlight-run/rrweb-snapshot" ">1.1.15"
+    "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
     fflate "^0.4.4"
-    identity-obj-proxy "^3.0.0"
     mitt "^1.1.3"
 
 "@iarna/toml@^2.2.5":
@@ -2220,10 +2235,10 @@
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
 
-"@types/css-font-loading-module@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.4.tgz#94a835e27d1af444c65cba88523533c174463d64"
-  integrity sha512-ENdXf7MW4m9HeDojB2Ukbi7lYMIuQNBHVf98dbzaiG4EEJREBd6oleVAjrLRCrp7dm6CK1mmdmU9tcgF61acbw==
+"@types/css-font-loading-module@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.7.tgz#2f98ede46acc0975de85c0b7b0ebe06041d24601"
+  integrity sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q==
 
 "@types/eslint-scope@^3.7.0":
   version "3.7.0"
@@ -3804,6 +3819,11 @@ cssom@^0.4.4:
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
   integrity sha512-p3pvU7r1MyyqbTk+WbNJIgJjG2VmTIaB10rI93LzVPrmDJKkzKYMtxxyAvQXR/NS6otuzveI7+7BBq3SjBS2mw==
 
+cssom@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.5.0.tgz#d254fa92cd8b6fbd83811b9fbaed34663cc17c36"
+  integrity sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==
+
 cssom@~0.3.6:
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.3.8.tgz#9f1276f5b2b463f2114d3f2c75250af8c1a36f4a"
@@ -5150,11 +5170,6 @@ har-validator@~5.1.3:
     ajv "^6.12.3"
     har-schema "^2.0.0"
 
-harmony-reflect@^1.4.6:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/harmony-reflect/-/harmony-reflect-1.6.2.tgz#31ecbd32e648a34d030d86adb67d4d47547fe710"
-  integrity sha512-HIp/n38R9kQjDEziXyDTuW3vvoxxyxjxFzXLrBr18uB47GnSt+G9D29fqrpM5ZkspMcPICud3XsBJQ4Y2URg8g==
-
 has-ansi@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/has-ansi/-/has-ansi-2.0.0.tgz#34f5049ce1ecdf2b0649af3ef24e45ed35416d91"
@@ -5366,13 +5381,6 @@ iconv-lite@0.4.24, iconv-lite@^0.4.24:
   integrity sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==
   dependencies:
     safer-buffer ">= 2.1.2 < 3"
-
-identity-obj-proxy@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/identity-obj-proxy/-/identity-obj-proxy-3.0.0.tgz#94d2bda96084453ef36fbc5aaec37e0f79f1fc14"
-  integrity sha1-lNK9qWCERT7zb7xarsN+D3nx/BQ=
-  dependencies:
-    harmony-reflect "^1.4.6"
 
 ieee754@^1.1.13:
   version "1.2.1"
