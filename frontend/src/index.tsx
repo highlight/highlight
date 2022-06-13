@@ -39,7 +39,7 @@ import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
-const dev = process.env.NODE_ENV === 'development' ? true : false;
+const dev = process.env.NODE_ENV === 'development';
 let commitSHA = process.env.REACT_APP_COMMIT_SHA || '';
 if (commitSHA.length > 8) {
     commitSHA = commitSHA.substring(0, 8);
@@ -87,12 +87,16 @@ if (dev) {
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
     }
-} else if (window.location.href.includes('onrender')) {
+} else if (
+    window.location.href.includes('onrender') ||
+    window.location.href.includes('amplifyapp')
+) {
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
+    options.scriptUrl = 'https://static.highlight.run/beta/index.js';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (!isOnPrem) {
