@@ -83,6 +83,7 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    inlineImages?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -169,6 +170,7 @@ export class Highlight {
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    inlineImages!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -726,7 +728,7 @@ export class Highlight {
                         return true;
                     },
                     inlineStylesheet: true,
-                    inlineImages: true,
+                    inlineImages: this.inlineImages,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
