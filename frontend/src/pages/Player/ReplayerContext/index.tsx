@@ -3,7 +3,7 @@ import {
     playerMetaData,
     SessionInterval,
     viewportResizeDimension,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook';
 
 import {
