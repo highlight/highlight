@@ -266,6 +266,8 @@ export class Highlight {
         });
         const graphQLRequestWrapper = async <T,>(
             requestFn: () => Promise<T>,
+            operationName: string,
+            operationType?: string,
             retries: number = 0
         ): Promise<T> => {
             const MAX_RETRIES = 5;
@@ -284,7 +286,12 @@ export class Highlight {
                             INITIAL_BACKOFF * Math.pow(2, retries)
                         )
                     );
-                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                    return await graphQLRequestWrapper(
+                        requestFn,
+                        operationName,
+                        operationType,
+                        retries + 1
+                    );
                 }
                 logForHighlight(
                     '[' +
