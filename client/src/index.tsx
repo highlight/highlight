@@ -6,7 +6,7 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -725,6 +725,8 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineStylesheet: true,
+                    inlineImages: true,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
