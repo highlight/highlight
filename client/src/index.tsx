@@ -6,7 +6,7 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -83,6 +83,7 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    inlineImages?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -169,6 +170,7 @@ export class Highlight {
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    inlineImages!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -725,6 +727,8 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineStylesheet: true,
+                    inlineImages: this.inlineImages,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
