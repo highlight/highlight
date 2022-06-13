@@ -119,7 +119,7 @@ const monkeyPatchLocalStorage = (
     const originalSetItem = window.localStorage.setItem;
 
     window.localStorage.setItem = function () {
-        const [keyName, keyValue] = (arguments as unknown) as [
+        const [keyName, keyValue] = arguments as unknown as [
             key: string,
             value: string
         ];

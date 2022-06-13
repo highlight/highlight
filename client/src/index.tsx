@@ -275,6 +275,8 @@ export class Highlight {
         });
         const graphQLRequestWrapper = async <T,>(
             requestFn: () => Promise<T>,
+            operationName: string,
+            operationType?: string,
             retries: number = 0
         ): Promise<T> => {
             const MAX_RETRIES = 5;
@@ -293,7 +295,12 @@ export class Highlight {
                             INITIAL_BACKOFF * Math.pow(2, retries)
                         )
                     );
-                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                    return await graphQLRequestWrapper(
+                        requestFn,
+                        operationName,
+                        operationType,
+                        retries + 1
+                    );
                 }
                 logForHighlight(
                     '[' +
@@ -349,7 +356,8 @@ export class Highlight {
         if (window.Intercom) {
             window.Intercom('onShow', () => {
                 window.Intercom('update', {
-                    highlightSessionURL: this.getCurrentSessionURLWithTimestamp(),
+                    highlightSessionURL:
+                        this.getCurrentSessionURLWithTimestamp(),
                 });
                 this.addProperties({ event: 'Intercom onShow' });
             });
@@ -584,10 +592,10 @@ export class Highlight {
         }
         try {
             if (this.feedbackWidgetOptions.enabled) {
-                const {
-                    onToggleFeedbackFormVisibility,
-                } = initializeFeedbackWidget(this.feedbackWidgetOptions);
-                this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
+                const { onToggleFeedbackFormVisibility } =
+                    initializeFeedbackWidget(this.feedbackWidgetOptions);
+                this._onToggleFeedbackFormVisibility =
+                    onToggleFeedbackFormVisibility;
             }
             let storedSessionData = JSON.parse(
                 window.sessionStorage.getItem(
@@ -654,8 +662,9 @@ export class Highlight {
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
-                        enable_recording_network_contents: this
-                            ._firstLoadListeners.enableRecordingNetworkContents,
+                        enable_recording_network_contents:
+                            this._firstLoadListeners
+                                .enableRecordingNetworkContents,
                         clientVersion: packageJson['version'],
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
@@ -707,8 +716,8 @@ export class Highlight {
                                 {
                                     name: 'DeviceMemory',
                                     value: deviceDetails.deviceMemory,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
+                                    session_secure_id:
+                                        this.sessionData.sessionSecureID,
                                     category: 'Device',
                                     group: window.location.href,
                                     timestamp: new Date().toISOString(),
@@ -876,8 +885,8 @@ export class Highlight {
                                 {
                                     name,
                                     value,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
+                                    session_secure_id:
+                                        this.sessionData.sessionSecureID,
                                     category: 'WebVital',
                                     group: window.location.href,
                                     timestamp: new Date().toISOString(),
@@ -1213,12 +1222,10 @@ export class Highlight {
                 this._lastSnapshotTime = now;
             }
 
-            this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
-                messages.length
-            );
-            this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
-                errors.length
-            );
+            this._firstLoadListeners.messages =
+                this._firstLoadListeners.messages.slice(messages.length);
+            this._firstLoadListeners.errors =
+                this._firstLoadListeners.errors.slice(errors.length);
             clearHighlightLogs(highlightLogs);
         }
     }
