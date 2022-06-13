@@ -72,7 +72,6 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
