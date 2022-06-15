@@ -303,15 +303,15 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
-		field := &model.Field{}
-		res := r.DB.Debug().FirstOrCreate(&f)
+		field := model.Field{}
+		res := r.DB.Where(f).FirstOrCreate(&field)
 		// If the field was created, index it in OpenSearch
 		if res.RowsAffected > 0 {
 			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
 		}
-		fieldsToAppend = append(fieldsToAppend, field)
+		fieldsToAppend = append(fieldsToAppend, &field)
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
