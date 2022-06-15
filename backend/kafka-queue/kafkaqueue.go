@@ -82,8 +82,8 @@ func New(topic string, mode Mode) *Queue {
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
-				NumPartitions:     64,
-				ReplicationFactor: 3,
+				NumPartitions:     8,
+				ReplicationFactor: 1,
 			}},
 		})
 		if err != nil {
@@ -104,12 +104,16 @@ func New(topic string, mode Mode) *Queue {
 				},
 			},
 		})
-		e := res.Errors[kafka.AlterConfigsResponseResource{
-			Type: int8(kafka.ResourceTypeTopic),
-			Name: topic,
-		}]
-		if err != nil || e != nil {
-			log.Error(errors.Wrapf(err, "failed to update topic retention %s", e))
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to update topic retention"))
+		} else {
+			err = res.Errors[kafka.AlterConfigsResponseResource{
+				Type: int8(kafka.ResourceTypeTopic),
+				Name: topic,
+			}]
+			if err != nil {
+				log.Error(errors.Wrap(err, "topic retention failed server-side"))
+			}
 		}
 	}
 

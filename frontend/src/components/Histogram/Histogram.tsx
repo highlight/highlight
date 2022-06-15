@@ -15,7 +15,7 @@ interface Series {
     counts: number[];
 }
 
-const POPOVER_TIMEOUT_MS = 1000;
+const POPOVER_TIMEOUT_MS = 300;
 
 interface Props {
     startTime: number;
