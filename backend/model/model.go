@@ -307,6 +307,8 @@ type DashboardMetric struct {
 	Model
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
+	Type                     modelInputs.MetricType
+	Description              string
 	MaxGoodValue             float64
 	MaxNeedsImprovementValue float64
 	PoorValue                float64

@@ -706,6 +706,7 @@ type DashboardPayload {
 
 input DashboardMetricConfigInput {
     name: String!
+    description: String!
     max_good_value: Float!
     max_needs_improvement_value: Float!
     poor_value: Float!
@@ -716,6 +717,7 @@ input DashboardMetricConfigInput {
 
 type DashboardMetricConfig {
     name: String!
+    description: String!
     max_good_value: Float!
     max_needs_improvement_value: Float!
     poor_value: Float!
@@ -906,7 +908,7 @@ type Query {
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType
+        metric_type: MetricType!
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metric_preview(

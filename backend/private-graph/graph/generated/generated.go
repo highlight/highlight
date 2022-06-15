@@ -152,6 +152,7 @@ type ComplexityRoot struct {
 	}
 
 	DashboardMetricConfig struct {
+		Description              func(childComplexity int) int
 		HelpArticle              func(childComplexity int) int
 		MaxGoodValue             func(childComplexity int) int
 		MaxNeedsImprovementValue func(childComplexity int) int
@@ -518,7 +519,7 @@ type ComplexityRoot struct {
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int) int
 		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
-		MetricsDashboard             func(childComplexity int, projectID int, metricName string, metricType *model.MetricType, params model.DashboardParamsInput) int
+		MetricsDashboard             func(childComplexity int, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -1008,7 +1009,7 @@ type QueryResolver interface {
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
 	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
-	MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType *model.MetricType, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
+	MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -1484,6 +1485,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardDefinition.UpdatedAt(childComplexity), true
+
+	case "DashboardMetricConfig.description":
+		if e.complexity.DashboardMetricConfig.Description == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.Description(childComplexity), true
 
 	case "DashboardMetricConfig.help_article":
 		if e.complexity.DashboardMetricConfig.HelpArticle == nil {
@@ -3973,7 +3981,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricsDashboard(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(*model.MetricType), args["params"].(model.DashboardParamsInput)), true
+		return e.complexity.Query.MetricsDashboard(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.DashboardParamsInput)), true
 
 	case "Query.new_session_alerts":
 		if e.complexity.Query.NewSessionAlerts == nil {
@@ -6485,6 +6493,7 @@ type DashboardPayload {
 
 input DashboardMetricConfigInput {
     name: String!
+    description: String!
     max_good_value: Float!
     max_needs_improvement_value: Float!
     poor_value: Float!
@@ -6495,6 +6504,7 @@ input DashboardMetricConfigInput {
 
 type DashboardMetricConfig {
     name: String!
+    description: String!
     max_good_value: Float!
     max_needs_improvement_value: Float!
     poor_value: Float!
@@ -6685,7 +6695,7 @@ type Query {
     metrics_dashboard(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType
+        metric_type: MetricType!
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metric_preview(
@@ -11002,10 +11012,10 @@ func (ec *executionContext) field_Query_metrics_dashboard_args(ctx context.Conte
 		}
 	}
 	args["metric_name"] = arg1
-	var arg2 *model.MetricType
+	var arg2 model.MetricType
 	if tmp, ok := rawArgs["metric_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_type"))
-		arg2, err = ec.unmarshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
+		arg2, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -13861,6 +13871,41 @@ func (ec *executionContext) _DashboardMetricConfig_name(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_description(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25467,7 +25512,7 @@ func (ec *executionContext) _Query_metrics_dashboard(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsDashboard(rctx, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(*model.MetricType), args["params"].(model.DashboardParamsInput))
+		return ec.resolvers.Query().MetricsDashboard(rctx, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.DashboardParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32950,6 +32995,14 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "max_good_value":
 			var err error
 
@@ -34324,6 +34377,16 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._DashboardMetricConfig_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_description(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -45051,22 +45114,6 @@ func (ec *executionContext) marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._MetricPreview(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (*model.MetricType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.MetricType)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOMetricType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v *model.MetricType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {

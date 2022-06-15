@@ -14,7 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
@@ -259,25 +259,15 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	return feedbackComment.ID, nil
 }
 
-func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
-	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
-	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeWebVital, metric.Name, metric.Value)
-}
-
-func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
-	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
-	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeDevice, metric.Name, metric.Value)
-}
-
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+// Mutation returns generated1.MutationResolver implementation.
+func (r *Resolver) Mutation() generated1.MutationResolver { return &mutationResolver{r} }
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+// Query returns generated1.QueryResolver implementation.
+func (r *Resolver) Query() generated1.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

@@ -53,6 +53,7 @@ const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
     }
     return {
         name: name,
+        description: '',
         help_article: cfg?.help_article || '',
         units: cfg?.units || 'ms',
         max_good_value: cfg?.max_good_value || 10,
@@ -90,11 +91,15 @@ const DashboardPage = () => {
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
     const pushNewMetricConfig = (nm: DashboardMetricConfig[]) => {
+        const newPos = { ...layout.lg[0] };
+        newPos.i = (nm.length - 1).toString();
+        const l = { lg: [...layout.lg, newPos].slice(0, nm.length) };
+        console.log('setting layout', { l });
         updateDashboard({
             id,
             metrics: nm,
             name: dashboard?.name || '',
-            layout: dashboard?.layout || '',
+            layout: JSON.stringify(l),
         });
     };
 
@@ -170,14 +175,19 @@ const DashboardPage = () => {
                     isDraggable={isEditing}
                     isResizable={isEditing}
                     containerPadding={[0, 0]}
-                    rowHeight={310}
-                    resizeHandles={['e']}
+                    rowHeight={155}
+                    resizeHandles={['se']}
                     onDragStop={(layout) => {
                         setLayout({
                             lg: layout,
                         });
                     }}
                     onResizeStop={(layout) => {
+                        setLayout({
+                            lg: layout,
+                        });
+                    }}
+                    onResize={(layout) => {
                         setLayout({
                             lg: layout,
                         });

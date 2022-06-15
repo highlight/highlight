@@ -4172,7 +4172,7 @@ export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
         $metric_name: String!
-        $metric_type: MetricType
+        $metric_type: MetricType!
         $params: DashboardParamsInput!
     ) {
         metrics_dashboard(
@@ -9417,6 +9417,7 @@ export const GetDashboardDefinitionsDocument = gql`
             name
             metrics {
                 name
+                description
                 max_good_value
                 max_needs_improvement_value
                 poor_value

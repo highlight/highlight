@@ -1586,7 +1586,7 @@ export type SessionPayloadFragmentFragment = {
 export type GetMetricsDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
-    metric_type?: Types.Maybe<Types.MetricType>;
+    metric_type: Types.MetricType;
     params: Types.DashboardParamsInput;
 }>;
 
@@ -3655,6 +3655,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                         { __typename?: 'DashboardMetricConfig' } & Pick<
                             Types.DashboardMetricConfig,
                             | 'name'
+                            | 'description'
                             | 'max_good_value'
                             | 'max_needs_improvement_value'
                             | 'poor_value'

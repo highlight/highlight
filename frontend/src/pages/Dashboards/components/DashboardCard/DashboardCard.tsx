@@ -87,7 +87,7 @@ const DashboardCard = ({
                 title={
                     <div className={styles.cardHeader}>
                         <h3>
-                            {metricConfig.name}
+                            {metricConfig.description || metricConfig.name}
                             {metricConfig.help_article && (
                                 <InfoTooltip
                                     className={styles.infoTooltip}
@@ -300,6 +300,7 @@ const EditMetricModal = ({
                             onClick={() => {
                                 updateMetric(metricIdx, {
                                     name: metricConfig.name,
+                                    description: metricConfig.description,
                                     units: units,
                                     help_article: helpArticle,
                                     max_good_value: maxGoodValue,

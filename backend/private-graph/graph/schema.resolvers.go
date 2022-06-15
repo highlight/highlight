@@ -2960,6 +2960,8 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	for _, m := range metrics {
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
+			Description:              m.Description,
+			Type:                     m.Type,
 			MaxGoodValue:             m.MaxGoodValue,
 			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
 			PoorValue:                m.PoorValue,
@@ -5143,6 +5145,8 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 		for _, metric := range d.Metrics {
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
+				Description:              metric.Description,
+				Type:                     metric.Type,
 				MaxGoodValue:             metric.MaxGoodValue,
 				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
 				PoorValue:                metric.PoorValue,
@@ -5182,7 +5186,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	return payload, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType *modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -5196,14 +5200,10 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 	if params.Timezone != nil {
 		tz = *params.Timezone
 	}
-	extraFilter := ""
-	if metricType != nil {
-		extraFilter = fmt.Sprintf("AND type = '%s'\n", metricType.String())
-	}
-	query := fmt.Sprintf(`
+	query := `
 		SELECT to_timestamp(cast(extract(
-				       EPOCH FROM created_at AT TIME ZONE '%s'
-				   ) / 60 / %d AS INT) * %d * 60)::timestamp AT TIME ZONE '%s'               as date,
+				       EPOCH FROM created_at AT TIME ZONE ?
+				   ) / 60 / ? AS INT) * ? * 60)::timestamp AT TIME ZONE ?               as date,
 			   avg(value)                                                                    as avg,
 			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
 			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
@@ -5214,10 +5214,10 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 			AND project_id=?
 			AND created_at >= ?
 			AND created_at <= ?
-			%s
+			AND type = ?
 		  GROUP BY date;
-	`, tz, resMins, resMins, tz, extraFilter)
-	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	`
+	if err := r.DB.Raw(query, tz, resMins, resMins, tz, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

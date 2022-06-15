@@ -13,7 +13,8 @@ export const WEB_VITALS_CONFIGURATION: {
 } = {
     CLS: {
         max_good_value: 0.1,
-        name: WebVitalName.CLS,
+        name: 'CLS',
+        description: WebVitalName.CLS,
         max_needs_improvement_value: 0.25,
         poor_value: 0,
         units: 'LS',
@@ -22,7 +23,8 @@ export const WEB_VITALS_CONFIGURATION: {
     },
     FID: {
         max_good_value: 100,
-        name: WebVitalName.FID,
+        name: 'FID',
+        description: WebVitalName.FID,
         max_needs_improvement_value: 300,
         poor_value: 0,
         units: 'ms',
@@ -31,7 +33,8 @@ export const WEB_VITALS_CONFIGURATION: {
     },
     LCP: {
         max_good_value: 2500,
-        name: WebVitalName.LCP,
+        name: 'LCP',
+        description: WebVitalName.LCP,
         max_needs_improvement_value: 4000,
         poor_value: 0,
         units: 'ms',
@@ -40,7 +43,8 @@ export const WEB_VITALS_CONFIGURATION: {
     },
     FCP: {
         max_good_value: 1800,
-        name: WebVitalName.FCP,
+        name: 'FCP',
+        description: WebVitalName.FCP,
         max_needs_improvement_value: 3000,
         poor_value: 0,
         units: 'ms',
@@ -49,7 +53,8 @@ export const WEB_VITALS_CONFIGURATION: {
     },
     TTFB: {
         max_good_value: 500,
-        name: WebVitalName.TTFB,
+        name: 'TTFB',
+        description: WebVitalName.TTFB,
         max_needs_improvement_value: 3000,
         poor_value: 0,
         units: 'ms',

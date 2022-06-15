@@ -770,6 +770,7 @@ export type DashboardPayload = {
 
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
+    description: Scalars['String'];
     max_good_value: Scalars['Float'];
     max_needs_improvement_value: Scalars['Float'];
     poor_value: Scalars['Float'];
@@ -781,6 +782,7 @@ export type DashboardMetricConfigInput = {
 export type DashboardMetricConfig = {
     __typename?: 'DashboardMetricConfig';
     name: Scalars['String'];
+    description: Scalars['String'];
     max_good_value: Scalars['Float'];
     max_needs_improvement_value: Scalars['Float'];
     poor_value: Scalars['Float'];
@@ -1255,7 +1257,7 @@ export type QuerySuggested_MetricsArgs = {
 export type QueryMetrics_DashboardArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
-    metric_type?: Maybe<MetricType>;
+    metric_type: MetricType;
     params: DashboardParamsInput;
 };
 

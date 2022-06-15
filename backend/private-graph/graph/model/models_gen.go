@@ -66,6 +66,7 @@ type DashboardDefinition struct {
 
 type DashboardMetricConfig struct {
 	Name                     string     `json:"name"`
+	Description              string     `json:"description"`
 	MaxGoodValue             float64    `json:"max_good_value"`
 	MaxNeedsImprovementValue float64    `json:"max_needs_improvement_value"`
 	PoorValue                float64    `json:"poor_value"`
@@ -76,6 +77,7 @@ type DashboardMetricConfig struct {
 
 type DashboardMetricConfigInput struct {
 	Name                     string     `json:"name"`
+	Description              string     `json:"description"`
 	MaxGoodValue             float64    `json:"max_good_value"`
 	MaxNeedsImprovementValue float64    `json:"max_needs_improvement_value"`
 	PoorValue                float64    `json:"poor_value"`
