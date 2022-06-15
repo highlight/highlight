@@ -83,7 +83,7 @@ func New(topic string, mode Mode) *Queue {
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
 				NumPartitions:     8,
-				ReplicationFactor: 1,
+				ReplicationFactor: 2,
 			}},
 		})
 		if err != nil {
