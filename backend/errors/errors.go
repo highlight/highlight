@@ -166,7 +166,7 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		}
 	}
 	if len(minifiedFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
-		err := e.Errorf("minified source file over %dmb: %v, size: %v", SOURCE_MAP_MAX_FILE_SIZE/1e6, stackTraceFileURL, len(minifiedFileBytes))
+		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
 
