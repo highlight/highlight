@@ -32,8 +32,8 @@ interface Props {
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
     dateRange: {
-        startDate: string;
-        endDate: string;
+        start: moment.Moment;
+        end: moment.Moment;
     };
     isEditing?: boolean;
 }
@@ -46,6 +46,10 @@ const DashboardCard = ({
     dateRange,
     isEditing,
 }: Props) => {
+    const NUM_BUCKETS = 24;
+    const resolutionMinutes = Math.round(
+        dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
+    );
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const { project_id } = useParams<{ project_id: string }>();
@@ -55,18 +59,30 @@ const DashboardCard = ({
             metric_name: metricConfig.name,
             params: {
                 date_range: {
-                    end_date: dateRange.endDate,
-                    start_date: dateRange.startDate,
+                    end_date: dateRange.end.toISOString(),
+                    start_date: dateRange.start.toISOString(),
                 },
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                resolution_minutes:
-                    metricConfig.name === 'delayMS' ? 1 : 24 * 60,
+                resolution_minutes: resolutionMinutes,
             },
             metric_type: metricConfig.type,
         },
     });
 
     const history = useHistory();
+
+    const ticks: string[] = [];
+    const seenDays: Set<string> = new Set<string>();
+    for (const d of data?.metrics_dashboard || []) {
+        const pointDate = d?.date;
+        if (pointDate) {
+            const formattedDate = moment(pointDate).format('D MMM');
+            if (!seenDays.has(formattedDate)) {
+                ticks.push(d.date);
+                seenDays.add(formattedDate);
+            }
+        }
+    }
 
     return (
         <>
@@ -238,6 +254,11 @@ const DashboardCard = ({
                                 new Date(tickItem),
                                 'DD MMM YYYY'
                             ).format('D MMM');
+                        }}
+                        xAxisProps={{
+                            ticks: ticks,
+                            domain: ['dataMin', 'dataMax'],
+                            scale: 'point',
                         }}
                         lineColorMapping={{
                             p99: 'var(--color-red-400)',

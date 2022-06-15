@@ -34,7 +34,7 @@ import styles from './DashboardPage.module.scss';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const timeFilter = [
-    { label: 'Last 24 hours', value: 2 },
+    { label: 'Last 24 hours', value: 1 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
     { label: 'Last 90 days', value: 90 },
@@ -216,13 +216,11 @@ const DashboardPage = () => {
                                 }}
                                 key={metric.name}
                                 dateRange={{
-                                    startDate: moment(new Date())
-                                        .subtract(dateRangeLength, 'days')
-                                        .startOf('day')
-                                        .toISOString(),
-                                    endDate: moment(new Date())
-                                        .endOf('day')
-                                        .toISOString(),
+                                    start: moment(new Date()).subtract(
+                                        dateRangeLength * 24,
+                                        'hours'
+                                    ),
+                                    end: moment(new Date()),
                                 }}
                             />
                         </div>
