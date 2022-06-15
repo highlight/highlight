@@ -70,10 +70,10 @@
 
 .chartButtons {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     padding-top: var(--size-small);
-    padding-right: var(--size-small);
-    width: 275px;
+    padding-right: var(--size-xSmall);
+    width: 225px;
 
     ul li button {
         height: 30px;

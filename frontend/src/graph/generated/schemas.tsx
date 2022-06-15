@@ -725,7 +725,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
-    ThresholdWindow: Scalars['Int'];
+    ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     ExcludeRules: Array<Maybe<Scalars['String']>>;
