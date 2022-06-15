@@ -305,6 +305,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	for _, f := range fields {
 		field := model.Field{}
 		res := r.DB.Where(f).FirstOrCreate(&field)
+		if res.Error != nil {
+			return e.Wrap(res.Error, "error calling FirstOrCreate")
+		}
 		// If the field was created, index it in OpenSearch
 		if res.RowsAffected > 0 {
 			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
