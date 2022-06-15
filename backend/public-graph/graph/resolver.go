@@ -96,16 +96,31 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID string `json:"id"`
+	ID      string            `json:"id"`
+	Headers map[string]string `json:"headers"`
+	URL     string            `json:"url"`
+	Method  string            `json:"verb"`
+}
+
+type Response struct {
+	Body    string            `json:"body"`
+	Headers map[string]string `json:"headers"`
+	Status  int               `json:"status"`
+	Size    int               `json:"size"`
 }
 
 type RequestResponsePairs struct {
-	Request Request `json:"request"`
+	Request    Request  `json:"request"`
+	Response   Response `json:"response"`
+	URLBlocked bool     `json:"urlBlocked"`
 }
 
 type NetworkResource struct {
 	StartTime            float64              `json:"startTime"`
 	ResponseEnd          float64              `json:"responseEnd"`
+	InitiatorType        string               `json:"initiatorType"`
+	TransferSize         int                  `json:"transferSize"`
+	EncodedBodySize      int                  `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
@@ -2026,20 +2041,34 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	var metrics []*customModels.MetricInput
-	for _, r := range resources {
+	for _, re := range resources {
+		request := &model.NetworkRequest{
+			ID:           re.RequestResponsePairs.Request.ID,
+			URL:          re.Name,
+			BodySize:     re.EncodedBodySize,
+			ResponseSize: re.RequestResponsePairs.Response.Size,
+			Method:       re.RequestResponsePairs.Request.Method,
+			Status:       re.RequestResponsePairs.Response.Status,
+		}
+
+		if err := r.DB.FirstOrCreate(&request, &model.NetworkRequest{
+			ID: re.RequestResponsePairs.Request.ID,
+		}).Error; err != nil {
+			return e.Wrap(err, "failed to record network request")
+		}
 		metrics = append(metrics, &customModels.MetricInput{
 			SessionSecureID: sessionObj.SecureID,
 			Name:            "delayMS",
-			Value:           r.ResponseEnd - r.StartTime,
+			Value:           re.ResponseEnd - re.StartTime,
 			Type:            customModels.MetricTypeFrontend,
-			URL:             r.Name,
-			Timestamp:       time.UnixMilli(int64(r.StartTime)),
-			RequestID:       &r.RequestResponsePairs.Request.ID,
+			URL:             re.Name,
+			Timestamp:       time.UnixMilli(int64(re.StartTime)),
+			RequestID:       &request.ID,
 		})
 	}
 	if len(metrics) > 0 {
-		if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
-			return e.Wrap(err, "failed to submit metrics message")
+		if err := r.PushMetricsImpl(ctx, sessionObj.ID, sessionObj.ProjectID, metrics); err != nil {
+			return e.Wrap(err, "failed to record frontend metrics")
 		}
 	}
 	return nil

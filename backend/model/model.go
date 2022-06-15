@@ -154,6 +154,7 @@ var Models = []interface{}{
 	&AlertEvent{},
 	&RegistrationData{},
 	&Metric{},
+	&NetworkRequest{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
@@ -690,14 +691,25 @@ type MessagesObject struct {
 	IsBeacon  bool `gorm:"default:false"`
 }
 
+type NetworkRequest struct {
+	ID           string `gorm:"primary_key" json:"id" deep:"-"`
+	URL          string
+	BodySize     int
+	ResponseSize int
+	Method       string
+	Status       int
+}
+
 type Metric struct {
 	Model
+	ID        int                    `json:"id"`                                         // No primary key
+	CreatedAt time.Time              `json:"created_at" deep:"-" gorm:"index;not null;"` // Override Model.CreatedAt to create index
 	SessionID int                    `gorm:"index;not null;"`
 	ProjectID int                    `gorm:"index;not null;"`
 	Type      modelInputs.MetricType `gorm:"index;not null;"`
 	Name      string                 `gorm:"index;not null;"`
 	Value     float64
-	RequestID *string // From X-Highlight-Request header
+	RequestID *string `gorm:"index;"` // From X-Highlight-Request header
 }
 
 type MetricMonitor struct {

@@ -5260,7 +5260,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	return payload, nil
 }
 
-func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model.MetricMonitor, error) {
 	metricMonitors := []*model.MetricMonitor{}
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5268,7 +5268,11 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 		return metricMonitors, nil
 	}
 
-	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+	query := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID)
+	if metricName != nil && *metricName != "" {
+		query = query.Where("metric_to_monitor = ?", *metricName)
+	}
+	if err := query.Find(&metricMonitors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitors")
 	}
 	return metricMonitors, nil
