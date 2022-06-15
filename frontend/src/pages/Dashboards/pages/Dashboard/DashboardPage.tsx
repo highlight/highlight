@@ -94,7 +94,6 @@ const DashboardPage = () => {
         const newPos = { ...layout.lg[0] };
         newPos.i = (nm.length - 1).toString();
         const l = { lg: [...layout.lg, newPos].slice(0, nm.length) };
-        console.log('setting layout', { l });
         updateDashboard({
             id,
             metrics: nm,
