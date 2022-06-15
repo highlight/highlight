@@ -149,6 +149,11 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
+	// remove a query string in the url, eg main.js?foo=bar -> main.js
+	queryStringIndex := strings.Index(stackTraceFilePath, "?")
+	if queryStringIndex != -1 {
+		stackTraceFilePath = stackTraceFilePath[:queryStringIndex]
+	}
 
 	// try to get file from s3
 	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
