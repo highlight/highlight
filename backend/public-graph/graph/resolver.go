@@ -304,20 +304,14 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
 		field := &model.Field{}
-		res := r.DB.Where(f).First(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating field")
-			}
+		res := r.DB.Debug().FirstOrCreate(&f)
+		// If the field was created, index it in OpenSearch
+		if res.RowsAffected > 0 {
 			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
-
-			fieldsToAppend = append(fieldsToAppend, f)
-		} else {
-			fieldsToAppend = append(fieldsToAppend, field)
 		}
+		fieldsToAppend = append(fieldsToAppend, field)
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
