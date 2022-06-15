@@ -23,6 +23,7 @@ const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
 const ERROR_STACK_MAX_FRAME_COUNT = 15
 const ERROR_STACK_MAX_FIELD_SIZE = 1000
+const SOURCE_MAP_MAX_FILE_SIZE = 80e6
 
 type fetcher interface {
 	fetchFile(string) ([]byte, error)
@@ -164,8 +165,8 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if len(minifiedFileBytes) > 40e6 {
-		err := e.Errorf("minified source file over 40mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+	if len(minifiedFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
 
@@ -208,8 +209,8 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
 	}
-	if len(sourceMapFileBytes) > 40e6 {
-		err := e.Errorf("source map file over 40mb: %v, size: %v", sourceMapFilePath, len(sourceMapFileBytes))
+	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), sourceMapFilePath, len(sourceMapFileBytes))
 		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
