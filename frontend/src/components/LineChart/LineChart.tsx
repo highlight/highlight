@@ -76,16 +76,12 @@ const LineChart = ({
               )
             : [];
     let max = Number.MIN_VALUE;
-    let min = Number.MAX_VALUE;
     for (const x of data) {
         for (const vS of Object.values(x)) {
             const v = Number(vS);
             if (!isFinite(v)) continue;
             if (v > max) {
                 max = v;
-            }
-            if (v < min) {
-                min = v;
             }
         }
     }
@@ -101,12 +97,11 @@ const LineChart = ({
         <>
             {!!draggableReferenceLines?.length && (
                 <ReactSlider
-                    className="vertical-slider"
-                    // TODO(vkorolik) styling
-                    thumbClassName="example-thumb"
-                    trackClassName="example-track"
+                    className={styles.verticalSlider}
+                    thumbClassName={styles.sliderThumb}
+                    trackClassName={styles.sliderTrack}
                     max={max}
-                    min={min}
+                    min={0}
                     value={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
@@ -117,11 +112,12 @@ const LineChart = ({
                         });
                     }}
                     renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow}</div>
+                        <div {...props}>{state.valueNow.toFixed(1)}</div>
                     )}
                     pearling
                     invert
-                    minDistance={1}
+                    minDistance={0}
+                    step={0.1}
                     orientation={'vertical'}
                 />
             )}
