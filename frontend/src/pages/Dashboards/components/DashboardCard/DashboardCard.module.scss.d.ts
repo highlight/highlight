@@ -7,4 +7,6 @@ export const draggable: string;
 export const headerActions: string;
 export const infoTooltip: string;
 export const isEditing: string;
+export const monitorItem: string;
+export const monitorName: string;
 export const noDataContainer: string;

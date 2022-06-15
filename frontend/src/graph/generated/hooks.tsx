@@ -9187,6 +9187,66 @@ export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
     Types.GetAlertsPagePayloadQuery,
     Types.GetAlertsPagePayloadQueryVariables
 >;
+export const GetMetricMonitorsDocument = gql`
+    query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
+        metric_monitors(project_id: $project_id, metric_name: $metric_name) {
+            id
+            updated_at
+            name
+            metric_to_monitor
+        }
+    }
+`;
+
+/**
+ * __useGetMetricMonitorsQuery__
+ *
+ * To run a query within a React component, call `useGetMetricMonitorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricMonitorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricMonitorsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *   },
+ * });
+ */
+export function useGetMetricMonitorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >(GetMetricMonitorsDocument, baseOptions);
+}
+export function useGetMetricMonitorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >(GetMetricMonitorsDocument, baseOptions);
+}
+export type GetMetricMonitorsQueryHookResult = ReturnType<
+    typeof useGetMetricMonitorsQuery
+>;
+export type GetMetricMonitorsLazyQueryHookResult = ReturnType<
+    typeof useGetMetricMonitorsLazyQuery
+>;
+export type GetMetricMonitorsQueryResult = Apollo.QueryResult<
+    Types.GetMetricMonitorsQuery,
+    Types.GetMetricMonitorsQueryVariables
+>;
 export const GetCommentMentionSuggestionsDocument = gql`
     query GetCommentMentionSuggestions($project_id: ID!) {
         admins: workspace_admins_by_project_id(project_id: $project_id) {

@@ -4,10 +4,14 @@ import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import Switch from '@components/Switch/Switch';
-import { useGetMetricPreviewQuery } from '@graph/hooks';
+import {
+    useGetMetricPreviewQuery,
+    useGetSuggestedMetricsQuery,
+} from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { DashboardMetricConfig, MetricType } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
+import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
@@ -91,6 +95,12 @@ const MonitorConfiguration = ({
             type: MetricType.WebVital,
         },
     });
+    const { data: metricOptions } = useGetSuggestedMetricsQuery({
+        variables: {
+            project_id,
+            prefix: '',
+        },
+    });
 
     const graphData = useMemo(() => {
         if (loading) {
@@ -126,17 +136,15 @@ const MonitorConfiguration = ({
         loading,
     ]);
 
-    const metricTypeOptions: OptionType[] = Object.keys(
-        WEB_VITALS_CONFIGURATION
-    ).map((key) => {
-        const config = WEB_VITALS_CONFIGURATION[key];
-
-        return {
-            displayValue: config.name,
-            id: config.name,
-            value: key,
-        };
-    });
+    const metricTypeOptions: OptionType[] =
+        metricOptions?.suggested_metrics.map((key) => {
+            const config = getDefaultMetricConfig(key);
+            return {
+                displayValue: config.description || config.name,
+                id: config.name,
+                value: key,
+            };
+        }) || [];
 
     const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
 

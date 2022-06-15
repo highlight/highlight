@@ -517,7 +517,7 @@ type ComplexityRoot struct {
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
-		MetricMonitors               func(childComplexity int, projectID int) int
+		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
 		MetricsDashboard             func(childComplexity int, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
@@ -1011,7 +1011,7 @@ type QueryResolver interface {
 	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
 	MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
-	MetricMonitors(ctx context.Context, projectID int) ([]*model1.MetricMonitor, error)
+	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
 }
@@ -3957,7 +3957,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricMonitors(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.MetricMonitors(childComplexity, args["project_id"].(int), args["metric_name"].(*string)), true
 
 	case "Query.metric_preview":
 		if e.complexity.Query.MetricPreview == nil {
@@ -6452,7 +6452,7 @@ type SessionAlert {
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
-    ThresholdWindow: Int!
+    ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
     ExcludeRules: [String]!
@@ -6704,7 +6704,7 @@ type Query {
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!
-    metric_monitors(project_id: ID!): [MetricMonitor]!
+    metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
 }
@@ -10946,6 +10946,15 @@ func (ec *executionContext) field_Query_metric_monitors_args(ctx context.Context
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["metric_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_name"] = arg1
 	return args, nil
 }
 
@@ -25596,7 +25605,7 @@ func (ec *executionContext) _Query_metric_monitors(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricMonitors(rctx, args["project_id"].(int))
+		return ec.resolvers.Query().MetricMonitors(rctx, args["project_id"].(int), args["metric_name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28886,14 +28895,11 @@ func (ec *executionContext) _SessionAlert_ThresholdWindow(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionAlert_LastAdminToEditID(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
@@ -40162,9 +40168,6 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "LastAdminToEditID":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._SessionAlert_LastAdminToEditID(ctx, field, obj)
@@ -42754,27 +42757,6 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalInt(*v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

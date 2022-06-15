@@ -3580,6 +3580,22 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetMetricMonitorsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricMonitorsQuery = { __typename?: 'Query' } & {
+    metric_monitors: Array<
+        Types.Maybe<
+            { __typename?: 'MetricMonitor' } & Pick<
+                Types.MetricMonitor,
+                'id' | 'updated_at' | 'name' | 'metric_to_monitor'
+            >
+        >
+    >;
+};
+
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3753,6 +3769,7 @@ export const namedOperations = {
         GenerateNewZapierAccessTokenJwt: 'GenerateNewZapierAccessTokenJwt' as const,
         GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+        GetMetricMonitors: 'GetMetricMonitors' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
         GetWebVitals: 'GetWebVitals' as const,

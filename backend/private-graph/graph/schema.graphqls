@@ -665,7 +665,7 @@ type SessionAlert {
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
-    ThresholdWindow: Int!
+    ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
     ExcludeRules: [String]!
@@ -917,7 +917,7 @@ type Query {
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!
-    metric_monitors(project_id: ID!): [MetricMonitor]!
+    metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
 }

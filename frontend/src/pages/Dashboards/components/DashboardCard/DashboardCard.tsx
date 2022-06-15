@@ -1,12 +1,16 @@
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import { useGetMetricsDashboardQuery } from '@graph/hooks';
+import {
+    useGetMetricMonitorsQuery,
+    useGetMetricsDashboardQuery,
+} from '@graph/hooks';
 import { DashboardMetricConfig, DashboardPayload, Maybe } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
@@ -66,6 +70,15 @@ const DashboardCard = ({
                 resolution_minutes: resolutionMinutes,
             },
             metric_type: metricConfig.type,
+        },
+    });
+    const {
+        data: metricMonitors,
+        loading: metricMonitorsLoading,
+    } = useGetMetricMonitorsQuery({
+        variables: {
+            project_id,
+            metric_name: metricConfig.name,
         },
     });
 
@@ -138,26 +151,47 @@ const DashboardCard = ({
                                 </div>
                             ) : (
                                 <div className={styles.chartButtons}>
-                                    <Button
-                                        icon={
-                                            <SvgAnnouncementIcon
-                                                style={{
-                                                    marginRight:
-                                                        'var(--size-xSmall)',
-                                                }}
-                                            />
-                                        }
-                                        trackingId={
-                                            'DashboardCardCreateMonitor'
-                                        }
-                                        onClick={() => {
-                                            history.push(
-                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                            );
-                                        }}
-                                    >
-                                        Setup Alert
-                                    </Button>
+                                    {metricMonitorsLoading ? (
+                                        <Skeleton width={111} />
+                                    ) : metricMonitors?.metric_monitors
+                                          .length ? (
+                                        <StandardDropdown
+                                            data={metricMonitors?.metric_monitors.map(
+                                                (mm) => ({
+                                                    label: mm?.name || '',
+                                                    value: mm?.id || '',
+                                                })
+                                            )}
+                                            onSelect={(mmId) =>
+                                                history.push(
+                                                    `/${project_id}/alerts/monitor/${mmId}`
+                                                )
+                                            }
+                                            className={styles.monitorItem}
+                                            labelClassName={styles.monitorName}
+                                        />
+                                    ) : (
+                                        <Button
+                                            icon={
+                                                <SvgAnnouncementIcon
+                                                    style={{
+                                                        marginRight:
+                                                            'var(--size-xSmall)',
+                                                    }}
+                                                />
+                                            }
+                                            trackingId={
+                                                'DashboardCardCreateMonitor'
+                                            }
+                                            onClick={() => {
+                                                history.push(
+                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                                );
+                                            }}
+                                        >
+                                            Setup Alert
+                                        </Button>
+                                    )}
                                     <Button
                                         icon={
                                             <EditIcon

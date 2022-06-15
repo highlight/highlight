@@ -1376,6 +1376,15 @@ query GetAlertsPagePayload($project_id: ID!) {
     }
 }
 
+query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
+    metric_monitors(project_id: $project_id, metric_name: $metric_name) {
+        id
+        updated_at
+        name
+        metric_to_monitor
+    }
+}
+
 query GetCommentMentionSuggestions($project_id: ID!) {
     admins: workspace_admins_by_project_id(project_id: $project_id) {
         id

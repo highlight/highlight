@@ -1270,6 +1270,7 @@ export type QueryMetric_PreviewArgs = {
 
 export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
+    metric_name?: Maybe<Scalars['String']>;
 };
 
 export type QueryEvent_Chunk_UrlArgs = {

@@ -8,17 +8,16 @@ import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { useGetSuggestedMetricsQuery } from '@graph/hooks';
-import {
-    DashboardDefinition,
-    DashboardMetricConfig,
-    MetricType,
-} from '@graph/schemas';
+import { DashboardDefinition, DashboardMetricConfig } from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import PlusIcon from '@icons/PlusIcon';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
-import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
+import {
+    DEFAULT_METRICS_LAYOUT,
+    getDefaultMetricConfig,
+} from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
@@ -45,23 +44,6 @@ interface MetricOption {
     value: string;
     label: string;
 }
-
-const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
-    let cfg: DashboardMetricConfig | undefined = undefined;
-    if (WEB_VITALS_CONFIGURATION.hasOwnProperty(name.toUpperCase())) {
-        cfg = WEB_VITALS_CONFIGURATION[name.toUpperCase()];
-    }
-    return {
-        name: name,
-        description: '',
-        help_article: cfg?.help_article || '',
-        units: cfg?.units || 'ms',
-        max_good_value: cfg?.max_good_value || 10,
-        max_needs_improvement_value: cfg?.max_needs_improvement_value || 100,
-        poor_value: cfg?.poor_value || 1000,
-        type: cfg?.type || MetricType.Frontend,
-    };
-};
 
 const DashboardPage = () => {
     const history = useHistory();

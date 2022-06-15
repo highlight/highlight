@@ -70,13 +70,32 @@
 
 .chartButtons {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     padding-top: var(--size-small);
     padding-right: var(--size-small);
-    width: 190px;
+    width: 275px;
 
-    button {
+    ul li button {
         height: 30px;
         padding: 6px;
     }
+}
+
+.monitorItem {
+    border: 1px solid var(--color-gray-400);
+    border-radius: var(--border-radius);
+    align-items: center;
+    column-gap: var(--size-xxSmall) !important;
+    display: flex;
+    margin: 0 !important;
+    width: 131px;
+}
+
+.monitorName {
+    display: inline-block;
+    line-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 70px;
 }
