@@ -210,7 +210,7 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		}
 	}
 	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
-		err := e.Errorf("source map file over %dmb: %v, size: %v", SOURCE_MAP_MAX_FILE_SIZE/1e6, sourceMapFilePath, len(sourceMapFileBytes))
+		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), sourceMapFilePath, len(sourceMapFileBytes))
 		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
