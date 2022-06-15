@@ -34,6 +34,7 @@
     align-items: center;
     display: flex;
     justify-content: space-between;
+    overflow-x: hidden;
 
     > button {
         margin-bottom: var(--size-medium);
@@ -65,4 +66,17 @@
 .description {
     color: var(--color-gray-500) !important;
     margin-top: 0 !important;
+}
+
+.chartButtons {
+    display: flex;
+    justify-content: space-between;
+    padding-top: var(--size-small);
+    padding-right: var(--size-small);
+    width: 190px;
+
+    button {
+        height: 30px;
+        padding: 6px;
+    }
 }

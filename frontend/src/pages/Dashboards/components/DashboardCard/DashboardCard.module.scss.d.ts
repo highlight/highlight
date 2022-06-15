@@ -1,6 +1,7 @@
 export const actionsContainer: string;
 export const button: string;
 export const cardHeader: string;
+export const chartButtons: string;
 export const description: string;
 export const draggable: string;
 export const headerActions: string;

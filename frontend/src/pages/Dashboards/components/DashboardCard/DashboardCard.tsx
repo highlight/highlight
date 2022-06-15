@@ -1,10 +1,8 @@
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
-import DotsMenu from '@components/DotsMenu/DotsMenu';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
-import MenuItem from '@components/Menu/MenuItem';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
@@ -13,11 +11,11 @@ import { DashboardMetricConfig, DashboardPayload, Maybe } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
+import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { useParams } from '@util/react-router/useParams';
-import { Menu } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
@@ -77,6 +75,9 @@ const DashboardCard = ({
                 onCancel={() => {
                     setShowEditModal(false);
                 }}
+                onDelete={() => {
+                    setShowDeleteModal(true);
+                }}
                 metricConfig={metricConfig}
                 metricIdx={metricIdx}
                 updateMetric={updateMetric}
@@ -84,9 +85,16 @@ const DashboardCard = ({
             />
             <Card
                 interactable
+                style={{ paddingTop: 'var(--size-small)' }}
                 title={
                     <div className={styles.cardHeader}>
-                        <h3>
+                        <h3
+                            style={{
+                                paddingTop: 'var(--size-medium)',
+                                paddingLeft: 'var(--size-small)',
+                                paddingRight: 'var(--size-small)',
+                            }}
+                        >
                             {metricConfig.description || metricConfig.name}
                             {metricConfig.help_article && (
                                 <InfoTooltip
@@ -113,39 +121,44 @@ const DashboardCard = ({
                                     <SvgDragIcon />
                                 </div>
                             ) : (
-                                <DotsMenu
-                                    menu={
-                                        <Menu>
-                                            <MenuItem
-                                                icon={<SvgAnnouncementIcon />}
-                                                onClick={() => {
-                                                    history.push(
-                                                        `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                                    );
+                                <div className={styles.chartButtons}>
+                                    <Button
+                                        icon={
+                                            <SvgAnnouncementIcon
+                                                style={{
+                                                    marginRight:
+                                                        'var(--size-xSmall)',
                                                 }}
-                                            >
-                                                Create Monitor
-                                            </MenuItem>
-                                            <MenuItem
-                                                icon={<EditIcon />}
-                                                onClick={() => {
-                                                    setShowEditModal(true);
+                                            />
+                                        }
+                                        trackingId={
+                                            'DashboardCardCreateMonitor'
+                                        }
+                                        onClick={() => {
+                                            history.push(
+                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                            );
+                                        }}
+                                    >
+                                        Setup Alert
+                                    </Button>
+                                    <Button
+                                        icon={
+                                            <EditIcon
+                                                style={{
+                                                    marginRight:
+                                                        'var(--size-xSmall)',
                                                 }}
-                                            >
-                                                Edit Metric
-                                            </MenuItem>
-                                            <MenuItem
-                                                icon={<TrashIcon />}
-                                                onClick={() => {
-                                                    setShowDeleteModal(true);
-                                                }}
-                                            >
-                                                Delete Metric
-                                            </MenuItem>
-                                        </Menu>
-                                    }
-                                    trackingId="Dashboard"
-                                />
+                                            />
+                                        }
+                                        trackingId={'DashboardCardEditMetric'}
+                                        onClick={() => {
+                                            setShowEditModal(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </div>
                             )}
                         </div>
                         <Modal
@@ -245,6 +258,7 @@ const EditMetricModal = ({
     metricIdx,
     metricConfig,
     updateMetric,
+    onDelete,
     onCancel,
     data,
     shown = false,
@@ -252,6 +266,7 @@ const EditMetricModal = ({
     metricIdx: number;
     metricConfig: DashboardMetricConfig;
     updateMetric: UpdateMetricFn;
+    onDelete: () => void;
     onCancel: () => void;
     data?: Maybe<DashboardPayload>[];
     shown?: boolean;
@@ -296,6 +311,13 @@ const EditMetricModal = ({
                         />
                         <Button
                             style={{ width: 90 }}
+                            icon={
+                                <SaveIcon
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
+                                />
+                            }
                             trackingId={'SaveMetric'}
                             onClick={() => {
                                 updateMetric(metricIdx, {
@@ -312,6 +334,21 @@ const EditMetricModal = ({
                             }}
                         >
                             Save
+                        </Button>
+                        <Button
+                            style={{ width: 100 }}
+                            icon={
+                                <TrashIcon
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
+                                />
+                            }
+                            danger
+                            trackingId={'DashboardCardDeleteMonitor'}
+                            onClick={onDelete}
+                        >
+                            Delete
                         </Button>
                     </div>
                 </section>
