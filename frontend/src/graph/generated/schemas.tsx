@@ -773,11 +773,27 @@ export type DashboardPayload = {
     p99: Scalars['Float'];
 };
 
-export type HistogramPayload = {
-    __typename?: 'HistogramPayload';
+export type HistogramBucket = {
+    __typename?: 'HistogramBucket';
     bucket: Scalars['Float'];
+    range_start: Scalars['Float'];
+    range_end: Scalars['Float'];
     count: Scalars['Int'];
 };
+
+export type HistogramPayload = {
+    __typename?: 'HistogramPayload';
+    buckets: Array<HistogramBucket>;
+    min: Scalars['Float'];
+    max: Scalars['Float'];
+    p10: Scalars['Float'];
+    p90: Scalars['Float'];
+};
+
+export enum DashboardChartType {
+    Timeline = 'Timeline',
+    Histogram = 'Histogram',
+}
 
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
@@ -788,6 +804,7 @@ export type DashboardMetricConfigInput = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     type: MetricType;
+    chart_type: DashboardChartType;
 };
 
 export type DashboardMetricConfig = {
@@ -800,6 +817,7 @@ export type DashboardMetricConfig = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     type: MetricType;
+    chart_type: DashboardChartType;
 };
 
 export type DashboardDefinition = {
@@ -925,7 +943,7 @@ export type Query = {
     dashboard_definitions: Array<Maybe<DashboardDefinition>>;
     suggested_metrics: Array<Scalars['String']>;
     metrics_timeline: Array<Maybe<DashboardPayload>>;
-    metrics_histogram: Array<Maybe<HistogramPayload>>;
+    metrics_histogram: HistogramPayload;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];

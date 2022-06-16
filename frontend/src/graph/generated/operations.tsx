@@ -1609,14 +1609,17 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 }>;
 
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
-    metrics_histogram: Array<
-        Types.Maybe<
-            { __typename?: 'HistogramPayload' } & Pick<
-                Types.HistogramPayload,
-                'bucket' | 'count'
-            >
-        >
-    >;
+    metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
+        Types.HistogramPayload,
+        'min' | 'max' | 'p10' | 'p90'
+    > & {
+            buckets: Array<
+                { __typename?: 'HistogramBucket' } & Pick<
+                    Types.HistogramBucket,
+                    'bucket' | 'range_start' | 'range_end' | 'count'
+                >
+            >;
+        };
 };
 
 export type GetMetricPreviewQueryVariables = Types.Exact<{
@@ -3696,6 +3699,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'units'
                             | 'help_article'
                             | 'type'
+                            | 'chart_type'
                         >
                     >;
                 }

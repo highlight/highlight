@@ -8,7 +8,7 @@ import {
     MetricValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import ReactSlider from 'react-slider';
 import {
     CartesianGrid,
@@ -28,16 +28,16 @@ import {
 
 import styles from './LineChart.module.scss';
 
-const CLICK_NEARBY_THRESHOLD = 10;
+export const CLICK_NEARBY_THRESHOLD = 4;
 
-interface Reference {
+export interface Reference {
     value: number;
     color: string;
     label?: string;
     onDrag?: (y: number) => void;
 }
 
-interface Props {
+export interface Props {
     data: any[];
     referenceLines?: Reference[];
     showReferenceLineLabels?: boolean;
@@ -51,6 +51,20 @@ interface Props {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+}
+
+export function findMax(data: any[]) {
+    let max = Number.MIN_VALUE;
+    for (const x of data) {
+        for (const vS of Object.values(x)) {
+            const v = Number(vS);
+            if (!isFinite(v)) continue;
+            if (v > max) {
+                max = v;
+            }
+        }
+    }
+    return max;
 }
 
 const LineChart = ({
@@ -75,22 +89,12 @@ const LineChart = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : [];
-    let max = Number.MIN_VALUE;
-    for (const x of data) {
-        for (const vS of Object.values(x)) {
-            const v = Number(vS);
-            if (!isFinite(v)) continue;
-            if (v > max) {
-                max = v;
-            }
-        }
-    }
+    const max = findMax(data);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
         nonXAxisKeys
     );
-    const chartRef = useRef<any>(null);
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
 
     return (
@@ -124,7 +128,6 @@ const LineChart = ({
             <ResponsiveContainer width="100%" height={height}>
                 <RechartsLineChart
                     width={500}
-                    ref={chartRef}
                     height={300}
                     data={data}
                     margin={{
@@ -160,151 +163,17 @@ const LineChart = ({
                     <Tooltip
                         position={{ y: 0 }}
                         content={
-                            <RechartTooltip
-                                render={(payload: any) => {
-                                    return (
-                                        <>
-                                            <div>
-                                                {payload
-                                                    .reverse()
-                                                    .map((entry: any) => {
-                                                        return (
-                                                            <p
-                                                                key={
-                                                                    entry.dataKey
-                                                                }
-                                                                className={
-                                                                    styles.tooltipEntry
-                                                                }
-                                                            >
-                                                                <div
-                                                                    className={
-                                                                        styles.legendIcon
-                                                                    }
-                                                                    style={{
-                                                                        background:
-                                                                            entry.color,
-                                                                    }}
-                                                                ></div>
-                                                                <div
-                                                                    className={
-                                                                        styles.tooltipRow
-                                                                    }
-                                                                >
-                                                                    <span>
-                                                                        <span
-                                                                            className={
-                                                                                styles.tooltipValue
-                                                                            }
-                                                                        >
-                                                                            {entry.value.toFixed(
-                                                                                2
-                                                                            )}
-                                                                        </span>{' '}
-                                                                        {
-                                                                            yAxisLabel
-                                                                        }
-                                                                    </span>
-                                                                    {referenceLines?.length ===
-                                                                    2
-                                                                        ? getScoreIcon(
-                                                                              getMetricValueScore(
-                                                                                  entry.value,
-                                                                                  {
-                                                                                      max_good_value: referenceLines![0]
-                                                                                          .value,
-                                                                                      max_needs_improvement_value: referenceLines![1]
-                                                                                          .value,
-                                                                                  }
-                                                                              )
-                                                                          )
-                                                                        : undefined}
-                                                                </div>
-                                                            </p>
-                                                        );
-                                                    })}
-                                            </div>
-                                        </>
-                                    );
-                                }}
+                            <CustomTooltip
+                                yAxisLabel={yAxisLabel}
+                                referenceLines={referenceLines}
+                                precision={2}
                             />
                         }
                     />
                     {!hideLegend && (
-                        <Legend
-                            verticalAlign="bottom"
-                            height={18}
-                            iconType={'square'}
-                            iconSize={8}
-                            content={(props) => {
-                                const { payload } = props;
-
-                                return (
-                                    <div className={styles.legendContainer}>
-                                        {payload?.map((entry, index) => (
-                                            <Button
-                                                trackingId="LineChartLegendFilter"
-                                                key={`item-${index}`}
-                                                type="text"
-                                                size="small"
-                                                onClick={() => {
-                                                    setDataTypesToShow(
-                                                        (previous) => {
-                                                            // Toggle off
-                                                            if (
-                                                                previous.includes(
-                                                                    entry.value
-                                                                )
-                                                            ) {
-                                                                return previous.filter(
-                                                                    (e) =>
-                                                                        e !==
-                                                                        entry.value
-                                                                );
-                                                            } else {
-                                                                // Toggle on
-                                                                return [
-                                                                    ...previous,
-                                                                    entry.value,
-                                                                ];
-                                                            }
-                                                        }
-                                                    );
-                                                }}
-                                                className={classNames(
-                                                    styles.legendItem
-                                                )}
-                                            >
-                                                <div
-                                                    className={classNames(
-                                                        styles.legendIcon,
-                                                        {
-                                                            [styles.notShowing]: !dataTypesToShow.includes(
-                                                                entry.value
-                                                            ),
-                                                        }
-                                                    )}
-                                                    style={{
-                                                        background: entry.color,
-                                                    }}
-                                                ></div>
-                                                <span
-                                                    className={classNames(
-                                                        styles.legendValue,
-                                                        {
-                                                            [styles.notShowing]: !dataTypesToShow.includes(
-                                                                entry.value
-                                                            ),
-                                                        }
-                                                    )}
-                                                >
-                                                    {entry.value}
-                                                </span>
-                                            </Button>
-                                        ))}
-                                    </div>
-                                );
-                            }}
+                        <CustomLegend
+                            dataTypesToShow={dataTypesToShow}
+                            setDataTypesToShow={setDataTypesToShow}
                         />
                     )}
                     {referenceLines?.map((referenceLine, index) => (
@@ -348,6 +217,138 @@ const LineChart = ({
                 </RechartsLineChart>
             </ResponsiveContainer>
         </>
+    );
+};
+
+export const CustomTooltip = ({
+    yAxisLabel,
+    referenceLines,
+    precision,
+}: {
+    yAxisLabel: string;
+    referenceLines?: Reference[];
+    precision: number;
+}) => {
+    return (
+        <RechartTooltip
+            render={(payload: any) => {
+                return (
+                    <>
+                        <div>
+                            {payload.reverse().map((entry: any) => {
+                                return (
+                                    <p
+                                        key={entry.dataKey}
+                                        className={styles.tooltipEntry}
+                                    >
+                                        <div
+                                            className={styles.legendIcon}
+                                            style={{
+                                                background: entry.color,
+                                            }}
+                                        ></div>
+                                        <div className={styles.tooltipRow}>
+                                            <span>
+                                                <span
+                                                    className={
+                                                        styles.tooltipValue
+                                                    }
+                                                >
+                                                    {entry.value.toFixed(
+                                                        precision
+                                                    )}
+                                                </span>{' '}
+                                                {yAxisLabel}
+                                            </span>
+                                            {referenceLines?.length === 2
+                                                ? getScoreIcon(
+                                                      getMetricValueScore(
+                                                          entry.value,
+                                                          {
+                                                              max_good_value: referenceLines![0]
+                                                                  .value,
+                                                              max_needs_improvement_value: referenceLines![1]
+                                                                  .value,
+                                                          }
+                                                      )
+                                                  )
+                                                : undefined}
+                                        </div>
+                                    </p>
+                                );
+                            })}
+                        </div>
+                    </>
+                );
+            }}
+        />
+    );
+};
+
+export const CustomLegend = ({
+    dataTypesToShow,
+    setDataTypesToShow,
+}: {
+    dataTypesToShow: string[];
+    setDataTypesToShow: React.Dispatch<React.SetStateAction<string[]>>;
+}) => {
+    return (
+        <Legend
+            verticalAlign="bottom"
+            height={18}
+            iconType={'square'}
+            iconSize={8}
+            content={(props) => {
+                const { payload } = props;
+
+                return (
+                    <div className={styles.legendContainer}>
+                        {payload?.map((entry, index) => (
+                            <Button
+                                trackingId="LineChartLegendFilter"
+                                key={`item-${index}`}
+                                type="text"
+                                size="small"
+                                onClick={() => {
+                                    setDataTypesToShow((previous) => {
+                                        // Toggle off
+                                        if (previous.includes(entry.value)) {
+                                            return previous.filter(
+                                                (e) => e !== entry.value
+                                            );
+                                        } else {
+                                            // Toggle on
+                                            return [...previous, entry.value];
+                                        }
+                                    });
+                                }}
+                                className={classNames(styles.legendItem)}
+                            >
+                                <div
+                                    className={classNames(styles.legendIcon, {
+                                        [styles.notShowing]: !dataTypesToShow.includes(
+                                            entry.value
+                                        ),
+                                    })}
+                                    style={{
+                                        background: entry.color,
+                                    }}
+                                ></div>
+                                <span
+                                    className={classNames(styles.legendValue, {
+                                        [styles.notShowing]: !dataTypesToShow.includes(
+                                            entry.value
+                                        ),
+                                    })}
+                                >
+                                    {entry.value}
+                                </span>
+                            </Button>
+                        ))}
+                    </div>
+                );
+            }}
+        />
     );
 };
 

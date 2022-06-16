@@ -4255,8 +4255,16 @@ export const GetMetricsHistogramDocument = gql`
             metric_type: $metric_type
             params: $params
         ) {
-            bucket
-            count
+            buckets {
+                bucket
+                range_start
+                range_end
+                count
+            }
+            min
+            max
+            p10
+            p90
         }
     }
 `;
@@ -9554,6 +9562,7 @@ export const GetDashboardDefinitionsDocument = gql`
                 units
                 help_article
                 type
+                chart_type
             }
             last_admin_to_edit_id
             layout

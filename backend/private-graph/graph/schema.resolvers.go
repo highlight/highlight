@@ -2962,6 +2962,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			Name:                     m.Name,
 			Description:              m.Description,
 			Type:                     m.Type,
+			ChartType:                m.ChartType,
 			MaxGoodValue:             m.MaxGoodValue,
 			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
 			PoorValue:                m.PoorValue,
@@ -5147,6 +5148,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				Name:                     metric.Name,
 				Description:              metric.Description,
 				Type:                     metric.Type,
+				ChartType:                metric.ChartType,
 				MaxGoodValue:             metric.MaxGoodValue,
 				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
 				PoorValue:                metric.PoorValue,
@@ -5189,7 +5191,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return payload, nil
+		return payload, err
 	}
 
 	resMins := 60
@@ -5218,24 +5220,27 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		  GROUP BY date;
 	`
 	if err := r.DB.Raw(query, tz, resMins, resMins, tz, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
-		log.Error(err)
-		return payload, nil
+		return payload, err
 	}
 
 	return payload, nil
 }
 
-func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.HistogramParamsInput) ([]*modelInputs.HistogramPayload, error) {
+func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	scan := struct {
 		Min float64
 		Max float64
+		P10 float64
+		P90 float64
 	}{}
 	query := `
-		SELECT min(value) as min, max(value) as max
+		SELECT min(value) as min, max(value) as max,
+			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value) as p10,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90
 		  FROM metrics
 		  WHERE name=?
 			AND project_id=?
@@ -5244,18 +5249,22 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 			AND type = ?;
 	`
 	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Find(&scan).Error; err != nil {
-		log.Error(err)
-		return nil, nil
+		return nil, err
 	}
 
-	buckets := 10
+	numBuckets := 10
 	if params.Buckets != nil {
-		buckets = *params.Buckets
+		numBuckets = *params.Buckets
 	}
 
-	var payload []*modelInputs.HistogramPayload
+	var buckets []struct {
+		Bucket float64
+		Range  string
+		Count  int
+	}
 	query = `
 		SELECT width_bucket(metrics.value, ?, ?, ?) as bucket,
+			   numrange(min(metrics.value), max(metrics.value), '[]') as range,
 		       count(metrics.value)
 		  FROM metrics
 		  WHERE name=?
@@ -5266,12 +5275,30 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  GROUP BY bucket
 		  ORDER BY bucket;
 	`
-	if err := r.DB.Raw(query, scan.Min, scan.Max, buckets, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
-		log.Error(err)
-		return payload, nil
+	if err := r.DB.Raw(query, scan.Min, scan.Max, numBuckets, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&buckets).Error; err != nil {
+		return nil, err
 	}
 
-	return payload, nil
+	var payloadBuckets []*modelInputs.HistogramBucket
+	for _, b := range buckets {
+		rangeStr := b.Range[1 : len(b.Range)-2]
+		r := strings.Split(rangeStr, ",")
+		start, _ := strconv.ParseFloat(r[0], 64)
+		end, _ := strconv.ParseFloat(r[1], 64)
+		payloadBuckets = append(payloadBuckets, &modelInputs.HistogramBucket{
+			Bucket:     b.Bucket,
+			RangeStart: start,
+			RangeEnd:   end,
+			Count:      b.Count,
+		})
+	}
+	return &modelInputs.HistogramPayload{
+		Buckets: payloadBuckets,
+		Min:     scan.Min,
+		Max:     scan.Max,
+		P10:     scan.P10,
+		P90:     scan.P90,
+	}, nil
 }
 
 func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {

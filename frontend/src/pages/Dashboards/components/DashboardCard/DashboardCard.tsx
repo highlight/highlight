@@ -1,3 +1,4 @@
+import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
@@ -9,10 +10,14 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
-    useGetMetricsDashboardQuery,
-    useGetMetricsHistogramQuery,
+    useGetMetricsDashboardLazyQuery,
+    useGetMetricsHistogramLazyQuery,
 } from '@graph/hooks';
-import { DashboardMetricConfig, DashboardPayload, Maybe } from '@graph/schemas';
+import {
+    GetMetricsDashboardQuery,
+    GetMetricsHistogramQuery,
+} from '@graph/operations';
+import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
@@ -23,7 +28,7 @@ import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/Em
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -51,14 +56,18 @@ const DashboardCard = ({
     dateRange,
     isEditing,
 }: Props) => {
+    const NUM_HISTOGRAM_BUCKETS = 10000;
     const NUM_BUCKETS = 24;
-    const resolutionMinutes = Math.round(
+    const resolutionMinutes = Math.ceil(
         dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
     );
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetMetricsDashboardQuery({
+    const [
+        getTimeline,
+        { data: timelineData, loading: timelineLoading },
+    ] = useGetMetricsDashboardLazyQuery({
         variables: {
             project_id,
             metric_name: metricConfig.name,
@@ -73,7 +82,10 @@ const DashboardCard = ({
             metric_type: metricConfig.type,
         },
     });
-    const { data: histogram } = useGetMetricsHistogramQuery({
+    const [
+        getHistogram,
+        { data: histogramData, loading: histogramLoading },
+    ] = useGetMetricsHistogramLazyQuery({
         variables: {
             project_id,
             metric_name: metricConfig.name,
@@ -82,13 +94,11 @@ const DashboardCard = ({
                     end_date: dateRange.end.toISOString(),
                     start_date: dateRange.start.toISOString(),
                 },
-                buckets: NUM_BUCKETS,
+                buckets: NUM_HISTOGRAM_BUCKETS,
             },
             metric_type: metricConfig.type,
         },
     });
-    // TODO(vkorolik) lazy query, implement histogram
-    console.log({ metricConfig, histogram });
     const {
         data: metricMonitors,
         loading: metricMonitorsLoading,
@@ -101,18 +111,13 @@ const DashboardCard = ({
 
     const history = useHistory();
 
-    const ticks: string[] = [];
-    const seenDays: Set<string> = new Set<string>();
-    for (const d of data?.metrics_timeline || []) {
-        const pointDate = d?.date;
-        if (pointDate) {
-            const formattedDate = moment(pointDate).format('D MMM');
-            if (!seenDays.has(formattedDate)) {
-                ticks.push(d.date);
-                seenDays.add(formattedDate);
-            }
+    useEffect(() => {
+        if (metricConfig.chart_type === DashboardChartType.Histogram) {
+            getHistogram();
+        } else if (metricConfig.chart_type === DashboardChartType.Timeline) {
+            getTimeline();
         }
-    }
+    }, [metricConfig, getHistogram, getTimeline]);
 
     return (
         <>
@@ -127,7 +132,8 @@ const DashboardCard = ({
                 metricConfig={metricConfig}
                 metricIdx={metricIdx}
                 updateMetric={updateMetric}
-                data={data?.metrics_timeline}
+                timelineData={timelineData}
+                histogramData={histogramData}
             />
             <Card
                 interactable
@@ -268,57 +274,25 @@ const DashboardCard = ({
                     </div>
                 }
             >
-                {loading ? (
+                {timelineLoading || histogramLoading ? (
                     <Skeleton height={235} />
-                ) : data === undefined ||
-                  data.metrics_timeline === undefined ||
-                  data.metrics_timeline.length === 0 ? (
+                ) : !timelineData?.metrics_timeline.length &&
+                  !histogramData?.metrics_histogram.buckets.length ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
                             message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
                         />
                     </div>
                 ) : (
-                    <LineChart
-                        height={235}
-                        data={data.metrics_timeline}
-                        referenceLines={[
-                            {
-                                label: 'Goal',
-                                value: metricConfig.max_good_value,
-                                color: 'var(--color-green-300)',
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: metricConfig.max_needs_improvement_value,
-                                color: 'var(--color-red-200)',
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: metricConfig.poor_value,
-                                color: 'var(--color-red-400)',
-                            },
-                        ]}
-                        xAxisDataKeyName="date"
-                        xAxisTickFormatter={(tickItem) => {
-                            return moment(
-                                new Date(tickItem),
-                                'DD MMM YYYY'
-                            ).format('D MMM');
-                        }}
-                        xAxisProps={{
-                            ticks: ticks,
-                            domain: ['dataMin', 'dataMax'],
-                            scale: 'point',
-                        }}
-                        lineColorMapping={{
-                            p99: 'var(--color-red-400)',
-                            p90: 'var(--color-orange-400)',
-                            p75: 'var(--color-green-600)',
-                            p50: 'var(--color-blue-400)',
-                            avg: 'var(--color-gray-400)',
-                        }}
-                        yAxisLabel={metricConfig.units}
+                    <ChartContainer
+                        metricConfig={metricConfig}
+                        timelineData={timelineData}
+                        histogramData={histogramData}
+                        maxGoodValue={metricConfig.max_good_value}
+                        maxNeedsImprovementValue={
+                            metricConfig.max_needs_improvement_value
+                        }
+                        poorValue={metricConfig.poor_value}
                     />
                 )}
             </Card>
@@ -332,7 +306,8 @@ const EditMetricModal = ({
     updateMetric,
     onDelete,
     onCancel,
-    data,
+    timelineData,
+    histogramData,
     shown = false,
 }: {
     metricIdx: number;
@@ -340,7 +315,8 @@ const EditMetricModal = ({
     updateMetric: UpdateMetricFn;
     onDelete: () => void;
     onCancel: () => void;
-    data?: Maybe<DashboardPayload>[];
+    timelineData?: GetMetricsDashboardQuery;
+    histogramData?: GetMetricsHistogramQuery;
     shown?: boolean;
 }) => {
     const [units, setUnits] = useState<string>(metricConfig.units);
@@ -401,6 +377,7 @@ const EditMetricModal = ({
                                     max_needs_improvement_value: maxNeedsImprovementValue,
                                     poor_value: poorValue,
                                     type: metricConfig.type,
+                                    chart_type: metricConfig.chart_type,
                                 });
                                 onCancel();
                             }}
@@ -424,58 +401,172 @@ const EditMetricModal = ({
                         </Button>
                     </div>
                 </section>
-                {!!data?.length && (
-                    <section className={dashStyles.section}>
-                        <LineChart
-                            height={235}
-                            data={data}
-                            referenceLines={[
-                                {
-                                    label: 'Goal',
-                                    value: maxGoodValue,
-                                    color: 'var(--color-green-300)',
-                                    onDrag: (y) => {
-                                        setMaxGoodValue(y);
-                                    },
-                                },
-                                {
-                                    label: 'Needs Improvement',
-                                    value: maxNeedsImprovementValue,
-                                    color: 'var(--color-red-200)',
-                                    onDrag: (y) => {
-                                        setMaxNeedsImprovementValue(y);
-                                    },
-                                },
-                                {
-                                    label: 'Poor',
-                                    value: poorValue,
-                                    color: 'var(--color-red-400)',
-                                    onDrag: (y) => {
-                                        setPoorValue(y);
-                                    },
-                                },
-                            ]}
-                            xAxisDataKeyName="date"
-                            xAxisTickFormatter={(tickItem) => {
-                                return moment(
-                                    new Date(tickItem),
-                                    'DD MMM YYYY'
-                                ).format('D MMM');
-                            }}
-                            lineColorMapping={{
-                                p99: 'var(--color-red-400)',
-                                p90: 'var(--color-orange-400)',
-                                p75: 'var(--color-green-600)',
-                                p50: 'var(--color-blue-400)',
-                                avg: 'var(--color-gray-400)',
-                            }}
-                            yAxisLabel={metricConfig.units}
-                        />
-                    </section>
-                )}
+                <section className={dashStyles.section}>
+                    <ChartContainer
+                        metricConfig={metricConfig}
+                        timelineData={timelineData}
+                        histogramData={histogramData}
+                        maxGoodValue={maxGoodValue}
+                        maxNeedsImprovementValue={maxNeedsImprovementValue}
+                        poorValue={poorValue}
+                        setMaxGoodValue={setMaxGoodValue}
+                        setMaxNeedsImprovementValue={
+                            setMaxNeedsImprovementValue
+                        }
+                        setPoorValue={setPoorValue}
+                    />
+                </section>
             </ModalBody>
         </Modal>
     );
+};
+
+const ChartContainer = ({
+    metricConfig,
+    timelineData,
+    histogramData,
+    maxGoodValue,
+    maxNeedsImprovementValue,
+    poorValue,
+    setMaxGoodValue,
+    setMaxNeedsImprovementValue,
+    setPoorValue,
+}: {
+    metricConfig: DashboardMetricConfig;
+    timelineData?: GetMetricsDashboardQuery;
+    histogramData?: GetMetricsHistogramQuery;
+    maxGoodValue: number;
+    maxNeedsImprovementValue: number;
+    poorValue: number;
+    setMaxGoodValue?: (v: number) => void;
+    setMaxNeedsImprovementValue?: (v: number) => void;
+    setPoorValue?: (v: number) => void;
+}) => {
+    const ticks: string[] = [];
+    const seenDays: Set<string> = new Set<string>();
+    for (const d of timelineData?.metrics_timeline || []) {
+        const pointDate = d?.date;
+        if (pointDate) {
+            const formattedDate = moment(pointDate).format('D MMM');
+            if (!seenDays.has(formattedDate)) {
+                ticks.push(d.date);
+                seenDays.add(formattedDate);
+            }
+        }
+    }
+
+    if (metricConfig.chart_type === DashboardChartType.Histogram) {
+        console.log({ data: histogramData?.metrics_histogram });
+        return (
+            <BarChartV2
+                height={235}
+                data={(histogramData?.metrics_histogram.buckets || []).filter(
+                    (x) =>
+                        x.range_start <=
+                        (histogramData?.metrics_histogram.p90 || 0)
+                )}
+                referenceLines={[
+                    {
+                        label: 'Goal',
+                        value: maxGoodValue,
+                        color: 'var(--color-green-300)',
+                        onDrag:
+                            setMaxGoodValue &&
+                            ((y) => {
+                                setMaxGoodValue(y);
+                            }),
+                    },
+                    {
+                        label: 'Needs Improvement',
+                        value: maxNeedsImprovementValue,
+                        color: 'var(--color-red-200)',
+                        onDrag:
+                            setMaxNeedsImprovementValue &&
+                            ((y) => {
+                                setMaxNeedsImprovementValue(y);
+                            }),
+                    },
+                    {
+                        label: 'Poor',
+                        value: poorValue,
+                        color: 'var(--color-red-400)',
+                        onDrag:
+                            setPoorValue &&
+                            ((y) => {
+                                setPoorValue(y);
+                            }),
+                    },
+                ]}
+                barColorMapping={{
+                    count: 'var(--color-purple-500)',
+                }}
+                xAxisDataKeyName="range_start"
+                xAxisLabel={metricConfig.units}
+                xAxisTickFormatter={(value: number) => value.toFixed(0)}
+                yAxisLabel={'occurrences'}
+                yAxisKeys={['count']}
+            />
+        );
+    } else if (metricConfig.chart_type === DashboardChartType.Timeline) {
+        return (
+            <LineChart
+                height={235}
+                data={timelineData?.metrics_timeline || []}
+                referenceLines={[
+                    {
+                        label: 'Goal',
+                        value: maxGoodValue,
+                        color: 'var(--color-green-300)',
+                        onDrag:
+                            setMaxGoodValue &&
+                            ((y) => {
+                                setMaxGoodValue(y);
+                            }),
+                    },
+                    {
+                        label: 'Needs Improvement',
+                        value: maxNeedsImprovementValue,
+                        color: 'var(--color-red-200)',
+                        onDrag:
+                            setMaxNeedsImprovementValue &&
+                            ((y) => {
+                                setMaxNeedsImprovementValue(y);
+                            }),
+                    },
+                    {
+                        label: 'Poor',
+                        value: poorValue,
+                        color: 'var(--color-red-400)',
+                        onDrag:
+                            setPoorValue &&
+                            ((y) => {
+                                setPoorValue(y);
+                            }),
+                    },
+                ]}
+                xAxisDataKeyName="date"
+                xAxisTickFormatter={(tickItem) => {
+                    return moment(new Date(tickItem), 'DD MMM YYYY').format(
+                        'D MMM'
+                    );
+                }}
+                xAxisProps={{
+                    ticks: ticks,
+                    domain: ['dataMin', 'dataMax'],
+                    scale: 'point',
+                }}
+                lineColorMapping={{
+                    p99: 'var(--color-red-400)',
+                    p90: 'var(--color-orange-400)',
+                    p75: 'var(--color-green-600)',
+                    p50: 'var(--color-blue-400)',
+                    avg: 'var(--color-gray-400)',
+                }}
+                yAxisLabel={metricConfig.units}
+            />
+        );
+    }
+    return null;
 };
 
 export default DashboardCard;

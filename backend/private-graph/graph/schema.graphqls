@@ -709,9 +709,24 @@ type DashboardPayload {
     p99: Float!
 }
 
-type HistogramPayload {
+type HistogramBucket {
     bucket: Float!
+    range_start: Float!
+    range_end: Float!
     count: Int!
+}
+
+type HistogramPayload {
+    buckets: [HistogramBucket!]!
+    min: Float!
+    max: Float!
+    p10: Float!
+    p90: Float!
+}
+
+enum DashboardChartType {
+    Timeline
+    Histogram
 }
 
 input DashboardMetricConfigInput {
@@ -723,6 +738,7 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     type: MetricType!
+    chart_type: DashboardChartType!
 }
 
 type DashboardMetricConfig {
@@ -734,6 +750,7 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     type: MetricType!
+    chart_type: DashboardChartType!
 }
 
 type DashboardDefinition {
@@ -926,7 +943,7 @@ type Query {
         metric_name: String!
         metric_type: MetricType!
         params: HistogramParamsInput!
-    ): [HistogramPayload]!
+    ): HistogramPayload!
     metric_preview(
         project_id: ID!
         type: MetricType!

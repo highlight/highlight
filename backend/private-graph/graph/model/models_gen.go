@@ -65,25 +65,27 @@ type DashboardDefinition struct {
 }
 
 type DashboardMetricConfig struct {
-	Name                     string     `json:"name"`
-	Description              string     `json:"description"`
-	MaxGoodValue             float64    `json:"max_good_value"`
-	MaxNeedsImprovementValue float64    `json:"max_needs_improvement_value"`
-	PoorValue                float64    `json:"poor_value"`
-	Units                    string     `json:"units"`
-	HelpArticle              string     `json:"help_article"`
-	Type                     MetricType `json:"type"`
+	Name                     string             `json:"name"`
+	Description              string             `json:"description"`
+	MaxGoodValue             float64            `json:"max_good_value"`
+	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
+	PoorValue                float64            `json:"poor_value"`
+	Units                    string             `json:"units"`
+	HelpArticle              string             `json:"help_article"`
+	Type                     MetricType         `json:"type"`
+	ChartType                DashboardChartType `json:"chart_type"`
 }
 
 type DashboardMetricConfigInput struct {
-	Name                     string     `json:"name"`
-	Description              string     `json:"description"`
-	MaxGoodValue             float64    `json:"max_good_value"`
-	MaxNeedsImprovementValue float64    `json:"max_needs_improvement_value"`
-	PoorValue                float64    `json:"poor_value"`
-	Units                    string     `json:"units"`
-	HelpArticle              string     `json:"help_article"`
-	Type                     MetricType `json:"type"`
+	Name                     string             `json:"name"`
+	Description              string             `json:"description"`
+	MaxGoodValue             float64            `json:"max_good_value"`
+	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
+	PoorValue                float64            `json:"poor_value"`
+	Units                    string             `json:"units"`
+	HelpArticle              string             `json:"help_article"`
+	Type                     MetricType         `json:"type"`
+	ChartType                DashboardChartType `json:"chart_type"`
 }
 
 type DashboardParamsInput struct {
@@ -157,14 +159,24 @@ type ErrorTrace struct {
 	LinesAfter   *string `json:"linesAfter"`
 }
 
+type HistogramBucket struct {
+	Bucket     float64 `json:"bucket"`
+	RangeStart float64 `json:"range_start"`
+	RangeEnd   float64 `json:"range_end"`
+	Count      int     `json:"count"`
+}
+
 type HistogramParamsInput struct {
 	DateRange *DateRangeInput `json:"date_range"`
 	Buckets   *int            `json:"buckets"`
 }
 
 type HistogramPayload struct {
-	Bucket float64 `json:"bucket"`
-	Count  int     `json:"count"`
+	Buckets []*HistogramBucket `json:"buckets"`
+	Min     float64            `json:"min"`
+	Max     float64            `json:"max"`
+	P10     float64            `json:"p10"`
+	P90     float64            `json:"p90"`
 }
 
 type Invoice struct {
@@ -313,6 +325,47 @@ type UserPropertyInput struct {
 	ID    *int   `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type DashboardChartType string
+
+const (
+	DashboardChartTypeTimeline  DashboardChartType = "Timeline"
+	DashboardChartTypeHistogram DashboardChartType = "Histogram"
+)
+
+var AllDashboardChartType = []DashboardChartType{
+	DashboardChartTypeTimeline,
+	DashboardChartTypeHistogram,
+}
+
+func (e DashboardChartType) IsValid() bool {
+	switch e {
+	case DashboardChartTypeTimeline, DashboardChartTypeHistogram:
+		return true
+	}
+	return false
+}
+
+func (e DashboardChartType) String() string {
+	return string(e)
+}
+
+func (e *DashboardChartType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DashboardChartType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DashboardChartType", str)
+	}
+	return nil
+}
+
+func (e DashboardChartType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type ErrorState string
