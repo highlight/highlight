@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -164,13 +164,6 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	default:
 		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
 	}
-}
-
-func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
-	if obj != nil {
-		return r.Query().DailyErrorFrequency(ctx, obj.ProjectID, obj.SecureID, 5)
-	}
-	return nil, nil
 }
 
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
@@ -2864,6 +2857,8 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		AdminID:                admin.ID,
 		LastRequestedWorkspace: workspace.ID,
 	}
+
+	const RequestAccessMinimumDelay = time.Minute * 10
 	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
 		Columns: []clause.Column{{Name: "admin_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
@@ -3236,13 +3231,17 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	asErrorGroups := []model.ErrorGroup{}
+	asErrorGroups := []*model.ErrorGroup{}
 	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, *result.ToErrorGroup())
+		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
+	}
+
+	if err := r.SetErrorFrequencies(asErrorGroups, 5); err != nil {
+		return nil, err
 	}
 
 	return &model.ErrorResults{
-		ErrorGroups: asErrorGroups,
+		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
 		TotalCount:  resultCount,
 	}, nil
 }
@@ -3751,7 +3750,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error) {
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
 	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
@@ -3760,33 +3759,18 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
 		rand.Seed(int64(errGroup.ID))
-		var dists []*int64
+		var dists []int64
 		for i := 0; i <= dateOffset; i++ {
 			t := int64(rand.Intn(10) + 1)
-			dists = append(dists, &t)
+			dists = append(dists, t)
 		}
 		return dists, nil
 	}
 
-	var dailyErrors []*int64
-
-	if err := r.DB.Raw(`
-		SELECT COUNT(e.id)
-		FROM (
-			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
-			FROM generate_series(0, ?, 1)
-			AS offs
-		) d LEFT OUTER JOIN
-		error_objects e
-		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-		AND e.error_group_id=? AND e.project_id=?
-		GROUP BY d.date
-		ORDER BY d.date ASC;
-	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
-		return nil, e.Wrap(err, "error querying daily frequency")
+	if err := r.SetErrorFrequencies([]*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+		return nil, e.Wrap(err, "error setting error frequencies")
 	}
-
-	return dailyErrors, nil
+	return errGroup.ErrorFrequency, nil
 }
 
 func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -4631,8 +4615,10 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 
 	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
 	options := opensearch.SearchOptions{
-		MaxResults:     pointy.Int(0),
-		AggregateField: pointy.String("identifier.keyword"),
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "identifier.keyword",
+		},
 	}
 
 	results := []model.Session{}
@@ -4641,7 +4627,10 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "error querying identifier aggregates")
 	}
 
-	return lo.Filter(lo.Keys(aggs), func(k string, idx int) bool { return len(k) > 0 }), nil
+	// Only care about the keys, not the doc counts. Return all nonempty keys.
+	return lo.Filter(
+		lo.Map(aggs, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
+		func(key string, idx int) bool { return len(key) > 0 }), nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -4767,7 +4756,7 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 
 	teamResponse := res.Data.Teams.Nodes
 
-	ret = lo.Map[LinearTeam, *modelInputs.LinearTeam](teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
+	ret = lo.Map(teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
 		return &modelInputs.LinearTeam{
 			TeamID: team.ID,
 			Name:   team.Name,
@@ -5523,11 +5512,3 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-const RequestAccessMinimumDelay = time.Minute * 10

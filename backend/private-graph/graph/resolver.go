@@ -17,6 +17,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 
@@ -327,6 +328,79 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 		}
 	}
 	return nil, e.New("admin doesn't exist in project")
+}
+
+func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+	endDate := time.Now().UTC()
+	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
+	startDateFormatted := startDate.Format("2006-01-02")
+
+	aggQuery :=
+		fmt.Sprintf(`{"bool": {
+			"must": [
+				{
+					"terms": {
+					"routing.keyword" : [%s]
+				}},
+				{
+					"range": {
+					"timestamp": {
+						"gte": "%s"
+					}
+				}}
+			]
+		}}`,
+			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
+			startDateFormatted)
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "routing.keyword",
+			SubAggregation: &opensearch.DateHistogramAggregation{
+				Field:            "timestamp",
+				CalendarInterval: "day",
+				SortOrder:        "desc",
+				Format:           "yyyy-MM-dd",
+			},
+		},
+	}
+
+	ignored := []struct{}{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return err
+	}
+
+	errFreqs := map[int][]int64{}
+	for _, ar1 := range aggResults {
+		freqMap := map[string]int64{}
+		for _, ar2 := range ar1.SubAggregationResults {
+			freqMap[ar2.Key] = ar2.DocCount
+		}
+
+		freqs := []int64{}
+		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+			curDateFormatted := curDate.Format("2006-01-02")
+			freq, ok := freqMap[curDateFormatted]
+			if !ok {
+				freq = 0
+			}
+			freqs = append(freqs, freq)
+		}
+
+		errorGroupId, err := strconv.Atoi(ar1.Key)
+		if err != nil {
+			return err
+		}
+
+		errFreqs[errorGroupId] = freqs
+	}
+
+	for _, eg := range errorGroups {
+		eg.ErrorFrequency = errFreqs[eg.ID]
+	}
+
+	return nil
 }
 
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {

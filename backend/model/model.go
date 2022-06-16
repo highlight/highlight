@@ -774,7 +774,8 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool `gorm:"default:false"`
+	IsPublic         bool    `gorm:"default:false"`
+	ErrorFrequency   []int64 `gorm:"-"`
 }
 
 type ErrorField struct {
