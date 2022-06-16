@@ -388,6 +388,11 @@ input DashboardParamsInput {
     timezone: String
 }
 
+input HistogramParamsInput {
+    date_range: DateRangeInput
+    buckets: Int
+}
+
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
@@ -704,6 +709,11 @@ type DashboardPayload {
     p99: Float!
 }
 
+type HistogramPayload {
+    bucket: Float!
+    count: Int!
+}
+
 input DashboardMetricConfigInput {
     name: String!
     description: String!
@@ -905,12 +915,18 @@ type Query {
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-    metrics_dashboard(
+    metrics_timeline(
         project_id: ID!
         metric_name: String!
         metric_type: MetricType!
         params: DashboardParamsInput!
     ): [DashboardPayload]!
+    metrics_histogram(
+        project_id: ID!
+        metric_name: String!
+        metric_type: MetricType!
+        params: HistogramParamsInput!
+    ): [HistogramPayload]!
     metric_preview(
         project_id: ID!
         type: MetricType!

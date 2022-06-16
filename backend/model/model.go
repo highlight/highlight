@@ -702,7 +702,7 @@ type NetworkRequest struct {
 
 type Metric struct {
 	Model
-	ID        int                    `json:"id"`                                         // No primary key
+	ID        int                    `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time              `json:"created_at" deep:"-" gorm:"index;not null;"` // Override Model.CreatedAt to create index
 	SessionID int                    `gorm:"index;not null;"`
 	ProjectID int                    `gorm:"index;not null;"`

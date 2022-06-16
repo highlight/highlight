@@ -10,6 +10,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
     useGetMetricsDashboardQuery,
+    useGetMetricsHistogramQuery,
 } from '@graph/hooks';
 import { DashboardMetricConfig, DashboardPayload, Maybe } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -72,6 +73,22 @@ const DashboardCard = ({
             metric_type: metricConfig.type,
         },
     });
+    const { data: histogram } = useGetMetricsHistogramQuery({
+        variables: {
+            project_id,
+            metric_name: metricConfig.name,
+            params: {
+                date_range: {
+                    end_date: dateRange.end.toISOString(),
+                    start_date: dateRange.start.toISOString(),
+                },
+                buckets: NUM_BUCKETS,
+            },
+            metric_type: metricConfig.type,
+        },
+    });
+    // TODO(vkorolik) lazy query, implement histogram
+    console.log({ metricConfig, histogram });
     const {
         data: metricMonitors,
         loading: metricMonitorsLoading,
@@ -86,7 +103,7 @@ const DashboardCard = ({
 
     const ticks: string[] = [];
     const seenDays: Set<string> = new Set<string>();
-    for (const d of data?.metrics_dashboard || []) {
+    for (const d of data?.metrics_timeline || []) {
         const pointDate = d?.date;
         if (pointDate) {
             const formattedDate = moment(pointDate).format('D MMM');
@@ -110,7 +127,7 @@ const DashboardCard = ({
                 metricConfig={metricConfig}
                 metricIdx={metricIdx}
                 updateMetric={updateMetric}
-                data={data?.metrics_dashboard}
+                data={data?.metrics_timeline}
             />
             <Card
                 interactable
@@ -254,8 +271,8 @@ const DashboardCard = ({
                 {loading ? (
                     <Skeleton height={235} />
                 ) : data === undefined ||
-                  data.metrics_dashboard === undefined ||
-                  data.metrics_dashboard.length === 0 ? (
+                  data.metrics_timeline === undefined ||
+                  data.metrics_timeline.length === 0 ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
                             message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
@@ -264,7 +281,7 @@ const DashboardCard = ({
                 ) : (
                     <LineChart
                         height={235}
-                        data={data.metrics_dashboard}
+                        data={data.metrics_timeline}
                         referenceLines={[
                             {
                                 label: 'Goal',

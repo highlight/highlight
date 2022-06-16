@@ -5186,7 +5186,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	return payload, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -5218,6 +5218,55 @@ func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, met
 		  GROUP BY date;
 	`
 	if err := r.DB.Raw(query, tz, resMins, resMins, tz, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
+		log.Error(err)
+		return payload, nil
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.HistogramParamsInput) ([]*modelInputs.HistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, nil
+	}
+
+	scan := struct {
+		Min float64
+		Max float64
+	}{}
+	query := `
+		SELECT min(value) as min, max(value) as max
+		  FROM metrics
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?
+			AND type = ?;
+	`
+	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Find(&scan).Error; err != nil {
+		log.Error(err)
+		return nil, nil
+	}
+
+	buckets := 10
+	if params.Buckets != nil {
+		buckets = *params.Buckets
+	}
+
+	var payload []*modelInputs.HistogramPayload
+	query = `
+		SELECT width_bucket(metrics.value, ?, ?, ?) as bucket,
+		       count(metrics.value)
+		  FROM metrics
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?
+			AND type = ?
+		  GROUP BY bucket
+		  ORDER BY bucket;
+	`
+	if err := r.DB.Raw(query, scan.Min, scan.Max, buckets, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return payload, nil
 	}

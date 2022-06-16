@@ -1525,7 +1525,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 		// for certain metrics, we always want to save them as new metrics
 		if m.Type == customModels.MetricTypeBackend || m.Type == customModels.MetricTypeFrontend {
 			if err := r.addNewMetric(sessionID, projectID, m); err != nil {
-				return err
+				return e.Wrap(err, "failed to add new metric")
 			}
 			continue
 		}
@@ -1540,12 +1540,12 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID
 		}
 		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
 		if err := tx.Error; err != nil {
-			return err
+			return e.Wrap(err, "failed to find or create metric")
 		}
 		// Update the existing record if it already exists
 		existingMetric.Value = m.Value
 		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			return err
+			return e.Wrap(err, "failed to update existing metric")
 		}
 	}
 	return nil

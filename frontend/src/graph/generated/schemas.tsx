@@ -431,6 +431,11 @@ export type DashboardParamsInput = {
     timezone?: Maybe<Scalars['String']>;
 };
 
+export type HistogramParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+    buckets?: Maybe<Scalars['Int']>;
+};
+
 export type SearchParams = {
     __typename?: 'SearchParams';
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
@@ -768,6 +773,12 @@ export type DashboardPayload = {
     p99: Scalars['Float'];
 };
 
+export type HistogramPayload = {
+    __typename?: 'HistogramPayload';
+    bucket: Scalars['Float'];
+    count: Scalars['Int'];
+};
+
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
     description: Scalars['String'];
@@ -913,7 +924,8 @@ export type Query = {
     subscription_details: SubscriptionDetails;
     dashboard_definitions: Array<Maybe<DashboardDefinition>>;
     suggested_metrics: Array<Scalars['String']>;
-    metrics_dashboard: Array<Maybe<DashboardPayload>>;
+    metrics_timeline: Array<Maybe<DashboardPayload>>;
+    metrics_histogram: Array<Maybe<HistogramPayload>>;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1254,11 +1266,18 @@ export type QuerySuggested_MetricsArgs = {
     prefix: Scalars['String'];
 };
 
-export type QueryMetrics_DashboardArgs = {
+export type QueryMetrics_TimelineArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
     metric_type: MetricType;
     params: DashboardParamsInput;
+};
+
+export type QueryMetrics_HistogramArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+    metric_type: MetricType;
+    params: HistogramParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {

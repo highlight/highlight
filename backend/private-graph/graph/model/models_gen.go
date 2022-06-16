@@ -157,6 +157,16 @@ type ErrorTrace struct {
 	LinesAfter   *string `json:"linesAfter"`
 }
 
+type HistogramParamsInput struct {
+	DateRange *DateRangeInput `json:"date_range"`
+	Buckets   *int            `json:"buckets"`
+}
+
+type HistogramPayload struct {
+	Bucket float64 `json:"bucket"`
+	Count  int     `json:"count"`
+}
+
 type Invoice struct {
 	AmountDue    *int64     `json:"amountDue"`
 	AmountPaid   *int64     `json:"amountPaid"`

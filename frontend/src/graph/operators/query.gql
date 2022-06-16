@@ -57,7 +57,7 @@ query GetMetricsDashboard(
     $metric_type: MetricType!
     $params: DashboardParamsInput!
 ) {
-    metrics_dashboard(
+    metrics_timeline(
         project_id: $project_id
         metric_name: $metric_name
         metric_type: $metric_type
@@ -69,6 +69,23 @@ query GetMetricsDashboard(
         p75
         p90
         p99
+    }
+}
+
+query GetMetricsHistogram(
+    $project_id: ID!
+    $metric_name: String!
+    $metric_type: MetricType!
+    $params: HistogramParamsInput!
+) {
+    metrics_histogram(
+        project_id: $project_id
+        metric_name: $metric_name
+        metric_type: $metric_type
+        params: $params
+    ) {
+        bucket
+        count
     }
 }
 

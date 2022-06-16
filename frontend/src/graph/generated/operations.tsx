@@ -1591,11 +1591,29 @@ export type GetMetricsDashboardQueryVariables = Types.Exact<{
 }>;
 
 export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
-    metrics_dashboard: Array<
+    metrics_timeline: Array<
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
                 'date' | 'avg' | 'p50' | 'p75' | 'p90' | 'p99'
+            >
+        >
+    >;
+};
+
+export type GetMetricsHistogramQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+    metric_type: Types.MetricType;
+    params: Types.HistogramParamsInput;
+}>;
+
+export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
+    metrics_histogram: Array<
+        Types.Maybe<
+            { __typename?: 'HistogramPayload' } & Pick<
+                Types.HistogramPayload,
+                'bucket' | 'count'
             >
         >
     >;
@@ -3698,6 +3716,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 export const namedOperations = {
     Query: {
         GetMetricsDashboard: 'GetMetricsDashboard' as const,
+        GetMetricsHistogram: 'GetMetricsHistogram' as const,
         GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,

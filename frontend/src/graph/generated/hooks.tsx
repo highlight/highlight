@@ -4175,7 +4175,7 @@ export const GetMetricsDashboardDocument = gql`
         $metric_type: MetricType!
         $params: DashboardParamsInput!
     ) {
-        metrics_dashboard(
+        metrics_timeline(
             project_id: $project_id
             metric_name: $metric_name
             metric_type: $metric_type
@@ -4241,6 +4241,76 @@ export type GetMetricsDashboardLazyQueryHookResult = ReturnType<
 export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
     Types.GetMetricsDashboardQuery,
     Types.GetMetricsDashboardQueryVariables
+>;
+export const GetMetricsHistogramDocument = gql`
+    query GetMetricsHistogram(
+        $project_id: ID!
+        $metric_name: String!
+        $metric_type: MetricType!
+        $params: HistogramParamsInput!
+    ) {
+        metrics_histogram(
+            project_id: $project_id
+            metric_name: $metric_name
+            metric_type: $metric_type
+            params: $params
+        ) {
+            bucket
+            count
+        }
+    }
+`;
+
+/**
+ * __useGetMetricsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *      metric_type: // value for 'metric_type'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetMetricsHistogramQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >(GetMetricsHistogramDocument, baseOptions);
+}
+export function useGetMetricsHistogramLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >(GetMetricsHistogramDocument, baseOptions);
+}
+export type GetMetricsHistogramQueryHookResult = ReturnType<
+    typeof useGetMetricsHistogramQuery
+>;
+export type GetMetricsHistogramLazyQueryHookResult = ReturnType<
+    typeof useGetMetricsHistogramLazyQuery
+>;
+export type GetMetricsHistogramQueryResult = Apollo.QueryResult<
+    Types.GetMetricsHistogramQuery,
+    Types.GetMetricsHistogramQueryVariables
 >;
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(
