@@ -401,6 +401,19 @@ func (w *Worker) DeleteOldMetrics() {
 	const expirationDays = 30
 
 	deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
+		tracer.ResourceName("worker.deleteNetworkRequests"), tracer.Tag("expirationDays", expirationDays))
+	if err := w.Resolver.DB.Exec(`
+		DELETE FROM network_requests n
+		       USING metrics m
+		       WHERE n.id = m.request_id
+					AND m.type != ? AND m.type != ?
+					AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
+`, publicModel.MetricTypeWebVital, publicModel.MetricTypeDevice, expirationDays).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting expired metrics"))
+	}
+	deleteSpan.Finish()
+
+	deleteSpan, _ = tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
 		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
 	if err := w.Resolver.DB.Exec(`
 		DELETE FROM metrics m
