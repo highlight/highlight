@@ -91,9 +91,9 @@
     border-radius: var(--border-radius);
     column-gap: var(--size-xxSmall) !important;
     display: flex;
+    height: var(--size-xLarge);
     margin: 0 !important;
     width: 131px;
-    height: var(--size-xLarge);
 }
 
 .monitorName {
