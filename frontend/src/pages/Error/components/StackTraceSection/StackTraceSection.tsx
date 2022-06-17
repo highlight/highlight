@@ -2,6 +2,7 @@ import { StatelessCollapsible } from '@components/Collapsible/Collapsible';
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React from 'react';
@@ -9,11 +10,6 @@ import Skeleton from 'react-loading-skeleton';
 
 import Alert from '../../../../components/Alert/Alert';
 import ButtonLink from '../../../../components/Button/ButtonLink/ButtonLink';
-import {
-    ErrorGroup,
-    ErrorObject,
-    Maybe,
-} from '../../../../graph/generated/schemas';
 import ErrorPageStyles from '../../ErrorPage.module.scss';
 import styles from './StackTraceSection.module.scss';
 
@@ -154,12 +150,14 @@ const getErrorMessage = (error: string | undefined): string | undefined => {
         return undefined;
     }
 
+    const s = error.split('over ').pop() || '';
+    const size = s.split('mb:')[0] || '?';
     if (error.includes('minified source file over')) {
-        return 'Could not load the original source - the source file for this stack frame is over 40MB. This can happen for files which have been combined but have not been minified.';
+        return `Could not load the original source - the source file for this stack frame is over ${size}MB. This can happen for files which have been combined but have not been minified.`;
     }
 
     if (error.includes('source map file over')) {
-        return 'Could not load the original source - the source map file for this stack frame is over 40MB.';
+        return `Could not load the original source - the source map file for this stack frame is over ${size}MB.`;
     }
 
     if (error.includes('error parsing source map file')) {
