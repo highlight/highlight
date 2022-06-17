@@ -10,8 +10,8 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
-    useGetMetricsDashboardLazyQuery,
-    useGetMetricsHistogramLazyQuery,
+    useGetMetricsDashboardQuery,
+    useGetMetricsHistogramQuery,
 } from '@graph/hooks';
 import {
     GetMetricsDashboardQuery,
@@ -28,7 +28,7 @@ import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/Em
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -64,10 +64,10 @@ const DashboardCard = ({
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const { project_id } = useParams<{ project_id: string }>();
-    const [
-        getTimeline,
-        { data: timelineData, loading: timelineLoading },
-    ] = useGetMetricsDashboardLazyQuery({
+    const {
+        data: timelineData,
+        loading: timelineLoading,
+    } = useGetMetricsDashboardQuery({
         variables: {
             project_id,
             metric_name: metricConfig.name,
@@ -82,10 +82,10 @@ const DashboardCard = ({
             metric_type: metricConfig.type,
         },
     });
-    const [
-        getHistogram,
-        { data: histogramData, loading: histogramLoading },
-    ] = useGetMetricsHistogramLazyQuery({
+    const {
+        data: histogramData,
+        loading: histogramLoading,
+    } = useGetMetricsHistogramQuery({
         variables: {
             project_id,
             metric_name: metricConfig.name,
@@ -110,14 +110,6 @@ const DashboardCard = ({
     });
 
     const history = useHistory();
-
-    useEffect(() => {
-        if (metricConfig.chart_type === DashboardChartType.Histogram) {
-            getHistogram();
-        } else if (metricConfig.chart_type === DashboardChartType.Timeline) {
-            getTimeline();
-        }
-    }, [metricConfig, getHistogram, getTimeline]);
 
     return (
         <>

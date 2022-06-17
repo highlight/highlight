@@ -1622,6 +1622,22 @@ export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
         };
 };
 
+export type GetNetworkHistogramQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    params: Types.NetworkHistogramParamsInput;
+}>;
+
+export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
+    network_histogram: { __typename?: 'CategoryHistogramPayload' } & {
+        buckets: Array<
+            { __typename?: 'CategoryHistogramBucket' } & Pick<
+                Types.CategoryHistogramBucket,
+                'category' | 'count'
+            >
+        >;
+    };
+};
+
 export type GetMetricPreviewQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     type: Types.MetricType;
@@ -3721,6 +3737,7 @@ export const namedOperations = {
     Query: {
         GetMetricsDashboard: 'GetMetricsDashboard' as const,
         GetMetricsHistogram: 'GetMetricsHistogram' as const,
+        GetNetworkHistogram: 'GetNetworkHistogram' as const,
         GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,

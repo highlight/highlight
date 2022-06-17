@@ -54,6 +54,15 @@ type BillingDetails struct {
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
+type CategoryHistogramBucket struct {
+	Category string `json:"category"`
+	Count    int    `json:"count"`
+}
+
+type CategoryHistogramPayload struct {
+	Buckets []*CategoryHistogramBucket `json:"buckets"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
@@ -207,6 +216,11 @@ type MetricPreview struct {
 type NamedCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
+}
+
+type NetworkHistogramParamsInput struct {
+	LookbackDays *int                     `json:"lookback_days"`
+	Attribute    *NetworkRequestAttribute `json:"attribute"`
 }
 
 type NewUsersCount struct {
@@ -496,6 +510,53 @@ func (e *MetricType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type NetworkRequestAttribute string
+
+const (
+	NetworkRequestAttributeMethod       NetworkRequestAttribute = "method"
+	NetworkRequestAttributeURL          NetworkRequestAttribute = "url"
+	NetworkRequestAttributeBodySize     NetworkRequestAttribute = "body_size"
+	NetworkRequestAttributeResponseSize NetworkRequestAttribute = "response_size"
+	NetworkRequestAttributeStatus       NetworkRequestAttribute = "status"
+)
+
+var AllNetworkRequestAttribute = []NetworkRequestAttribute{
+	NetworkRequestAttributeMethod,
+	NetworkRequestAttributeURL,
+	NetworkRequestAttributeBodySize,
+	NetworkRequestAttributeResponseSize,
+	NetworkRequestAttributeStatus,
+}
+
+func (e NetworkRequestAttribute) IsValid() bool {
+	switch e {
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus:
+		return true
+	}
+	return false
+}
+
+func (e NetworkRequestAttribute) String() string {
+	return string(e)
+}
+
+func (e *NetworkRequestAttribute) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NetworkRequestAttribute(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NetworkRequestAttribute", str)
+	}
+	return nil
+}
+
+func (e NetworkRequestAttribute) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

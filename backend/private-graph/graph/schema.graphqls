@@ -393,6 +393,19 @@ input HistogramParamsInput {
     buckets: Int
 }
 
+enum NetworkRequestAttribute {
+    method
+    url
+    body_size
+    response_size
+    status
+}
+
+input NetworkHistogramParamsInput {
+    lookback_days: Int
+    attribute: NetworkRequestAttribute
+}
+
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
@@ -724,6 +737,15 @@ type HistogramPayload {
     p90: Float!
 }
 
+type CategoryHistogramBucket {
+    category: String!
+    count: Int!
+}
+
+type CategoryHistogramPayload {
+    buckets: [CategoryHistogramBucket!]!
+}
+
 enum DashboardChartType {
     Timeline
     Histogram
@@ -944,6 +966,10 @@ type Query {
         metric_type: MetricType!
         params: HistogramParamsInput!
     ): HistogramPayload!
+    network_histogram(
+        project_id: ID!
+        params: NetworkHistogramParamsInput!
+    ): CategoryHistogramPayload!
     metric_preview(
         project_id: ID!
         type: MetricType!

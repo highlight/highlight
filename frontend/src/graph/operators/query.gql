@@ -97,6 +97,21 @@ query GetMetricsHistogram(
     }
 }
 
+query GetNetworkHistogram(
+    $project_id: ID!
+    $params: NetworkHistogramParamsInput!
+) {
+    network_histogram(
+        project_id: $project_id
+        params: $params
+    ) {
+        buckets {
+            category
+            count
+        }
+    }
+}
+
 query GetMetricPreview(
     $project_id: ID!
     $type: MetricType!

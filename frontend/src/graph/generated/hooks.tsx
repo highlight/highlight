@@ -4320,6 +4320,69 @@ export type GetMetricsHistogramQueryResult = Apollo.QueryResult<
     Types.GetMetricsHistogramQuery,
     Types.GetMetricsHistogramQueryVariables
 >;
+export const GetNetworkHistogramDocument = gql`
+    query GetNetworkHistogram(
+        $project_id: ID!
+        $params: NetworkHistogramParamsInput!
+    ) {
+        network_histogram(project_id: $project_id, params: $params) {
+            buckets {
+                category
+                count
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetNetworkHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetNetworkHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNetworkHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNetworkHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetNetworkHistogramQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >(GetNetworkHistogramDocument, baseOptions);
+}
+export function useGetNetworkHistogramLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >(GetNetworkHistogramDocument, baseOptions);
+}
+export type GetNetworkHistogramQueryHookResult = ReturnType<
+    typeof useGetNetworkHistogramQuery
+>;
+export type GetNetworkHistogramLazyQueryHookResult = ReturnType<
+    typeof useGetNetworkHistogramLazyQuery
+>;
+export type GetNetworkHistogramQueryResult = Apollo.QueryResult<
+    Types.GetNetworkHistogramQuery,
+    Types.GetNetworkHistogramQueryVariables
+>;
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(
         $project_id: ID!

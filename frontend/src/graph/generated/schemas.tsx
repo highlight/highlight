@@ -436,6 +436,19 @@ export type HistogramParamsInput = {
     buckets?: Maybe<Scalars['Int']>;
 };
 
+export enum NetworkRequestAttribute {
+    Method = 'method',
+    Url = 'url',
+    BodySize = 'body_size',
+    ResponseSize = 'response_size',
+    Status = 'status',
+}
+
+export type NetworkHistogramParamsInput = {
+    lookback_days?: Maybe<Scalars['Int']>;
+    attribute?: Maybe<NetworkRequestAttribute>;
+};
+
 export type SearchParams = {
     __typename?: 'SearchParams';
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
@@ -790,6 +803,17 @@ export type HistogramPayload = {
     p90: Scalars['Float'];
 };
 
+export type CategoryHistogramBucket = {
+    __typename?: 'CategoryHistogramBucket';
+    category: Scalars['String'];
+    count: Scalars['Int'];
+};
+
+export type CategoryHistogramPayload = {
+    __typename?: 'CategoryHistogramPayload';
+    buckets: Array<CategoryHistogramBucket>;
+};
+
 export enum DashboardChartType {
     Timeline = 'Timeline',
     Histogram = 'Histogram',
@@ -944,6 +968,7 @@ export type Query = {
     suggested_metrics: Array<Scalars['String']>;
     metrics_timeline: Array<Maybe<DashboardPayload>>;
     metrics_histogram: HistogramPayload;
+    network_histogram: CategoryHistogramPayload;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1296,6 +1321,11 @@ export type QueryMetrics_HistogramArgs = {
     metric_name: Scalars['String'];
     metric_type: MetricType;
     params: HistogramParamsInput;
+};
+
+export type QueryNetwork_HistogramArgs = {
+    project_id: Scalars['ID'];
+    params: NetworkHistogramParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {

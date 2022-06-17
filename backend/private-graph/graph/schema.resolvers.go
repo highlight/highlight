@@ -5301,6 +5301,31 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}, nil
 }
 
+func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var buckets []*modelInputs.CategoryHistogramBucket
+	// safe from injection attacks because we are putting a known enum value
+	query := fmt.Sprintf(`
+		SELECT network_requests.%s as category,
+		       count(network_requests.id) as count
+		  FROM network_requests
+		  INNER JOIN metrics m on network_requests.id = m.request_id
+		  WHERE m.project_id=?
+			AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
+			AND m.created_at <= NOW()
+		  GROUP BY category
+		  ORDER BY count desc;
+	`, params.Attribute.String())
+	if err := r.DB.Raw(query, projectID, params.LookbackDays).Scan(&buckets).Error; err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
+}
+
 func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
 	payload := []*modelInputs.MetricPreview{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
