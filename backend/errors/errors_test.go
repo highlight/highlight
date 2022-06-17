@@ -24,12 +24,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping with proper stack trace": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+					FileName:     util.MakeStringPointer("./test-files/lodash.min.js?400"),
 					LineNumber:   util.MakeIntPointer(1),
 					ColumnNumber: util.MakeIntPointer(813),
 				},
 				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+					FileName:     util.MakeStringPointer("./test-files/lodash.min.js?ts=123&foo=bar"),
 					LineNumber:   util.MakeIntPointer(1),
 					ColumnNumber: util.MakeIntPointer(799),
 				},

@@ -150,9 +150,9 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
 	// remove a query string in the url, eg main.js?foo=bar -> main.js
-	queryStringIndex := strings.Index(stackTraceFilePath, "?")
+	queryStringIndex := strings.Index(stackTraceFileURL, "?")
 	if queryStringIndex != -1 {
-		stackTraceFilePath = stackTraceFilePath[:queryStringIndex]
+		stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
 	}
 
 	// try to get file from s3
