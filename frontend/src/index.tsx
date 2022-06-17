@@ -23,6 +23,7 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { useGetAdminLazyQuery } from '@graph/hooks';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
+import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
 import { showHiringMessage } from '@util/console/hiringMessage';
 import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -38,7 +39,7 @@ import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
-const dev = process.env.NODE_ENV === 'development' ? true : false;
+const dev = process.env.NODE_ENV === 'development';
 let commitSHA = process.env.REACT_APP_COMMIT_SHA || '';
 if (commitSHA.length > 8) {
     commitSHA = commitSHA.substring(0, 8);
@@ -94,12 +95,16 @@ if (dev) {
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
     }
-} else if (window.location.href.includes('onrender')) {
+} else if (
+    window.location.href.includes('onrender') ||
+    window.location.href.includes('amplifyapp')
+) {
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
+    options.scriptUrl = 'https://static.highlight.run/beta/index.js';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (!isOnPrem) {
@@ -194,7 +199,11 @@ const AuthenticationRouter = () => {
 
     useEffect(() => {
         if (adminData) {
-            if (adminData.admin?.email.includes('@highlight.run')) {
+            if (
+                HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
+                    adminData.admin?.email.includes(d)
+                )
+            ) {
                 setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
             } else if (adminData.admin) {
                 setAuthRole(AuthRole.AUTHENTICATED);

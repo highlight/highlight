@@ -6,7 +6,7 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -83,6 +83,7 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    inlineImages?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -169,6 +170,7 @@ export class Highlight {
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    inlineImages!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -269,6 +271,8 @@ export class Highlight {
         });
         const graphQLRequestWrapper = async <T,>(
             requestFn: () => Promise<T>,
+            operationName: string,
+            operationType?: string,
             retries: number = 0
         ): Promise<T> => {
             const MAX_RETRIES = 5;
@@ -287,7 +291,12 @@ export class Highlight {
                             INITIAL_BACKOFF * Math.pow(2, retries)
                         )
                     );
-                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                    return await graphQLRequestWrapper(
+                        requestFn,
+                        operationName,
+                        operationType,
+                        retries + 1
+                    );
                 }
                 logForHighlight(
                     '[' +
@@ -725,6 +734,8 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineStylesheet: true,
+                    inlineImages: this.inlineImages,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
