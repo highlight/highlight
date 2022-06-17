@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { Replayer } from '@highlight-run/rrweb';
-import { playerMetaData } from '@highlight-run/rrweb/dist/types';
+import { playerMetaData } from '@highlight-run/rrweb/typings/types';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
