@@ -122,12 +122,17 @@ const DashboardPage = () => {
                         type="ghost"
                         onClick={() => {
                             setIsEditing((prev) => !prev);
-                            if (isEditing && dashboard) {
+                            const newLayout = JSON.stringify(layout);
+                            if (
+                                isEditing &&
+                                dashboard &&
+                                newLayout !== dashboard.layout
+                            ) {
                                 updateDashboard({
                                     id: id,
                                     name: dashboard.name,
                                     metrics: dashboard.metrics,
-                                    layout: JSON.stringify(layout),
+                                    layout: newLayout,
                                 });
                             }
                         }}
