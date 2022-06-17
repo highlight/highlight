@@ -15,6 +15,9 @@ const resolvedAliases = Object.fromEntries(
 module.exports = {
     webpack: {
         alias: resolvedAliases,
+        configure: {
+            devtool: 'source-map',
+        },
     },
     plugins: [
         {
