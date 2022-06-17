@@ -70,11 +70,11 @@
 }
 
 .horizontalSlider {
-    position: absolute;
     height: 16px;
-    top: 38px;
     left: 31px;
     margin-right: -38px;
+    position: absolute;
+    top: 38px;
 }
 
 .sliderThumb {
@@ -89,6 +89,5 @@
 }
 
 .sliderTrack {
-    background-color: red;
     width: 500px;
 }

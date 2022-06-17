@@ -70,8 +70,8 @@
 .chartButtons {
     display: flex;
     justify-content: space-between;
-    padding-top: var(--size-small);
     padding-right: var(--size-xSmall);
+    padding-top: var(--size-small);
     width: 225px;
 
     ul li button {
@@ -81,9 +81,9 @@
 }
 
 .monitorItem {
-    border: 1px solid var(--color-gray-400);
-    border-radius: var(--border-radius);
     align-items: center;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-gray-400);
     column-gap: var(--size-xxSmall) !important;
     display: flex;
     margin: 0 !important;

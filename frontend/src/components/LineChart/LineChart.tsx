@@ -103,7 +103,6 @@ const LineChart = ({
                 <ReactSlider
                     className={styles.verticalSlider}
                     thumbClassName={styles.sliderThumb}
-                    trackClassName={styles.sliderTrack}
                     max={max}
                     min={0}
                     value={draggableReferenceLines.map((rl) => rl.value)}
