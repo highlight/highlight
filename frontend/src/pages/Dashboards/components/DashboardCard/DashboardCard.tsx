@@ -412,10 +412,10 @@ const ChartContainer = React.memo(
     }) => {
         const { project_id } = useParams<{ project_id: string }>();
         const NUM_BUCKETS = 24;
-        const NUM_HISTOGRAM_BUCKETS = 10000;
         const resolutionMinutes = Math.ceil(
             dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
         );
+        const NUM_HISTOGRAM_BUCKETS = (3600 * 5000) / resolutionMinutes;
         const {
             data: timelineData,
             loading: timelineLoading,
@@ -465,21 +465,6 @@ const ChartContainer = React.memo(
             }
         }
 
-        if (timelineLoading || histogramLoading) {
-            return <Skeleton height={235} />;
-        } else if (
-            !timelineData?.metrics_timeline.length &&
-            !histogramData?.metrics_histogram.buckets.length
-        ) {
-            return (
-                <div className={styles.noDataContainer}>
-                    <EmptyCardPlaceholder
-                        message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
-                    />
-                </div>
-            );
-        }
-
         return (
             <>
                 <EditMetricModal
@@ -497,7 +482,16 @@ const ChartContainer = React.memo(
                     setShowDeleteModal={setShowDeleteModal}
                     setShowEditModal={setShowEditModal}
                 />
-                {chartType === DashboardChartType.Histogram ? (
+                {timelineLoading || histogramLoading ? (
+                    <Skeleton height={235} />
+                ) : !timelineData?.metrics_timeline.length &&
+                  !histogramData?.metrics_histogram.buckets.length ? (
+                    <div className={styles.noDataContainer}>
+                        <EmptyCardPlaceholder
+                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                        />
+                    </div>
+                ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
                         height={235}
                         data={(
@@ -611,7 +605,14 @@ const ChartContainer = React.memo(
     },
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
-        prevProps.metricConfig === nextProps.metricConfig
+        prevProps.chartType === nextProps.chartType &&
+        prevProps.dateRange === nextProps.dateRange &&
+        prevProps.maxGoodValue === nextProps.maxGoodValue &&
+        prevProps.maxNeedsImprovementValue ===
+            nextProps.maxNeedsImprovementValue &&
+        prevProps.poorValue === nextProps.poorValue &&
+        prevProps.metricIdx === nextProps.metricIdx &&
+        prevProps.metricConfig.chart_type === nextProps.metricConfig.chart_type
 );
 
 export default DashboardCard;

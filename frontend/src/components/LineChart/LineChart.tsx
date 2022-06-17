@@ -53,10 +53,10 @@ export interface Props {
     referenceAreaProps?: ReferenceAreaProps;
 }
 
-export function findMax(data: any[]) {
+export function findMax(data: any[], key?: string) {
     let max = Number.MIN_VALUE;
     for (const x of data) {
-        for (const vS of Object.values(x)) {
+        for (const vS of (key ? [x[key]] : Object.values(x)) || []) {
             const v = Number(vS);
             if (!isFinite(v)) continue;
             if (v > max) {
