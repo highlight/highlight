@@ -5317,7 +5317,9 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
 			AND m.created_at <= NOW()
 		  GROUP BY category
-		  ORDER BY count desc;
+		  HAVING count(network_requests.id) > 1
+		  ORDER BY count desc
+		  LIMIT 50;
 	`, params.Attribute.String())
 	if err := r.DB.Raw(query, projectID, params.LookbackDays).Scan(&buckets).Error; err != nil {
 		return nil, err
