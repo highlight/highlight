@@ -158,7 +158,8 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
-	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run") || strings.Contains(email, "@runhighlight.com")
+	_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
+	return isAdmin || uid == WhitelistedUID
 }
 
 func (r *Resolver) isDemoProject(project_id int) bool {
