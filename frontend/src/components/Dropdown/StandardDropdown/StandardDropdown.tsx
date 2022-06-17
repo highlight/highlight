@@ -54,6 +54,7 @@ export const StandardDropdown = ({
             trigger={['click']}
             disabled={disabled}
             className={className}
+            overlayClassName={styles.overlay}
         >
             <div
                 className={styles.dropdownHandler}

@@ -62,3 +62,7 @@
     justify-content: center;
     padding: 10px 10px 10px 6px;
 }
+
+.overlay {
+    z-index: 9999999999 !important;
+}

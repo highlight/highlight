@@ -44,7 +44,7 @@
 .metric {
     display: grid;
     grid-gap: var(--size-medium);
-    grid-template-columns: 1fr 1fr 90px 90px;
+    grid-template-columns: 1fr 1fr auto 90px 90px;
 }
 
 .newMetric {

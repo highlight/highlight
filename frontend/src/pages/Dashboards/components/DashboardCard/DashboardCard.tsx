@@ -204,7 +204,7 @@ const DashboardCard = ({
                                                 );
                                             }}
                                         >
-                                            Setup Alert
+                                            Create Alert
                                         </Button>
                                     )}
                                     <Button
@@ -280,6 +280,7 @@ const DashboardCard = ({
                         metricConfig={metricConfig}
                         timelineData={timelineData}
                         histogramData={histogramData}
+                        chartType={metricConfig.chart_type}
                         maxGoodValue={metricConfig.max_good_value}
                         maxNeedsImprovementValue={
                             metricConfig.max_needs_improvement_value
@@ -323,6 +324,9 @@ const EditMetricModal = ({
         setMaxNeedsImprovementValue,
     ] = useState<number>(metricConfig.max_needs_improvement_value);
     const [poorValue, setPoorValue] = useState<number>(metricConfig.poor_value);
+    const [chartType, setChartType] = useState<DashboardChartType>(
+        metricConfig.chart_type
+    );
     return (
         <Modal
             onCancel={onCancel}
@@ -349,6 +353,19 @@ const EditMetricModal = ({
                                 setHelpArticle(e.target?.value || '');
                             }}
                         />
+                        <StandardDropdown
+                            data={Object.keys(DashboardChartType).map(
+                                (value) => ({
+                                    label: value,
+                                    value: value,
+                                })
+                            )}
+                            defaultValue={{
+                                label: chartType,
+                                value: chartType,
+                            }}
+                            onSelect={(value) => setChartType(value)}
+                        />
                         <Button
                             style={{ width: 90 }}
                             icon={
@@ -369,7 +386,7 @@ const EditMetricModal = ({
                                     max_needs_improvement_value: maxNeedsImprovementValue,
                                     poor_value: poorValue,
                                     type: metricConfig.type,
-                                    chart_type: metricConfig.chart_type,
+                                    chart_type: chartType,
                                 });
                                 onCancel();
                             }}
@@ -398,6 +415,7 @@ const EditMetricModal = ({
                         metricConfig={metricConfig}
                         timelineData={timelineData}
                         histogramData={histogramData}
+                        chartType={chartType}
                         maxGoodValue={maxGoodValue}
                         maxNeedsImprovementValue={maxNeedsImprovementValue}
                         poorValue={poorValue}
@@ -417,6 +435,7 @@ const ChartContainer = ({
     metricConfig,
     timelineData,
     histogramData,
+    chartType,
     maxGoodValue,
     maxNeedsImprovementValue,
     poorValue,
@@ -427,6 +446,7 @@ const ChartContainer = ({
     metricConfig: DashboardMetricConfig;
     timelineData?: GetMetricsDashboardQuery;
     histogramData?: GetMetricsHistogramQuery;
+    chartType: DashboardChartType;
     maxGoodValue: number;
     maxNeedsImprovementValue: number;
     poorValue: number;
@@ -447,7 +467,7 @@ const ChartContainer = ({
         }
     }
 
-    if (metricConfig.chart_type === DashboardChartType.Histogram) {
+    if (chartType === DashboardChartType.Histogram) {
         console.log({ data: histogramData?.metrics_histogram });
         return (
             <BarChartV2
@@ -499,7 +519,7 @@ const ChartContainer = ({
                 yAxisKeys={['count']}
             />
         );
-    } else if (metricConfig.chart_type === DashboardChartType.Timeline) {
+    } else if (chartType === DashboardChartType.Timeline) {
         return (
             <LineChart
                 height={235}
