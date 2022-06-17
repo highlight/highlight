@@ -565,6 +565,7 @@ type Field struct {
 
 type ResourcesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Resources string
 	IsBeacon  bool `gorm:"default:false"`
@@ -667,6 +668,7 @@ type Object interface {
 
 type MessagesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Messages  string
 	IsBeacon  bool `gorm:"default:false"`
@@ -701,6 +703,7 @@ func (m *MessagesObject) Contents() string {
 
 type EventsObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Events    string
 	IsBeacon  bool `gorm:"default:false"`
@@ -774,7 +777,8 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool `gorm:"default:false"`
+	IsPublic         bool    `gorm:"default:false"`
+	ErrorFrequency   []int64 `gorm:"-"`
 }
 
 type ErrorField struct {

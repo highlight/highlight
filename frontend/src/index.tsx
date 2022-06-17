@@ -23,6 +23,7 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { useGetAdminLazyQuery } from '@graph/hooks';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
+import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
 import { showHiringMessage } from '@util/console/hiringMessage';
 import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -198,7 +199,11 @@ const AuthenticationRouter = () => {
 
     useEffect(() => {
         if (adminData) {
-            if (adminData.admin?.email.includes('@highlight.run')) {
+            if (
+                HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
+                    adminData.admin?.email.includes(d)
+                )
+            ) {
                 setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
             } else if (adminData.admin) {
                 setAuthRole(AuthRole.AUTHENTICATED);
