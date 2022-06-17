@@ -3108,16 +3108,31 @@
     babel-plugin-css-modules-transform "^1.6.2"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-1.2.1.tgz#be984a82a82b0ac6d81d4aeb36bea9ee10d3fc7b"
-  integrity sha512-yHh+vI4U4YazT54rKsrXLIkQDS5Gut0dOIiGdqsWrNclNHMYjAbJZVNo9n3gFgDW4YlheVbhOcL3ZBCvAdjtPw==
+"@highlight-run/rrdom@>0.1.2":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.8.tgz#ad05a202b46fc361b14834244c401f10dc02b740"
+  integrity sha512-QpTZshgtXHwDDa7jl/YIr5+KHpVjSJ7yhD5Qxb8UdMykFFOEh8PxNAFCMpmx087Q72kpwv8Qo1CJOKk6v0DgZA==
   dependencies:
-    "@types/css-font-loading-module" "0.0.4"
+    cssom "^0.5.0"
+    cssstyle "^2.3.0"
+    nwsapi "^2.2.0"
+
+"@highlight-run/rrweb-snapshot@>1.1.15":
+  version "1.1.21"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.21.tgz#e5cf52b04e3da7fab5d5eaa9093bddfefcf09577"
+  integrity sha512-c3ShfjYs7j30oLYu5mqOCMPICgc0hvR+Tj/DgDXjcfYcDoGxPvDLbtS24SVvTO8nHK7xapKRnNWbo1Z0lccfqQ==
+
+"@highlight-run/rrweb@2.0.10":
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.10.tgz#54f4107a870dc70666466d2344c1f225e2432760"
+  integrity sha512-ITnW7Y4EXIuvgFSi+S6HsUPG0ZpFDKCa/7s/34qWjHOBkQaoWOYzEc/Aps9hHwbiuGBtAGIO8WrrqXjDAwZTOQ==
+  dependencies:
+    "@highlight-run/rrdom" ">0.1.2"
+    "@highlight-run/rrweb-snapshot" ">1.1.15"
+    "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
     fflate "^0.4.4"
-    identity-obj-proxy "^3.0.0"
     mitt "^1.1.3"
 
 "@iarna/toml@^2.2.5":
@@ -3712,10 +3727,10 @@
   resolved "https://registry.yarnpkg.com/@types/color-hash/-/color-hash-1.0.1.tgz#92fb30a91bcdbf5fad1a99e4af2d5528313ea3fc"
   integrity sha512-vCASMW58k1TVDTjc72mNXI4fz+EEgcXLhCuR8oix4W3wwlUtPli9LQ8OjDiA5/ENi/HhWUblF4ZdizmVGnY3dQ==
 
-"@types/css-font-loading-module@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.4.tgz#94a835e27d1af444c65cba88523533c174463d64"
-  integrity sha512-ENdXf7MW4m9HeDojB2Ukbi7lYMIuQNBHVf98dbzaiG4EEJREBd6oleVAjrLRCrp7dm6CK1mmdmU9tcgF61acbw==
+"@types/css-font-loading-module@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.7.tgz#2f98ede46acc0975de85c0b7b0ebe06041d24601"
+  integrity sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q==
 
 "@types/eslint@^7.2.6":
   version "7.2.6"
@@ -6848,12 +6863,17 @@ cssom@^0.4.4:
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
   integrity sha512-p3pvU7r1MyyqbTk+WbNJIgJjG2VmTIaB10rI93LzVPrmDJKkzKYMtxxyAvQXR/NS6otuzveI7+7BBq3SjBS2mw==
 
+cssom@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.5.0.tgz#d254fa92cd8b6fbd83811b9fbaed34663cc17c36"
+  integrity sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==
+
 cssom@~0.3.6:
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.3.8.tgz#9f1276f5b2b463f2114d3f2c75250af8c1a36f4a"
   integrity sha512-b0tGHbfegbhPJpxpiBPU2sCkigAqtM9O121le6bbOlgyV+NyGyCmVfJ6QW9eRjz8CpNfWEOYBIMIGRYkLwsIYg==
 
-cssstyle@^2.2.0:
+cssstyle@^2.2.0, cssstyle@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/cssstyle/-/cssstyle-2.3.0.tgz#ff665a0ddbdc31864b09647f34163443d90b0852"
   integrity sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==
@@ -9484,7 +9504,7 @@ idb@3.0.2:
   resolved "https://registry.yarnpkg.com/idb/-/idb-3.0.2.tgz#c8e9122d5ddd40f13b60ae665e4862f8b13fa384"
   integrity sha512-+FLa/0sTXqyux0o6C+i2lOR0VoS60LU/jzUo5xjfY6+7sEEgy4Gz1O7yFBXvjd7N0NyIGWIRg8DcQSLEG+VSPw==
 
-identity-obj-proxy@3.0.0, identity-obj-proxy@^3.0.0:
+identity-obj-proxy@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/identity-obj-proxy/-/identity-obj-proxy-3.0.0.tgz#94d2bda96084453ef36fbc5aaec37e0f79f1fc14"
   integrity sha1-lNK9qWCERT7zb7xarsN+D3nx/BQ=

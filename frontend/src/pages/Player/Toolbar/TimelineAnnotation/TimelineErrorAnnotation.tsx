@@ -1,5 +1,5 @@
 import { Replayer } from '@highlight-run/rrweb';
-import { playerMetaData } from '@highlight-run/rrweb/dist/types';
+import { playerMetaData } from '@highlight-run/rrweb/typings/types';
 import { getHeaderFromError } from '@pages/Error/ErrorPage';
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext';
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
