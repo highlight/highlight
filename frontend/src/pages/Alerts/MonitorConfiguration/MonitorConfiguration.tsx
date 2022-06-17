@@ -217,7 +217,10 @@ const MonitorConfiguration = ({
                         value={metricToMonitorName}
                         onChange={(e) => {
                             onMetricToMonitorNameChange(e);
-                            onConfigChange(WEB_VITALS_CONFIGURATION[e]);
+                            onConfigChange(
+                                WEB_VITALS_CONFIGURATION[e] ||
+                                    WEB_VITALS_CONFIGURATION['LCP']
+                            );
                         }}
                     />
                 </section>
@@ -253,7 +256,7 @@ const MonitorConfiguration = ({
                                     color: 'var(--color-blue-400)',
                                 }}
                             >
-                                {aggregateFunction}({config?.name})
+                                {aggregateFunction}({metricToMonitorName})
                             </b>
                         </code>{' '}
                         is over{' '}

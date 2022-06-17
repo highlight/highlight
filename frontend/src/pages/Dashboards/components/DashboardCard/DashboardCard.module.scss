@@ -74,9 +74,14 @@
     padding-top: var(--size-small);
     width: 225px;
 
-    ul li button {
-        height: 30px;
-        padding: 6px;
+    button {
+        height: var(--size-xLarge);
+        padding: var(--size-small);
+    }
+
+    ul li {
+        height: var(--size-xLarge);
+        padding: var(--size-small);
     }
 }
 

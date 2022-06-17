@@ -32,13 +32,11 @@ const NewMonitorPage = ({
     const { slackUrl, loading } = useAlertsContext();
     const history = useHistory();
     const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
-        (newMonitorTypeSearchParam &&
-            newMonitorTypeSearchParam in WEB_VITALS_CONFIGURATION &&
-            newMonitorTypeSearchParam) ||
-            'LCP'
+        newMonitorTypeSearchParam || 'LCP'
     );
     const [config, setConfig] = useState<DashboardMetricConfig>(
-        WEB_VITALS_CONFIGURATION[metricToMonitorName]
+        WEB_VITALS_CONFIGURATION[metricToMonitorName] ||
+            WEB_VITALS_CONFIGURATION['LCP']
     );
     const [monitorName, setMonitorName] = useState('New Monitor');
     const [functionName, setFunctionName] = useState<string>('p90');
