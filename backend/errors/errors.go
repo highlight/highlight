@@ -23,7 +23,7 @@ const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
 const ERROR_STACK_MAX_FRAME_COUNT = 15
 const ERROR_STACK_MAX_FIELD_SIZE = 1000
-const SOURCE_MAP_MAX_FILE_SIZE = 80e6
+const SOURCE_MAP_MAX_FILE_SIZE = 128e6
 
 type fetcher interface {
 	fetchFile(string) ([]byte, error)
