@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -175,12 +176,13 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		return nil, err
 	}
 
-	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
+	sourceMapFileName := string(regexp.MustCompile(`(?m)^//# sourceMappingURL=(.*)$`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
-		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
-		return nil, err
+		sourceMapFileName = fmt.Sprintf("%s.map", path.Base(stackTraceFileURL))
+		log.Warnf("file does not contain source map url: %v. using default fallback %s", stackTraceFileURL, sourceMapFileName)
+	} else {
+		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}
-	sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
