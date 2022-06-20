@@ -8,13 +8,14 @@ import (
 type PayloadType = int
 
 const (
-	PushPayload          PayloadType = iota
-	InitializeSession    PayloadType = iota
-	IdentifySession      PayloadType = iota
-	AddTrackProperties   PayloadType = iota
-	AddSessionProperties PayloadType = iota
-	PushBackendPayload   PayloadType = iota
-	PushMetrics          PayloadType = iota
+	PushPayload             PayloadType = iota
+	InitializeSession       PayloadType = iota
+	IdentifySession         PayloadType = iota
+	AddTrackProperties      PayloadType = iota
+	AddSessionProperties    PayloadType = iota
+	PushBackendPayload      PayloadType = iota
+	PushMetrics             PayloadType = iota
+	MarkBackendSetupPayload PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -57,16 +58,21 @@ type PushMetricsArgs struct {
 	Metrics   []*customModels.MetricInput
 }
 
+type MarkBackendSetupPayloadArgs struct {
+	ProjectID int
+}
+
 type Message struct {
-	Type                 PayloadType
-	KafkaMessage         *kafka.Message
-	PushPayload          *PushPayloadArgs
-	InitializeSession    *InitializeSessionArgs
-	IdentifySession      *IdentifySessionArgs
-	AddTrackProperties   *AddTrackPropertiesArgs
-	AddSessionProperties *AddSessionPropertiesArgs
-	PushBackendPayload   *PushBackendPayloadArgs
-	PushMetrics          *PushMetricsArgs
+	Type                    PayloadType
+	KafkaMessage            *kafka.Message
+	PushPayload             *PushPayloadArgs
+	InitializeSession       *InitializeSessionArgs
+	IdentifySession         *IdentifySessionArgs
+	AddTrackProperties      *AddTrackPropertiesArgs
+	AddSessionProperties    *AddSessionPropertiesArgs
+	PushBackendPayload      *PushBackendPayloadArgs
+	PushMetrics             *PushMetricsArgs
+	MarkBackendSetupPayload *MarkBackendSetupPayloadArgs
 }
 
 type PartitionMessage struct {

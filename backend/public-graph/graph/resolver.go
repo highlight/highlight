@@ -1101,6 +1101,19 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	return session, nil
 }
 
+func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
+	var backendSetupCount int64
+	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+		return e.Wrap(err, "error querying backend_setup flag")
+	}
+	if backendSetupCount < 1 {
+		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+			return e.Wrap(err, "error updating backend_setup flag")
+		}
+	}
+	return nil
+}
+
 func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {

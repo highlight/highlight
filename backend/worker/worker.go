@@ -332,6 +332,14 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
 		}
+	case kafkaqueue.MarkBackendSetupPayload:
+		if task.MarkBackendSetupPayload == nil {
+			break
+		}
+		err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetupPayload.ProjectID)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
