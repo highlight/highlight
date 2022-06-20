@@ -40,8 +40,8 @@ var (
 type Mode int
 
 const (
-	Producer Mode = 1 << 0
-	Consumer Mode = 1 << 1
+	Producer Mode = 1 << iota
+	Consumer Mode = 1 << iota
 )
 
 type Queue struct {
