@@ -64,6 +64,8 @@ type MarkBackendSetupPayloadArgs struct {
 
 type Message struct {
 	Type                    PayloadType
+	Failures                int
+	MaxRetries              int
 	KafkaMessage            *kafka.Message
 	PushPayload             *PushPayloadArgs
 	InitializeSession       *InitializeSessionArgs

@@ -1708,7 +1708,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1727,8 +1727,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
+		return retErr
 	}
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
@@ -1968,8 +1967,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 
 	now := time.Now()
@@ -2000,14 +1998,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return
+			return err
 		}
 	} else {
 		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return
+			return err
 		}
 	}
 
@@ -2020,7 +2018,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
-			return
+			return err
 		}
 	}
 
@@ -2029,9 +2027,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": true,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {

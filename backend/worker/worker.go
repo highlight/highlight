@@ -268,6 +268,17 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
+func (w *Worker) processWorkerError(task *kafkaqueue.Message, err error) {
+	task.Failures += 1
+	if task.Failures < task.MaxRetries {
+		if err := w.KafkaQueue.Submit(task, string(task.KafkaMessage.Key)); err != nil {
+			log.Error(errors.Wrap(err, "failed to resubmit message"))
+		}
+	} else {
+		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
+	}
+}
+
 func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 	ctx := context.Background()
 	switch task.Type {
@@ -275,7 +286,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.PushPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessPayload(
+		err := w.PublicResolver.ProcessPayload(
 			ctx,
 			task.PushPayload.SessionID,
 			task.PushPayload.Events,
@@ -285,6 +296,10 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs)
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to process ProcessPayload task"))
+			w.processWorkerError(task, err)
+		}
 	case kafkaqueue.InitializeSession:
 		if task.InitializeSession == nil {
 			break
@@ -294,6 +309,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 			task.InitializeSession.IP)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.IdentifySession:
 		if task.IdentifySession == nil {
@@ -302,6 +318,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.AddTrackProperties:
 		if task.AddTrackProperties == nil {
@@ -310,6 +327,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.AddSessionProperties:
 		if task.AddSessionProperties == nil {
@@ -318,6 +336,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.PushBackendPayload:
 		if task.PushBackendPayload == nil {
@@ -331,6 +350,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.MarkBackendSetupPayload:
 		if task.MarkBackendSetupPayload == nil {
@@ -339,6 +359,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetupPayload.ProjectID)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+			w.processWorkerError(task, err)
 		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
@@ -347,7 +368,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 
 func (w *Worker) PublicWorker() {
 	if w.KafkaQueue == nil {
-		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
+		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
 	}
 
 	parallelWorkers := 16
