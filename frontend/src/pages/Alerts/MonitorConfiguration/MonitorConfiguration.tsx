@@ -9,7 +9,7 @@ import {
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { DashboardMetricConfig, MetricType } from '@graph/schemas';
+import { DashboardMetricConfig } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -92,7 +92,6 @@ const MonitorConfiguration = ({
             project_id,
             aggregateFunction: aggregateFunction,
             name: metricToMonitorName,
-            type: MetricType.WebVital,
         },
     });
     const { data: metricOptions } = useGetSuggestedMetricsQuery({

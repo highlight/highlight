@@ -1586,7 +1586,6 @@ export type SessionPayloadFragmentFragment = {
 export type GetMetricsDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
-    metric_type: Types.MetricType;
     params: Types.DashboardParamsInput;
 }>;
 
@@ -1604,7 +1603,6 @@ export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
 export type GetMetricsHistogramQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
-    metric_type: Types.MetricType;
     params: Types.HistogramParamsInput;
 }>;
 
@@ -1640,7 +1638,6 @@ export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
 
 export type GetMetricPreviewQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    type: Types.MetricType;
     name: Types.Scalars['String'];
     aggregateFunction: Types.Scalars['String'];
 }>;
@@ -3714,7 +3711,6 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'poor_value'
                             | 'units'
                             | 'help_article'
-                            | 'type'
                             | 'chart_type'
                         >
                     >;

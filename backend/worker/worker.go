@@ -396,7 +396,7 @@ func (w *Worker) DeleteCompletedSessions() {
 	}
 }
 
-// DeleteOldMetrics will delete any metrics that are older than 30 days.
+// DeleteOldMetrics will delete any metrics that are older than N days.
 func (w *Worker) DeleteOldMetrics() {
 	const expirationDays = 30
 
@@ -406,9 +406,9 @@ func (w *Worker) DeleteOldMetrics() {
 		DELETE FROM network_requests n
 		       USING metrics m
 		       WHERE n.id = m.request_id
-					AND m.type != ? AND m.type != ?
+					AND m.category != 'WebVital' AND m.category != 'Device'
 					AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, publicModel.MetricTypeWebVital, publicModel.MetricTypeDevice, expirationDays).Error; err != nil {
+`, expirationDays).Error; err != nil {
 		log.Error(e.Wrap(err, "error deleting expired metrics"))
 	}
 	deleteSpan.Finish()
@@ -417,9 +417,9 @@ func (w *Worker) DeleteOldMetrics() {
 		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
 	if err := w.Resolver.DB.Exec(`
 		DELETE FROM metrics m
-		WHERE m.type != ? AND m.type != ?
+		WHERE m.category != 'WebVital' AND m.category != 'Device'
 		AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, publicModel.MetricTypeWebVital, publicModel.MetricTypeDevice, expirationDays).Error; err != nil {
+`, expirationDays).Error; err != nil {
 		log.Error(e.Wrap(err, "error deleting expired metrics"))
 	}
 	deleteSpan.Finish()

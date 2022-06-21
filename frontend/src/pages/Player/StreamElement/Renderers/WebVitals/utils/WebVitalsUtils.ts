@@ -1,8 +1,4 @@
-import {
-    DashboardChartType,
-    DashboardMetricConfig,
-    MetricType,
-} from '@graph/schemas';
+import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
 
 export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
@@ -23,7 +19,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'LS',
         help_article: 'https://web.dev/cls',
-        type: MetricType.WebVital,
         chart_type: DashboardChartType.Timeline,
     },
     FID: {
@@ -34,7 +29,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/fid',
-        type: MetricType.WebVital,
         chart_type: DashboardChartType.Timeline,
     },
     LCP: {
@@ -45,7 +39,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/lcp',
-        type: MetricType.WebVital,
         chart_type: DashboardChartType.Timeline,
     },
     FCP: {
@@ -56,7 +49,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/fcp',
-        type: MetricType.WebVital,
         chart_type: DashboardChartType.Timeline,
     },
     TTFB: {
@@ -67,7 +59,6 @@ export const WEB_VITALS_CONFIGURATION: {
         poor_value: 0,
         units: 'ms',
         help_article: 'https://web.dev/ttfb',
-        type: MetricType.WebVital,
         chart_type: DashboardChartType.Timeline,
     },
 };

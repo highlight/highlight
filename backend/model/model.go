@@ -154,7 +154,7 @@ var Models = []interface{}{
 	&AlertEvent{},
 	&RegistrationData{},
 	&Metric{},
-	&NetworkRequest{},
+	&MetricGroup{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
@@ -308,7 +308,6 @@ type DashboardMetric struct {
 	Model
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
-	Type                     modelInputs.MetricType
 	ChartType                modelInputs.DashboardChartType
 	Description              string
 	MaxGoodValue             float64
@@ -692,25 +691,20 @@ type MessagesObject struct {
 	IsBeacon  bool `gorm:"default:false"`
 }
 
-type NetworkRequest struct {
-	ID           string `gorm:"primary_key" json:"id" deep:"-"`
-	URL          string
-	BodySize     int
-	ResponseSize int
-	Method       string
-	Status       int
+type Metric struct {
+	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index;not null;"`
+	MetricGroupID int       `gorm:"index;"`
+	Name          string    `gorm:"index;not null;"`
+	Value         float64
+	Category      string
 }
 
-type Metric struct {
-	Model
-	ID        int                    `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
-	CreatedAt time.Time              `json:"created_at" deep:"-" gorm:"index;not null;"` // Override Model.CreatedAt to create index
-	SessionID int                    `gorm:"index;not null;"`
-	ProjectID int                    `gorm:"index;not null;"`
-	Type      modelInputs.MetricType `gorm:"index;not null;"`
-	Name      string                 `gorm:"index;not null;"`
-	Value     float64
-	RequestID *string `gorm:"index;"` // From X-Highlight-Request header
+type MetricGroup struct {
+	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string    // index with session_id
+	SessionID int       // index with Name
+	ProjectID int       `gorm:"index;not null;"`
+	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
@@ -1140,13 +1134,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 		BEGIN
 			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
+				(select * from pg_indexes where indexname = 'idx_metric_groups_name_session')
 			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_metric_groups_name_session ON metric_groups (group_name, session_id);
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
+		return nil, e.Wrap(err, "Error creating idx_metric_groups_name_session")
 	}
 
 	if err := DB.Exec(`

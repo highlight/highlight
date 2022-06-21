@@ -205,7 +205,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 }
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
-	return obj.Type.String(), nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -2961,7 +2961,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
-			Type:                     m.Type,
 			ChartType:                m.ChartType,
 			MaxGoodValue:             m.MaxGoodValue,
 			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
@@ -3514,13 +3513,16 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	webVitalNames := []string{
+		"CLS", "FCP", "FID", "LCP", "TTFB",
+	}
 	webVitals := []*model.Metric{}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return webVitals, nil
 	}
 
-	if err := r.DB.Where(&model.Metric{Type: "WebVital", SessionID: s.ID}).Find(&webVitals).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name in ?`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
 		log.Error(err)
 		return webVitals, nil
 	}
@@ -5147,7 +5149,6 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
-				Type:                     metric.Type,
 				ChartType:                metric.ChartType,
 				MaxGoodValue:             metric.MaxGoodValue,
 				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
@@ -5178,6 +5179,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	if err := r.DB.Raw(`
 		SELECT DISTINCT name
 		FROM metrics
+		INNER JOIN metric_groups mg on mg.id = metric_group_id
 		WHERE project_id = ?
 		  AND name ILIKE ?; 
 	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
@@ -5188,11 +5190,24 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	return payload, nil
 }
 
-func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+func calculateTimeUnitConversion(units *string) float64 {
+	div := 1.0
+	if units != nil {
+		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *units))
+		if err == nil {
+			div = float64(d.Nanoseconds())
+		}
+	}
+	return div
+}
+
+func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, err
 	}
+
+	div := calculateTimeUnitConversion(params.Units)
 
 	resMins := 60
 	if params.ResolutionMinutes != nil {
@@ -5206,30 +5221,32 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		SELECT to_timestamp(cast(extract(
 				       EPOCH FROM created_at AT TIME ZONE ?
 				   ) / 60 / ? AS INT) * ? * 60)::timestamp AT TIME ZONE ?               as date,
-			   avg(value)                                                                    as avg,
-			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
-			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value)                           as p90,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value)                           as p99
+			   avg(value / ?)                                                                    as avg,
+			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value / ?)                           as p50,
+			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value / ?)                           as p75,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?)                           as p90,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?)                           as p99
 		  FROM metrics
+		  INNER JOIN metric_groups mg on mg.id = metric_group_id
 		  WHERE name=?
 			AND project_id=?
 			AND created_at >= ?
 			AND created_at <= ?
-			AND type = ?
 		  GROUP BY date;
 	`
-	if err := r.DB.Raw(query, tz, resMins, resMins, tz, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&payload).Error; err != nil {
+	if err := r.DB.Raw(query, tz, resMins, resMins, tz, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		return payload, err
 	}
 
 	return payload, nil
 }
 
-func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, metricType modelInputs.MetricType, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
+func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
+
+	div := calculateTimeUnitConversion(params.Units)
 
 	scan := struct {
 		Min float64
@@ -5238,17 +5255,17 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		P90 float64
 	}{}
 	query := `
-		SELECT min(value) as min, max(value) as max,
-			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value) as p10,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value) as p90
+		SELECT min(value) / ? as min, max(value) / ? as max,
+			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value / ?) as p10,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90
 		  FROM metrics
+		  INNER JOIN metric_groups mg on mg.id = metric_group_id
 		  WHERE name=?
 			AND project_id=?
 			AND created_at >= ?
-			AND created_at <= ?
-			AND type = ?;
+			AND created_at <= ?;
 	`
-	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Find(&scan).Error; err != nil {
+	if err := r.DB.Raw(query, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
 		return nil, err
 	}
 
@@ -5263,19 +5280,19 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		Count  int
 	}
 	query = `
-		SELECT width_bucket(metrics.value, ?, ?, ?) as bucket,
-			   numrange(min(metrics.value), max(metrics.value), '[]') as range,
-		       count(metrics.value)
+		SELECT width_bucket(metrics.value / ?, ?, ?, ?) as bucket,
+			   numrange(min(metrics.value / ?), max(metrics.value / ?), '[]') as range,
+		       count(metrics.value / ?)
 		  FROM metrics
+		  INNER JOIN metric_groups mg on mg.id = metric_group_id
 		  WHERE name=?
 			AND project_id=?
 			AND created_at >= ?
 			AND created_at <= ?
-			AND type = ?
 		  GROUP BY bucket
 		  ORDER BY bucket;
 	`
-	if err := r.DB.Raw(query, scan.Min, scan.Max, numBuckets, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate, metricType).Scan(&buckets).Error; err != nil {
+	if err := r.DB.Raw(query, div, scan.Min, scan.Max, numBuckets, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets).Error; err != nil {
 		return nil, err
 	}
 
@@ -5328,7 +5345,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
 }
 
-func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
 	payload := []*modelInputs.MetricPreview{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -5475,11 +5492,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	var deviceMemory *int
 	metric := &model.Metric{}
 
-	if err := r.DB.Model(&model.Metric{}).Where(&model.Metric{
-		Type:      modelInputs.MetricTypeDevice,
-		Name:      "DeviceMemory",
-		SessionID: obj.ID,
-	}).First(&metric).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name = ?`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			log.Error(err)
 		}

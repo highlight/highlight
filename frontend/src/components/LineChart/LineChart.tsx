@@ -157,6 +157,7 @@ const LineChart = ({
                         tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                         axisLine={{ stroke: gridColor }}
                         dx={0}
+                        unit={yAxisLabel}
                     />
 
                     <Tooltip

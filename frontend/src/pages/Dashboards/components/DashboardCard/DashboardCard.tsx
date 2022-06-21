@@ -325,7 +325,6 @@ const EditMetricModal = ({
                                     max_good_value: maxGoodValue,
                                     max_needs_improvement_value: maxNeedsImprovementValue,
                                     poor_value: poorValue,
-                                    type: metricConfig.type,
                                     chart_type: chartType,
                                 });
                                 onCancel();
@@ -415,7 +414,7 @@ const ChartContainer = React.memo(
         const resolutionMinutes = Math.ceil(
             dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
         );
-        const NUM_HISTOGRAM_BUCKETS = (3600 * 5000) / resolutionMinutes;
+        const NUM_HISTOGRAM_BUCKETS = 50 * resolutionMinutes;
         const {
             data: timelineData,
             loading: timelineLoading,
@@ -430,8 +429,8 @@ const ChartContainer = React.memo(
                     },
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
+                    units: metricConfig.units,
                 },
-                metric_type: metricConfig.type,
             },
         });
         const {
@@ -447,8 +446,8 @@ const ChartContainer = React.memo(
                         start_date: dateRange.start.toISOString(),
                     },
                     buckets: NUM_HISTOGRAM_BUCKETS,
+                    units: metricConfig.units,
                 },
-                metric_type: metricConfig.type,
             },
         });
 
@@ -538,7 +537,9 @@ const ChartContainer = React.memo(
                         }}
                         xAxisDataKeyName="range_start"
                         xAxisLabel={metricConfig.units}
-                        xAxisTickFormatter={(value: number) => value.toFixed(0)}
+                        xAxisTickFormatter={(value: number) =>
+                            value < 1 ? value.toFixed(2) : value.toFixed(0)
+                        }
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />

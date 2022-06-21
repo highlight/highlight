@@ -200,13 +200,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export enum MetricType {
-    WebVital = 'WebVital',
-    Device = 'Device',
-    Backend = 'Backend',
-    Frontend = 'Frontend',
-}
-
 export enum AdminRole {
     Admin = 'ADMIN',
     Member = 'MEMBER',
@@ -429,11 +422,13 @@ export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
+    units?: Maybe<Scalars['String']>;
 };
 
 export type HistogramParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     buckets?: Maybe<Scalars['Int']>;
+    units?: Maybe<Scalars['String']>;
 };
 
 export enum NetworkRequestAttribute {
@@ -827,7 +822,6 @@ export type DashboardMetricConfigInput = {
     poor_value: Scalars['Float'];
     units: Scalars['String'];
     help_article: Scalars['String'];
-    type: MetricType;
     chart_type: DashboardChartType;
 };
 
@@ -840,7 +834,6 @@ export type DashboardMetricConfig = {
     poor_value: Scalars['Float'];
     units: Scalars['String'];
     help_article: Scalars['String'];
-    type: MetricType;
     chart_type: DashboardChartType;
 };
 
@@ -1312,14 +1305,12 @@ export type QuerySuggested_MetricsArgs = {
 export type QueryMetrics_TimelineArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
-    metric_type: MetricType;
     params: DashboardParamsInput;
 };
 
 export type QueryMetrics_HistogramArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
-    metric_type: MetricType;
     params: HistogramParamsInput;
 };
 
@@ -1330,7 +1321,6 @@ export type QueryNetwork_HistogramArgs = {
 
 export type QueryMetric_PreviewArgs = {
     project_id: Scalars['ID'];
-    type: MetricType;
     name: Scalars['String'];
     aggregateFunction: Scalars['String'];
 };

@@ -168,7 +168,6 @@ type ComplexityRoot struct {
 		MaxNeedsImprovementValue func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PoorValue                func(childComplexity int) int
-		Type                     func(childComplexity int) int
 		Units                    func(childComplexity int) int
 	}
 
@@ -543,9 +542,9 @@ type ComplexityRoot struct {
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
-		MetricPreview                func(childComplexity int, projectID int, typeArg model.MetricType, name string, aggregateFunction string) int
-		MetricsHistogram             func(childComplexity int, projectID int, metricName string, metricType model.MetricType, params model.HistogramParamsInput) int
-		MetricsTimeline              func(childComplexity int, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) int
+		MetricPreview                func(childComplexity int, projectID int, name string, aggregateFunction string) int
+		MetricsHistogram             func(childComplexity int, projectID int, metricName string, params model.HistogramParamsInput) int
+		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
@@ -1036,10 +1035,10 @@ type QueryResolver interface {
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
 	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
-	MetricsTimeline(ctx context.Context, projectID int, metricName string, metricType model.MetricType, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
-	MetricsHistogram(ctx context.Context, projectID int, metricName string, metricType model.MetricType, params model.HistogramParamsInput) (*model.HistogramPayload, error)
+	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
+	MetricsHistogram(ctx context.Context, projectID int, metricName string, params model.HistogramParamsInput) (*model.HistogramPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
-	MetricPreview(ctx context.Context, projectID int, typeArg model.MetricType, name string, aggregateFunction string) ([]*model.MetricPreview, error)
+	MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
@@ -1584,13 +1583,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardMetricConfig.PoorValue(childComplexity), true
-
-	case "DashboardMetricConfig.type":
-		if e.complexity.DashboardMetricConfig.Type == nil {
-			break
-		}
-
-		return e.complexity.DashboardMetricConfig.Type(childComplexity), true
 
 	case "DashboardMetricConfig.units":
 		if e.complexity.DashboardMetricConfig.Units == nil {
@@ -4089,7 +4081,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricPreview(childComplexity, args["project_id"].(int), args["type"].(model.MetricType), args["name"].(string), args["aggregateFunction"].(string)), true
+		return e.complexity.Query.MetricPreview(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregateFunction"].(string)), true
 
 	case "Query.metrics_histogram":
 		if e.complexity.Query.MetricsHistogram == nil {
@@ -4101,7 +4093,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricsHistogram(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.HistogramParamsInput)), true
+		return e.complexity.Query.MetricsHistogram(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.HistogramParamsInput)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -4113,7 +4105,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricsTimeline(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.DashboardParamsInput)), true
+		return e.complexity.Query.MetricsTimeline(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput)), true
 
 	case "Query.network_histogram":
 		if e.complexity.Query.NetworkHistogram == nil {
@@ -6103,13 +6095,6 @@ enum ErrorState {
     IGNORED
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-    Frontend
-}
-
 enum AdminRole {
     ADMIN
     MEMBER
@@ -6317,11 +6302,13 @@ input DashboardParamsInput {
     date_range: DateRangeInput
     resolution_minutes: Int
     timezone: String
+    units: String
 }
 
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    units: String
 }
 
 enum NetworkRequestAttribute {
@@ -6690,7 +6677,6 @@ input DashboardMetricConfigInput {
     poor_value: Float!
     units: String!
     help_article: String!
-    type: MetricType!
     chart_type: DashboardChartType!
 }
 
@@ -6702,7 +6688,6 @@ type DashboardMetricConfig {
     poor_value: Float!
     units: String!
     help_article: String!
-    type: MetricType!
     chart_type: DashboardChartType!
 }
 
@@ -6888,13 +6873,11 @@ type Query {
     metrics_timeline(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType!
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metrics_histogram(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType!
         params: HistogramParamsInput!
     ): HistogramPayload!
     network_histogram(
@@ -6903,7 +6886,6 @@ type Query {
     ): CategoryHistogramPayload!
     metric_preview(
         project_id: ID!
-        type: MetricType!
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!
@@ -11173,33 +11155,24 @@ func (ec *executionContext) field_Query_metric_preview_args(ctx context.Context,
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 model.MetricType
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg1, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["type"] = arg1
+	args["name"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["aggregateFunction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateFunction"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["aggregateFunction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateFunction"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["aggregateFunction"] = arg3
+	args["aggregateFunction"] = arg2
 	return args, nil
 }
 
@@ -11224,24 +11197,15 @@ func (ec *executionContext) field_Query_metrics_histogram_args(ctx context.Conte
 		}
 	}
 	args["metric_name"] = arg1
-	var arg2 model.MetricType
-	if tmp, ok := rawArgs["metric_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_type"))
-		arg2, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric_type"] = arg2
-	var arg3 model.HistogramParamsInput
+	var arg2 model.HistogramParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg3, err = ec.unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg3
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -11266,24 +11230,15 @@ func (ec *executionContext) field_Query_metrics_timeline_args(ctx context.Contex
 		}
 	}
 	args["metric_name"] = arg1
-	var arg2 model.MetricType
-	if tmp, ok := rawArgs["metric_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_type"))
-		arg2, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric_type"] = arg2
-	var arg3 model.DashboardParamsInput
+	var arg2 model.DashboardParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg3, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg3
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -14478,41 +14433,6 @@ func (ec *executionContext) _DashboardMetricConfig_help_article(ctx context.Cont
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DashboardMetricConfig_type(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DashboardMetricConfig",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.MetricType)
-	fc.Result = res
-	return ec.marshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DashboardMetricConfig_chart_type(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
@@ -26245,7 +26165,7 @@ func (ec *executionContext) _Query_metrics_timeline(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsTimeline(rctx, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.DashboardParamsInput))
+		return ec.resolvers.Query().MetricsTimeline(rctx, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26287,7 +26207,7 @@ func (ec *executionContext) _Query_metrics_histogram(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsHistogram(rctx, args["project_id"].(int), args["metric_name"].(string), args["metric_type"].(model.MetricType), args["params"].(model.HistogramParamsInput))
+		return ec.resolvers.Query().MetricsHistogram(rctx, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.HistogramParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26371,7 +26291,7 @@ func (ec *executionContext) _Query_metric_preview(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricPreview(rctx, args["project_id"].(int), args["type"].(model.MetricType), args["name"].(string), args["aggregateFunction"].(string))
+		return ec.resolvers.Query().MetricPreview(rctx, args["project_id"].(int), args["name"].(string), args["aggregateFunction"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -33857,14 +33777,6 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
-		case "type":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "chart_type":
 			var err error
 
@@ -33909,6 +33821,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timezone"))
 			it.Timezone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "units":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
+			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34050,6 +33970,14 @@ func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buckets"))
 			it.Buckets, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "units":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
+			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35393,16 +35321,6 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 		case "help_article":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._DashboardMetricConfig_help_article(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "type":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardMetricConfig_type(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -44298,16 +44216,6 @@ func (ec *executionContext) marshalNMetricPreview2ᚕᚖgithubᚗcomᚋhighlight
 	wg.Wait()
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (model.MetricType, error) {
-	var res model.MetricType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v model.MetricType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {

@@ -4172,13 +4172,11 @@ export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
         $metric_name: String!
-        $metric_type: MetricType!
         $params: DashboardParamsInput!
     ) {
         metrics_timeline(
             project_id: $project_id
             metric_name: $metric_name
-            metric_type: $metric_type
             params: $params
         ) {
             date
@@ -4205,7 +4203,6 @@ export const GetMetricsDashboardDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
- *      metric_type: // value for 'metric_type'
  *      params: // value for 'params'
  *   },
  * });
@@ -4246,13 +4243,11 @@ export const GetMetricsHistogramDocument = gql`
     query GetMetricsHistogram(
         $project_id: ID!
         $metric_name: String!
-        $metric_type: MetricType!
         $params: HistogramParamsInput!
     ) {
         metrics_histogram(
             project_id: $project_id
             metric_name: $metric_name
-            metric_type: $metric_type
             params: $params
         ) {
             buckets {
@@ -4283,7 +4278,6 @@ export const GetMetricsHistogramDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
- *      metric_type: // value for 'metric_type'
  *      params: // value for 'params'
  *   },
  * });
@@ -4386,13 +4380,11 @@ export type GetNetworkHistogramQueryResult = Apollo.QueryResult<
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(
         $project_id: ID!
-        $type: MetricType!
         $name: String!
         $aggregateFunction: String!
     ) {
         metric_preview(
             project_id: $project_id
-            type: $type
             name: $name
             aggregateFunction: $aggregateFunction
         ) {
@@ -4415,7 +4407,6 @@ export const GetMetricPreviewDocument = gql`
  * const { data, loading, error } = useGetMetricPreviewQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      type: // value for 'type'
  *      name: // value for 'name'
  *      aggregateFunction: // value for 'aggregateFunction'
  *   },
@@ -9624,7 +9615,6 @@ export const GetDashboardDefinitionsDocument = gql`
                 poor_value
                 units
                 help_article
-                type
                 chart_type
             }
             last_admin_to_edit_id

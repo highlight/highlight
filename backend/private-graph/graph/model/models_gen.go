@@ -81,7 +81,6 @@ type DashboardMetricConfig struct {
 	PoorValue                float64            `json:"poor_value"`
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
-	Type                     MetricType         `json:"type"`
 	ChartType                DashboardChartType `json:"chart_type"`
 }
 
@@ -93,7 +92,6 @@ type DashboardMetricConfigInput struct {
 	PoorValue                float64            `json:"poor_value"`
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
-	Type                     MetricType         `json:"type"`
 	ChartType                DashboardChartType `json:"chart_type"`
 }
 
@@ -101,6 +99,7 @@ type DashboardParamsInput struct {
 	DateRange         *DateRangeInput `json:"date_range"`
 	ResolutionMinutes *int            `json:"resolution_minutes"`
 	Timezone          *string         `json:"timezone"`
+	Units             *string         `json:"units"`
 }
 
 type DashboardPayload struct {
@@ -178,6 +177,7 @@ type HistogramBucket struct {
 type HistogramParamsInput struct {
 	DateRange *DateRangeInput `json:"date_range"`
 	Buckets   *int            `json:"buckets"`
+	Units     *string         `json:"units"`
 }
 
 type HistogramPayload struct {
@@ -465,51 +465,6 @@ func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type MetricType string
-
-const (
-	MetricTypeWebVital MetricType = "WebVital"
-	MetricTypeDevice   MetricType = "Device"
-	MetricTypeBackend  MetricType = "Backend"
-	MetricTypeFrontend MetricType = "Frontend"
-)
-
-var AllMetricType = []MetricType{
-	MetricTypeWebVital,
-	MetricTypeDevice,
-	MetricTypeBackend,
-	MetricTypeFrontend,
-}
-
-func (e MetricType) IsValid() bool {
-	switch e {
-	case MetricTypeWebVital, MetricTypeDevice, MetricTypeBackend, MetricTypeFrontend:
-		return true
-	}
-	return false
-}
-
-func (e MetricType) String() string {
-	return string(e)
-}
-
-func (e *MetricType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = MetricType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MetricType", str)
-	}
-	return nil
-}
-
-func (e MetricType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

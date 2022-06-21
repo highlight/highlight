@@ -172,13 +172,6 @@ enum ErrorState {
     IGNORED
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-    Frontend
-}
-
 enum AdminRole {
     ADMIN
     MEMBER
@@ -386,11 +379,13 @@ input DashboardParamsInput {
     date_range: DateRangeInput
     resolution_minutes: Int
     timezone: String
+    units: String
 }
 
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    units: String
 }
 
 enum NetworkRequestAttribute {
@@ -759,7 +754,6 @@ input DashboardMetricConfigInput {
     poor_value: Float!
     units: String!
     help_article: String!
-    type: MetricType!
     chart_type: DashboardChartType!
 }
 
@@ -771,7 +765,6 @@ type DashboardMetricConfig {
     poor_value: Float!
     units: String!
     help_article: String!
-    type: MetricType!
     chart_type: DashboardChartType!
 }
 
@@ -957,13 +950,11 @@ type Query {
     metrics_timeline(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType!
         params: DashboardParamsInput!
     ): [DashboardPayload]!
     metrics_histogram(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType!
         params: HistogramParamsInput!
     ): HistogramPayload!
     network_histogram(
@@ -972,7 +963,6 @@ type Query {
     ): CategoryHistogramPayload!
     metric_preview(
         project_id: ID!
-        type: MetricType!
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!

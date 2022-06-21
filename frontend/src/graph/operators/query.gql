@@ -54,13 +54,11 @@ fragment SessionPayloadFragment on SessionPayload {
 query GetMetricsDashboard(
     $project_id: ID!
     $metric_name: String!
-    $metric_type: MetricType!
     $params: DashboardParamsInput!
 ) {
     metrics_timeline(
         project_id: $project_id
         metric_name: $metric_name
-        metric_type: $metric_type
         params: $params
     ) {
         date
@@ -75,13 +73,11 @@ query GetMetricsDashboard(
 query GetMetricsHistogram(
     $project_id: ID!
     $metric_name: String!
-    $metric_type: MetricType!
     $params: HistogramParamsInput!
 ) {
     metrics_histogram(
         project_id: $project_id
         metric_name: $metric_name
-        metric_type: $metric_type
         params: $params
     ) {
         buckets {
@@ -114,13 +110,11 @@ query GetNetworkHistogram(
 
 query GetMetricPreview(
     $project_id: ID!
-    $type: MetricType!
     $name: String!
     $aggregateFunction: String!
 ) {
     metric_preview(
         project_id: $project_id
-        type: $type
         name: $name
         aggregateFunction: $aggregateFunction
     ) {
@@ -1475,7 +1469,6 @@ query GetDashboardDefinitions($project_id: ID!) {
             poor_value
             units
             help_article
-            type
             chart_type
         }
         last_admin_to_edit_id

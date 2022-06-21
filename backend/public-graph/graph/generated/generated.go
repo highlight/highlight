@@ -358,26 +358,13 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-    Frontend
-}
-
 input MetricInput {
     session_secure_id: String!
+    group: String
     name: String!
     value: Float!
-    type: MetricType!
-    url: String!
+    category: String!
     timestamp: Timestamp!
-    request_id: String
-}
-
-input DeviceMetricInput {
-    name: String!
-    value: Float!
 }
 
 input ReplayEventInput {
@@ -2749,37 +2736,6 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDeviceMetricInput(ctx context.Context, obj interface{}) (model.DeviceMetricInput, error) {
-	var it model.DeviceMetricInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, obj interface{}) (model.ErrorObjectInput, error) {
 	var it model.ErrorObjectInput
 	asMap := map[string]interface{}{}
@@ -2884,6 +2840,14 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
+		case "group":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
+			it.Group, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 
@@ -2900,19 +2864,11 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
-		case "type":
+		case "category":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "url":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			it.Category, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2921,14 +2877,6 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
 			it.Timestamp, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "request_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("request_id"))
-			it.RequestID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3878,16 +3826,6 @@ func (ec *executionContext) unmarshalNMetricInput2ᚕᚖgithubᚗcomᚋhighlight
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, v interface{}) (model.MetricType, error) {
-	var res model.MetricType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricType(ctx context.Context, sel ast.SelectionSet, v model.MetricType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNReplayEventInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx context.Context, v interface{}) ([]*model.ReplayEventInput, error) {

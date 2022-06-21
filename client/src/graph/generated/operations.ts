@@ -66,26 +66,13 @@ export type BackendErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
-export enum MetricType {
-  WebVital = 'WebVital',
-  Device = 'Device',
-  Backend = 'Backend',
-  Frontend = 'Frontend'
-}
-
 export type MetricInput = {
   session_secure_id: Scalars['String'];
+  group?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   value: Scalars['Float'];
-  type: MetricType;
-  url: Scalars['String'];
+  category: Scalars['String'];
   timestamp: Scalars['Timestamp'];
-  request_id?: Maybe<Scalars['String']>;
-};
-
-export type DeviceMetricInput = {
-  name: Scalars['String'];
-  value: Scalars['Float'];
 };
 
 export type ReplayEventInput = {
