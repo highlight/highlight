@@ -15,6 +15,7 @@ const (
 	AddSessionProperties PayloadType = iota
 	PushBackendPayload   PayloadType = iota
 	PushMetrics          PayloadType = iota
+	MarkBackendSetup     PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -57,8 +58,14 @@ type PushMetricsArgs struct {
 	Metrics   []*customModels.MetricInput
 }
 
+type MarkBackendSetupArgs struct {
+	ProjectID int
+}
+
 type Message struct {
 	Type                 PayloadType
+	Failures             int
+	MaxRetries           int
 	KafkaMessage         *kafka.Message
 	PushPayload          *PushPayloadArgs
 	InitializeSession    *InitializeSessionArgs
@@ -67,6 +74,7 @@ type Message struct {
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
 	PushMetrics          *PushMetricsArgs
+	MarkBackendSetup     *MarkBackendSetupArgs
 }
 
 type PartitionMessage struct {

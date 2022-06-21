@@ -318,21 +318,18 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
-		field := &model.Field{}
-		res := r.DB.Where(f).First(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating field")
-			}
+		field := model.Field{}
+		res := r.DB.Where(f).FirstOrCreate(&field)
+		if res.Error != nil {
+			return e.Wrap(res.Error, "error calling FirstOrCreate")
+		}
+		// If the field was created, index it in OpenSearch
+		if res.RowsAffected > 0 {
 			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
-
-			fieldsToAppend = append(fieldsToAppend, f)
-		} else {
-			fieldsToAppend = append(fieldsToAppend, field)
 		}
+		fieldsToAppend = append(fieldsToAppend, &field)
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
@@ -1119,6 +1116,19 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	return session, nil
 }
 
+func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
+	var backendSetupCount int64
+	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+		return e.Wrap(err, "error querying backend_setup flag")
+	}
+	if backendSetupCount < 1 {
+		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+			return e.Wrap(err, "error updating backend_setup flag")
+		}
+	}
+	return nil
+}
+
 func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
@@ -1701,7 +1711,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1720,8 +1730,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
+		return retErr
 	}
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
@@ -1961,8 +1970,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 
 	now := time.Now()
@@ -1993,14 +2001,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return
+			return err
 		}
 	} else {
 		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return
+			return err
 		}
 	}
 
@@ -2013,7 +2021,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
-			return
+			return err
 		}
 	}
 
@@ -2022,9 +2030,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": true,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {

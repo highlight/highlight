@@ -861,7 +861,7 @@ type Query {
         project_id: ID!
         error_group_secure_id: String!
         date_offset: Int!
-    ): [Int64]!
+    ): [Int64!]!
     errorDistribution(
         project_id: ID!
         error_group_secure_id: String!

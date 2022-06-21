@@ -913,7 +913,7 @@ export type Query = {
     projectHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
-    dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
+    dailyErrorFrequency: Array<Scalars['Int64']>;
     errorDistribution: Array<Maybe<ErrorDistributionItem>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;

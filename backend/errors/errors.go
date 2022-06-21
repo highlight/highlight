@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -23,7 +24,7 @@ const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
 const ERROR_STACK_MAX_FRAME_COUNT = 15
 const ERROR_STACK_MAX_FIELD_SIZE = 1000
-const SOURCE_MAP_MAX_FILE_SIZE = 80e6
+const SOURCE_MAP_MAX_FILE_SIZE = 128e6
 
 type fetcher interface {
 	fetchFile(string) ([]byte, error)
@@ -149,6 +150,11 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
+	// remove a query string in the url, eg main.js?foo=bar -> main.js
+	queryStringIndex := strings.Index(stackTraceFileURL, "?")
+	if queryStringIndex != -1 {
+		stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
+	}
 
 	// try to get file from s3
 	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
@@ -170,12 +176,13 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		return nil, err
 	}
 
-	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
+	sourceMapFileName := string(regexp.MustCompile(`(?m)^//# sourceMappingURL=(.*)$`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
-		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
-		return nil, err
+		sourceMapFileName = fmt.Sprintf("%s.map", path.Base(stackTraceFileURL))
+		log.Warnf("file does not contain source map url: %v. using default fallback %s", stackTraceFileURL, sourceMapFileName)
+	} else {
+		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}
-	sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
