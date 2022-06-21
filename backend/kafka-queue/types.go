@@ -58,7 +58,7 @@ type PushMetricsArgs struct {
 	Metrics   []*customModels.MetricInput
 }
 
-type MarkBackendSetupPayloadArgs struct {
+type MarkBackendSetupArgs struct {
 	ProjectID int
 }
 
@@ -74,7 +74,7 @@ type Message struct {
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
 	PushMetrics          *PushMetricsArgs
-	MarkBackendSetup     *MarkBackendSetupPayloadArgs
+	MarkBackendSetup     *MarkBackendSetupArgs
 }
 
 type PartitionMessage struct {

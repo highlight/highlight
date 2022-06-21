@@ -141,7 +141,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID
 	}
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.MarkBackendSetup,
-		MarkBackendSetup: &kafkaqueue.MarkBackendSetupPayloadArgs{
+		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectID: session.ProjectID,
 		}}, strconv.Itoa(session.ID))
 	return session.ProjectID, err
