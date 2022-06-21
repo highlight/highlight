@@ -127,7 +127,7 @@ const BarChartV2 = ({
                         tick={{ fontSize: '8px', fill: labelColor }}
                         tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                         axisLine={{ stroke: gridColor }}
-                        dx={0}
+                        dx={-10}
                     />
 
                     <Tooltip
@@ -177,7 +177,7 @@ const BarChartV2 = ({
                             dataKey={key}
                             stroke={barColorMapping[key]}
                             fill={barColorMapping[key]}
-                            strokeWidth={10}
+                            strokeWidth={3}
                         />
                     ))}
                     {referenceAreaProps && (

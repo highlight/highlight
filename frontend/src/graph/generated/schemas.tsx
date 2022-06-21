@@ -437,6 +437,8 @@ export enum NetworkRequestAttribute {
     BodySize = 'body_size',
     ResponseSize = 'response_size',
     Status = 'status',
+    Latency = 'latency',
+    RequestId = 'request_id',
 }
 
 export type NetworkHistogramParamsInput = {
@@ -796,6 +798,8 @@ export type HistogramPayload = {
     max: Scalars['Float'];
     p10: Scalars['Float'];
     p90: Scalars['Float'];
+    p95: Scalars['Float'];
+    p99: Scalars['Float'];
 };
 
 export type CategoryHistogramBucket = {

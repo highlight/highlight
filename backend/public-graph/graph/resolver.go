@@ -1501,6 +1501,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		if m.Group != nil {
 			group = *m.Group
 		}
+		// TODO(vkorolik) do i need random string
 		if group == "" {
 			group = util.GenerateRandomString(16)
 		}
@@ -2040,26 +2041,26 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			return err
 		}
 
-		for key, value := range map[string]float64{
-			"BodySize":     float64(re.EncodedBodySize),
-			"ResponseSize": float64(re.RequestResponsePairs.Response.Size),
-			"Status":       float64(re.RequestResponsePairs.Response.Status),
-			"Latency":      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
+		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
+			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
+			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
+			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
+			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
 			mg.Metrics = append(mg.Metrics, &model.Metric{
 				MetricGroupID: mg.ID,
-				Name:          key,
+				Name:          key.String(),
 				Value:         value,
 			})
 		}
-		for key, value := range map[string]string{
-			"URL":       re.Name,
-			"Method":    re.RequestResponsePairs.Request.Method,
-			"RequestID": re.RequestResponsePairs.Request.ID,
+		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
+			modelInputs.NetworkRequestAttributeURL:       re.Name,
+			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
+			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
 		} {
 			mg.Metrics = append(mg.Metrics, &model.Metric{
 				MetricGroupID: mg.ID,
-				Name:          key,
+				Name:          key.String(),
 				Category:      value,
 			})
 		}

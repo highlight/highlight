@@ -10,8 +10,8 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
-    useGetMetricsDashboardQuery,
-    useGetMetricsHistogramQuery,
+    useGetMetricsDashboardLazyQuery,
+    useGetMetricsHistogramLazyQuery,
 } from '@graph/hooks';
 import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -24,7 +24,7 @@ import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/Em
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -414,11 +414,11 @@ const ChartContainer = React.memo(
         const resolutionMinutes = Math.ceil(
             dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
         );
-        const NUM_HISTOGRAM_BUCKETS = 50 * resolutionMinutes;
-        const {
-            data: timelineData,
-            loading: timelineLoading,
-        } = useGetMetricsDashboardQuery({
+        const NUM_HISTOGRAM_BUCKETS = 50;
+        const [
+            loadTimeline,
+            { data: timelineData, loading: timelineLoading },
+        ] = useGetMetricsDashboardLazyQuery({
             variables: {
                 project_id,
                 metric_name: metricConfig.name,
@@ -433,10 +433,10 @@ const ChartContainer = React.memo(
                 },
             },
         });
-        const {
-            data: histogramData,
-            loading: histogramLoading,
-        } = useGetMetricsHistogramQuery({
+        const [
+            loadHistogram,
+            { data: histogramData, loading: histogramLoading },
+        ] = useGetMetricsHistogramLazyQuery({
             variables: {
                 project_id,
                 metric_name: metricConfig.name,
@@ -450,6 +450,14 @@ const ChartContainer = React.memo(
                 },
             },
         });
+
+        useEffect(() => {
+            if (chartType === DashboardChartType.Histogram) {
+                loadHistogram();
+            } else if (chartType === DashboardChartType.Timeline) {
+                loadTimeline();
+            }
+        }, [chartType, loadTimeline, loadHistogram]);
 
         const ticks: string[] = [];
         const seenDays: Set<string> = new Set<string>();

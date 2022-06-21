@@ -394,6 +394,8 @@ enum NetworkRequestAttribute {
     body_size
     response_size
     status
+    latency
+    request_id
 }
 
 input NetworkHistogramParamsInput {
@@ -730,6 +732,8 @@ type HistogramPayload {
     max: Float!
     p10: Float!
     p90: Float!
+    p95: Float!
+    p99: Float!
 }
 
 type CategoryHistogramBucket {

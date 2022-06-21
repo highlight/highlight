@@ -186,6 +186,8 @@ type HistogramPayload struct {
 	Max     float64            `json:"max"`
 	P10     float64            `json:"p10"`
 	P90     float64            `json:"p90"`
+	P95     float64            `json:"p95"`
+	P99     float64            `json:"p99"`
 }
 
 type Invoice struct {
@@ -476,6 +478,8 @@ const (
 	NetworkRequestAttributeBodySize     NetworkRequestAttribute = "body_size"
 	NetworkRequestAttributeResponseSize NetworkRequestAttribute = "response_size"
 	NetworkRequestAttributeStatus       NetworkRequestAttribute = "status"
+	NetworkRequestAttributeLatency      NetworkRequestAttribute = "latency"
+	NetworkRequestAttributeRequestID    NetworkRequestAttribute = "request_id"
 )
 
 var AllNetworkRequestAttribute = []NetworkRequestAttribute{
@@ -484,11 +488,13 @@ var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 	NetworkRequestAttributeBodySize,
 	NetworkRequestAttributeResponseSize,
 	NetworkRequestAttributeStatus,
+	NetworkRequestAttributeLatency,
+	NetworkRequestAttributeRequestID,
 }
 
 func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID:
 		return true
 	}
 	return false

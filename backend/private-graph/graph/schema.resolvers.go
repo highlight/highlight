@@ -5252,11 +5252,15 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		Max float64
 		P10 float64
 		P90 float64
+		P95 float64
+		P99 float64
 	}{}
 	query := `
 		SELECT min(value) / ? as min, max(value) / ? as max,
 			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value / ?) as p10,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90,
+			   percentile_cont(0.95) WITHIN GROUP (ORDER BY value / ?) as p95,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?) as p99
 		  FROM metrics
 		  INNER JOIN metric_groups mg on mg.id = metric_group_id
 		  WHERE name=?
@@ -5264,7 +5268,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 			AND created_at >= ?
 			AND created_at <= ?;
 	`
-	if err := r.DB.Raw(query, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
+	if err := r.DB.Raw(query, div, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
 		return nil, err
 	}
 
@@ -5272,39 +5276,43 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
+	// TODO(vkorolik) pass this from UI
+	histogramMax := scan.P90
+	histogramMin := scan.Min
+	interval := (histogramMax - histogramMin) / float64(numBuckets)
 
 	var buckets []struct {
-		Bucket float64
-		Range  string
-		Count  int
+		Start float64
+		End   float64
+		Count int
 	}
 	query = `
-		SELECT width_bucket(metrics.value / ?, ?, ?, ?) as bucket,
-			   numrange(min(metrics.value / ?), max(metrics.value / ?), '[]') as range,
-		       count(metrics.value / ?)
-		  FROM metrics
-		  INNER JOIN metric_groups mg on mg.id = metric_group_id
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?
-		  GROUP BY bucket
-		  ORDER BY bucket;
+		SELECT g.n as start,
+			   g.n + ? as end,
+			   count(metrics.value)
+		  FROM generate_series(?::numeric, ?::numeric, ?::numeric) g(n)
+				LEFT JOIN metrics on metrics.value / ? >= g.n AND metrics.value / ? < g.n + ?
+				LEFT JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name is null OR (name=? AND project_id=? AND created_at >= ? AND created_at <= ?)
+		  GROUP BY start
+		  ORDER BY start;
 	`
-	if err := r.DB.Raw(query, div, scan.Min, scan.Max, numBuckets, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets).Error; err != nil {
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.MetricsHistogram", tracer.ResourceName("db.queryHistogram"))
+	histogramQuerySpan.SetTag("projectID", projectID)
+	histogramQuerySpan.SetTag("metricName", metricName)
+	histogramQuerySpan.SetTag("buckets", params.Buckets)
+	tx := r.DB.Raw(query, interval, histogramMin, histogramMax, interval, div, div, interval, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	histogramQuerySpan.Finish()
+	if err := tx.Error; err != nil {
 		return nil, err
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
-	for _, b := range buckets {
-		rangeStr := b.Range[1 : len(b.Range)-2]
-		r := strings.Split(rangeStr, ",")
-		start, _ := strconv.ParseFloat(r[0], 64)
-		end, _ := strconv.ParseFloat(r[1], 64)
+	for i, b := range buckets {
 		payloadBuckets = append(payloadBuckets, &modelInputs.HistogramBucket{
-			Bucket:     b.Bucket,
-			RangeStart: start,
-			RangeEnd:   end,
+			Bucket:     float64(i),
+			RangeStart: b.Start,
+			RangeEnd:   b.End,
 			Count:      b.Count,
 		})
 	}
@@ -5314,6 +5322,8 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		Max:     scan.Max,
 		P10:     scan.P10,
 		P90:     scan.P90,
+		P95:     scan.P95,
+		P99:     scan.P99,
 	}, nil
 }
 
@@ -5323,21 +5333,20 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	}
 
 	var buckets []*modelInputs.CategoryHistogramBucket
-	// safe from injection attacks because we are putting a known enum value
-	query := fmt.Sprintf(`
-		SELECT network_requests.%s as category,
-		       count(network_requests.id) as count
-		  FROM network_requests
-		  INNER JOIN metrics m on network_requests.id = m.request_id
-		  WHERE m.project_id=?
-			AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
-			AND m.created_at <= NOW()
-		  GROUP BY category
-		  HAVING count(network_requests.id) > 1
-		  ORDER BY count desc
-		  LIMIT 50;
-	`, params.Attribute.String())
-	if err := r.DB.Raw(query, projectID, params.LookbackDays).Scan(&buckets).Error; err != nil {
+	if err := r.DB.Debug().Raw(`
+		SELECT m.category as category,
+			   count(m.category) as count
+		FROM metrics m
+			INNER JOIN metric_groups mg on m.metric_group_id = mg.id
+		WHERE mg.project_id = ?
+		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
+		  AND m.created_at <= NOW()
+		  AND m.name = ?
+		GROUP BY category
+		HAVING count(m.category) > 1
+		ORDER BY count desc
+		LIMIT 50;
+	`, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
 		return nil, err
 	}
 
