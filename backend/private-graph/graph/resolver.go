@@ -2074,3 +2074,19 @@ func GetAggregateSQLStatement(aggregateFunctionName string) string {
 
 	return aggregateStatement
 }
+
+func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) float64 {
+	div := 1.0
+	if originalUnits != nil && desiredUnits != nil {
+		o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
+		if err != nil {
+			return div
+		}
+		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
+		if err != nil {
+			return div
+		}
+		return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
+	}
+	return div
+}

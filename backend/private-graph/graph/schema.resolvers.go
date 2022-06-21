@@ -5190,22 +5190,6 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	return payload, nil
 }
 
-func calculateTimeUnitConversion(originalUnits *string, desiredUnits *string) float64 {
-	div := 1.0
-	if originalUnits != nil && desiredUnits != nil {
-		o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
-		if err != nil {
-			return div
-		}
-		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
-		if err != nil {
-			return div
-		}
-		return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
-	}
-	return div
-}
-
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -5217,7 +5201,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	if metricName == "Latency" {
 		originalUnits = pointy.String("ns")
 	}
-	div := calculateTimeUnitConversion(originalUnits, params.Units)
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
 
 	resMins := 60
 	if params.ResolutionMinutes != nil {
@@ -5261,7 +5245,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	if metricName == "Latency" {
 		originalUnits = pointy.String("ns")
 	}
-	div := calculateTimeUnitConversion(originalUnits, params.Units)
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
 
 	scan := struct {
 		Min float64
