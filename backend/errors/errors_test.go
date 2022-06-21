@@ -33,6 +33,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   util.MakeIntPointer(1),
 					ColumnNumber: util.MakeIntPointer(799),
 				},
+				{
+					FileName:     util.MakeStringPointer("./test-files/vendors.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(422367),
+				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
@@ -46,6 +51,15 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   util.MakeIntPointer(633),
 					ColumnNumber: util.MakeIntPointer(11),
 					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+				},
+				{
+					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
+					LineNumber:   util.MakeIntPointer(13),
+					ColumnNumber: util.MakeIntPointer(30),
+					LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
+					FunctionName: util.MakeStringPointer(""),
+					LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+					LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
 				},
 			},
 			fetcher: DiskFetcher{},
@@ -84,17 +98,17 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:no related source map": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
+					FileName:     util.MakeStringPointer("./test-files/foo.js"),
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
+					FileName:     util.MakeStringPointer("./test-files/foo.js"),
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
-					Error:        util.MakeStringPointer("file does not contain source map url: ./test-files/lodash.js"),
+					Error:        util.MakeStringPointer("error fetching file: ./test-files/foo.js: error fetching file from disk: open ./test-files/foo.js: no such file or directory"),
 				},
 			},
 			fetcher: DiskFetcher{},
