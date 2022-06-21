@@ -5190,13 +5190,18 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	return payload, nil
 }
 
-func calculateTimeUnitConversion(units *string) float64 {
+func calculateTimeUnitConversion(originalUnits *string, desiredUnits *string) float64 {
 	div := 1.0
-	if units != nil {
-		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *units))
-		if err == nil {
-			div = float64(d.Nanoseconds())
+	if originalUnits != nil && desiredUnits != nil {
+		o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
+		if err != nil {
+			return div
 		}
+		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
+		if err != nil {
+			return div
+		}
+		return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
 	}
 	return div
 }
@@ -5207,7 +5212,12 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		return payload, err
 	}
 
-	div := calculateTimeUnitConversion(params.Units)
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := calculateTimeUnitConversion(originalUnits, params.Units)
 
 	resMins := 60
 	if params.ResolutionMinutes != nil {
@@ -5246,7 +5256,12 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	div := calculateTimeUnitConversion(params.Units)
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := calculateTimeUnitConversion(originalUnits, params.Units)
 
 	scan := struct {
 		Min float64
