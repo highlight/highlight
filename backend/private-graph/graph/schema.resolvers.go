@@ -2861,7 +2861,6 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		LastRequestedWorkspace: workspace.ID,
 	}
 
-	const RequestAccessMinimumDelay = time.Minute * 10
 	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
 		Columns: []clause.Column{{Name: "admin_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
