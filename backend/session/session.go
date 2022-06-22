@@ -28,7 +28,8 @@ var (
 )
 
 const (
-	EventsFile = "events"
+	EventsFile   = "events.json"
+	MessagesFile = "messages.json"
 )
 
 type Request struct {
@@ -67,6 +68,12 @@ type EventMeta struct {
 	IsBeacon  bool
 }
 
+type MessageMeta struct {
+	SessionID int
+	Messages  string
+	IsBeacon  bool
+}
+
 type Processor struct {
 	DB   *gorm.DB
 	Path string
@@ -80,6 +87,32 @@ func (s *Processor) Process(ctx context.Context, sessionObj *model.Session, even
 	}
 }
 
+func (s *Processor) prepareFSFile(file string) ([]byte, func(), error) {
+	filePath := path.Join(s.Path, file)
+	lockFilePath := fmt.Sprintf("%s.lock", filePath)
+	fileLock := flock.New(lockFilePath)
+	locked, err := fileLock.TryLock()
+	if err != nil || !locked {
+		return nil, nil, e.Wrapf(err, "another worker is holding lock %s", lockFilePath)
+	}
+
+	f, err := os.Open(filePath)
+	defer f.Close()
+	if err != nil {
+		return nil, nil, err
+	}
+	byteValue, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, nil, err
+	}
+	return byteValue, func() {
+		unlockError := fileLock.Unlock()
+		if unlockError != nil {
+			log.Errorf("failed to unlock %s: %s", lockFilePath, unlockError)
+		}
+	}, nil
+}
+
 func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) error {
 	var g errgroup.Group
 	projectID := sessionObj.ProjectID
@@ -87,92 +120,112 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 	hasBeacon := sessionObj.BeaconTime != nil
 	s.Path = path.Join(SharedFSDirectory, strconv.Itoa(projectID), strconv.Itoa(sessionID))
 	g.Go(func() error {
-		filePath := path.Join(s.Path, EventsFile)
-		lockFilePath := fmt.Sprintf("%s.lock", filePath)
-		fileLock := flock.New(lockFilePath)
-		locked, err := fileLock.TryLock()
-		if err != nil || !locked {
-			return e.Wrapf(err, "another worker is holding lock %s", lockFilePath)
-		}
-		defer fileLock.Unlock()
-
-		f, err := os.Open(filePath)
-		if err != nil {
-			return err
-		}
-		byteValue, _ := ioutil.ReadAll(f)
+		byteValue, unlock, err := s.prepareFSFile(EventsFile)
+		defer unlock()
 
 		// extract json file data into events list
 		var eventRows []EventMeta
-		if err := json.Unmarshal(byteValue, &events); err != nil {
+		if err := json.Unmarshal(byteValue, &eventRows); err != nil {
 			return e.Wrap(err, "failed to unmarshall local session events file")
 		}
-
 		// only keep non-beacon events if this request is a beacon
-		storeEvents := lo.Filter(eventRows, func(v EventMeta, i int) bool {
+		eventRows = lo.Filter(eventRows, func(v EventMeta, i int) bool {
 			return !hasBeacon || !v.IsBeacon
 		})
 
-		var resetUserInteractionTime *time.Time
-		var processedEvents []EventMeta
-		for _, ev := range storeEvents {
-			parsedEvents, err := parse.EventsFromString(string(ev.Events))
-			if err != nil {
-				return e.Wrap(err, "error parsing events from schema interfaces")
-			}
-
-			var lastUserInteractionTimestamp time.Time
-			for _, event := range parsedEvents.Events {
-				if event.Type == parse.FullSnapshot {
-					// If we see a snapshot event, attempt to inject CORS stylesheets.
-					d, err := parse.InjectStylesheets(event.Data)
-					if err != nil {
-						log.Error(e.Wrap(err, "Error unmarshalling full snapshot"))
-						continue
-					}
-					event.Data = d
-				} else if event.Type == parse.IncrementalSnapshot {
-					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
-					if err != nil {
-						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
-						continue
-					}
-					if _, ok := map[parse.EventSource]bool{
-						parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
-						parse.Input: true, parse.TouchMove: true, parse.Drag: true,
-					}[*mouseInteractionEventData.Source]; !ok {
-						continue
-					}
-					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
+		// process the new events
+		newEventBytes, err := json.Marshal(events)
+		if err != nil {
+			return e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		parsedEvents, err := parse.EventsFromString(string(newEventBytes))
+		if err != nil {
+			return e.Wrap(err, "error parsing events from schema interfaces")
+		}
+		var lastUserInteractionTimestamp time.Time
+		for _, event := range parsedEvents.Events {
+			if event.Type == parse.FullSnapshot {
+				// If we see a snapshot event, attempt to inject CORS stylesheets.
+				d, err := parse.InjectStylesheets(event.Data)
+				if err != nil {
+					log.Error(e.Wrap(err, "Error unmarshalling full snapshot"))
+					continue
 				}
-			}
-			// Re-format as a string to write to the db.
-			b, err := json.Marshal(parsedEvents)
-			if err != nil {
-				return e.Wrap(err, "error marshaling events from schema interfaces")
-			}
-			processedEvents = append(processedEvents, EventMeta{
-				SessionID: sessionID,
-				Events:    string(b),
-				IsBeacon:  isBeacon,
-			})
-			if !lastUserInteractionTimestamp.IsZero() {
-				if resetUserInteractionTime == nil || lastUserInteractionTimestamp.After(*resetUserInteractionTime) {
-					resetUserInteractionTime = &lastUserInteractionTimestamp
+				event.Data = d
+			} else if event.Type == parse.IncrementalSnapshot {
+				mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
+				if err != nil {
+					log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
+					continue
 				}
+				if _, ok := map[parse.EventSource]bool{
+					parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+					parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+				}[*mouseInteractionEventData.Source]; !ok {
+					continue
+				}
+				lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 			}
 		}
-		data, err := json.Marshal(&processedEvents)
+		// store new event with old events
+		b, err := json.Marshal(parsedEvents)
+		if err != nil {
+			return e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		eventRows = append(eventRows, EventMeta{
+			SessionID: sessionID,
+			Events:    string(b),
+			IsBeacon:  isBeacon,
+		})
+
+		// write all events back to file
+		data, err := json.Marshal(&eventRows)
 		if err != nil {
 			return e.Wrap(err, "failed to marshall local session events file")
 		}
-		if _, err := f.Write(data); err != nil {
+		if err := ioutil.WriteFile(path.Join(s.Path, EventsFile), data, 0644); err != nil {
 			return e.Wrap(err, "failed to write local session events file")
 		}
-		if resetUserInteractionTime != nil {
-			if err := s.DB.Model(&sessionObj).Update("LastUserInteractionTime", resetUserInteractionTime).Error; err != nil {
+		// process interaction time from the new event set
+		if !lastUserInteractionTimestamp.IsZero() {
+			if err := s.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
 				return e.Wrap(err, "error updating LastUserInteractionTime")
 			}
+		}
+		return nil
+	})
+	g.Go(func() error {
+		byteValue, unlock, err := s.prepareFSFile(MessagesFile)
+		defer unlock()
+
+		// extract json file data into messages list
+		var messageRows []MessageMeta
+		if err := json.Unmarshal(byteValue, &messageRows); err != nil {
+			return e.Wrap(err, "failed to unmarshall local session events file")
+		}
+		// only keep non-beacon events if this request is a beacon
+		messageRows = lo.Filter(messageRows, func(v MessageMeta, i int) bool {
+			return !hasBeacon || !v.IsBeacon
+		})
+		// process new messages
+		messagesParsed := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
+			return e.Wrap(err, "error decoding message data")
+		}
+		if len(messagesParsed["messages"]) > 0 {
+			messageRows = append(messageRows, MessageMeta{
+				SessionID: sessionID,
+				Messages:  messages,
+				IsBeacon:  isBeacon,
+			})
+		}
+		// write all events back to file
+		data, err := json.Marshal(&messageRows)
+		if err != nil {
+			return e.Wrap(err, "failed to marshall local session messages file")
+		}
+		if err := ioutil.WriteFile(path.Join(s.Path, MessagesFile), data, 0644); err != nil {
+			return e.Wrap(err, "failed to write local session events file")
 		}
 		return nil
 	})
