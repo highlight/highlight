@@ -5192,31 +5192,30 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	div := CalculateTimeUnitConversion(originalUnits, params.Units)
 
 	resMins := 60
-	if params.ResolutionMinutes != nil {
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
 	}
-	tz := "PDT"
-	if params.Timezone != nil {
-		tz = *params.Timezone
-	}
+	timelineStart := params.DateRange.StartDate
+	timelineEnd := params.DateRange.EndDate
+
 	query := `
-		SELECT to_timestamp(cast(extract(
-				       EPOCH FROM created_at AT TIME ZONE ?
-				   ) / 60 / ? AS INT) * ? * 60)::timestamp AT TIME ZONE ?               as date,
+		SELECT g.n                                                                               as date,
 			   avg(value / ?)                                                                    as avg,
 			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value / ?)                           as p50,
 			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value / ?)                           as p75,
 			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?)                           as p90,
 			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?)                           as p99
-		  FROM metrics
-		  INNER JOIN metric_groups mg on mg.id = metric_group_id
+		  FROM generate_series(?::timestamptz, ?::timestamptz, (? * INTERVAL '1 MINUTE')::interval) g(n)
+			LEFT JOIN metrics m on m.created_at >= g.n AND m.created_at < g.n + ? * INTERVAL '1 MINUTE'
+			LEFT JOIN metric_groups mg on mg.id = metric_group_id
 		  WHERE name=?
 			AND project_id=?
 			AND created_at >= ?
 			AND created_at <= ?
-		  GROUP BY date;
+		  GROUP BY date
+		  ORDER BY date;
 	`
-	if err := r.DB.Raw(query, tz, resMins, resMins, tz, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		return payload, err
 	}
 
@@ -5321,7 +5320,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	}
 
 	var buckets []*modelInputs.CategoryHistogramBucket
-	if err := r.DB.Debug().Raw(`
+	if err := r.DB.Raw(`
 		SELECT m.category as category,
 			   count(m.category) as count
 		FROM metrics m

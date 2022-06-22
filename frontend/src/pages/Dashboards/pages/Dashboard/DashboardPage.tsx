@@ -20,6 +20,7 @@ import {
 } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -38,7 +39,7 @@ const timeFilter = [
     { label: 'Last 30 days', value: 30 },
     { label: 'Last 90 days', value: 90 },
     { label: 'This year', value: 30 * 12 },
-] as const;
+] as { label: string; value: number }[];
 
 interface MetricOption {
     value: string;
@@ -47,10 +48,11 @@ interface MetricOption {
 
 const DashboardPage = () => {
     const history = useHistory();
-    const { id } = useParams<{ id: string }>();
+    const { project_id, id } = useParams<{ project_id: string; id: string }>();
     const { dashboards, updateDashboard } = useDashboardsContext();
-    const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[2].value
+    const [dateRangeLength, setDateRangeLength] = useLocalStorage(
+        `highlight-dashboard-${project_id}-${id}-date-range`,
+        timeFilter[0]
     );
     const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
     const [isEditing, setIsEditing] = useState(false);
@@ -142,8 +144,12 @@ const DashboardPage = () => {
                 </HighlightGate>
                 <StandardDropdown
                     data={timeFilter}
-                    defaultValue={timeFilter[2]}
-                    onSelect={setDateRangeLength}
+                    defaultValue={dateRangeLength}
+                    onSelect={(value) => {
+                        setDateRangeLength(
+                            timeFilter.filter((x) => x.value === value)[0]
+                        );
+                    }}
                     className={styles.dateRangePicker}
                 />
             </div>
@@ -204,7 +210,7 @@ const DashboardPage = () => {
                                 key={metric.name}
                                 dateRange={{
                                     start: moment(new Date()).subtract(
-                                        dateRangeLength * 24,
+                                        dateRangeLength.value * 24,
                                         'hours'
                                     ),
                                     end: moment(new Date()),
