@@ -12,7 +12,6 @@ apollo.config.js
 yalc.lock
 
 **/.idea
-**/.vscode
 **/*.pem
 **/*.test
 **/.swp
@@ -23,3 +22,5 @@ yalc.lock
 
 backend/backend
 
+# Artifacts from VSCode
+.vscode/*.log
