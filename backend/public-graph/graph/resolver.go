@@ -591,7 +591,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 
 	if err := r.DB.Raw(`
 		WITH json_results AS (
-			SELECT CAST(value as VARCHAR), ordinality * 1000 as score
+			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
 			FROM json_array_elements_text(@jsonString) with ordinality
 		)
 	    SELECT id, sum(score) FROM (
