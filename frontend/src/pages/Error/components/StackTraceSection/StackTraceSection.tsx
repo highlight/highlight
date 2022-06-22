@@ -5,6 +5,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
+import StackTraceSourcemaps from '@pages/Error/components/StackTraceSourcemaps/StackTraceSourcemaps';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -22,6 +23,7 @@ interface Props {
                   | 'mapped_stack_trace'
                   | 'structured_stack_trace'
                   | 'type'
+                  | 'project_id'
               >
           >
         | undefined;
@@ -70,28 +72,33 @@ const StackTraceSection = ({
     return (
         <div className={styles.stackTraceCard}>
             {showStackFrameNotUseful && !loading && (
-                <Alert
-                    trackingId="PrivacySourceMapEducation"
-                    className={styles.alert}
-                    message="These stack frames don't look that useful 😢"
-                    type="info"
-                    description={
-                        <>
-                            We're guessing you don't ship sourcemaps with your
-                            app. Did you know that Highlight has a{' '}
-                            <a>CLI tool</a> that you can run during your CI/CD
-                            process to upload sourcemaps to Highlight without
-                            making them publicly available?
-                            <ButtonLink
-                                anchor
-                                trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-                                href="https://docs.highlight.run/sourcemaps"
-                            >
-                                Learn More
-                            </ButtonLink>
-                        </>
-                    }
-                />
+                <>
+                    <Alert
+                        trackingId="PrivacySourceMapEducation"
+                        className={styles.alert}
+                        message="These stack frames don't look that useful 😢"
+                        type="info"
+                        description={
+                            <>
+                                We're guessing you don't ship sourcemaps with
+                                your app. Did you know that Highlight has a{' '}
+                                <a>CLI tool</a> that you can run during your
+                                CI/CD process to upload sourcemaps to Highlight
+                                without making them publicly available?
+                                <ButtonLink
+                                    anchor
+                                    trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
+                                    href="https://docs.highlight.run/sourcemaps"
+                                >
+                                    Learn More
+                                </ButtonLink>
+                            </>
+                        }
+                    />
+                    {errorGroup && (
+                        <StackTraceSourcemaps errorGroup={errorGroup} />
+                    )}
+                </>
             )}
             {loading ? (
                 Array(5)

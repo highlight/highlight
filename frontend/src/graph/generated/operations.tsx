@@ -3620,6 +3620,16 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetSourcemapFilesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetSourcemapFilesQuery = { __typename?: 'Query' } & {
+    sourcemap_files: Array<
+        { __typename?: 'S3File' } & Pick<Types.S3File, 'key'>
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetMetricsDashboard: 'GetMetricsDashboard' as const,
@@ -3697,6 +3707,7 @@ export const namedOperations = {
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
         GetWebVitals: 'GetWebVitals' as const,
+        GetSourcemapFiles: 'GetSourcemapFiles' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

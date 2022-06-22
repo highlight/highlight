@@ -12,6 +12,7 @@ apollo.config.js
 yalc.lock
 
 **/.idea
+**/.vscode
 **/*.pem
 **/*.test
 **/.swp

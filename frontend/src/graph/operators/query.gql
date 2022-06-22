@@ -1411,3 +1411,9 @@ query GetWebVitals($session_secure_id: String!) {
         value
     }
 }
+
+query GetSourcemapFiles($project_id: ID!) {
+    sourcemap_files(project_id: $project_id) {
+        key
+    }
+}

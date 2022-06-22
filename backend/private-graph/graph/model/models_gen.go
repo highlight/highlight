@@ -179,6 +179,10 @@ type ReferrerTablePayload struct {
 	Percent float64 `json:"percent"`
 }
 
+type S3File struct {
+	Key *string `json:"key"`
+}
+
 type SanitizedAdmin struct {
 	ID       int     `json:"id"`
 	Name     *string `json:"name"`

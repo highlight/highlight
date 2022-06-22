@@ -1,0 +1,15 @@
+.container {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--size-large);
+    padding: var(--size-medium);
+}
+
+.list {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    max-height: 150px;
+    overflow-y: scroll;
+    padding: var(--size-medium);
+}
