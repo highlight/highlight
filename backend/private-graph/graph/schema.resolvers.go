@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -345,7 +346,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -357,10 +358,18 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		}
 	}
 
+	for _, path := range errorJSONPaths {
+		_, err := jsonpath.New(path)
+		if err != nil {
+			return nil, e.Wrap(err, "The JSON path '"+path+"'is not valid")
+		}
+	}
+
 	updates := &model.Project{
-		Name:          name,
-		BillingEmail:  billingEmail,
-		ExcludedUsers: excludedUsers,
+		Name:           name,
+		BillingEmail:   billingEmail,
+		ExcludedUsers:  excludedUsers,
+		ErrorJsonPaths: errorJSONPaths,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -1149,7 +1158,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where("project_id = ?", projectID).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 

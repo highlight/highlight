@@ -23,3 +23,11 @@ export const RandomError = () => {
 const RandomErrorDeeper = () => {
     throw new Error(`random error! ${Math.random()}`);
 };
+
+export const NestedError = (message: string) => {
+    console.error({
+        message,
+        cause: new Error('uh oh!'),
+        title: 'same title',
+    });
+};

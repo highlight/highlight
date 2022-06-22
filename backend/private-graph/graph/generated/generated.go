@@ -389,7 +389,7 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -441,6 +441,7 @@ type ComplexityRoot struct {
 
 	Project struct {
 		BillingEmail           func(childComplexity int) int
+		ErrorJsonPaths         func(childComplexity int) int
 		ExcludedUsers          func(childComplexity int) int
 		ID                     func(childComplexity int) int
 		Name                   func(childComplexity int) int
@@ -837,7 +838,7 @@ type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model1.Project, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -2824,7 +2825,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -3253,6 +3254,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.BillingEmail(childComplexity), true
+
+	case "Project.error_json_paths":
+		if e.complexity.Project.ErrorJsonPaths == nil {
+			break
+		}
+
+		return e.complexity.Project.ErrorJsonPaths(childComplexity), true
 
 	case "Project.excluded_users":
 		if e.complexity.Project.ExcludedUsers == nil {
@@ -5814,6 +5822,7 @@ type Project {
     secret: String
     workspace_id: ID!
     excluded_users: StringArray
+    error_json_paths: StringArray
     rage_click_window_seconds: Int
     rage_click_radius_pixels: Int
     rage_click_count: Int
@@ -6514,6 +6523,7 @@ type Mutation {
         name: String
         billing_email: String
         excluded_users: StringArray
+        error_json_paths: StringArray
         rage_click_window_seconds: Int
         rage_click_radius_pixels: Int
         rage_click_count: Int
@@ -8458,33 +8468,42 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["excluded_users"] = arg3
-	var arg4 *int
-	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg4 pq.StringArray
+	if tmp, ok := rawArgs["error_json_paths"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
+		arg4, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_window_seconds"] = arg4
+	args["error_json_paths"] = arg4
 	var arg5 *int
-	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
+	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
 		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_radius_pixels"] = arg5
+	args["rage_click_window_seconds"] = arg5
 	var arg6 *int
-	if tmp, ok := rawArgs["rage_click_count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_count"] = arg6
+	args["rage_click_radius_pixels"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["rage_click_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_count"] = arg7
 	return args, nil
 }
 
@@ -18396,7 +18415,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int))
+		return ec.resolvers.Mutation().EditProject(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21233,6 +21252,38 @@ func (ec *executionContext) _Project_excluded_users(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ExcludedUsers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(pq.StringArray)
+	fc.Result = res
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_error_json_paths(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorJsonPaths, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35892,6 +35943,13 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "excluded_users":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Project_excluded_users(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "error_json_paths":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Project_error_json_paths(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

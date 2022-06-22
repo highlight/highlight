@@ -13,7 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -555,6 +557,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	firstMeta := ""
 	restCode := []string{}
 	restMeta := []string{}
+	jsonResults := []string{}
 	for _, fingerprint := range fingerprints {
 		if fingerprint.Type == model.Fingerprint.StackFrameCode {
 			if fingerprint.Index == 0 {
@@ -568,49 +571,80 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 			} else if fingerprint.Index <= 4 {
 				restMeta = append(restMeta, fingerprint.Value)
 			}
+		} else if fingerprint.Type == model.Fingerprint.JsonResult {
+			jsonResults = append(jsonResults, fingerprint.Value)
 		}
 	}
+
+	// Reversing the json results so that ordinality can be used as score
+	jsonResultsReversed := lo.Reverse(jsonResults)
+	jsonBytes, err := json.Marshal(jsonResultsReversed)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling json results")
+	}
+	jsonString := string(jsonBytes)
 
 	result := struct {
 		Id  int
 		Sum int
 	}{}
 
-	if err := r.DB.Raw(`
+	if err := r.DB.Debug().Raw(`
+		WITH json_results AS (
+			SELECT CAST(value as VARCHAR), ordinality * 1000 as score
+			FROM json_array_elements_text(@jsonString) with ordinality
+		)
 	    SELECT id, sum(score) FROM (
 			SELECT id, 100 AS score, 0
 			FROM error_groups
-			WHERE event = ?
+			WHERE event = @event
 			AND id IS NOT NULL
-			AND project_id = ?
+			AND project_id = @projectID
+			UNION ALL
+			(SELECT DISTINCT ef.error_group_id, jr.score, 0
+			FROM error_fingerprints ef
+			INNER JOIN json_results jr
+			on ef.value = jr.value
+			WHERE
+				(ef.type = 'JSON'
+				AND ef.project_id = @projectID
+				AND ef.error_group_id IS NOT NULL))
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 10 AS score, 0
 			FROM error_fingerprints
 			WHERE
 				((type = 'META'
-				AND value = ?
+				AND value = @firstMeta
 				AND index = 0)
 				OR (type = 'CODE'
-				AND value = ?
+				AND value = @firstCode
 				AND index = 0))
-				AND project_id = ?
+				AND project_id = @projectID
 				AND error_group_id IS NOT NULL)
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 1 AS score, index
 			FROM error_fingerprints
 			WHERE
 				((type = 'META'
-				AND value in (?)
+				AND value in @restMeta
 				AND index > 0 and index <= 4)
 				OR (type = 'CODE'
-				AND value in (?)
+				AND value in @restCode
 				AND index > 0 and index <= 4))
-				AND project_id = ?
+				AND project_id = @projectID
 				AND error_group_id IS NOT NULL)
 		) a
 		GROUP BY id
 		ORDER BY sum DESC, id DESC
-		LIMIT 1`, event, projectID, firstMeta, firstCode, projectID, restMeta, restCode, projectID).
+		LIMIT 1`,
+		map[string]interface{}{
+			"jsonString": jsonString,
+			"event":      event,
+			"projectID":  projectID,
+			"firstMeta":  firstMeta,
+			"firstCode":  firstCode,
+			"restMeta":   restMeta,
+			"restCode":   restCode}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
@@ -702,6 +736,34 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			}
 		}
 		errorObj.MappedStackTrace = newMappedStackTraceString
+	}
+
+	// Try unmarshalling the Event to JSON.
+	// If this works, create an error fingerprint for each of the project's JSON paths.
+	jsonStrings := []string{}
+	if err := json.Unmarshal([]byte(errorObj.Event), &jsonStrings); err == nil && len(jsonStrings) == 1 {
+		errorAsJson := interface{}(nil)
+		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
+			var project model.Project
+			if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+				return nil, e.Wrap(err, "error querying project")
+			}
+
+			for _, path := range project.ErrorJsonPaths {
+				value, err := jsonpath.Get(path, errorAsJson)
+				if err == nil {
+					marshalled, err := json.Marshal(value)
+					if err == nil {
+						jsonResult := model.ErrorFingerprint{
+							ProjectID: projectID,
+							Type:      model.Fingerprint.JsonResult,
+							Value:     path + "=" + string(marshalled),
+						}
+						fingerprints = append(fingerprints, &jsonResult)
+					}
+				}
+			}
+		}
 	}
 
 	var errorGroup *model.ErrorGroup

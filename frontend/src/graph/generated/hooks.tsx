@@ -988,6 +988,7 @@ export const EditProjectDocument = gql`
         $name: String
         $billing_email: String
         $excluded_users: StringArray
+        $error_json_paths: StringArray
         $rage_click_window_seconds: Int
         $rage_click_radius_pixels: Int
         $rage_click_count: Int
@@ -997,6 +998,7 @@ export const EditProjectDocument = gql`
             name: $name
             billing_email: $billing_email
             excluded_users: $excluded_users
+            error_json_paths: $error_json_paths
             rage_click_window_seconds: $rage_click_window_seconds
             rage_click_radius_pixels: $rage_click_radius_pixels
             rage_click_count: $rage_click_count
@@ -1005,6 +1007,7 @@ export const EditProjectDocument = gql`
             name
             billing_email
             excluded_users
+            error_json_paths
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
@@ -1033,6 +1036,7 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      error_json_paths: // value for 'error_json_paths'
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
@@ -6622,6 +6626,7 @@ export const GetProjectDocument = gql`
             verbose_id
             billing_email
             excluded_users
+            error_json_paths
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
