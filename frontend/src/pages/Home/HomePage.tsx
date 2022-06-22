@@ -4,6 +4,7 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetAdminQuery,
@@ -136,7 +137,9 @@ const HomePage = () => {
                         <ReferrersTable />
                         <ActiveUsersTable />
                         <RageClicksForProjectTable />
-                        <TopRoutesTable />
+                        <HighlightGate>
+                            <TopRoutesTable />
+                        </HighlightGate>
                     </div>
                     {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>
