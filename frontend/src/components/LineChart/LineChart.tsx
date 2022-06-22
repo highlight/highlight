@@ -226,6 +226,7 @@ const LineChart = ({
                             dataKey={key}
                             stroke={lineColorMapping[key]}
                             strokeWidth={2}
+                            animationDuration={100}
                             dot={false}
                         />
                     ))}

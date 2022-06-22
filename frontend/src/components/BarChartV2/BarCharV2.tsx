@@ -197,6 +197,7 @@ const BarChartV2 = ({
                             dataKey={key}
                             stroke={barColorMapping[key]}
                             fill={barColorMapping[key]}
+                            animationDuration={100}
                             strokeWidth={3}
                         />
                     ))}
