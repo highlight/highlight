@@ -5,6 +5,7 @@ import {
     findMax,
     Props as LineChartProps,
 } from '@components/LineChart/LineChart';
+import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import React, { useState } from 'react';
 import ReactSlider from 'react-slider';
 import {
@@ -12,6 +13,7 @@ import {
     BarChart as RechartsBarChart,
     CartesianGrid,
     Label,
+    Legend,
     ReferenceArea,
     ReferenceAreaProps,
     ReferenceLine,
@@ -133,17 +135,35 @@ const BarChartV2 = ({
                     <Tooltip
                         position={{ y: 0 }}
                         content={
-                            <CustomTooltip
-                                yAxisLabel={yAxisLabel}
-                                referenceLines={referenceLines}
-                                precision={0}
+                            <RechartTooltip
+                                render={(payload: any[]) => {
+                                    return (
+                                        <CustomTooltip
+                                            payload={payload}
+                                            yAxisLabel={yAxisLabel}
+                                            referenceLines={referenceLines}
+                                            precision={0}
+                                        />
+                                    );
+                                }}
                             />
                         }
                     />
                     {!hideLegend && (
-                        <CustomLegend
-                            dataTypesToShow={dataTypesToShow}
-                            setDataTypesToShow={setDataTypesToShow}
+                        <Legend
+                            verticalAlign="bottom"
+                            height={18}
+                            iconType={'square'}
+                            iconSize={8}
+                            content={(props) => {
+                                return (
+                                    <CustomLegend
+                                        props={props}
+                                        dataTypesToShow={dataTypesToShow}
+                                        setDataTypesToShow={setDataTypesToShow}
+                                    />
+                                );
+                            }}
                         />
                     )}
                     {referenceLines?.map((referenceLine, index) => (

@@ -5267,6 +5267,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	histogramMax := scan.P90
 	histogramMin := scan.Min
 	interval := (histogramMax - histogramMin) / float64(numBuckets)
+	if interval == 0. {
+		interval = 1
+	}
 
 	var buckets []struct {
 		Start float64
