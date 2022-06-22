@@ -119,8 +119,8 @@ type NetworkResource struct {
 	StartTime            float64              `json:"startTime"`
 	ResponseEnd          float64              `json:"responseEnd"`
 	InitiatorType        string               `json:"initiatorType"`
-	TransferSize         int                  `json:"transferSize"`
-	EncodedBodySize      int                  `json:"encodedBodySize"`
+	TransferSize         int64                `json:"transferSize"`
+	EncodedBodySize      int64                `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
