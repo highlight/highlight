@@ -24,12 +24,13 @@ import (
 )
 
 var (
-	SharedFSDirectory = os.Getenv("SHARED_WORKER_FS")
+	SharedFSDirectory = os.Getenv("PROCESS_PAYLOAD_SHARED_FS")
 )
 
 const (
-	EventsFile   = "events.json"
-	MessagesFile = "messages.json"
+	EventsFile    = "events.json"
+	MessagesFile  = "messages.json"
+	ResourcesFile = "resources.json"
 )
 
 type Request struct {
@@ -74,16 +75,22 @@ type MessageMeta struct {
 	IsBeacon  bool
 }
 
+type ResourceMeta struct {
+	SessionID int
+	Resources string
+	IsBeacon  bool
+}
+
 type Processor struct {
 	DB   *gorm.DB
 	Path string
 }
 
-func (s *Processor) Process(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) error {
+func (s *Processor) Process(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, isBeacon bool) error {
 	if len(SharedFSDirectory) > 0 {
-		return s.processSessionPayloadSQL(ctx, sessionObj, events, messages, resources, errors, isBeacon)
+		return s.processSessionPayloadSharedFS(ctx, sessionObj, events, messages, resources, isBeacon)
 	} else {
-		return s.processSessionPayloadSharedFS(ctx, sessionObj, events, messages, resources, errors, isBeacon)
+		return s.processSessionPayloadSQL(ctx, sessionObj, events, messages, resources, isBeacon)
 	}
 }
 
@@ -93,17 +100,23 @@ func (s *Processor) prepareFSFile(file string) ([]byte, func(), error) {
 	fileLock := flock.New(lockFilePath)
 	locked, err := fileLock.TryLock()
 	if err != nil || !locked {
-		return nil, nil, e.Wrapf(err, "another worker is holding lock %s", lockFilePath)
+		return nil, nil, e.New("another worker is holding lock " + lockFilePath)
 	}
 
 	f, err := os.Open(filePath)
-	defer f.Close()
-	if err != nil {
+	if err != nil && !e.Is(err, os.ErrNotExist) {
 		return nil, nil, err
 	}
-	byteValue, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, nil, err
+	var byteValue []byte
+	if err == nil {
+		defer f.Close()
+		byteValue, err = ioutil.ReadAll(f)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	if byteValue == nil {
+		byteValue = []byte("[]")
 	}
 	return byteValue, func() {
 		unlockError := fileLock.Unlock()
@@ -113,23 +126,29 @@ func (s *Processor) prepareFSFile(file string) ([]byte, func(), error) {
 	}, nil
 }
 
-func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) error {
+func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, isBeacon bool) error {
 	var g errgroup.Group
 	projectID := sessionObj.ProjectID
 	sessionID := sessionObj.ID
 	hasBeacon := sessionObj.BeaconTime != nil
 	s.Path = path.Join(SharedFSDirectory, strconv.Itoa(projectID), strconv.Itoa(sessionID))
+	if err := os.MkdirAll(s.Path, 0755); err != nil {
+		return e.Wrap(err, "failed to prepare session shared directory")
+	}
 	g.Go(func() error {
 		byteValue, unlock, err := s.prepareFSFile(EventsFile)
+		if err != nil {
+			return e.Wrap(err, "failed to prepare fs file")
+		}
 		defer unlock()
 
 		// extract json file data into events list
-		var eventRows []EventMeta
+		var eventRows []*EventMeta
 		if err := json.Unmarshal(byteValue, &eventRows); err != nil {
 			return e.Wrap(err, "failed to unmarshall local session events file")
 		}
 		// only keep non-beacon events if this request is a beacon
-		eventRows = lo.Filter(eventRows, func(v EventMeta, i int) bool {
+		eventRows = lo.Filter(eventRows, func(v *EventMeta, i int) bool {
 			return !hasBeacon || !v.IsBeacon
 		})
 
@@ -172,7 +191,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 		if err != nil {
 			return e.Wrap(err, "error marshaling events from schema interfaces")
 		}
-		eventRows = append(eventRows, EventMeta{
+		eventRows = append(eventRows, &EventMeta{
 			SessionID: sessionID,
 			Events:    string(b),
 			IsBeacon:  isBeacon,
@@ -196,15 +215,18 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 	})
 	g.Go(func() error {
 		byteValue, unlock, err := s.prepareFSFile(MessagesFile)
+		if err != nil {
+			return e.Wrap(err, "failed to prepare fs file")
+		}
 		defer unlock()
 
 		// extract json file data into messages list
-		var messageRows []MessageMeta
+		var messageRows []*MessageMeta
 		if err := json.Unmarshal(byteValue, &messageRows); err != nil {
-			return e.Wrap(err, "failed to unmarshall local session events file")
+			return e.Wrap(err, "failed to unmarshall local session messages file")
 		}
-		// only keep non-beacon events if this request is a beacon
-		messageRows = lo.Filter(messageRows, func(v MessageMeta, i int) bool {
+		// only keep non-beacon messages if this request is a beacon
+		messageRows = lo.Filter(messageRows, func(v *MessageMeta, i int) bool {
 			return !hasBeacon || !v.IsBeacon
 		})
 		// process new messages
@@ -213,19 +235,62 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
-			messageRows = append(messageRows, MessageMeta{
+			messageRows = append(messageRows, &MessageMeta{
 				SessionID: sessionID,
 				Messages:  messages,
 				IsBeacon:  isBeacon,
 			})
 		}
-		// write all events back to file
+		// write all messages back to file
 		data, err := json.Marshal(&messageRows)
 		if err != nil {
 			return e.Wrap(err, "failed to marshall local session messages file")
 		}
 		if err := ioutil.WriteFile(path.Join(s.Path, MessagesFile), data, 0644); err != nil {
-			return e.Wrap(err, "failed to write local session events file")
+			return e.Wrap(err, "failed to write local session messages file")
+		}
+		return nil
+	})
+	g.Go(func() error {
+		byteValue, unlock, err := s.prepareFSFile(ResourcesFile)
+		if err != nil {
+			return e.Wrap(err, "failed to prepare fs file")
+		}
+		defer unlock()
+
+		// extract json file data into messages list
+		var resourcesRows []*ResourceMeta
+		if err := json.Unmarshal(byteValue, &resourcesRows); err != nil {
+			return e.Wrap(err, "failed to unmarshall local session resources file")
+		}
+		// only keep non-beacon resources if this request is a beacon
+		resourcesRows = lo.Filter(resourcesRows, func(v *ResourceMeta, i int) bool {
+			return !hasBeacon || !v.IsBeacon
+		})
+		// process new resources
+		resourcesParsed := make(map[string][]NetworkResource)
+		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+			return e.Wrap(err, "error decoding resource data")
+		}
+		if len(resourcesParsed["resources"]) > 0 {
+			if projectID == 1 {
+				if err := s.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
+				}
+			}
+			resourcesRows = append(resourcesRows, &ResourceMeta{
+				SessionID: sessionID,
+				Resources: resources,
+				IsBeacon:  isBeacon,
+			})
+		}
+		// write all resources back to file
+		data, err := json.Marshal(&resourcesRows)
+		if err != nil {
+			return e.Wrap(err, "failed to marshall local session resources file")
+		}
+		if err := ioutil.WriteFile(path.Join(s.Path, ResourcesFile), data, 0644); err != nil {
+			return e.Wrap(err, "failed to write local session resources file")
 		}
 		return nil
 	})
@@ -233,7 +298,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 	return g.Wait()
 }
 
-func (s *Processor) processSessionPayloadSQL(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool) error {
+func (s *Processor) processSessionPayloadSQL(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, isBeacon bool) error {
 	var g errgroup.Group
 	projectID := sessionObj.ProjectID
 	sessionID := sessionObj.ID
@@ -348,120 +413,10 @@ func (s *Processor) processSessionPayloadSQL(ctx context.Context, sessionObj *mo
 		return nil
 	})
 
-	// process errors
-	g.Go(func() error {
-		if hasBeacon {
-			s.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
-		}
-		// filter out empty errors
-		var filteredErrors []*customModels.ErrorObjectInput
-		for _, errorObject := range errors {
-			if errorObject.Event == "[{}]" {
-				var objString string
-				objBytes, err := json.Marshal(errorObject)
-				if err != nil {
-					log.Error(e.Wrap(err, "error marshalling error object when filtering"))
-					objString = ""
-				} else {
-					objString = string(objBytes)
-				}
-				log.WithFields(log.Fields{
-					"project_id":   projectID,
-					"session_id":   sessionID,
-					"error_object": objString,
-				}).Warn("caught empty error, continuing...")
-			} else {
-				filteredErrors = append(filteredErrors, errorObject)
-			}
-		}
-		errors = filteredErrors
-
-		// increment daily error table
-		if len(errors) > 0 {
-			n := time.Now()
-			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-			dailyErrorCount := model.DailyErrorCount{
-				ProjectID: projectID,
-				Date:      &currentDate,
-				Count:     int64(len(errors)),
-				ErrorType: model.ErrorType.FRONTEND,
-			}
-
-			// Upsert error counts into daily_error_counts
-			if err := s.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
-				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
-				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
-			}).Create(&dailyErrorCount).Error; err != nil {
-				return e.Wrap(err, "error getting or creating daily error count")
-			}
-		}
-
-		// put errors in db
-		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
-		groups := make(map[int]struct {
-			Group      *model.ErrorGroup
-			VisitedURL string
-			SessionObj *model.Session
-		})
-		for _, v := range errors {
-			traceBytes, err := json.Marshal(v.StackTrace)
-			if err != nil {
-				log.Errorf("Error marshaling trace: %v", v.StackTrace)
-				continue
-			}
-			traceString := string(traceBytes)
-
-			errorToInsert := &model.ErrorObject{
-				ProjectID:    projectID,
-				SessionID:    sessionID,
-				Environment:  sessionObj.Environment,
-				Event:        v.Event,
-				Type:         v.Type,
-				URL:          v.URL,
-				Source:       v.Source,
-				LineNumber:   v.LineNumber,
-				ColumnNumber: v.ColumnNumber,
-				OS:           sessionObj.OSName,
-				Browser:      sessionObj.BrowserName,
-				StackTrace:   &traceString,
-				Timestamp:    v.Timestamp,
-				Payload:      v.Payload,
-				RequestID:    nil,
-				IsBeacon:     isBeacon,
-			}
-
-			//create error fields array
-			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			group, err := s.Resolver.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
-			if err != nil {
-				log.Errorf("Error updating error group: %v", errorToInsert)
-				continue
-			}
-
-			groups[group.ID] = struct {
-				Group      *model.ErrorGroup
-				VisitedURL string
-				SessionObj *model.Session
-			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
-		}
-
-		for _, data := range groups {
-			s.Resolver.SendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
-		}
-
-		putErrorsToDBSpan.Finish()
-		return nil
-	})
-
 	return g.Wait()
 }
 
-func (s *Processor) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+func (s *Processor) submitFrontendNetworkMetric(_ context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		mg := &model.MetricGroup{
 			GroupName: re.RequestResponsePairs.Request.ID,

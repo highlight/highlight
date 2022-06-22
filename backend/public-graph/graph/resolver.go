@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/session"
+	"golang.org/x/sync/errgroup"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -1714,9 +1715,121 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
-	//TODO(vkorolik)
-	s := session.Processor{Resolver: r}
-	if err := s.Process(sessionObj); err != nil {
+	s := session.Processor{DB: r.DB}
+	var g errgroup.Group
+	g.Go(func() error { return s.Process(ctx, sessionObj, events, messages, resources, isBeacon) })
+	// process errors. errors are put into the DB in all cases
+	g.Go(func() error {
+		hasBeacon := sessionObj.BeaconTime != nil
+		projectID := sessionObj.ProjectID
+		if hasBeacon {
+			s.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
+		}
+		// filter out empty errors
+		var filteredErrors []*customModels.ErrorObjectInput
+		for _, errorObject := range errors {
+			if errorObject.Event == "[{}]" {
+				var objString string
+				objBytes, err := json.Marshal(errorObject)
+				if err != nil {
+					log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+					objString = ""
+				} else {
+					objString = string(objBytes)
+				}
+				log.WithFields(log.Fields{
+					"project_id":   projectID,
+					"session_id":   sessionID,
+					"error_object": objString,
+				}).Warn("caught empty error, continuing...")
+			} else {
+				filteredErrors = append(filteredErrors, errorObject)
+			}
+		}
+		errors = filteredErrors
+
+		// increment daily error table
+		if len(errors) > 0 {
+			n := time.Now()
+			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+			dailyErrorCount := model.DailyErrorCount{
+				ProjectID: projectID,
+				Date:      &currentDate,
+				Count:     int64(len(errors)),
+				ErrorType: model.ErrorType.FRONTEND,
+			}
+
+			// Upsert error counts into daily_error_counts
+			if err := s.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+			}).Create(&dailyErrorCount).Error; err != nil {
+				return e.Wrap(err, "error getting or creating daily error count")
+			}
+		}
+
+		// put errors in db
+		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
+		groups := make(map[int]struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		})
+		for _, v := range errors {
+			traceBytes, err := json.Marshal(v.StackTrace)
+			if err != nil {
+				log.Errorf("Error marshaling trace: %v", v.StackTrace)
+				continue
+			}
+			traceString := string(traceBytes)
+
+			errorToInsert := &model.ErrorObject{
+				ProjectID:    projectID,
+				SessionID:    sessionID,
+				Environment:  sessionObj.Environment,
+				Event:        v.Event,
+				Type:         v.Type,
+				URL:          v.URL,
+				Source:       v.Source,
+				LineNumber:   v.LineNumber,
+				ColumnNumber: v.ColumnNumber,
+				OS:           sessionObj.OSName,
+				Browser:      sessionObj.BrowserName,
+				StackTrace:   &traceString,
+				Timestamp:    v.Timestamp,
+				Payload:      v.Payload,
+				RequestID:    nil,
+				IsBeacon:     isBeacon,
+			}
+
+			//create error fields array
+			metaFields := []*model.ErrorField{}
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
+			if err != nil {
+				log.Errorf("Error updating error group: %v", errorToInsert)
+				continue
+			}
+
+			groups[group.ID] = struct {
+				Group      *model.ErrorGroup
+				VisitedURL string
+				SessionObj *model.Session
+			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+		}
+
+		for _, data := range groups {
+			r.SendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
+		}
+
+		putErrorsToDBSpan.Finish()
+		return nil
+	})
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
