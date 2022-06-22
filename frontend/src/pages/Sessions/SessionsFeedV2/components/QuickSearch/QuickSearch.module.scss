@@ -10,32 +10,6 @@
     }
 }
 
-.searchIcon {
-    color: var(--color-gray-600);
-    height: var(--size-medium);
-    margin-left: var(--size-small);
-    width: var(--size-medium);
-}
-
-.loadingIcon {
-    color: var(--color-gray-600);
-}
-
-.loadingIconContainer {
-    --size: var(--size-medium);
-    height: var(--size) !important;
-    margin-left: var(--size-small);
-    top: 3px !important;
-    width: var(--size) !important;
-
-    :global(.ant-spin),
-    :global(svg),
-    .loadingIcon {
-        height: var(--size);
-        width: var(--size);
-    }
-}
-
 .typeIcon {
     align-self: center;
     color: var(--color-gray-600);
@@ -100,17 +74,6 @@
 
     &.visible {
         opacity: 1;
-    }
-}
-
-.dropdownIndicator {
-    left: 0;
-    position: absolute;
-    top: var(--size-xSmall);
-    z-index: 999999999999;
-
-    &.spinner {
-        top: 6px;
     }
 }
 

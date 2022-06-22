@@ -2,14 +2,14 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
-import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
-import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
 import styles from './KeyPerformanceIndicators.module.scss';

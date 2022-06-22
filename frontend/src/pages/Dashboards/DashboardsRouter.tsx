@@ -1,95 +1,66 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
-import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
-import { MetricType } from '@graph/schemas';
+import {
+    useGetDashboardDefinitionsQuery,
+    useGetWorkspaceAdminsByProjectIdQuery,
+    useUpsertDashboardMutation,
+} from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
 import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
+import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
-
-export interface Dashboard {
-    id: number;
-    name: string;
-    updated_at: string;
-    LastAdminToEditID: string;
-    metrics: readonly string[];
-    metricConfigs: { [key in string]: any };
-    loading: boolean;
-    allAdmins?: any;
-}
 
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
-    const { loading, data } = useGetWorkspaceAdminsByProjectIdQuery({
+    const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
+    const { data, loading } = useGetDashboardDefinitionsQuery({
+        variables: { project_id },
+    });
+    const [upsertDashboardMutation] = useUpsertDashboardMutation({
+        refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
+    });
     const history = useHistory<{ errorName: string }>();
-    const [dashboards, setDashboards] = useState<Dashboard[]>([]);
 
     useEffect(() => {
-        if (!loading) {
-            setDashboards([
-                {
-                    id: 1,
+        if (!loading && !data?.dashboard_definitions?.length) {
+            upsertDashboardMutation({
+                variables: {
+                    project_id,
+                    metrics: Object.values(WEB_VITALS_CONFIGURATION),
                     name: 'Web Vitals',
-                    updated_at: '2021-12-29T13:05:13.997412-08:00',
-                    LastAdminToEditID: '0',
-                    allAdmins: data?.admins || [],
-                    metrics: ['CLS', 'FCP', 'FID', 'LCP', 'TTFB'] as const,
-                    metricConfigs: WEB_VITALS_CONFIGURATION,
-                    loading,
+                    layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
                 },
-                {
-                    id: 2,
-                    name: 'Backend Request Latency',
-                    updated_at: '2022-05-20T13:05:13.997412-08:00',
-                    LastAdminToEditID: '0',
-                    allAdmins: data?.admins || [],
-                    metrics: ['delayMS'] as const,
-                    metricConfigs: {
-                        delayMS: {
-                            maxGoodValue: 0.1,
-                            name: 'Request Latency',
-                            type: MetricType.Backend,
-                            maxNeedsImprovementValue: 0.25,
-                            poorValue: 0,
-                            units: 'ms',
-                            helpArticle: '',
-                        },
-                    },
-                    loading,
-                },
-                {
-                    id: 3,
-                    name: 'Frontend Request Latency',
-                    updated_at: '2022-05-25T13:05:13.997412-08:00',
-                    LastAdminToEditID: '0',
-                    allAdmins: data?.admins || [],
-                    metrics: ['delayMS'] as const,
-                    metricConfigs: {
-                        delayMS: {
-                            maxGoodValue: 0.1,
-                            name: 'Request Latency',
-                            type: MetricType.Frontend,
-                            maxNeedsImprovementValue: 0.25,
-                            poorValue: 0,
-                            units: 'ms',
-                            helpArticle: '',
-                        },
-                    },
-                    loading,
-                },
-            ]);
+            });
         }
-    }, [data?.admins, loading]);
+    }, [project_id, upsertDashboardMutation, loading, data]);
 
     return (
-        <DashboardsContextProvider value={{ dashboards, setDashboards }}>
+        <DashboardsContextProvider
+            value={{
+                allAdmins: adminsData?.admins || [],
+                dashboards: data?.dashboard_definitions || [],
+                updateDashboard: ({ id, name, metrics, layout }) => {
+                    return upsertDashboardMutation({
+                        variables: {
+                            id,
+                            project_id,
+                            metrics,
+                            name,
+                            layout,
+                        },
+                    });
+                },
+            }}
+        >
             <Helmet>
                 <title>Dashboards</title>
             </Helmet>

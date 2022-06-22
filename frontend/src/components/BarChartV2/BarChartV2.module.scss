@@ -69,9 +69,12 @@
     line-height: initial;
 }
 
-.verticalSlider {
-    height: 162px;
-    margin-top: 38px;
+.horizontalSlider {
+    height: 16px;
+    left: 31px;
+    margin-right: 45px;
+    position: absolute;
+    top: 38px;
 }
 
 .sliderThumb {
@@ -83,4 +86,8 @@
     left: 50px;
     padding: 2px;
     position: absolute;
+}
+
+.sliderTrack {
+    width: 500px;
 }

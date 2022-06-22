@@ -55,7 +55,7 @@ export const Highlight = (options: NodeOptions = {}) => (
             const delta = new Date().getTime() - start.getTime();
             const { secureSessionId, requestId } = processHighlightHeaders();
             if (secureSessionId) {
-                H.recordMetric(secureSessionId, 'delayMS', delta, requestId);
+                H.recordMetric(secureSessionId, 'Latency', delta, requestId);
             }
         }
     };

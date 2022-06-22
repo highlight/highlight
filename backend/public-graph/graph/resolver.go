@@ -96,16 +96,31 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID string `json:"id"`
+	ID      string            `json:"id"`
+	Headers map[string]string `json:"headers"`
+	URL     string            `json:"url"`
+	Method  string            `json:"verb"`
+}
+
+type Response struct {
+	Body    string            `json:"body"`
+	Headers map[string]string `json:"headers"`
+	Status  int               `json:"status"`
+	Size    int               `json:"size"`
 }
 
 type RequestResponsePairs struct {
-	Request Request `json:"request"`
+	Request    Request  `json:"request"`
+	Response   Response `json:"response"`
+	URLBlocked bool     `json:"urlBlocked"`
 }
 
 type NetworkResource struct {
 	StartTime            float64              `json:"startTime"`
 	ResponseEnd          float64              `json:"responseEnd"`
+	InitiatorType        string               `json:"initiatorType"`
+	TransferSize         int                  `json:"transferSize"`
+	EncodedBodySize      int                  `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
@@ -1476,7 +1491,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	return len(metrics), nil
 }
 
-func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
+func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name string, value float64) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
 		return -1, e.Wrapf(err, "error querying device metric session")
@@ -1485,61 +1500,49 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricTyp
 		SessionSecureID: session.SecureID,
 		Name:            name,
 		Value:           value,
-		Type:            metricType,
 		Timestamp:       time.Now(),
 	}})
 }
 
-func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) error {
-	newMetric := &model.Metric{
-		Name:      m.Name,
-		Value:     m.Value,
-		ProjectID: projectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricType(m.Type),
-		RequestID: m.RequestID,
-	}
-	if newMetric.RequestID != nil && *newMetric.RequestID == "" {
-		newMetric.RequestID = nil
-	}
-
-	if err := r.DB.FirstOrCreate(&newMetric, &model.Metric{
-		Name:      m.Name,
-		ProjectID: projectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricType(m.Type),
-		RequestID: m.RequestID,
-	}).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
-		// for certain metrics, we always want to save them as new metrics
-		if m.Type == customModels.MetricTypeBackend || m.Type == customModels.MetricTypeFrontend {
-			if err := r.addNewMetric(sessionID, projectID, m); err != nil {
-				return err
-			}
-			continue
+		group := ""
+		if m.Group != nil {
+			group = *m.Group
 		}
-
-		// other metrics are for an entire session so if we get duplicates, just update existing
-		existingMetric := &model.Metric{
-			Name:      m.Name,
-			ProjectID: projectID,
+		// TODO(vkorolik) do i need random string
+		if group == "" {
+			group = util.GenerateRandomString(16)
+		}
+		if _, ok := metricsByGroup[group]; !ok {
+			metricsByGroup[group] = []*customModels.MetricInput{}
+		}
+		metricsByGroup[group] = append(metricsByGroup[group], m)
+	}
+	for groupName, metricInputs := range metricsByGroup {
+		mg := &model.MetricGroup{
+			GroupName: groupName,
 			SessionID: sessionID,
-			Type:      modelInputs.MetricType(m.Type),
-			RequestID: m.RequestID,
+			ProjectID: projectID,
+			Metrics:   nil,
 		}
-		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
-		if err := tx.Error; err != nil {
+		if err := r.DB.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "group_name"}, {Name: "session_id"}},
+			DoNothing: true,
+		}).Where(&model.MetricGroup{GroupName: mg.GroupName, SessionID: sessionID}).FirstOrCreate(&mg).Error; err != nil {
 			return err
 		}
-		// Update the existing record if it already exists
-		existingMetric.Value = m.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
+		for _, m := range metricInputs {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          m.Name,
+				Value:         m.Value,
+				Category:      m.Category,
+				CreatedAt:     m.Timestamp,
+			})
+		}
+		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
 			return err
 		}
 	}
@@ -2034,21 +2037,44 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	var metrics []*customModels.MetricInput
-	for _, r := range resources {
-		metrics = append(metrics, &customModels.MetricInput{
-			SessionSecureID: sessionObj.SecureID,
-			Name:            "delayMS",
-			Value:           r.ResponseEnd - r.StartTime,
-			Type:            customModels.MetricTypeFrontend,
-			URL:             r.Name,
-			Timestamp:       time.UnixMilli(int64(r.StartTime)),
-			RequestID:       &r.RequestResponsePairs.Request.ID,
-		})
-	}
-	if len(metrics) > 0 {
-		if _, err := r.SubmitMetricsMessage(ctx, metrics); err != nil {
-			return e.Wrap(err, "failed to submit metrics message")
+	for _, re := range resources {
+		mg := &model.MetricGroup{
+			GroupName: re.RequestResponsePairs.Request.ID,
+			SessionID: sessionObj.ID,
+			ProjectID: sessionObj.ProjectID,
+		}
+		if err := r.DB.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "group_name"}, {Name: "session_id"}},
+			DoNothing: true,
+		}).Where(&model.MetricGroup{GroupName: mg.GroupName, SessionID: sessionObj.ID}).FirstOrCreate(&mg).Error; err != nil {
+			return err
+		}
+
+		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
+			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
+			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
+			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
+			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
+		} {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          key.String(),
+				Value:         value,
+			})
+		}
+		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
+			modelInputs.NetworkRequestAttributeURL:       re.Name,
+			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
+			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
+		} {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          key.String(),
+				Category:      value,
+			})
+		}
+		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+			return err
 		}
 	}
 	return nil
