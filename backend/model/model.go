@@ -692,11 +692,11 @@ type MessagesObject struct {
 }
 
 type Metric struct {
-	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index;not null;"`
-	MetricGroupID int       `gorm:"index;"`
+	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	MetricGroupID int       `gorm:"index"`
 	Name          string    `gorm:"index;not null;"`
-	Value         float64   `gorm:"index;"`
-	Category      string    `gorm:"index;"`
+	Value         float64   `gorm:"index"`
+	Category      string    `gorm:"index"`
 }
 
 type MetricGroup struct {
