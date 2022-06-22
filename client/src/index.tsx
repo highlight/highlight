@@ -50,7 +50,7 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { MetricType, ReplayEventsInput } from './graph/generated/schemas';
+import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -690,8 +690,8 @@ export class Highlight {
                                     value: deviceDetails.deviceMemory,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    type: MetricType.Device,
-                                    url: window.location.href,
+                                    category: "Device",
+                                    group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
                             ],
@@ -857,8 +857,8 @@ export class Highlight {
                                     value,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    type: MetricType.WebVital,
-                                    url: window.location.href,
+                                    category: "WebVital",
+                                    group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
                             ],

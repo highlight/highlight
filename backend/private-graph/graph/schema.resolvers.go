@@ -198,7 +198,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 }
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
-	return obj.Type.String(), nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -2828,6 +2828,9 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 }
 
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
+	const RequestAccessMinimumDelay = time.Minute * 10
+
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
@@ -2858,7 +2861,6 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		LastRequestedWorkspace: workspace.ID,
 	}
 
-	const RequestAccessMinimumDelay = time.Minute * 10
 	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
 		Columns: []clause.Column{{Name: "admin_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
@@ -2915,6 +2917,65 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
 	}
 	return &enabled, nil
+}
+
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return -1, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+		return -1, err
+	}
+
+	var dashboard *model.Dashboard = &model.Dashboard{ProjectID: projectID}
+	if id != nil {
+		if err := r.DB.Preload("Metrics").Where(&model.Dashboard{Model: model.Model{ID: *id}}).FirstOrCreate(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	} else {
+		if err := r.DB.Create(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	}
+
+	for _, m := range dashboard.Metrics {
+		if m != nil {
+			if err := r.DB.Delete(&m).Error; err != nil {
+				return -1, err
+			}
+		}
+	}
+	if err := r.DB.Model(&dashboard).Association("Metrics").Clear(); err != nil {
+		return -1, e.Wrap(err, "failed to clear previous metrics")
+	}
+
+	for _, m := range metrics {
+		dashboardMetric := model.DashboardMetric{
+			Name:                     m.Name,
+			Description:              m.Description,
+			ChartType:                m.ChartType,
+			MaxGoodValue:             m.MaxGoodValue,
+			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
+			PoorValue:                m.PoorValue,
+			Units:                    m.Units,
+			HelpArticle:              m.HelpArticle,
+		}
+		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
+			return -1, e.Wrap(err, "error updating fields")
+		}
+	}
+
+	// Update the existing record if it already exists
+	dashboard.Name = name
+	dashboard.LastAdminToEditID = &admin.ID
+	dashboard.Layout = layout
+	if err := r.DB.Save(&dashboard).Error; err != nil {
+		return dashboard.ID, err
+	}
+
+	return dashboard.ID, nil
 }
 
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
@@ -3450,13 +3511,16 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	webVitalNames := []string{
+		"CLS", "FCP", "FID", "LCP", "TTFB",
+	}
 	webVitals := []*model.Metric{}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return webVitals, nil
 	}
 
-	if err := r.DB.Where(&model.Metric{Type: "WebVital", SessionID: s.ID}).Find(&webVitals).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name in ?`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
 		log.Error(err)
 		return webVitals, nil
 	}
@@ -5056,50 +5120,230 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return details, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, metricType *modelInputs.MetricType, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	payload := []*modelInputs.DashboardPayload{}
+func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int) ([]*modelInputs.DashboardDefinition, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return payload, nil
+		return nil, err
 	}
 
-	resMins := 60
-	if params.ResolutionMinutes != nil {
-		resMins = *params.ResolutionMinutes
+	var dashboards []*model.Dashboard
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+		return nil, err
 	}
-	tz := "PDT"
-	if params.Timezone != nil {
-		tz = *params.Timezone
+
+	var results []*modelInputs.DashboardDefinition
+	for _, d := range dashboards {
+		var metrics []*modelInputs.DashboardMetricConfig
+		for _, metric := range d.Metrics {
+			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
+				Name:                     metric.Name,
+				Description:              metric.Description,
+				ChartType:                metric.ChartType,
+				MaxGoodValue:             metric.MaxGoodValue,
+				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
+				PoorValue:                metric.PoorValue,
+				Units:                    metric.Units,
+				HelpArticle:              metric.HelpArticle,
+			})
+		}
+		results = append(results, &modelInputs.DashboardDefinition{
+			ID:                d.ID,
+			UpdatedAt:         d.UpdatedAt,
+			ProjectID:         d.ProjectID,
+			Name:              d.Name,
+			Metrics:           metrics,
+			LastAdminToEditID: d.LastAdminToEditID,
+			Layout:            d.Layout,
+		})
 	}
-	extraFilter := ""
-	if metricType != nil {
-		extraFilter = fmt.Sprintf("AND type = '%s'\n", metricType.String())
+	return results, nil
+}
+
+func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
 	}
-	query := fmt.Sprintf(`
-		SELECT to_timestamp(cast(extract(
-				       EPOCH FROM created_at AT TIME ZONE '%s'
-				   ) / 60 / %d AS INT) * %d * 60)::timestamp AT TIME ZONE '%s'               as date,
-			   avg(value)                                                                    as avg,
-			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
-			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value)                           as p90,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value)                           as p99
-		  FROM metrics
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?
-			%s
-		  GROUP BY date;
-	`, tz, resMins, resMins, tz, extraFilter)
-	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+
+	var payload []string
+	if err := r.DB.Raw(`
+		SELECT DISTINCT name
+		FROM metrics
+		INNER JOIN metric_groups mg on mg.id = metric_group_id
+		WHERE project_id = ?
+		  AND name ILIKE ?; 
+	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
 		log.Error(err)
-		return payload, nil
+		return nil, err
 	}
 
 	return payload, nil
 }
 
-func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+	payload := []*modelInputs.DashboardPayload{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, err
+	}
+
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
+
+	resMins := 60
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
+		resMins = *params.ResolutionMinutes
+	}
+	timelineStart := params.DateRange.StartDate
+	timelineEnd := params.DateRange.EndDate
+
+	query := `
+		SELECT g.n                                                                               as date,
+			   avg(value / ?)                                                                    as avg,
+			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value / ?)                           as p50,
+			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value / ?)                           as p75,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?)                           as p90,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?)                           as p99
+		  FROM generate_series(?::timestamptz, ?::timestamptz, (? * INTERVAL '1 MINUTE')::interval) g(n)
+			LEFT JOIN metrics m on m.created_at >= g.n AND m.created_at < g.n + ? * INTERVAL '1 MINUTE'
+			LEFT JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?
+		  GROUP BY date
+		  ORDER BY date;
+	`
+	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+		return payload, err
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
+
+	scan := struct {
+		Min float64
+		Max float64
+		P10 float64
+		P90 float64
+		P95 float64
+		P99 float64
+	}{}
+	query := `
+		SELECT min(value) / ? as min, max(value) / ? as max,
+			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value / ?) as p10,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90,
+			   percentile_cont(0.95) WITHIN GROUP (ORDER BY value / ?) as p95,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?) as p99
+		  FROM metrics
+		  INNER JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?;
+	`
+	if err := r.DB.Raw(query, div, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
+		return nil, err
+	}
+
+	numBuckets := 10
+	if params.Buckets != nil {
+		numBuckets = *params.Buckets
+	}
+	// TODO(vkorolik) pass this from UI
+	histogramMax := scan.P90
+	histogramMin := scan.Min
+	interval := (histogramMax - histogramMin) / float64(numBuckets)
+	if interval == 0. {
+		interval = 1
+	}
+
+	var buckets []struct {
+		Start float64
+		End   float64
+		Count int
+	}
+	query = `
+		SELECT g.n as start,
+			   g.n + ? as end,
+			   count(metrics.value)
+		  FROM generate_series(?::numeric, ?::numeric, ?::numeric) g(n)
+				LEFT JOIN metrics on metrics.value / ? >= g.n AND metrics.value / ? < g.n + ?
+				LEFT JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name is null OR (name=? AND project_id=? AND created_at >= ? AND created_at <= ?)
+		  GROUP BY start
+		  ORDER BY start;
+	`
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.MetricsHistogram", tracer.ResourceName("db.queryHistogram"))
+	histogramQuerySpan.SetTag("projectID", projectID)
+	histogramQuerySpan.SetTag("metricName", metricName)
+	histogramQuerySpan.SetTag("buckets", params.Buckets)
+	tx := r.DB.Raw(query, interval, histogramMin, histogramMax, interval, div, div, interval, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	histogramQuerySpan.Finish()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	var payloadBuckets []*modelInputs.HistogramBucket
+	for i, b := range buckets {
+		payloadBuckets = append(payloadBuckets, &modelInputs.HistogramBucket{
+			Bucket:     float64(i),
+			RangeStart: b.Start,
+			RangeEnd:   b.End,
+			Count:      b.Count,
+		})
+	}
+	return &modelInputs.HistogramPayload{
+		Buckets: payloadBuckets,
+		Min:     scan.Min,
+		Max:     scan.Max,
+		P10:     scan.P10,
+		P90:     scan.P90,
+		P95:     scan.P95,
+		P99:     scan.P99,
+	}, nil
+}
+
+func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var buckets []*modelInputs.CategoryHistogramBucket
+	if err := r.DB.Raw(`
+		SELECT m.category as category,
+			   count(m.category) as count
+		FROM metrics m
+			INNER JOIN metric_groups mg on m.metric_group_id = mg.id
+		WHERE mg.project_id = ?
+		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
+		  AND m.created_at <= NOW()
+		  AND m.name = ?
+		GROUP BY category
+		HAVING count(m.category) > 1
+		ORDER BY count desc
+		LIMIT 50;
+	`, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
+}
+
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
 	payload := []*modelInputs.MetricPreview{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -5134,7 +5378,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	return payload, nil
 }
 
-func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model.MetricMonitor, error) {
 	metricMonitors := []*model.MetricMonitor{}
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5142,7 +5386,11 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 		return metricMonitors, nil
 	}
 
-	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+	query := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID)
+	if metricName != nil && *metricName != "" {
+		query = query.Where("metric_to_monitor = ?", *metricName)
+	}
+	if err := query.Find(&metricMonitors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitors")
 	}
 	return metricMonitors, nil
@@ -5258,11 +5506,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	var deviceMemory *int
 	metric := &model.Metric{}
 
-	if err := r.DB.Model(&model.Metric{}).Where(&model.Metric{
-		Type:      modelInputs.MetricTypeDevice,
-		Name:      "DeviceMemory",
-		SessionID: obj.ID,
-	}).First(&metric).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name = ?`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			log.Error(err)
 		}

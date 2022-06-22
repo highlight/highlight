@@ -1,9 +1,9 @@
 import Card from '@components/Card/Card';
 import { useCreateMetricMonitorMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { DashboardMetricConfig } from '@graph/schemas';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import message from 'antd/lib/message';
@@ -32,13 +32,11 @@ const NewMonitorPage = ({
     const { slackUrl, loading } = useAlertsContext();
     const history = useHistory();
     const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
-        (newMonitorTypeSearchParam &&
-            newMonitorTypeSearchParam in WEB_VITALS_CONFIGURATION &&
-            newMonitorTypeSearchParam) ||
-            'LCP'
+        newMonitorTypeSearchParam || 'LCP'
     );
-    const [config, setConfig] = useState<MetricConfig>(
-        WEB_VITALS_CONFIGURATION[metricToMonitorName]
+    const [config, setConfig] = useState<DashboardMetricConfig>(
+        WEB_VITALS_CONFIGURATION[metricToMonitorName] ||
+            WEB_VITALS_CONFIGURATION['LCP']
     );
     const [monitorName, setMonitorName] = useState('New Monitor');
     const [functionName, setFunctionName] = useState<string>('p90');
@@ -73,7 +71,7 @@ const NewMonitorPage = ({
 
     useEffect(() => {
         if (config) {
-            setThreshold(config.maxGoodValue);
+            setThreshold(config.max_good_value);
         }
     }, [config]);
 

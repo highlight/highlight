@@ -12,11 +12,13 @@ type Props = Pick<
 > & {
     size?: 'small' | 'medium' | 'large';
     hideArrow?: boolean;
+    onClick?: () => void;
 };
 
 const InfoTooltip = ({
     size = 'small',
     hideArrow = false,
+    onClick,
     ...props
 }: Props) => {
     if (props.title == undefined) {
@@ -32,6 +34,7 @@ const InfoTooltip = ({
             mouseEnterDelay={0}
         >
             <SvgInformationIcon
+                onClick={onClick}
                 className={classNames(styles.icon, {
                     [styles.medium]: size === 'medium',
                     [styles.large]: size === 'large',

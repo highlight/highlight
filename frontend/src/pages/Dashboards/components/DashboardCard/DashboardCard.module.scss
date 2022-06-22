@@ -15,7 +15,6 @@
     height: 21px;
     justify-content: center;
     margin-bottom: var(--size-medium);
-    margin-right: -8px;
 
     &.isEditing {
         margin-right: -4px;
@@ -34,8 +33,74 @@
     align-items: center;
     display: flex;
     justify-content: space-between;
+    overflow-x: hidden;
 
     > button {
         margin-bottom: var(--size-medium);
     }
+}
+
+.button {
+    justify-content: center;
+}
+
+.infoTooltip {
+    margin-left: var(--size-xxSmall);
+}
+
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+    margin-top: var(--size-xLarge);
+
+    > * {
+        width: 50%;
+    }
+
+    .button {
+        justify-content: center;
+    }
+}
+
+.description {
+    color: var(--color-gray-500) !important;
+    margin-top: 0 !important;
+}
+
+.chartButtons {
+    display: flex;
+    justify-content: space-between;
+    padding-right: var(--size-xSmall);
+    padding-top: var(--size-small);
+    width: 225px;
+
+    button {
+        height: var(--size-xLarge);
+        padding: var(--size-small);
+    }
+
+    ul li {
+        height: var(--size-xLarge);
+        padding: var(--size-small);
+    }
+}
+
+.monitorItem {
+    align-items: center;
+    border: 1px solid var(--color-gray-400);
+    border-radius: var(--border-radius);
+    column-gap: var(--size-xxSmall) !important;
+    display: flex;
+    height: var(--size-xLarge);
+    margin: 0 !important;
+    width: 131px;
+}
+
+.monitorName {
+    display: inline-block;
+    line-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 70px;
 }

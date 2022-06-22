@@ -1,0 +1,24 @@
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+    margin-top: var(--size-xLarge);
+
+    > * {
+        width: 50%;
+    }
+
+    .button {
+        justify-content: center;
+    }
+}
+
+.description {
+    color: var(--color-gray-500) !important;
+    margin-top: 0 !important;
+}
+
+
+.name {
+    flex-grow: 1;
+    margin-left: var(--size-medium);
+}

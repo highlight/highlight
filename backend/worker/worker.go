@@ -372,7 +372,7 @@ func (w *Worker) PublicWorker() {
 	}
 
 	parallelWorkers := 16
-	workerPrefetch := 16
+	workerPrefetch := 4
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
@@ -425,17 +425,30 @@ func (w *Worker) DeleteCompletedSessions() {
 	}
 }
 
-// DeleteOldMetrics will delete any metrics that are older than 30 days.
+// DeleteOldMetrics will delete any metrics that are older than N days.
 func (w *Worker) DeleteOldMetrics() {
 	const expirationDays = 30
 
 	deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
+		tracer.ResourceName("worker.deleteNetworkRequests"), tracer.Tag("expirationDays", expirationDays))
+	if err := w.Resolver.DB.Exec(`
+		DELETE FROM network_requests n
+		       USING metrics m
+		       WHERE n.id = m.request_id
+					AND m.category != 'WebVital' AND m.category != 'Device'
+					AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
+`, expirationDays).Error; err != nil {
+		log.Error(e.Wrap(err, "error deleting expired metrics"))
+	}
+	deleteSpan.Finish()
+
+	deleteSpan, _ = tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
 		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
 	if err := w.Resolver.DB.Exec(`
 		DELETE FROM metrics m
-		WHERE m.type != ? AND m.type != ?
+		WHERE m.category != 'WebVital' AND m.category != 'Device'
 		AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, publicModel.MetricTypeWebVital, publicModel.MetricTypeDevice, expirationDays).Error; err != nil {
+`, expirationDays).Error; err != nil {
 		log.Error(e.Wrap(err, "error deleting expired metrics"))
 	}
 	deleteSpan.Finish()
@@ -904,7 +917,7 @@ func (w *Worker) Start() {
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 			defer cancel()
 
 			errs := make(chan error, 1)

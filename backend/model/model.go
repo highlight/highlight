@@ -154,9 +154,12 @@ var Models = []interface{}{
 	&AlertEvent{},
 	&RegistrationData{},
 	&Metric{},
+	&MetricGroup{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
+	&Dashboard{},
+	&DashboardMetric{},
 }
 
 func init() {
@@ -294,10 +297,24 @@ type RegistrationData struct {
 
 type Dashboard struct {
 	Model
-	ProjectID         int
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	LastAdminToEditID *int
 	Layout            *string
-	Name              *string
-	LastAdminToEditID int
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+}
+
+type DashboardMetric struct {
+	Model
+	DashboardID              int `gorm:"index;not null;"`
+	Name                     string
+	ChartType                modelInputs.DashboardChartType
+	Description              string
+	MaxGoodValue             float64
+	MaxNeedsImprovementValue float64
+	PoorValue                float64
+	Units                    string
+	HelpArticle              string
 }
 
 type SlackChannel struct {
@@ -675,13 +692,19 @@ type MessagesObject struct {
 }
 
 type Metric struct {
-	Model
-	SessionID int                    `gorm:"index;not null;"`
-	ProjectID int                    `gorm:"index;not null;"`
-	Type      modelInputs.MetricType `gorm:"index;not null;"`
-	Name      string                 `gorm:"index;not null;"`
-	Value     float64
-	RequestID *string // From X-Highlight-Request header
+	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	MetricGroupID int       `gorm:"index"`
+	Name          string    `gorm:"index;not null;"`
+	Value         float64   `gorm:"index"`
+	Category      string    `gorm:"index"`
+}
+
+type MetricGroup struct {
+	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string    // index with session_id
+	SessionID int       // index with Name
+	ProjectID int       `gorm:"index;not null;"`
+	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
@@ -1112,13 +1135,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 		BEGIN
 			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
+				(select * from pg_indexes where indexname = 'idx_metric_groups_name_session')
 			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_metric_groups_name_session ON metric_groups (group_name, session_id);
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
+		return nil, e.Wrap(err, "Error creating idx_metric_groups_name_session")
 	}
 
 	if err := DB.Exec(`

@@ -200,13 +200,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export enum MetricType {
-    WebVital = 'WebVital',
-    Device = 'Device',
-    Backend = 'Backend',
-    Frontend = 'Frontend',
-}
-
 export enum AdminRole {
     Admin = 'ADMIN',
     Member = 'MEMBER',
@@ -434,6 +427,28 @@ export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
+    units?: Maybe<Scalars['String']>;
+};
+
+export type HistogramParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+    buckets?: Maybe<Scalars['Int']>;
+    units?: Maybe<Scalars['String']>;
+};
+
+export enum NetworkRequestAttribute {
+    Method = 'method',
+    Url = 'url',
+    BodySize = 'body_size',
+    ResponseSize = 'response_size',
+    Status = 'status',
+    Latency = 'latency',
+    RequestId = 'request_id',
+}
+
+export type NetworkHistogramParamsInput = {
+    lookback_days?: Maybe<Scalars['Int']>;
+    attribute?: Maybe<NetworkRequestAttribute>;
 };
 
 export type SearchParams = {
@@ -730,7 +745,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
-    ThresholdWindow: Scalars['Int'];
+    ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     ExcludeRules: Array<Maybe<Scalars['String']>>;
@@ -771,6 +786,75 @@ export type DashboardPayload = {
     p75: Scalars['Float'];
     p90: Scalars['Float'];
     p99: Scalars['Float'];
+};
+
+export type HistogramBucket = {
+    __typename?: 'HistogramBucket';
+    bucket: Scalars['Float'];
+    range_start: Scalars['Float'];
+    range_end: Scalars['Float'];
+    count: Scalars['Int'];
+};
+
+export type HistogramPayload = {
+    __typename?: 'HistogramPayload';
+    buckets: Array<HistogramBucket>;
+    min: Scalars['Float'];
+    max: Scalars['Float'];
+    p10: Scalars['Float'];
+    p90: Scalars['Float'];
+    p95: Scalars['Float'];
+    p99: Scalars['Float'];
+};
+
+export type CategoryHistogramBucket = {
+    __typename?: 'CategoryHistogramBucket';
+    category: Scalars['String'];
+    count: Scalars['Int'];
+};
+
+export type CategoryHistogramPayload = {
+    __typename?: 'CategoryHistogramPayload';
+    buckets: Array<CategoryHistogramBucket>;
+};
+
+export enum DashboardChartType {
+    Timeline = 'Timeline',
+    Histogram = 'Histogram',
+}
+
+export type DashboardMetricConfigInput = {
+    name: Scalars['String'];
+    description: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+    chart_type: DashboardChartType;
+};
+
+export type DashboardMetricConfig = {
+    __typename?: 'DashboardMetricConfig';
+    name: Scalars['String'];
+    description: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+    chart_type: DashboardChartType;
+};
+
+export type DashboardDefinition = {
+    __typename?: 'DashboardDefinition';
+    id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfig>;
+    last_admin_to_edit_id?: Maybe<Scalars['Int']>;
+    layout?: Maybe<Scalars['String']>;
 };
 
 export type MetricPreview = {
@@ -882,7 +966,11 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
-    metrics_dashboard: Array<Maybe<DashboardPayload>>;
+    dashboard_definitions: Array<Maybe<DashboardDefinition>>;
+    suggested_metrics: Array<Scalars['String']>;
+    metrics_timeline: Array<Maybe<DashboardPayload>>;
+    metrics_histogram: HistogramPayload;
+    network_histogram: CategoryHistogramPayload;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1215,22 +1303,41 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
-export type QueryMetrics_DashboardArgs = {
+export type QueryDashboard_DefinitionsArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QuerySuggested_MetricsArgs = {
+    project_id: Scalars['ID'];
+    prefix: Scalars['String'];
+};
+
+export type QueryMetrics_TimelineArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
-    metric_type?: Maybe<MetricType>;
     params: DashboardParamsInput;
+};
+
+export type QueryMetrics_HistogramArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+    params: HistogramParamsInput;
+};
+
+export type QueryNetwork_HistogramArgs = {
+    project_id: Scalars['ID'];
+    params: NetworkHistogramParamsInput;
 };
 
 export type QueryMetric_PreviewArgs = {
     project_id: Scalars['ID'];
-    type: MetricType;
     name: Scalars['String'];
     aggregateFunction: Scalars['String'];
 };
 
 export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
+    metric_name?: Maybe<Scalars['String']>;
 };
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -1312,6 +1419,7 @@ export type Mutation = {
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
     requestAccess?: Maybe<Scalars['Boolean']>;
     modifyClearbitIntegration?: Maybe<Scalars['Boolean']>;
+    upsertDashboard: Scalars['ID'];
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1793,6 +1901,14 @@ export type MutationRequestAccessArgs = {
 export type MutationModifyClearbitIntegrationArgs = {
     workspace_id: Scalars['ID'];
     enabled: Scalars['Boolean'];
+};
+
+export type MutationUpsertDashboardArgs = {
+    id?: Maybe<Scalars['ID']>;
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfigInput>;
+    layout?: Maybe<Scalars['String']>;
 };
 
 export type Subscription = {
