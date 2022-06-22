@@ -745,7 +745,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		errorAsJson := interface{}(nil)
 		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
 			var project model.Project
-			if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			if err := r.DB.Where("project_id = ?", projectID).First(&project).Error; err != nil {
 				return nil, e.Wrap(err, "error querying project")
 			}
 
