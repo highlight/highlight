@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible';
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
@@ -38,6 +39,8 @@ const StackTraceSection = ({
     compact = false,
     errorObject,
 }: Props) => {
+    const { isHighlightAdmin } = useAuthContext();
+
     const structuredStackTrace =
         errorGroup?.structured_stack_trace ??
         errorObject?.structured_stack_trace;
@@ -95,7 +98,7 @@ const StackTraceSection = ({
                             </>
                         }
                     />
-                    {errorGroup && (
+                    {isHighlightAdmin && errorGroup && (
                         <StackTraceSourcemaps errorGroup={errorGroup} />
                     )}
                 </>
