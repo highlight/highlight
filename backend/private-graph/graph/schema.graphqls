@@ -172,13 +172,6 @@ enum ErrorState {
     IGNORED
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-    Frontend
-}
-
 enum AdminRole {
     ADMIN
     MEMBER
@@ -387,6 +380,28 @@ input DashboardParamsInput {
     date_range: DateRangeInput
     resolution_minutes: Int
     timezone: String
+    units: String
+}
+
+input HistogramParamsInput {
+    date_range: DateRangeInput
+    buckets: Int
+    units: String
+}
+
+enum NetworkRequestAttribute {
+    method
+    url
+    body_size
+    response_size
+    status
+    latency
+    request_id
+}
+
+input NetworkHistogramParamsInput {
+    lookback_days: Int
+    attribute: NetworkRequestAttribute
 }
 
 type SearchParams {
@@ -666,7 +681,7 @@ type SessionAlert {
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
-    ThresholdWindow: Int!
+    ThresholdWindow: Int
     LastAdminToEditID: ID
     Type: String!
     ExcludeRules: [String]!
@@ -703,6 +718,69 @@ type DashboardPayload {
     p75: Float!
     p90: Float!
     p99: Float!
+}
+
+type HistogramBucket {
+    bucket: Float!
+    range_start: Float!
+    range_end: Float!
+    count: Int!
+}
+
+type HistogramPayload {
+    buckets: [HistogramBucket!]!
+    min: Float!
+    max: Float!
+    p10: Float!
+    p90: Float!
+    p95: Float!
+    p99: Float!
+}
+
+type CategoryHistogramBucket {
+    category: String!
+    count: Int!
+}
+
+type CategoryHistogramPayload {
+    buckets: [CategoryHistogramBucket!]!
+}
+
+enum DashboardChartType {
+    Timeline
+    Histogram
+}
+
+input DashboardMetricConfigInput {
+    name: String!
+    description: String!
+    max_good_value: Float!
+    max_needs_improvement_value: Float!
+    poor_value: Float!
+    units: String!
+    help_article: String!
+    chart_type: DashboardChartType!
+}
+
+type DashboardMetricConfig {
+    name: String!
+    description: String!
+    max_good_value: Float!
+    max_needs_improvement_value: Float!
+    poor_value: Float!
+    units: String!
+    help_article: String!
+    chart_type: DashboardChartType!
+}
+
+type DashboardDefinition {
+    id: ID!
+    updated_at: Timestamp!
+    project_id: ID!
+    name: String!
+    metrics: [DashboardMetricConfig!]!
+    last_admin_to_edit_id: Int
+    layout: String
 }
 
 type MetricPreview {
@@ -872,19 +950,28 @@ type Query {
     api_key_to_org_id(api_key: String!): ID
     customer_portal_url(workspace_id: ID!): String!
     subscription_details(workspace_id: ID!): SubscriptionDetails!
-    metrics_dashboard(
+    dashboard_definitions(project_id: ID!): [DashboardDefinition]!
+    suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+    metrics_timeline(
         project_id: ID!
         metric_name: String!
-        metric_type: MetricType
         params: DashboardParamsInput!
     ): [DashboardPayload]!
+    metrics_histogram(
+        project_id: ID!
+        metric_name: String!
+        params: HistogramParamsInput!
+    ): HistogramPayload!
+    network_histogram(
+        project_id: ID!
+        params: NetworkHistogramParamsInput!
+    ): CategoryHistogramPayload!
     metric_preview(
         project_id: ID!
-        type: MetricType!
         name: String!
         aggregateFunction: String!
     ): [MetricPreview]!
-    metric_monitors(project_id: ID!): [MetricMonitor]!
+    metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
 }
@@ -1246,6 +1333,13 @@ type Mutation {
     ): Boolean
     requestAccess(project_id: ID!): Boolean
     modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
+    upsertDashboard(
+        id: ID
+        project_id: ID!
+        name: String!
+        metrics: [DashboardMetricConfigInput!]!
+        layout: String
+    ): ID!
 }
 
 type Subscription {

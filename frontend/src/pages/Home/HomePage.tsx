@@ -4,7 +4,18 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
+import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import {
+    useGetAdminQuery,
+    useGetDailyErrorsCountQuery,
+    useGetDailySessionsCountQuery,
+} from '@graph/hooks';
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
+import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable';
+import { dailyCountData } from '@util/dashboardCalculations';
+import { useIntegrated } from '@util/integrated';
+import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import Lottie from 'lottie-react';
@@ -25,16 +36,7 @@ import {
 } from 'recharts';
 
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
-import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
-import {
-    useGetAdminQuery,
-    useGetDailyErrorsCountQuery,
-    useGetDailySessionsCountQuery,
-} from '../../graph/generated/hooks';
 import WaitingAnimation from '../../lottie/waiting.json';
-import { dailyCountData } from '../../util/dashboardCalculations';
-import { useIntegrated } from '../../util/integrated';
-import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
@@ -135,6 +137,9 @@ const HomePage = () => {
                         <ReferrersTable />
                         <ActiveUsersTable />
                         <RageClicksForProjectTable />
+                        <HighlightGate>
+                            <TopRoutesTable />
+                        </HighlightGate>
                     </div>
                     {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>

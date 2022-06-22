@@ -14,7 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
@@ -137,18 +137,14 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).First(&session).Error; err != nil {
-		return -1, e.Wrapf(err, "error reading from sessionSecureId")
+		return -1, err
 	}
-	var backendSetupCount int64
-	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", session.ProjectID).Count(&backendSetupCount).Error; err != nil {
-		return -1, e.Wrap(err, "error querying backend_setup flag")
-	}
-	if backendSetupCount < 1 {
-		if err := r.DB.Model(&model.Project{}).Where("id = ?", session.ProjectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
-			return -1, e.Wrap(err, "error updating backend_setup flag")
-		}
-	}
-	return session.ProjectID, nil
+	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
+		Type: kafkaqueue.MarkBackendSetup,
+		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
+			ProjectID: session.ProjectID,
+		}}, strconv.Itoa(session.ID))
+	return session.ProjectID, err
 }
 
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
@@ -259,25 +255,15 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	return feedbackComment.ID, nil
 }
 
-func (r *mutationResolver) AddWebVitals(ctx context.Context, sessionID int, metric customModels.WebVitalMetricInput) (int, error) {
-	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
-	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeWebVital, metric.Name, metric.Value)
-}
-
-func (r *mutationResolver) AddDeviceMetric(ctx context.Context, sessionID int, metric customModels.DeviceMetricInput) (int, error) {
-	// TODO(vkorolik) deprecate as clients migrate to pushMetrics
-	return r.AddLegacyMetric(ctx, sessionID, customModels.MetricTypeDevice, metric.Name, metric.Value)
-}
-
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+// Mutation returns generated1.MutationResolver implementation.
+func (r *Resolver) Mutation() generated1.MutationResolver { return &mutationResolver{r} }
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+// Query returns generated1.QueryResolver implementation.
+func (r *Resolver) Query() generated1.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

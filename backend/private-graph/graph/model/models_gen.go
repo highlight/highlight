@@ -54,10 +54,52 @@ type BillingDetails struct {
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
+type CategoryHistogramBucket struct {
+	Category string `json:"category"`
+	Count    int    `json:"count"`
+}
+
+type CategoryHistogramPayload struct {
+	Buckets []*CategoryHistogramBucket `json:"buckets"`
+}
+
+type DashboardDefinition struct {
+	ID                int                      `json:"id"`
+	UpdatedAt         time.Time                `json:"updated_at"`
+	ProjectID         int                      `json:"project_id"`
+	Name              string                   `json:"name"`
+	Metrics           []*DashboardMetricConfig `json:"metrics"`
+	LastAdminToEditID *int                     `json:"last_admin_to_edit_id"`
+	Layout            *string                  `json:"layout"`
+}
+
+type DashboardMetricConfig struct {
+	Name                     string             `json:"name"`
+	Description              string             `json:"description"`
+	MaxGoodValue             float64            `json:"max_good_value"`
+	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
+	PoorValue                float64            `json:"poor_value"`
+	Units                    string             `json:"units"`
+	HelpArticle              string             `json:"help_article"`
+	ChartType                DashboardChartType `json:"chart_type"`
+}
+
+type DashboardMetricConfigInput struct {
+	Name                     string             `json:"name"`
+	Description              string             `json:"description"`
+	MaxGoodValue             float64            `json:"max_good_value"`
+	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
+	PoorValue                float64            `json:"poor_value"`
+	Units                    string             `json:"units"`
+	HelpArticle              string             `json:"help_article"`
+	ChartType                DashboardChartType `json:"chart_type"`
+}
+
 type DashboardParamsInput struct {
 	DateRange         *DateRangeInput `json:"date_range"`
 	ResolutionMinutes *int            `json:"resolution_minutes"`
 	Timezone          *string         `json:"timezone"`
+	Units             *string         `json:"units"`
 }
 
 type DashboardPayload struct {
@@ -125,6 +167,29 @@ type ErrorTrace struct {
 	LinesAfter   *string `json:"linesAfter"`
 }
 
+type HistogramBucket struct {
+	Bucket     float64 `json:"bucket"`
+	RangeStart float64 `json:"range_start"`
+	RangeEnd   float64 `json:"range_end"`
+	Count      int     `json:"count"`
+}
+
+type HistogramParamsInput struct {
+	DateRange *DateRangeInput `json:"date_range"`
+	Buckets   *int            `json:"buckets"`
+	Units     *string         `json:"units"`
+}
+
+type HistogramPayload struct {
+	Buckets []*HistogramBucket `json:"buckets"`
+	Min     float64            `json:"min"`
+	Max     float64            `json:"max"`
+	P10     float64            `json:"p10"`
+	P90     float64            `json:"p90"`
+	P95     float64            `json:"p95"`
+	P99     float64            `json:"p99"`
+}
+
 type Invoice struct {
 	AmountDue    *int64     `json:"amountDue"`
 	AmountPaid   *int64     `json:"amountPaid"`
@@ -153,6 +218,11 @@ type MetricPreview struct {
 type NamedCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
+}
+
+type NetworkHistogramParamsInput struct {
+	LookbackDays *int                     `json:"lookback_days"`
+	Attribute    *NetworkRequestAttribute `json:"attribute"`
 }
 
 type NewUsersCount struct {
@@ -273,6 +343,47 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type DashboardChartType string
+
+const (
+	DashboardChartTypeTimeline  DashboardChartType = "Timeline"
+	DashboardChartTypeHistogram DashboardChartType = "Histogram"
+)
+
+var AllDashboardChartType = []DashboardChartType{
+	DashboardChartTypeTimeline,
+	DashboardChartTypeHistogram,
+}
+
+func (e DashboardChartType) IsValid() bool {
+	switch e {
+	case DashboardChartTypeTimeline, DashboardChartTypeHistogram:
+		return true
+	}
+	return false
+}
+
+func (e DashboardChartType) String() string {
+	return string(e)
+}
+
+func (e *DashboardChartType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DashboardChartType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DashboardChartType", str)
+	}
+	return nil
+}
+
+func (e DashboardChartType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ErrorState string
 
 const (
@@ -359,48 +470,54 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type MetricType string
+type NetworkRequestAttribute string
 
 const (
-	MetricTypeWebVital MetricType = "WebVital"
-	MetricTypeDevice   MetricType = "Device"
-	MetricTypeBackend  MetricType = "Backend"
-	MetricTypeFrontend MetricType = "Frontend"
+	NetworkRequestAttributeMethod       NetworkRequestAttribute = "method"
+	NetworkRequestAttributeURL          NetworkRequestAttribute = "url"
+	NetworkRequestAttributeBodySize     NetworkRequestAttribute = "body_size"
+	NetworkRequestAttributeResponseSize NetworkRequestAttribute = "response_size"
+	NetworkRequestAttributeStatus       NetworkRequestAttribute = "status"
+	NetworkRequestAttributeLatency      NetworkRequestAttribute = "latency"
+	NetworkRequestAttributeRequestID    NetworkRequestAttribute = "request_id"
 )
 
-var AllMetricType = []MetricType{
-	MetricTypeWebVital,
-	MetricTypeDevice,
-	MetricTypeBackend,
-	MetricTypeFrontend,
+var AllNetworkRequestAttribute = []NetworkRequestAttribute{
+	NetworkRequestAttributeMethod,
+	NetworkRequestAttributeURL,
+	NetworkRequestAttributeBodySize,
+	NetworkRequestAttributeResponseSize,
+	NetworkRequestAttributeStatus,
+	NetworkRequestAttributeLatency,
+	NetworkRequestAttributeRequestID,
 }
 
-func (e MetricType) IsValid() bool {
+func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case MetricTypeWebVital, MetricTypeDevice, MetricTypeBackend, MetricTypeFrontend:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID:
 		return true
 	}
 	return false
 }
 
-func (e MetricType) String() string {
+func (e NetworkRequestAttribute) String() string {
 	return string(e)
 }
 
-func (e *MetricType) UnmarshalGQL(v interface{}) error {
+func (e *NetworkRequestAttribute) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = MetricType(str)
+	*e = NetworkRequestAttribute(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MetricType", str)
+		return fmt.Errorf("%s is not a valid NetworkRequestAttribute", str)
 	}
 	return nil
 }
 
-func (e MetricType) MarshalGQL(w io.Writer) {
+func (e NetworkRequestAttribute) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

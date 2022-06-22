@@ -1496,6 +1496,21 @@ export type ModifyClearbitIntegrationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'modifyClearbitIntegration'>;
 
+export type UpsertDashboardMutationVariables = Types.Exact<{
+    id?: Types.Maybe<Types.Scalars['ID']>;
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    metrics:
+        | Array<Types.DashboardMetricConfigInput>
+        | Types.DashboardMetricConfigInput;
+    layout?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpsertDashboardMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'upsertDashboard'
+>;
+
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -1573,12 +1588,11 @@ export type SessionPayloadFragmentFragment = {
 export type GetMetricsDashboardQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
-    metric_type?: Types.Maybe<Types.MetricType>;
     params: Types.DashboardParamsInput;
 }>;
 
 export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
-    metrics_dashboard: Array<
+    metrics_timeline: Array<
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
@@ -1588,9 +1602,44 @@ export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetMetricsHistogramQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+    params: Types.HistogramParamsInput;
+}>;
+
+export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
+    metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
+        Types.HistogramPayload,
+        'min' | 'max' | 'p10' | 'p90'
+    > & {
+            buckets: Array<
+                { __typename?: 'HistogramBucket' } & Pick<
+                    Types.HistogramBucket,
+                    'bucket' | 'range_start' | 'range_end' | 'count'
+                >
+            >;
+        };
+};
+
+export type GetNetworkHistogramQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    params: Types.NetworkHistogramParamsInput;
+}>;
+
+export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
+    network_histogram: { __typename?: 'CategoryHistogramPayload' } & {
+        buckets: Array<
+            { __typename?: 'CategoryHistogramBucket' } & Pick<
+                Types.CategoryHistogramBucket,
+                'category' | 'count'
+            >
+        >;
+    };
+};
+
 export type GetMetricPreviewQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    type: Types.MetricType;
     name: Types.Scalars['String'];
     aggregateFunction: Types.Scalars['String'];
 }>;
@@ -3568,6 +3617,22 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetMetricMonitorsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricMonitorsQuery = { __typename?: 'Query' } & {
+    metric_monitors: Array<
+        Types.Maybe<
+            { __typename?: 'MetricMonitor' } & Pick<
+                Types.MetricMonitor,
+                'id' | 'updated_at' | 'name' | 'metric_to_monitor'
+            >
+        >
+    >;
+};
+
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -3623,9 +3688,55 @@ export type GetWebVitalsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetDashboardDefinitionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
+    dashboard_definitions: Array<
+        Types.Maybe<
+            { __typename?: 'DashboardDefinition' } & Pick<
+                Types.DashboardDefinition,
+                | 'id'
+                | 'updated_at'
+                | 'project_id'
+                | 'name'
+                | 'last_admin_to_edit_id'
+                | 'layout'
+            > & {
+                    metrics: Array<
+                        { __typename?: 'DashboardMetricConfig' } & Pick<
+                            Types.DashboardMetricConfig,
+                            | 'name'
+                            | 'description'
+                            | 'max_good_value'
+                            | 'max_needs_improvement_value'
+                            | 'poor_value'
+                            | 'units'
+                            | 'help_article'
+                            | 'chart_type'
+                        >
+                    >;
+                }
+        >
+    >;
+};
+
+export type GetSuggestedMetricsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    prefix: Types.Scalars['String'];
+}>;
+
+export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'suggested_metrics'
+>;
+
 export const namedOperations = {
     Query: {
         GetMetricsDashboard: 'GetMetricsDashboard' as const,
+        GetMetricsHistogram: 'GetMetricsHistogram' as const,
+        GetNetworkHistogram: 'GetNetworkHistogram' as const,
         GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
@@ -3697,9 +3808,12 @@ export const namedOperations = {
         GenerateNewZapierAccessTokenJwt: 'GenerateNewZapierAccessTokenJwt' as const,
         GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+        GetMetricMonitors: 'GetMetricMonitors' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
         GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
         GetWebVitals: 'GetWebVitals' as const,
+        GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
+        GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
@@ -3764,6 +3878,7 @@ export const namedOperations = {
         SyncSlackIntegration: 'SyncSlackIntegration' as const,
         RequestAccess: 'RequestAccess' as const,
         ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
+        UpsertDashboard: 'UpsertDashboard' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
     Subscription: {
