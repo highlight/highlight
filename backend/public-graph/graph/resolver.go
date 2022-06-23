@@ -1522,7 +1522,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 	}
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
-		if err := r.DB.Debug().Where(&model.MetricGroup{
+		if err := r.DB.Where(&model.MetricGroup{
 			GroupName: groupName,
 			SessionID: sessionID,
 		}).Attrs(&model.MetricGroup{
@@ -2038,7 +2038,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		var mg *model.MetricGroup
-		if err := r.DB.Debug().Where(&model.MetricGroup{
+		if err := r.DB.Where(&model.MetricGroup{
 			GroupName: re.RequestResponsePairs.Request.ID,
 			SessionID: sessionObj.ID,
 		}).Attrs(&model.MetricGroup{
