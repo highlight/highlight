@@ -69,10 +69,18 @@ type EventMeta struct {
 	IsBeacon  bool
 }
 
+func (e *EventMeta) Contents() string {
+	return e.Events
+}
+
 type MessageMeta struct {
 	SessionID int
 	Messages  string
 	IsBeacon  bool
+}
+
+func (e *MessageMeta) Contents() string {
+	return e.Messages
 }
 
 type ResourceMeta struct {
@@ -81,30 +89,99 @@ type ResourceMeta struct {
 	IsBeacon  bool
 }
 
-type Processor struct {
-	DB   *gorm.DB
-	Path string
+func (e *ResourceMeta) Contents() string {
+	return e.Resources
 }
 
+type Processor struct {
+	DB *gorm.DB
+}
+
+func (s *Processor) sessionRoot(projectID int, sessionID int) string {
+	return path.Join(SharedFSDirectory, strconv.Itoa(projectID), strconv.Itoa(sessionID))
+}
+func (s *Processor) SharedFSEnabled() bool {
+	return len(SharedFSDirectory) > 0
+}
+func (s *Processor) HasSharedFSData(projectID int, sessionID int) bool {
+	_, err := os.Stat(s.sessionRoot(projectID, sessionID))
+	return err == nil
+}
 func (s *Processor) Process(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, isBeacon bool) error {
-	if len(SharedFSDirectory) > 0 {
+	if s.SharedFSEnabled() {
 		return s.processSessionPayloadSharedFS(ctx, sessionObj, events, messages, resources, isBeacon)
 	} else {
 		return s.processSessionPayloadSQL(ctx, sessionObj, events, messages, resources, isBeacon)
 	}
 }
 
-func (s *Processor) prepareFSFile(file string) ([]byte, func(), error) {
-	filePath := path.Join(s.Path, file)
+func (s *Processor) ScanSessionPayload(sessionObj *model.Session) ([]*EventMeta, []*ResourceMeta, []*MessageMeta, error) {
+	// extract json file data into events list
+	byteValue, unlock, err := s.prepareFSFile(s.sessionRoot(sessionObj.ProjectID, sessionObj.ID), EventsFile)
+	if err != nil {
+		return nil, nil, nil, e.Wrap(err, "failed to prepare fs file")
+	}
+	var eventRows []*EventMeta
+	if err := json.Unmarshal(byteValue, &eventRows); err != nil {
+		unlock()
+		return nil, nil, nil, e.Wrap(err, "failed to unmarshall local session events file")
+	}
+	unlock()
+
+	// extract json file data into events list
+	byteValue, unlock, err = s.prepareFSFile(s.sessionRoot(sessionObj.ProjectID, sessionObj.ID), MessagesFile)
+	if err != nil {
+		return nil, nil, nil, e.Wrap(err, "failed to prepare fs file")
+	}
+	var messageRows []*MessageMeta
+	if err := json.Unmarshal(byteValue, &messageRows); err != nil {
+		unlock()
+		return nil, nil, nil, e.Wrap(err, "failed to unmarshall local session events file")
+	}
+	unlock()
+
+	// extract json file data into events list
+	byteValue, unlock, err = s.prepareFSFile(s.sessionRoot(sessionObj.ProjectID, sessionObj.ID), ResourcesFile)
+	if err != nil {
+		return nil, nil, nil, e.Wrap(err, "failed to prepare fs file")
+	}
+	var resourceRows []*ResourceMeta
+	if err := json.Unmarshal(byteValue, &resourceRows); err != nil {
+		unlock()
+		return nil, nil, nil, e.Wrap(err, "failed to unmarshall local session events file")
+	}
+	unlock()
+	return eventRows, resourceRows, messageRows, nil
+}
+
+func (s *Processor) prepareFSFile(root string, file string) ([]byte, func(), error) {
+	const lockTimeout = 15 * time.Second
+	const lockPollTime = 100 * time.Millisecond
+	filePath := path.Join(root, file)
 	lockFilePath := fmt.Sprintf("%s.lock", filePath)
 	fileLock := flock.New(lockFilePath)
-	locked, err := fileLock.TryLock()
+	var locked bool
+	var err error
+	for i := 0; i < int(lockTimeout.Milliseconds()/lockPollTime.Milliseconds()); i++ {
+		locked, err = fileLock.TryLock()
+		if err == nil && locked {
+			break
+		}
+		time.Sleep(lockPollTime)
+	}
 	if err != nil || !locked {
 		return nil, nil, e.New("another worker is holding lock " + lockFilePath)
+	}
+	unlocker := func() {
+		unlockError := fileLock.Unlock()
+		if unlockError != nil {
+			log.Errorf("failed to unlock %s: %s", lockFilePath, unlockError)
+		}
 	}
 
 	f, err := os.Open(filePath)
 	if err != nil && !e.Is(err, os.ErrNotExist) {
+		unlocker()
 		return nil, nil, err
 	}
 	var byteValue []byte
@@ -112,18 +189,14 @@ func (s *Processor) prepareFSFile(file string) ([]byte, func(), error) {
 		defer f.Close()
 		byteValue, err = ioutil.ReadAll(f)
 		if err != nil {
+			unlocker()
 			return nil, nil, err
 		}
 	}
 	if byteValue == nil {
 		byteValue = []byte("[]")
 	}
-	return byteValue, func() {
-		unlockError := fileLock.Unlock()
-		if unlockError != nil {
-			log.Errorf("failed to unlock %s: %s", lockFilePath, unlockError)
-		}
-	}, nil
+	return byteValue, unlocker, nil
 }
 
 func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionObj *model.Session, events customModels.ReplayEventsInput, messages string, resources string, isBeacon bool) error {
@@ -131,12 +204,12 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 	projectID := sessionObj.ProjectID
 	sessionID := sessionObj.ID
 	hasBeacon := sessionObj.BeaconTime != nil
-	s.Path = path.Join(SharedFSDirectory, strconv.Itoa(projectID), strconv.Itoa(sessionID))
-	if err := os.MkdirAll(s.Path, 0755); err != nil {
+	root := s.sessionRoot(projectID, sessionID)
+	if err := os.MkdirAll(root, 0755); err != nil {
 		return e.Wrap(err, "failed to prepare session shared directory")
 	}
 	g.Go(func() error {
-		byteValue, unlock, err := s.prepareFSFile(EventsFile)
+		byteValue, unlock, err := s.prepareFSFile(root, EventsFile)
 		if err != nil {
 			return e.Wrap(err, "failed to prepare fs file")
 		}
@@ -202,7 +275,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 		if err != nil {
 			return e.Wrap(err, "failed to marshall local session events file")
 		}
-		if err := ioutil.WriteFile(path.Join(s.Path, EventsFile), data, 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(root, EventsFile), data, 0644); err != nil {
 			return e.Wrap(err, "failed to write local session events file")
 		}
 		// process interaction time from the new event set
@@ -214,7 +287,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 		return nil
 	})
 	g.Go(func() error {
-		byteValue, unlock, err := s.prepareFSFile(MessagesFile)
+		byteValue, unlock, err := s.prepareFSFile(root, MessagesFile)
 		if err != nil {
 			return e.Wrap(err, "failed to prepare fs file")
 		}
@@ -246,13 +319,13 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 		if err != nil {
 			return e.Wrap(err, "failed to marshall local session messages file")
 		}
-		if err := ioutil.WriteFile(path.Join(s.Path, MessagesFile), data, 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(root, MessagesFile), data, 0644); err != nil {
 			return e.Wrap(err, "failed to write local session messages file")
 		}
 		return nil
 	})
 	g.Go(func() error {
-		byteValue, unlock, err := s.prepareFSFile(ResourcesFile)
+		byteValue, unlock, err := s.prepareFSFile(root, ResourcesFile)
 		if err != nil {
 			return e.Wrap(err, "failed to prepare fs file")
 		}
@@ -289,7 +362,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 		if err != nil {
 			return e.Wrap(err, "failed to marshall local session resources file")
 		}
-		if err := ioutil.WriteFile(path.Join(s.Path, ResourcesFile), data, 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(root, ResourcesFile), data, 0644); err != nil {
 			return e.Wrap(err, "failed to write local session resources file")
 		}
 		return nil

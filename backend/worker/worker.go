@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/session"
+	"github.com/samber/lo"
 	"io"
 	"math"
 	"math/rand"
@@ -103,8 +105,8 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
-	events, err := parse.EventsFromString(eventObject.Events)
+func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject model.Object, s *model.Session) error {
+	events, err := parse.EventsFromString(eventObject.Contents())
 	if err != nil {
 		return errors.Wrap(err, "error parsing events from string")
 	}
@@ -150,50 +152,25 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
-	var eventRows *sql.Rows
+func (w *Worker) processPayloadObjects(ctx context.Context, manager *payload.PayloadManager, s *model.Session, events []model.Object, messages []model.Object, resources []model.Object) error {
 	var err error
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	// Fetch/write events.
-	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
-
-		eventRows, err = tx.Table("events_objects_partitioned").Model(&model.EventsObject{}).
-			Where(&model.EventsObject{SessionID: s.ID}).
-			Distinct("events", "substring(events, '\"timestamp\":[0-9]+') as event_time").
-			Order("event_time asc").
-			Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving events objects")
+	for _, eventObject := range events {
+		if err := eventsWriter.Write(eventObject); err != nil {
+			return errors.Wrap(err, "error writing event row")
 		}
-
-		for eventRows.Next() {
-			eventObject := model.EventsObject{}
-			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning event row")
-			}
-			if err := eventsWriter.Write(&eventObject); err != nil {
-				return errors.Wrap(err, "error writing event row")
-			}
-			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed event row")
-			}
-			numberOfRows += 1
-			if writeChunks {
-				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
-					return errors.Wrap(err, "error writing event chunk")
-				}
+		if err := manager.EventsCompressed.WriteObject(eventObject, &payload.EventsUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
+		numberOfRows += 1
+		if writeChunks {
+			if err := w.writeEventChunk(ctx, manager, eventObject, s); err != nil {
+				return errors.Wrap(err, "error writing event chunk")
 			}
 		}
-
-		return nil
-
-	}); err != nil {
-		return e.Wrap(err, "error reading events_objects")
 	}
 
 	manager.Events.Length = numberOfRows
@@ -214,22 +191,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write resources.
-	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving resources objects")
-	}
 	resourceWriter := manager.Resources.Writer()
 	numberOfRows = 0
-	for resourcesRows.Next() {
-		resourcesObject := model.ResourcesObject{}
-		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
-		if err != nil {
-			return errors.Wrap(err, "error scanning resource row")
-		}
-		if err := resourceWriter.Write(&resourcesObject); err != nil {
+	for _, resourcesObject := range resources {
+		if err := resourceWriter.Write(resourcesObject); err != nil {
 			return errors.Wrap(err, "error writing resource row")
 		}
-		if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
+		if err := manager.ResourcesCompressed.WriteObject(resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
 		numberOfRows += 1
@@ -240,22 +208,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write messages.
-	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-	if err != nil {
-		return errors.Wrap(err, "error retrieving messages objects")
-	}
-
 	numberOfRows = 0
 	messagesWriter := manager.Messages.Writer()
-	for messageRows.Next() {
-		messageObject := model.MessagesObject{}
-		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-			return errors.Wrap(err, "error scanning message row")
-		}
-		if err := messagesWriter.Write(&messageObject); err != nil {
+	for _, messageObject := range messages {
+		if err := messagesWriter.Write(messageObject); err != nil {
 			return errors.Wrap(err, "error writing messages object")
 		}
-		if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
+		if err := manager.MessagesCompressed.WriteObject(messageObject, &payload.MessagesUnmarshalled{}); err != nil {
 			return errors.Wrap(err, "error writing compressed event row")
 		}
 		numberOfRows += 1
@@ -266,6 +225,71 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	return nil
+}
+func (w *Worker) scanSessionPayload(s *model.Session) ([]*model.EventsObject, []*model.ResourcesObject, []*model.MessagesObject, error) {
+	var eventRows *sql.Rows
+	var err error
+	var events []*model.EventsObject
+	var resources []*model.ResourcesObject
+	var messages []*model.MessagesObject
+
+	// Fetch/write events.
+	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", EVENTS_READ_TIMEOUT))
+
+		eventRows, err = tx.Table("events_objects_partitioned").Model(&model.EventsObject{}).
+			Where(&model.EventsObject{SessionID: s.ID}).
+			Distinct("events", "substring(events, '\"timestamp\":[0-9]+') as event_time").
+			Order("event_time asc").
+			Rows()
+		if err != nil {
+			return errors.Wrap(err, "error retrieving events objects")
+		}
+
+		for eventRows.Next() {
+			eventObject := model.EventsObject{}
+			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+			if err != nil {
+				return errors.Wrap(err, "error scanning event row")
+			}
+			events = append(events, &eventObject)
+		}
+
+		return nil
+
+	}); err != nil {
+		return nil, nil, nil, e.Wrap(err, "error reading events_objects")
+	}
+
+	// Fetch/write resources.
+	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "error retrieving resources objects")
+	}
+	for resourcesRows.Next() {
+		resourcesObject := model.ResourcesObject{}
+		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
+		if err != nil {
+			return nil, nil, nil, errors.Wrap(err, "error scanning resource row")
+		}
+		resources = append(resources, &resourcesObject)
+	}
+
+	// Fetch/write messages.
+	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "error retrieving messages objects")
+	}
+
+	for messageRows.Next() {
+		messageObject := model.MessagesObject{}
+		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
+			return nil, nil, nil, errors.Wrap(err, "error scanning message row")
+		}
+		messages = append(messages, &messageObject)
+	}
+
+	return events, resources, messages, nil
 }
 
 func (w *Worker) processWorkerError(task *kafkaqueue.Message, err error) {
@@ -539,8 +563,27 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
-	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
-		return errors.Wrap(err, "error scanning session payload")
+	processor := session.Processor{DB: w.Resolver.DB}
+	var events, messages, resources []model.Object
+	if processor.SharedFSEnabled() && processor.HasSharedFSData(s.ProjectID, s.ID) {
+		x, y, z, err := processor.ScanSessionPayload(s)
+		if err != nil {
+			return errors.Wrap(err, "error scanning fs session payload")
+		}
+		events = lo.Map(x, func(t *session.EventMeta, _ int) model.Object { return model.Object(t) })
+		resources = lo.Map(y, func(t *session.ResourceMeta, _ int) model.Object { return model.Object(t) })
+		messages = lo.Map(z, func(t *session.MessageMeta, _ int) model.Object { return model.Object(t) })
+	} else {
+		x, y, z, err := w.scanSessionPayload(s)
+		if err != nil {
+			return errors.Wrap(err, "error scanning session payload")
+		}
+		events = lo.Map(x, func(t *model.EventsObject, _ int) model.Object { return model.Object(t) })
+		resources = lo.Map(y, func(t *model.ResourcesObject, _ int) model.Object { return model.Object(t) })
+		messages = lo.Map(z, func(t *model.MessagesObject, _ int) model.Object { return model.Object(t) })
+	}
+	if err := w.processPayloadObjects(ctx, payloadManager, s, events, messages, resources); err != nil {
+		return errors.Wrap(err, "error scanning fs session payload")
 	}
 
 	// Measure payload sizes.

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/session"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -2000,6 +2001,15 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+	processor := session.Processor{DB: r.DB}
+	if processor.SharedFSEnabled() && processor.HasSharedFSData(s.ProjectID, s.ID) {
+		ev, _, _, err := processor.ScanSessionPayload(s)
+		if err != nil {
+			return nil, errors.Wrap(err, "error scanning fs session payload"), nil
+		}
+		var events = lo.Map(ev, func(t *session.EventMeta, _ int) interface{} { return model.Object(t) })
+		return events[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(events), EventObjectIndex: nil}
+	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
