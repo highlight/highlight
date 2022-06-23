@@ -6221,7 +6221,7 @@ type ErrorSegment {
 
 type ErrorObject {
     id: ID!
-    project_id: Int!
+    project_id: ID!
     session_id: Int!
     error_group_id: Int!
     error_group_secure_id: String!
@@ -6239,7 +6239,7 @@ type ErrorObject {
 }
 
 type ErrorField {
-    project_id: Int
+    project_id: ID
     name: String!
     value: String!
 }
@@ -6248,7 +6248,7 @@ type ErrorGroup {
     created_at: Timestamp!
     id: ID!
     secure_id: String!
-    project_id: Int!
+    project_id: ID!
     type: String!
     event: [String]!
     structured_stack_trace: [ErrorTrace]!
@@ -15929,7 +15929,7 @@ func (ec *executionContext) _ErrorField_project_id(ctx context.Context, field gr
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorField_name(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
@@ -16139,7 +16139,7 @@ func (ec *executionContext) _ErrorGroup_project_id(ctx context.Context, field gr
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_type(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -16978,7 +16978,7 @@ func (ec *executionContext) _ErrorObject_project_id(ctx context.Context, field g
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
