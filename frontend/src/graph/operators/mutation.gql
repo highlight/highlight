@@ -148,6 +148,7 @@ mutation EditProject(
     $name: String
     $billing_email: String
     $excluded_users: StringArray
+    $error_json_paths: StringArray
     $rage_click_window_seconds: Int
     $rage_click_radius_pixels: Int
     $rage_click_count: Int
@@ -157,6 +158,7 @@ mutation EditProject(
         name: $name
         billing_email: $billing_email
         excluded_users: $excluded_users
+        error_json_paths: $error_json_paths
         rage_click_window_seconds: $rage_click_window_seconds
         rage_click_radius_pixels: $rage_click_radius_pixels
         rage_click_count: $rage_click_count
@@ -165,6 +167,7 @@ mutation EditProject(
         name
         billing_email
         excluded_users
+        error_json_paths
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count

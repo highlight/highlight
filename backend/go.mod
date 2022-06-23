@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
+	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.3
 	github.com/aws/aws-sdk-go-v2 v1.9.2
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
@@ -54,7 +55,11 @@ require (
 	gorm.io/gorm v1.21.9
 )
 
-require github.com/mattn/go-isatty v0.0.14 // indirect
+require (
+	github.com/PaesslerAG/gval v1.2.0 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
+)
 
 require (
 	cloud.google.com/go v0.65.0 // indirect

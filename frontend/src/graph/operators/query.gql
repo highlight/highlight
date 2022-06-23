@@ -790,6 +790,7 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        error_json_paths
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count

@@ -1,3 +1,4 @@
+import { ErrorSettingsForm } from '@pages/WorkspaceSettings/ErrorSettingsForm/ErrorSettingsForm';
 import { RageClicksForm } from '@pages/WorkspaceSettings/RageClicksForm/RageClicksForm';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -28,6 +29,10 @@ const ProjectSettings = () => {
                 <div className={styles.fieldsBox}>
                     <h3>Excluded Sessions</h3>
                     <ExcludedUsersForm />
+                </div>
+                <div className={styles.fieldsBox}>
+                    <h3>Error Grouping</h3>
+                    <ErrorSettingsForm />
                 </div>
                 <div className={styles.fieldsBox}>
                     <h3>Rage Clicks</h3>
