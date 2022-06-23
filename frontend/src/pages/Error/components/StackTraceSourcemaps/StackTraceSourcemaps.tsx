@@ -1,25 +1,26 @@
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
+import { Maybe } from '@graph/schemas';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
 import styles from './StackTraceSourcemaps.module.scss';
 
 interface Props {
-    errorGroup: any;
+    filePath?: Maybe<string>;
 }
 
-const StackTraceSourcemaps = ({ errorGroup }: Props) => {
+const StackTraceSourcemaps = ({ filePath }: Props) => {
+    const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetSourcemapFilesQuery({
         variables: {
-            // TODO(ccshmitz): Is there anything else we can do to avoid this type mismatch?
-            project_id: errorGroup.project_id.toString(),
+            project_id,
         },
     });
 
-    if (loading || !data?.sourcemap_files.length) {
+    if (loading || !filePath || !data?.sourcemap_files.length) {
         return null;
     }
 
-    const filePath = errorGroup.structured_stack_trace[0]?.fileName;
     const fileUrl = new URL(filePath);
     const filePathname = fileUrl.pathname;
 

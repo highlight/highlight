@@ -98,8 +98,10 @@ const StackTraceSection = ({
                             </>
                         }
                     />
-                    {isHighlightAdmin && errorGroup && (
-                        <StackTraceSourcemaps errorGroup={errorGroup} />
+                    {isHighlightAdmin && structuredStackTrace?.length && (
+                        <StackTraceSourcemaps
+                            filePath={structuredStackTrace[0]?.fileName}
+                        />
                     )}
                 </>
             )}
