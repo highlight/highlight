@@ -1,6 +1,5 @@
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
 import { Maybe } from '@graph/schemas';
-import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
 import styles from './StackTraceSourcemaps.module.scss';
@@ -10,10 +9,28 @@ interface Props {
 }
 
 const StackTraceSourcemaps = ({ filePath }: Props) => {
-    const { project_id } = useParams<{ project_id: string }>();
+    // const { project_id } = useParams<{ project_id: string }>();
+    const [versions, setVersions] = React.useState<string[]>([]);
+    const [selectedVersion, setSelectedVersion] = React.useState<string>('');
     const { data, loading } = useGetSourcemapFilesQuery({
         variables: {
-            project_id,
+            project_id: '726',
+        },
+        onCompleted: (data) => {
+            if (!data?.sourcemap_files.length) {
+                return;
+            }
+
+            data.sourcemap_files.forEach((file) => {
+                const version = file.key?.split('/')[1];
+
+                if (version && versions.indexOf(version) === -1) {
+                    return setVersions([...versions, version]);
+                }
+            });
+
+            setVersions(versions);
+            setSelectedVersion(versions[0]);
         },
     });
 
@@ -23,6 +40,9 @@ const StackTraceSourcemaps = ({ filePath }: Props) => {
 
     const fileUrl = new URL(filePath);
     const filePathname = fileUrl.pathname;
+    const visibleFiles = data.sourcemap_files.filter(
+        (file) => !selectedVersion || file.key?.startsWith(selectedVersion)
+    );
 
     return (
         <div className={styles.container}>
@@ -49,9 +69,25 @@ const StackTraceSourcemaps = ({ filePath }: Props) => {
                 for your project.
             </p>
 
+            {versions.length > 1 && (
+                <div>
+                    <p>Filter to a specific version</p>
+
+                    <select
+                        onChange={(e) => setSelectedVersion(e.target.value)}
+                    >
+                        {versions.map((version) => (
+                            <option key={version} value={version}>
+                                {version}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
             <div className={styles.list}>
                 <ul>
-                    {data?.sourcemap_files.map((file) => (
+                    {visibleFiles.map((file) => (
                         <li key={file.key}>{file.key}</li>
                     ))}
                 </ul>
