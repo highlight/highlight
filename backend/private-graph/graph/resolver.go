@@ -2001,15 +2001,6 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
-	processor := session.Processor{DB: r.DB}
-	if processor.SharedFSEnabled() && processor.HasSharedFSData(s.ProjectID, s.ID) {
-		ev, _, _, err := processor.ScanSessionPayload(s)
-		if err != nil {
-			return nil, errors.Wrap(err, "error scanning fs session payload"), nil
-		}
-		var events = lo.Map(ev, func(t *session.EventMeta, _ int) interface{} { return model.Object(t) })
-		return events[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(events), EventObjectIndex: nil}
-	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2020,23 +2011,33 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 		}
 		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
 	}
-	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
-	eventObjs := []*model.EventsObject{}
 	offset := 0
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from events"), nil
+	processor := session.Processor{DB: r.DB}
+	var eventObjs []model.Object
+	if processor.SharedFSEnabled() && processor.HasSharedFSData(s.ProjectID, s.ID) {
+		ev, _, _, err := processor.ScanSessionPayload(s)
+		if err != nil {
+			return nil, errors.Wrap(err, "error scanning fs session payload"), nil
+		}
+		filtered := lo.Filter(ev, func(v *session.EventMeta, _ int) bool { return !v.IsBeacon && v.ID > offset })
+		eventObjs = lo.Map(filtered, func(t *session.EventMeta, _ int) model.Object { return model.Object(t) })
+	} else {
+		eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
+		if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
+			return nil, e.Wrap(err, "error reading from events"), nil
+		}
+		eventsQuerySpan.Finish()
 	}
-	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
 	allEvents := make([]interface{}, 0)
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
+		if err := json.Unmarshal([]byte(eventObj.Contents()), &subEvents); err != nil {
 			return nil, e.Wrap(err, "error decoding event data"), nil
 		}
 		allEvents = append(allEvents, subEvents["events"]...)

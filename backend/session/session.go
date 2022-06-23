@@ -64,6 +64,7 @@ type NetworkResource struct {
 }
 
 type EventMeta struct {
+	ID        int
 	SessionID int
 	Events    string
 	IsBeacon  bool
@@ -265,6 +266,7 @@ func (s *Processor) processSessionPayloadSharedFS(ctx context.Context, sessionOb
 			return e.Wrap(err, "error marshaling events from schema interfaces")
 		}
 		eventRows = append(eventRows, &EventMeta{
+			ID:        len(eventRows),
 			SessionID: sessionID,
 			Events:    string(b),
 			IsBeacon:  isBeacon,
