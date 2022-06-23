@@ -200,12 +200,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export enum MetricType {
-    WebVital = 'WebVital',
-    Device = 'Device',
-    Backend = 'Backend',
-}
-
 export enum AdminRole {
     Admin = 'ADMIN',
     Member = 'MEMBER',
@@ -225,6 +219,7 @@ export type Project = {
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
     excluded_users?: Maybe<Scalars['StringArray']>;
+    error_json_paths?: Maybe<Scalars['StringArray']>;
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
@@ -428,6 +423,28 @@ export type DashboardParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
+    units?: Maybe<Scalars['String']>;
+};
+
+export type HistogramParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+    buckets?: Maybe<Scalars['Int']>;
+    units?: Maybe<Scalars['String']>;
+};
+
+export enum NetworkRequestAttribute {
+    Method = 'method',
+    Url = 'url',
+    BodySize = 'body_size',
+    ResponseSize = 'response_size',
+    Status = 'status',
+    Latency = 'latency',
+    RequestId = 'request_id',
+}
+
+export type NetworkHistogramParamsInput = {
+    lookback_days?: Maybe<Scalars['Int']>;
+    attribute?: Maybe<NetworkRequestAttribute>;
 };
 
 export type SearchParams = {
@@ -724,7 +741,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
-    ThresholdWindow: Scalars['Int'];
+    ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
     ExcludeRules: Array<Maybe<Scalars['String']>>;
@@ -765,6 +782,75 @@ export type DashboardPayload = {
     p75: Scalars['Float'];
     p90: Scalars['Float'];
     p99: Scalars['Float'];
+};
+
+export type HistogramBucket = {
+    __typename?: 'HistogramBucket';
+    bucket: Scalars['Float'];
+    range_start: Scalars['Float'];
+    range_end: Scalars['Float'];
+    count: Scalars['Int'];
+};
+
+export type HistogramPayload = {
+    __typename?: 'HistogramPayload';
+    buckets: Array<HistogramBucket>;
+    min: Scalars['Float'];
+    max: Scalars['Float'];
+    p10: Scalars['Float'];
+    p90: Scalars['Float'];
+    p95: Scalars['Float'];
+    p99: Scalars['Float'];
+};
+
+export type CategoryHistogramBucket = {
+    __typename?: 'CategoryHistogramBucket';
+    category: Scalars['String'];
+    count: Scalars['Int'];
+};
+
+export type CategoryHistogramPayload = {
+    __typename?: 'CategoryHistogramPayload';
+    buckets: Array<CategoryHistogramBucket>;
+};
+
+export enum DashboardChartType {
+    Timeline = 'Timeline',
+    Histogram = 'Histogram',
+}
+
+export type DashboardMetricConfigInput = {
+    name: Scalars['String'];
+    description: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+    chart_type: DashboardChartType;
+};
+
+export type DashboardMetricConfig = {
+    __typename?: 'DashboardMetricConfig';
+    name: Scalars['String'];
+    description: Scalars['String'];
+    max_good_value: Scalars['Float'];
+    max_needs_improvement_value: Scalars['Float'];
+    poor_value: Scalars['Float'];
+    units: Scalars['String'];
+    help_article: Scalars['String'];
+    chart_type: DashboardChartType;
+};
+
+export type DashboardDefinition = {
+    __typename?: 'DashboardDefinition';
+    id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfig>;
+    last_admin_to_edit_id?: Maybe<Scalars['Int']>;
+    layout?: Maybe<Scalars['String']>;
 };
 
 export type MetricPreview = {
@@ -828,7 +914,7 @@ export type Query = {
     projectHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
-    dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
+    dailyErrorFrequency: Array<Scalars['Int64']>;
     errorDistribution: Array<Maybe<ErrorDistributionItem>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
@@ -876,7 +962,11 @@ export type Query = {
     api_key_to_org_id?: Maybe<Scalars['ID']>;
     customer_portal_url: Scalars['String'];
     subscription_details: SubscriptionDetails;
-    metrics_dashboard: Array<Maybe<DashboardPayload>>;
+    dashboard_definitions: Array<Maybe<DashboardDefinition>>;
+    suggested_metrics: Array<Scalars['String']>;
+    metrics_timeline: Array<Maybe<DashboardPayload>>;
+    metrics_histogram: HistogramPayload;
+    network_histogram: CategoryHistogramPayload;
     metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
@@ -1208,21 +1298,41 @@ export type QuerySubscription_DetailsArgs = {
     workspace_id: Scalars['ID'];
 };
 
-export type QueryMetrics_DashboardArgs = {
+export type QueryDashboard_DefinitionsArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QuerySuggested_MetricsArgs = {
+    project_id: Scalars['ID'];
+    prefix: Scalars['String'];
+};
+
+export type QueryMetrics_TimelineArgs = {
     project_id: Scalars['ID'];
     metric_name: Scalars['String'];
     params: DashboardParamsInput;
 };
 
+export type QueryMetrics_HistogramArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+    params: HistogramParamsInput;
+};
+
+export type QueryNetwork_HistogramArgs = {
+    project_id: Scalars['ID'];
+    params: NetworkHistogramParamsInput;
+};
+
 export type QueryMetric_PreviewArgs = {
     project_id: Scalars['ID'];
-    type: MetricType;
     name: Scalars['String'];
     aggregateFunction: Scalars['String'];
 };
 
 export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
+    metric_name?: Maybe<Scalars['String']>;
 };
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -1300,6 +1410,7 @@ export type Mutation = {
     submitRegistrationForm?: Maybe<Scalars['Boolean']>;
     requestAccess?: Maybe<Scalars['Boolean']>;
     modifyClearbitIntegration?: Maybe<Scalars['Boolean']>;
+    upsertDashboard: Scalars['ID'];
 };
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1320,6 +1431,7 @@ export type MutationEditProjectArgs = {
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
     excluded_users?: Maybe<Scalars['StringArray']>;
+    error_json_paths?: Maybe<Scalars['StringArray']>;
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
@@ -1576,13 +1688,13 @@ export type MutationCreateMetricMonitorArgs = {
 export type MutationUpdateMetricMonitorArgs = {
     metric_monitor_id: Scalars['ID'];
     project_id: Scalars['ID'];
-    name: Scalars['String'];
-    function: Scalars['String'];
-    threshold: Scalars['Float'];
-    metric_to_monitor: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    function?: Maybe<Scalars['String']>;
+    threshold?: Maybe<Scalars['Float']>;
+    metric_to_monitor?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateErrorAlertArgs = {
@@ -1599,16 +1711,16 @@ export type MutationCreateErrorAlertArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     project_id: Scalars['ID'];
-    name: Scalars['String'];
+    name?: Maybe<Scalars['String']>;
     error_alert_id: Scalars['ID'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    regex_groups: Array<Maybe<Scalars['String']>>;
-    frequency: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    regex_groups?: Maybe<Array<Maybe<Scalars['String']>>>;
+    frequency?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationDeleteErrorAlertArgs = {
@@ -1624,13 +1736,13 @@ export type MutationDeleteMetricMonitorArgs = {
 export type MutationUpdateSessionFeedbackAlertArgs = {
     project_id: Scalars['ID'];
     session_feedback_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateSessionFeedbackAlertArgs = {
@@ -1646,25 +1758,25 @@ export type MutationCreateSessionFeedbackAlertArgs = {
 export type MutationUpdateRageClickAlertArgs = {
     project_id: Scalars['ID'];
     rage_click_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateNewUserAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    threshold_window: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateNewUserAlertArgs = {
@@ -1680,13 +1792,13 @@ export type MutationCreateNewUserAlertArgs = {
 export type MutationUpdateTrackPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    track_properties: Array<Maybe<TrackPropertyInput>>;
-    threshold_window: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    track_properties?: Maybe<Array<Maybe<TrackPropertyInput>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateTrackPropertiesAlertArgs = {
@@ -1717,26 +1829,26 @@ export type MutationDeleteSessionAlertArgs = {
 export type MutationUpdateUserPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    user_properties: Array<Maybe<UserPropertyInput>>;
-    threshold_window: Scalars['Int'];
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateNewSessionAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
-    name: Scalars['String'];
-    count_threshold: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    emails: Array<Maybe<Scalars['String']>>;
-    environments: Array<Maybe<Scalars['String']>>;
-    threshold_window: Scalars['Int'];
-    exclude_rules: Array<Maybe<Scalars['String']>>;
-    disabled: Scalars['Boolean'];
+    name?: Maybe<Scalars['String']>;
+    count_threshold?: Maybe<Scalars['Int']>;
+    slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
+    emails?: Maybe<Array<Maybe<Scalars['String']>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    threshold_window?: Maybe<Scalars['Int']>;
+    exclude_rules?: Maybe<Array<Maybe<Scalars['String']>>>;
+    disabled?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1781,6 +1893,14 @@ export type MutationRequestAccessArgs = {
 export type MutationModifyClearbitIntegrationArgs = {
     workspace_id: Scalars['ID'];
     enabled: Scalars['Boolean'];
+};
+
+export type MutationUpsertDashboardArgs = {
+    id?: Maybe<Scalars['ID']>;
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    metrics: Array<DashboardMetricConfigInput>;
+    layout?: Maybe<Scalars['String']>;
 };
 
 export type Subscription = {

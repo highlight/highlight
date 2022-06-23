@@ -56,7 +56,7 @@ query GetMetricsDashboard(
     $metric_name: String!
     $params: DashboardParamsInput!
 ) {
-    metrics_dashboard(
+    metrics_timeline(
         project_id: $project_id
         metric_name: $metric_name
         params: $params
@@ -70,15 +70,51 @@ query GetMetricsDashboard(
     }
 }
 
+query GetMetricsHistogram(
+    $project_id: ID!
+    $metric_name: String!
+    $params: HistogramParamsInput!
+) {
+    metrics_histogram(
+        project_id: $project_id
+        metric_name: $metric_name
+        params: $params
+    ) {
+        buckets {
+            bucket
+            range_start
+            range_end
+            count
+        }
+        min
+        max
+        p10
+        p90
+    }
+}
+
+query GetNetworkHistogram(
+    $project_id: ID!
+    $params: NetworkHistogramParamsInput!
+) {
+    network_histogram(
+        project_id: $project_id
+        params: $params
+    ) {
+        buckets {
+            category
+            count
+        }
+    }
+}
+
 query GetMetricPreview(
     $project_id: ID!
-    $type: MetricType!
     $name: String!
     $aggregateFunction: String!
 ) {
     metric_preview(
         project_id: $project_id
-        type: $type
         name: $name
         aggregateFunction: $aggregateFunction
     ) {
@@ -697,6 +733,10 @@ query GetProjectDropdownOptions($project_id: ID!) {
         id
         name
     }
+    joinable_workspaces {
+        id
+        name
+    }
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
@@ -709,6 +749,10 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
         }
     }
     workspaces {
+        id
+        name
+    }
+    joinable_workspaces {
         id
         name
     }
@@ -746,6 +790,7 @@ query GetProject($id: ID!) {
         verbose_id
         billing_email
         excluded_users
+        error_json_paths
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count
@@ -1366,6 +1411,15 @@ query GetAlertsPagePayload($project_id: ID!) {
     }
 }
 
+query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
+    metric_monitors(project_id: $project_id, metric_name: $metric_name) {
+        id
+        updated_at
+        name
+        metric_to_monitor
+    }
+}
+
 query GetCommentMentionSuggestions($project_id: ID!) {
     admins: workspace_admins_by_project_id(project_id: $project_id) {
         id
@@ -1400,4 +1454,29 @@ query GetWebVitals($session_secure_id: String!) {
         name
         value
     }
+}
+
+query GetDashboardDefinitions($project_id: ID!) {
+    dashboard_definitions(project_id: $project_id) {
+        id
+        updated_at
+        project_id
+        name
+        metrics {
+            name
+            description
+            max_good_value
+            max_needs_improvement_value
+            poor_value
+            units
+            help_article
+            chart_type
+        }
+        last_admin_to_edit_id
+        layout
+    }
+}
+
+query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
+    suggested_metrics(project_id: $project_id, prefix: $prefix)
 }

@@ -14,8 +14,8 @@ const RequestAccess = () => {
         <Button
             trackingId={'ErrorStateRequestAccess'}
             disabled={sentAccessRequest}
+            type={'primary'}
             onClick={async () => {
-                console.log('project_id', project_id);
                 try {
                     await requestAccess({
                         variables: { project_id: project_id },

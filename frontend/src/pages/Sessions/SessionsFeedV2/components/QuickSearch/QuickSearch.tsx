@@ -1,15 +1,13 @@
-import { LoadingOutlined } from '@ant-design/icons';
+import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import { useGetQuickFieldsOpensearchQuery } from '@graph/hooks';
 import AsyncSelect from '@highlight-run/react-select/async';
-import SvgSearchIcon from '@icons/SearchIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
-import { Spin } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -50,7 +48,7 @@ const getQueryFieldKey = (input: QuickSearchOption) => {
     return input.type.toLowerCase() + '_' + input.name.toLowerCase();
 };
 
-const styleProps: Styles<any, false> = {
+export const styleProps: Styles<any, false> = {
     ...SharedSelectStyleProps,
     option: (provided, { isFocused }) => ({
         ...provided,
@@ -454,30 +452,3 @@ const QuickSearch = () => {
 };
 
 export default QuickSearch;
-
-const DropdownIndicator = React.memo(
-    ({ isLoading }: { isLoading: boolean }) => {
-        return isLoading ? (
-            <div
-                className={classNames(
-                    styles.loadingIconContainer,
-                    styles.dropdownIndicator,
-                    styles.spinner
-                )}
-            >
-                <Spin
-                    indicator={
-                        <LoadingOutlined className={styles.loadingIcon} />
-                    }
-                />
-            </div>
-        ) : (
-            <SvgSearchIcon
-                className={classNames(
-                    styles.searchIcon,
-                    styles.dropdownIndicator
-                )}
-            />
-        );
-    }
-);

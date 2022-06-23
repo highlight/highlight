@@ -1,26 +1,23 @@
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
+import classNames from 'classnames';
 import React from 'react';
 
 import { SessionFeed } from '../../Sessions/SessionsFeedV2/SessionsFeed';
 import styles from './SearchPanel.module.scss';
-import SegmentPickerForPlayer from './SegmentPickerForPlayer/SegmentPickerForPlayer';
 
 interface Props {
     visible: boolean;
 }
 
 const SearchPanel = React.memo(({ visible }: Props) => {
+    const { showBanner } = useGlobalContext();
     return (
-        <div className={styles.searchPanel}>
-            {visible && (
-                <div className={styles.searchContainer}>
-                    <div className={styles.filtersContainer}>
-                        <SegmentPickerForPlayer />
-                        <SessionsQueryBuilder />
-                    </div>
-                    <SessionFeed />
-                </div>
-            )}
+        <div
+            className={classNames(styles.searchPanel, {
+                [styles.bannerShown]: showBanner,
+            })}
+        >
+            {visible && <SessionFeed />}
         </div>
     );
 });

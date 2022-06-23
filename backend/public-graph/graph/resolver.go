@@ -13,7 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -93,6 +95,36 @@ type ErrorMetaData struct {
 type FieldData struct {
 	Name  string
 	Value string
+}
+
+type Request struct {
+	ID      string            `json:"id"`
+	Headers map[string]string `json:"headers"`
+	URL     string            `json:"url"`
+	Method  string            `json:"verb"`
+}
+
+type Response struct {
+	Body    string            `json:"body"`
+	Headers map[string]string `json:"headers"`
+	Status  int               `json:"status"`
+	Size    int               `json:"size"`
+}
+
+type RequestResponsePairs struct {
+	Request    Request  `json:"request"`
+	Response   Response `json:"response"`
+	URLBlocked bool     `json:"urlBlocked"`
+}
+
+type NetworkResource struct {
+	StartTime            float64              `json:"startTime"`
+	ResponseEnd          float64              `json:"responseEnd"`
+	InitiatorType        string               `json:"initiatorType"`
+	TransferSize         int64                `json:"transferSize"`
+	EncodedBodySize      int64                `json:"encodedBodySize"`
+	Name                 string               `json:"name"`
+	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
 
 const ERROR_EVENT_MAX_LENGTH = 10000
@@ -288,21 +320,18 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
-		field := &model.Field{}
-		res := r.DB.Where(f).First(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating field")
-			}
+		field := model.Field{}
+		res := r.DB.Where(f).FirstOrCreate(&field)
+		if res.Error != nil {
+			return e.Wrap(res.Error, "error calling FirstOrCreate")
+		}
+		// If the field was created, index it in OpenSearch
+		if res.RowsAffected > 0 {
 			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
-
-			fieldsToAppend = append(fieldsToAppend, f)
-		} else {
-			fieldsToAppend = append(fieldsToAppend, field)
 		}
+		fieldsToAppend = append(fieldsToAppend, &field)
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
@@ -543,6 +572,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	firstMeta := ""
 	restCode := []string{}
 	restMeta := []string{}
+	jsonResults := []string{}
 	for _, fingerprint := range fingerprints {
 		if fingerprint.Type == model.Fingerprint.StackFrameCode {
 			if fingerprint.Index == 0 {
@@ -556,8 +586,18 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 			} else if fingerprint.Index <= 4 {
 				restMeta = append(restMeta, fingerprint.Value)
 			}
+		} else if fingerprint.Type == model.Fingerprint.JsonResult {
+			jsonResults = append(jsonResults, fingerprint.Value)
 		}
 	}
+
+	// Reversing the json results so that ordinality can be used as score
+	jsonResultsReversed := lo.Reverse(jsonResults)
+	jsonBytes, err := json.Marshal(jsonResultsReversed)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshalling json results")
+	}
+	jsonString := string(jsonBytes)
 
 	result := struct {
 		Id  int
@@ -565,40 +605,61 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	}{}
 
 	if err := r.DB.Raw(`
+		WITH json_results AS (
+			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
+			FROM json_array_elements_text(@jsonString) with ordinality
+		)
 	    SELECT id, sum(score) FROM (
 			SELECT id, 100 AS score, 0
 			FROM error_groups
-			WHERE event = ?
+			WHERE event = @event
 			AND id IS NOT NULL
-			AND project_id = ?
+			AND project_id = @projectID
+			UNION ALL
+			(SELECT DISTINCT ef.error_group_id, jr.score, 0
+			FROM error_fingerprints ef
+			INNER JOIN json_results jr
+			on ef.value = jr.value
+			WHERE
+				(ef.type = 'JSON'
+				AND ef.project_id = @projectID
+				AND ef.error_group_id IS NOT NULL))
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 10 AS score, 0
 			FROM error_fingerprints
 			WHERE
 				((type = 'META'
-				AND value = ?
+				AND value = @firstMeta
 				AND index = 0)
 				OR (type = 'CODE'
-				AND value = ?
+				AND value = @firstCode
 				AND index = 0))
-				AND project_id = ?
+				AND project_id = @projectID
 				AND error_group_id IS NOT NULL)
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 1 AS score, index
 			FROM error_fingerprints
 			WHERE
 				((type = 'META'
-				AND value in (?)
+				AND value in @restMeta
 				AND index > 0 and index <= 4)
 				OR (type = 'CODE'
-				AND value in (?)
+				AND value in @restCode
 				AND index > 0 and index <= 4))
-				AND project_id = ?
+				AND project_id = @projectID
 				AND error_group_id IS NOT NULL)
 		) a
 		GROUP BY id
 		ORDER BY sum DESC, id DESC
-		LIMIT 1`, event, projectID, firstMeta, firstCode, projectID, restMeta, restCode, projectID).
+		LIMIT 1`,
+		map[string]interface{}{
+			"jsonString": jsonString,
+			"event":      event,
+			"projectID":  projectID,
+			"firstMeta":  firstMeta,
+			"firstCode":  firstCode,
+			"restMeta":   restMeta,
+			"restCode":   restCode}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
@@ -690,6 +751,34 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			}
 		}
 		errorObj.MappedStackTrace = newMappedStackTraceString
+	}
+
+	// Try unmarshalling the Event to JSON.
+	// If this works, create an error fingerprint for each of the project's JSON paths.
+	jsonStrings := []string{}
+	if err := json.Unmarshal([]byte(errorObj.Event), &jsonStrings); err == nil && len(jsonStrings) == 1 {
+		errorAsJson := interface{}(nil)
+		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
+			var project model.Project
+			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
+				return nil, e.Wrap(err, "error querying project")
+			}
+
+			for _, path := range project.ErrorJsonPaths {
+				value, err := jsonpath.Get(path, errorAsJson)
+				if err == nil {
+					marshalled, err := json.Marshal(value)
+					if err == nil {
+						jsonResult := model.ErrorFingerprint{
+							ProjectID: projectID,
+							Type:      model.Fingerprint.JsonResult,
+							Value:     path + "=" + string(marshalled),
+						}
+						fingerprints = append(fingerprints, &jsonResult)
+					}
+				}
+			}
+		}
 	}
 
 	var errorGroup *model.ErrorGroup
@@ -1089,6 +1178,19 @@ func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*m
 	return session, nil
 }
 
+func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
+	var backendSetupCount int64
+	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+		return e.Wrap(err, "error querying backend_setup flag")
+	}
+	if backendSetupCount < 1 {
+		if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+			return e.Wrap(err, "error updating backend_setup flag")
+		}
+	}
+	return nil
+}
+
 func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
@@ -1432,8 +1534,8 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	for secureID, metrics := range sessionMetrics {
 		session := &model.Session{}
 		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-			log.Error(err)
-			return -1, e.Wrapf(err, "no session found for push metrics: %s", secureID)
+			log.Error(e.Wrapf(err, "no session found for push metrics: %s", secureID))
+			continue
 		}
 
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
@@ -1444,14 +1546,14 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 				Metrics:   metrics,
 			}}, strconv.Itoa(session.ID))
 		if err != nil {
-			return -1, err
+			log.Error(err)
 		}
 	}
 
 	return len(metrics), nil
 }
 
-func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricType customModels.MetricType, name string, value float64) (int, error) {
+func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name string, value float64) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
 		return -1, e.Wrapf(err, "error querying device metric session")
@@ -1460,51 +1562,52 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, metricTyp
 		SessionSecureID: session.SecureID,
 		Name:            name,
 		Value:           value,
-		Type:            metricType,
 		Timestamp:       time.Now(),
 	}})
 }
 
-func (r *Resolver) addNewMetric(sessionID int, projectID int, m *customModels.MetricInput) {
-	newMetric := &model.Metric{
-		Name:      m.Name,
-		Value:     m.Value,
-		ProjectID: projectID,
-		SessionID: sessionID,
-		Type:      modelInputs.MetricType(m.Type),
-		RequestID: m.RequestID,
-	}
-
-	if err := r.DB.Create(&newMetric).Error; err != nil {
-		log.Error(err)
-	}
-}
-
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) {
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
-		if m.Type == customModels.MetricTypeBackend {
-			r.addNewMetric(sessionID, projectID, m)
-			continue
+		group := ""
+		if m.Group != nil {
+			group = *m.Group
 		}
-
-		existingMetric := &model.Metric{
-			Name:      m.Name,
-			ProjectID: projectID,
+		// TODO(vkorolik) do i need random string
+		if group == "" {
+			group = util.GenerateRandomString(16)
+		}
+		if _, ok := metricsByGroup[group]; !ok {
+			metricsByGroup[group] = []*customModels.MetricInput{}
+		}
+		metricsByGroup[group] = append(metricsByGroup[group], m)
+	}
+	for groupName, metricInputs := range metricsByGroup {
+		var mg *model.MetricGroup
+		if err := r.DB.Where(&model.MetricGroup{
+			GroupName: groupName,
 			SessionID: sessionID,
-			Type:      modelInputs.MetricType(m.Type),
-			RequestID: m.RequestID,
+		}).Attrs(&model.MetricGroup{
+			GroupName: groupName,
+			SessionID: sessionID,
+			ProjectID: projectID,
+		}).FirstOrCreate(&mg).Error; err != nil {
+			return err
 		}
-		tx := r.DB.Where(existingMetric).FirstOrCreate(&existingMetric)
-		if err := tx.Error; err != nil {
-			log.Error(err)
-			return
+		for _, m := range metricInputs {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          m.Name,
+				Value:         m.Value,
+				Category:      m.Category,
+				CreatedAt:     m.Timestamp,
+			})
 		}
-		// Update the existing record if it already exists
-		existingMetric.Value = m.Value
-		if err := r.DB.Save(&existingMetric).Error; err != nil {
-			log.Error(err)
+		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
@@ -1645,7 +1748,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
 		if err != nil {
-			log.Errorf("Error updating error group: %v", errorToInsert)
+			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
 		}
 
@@ -1669,7 +1772,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1688,8 +1791,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
+		return retErr
 	}
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
@@ -1820,11 +1922,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
-		resourcesParsed := make(map[string][]interface{})
+		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
+			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
+			if projectID == 1 {
+				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+					return err
+				}
+			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
@@ -1926,7 +2034,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
 			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
 			if err != nil {
-				log.Errorf("Error updating error group: %v", errorToInsert)
+				log.Error(e.Wrap(err, "Error updating error group"))
 				continue
 			}
 
@@ -1946,8 +2054,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 
 	now := time.Now()
@@ -1978,14 +2085,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return
+			return err
 		}
 	} else {
 		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
 			Updates(&fieldsToUpdate).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return
+			return err
 		}
 	}
 
@@ -1998,7 +2105,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": sessionHasErrors,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error updating session in opensearch"))
-			return
+			return err
 		}
 	}
 
@@ -2007,7 +2114,52 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			"has_errors": true,
 		}); err != nil {
 			log.Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
-			return
+			return err
 		}
 	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	for _, re := range resources {
+		var mg *model.MetricGroup
+		if err := r.DB.Where(&model.MetricGroup{
+			GroupName: re.RequestResponsePairs.Request.ID,
+			SessionID: sessionObj.ID,
+		}).Attrs(&model.MetricGroup{
+			GroupName: re.RequestResponsePairs.Request.ID,
+			SessionID: sessionObj.ID,
+			ProjectID: sessionObj.ProjectID,
+		}).FirstOrCreate(&mg).Error; err != nil {
+			return err
+		}
+
+		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
+			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
+			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
+			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
+			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
+		} {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          key.String(),
+				Value:         value,
+			})
+		}
+		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
+			modelInputs.NetworkRequestAttributeURL:       re.Name,
+			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
+			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
+		} {
+			mg.Metrics = append(mg.Metrics, &model.Metric{
+				MetricGroupID: mg.ID,
+				Name:          key.String(),
+				Category:      value,
+			})
+		}
+		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

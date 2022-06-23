@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
+	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.3
 	github.com/aws/aws-sdk-go-v2 v1.9.2
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
@@ -55,9 +56,11 @@ require (
 )
 
 require (
-	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
+	github.com/PaesslerAG/gval v1.2.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 )
 
 require (

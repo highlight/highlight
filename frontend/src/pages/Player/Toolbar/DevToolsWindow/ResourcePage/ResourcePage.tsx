@@ -1,6 +1,5 @@
 import Input from '@components/Input/Input';
 import { ErrorObject } from '@graph/schemas';
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
@@ -25,6 +24,7 @@ import React, {
     useState,
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
@@ -390,7 +390,8 @@ export const ResourcePage = React.memo(
                                             );
                                         }}
                                         ref={virtuoso}
-                                        overscan={500}
+                                        overscan={4320}
+                                        increaseViewportBy={4320}
                                         data={resourcesToRender}
                                         className={styles.virtuoso}
                                         itemContent={(index, resource) => {
@@ -402,34 +403,40 @@ export const ResourcePage = React.memo(
                                                     e.request_id === requestId
                                             );
                                             return (
-                                                <ResourceRow
-                                                    key={index.toString()}
-                                                    resource={resource}
-                                                    networkRange={networkRange}
-                                                    currentResource={
-                                                        currentResource
-                                                    }
-                                                    searchTerm={
-                                                        filterSearchTerm
-                                                    }
-                                                    onClickHandler={() => {
-                                                        setCurrentActiveIndex(
-                                                            index
-                                                        );
-                                                        setResourcePanel(
-                                                            resource
-                                                        );
-                                                    }}
-                                                    playerStartTime={startTime}
-                                                    playerRelTime={
-                                                        time - startTime
-                                                    }
-                                                    hasError={!!error}
-                                                    networkRequestAndResponseRecordingEnabled={
-                                                        session.enable_recording_network_contents ||
-                                                        false
-                                                    }
-                                                />
+                                                <div style={{ height: 36 }}>
+                                                    <ResourceRow
+                                                        key={index.toString()}
+                                                        resource={resource}
+                                                        networkRange={
+                                                            networkRange
+                                                        }
+                                                        currentResource={
+                                                            currentResource
+                                                        }
+                                                        searchTerm={
+                                                            filterSearchTerm
+                                                        }
+                                                        onClickHandler={() => {
+                                                            setCurrentActiveIndex(
+                                                                index
+                                                            );
+                                                            setResourcePanel(
+                                                                resource
+                                                            );
+                                                        }}
+                                                        playerStartTime={
+                                                            startTime
+                                                        }
+                                                        playerRelTime={
+                                                            time - startTime
+                                                        }
+                                                        hasError={!!error}
+                                                        networkRequestAndResponseRecordingEnabled={
+                                                            session.enable_recording_network_contents ||
+                                                            false
+                                                        }
+                                                    />
+                                                </div>
                                             );
                                         }}
                                     />

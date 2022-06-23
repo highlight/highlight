@@ -4,11 +4,14 @@ import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import Switch from '@components/Switch/Switch';
-import { useGetMetricPreviewQuery } from '@graph/hooks';
+import {
+    useGetMetricPreviewQuery,
+    useGetSuggestedMetricsQuery,
+} from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { MetricType } from '@graph/schemas';
+import { DashboardMetricConfig } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
-import { MetricConfig } from '@pages/Dashboards/Metrics';
+import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
@@ -34,8 +37,8 @@ interface Props {
     onSlackChannelsChange: (newChannels: string[]) => void;
     emails: string[];
     onEmailsChange: (newEmails: string[]) => void;
-    config: MetricConfig;
-    onConfigChange: (newConfig: MetricConfig) => void;
+    config: DashboardMetricConfig;
+    onConfigChange: (newConfig: DashboardMetricConfig) => void;
     onFormSubmit: (values: any) => void;
     channelSuggestions: any[];
     emailSuggestions: string[];
@@ -89,7 +92,12 @@ const MonitorConfiguration = ({
             project_id,
             aggregateFunction: aggregateFunction,
             name: metricToMonitorName,
-            type: MetricType.WebVital,
+        },
+    });
+    const { data: metricOptions } = useGetSuggestedMetricsQuery({
+        variables: {
+            project_id,
+            prefix: '',
         },
     });
 
@@ -103,8 +111,8 @@ const MonitorConfiguration = ({
         if (!data) {
             return Array.from(new Array(pointsToGenerate)).map((_, index) => {
                 const randomValue =
-                    Math.random() * (config.maxNeedsImprovementValue * 0.7) +
-                    config.maxGoodValue * 0.2;
+                    Math.random() * (config.max_needs_improvement_value * 0.7) +
+                    config.max_good_value * 0.2;
                 return {
                     value: randomValue,
                     date: moment(now)
@@ -120,19 +128,22 @@ const MonitorConfiguration = ({
                     .format('h:mm A'),
             }));
         }
-    }, [config.maxGoodValue, config.maxNeedsImprovementValue, data, loading]);
+    }, [
+        config.max_good_value,
+        config.max_needs_improvement_value,
+        data,
+        loading,
+    ]);
 
-    const metricTypeOptions: OptionType[] = Object.keys(
-        WEB_VITALS_CONFIGURATION
-    ).map((key) => {
-        const config = WEB_VITALS_CONFIGURATION[key];
-
-        return {
-            displayValue: config.name,
-            id: config.name,
-            value: key,
-        };
-    });
+    const metricTypeOptions: OptionType[] =
+        metricOptions?.suggested_metrics.map((key) => {
+            const config = getDefaultMetricConfig(key);
+            return {
+                displayValue: config.description || config.name,
+                id: config.name,
+                value: key,
+            };
+        }) || [];
 
     const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
 
@@ -205,7 +216,10 @@ const MonitorConfiguration = ({
                         value={metricToMonitorName}
                         onChange={(e) => {
                             onMetricToMonitorNameChange(e);
-                            onConfigChange(WEB_VITALS_CONFIGURATION[e]);
+                            onConfigChange(
+                                WEB_VITALS_CONFIGURATION[e] ||
+                                    WEB_VITALS_CONFIGURATION['LCP']
+                            );
                         }}
                     />
                 </section>
@@ -241,7 +255,7 @@ const MonitorConfiguration = ({
                                     color: 'var(--color-blue-400)',
                                 }}
                             >
-                                {aggregateFunction}({config?.name})
+                                {aggregateFunction}({metricToMonitorName})
                             </b>
                         </code>{' '}
                         is over{' '}

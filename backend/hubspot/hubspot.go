@@ -77,8 +77,9 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 	}); err != nil {
 		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
 		r := CustomContactsResponse{}
-		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
-			return nil, e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+		if getErr := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); getErr != nil {
+			errr := e.Wrap(err, e.Wrap(getErr, "error getting hubspot contact data by email").Error())
+			return nil, errr
 		} else {
 			hubspotContactId = r.Vid
 		}

@@ -988,6 +988,7 @@ export const EditProjectDocument = gql`
         $name: String
         $billing_email: String
         $excluded_users: StringArray
+        $error_json_paths: StringArray
         $rage_click_window_seconds: Int
         $rage_click_radius_pixels: Int
         $rage_click_count: Int
@@ -997,6 +998,7 @@ export const EditProjectDocument = gql`
             name: $name
             billing_email: $billing_email
             excluded_users: $excluded_users
+            error_json_paths: $error_json_paths
             rage_click_window_seconds: $rage_click_window_seconds
             rage_click_radius_pixels: $rage_click_radius_pixels
             rage_click_count: $rage_click_count
@@ -1005,6 +1007,7 @@ export const EditProjectDocument = gql`
             name
             billing_email
             excluded_users
+            error_json_paths
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
@@ -1033,6 +1036,7 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
+ *      error_json_paths: // value for 'error_json_paths'
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
@@ -2591,16 +2595,16 @@ export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
 export const UpdateErrorAlertDocument = gql`
     mutation UpdateErrorAlert(
         $project_id: ID!
-        $name: String!
+        $name: String
         $error_alert_id: ID!
-        $count_threshold: Int!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $regex_groups: [String]!
-        $frequency: Int!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $regex_groups: [String]
+        $frequency: Int
+        $disabled: Boolean
     ) {
         updateErrorAlert(
             project_id: $project_id
@@ -2930,13 +2934,13 @@ export const UpdateSessionFeedbackAlertDocument = gql`
     mutation UpdateSessionFeedbackAlert(
         $project_id: ID!
         $session_feedback_alert_id: ID!
-        $count_threshold: Int!
-        $name: String!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $name: String
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $disabled: Boolean
     ) {
         updateSessionFeedbackAlert(
             project_id: $project_id
@@ -3183,14 +3187,14 @@ export const UpdateNewSessionAlertDocument = gql`
     mutation UpdateNewSessionAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $count_threshold: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $threshold_window: Int!
-        $exclude_rules: [String]!
-        $disabled: Boolean!
+        $name: String
+        $count_threshold: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $threshold_window: Int
+        $exclude_rules: [String]
+        $disabled: Boolean
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -3274,13 +3278,13 @@ export const UpdateRageClickAlertDocument = gql`
     mutation UpdateRageClickAlert(
         $project_id: ID!
         $rage_click_alert_id: ID!
-        $name: String!
-        $count_threshold: Int!
-        $threshold_window: Int!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $disabled: Boolean!
+        $name: String
+        $count_threshold: Int
+        $threshold_window: Int
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $disabled: Boolean
     ) {
         updateRageClickAlert(
             project_id: $project_id
@@ -3358,13 +3362,13 @@ export const UpdateNewUserAlertDocument = gql`
     mutation UpdateNewUserAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $count_threshold: Int!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $count_threshold: Int
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateNewUserAlert(
             project_id: $project_id
@@ -3529,13 +3533,13 @@ export const UpdateTrackPropertiesAlertDocument = gql`
     mutation UpdateTrackPropertiesAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $track_properties: [TrackPropertyInput]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $track_properties: [TrackPropertyInput]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateTrackPropertiesAlert(
             project_id: $project_id
@@ -3706,13 +3710,13 @@ export const UpdateUserPropertiesAlertDocument = gql`
     mutation UpdateUserPropertiesAlert(
         $project_id: ID!
         $session_alert_id: ID!
-        $name: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $environments: [String]!
-        $user_properties: [UserPropertyInput]!
-        $threshold_window: Int!
-        $disabled: Boolean!
+        $name: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $environments: [String]
+        $user_properties: [UserPropertyInput]
+        $threshold_window: Int
+        $disabled: Boolean
     ) {
         updateUserPropertiesAlert(
             project_id: $project_id
@@ -4106,13 +4110,75 @@ export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOption
     Types.ModifyClearbitIntegrationMutation,
     Types.ModifyClearbitIntegrationMutationVariables
 >;
+export const UpsertDashboardDocument = gql`
+    mutation UpsertDashboard(
+        $id: ID
+        $project_id: ID!
+        $name: String!
+        $metrics: [DashboardMetricConfigInput!]!
+        $layout: String
+    ) {
+        upsertDashboard(
+            id: $id
+            project_id: $project_id
+            name: $name
+            metrics: $metrics
+            layout: $layout
+        )
+    }
+`;
+export type UpsertDashboardMutationFn = Apollo.MutationFunction<
+    Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables
+>;
+
+/**
+ * __useUpsertDashboardMutation__
+ *
+ * To run a mutation, you first call `useUpsertDashboardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertDashboardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertDashboardMutation, { data, loading, error }] = useUpsertDashboardMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      metrics: // value for 'metrics'
+ *      layout: // value for 'layout'
+ *   },
+ * });
+ */
+export function useUpsertDashboardMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpsertDashboardMutation,
+        Types.UpsertDashboardMutationVariables
+    >(UpsertDashboardDocument, baseOptions);
+}
+export type UpsertDashboardMutationHookResult = ReturnType<
+    typeof useUpsertDashboardMutation
+>;
+export type UpsertDashboardMutationResult = Apollo.MutationResult<Types.UpsertDashboardMutation>;
+export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpsertDashboardMutation,
+    Types.UpsertDashboardMutationVariables
+>;
 export const GetMetricsDashboardDocument = gql`
     query GetMetricsDashboard(
         $project_id: ID!
         $metric_name: String!
         $params: DashboardParamsInput!
     ) {
-        metrics_dashboard(
+        metrics_timeline(
             project_id: $project_id
             metric_name: $metric_name
             params: $params
@@ -4177,16 +4243,152 @@ export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
     Types.GetMetricsDashboardQuery,
     Types.GetMetricsDashboardQueryVariables
 >;
+export const GetMetricsHistogramDocument = gql`
+    query GetMetricsHistogram(
+        $project_id: ID!
+        $metric_name: String!
+        $params: HistogramParamsInput!
+    ) {
+        metrics_histogram(
+            project_id: $project_id
+            metric_name: $metric_name
+            params: $params
+        ) {
+            buckets {
+                bucket
+                range_start
+                range_end
+                count
+            }
+            min
+            max
+            p10
+            p90
+        }
+    }
+`;
+
+/**
+ * __useGetMetricsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetMetricsHistogramQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >(GetMetricsHistogramDocument, baseOptions);
+}
+export function useGetMetricsHistogramLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricsHistogramQuery,
+        Types.GetMetricsHistogramQueryVariables
+    >(GetMetricsHistogramDocument, baseOptions);
+}
+export type GetMetricsHistogramQueryHookResult = ReturnType<
+    typeof useGetMetricsHistogramQuery
+>;
+export type GetMetricsHistogramLazyQueryHookResult = ReturnType<
+    typeof useGetMetricsHistogramLazyQuery
+>;
+export type GetMetricsHistogramQueryResult = Apollo.QueryResult<
+    Types.GetMetricsHistogramQuery,
+    Types.GetMetricsHistogramQueryVariables
+>;
+export const GetNetworkHistogramDocument = gql`
+    query GetNetworkHistogram(
+        $project_id: ID!
+        $params: NetworkHistogramParamsInput!
+    ) {
+        network_histogram(project_id: $project_id, params: $params) {
+            buckets {
+                category
+                count
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetNetworkHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetNetworkHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNetworkHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNetworkHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetNetworkHistogramQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >(GetNetworkHistogramDocument, baseOptions);
+}
+export function useGetNetworkHistogramLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNetworkHistogramQuery,
+        Types.GetNetworkHistogramQueryVariables
+    >(GetNetworkHistogramDocument, baseOptions);
+}
+export type GetNetworkHistogramQueryHookResult = ReturnType<
+    typeof useGetNetworkHistogramQuery
+>;
+export type GetNetworkHistogramLazyQueryHookResult = ReturnType<
+    typeof useGetNetworkHistogramLazyQuery
+>;
+export type GetNetworkHistogramQueryResult = Apollo.QueryResult<
+    Types.GetNetworkHistogramQuery,
+    Types.GetNetworkHistogramQueryVariables
+>;
 export const GetMetricPreviewDocument = gql`
     query GetMetricPreview(
         $project_id: ID!
-        $type: MetricType!
         $name: String!
         $aggregateFunction: String!
     ) {
         metric_preview(
             project_id: $project_id
-            type: $type
             name: $name
             aggregateFunction: $aggregateFunction
         ) {
@@ -4209,7 +4411,6 @@ export const GetMetricPreviewDocument = gql`
  * const { data, loading, error } = useGetMetricPreviewQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      type: // value for 'type'
  *      name: // value for 'name'
  *      aggregateFunction: // value for 'aggregateFunction'
  *   },
@@ -6366,6 +6567,10 @@ export const GetProjectDropdownOptionsDocument = gql`
             id
             name
         }
+        joinable_workspaces {
+            id
+            name
+        }
     }
 `;
 
@@ -6428,6 +6633,10 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
             }
         }
         workspaces {
+            id
+            name
+        }
+        joinable_workspaces {
             id
             name
         }
@@ -6611,6 +6820,7 @@ export const GetProjectDocument = gql`
             verbose_id
             billing_email
             excluded_users
+            error_json_paths
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
@@ -9114,6 +9324,66 @@ export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
     Types.GetAlertsPagePayloadQuery,
     Types.GetAlertsPagePayloadQueryVariables
 >;
+export const GetMetricMonitorsDocument = gql`
+    query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
+        metric_monitors(project_id: $project_id, metric_name: $metric_name) {
+            id
+            updated_at
+            name
+            metric_to_monitor
+        }
+    }
+`;
+
+/**
+ * __useGetMetricMonitorsQuery__
+ *
+ * To run a query within a React component, call `useGetMetricMonitorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricMonitorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricMonitorsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *   },
+ * });
+ */
+export function useGetMetricMonitorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >(GetMetricMonitorsDocument, baseOptions);
+}
+export function useGetMetricMonitorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricMonitorsQuery,
+        Types.GetMetricMonitorsQueryVariables
+    >(GetMetricMonitorsDocument, baseOptions);
+}
+export type GetMetricMonitorsQueryHookResult = ReturnType<
+    typeof useGetMetricMonitorsQuery
+>;
+export type GetMetricMonitorsLazyQueryHookResult = ReturnType<
+    typeof useGetMetricMonitorsLazyQuery
+>;
+export type GetMetricMonitorsQueryResult = Apollo.QueryResult<
+    Types.GetMetricMonitorsQuery,
+    Types.GetMetricMonitorsQueryVariables
+>;
 export const GetCommentMentionSuggestionsDocument = gql`
     query GetCommentMentionSuggestions($project_id: ID!) {
         admins: workspace_admins_by_project_id(project_id: $project_id) {
@@ -9334,4 +9604,130 @@ export type GetWebVitalsLazyQueryHookResult = ReturnType<
 export type GetWebVitalsQueryResult = Apollo.QueryResult<
     Types.GetWebVitalsQuery,
     Types.GetWebVitalsQueryVariables
+>;
+export const GetDashboardDefinitionsDocument = gql`
+    query GetDashboardDefinitions($project_id: ID!) {
+        dashboard_definitions(project_id: $project_id) {
+            id
+            updated_at
+            project_id
+            name
+            metrics {
+                name
+                description
+                max_good_value
+                max_needs_improvement_value
+                poor_value
+                units
+                help_article
+                chart_type
+            }
+            last_admin_to_edit_id
+            layout
+        }
+    }
+`;
+
+/**
+ * __useGetDashboardDefinitionsQuery__
+ *
+ * To run a query within a React component, call `useGetDashboardDefinitionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDashboardDefinitionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDashboardDefinitionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetDashboardDefinitionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >(GetDashboardDefinitionsDocument, baseOptions);
+}
+export function useGetDashboardDefinitionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDashboardDefinitionsQuery,
+        Types.GetDashboardDefinitionsQueryVariables
+    >(GetDashboardDefinitionsDocument, baseOptions);
+}
+export type GetDashboardDefinitionsQueryHookResult = ReturnType<
+    typeof useGetDashboardDefinitionsQuery
+>;
+export type GetDashboardDefinitionsLazyQueryHookResult = ReturnType<
+    typeof useGetDashboardDefinitionsLazyQuery
+>;
+export type GetDashboardDefinitionsQueryResult = Apollo.QueryResult<
+    Types.GetDashboardDefinitionsQuery,
+    Types.GetDashboardDefinitionsQueryVariables
+>;
+export const GetSuggestedMetricsDocument = gql`
+    query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
+        suggested_metrics(project_id: $project_id, prefix: $prefix)
+    }
+`;
+
+/**
+ * __useGetSuggestedMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetSuggestedMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSuggestedMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSuggestedMetricsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      prefix: // value for 'prefix'
+ *   },
+ * });
+ */
+export function useGetSuggestedMetricsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >(GetSuggestedMetricsDocument, baseOptions);
+}
+export function useGetSuggestedMetricsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSuggestedMetricsQuery,
+        Types.GetSuggestedMetricsQueryVariables
+    >(GetSuggestedMetricsDocument, baseOptions);
+}
+export type GetSuggestedMetricsQueryHookResult = ReturnType<
+    typeof useGetSuggestedMetricsQuery
+>;
+export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
+    typeof useGetSuggestedMetricsLazyQuery
+>;
+export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
+    Types.GetSuggestedMetricsQuery,
+    Types.GetSuggestedMetricsQueryVariables
 >;

@@ -1,4 +1,5 @@
 import { Dropdown } from 'antd';
+import classNames from 'classnames';
 import React, { useState } from 'react';
 
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
@@ -15,12 +16,14 @@ export const StandardDropdown = ({
     defaultValue,
     disabled,
     className,
+    labelClassName,
 }: {
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
     defaultValue?: Option;
     disabled?: boolean;
     className?: string;
+    labelClassName?: string;
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
@@ -51,12 +54,17 @@ export const StandardDropdown = ({
             trigger={['click']}
             disabled={disabled}
             className={className}
+            overlayClassName={styles.overlay}
         >
             <div
                 className={styles.dropdownHandler}
                 onClick={(e) => e.preventDefault()}
             >
-                <div className={styles.labelNameText}>{selection.label}</div>
+                <div
+                    className={classNames(styles.labelNameText, labelClassName)}
+                >
+                    {selection.label}
+                </div>
                 <DownIcon
                     className={styles.icon}
                     style={{

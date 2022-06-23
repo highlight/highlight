@@ -46,25 +46,13 @@ input BackendErrorObjectInput {
     payload: String
 }
 
-enum MetricType {
-    WebVital
-    Device
-    Backend
-}
-
 input MetricInput {
     session_secure_id: String!
+    group: String
     name: String!
     value: Float!
-    type: MetricType!
-    url: String!
+    category: String!
     timestamp: Timestamp!
-    request_id: String
-}
-
-input DeviceMetricInput {
-    name: String!
-    value: Float!
 }
 
 input ReplayEventInput {
@@ -118,15 +106,6 @@ type Mutation {
         verbatim: String!
         timestamp: Timestamp!
     ): ID!
-    # TODO(vkorolik) deprecate as clients migrate to pushMetrics
-    addWebVitals(session_id: ID!, metric: WebVitalMetricInput!): ID!
-    addDeviceMetric(session_id: ID!, metric: DeviceMetricInput!): ID!
-}
-
-# TODO(vkorolik) deprecate as clients migrate to pushMetrics
-input WebVitalMetricInput {
-    name: String!
-    value: Float!
 }
 
 type Query {

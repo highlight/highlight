@@ -18,6 +18,7 @@ yalc.lock
 **/build
 **/coverage.out
 **/output.txt
+**/.nvmrc
 
 backend/backend
 

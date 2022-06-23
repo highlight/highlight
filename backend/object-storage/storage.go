@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/openlyinc/pointy"
@@ -41,6 +42,9 @@ const (
 type PayloadType string
 
 const (
+	SessionContents            PayloadType = "session-contents"
+	NetworkResources           PayloadType = "network-resources"
+	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
@@ -191,7 +195,8 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedSessionsFromS3(sessionId, projectId)
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
@@ -211,6 +216,36 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 	return events, nil
 }
 
+// ReadUncompressedSessionsFromS3 is deprecated. Serves legacy uncompressed session data from S3.
+func (s *StorageClient) ReadUncompressedSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: pointy.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, SessionContents)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	type events struct {
+		Events []interface{}
+	}
+	eventsSlice := strings.Split(buf.String(), "\n\n\n")
+	var retEvents []interface{}
+	for _, e := range eventsSlice {
+		if e == "" {
+			continue
+		}
+		var tempEvents events
+		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
+			return nil, errors.Wrap(err, "error decoding event data")
+		}
+		retEvents = append(retEvents, tempEvents.Events...)
+	}
+	return retEvents, nil
+}
+
 func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  pointy.String(S3SessionsPayloadBucketName),
@@ -219,7 +254,8 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedResourcesFromS3(sessionId, projectId)
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
@@ -238,6 +274,36 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 	return resources, nil
 }
 
+// ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
+func (s *StorageClient) ReadUncompressedResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: pointy.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	type resources struct {
+		Resources []interface{}
+	}
+	resourcesSlice := strings.Split(buf.String(), "\n\n\n")
+	var retResources []interface{}
+	for _, e := range resourcesSlice {
+		if e == "" {
+			continue
+		}
+		var tempResources resources
+		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
+			return nil, errors.Wrap(err, "error decoding resource data")
+		}
+		retResources = append(retResources, tempResources.Resources...)
+	}
+	return retResources, nil
+}
+
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket:                  pointy.String(S3SessionsPayloadBucketName),
@@ -246,7 +312,8 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedMessagesFromS3(sessionId, projectId)
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
@@ -263,6 +330,36 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 		return nil, errors.Wrap(err, "error decoding message data")
 	}
 	return messages, nil
+}
+
+// ReadUncompressedMessagesFromS3 is deprecated. Serves legacy uncompressed message data from S3.
+func (s *StorageClient) ReadUncompressedMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: pointy.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, ConsoleMessages)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	type messages struct {
+		Messages []interface{}
+	}
+	messagesSlice := strings.Split(buf.String(), "\n\n\n")
+	var retMessages []interface{}
+	for _, e := range messagesSlice {
+		if e == "" {
+			continue
+		}
+		var tempResources messages
+		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
+			return nil, errors.Wrap(err, "error decoding message data")
+		}
+		retMessages = append(retMessages, tempResources.Messages...)
+	}
+	return retMessages, nil
 }
 
 func (s *StorageClient) bucketKey(sessionId int, projectId int, key PayloadType) *string {

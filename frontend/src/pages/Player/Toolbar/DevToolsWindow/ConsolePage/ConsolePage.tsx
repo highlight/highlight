@@ -1,8 +1,10 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
-import { Virtuoso, VirtuosoHandle } from '@highlight-run/react-virtuoso';
+import { useGetMessagesQuery, useGetSessionQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
+import { ConsoleMessage } from '@util/shared-types';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message as AntDesignMessage } from 'antd';
 import { H } from 'highlight.run';
 import _ from 'lodash';
@@ -15,15 +17,10 @@ import React, {
 } from 'react';
 import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
-import {
-    useGetMessagesQuery,
-    useGetSessionQuery,
-} from '../../../../../graph/generated/hooks';
-import { ConsoleMessage } from '../../../../../util/shared-types';
-import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
@@ -179,9 +176,9 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             .toLocaleLowerCase()
                             .includes(filterSearchTerm.toLocaleLowerCase());
                     case 'object':
-                        return message.value.some((line: string) => {
+                        return message.value.some((line: string | null) => {
                             return line
-                                .toString()
+                                ?.toString()
                                 .toLocaleLowerCase()
                                 .includes(filterSearchTerm.toLocaleLowerCase());
                         });
@@ -263,7 +260,8 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={500}
+                        overscan={4320}
+                        increaseViewportBy={4320}
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>

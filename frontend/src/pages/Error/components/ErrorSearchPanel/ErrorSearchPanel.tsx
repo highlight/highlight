@@ -1,31 +1,24 @@
-import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import { ErrorFeedV2 } from '@pages/Errors/ErrorFeedV2/ErrorFeedV2';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
 import React from 'react';
 
 import PanelToggleButton from '../../../Player/components/PanelToggleButton/PanelToggleButton';
 import useErrorPageConfiguration from '../../utils/ErrorPageUIConfiguration';
-import SegmentPickerForErrors from '../SegmentPickerForErrors/SegmentPickerForErrors';
 import styles from './ErrorSearchPanel.module.scss';
 
 const ErrorSearchPanel = () => {
+    const { showBanner } = useGlobalContext();
     const { setShowLeftPanel, showLeftPanel } = useErrorPageConfiguration();
 
     return (
         <aside
             className={classNames(styles.errorSearchPanel, {
                 [styles.hidden]: !showLeftPanel,
+                [styles.bannerShown]: showBanner,
             })}
         >
-            {showLeftPanel && (
-                <div className={styles.searchContainer}>
-                    <div className={styles.filtersContainer}>
-                        <SegmentPickerForErrors />
-                        <ErrorQueryBuilder />
-                    </div>
-                    <ErrorFeedV2 />
-                </div>
-            )}
+            {showLeftPanel && <ErrorFeedV2 />}
             <PanelToggleButton
                 direction="left"
                 className={classNames(styles.panelToggleButton, {

@@ -50,7 +50,7 @@ import {
     logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { MetricType, ReplayEventsInput } from './graph/generated/schemas';
+import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -321,6 +321,8 @@ export class Highlight {
             subTitle: options.feedbackWidget?.subTitle,
             submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
             title: options.feedbackWidget?.title,
+            onSubmit: options.feedbackWidget?.onSubmit,
+            onCancel: options.feedbackWidget?.onCancel,
         };
         this._onToggleFeedbackFormVisibility = () => {};
         this.sessionData = {
@@ -650,7 +652,7 @@ export class Highlight {
                     if (!this.sessionData.sessionID) {
                         this.logger.log(`Highlight Session Initialization got
   session ID ${this.sessionData.sessionID} as response: ${JSON.stringify(gr)}.
-                        `)
+                        `);
                     }
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
@@ -688,8 +690,8 @@ export class Highlight {
                                     value: deviceDetails.deviceMemory,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    type: MetricType.Device,
-                                    url: window.location.href,
+                                    category: "Device",
+                                    group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
                             ],
@@ -855,8 +857,8 @@ export class Highlight {
                                     value,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    type: MetricType.WebVital,
-                                    url: window.location.href,
+                                    category: "WebVital",
+                                    group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
                             ],

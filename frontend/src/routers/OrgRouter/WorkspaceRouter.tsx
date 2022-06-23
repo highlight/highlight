@@ -74,6 +74,11 @@ export const WorkspaceRouter = () => {
         return null;
     }
 
+    // if the user can join this workspace, give them that option via the ErrorState
+    const joinableWorkspace = data?.joinable_workspaces
+        ?.filter((w) => w?.id === workspace_id)
+        ?.pop();
+
     return (
         <GlobalContextProvider
             value={{
@@ -98,12 +103,18 @@ export const WorkspaceRouter = () => {
                         commonStyles.sidebarHidden
                     )}
                 >
-                    {isLoggedIn && data?.workspace === null ? (
+                    {isLoggedIn && joinableWorkspace ? (
                         <ErrorState
+                            shownWithHeader
+                            joinableWorkspace={joinableWorkspace}
+                        />
+                    ) : isLoggedIn && data?.workspace === null ? (
+                        <ErrorState
+                            title={'Enter this Workspace?'}
                             message={`
-                        Seems like you don’t have access to this page 😢. If you're
-                        part of a team, ask your project admin to send you an
-                        invite. Otherwise, feel free to make an account!
+                        Sadly, you don’t have access to the workspace 😢
+                        Request access and we'll shoot an email to your workspace admin. 
+                        Alternatively, feel free to make an account!
                         `}
                             shownWithHeader
                         />

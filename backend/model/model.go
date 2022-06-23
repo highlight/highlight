@@ -151,14 +151,18 @@ var Models = []interface{}{
 	&RageClickEvent{},
 	&Workspace{},
 	&WorkspaceInviteLink{},
+	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
 	&Metric{},
+	&MetricGroup{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
 	&SavedAsset{},
+	&Dashboard{},
+	&DashboardMetric{},
 }
 
 func init() {
@@ -237,6 +241,12 @@ type WorkspaceInviteLink struct {
 	Secret         *string
 }
 
+type WorkspaceAccessRequest struct {
+	Model
+	AdminID                int `gorm:"uniqueIndex"`
+	LastRequestedWorkspace int
+}
+
 type Project struct {
 	Model
 	Name              *string
@@ -252,6 +262,7 @@ type Project struct {
 	WorkspaceID         int
 	FreeTier            bool           `gorm:"default:false"`
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
+	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
@@ -273,7 +284,7 @@ func (workspace *Workspace) GetSecret() *string { return workspace.Secret }
 
 type EnhancedUserDetails struct {
 	Model
-	Email       *string `gorm:"unique_index"`
+	Email       *string `gorm:"uniqueIndex"`
 	PersonJSON  *string
 	CompanyJSON *string
 }
@@ -290,10 +301,24 @@ type RegistrationData struct {
 
 type Dashboard struct {
 	Model
-	ProjectID         int
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	LastAdminToEditID *int
 	Layout            *string
-	Name              *string
-	LastAdminToEditID int
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+}
+
+type DashboardMetric struct {
+	Model
+	DashboardID              int `gorm:"index;not null;"`
+	Name                     string
+	ChartType                modelInputs.DashboardChartType
+	Description              string
+	MaxGoodValue             float64
+	MaxNeedsImprovementValue float64
+	PoorValue                float64
+	Units                    string
+	HelpArticle              string
 }
 
 type SlackChannel struct {
@@ -379,7 +404,7 @@ type Admin struct {
 	NumberOfSessionsViewed *int
 	EmailVerified          *bool            `gorm:"default:false"`
 	PhotoURL               *string          `json:"photo_url"`
-	UID                    *string          `gorm:"unique_index"`
+	UID                    *string          `gorm:"uniqueIndex"`
 	Organizations          []Organization   `gorm:"many2many:organization_admins;"`
 	Projects               []Project        `gorm:"many2many:project_admins;"`
 	SessionComments        []SessionComment `gorm:"many2many:session_comment_admins;"`
@@ -396,7 +421,7 @@ type Admin struct {
 
 type EmailSignup struct {
 	Model
-	Email               string `gorm:"unique_index"`
+	Email               string `gorm:"uniqueIndex"`
 	ApolloData          string
 	ApolloDataShortened string
 }
@@ -561,6 +586,7 @@ type Field struct {
 
 type ResourcesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Resources string
 	IsBeacon  bool `gorm:"default:false"`
@@ -663,19 +689,26 @@ type Object interface {
 
 type MessagesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Messages  string
 	IsBeacon  bool `gorm:"default:false"`
 }
 
 type Metric struct {
-	Model
-	SessionID int                    `gorm:"index;not null;"`
-	ProjectID int                    `gorm:"index;not null;"`
-	Type      modelInputs.MetricType `gorm:"index;not null;"`
-	Name      string                 `gorm:"index;not null;"`
-	Value     float64
-	RequestID *string // From X-Highlight-Request header
+	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	MetricGroupID int       `gorm:"index"`
+	Name          string    `gorm:"index;not null;"`
+	Value         float64   `gorm:"index"`
+	Category      string    `gorm:"index"`
+}
+
+type MetricGroup struct {
+	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string    // index with session_id
+	SessionID int       // index with Name
+	ProjectID int       `gorm:"index;not null;"`
+	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
@@ -697,6 +730,7 @@ func (m *MessagesObject) Contents() string {
 
 type EventsObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Events    string
 	IsBeacon  bool `gorm:"default:false"`
@@ -770,7 +804,8 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool `gorm:"default:false"`
+	IsPublic         bool    `gorm:"default:false"`
+	ErrorFrequency   []int64 `gorm:"-"`
 }
 
 type ErrorField struct {
@@ -787,9 +822,11 @@ type FingerprintType string
 var Fingerprint = struct {
 	StackFrameCode     FingerprintType
 	StackFrameMetadata FingerprintType
+	JsonResult         FingerprintType
 }{
 	StackFrameCode:     "CODE",
 	StackFrameMetadata: "META",
+	JsonResult:         "JSON",
 }
 
 type ErrorFingerprint struct {
@@ -1111,13 +1148,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 		BEGIN
 			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
+				(select * from pg_indexes where indexname = 'idx_metric_groups_name_session')
 			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_metric_groups_name_session ON metric_groups (group_name, session_id);
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
+		return nil, e.Wrap(err, "Error creating idx_metric_groups_name_session")
 	}
 
 	if err := DB.Exec(`
@@ -1398,7 +1435,7 @@ type Alert struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
-	ThresholdWindow      *int
+	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
 	ChannelsToNotify     *string
 	EmailsToNotify       *string
 	Name                 *string

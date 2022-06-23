@@ -6,7 +6,7 @@
     box-shadow: var(--box-shadow-3);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - var(--top-padding));
     padding: var(--size-large) var(--size-xLarge);
     padding-bottom: 0;
     position: relative;
@@ -19,15 +19,10 @@
         position: fixed;
         transform: translateX(calc(-1 * (var(--left-panel-width))));
     }
-}
 
-.filtersContainer {
-    align-items: center;
-    column-gap: var(--size-small);
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: var(--size-large);
-    row-gap: var(--size-small);
+    &.bannerShown {
+        height: calc(100vh - var(--top-padding) - var(--banner-height));
+    }
 }
 
 .panelToggleButton {
@@ -40,11 +35,4 @@
     &.hidden {
         right: calc(-1 * (var(--sidebar-width) - var(--size-xLarge)));
     }
-}
-
-.searchContainer {
-    @include hide-scrollbar;
-    max-height: 83vh;
-    overflow-x: hidden;
-    overflow-y: auto;
 }

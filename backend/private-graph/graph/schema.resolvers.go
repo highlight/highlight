@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -47,6 +48,7 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -165,13 +167,6 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
-func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
-	if obj != nil {
-		return r.Query().DailyErrorFrequency(ctx, obj.ProjectID, obj.SecureID, 5)
-	}
-	return nil, nil
-}
-
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
 		var secureID string
@@ -204,7 +199,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 }
 
 func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
-	return obj.Type.String(), nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -351,7 +346,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -363,10 +358,18 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		}
 	}
 
+	for _, path := range errorJSONPaths {
+		_, err := jsonpath.New(path)
+		if err != nil {
+			return nil, e.Wrap(err, "The JSON path '"+path+"'is not valid")
+		}
+	}
+
 	updates := &model.Project{
-		Name:          name,
-		BillingEmail:  billingEmail,
-		ExcludedUsers: excludedUsers,
+		Name:           name,
+		BillingEmail:   billingEmail,
+		ExcludedUsers:  excludedUsers,
+		ErrorJsonPaths: errorJSONPaths,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -413,6 +416,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		// Check if this admin has already viewed
+		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
+			log.Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
+			return
+		}
 		var currentSessionCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -1151,7 +1158,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
@@ -1788,7 +1795,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1801,24 +1808,40 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling slack channels")
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling slack channels")
+		}
+		metricMonitor.ChannelsToNotify = channelsString
 	}
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		metricMonitor.EmailsToNotify = emailsString
 	}
 
-	metricMonitor.ChannelsToNotify = channelsString
-	metricMonitor.EmailsToNotify = emailsString
-	metricMonitor.Name = name
-	metricMonitor.Function = function
-	metricMonitor.Threshold = threshold
-	metricMonitor.MetricToMonitor = metricToMonitor
+	if name != nil {
+		metricMonitor.Name = *name
+	}
+	if function != nil {
+		metricMonitor.Function = *function
+	}
+	if threshold != nil {
+		metricMonitor.Threshold = *threshold
+	}
+	if metricToMonitor != nil {
+		metricMonitor.MetricToMonitor = *metricToMonitor
+	}
+
 	metricMonitor.LastAdminToEditID = admin.ID
-	metricMonitor.Disabled = &disabled
+
+	if disabled != nil {
+		metricMonitor.Disabled = disabled
+	}
 
 	if err := r.DB.Save(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error updating metric monitor")
@@ -1886,7 +1909,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int, disabled bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1899,36 +1922,59 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error querying error alert")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envString, err := r.MarshalEnvironments(environments)
+		if err != nil {
+			return nil, err
+		}
+
+		projectAlert.ExcludedEnvironments = envString
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-	regexGroupsBytes, err := json.Marshal(regexGroups)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling regex groups")
-	}
-	regexGroupsString := string(regexGroupsBytes)
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, err
+		}
+		regexGroupsBytes, err := json.Marshal(regexGroups)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling regex groups")
+		}
+		regexGroupsString := string(regexGroupsBytes)
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+		projectAlert.RegexGroups = &regexGroupsString
+		projectAlert.ChannelsToNotify = channelsString
+		projectAlert.RegexGroups = &regexGroupsString
 	}
 
-	projectAlert.ChannelsToNotify = channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.RegexGroups = &regexGroupsString
-	projectAlert.Frequency = frequency
-	projectAlert.Disabled = &disabled
+
+	if frequency != nil {
+		projectAlert.Frequency = *frequency
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -1991,7 +2037,7 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 	return metricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2004,37 +2050,53 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 		return nil, e.Wrap(err, "error querying session feedback alert")
 	}
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
-	}
-	envString := string(envBytes)
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
 	}
 
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionFeedbackAlertID,
@@ -2097,7 +2159,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2110,29 +2172,46 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 		return nil, e.Wrap(err, "error querying rage click alert")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envString, err := r.MarshalEnvironments(environments)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ExcludedEnvironments = envString
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
+	if slackChannels != nil {
+		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ChannelsToNotify = channelsString
 	}
 
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
 	}
 
-	projectAlert.ChannelsToNotify = channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.Name = &name
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: rageClickAlertID,
@@ -2146,7 +2225,7 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2159,36 +2238,50 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
-	}
-	envString := string(envBytes)
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
 	}
 
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.CountThreshold = countThreshold
-	projectAlert.Name = &name
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if countThreshold != nil {
+		projectAlert.CountThreshold = *countThreshold
+	}
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2250,7 +2343,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow *int, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2258,43 +2351,59 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for track properties alert")
-	}
-	envString := string(envBytes)
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for track properties alert")
-	}
-	channelsString := string(channelsBytes)
-
-	trackPropertiesBytes, err := json.Marshal(trackProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
-	}
-	trackPropertiesString := string(trackPropertiesBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.TrackProperties = &trackPropertiesString
-	projectAlert.Name = &name
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for track properties alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for track properties alert")
+		}
+		channelsString := string(channelsBytes)
+
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if trackProperties != nil {
+		trackPropertiesBytes, err := json.Marshal(trackProperties)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing track properties for track properties alert")
+		}
+		trackPropertiesString := string(trackPropertiesBytes)
+		projectAlert.TrackProperties = &trackPropertiesString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
+
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2440,7 +2549,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow *int, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2448,43 +2557,57 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for user properties alert")
-	}
-	envString := string(envBytes)
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for user properties alert")
-	}
-	channelsString := string(channelsBytes)
-
-	userPropertiesBytes, err := json.Marshal(userProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
-	}
-	userPropertiesString := string(userPropertiesBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
-	projectAlert.UserProperties = &userPropertiesString
-	projectAlert.Name = &name
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for user properties alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for user properties alert")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if userProperties != nil {
+		userPropertiesBytes, err := json.Marshal(userProperties)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing user properties for user properties alert")
+		}
+		userPropertiesString := string(userPropertiesBytes)
+		projectAlert.UserProperties = &userPropertiesString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Disabled = &disabled
+
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2498,7 +2621,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return projectAlert, nil
 }
 
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string, disabled bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2506,43 +2629,62 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for new session alert")
-	}
-	envString := string(envBytes)
-
-	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
-	if err != nil {
-		return nil, err
-	}
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for new session alert")
-	}
-	channelsString := string(channelsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
 	projectAlert := &model.SessionAlert{}
-	projectAlert.ExcludedEnvironments = &envString
-	projectAlert.ChannelsToNotify = &channelsString
-	projectAlert.EmailsToNotify = emailsString
+
+	if environments != nil {
+		envBytes, err := json.Marshal(environments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments for new session alert")
+		}
+		envString := string(envBytes)
+		projectAlert.ExcludedEnvironments = &envString
+	}
+
+	if excludeRules != nil {
+		excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.ExcludeRules = excludeRulesString
+	}
+
+	if slackChannels != nil {
+		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+		for _, ch := range slackChannels {
+			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+		}
+		channelsBytes, err := json.Marshal(sanitizedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels for new session alert")
+		}
+		channelsString := string(channelsBytes)
+		projectAlert.ChannelsToNotify = &channelsString
+	}
+
+	if emails != nil {
+		emailsString, err := r.MarshalAlertEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+		projectAlert.EmailsToNotify = emailsString
+	}
+
 	projectAlert.LastAdminToEditID = admin.ID
-	projectAlert.Name = &name
-	projectAlert.ThresholdWindow = &thresholdWindow
-	projectAlert.ExcludeRules = excludeRulesString
-	projectAlert.Disabled = &disabled
+
+	if name != nil {
+		projectAlert.Name = name
+	}
+	if thresholdWindow != nil {
+		projectAlert.ThresholdWindow = thresholdWindow
+	} else {
+		// default to 0 (graph ql does not like this being nil)
+		defaultThresholdWindow := 0
+		projectAlert.ThresholdWindow = &defaultThresholdWindow
+	}
+	if disabled != nil {
+		projectAlert.Disabled = disabled
+	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2695,6 +2837,9 @@ func (r *mutationResolver) SubmitRegistrationForm(ctx context.Context, workspace
 }
 
 func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*bool, error) {
+	// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
+	const RequestAccessMinimumDelay = time.Minute * 10
+
 	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
@@ -2720,17 +2865,49 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 		return &model.T, nil
 	}
 
+	request := &model.WorkspaceAccessRequest{
+		AdminID:                admin.ID,
+		LastRequestedWorkspace: workspace.ID,
+	}
+
+	query := r.DB.Where(model.WorkspaceAccessRequest{AdminID: admin.ID}).Clauses(clause.Returning{}, clause.OnConflict{
+		Columns: []clause.Column{{Name: "admin_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"updated_at":               time.Now(),
+			"last_requested_workspace": workspace.ID,
+		}),
+		Where: clause.Where{
+			Exprs: []clause.Expression{
+				clause.Lt{
+					Column: "workspace_access_requests.updated_at",
+					Value:  time.Now().Add(-RequestAccessMinimumDelay),
+				},
+			},
+		},
+	}).Create(&request)
+	if err := query.Error; err != nil {
+		log.Error(e.Wrap(err, "error upserting access requests"))
+		return &model.T, nil
+	}
+
+	// no rows updated, so user recently requested access. ignore the request
+	if query.RowsAffected == 0 {
+		return &model.T, nil
+	}
+
 	var workspaceAdmins []*model.Admin
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&workspaceAdmins); err != nil {
+	if err := r.DB.Order("created_at ASC").Model(workspace).Limit(2).Association("Admins").Find(&workspaceAdmins, "role=?", model.AdminRole.ADMIN); err != nil {
 		log.Error(e.Wrap(err, "error getting admins for the workspace"))
 		return &model.T, nil
 	}
 
-	for _, a := range workspaceAdmins[:2] {
-		if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-			*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
-			log.Error(e.Wrap(err, "failed to send request access email"))
-			return &model.T, nil
+	for _, a := range workspaceAdmins {
+		if a != nil {
+			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
+				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				log.Error(e.Wrap(err, "failed to send request access email"))
+				return &model.T, nil
+			}
 		}
 	}
 	return &model.T, nil
@@ -2749,6 +2926,65 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 		return &enabled, e.Wrap(err, "failed to update workspace clearbit state")
 	}
 	return &enabled, nil
+}
+
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return -1, err
+	}
+
+	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+		return -1, err
+	}
+
+	var dashboard *model.Dashboard = &model.Dashboard{ProjectID: projectID}
+	if id != nil {
+		if err := r.DB.Preload("Metrics").Where(&model.Dashboard{Model: model.Model{ID: *id}}).FirstOrCreate(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	} else {
+		if err := r.DB.Create(&dashboard).Error; err != nil {
+			return -1, err
+		}
+	}
+
+	for _, m := range dashboard.Metrics {
+		if m != nil {
+			if err := r.DB.Delete(&m).Error; err != nil {
+				return -1, err
+			}
+		}
+	}
+	if err := r.DB.Model(&dashboard).Association("Metrics").Clear(); err != nil {
+		return -1, e.Wrap(err, "failed to clear previous metrics")
+	}
+
+	for _, m := range metrics {
+		dashboardMetric := model.DashboardMetric{
+			Name:                     m.Name,
+			Description:              m.Description,
+			ChartType:                m.ChartType,
+			MaxGoodValue:             m.MaxGoodValue,
+			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
+			PoorValue:                m.PoorValue,
+			Units:                    m.Units,
+			HelpArticle:              m.HelpArticle,
+		}
+		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
+			return -1, e.Wrap(err, "error updating fields")
+		}
+	}
+
+	// Update the existing record if it already exists
+	dashboard.Name = name
+	dashboard.LastAdminToEditID = &admin.ID
+	dashboard.Layout = layout
+	if err := r.DB.Save(&dashboard).Error; err != nil {
+		return dashboard.ID, err
+	}
+
+	return dashboard.ID, nil
 }
 
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
@@ -3065,13 +3301,17 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	asErrorGroups := []model.ErrorGroup{}
+	asErrorGroups := []*model.ErrorGroup{}
 	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, *result.ToErrorGroup())
+		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
+	}
+
+	if err := r.SetErrorFrequencies(asErrorGroups, 5); err != nil {
+		return nil, err
 	}
 
 	return &model.ErrorResults{
-		ErrorGroups: asErrorGroups,
+		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
 		TotalCount:  resultCount,
 	}, nil
 }
@@ -3280,13 +3520,16 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	webVitalNames := []string{
+		"CLS", "FCP", "FID", "LCP", "TTFB",
+	}
 	webVitals := []*model.Metric{}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return webVitals, nil
 	}
 
-	if err := r.DB.Where(&model.Metric{Type: "WebVital", SessionID: s.ID}).Find(&webVitals).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name in ?`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
 		log.Error(err)
 		return webVitals, nil
 	}
@@ -3580,7 +3823,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error) {
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
 	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
@@ -3589,33 +3832,18 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
 		rand.Seed(int64(errGroup.ID))
-		var dists []*int64
+		var dists []int64
 		for i := 0; i <= dateOffset; i++ {
 			t := int64(rand.Intn(10) + 1)
-			dists = append(dists, &t)
+			dists = append(dists, t)
 		}
 		return dists, nil
 	}
 
-	var dailyErrors []*int64
-
-	if err := r.DB.Raw(`
-		SELECT COUNT(e.id)
-		FROM (
-			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
-			FROM generate_series(0, ?, 1)
-			AS offs
-		) d LEFT OUTER JOIN
-		error_objects e
-		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-		AND e.error_group_id=? AND e.project_id=?
-		GROUP BY d.date
-		ORDER BY d.date ASC;
-	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
-		return nil, e.Wrap(err, "error querying daily frequency")
+	if err := r.SetErrorFrequencies([]*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+		return nil, e.Wrap(err, "error setting error frequencies")
 	}
-
-	return dailyErrors, nil
+	return errGroup.ErrorFrequency, nil
 }
 
 func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -4221,7 +4449,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	}
 
 	projects := []*model.Project{}
-	if err := r.DB.Order("name ASC").Model(&model.Project{}).Where(`
+	if err := r.DB.Order("id ASC").Model(&model.Project{}).Where(`
 		id IN (
 			SELECT project_id
 			FROM project_admins
@@ -4247,7 +4475,7 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	}
 
 	workspaces := []*model.Workspace{}
-	if err := r.DB.Order("name ASC").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
+	if err := r.DB.Order("id ASC").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
@@ -4460,8 +4688,10 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 
 	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
 	options := opensearch.SearchOptions{
-		MaxResults:     pointy.Int(0),
-		AggregateField: pointy.String("identifier.keyword"),
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "identifier.keyword",
+		},
 	}
 
 	results := []model.Session{}
@@ -4470,7 +4700,10 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "error querying identifier aggregates")
 	}
 
-	return lo.Filter(lo.Keys(aggs), func(k string, idx int) bool { return len(k) > 0 }), nil
+	// Only care about the keys, not the doc counts. Return all nonempty keys.
+	return lo.Filter(
+		lo.Map(aggs, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
+		func(key string, idx int) bool { return len(key) > 0 }), nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -4596,7 +4829,7 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 
 	teamResponse := res.Data.Teams.Nodes
 
-	ret = lo.Map[LinearTeam, *modelInputs.LinearTeam](teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
+	ret = lo.Map(teamResponse, func(team LinearTeam, _ int) *modelInputs.LinearTeam {
 		return &modelInputs.LinearTeam{
 			TeamID: team.ID,
 			Name:   team.Name,
@@ -4849,7 +5082,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	if err := r.validateAdminRole(ctx); err != nil {
-		return nil, e.Wrap(err, "must have ADMIN role to access the subscription details")
+		return nil, nil
 	}
 
 	customerParams := &stripe.CustomerParams{}
@@ -4896,45 +5129,230 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	return details, nil
 }
 
-func (r *queryResolver) MetricsDashboard(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	payload := []*modelInputs.DashboardPayload{}
+func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int) ([]*modelInputs.DashboardDefinition, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return payload, nil
+		return nil, err
 	}
 
-	resMins := 60
-	if params.ResolutionMinutes != nil {
-		resMins = *params.ResolutionMinutes
+	var dashboards []*model.Dashboard
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+		return nil, err
 	}
-	tz := "PDT"
-	if params.Timezone != nil {
-		tz = *params.Timezone
+
+	var results []*modelInputs.DashboardDefinition
+	for _, d := range dashboards {
+		var metrics []*modelInputs.DashboardMetricConfig
+		for _, metric := range d.Metrics {
+			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
+				Name:                     metric.Name,
+				Description:              metric.Description,
+				ChartType:                metric.ChartType,
+				MaxGoodValue:             metric.MaxGoodValue,
+				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
+				PoorValue:                metric.PoorValue,
+				Units:                    metric.Units,
+				HelpArticle:              metric.HelpArticle,
+			})
+		}
+		results = append(results, &modelInputs.DashboardDefinition{
+			ID:                d.ID,
+			UpdatedAt:         d.UpdatedAt,
+			ProjectID:         d.ProjectID,
+			Name:              d.Name,
+			Metrics:           metrics,
+			LastAdminToEditID: d.LastAdminToEditID,
+			Layout:            d.Layout,
+		})
 	}
-	query := fmt.Sprintf(`
-		SELECT to_timestamp(cast(extract(
-				       EPOCH FROM created_at AT TIME ZONE '%s'
-				   ) / 60 / %d AS INT) * %d * 60)::timestamp AT TIME ZONE '%s'               as date,
-			   avg(value)                                                                    as avg,
-			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value)                           as p50,
-			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value)                           as p75,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value)                           as p90,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value)                           as p99
-		  FROM metrics
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?
-		  GROUP BY date;
-	`, tz, resMins, resMins, tz)
-	if err := r.DB.Raw(query, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+	return results, nil
+}
+
+func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var payload []string
+	if err := r.DB.Raw(`
+		SELECT DISTINCT name
+		FROM metrics
+		INNER JOIN metric_groups mg on mg.id = metric_group_id
+		WHERE project_id = ?
+		  AND name ILIKE ?; 
+	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
 		log.Error(err)
-		return payload, nil
+		return nil, err
 	}
 
 	return payload, nil
 }
 
-func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeArg modelInputs.MetricType, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
+func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
+	payload := []*modelInputs.DashboardPayload{}
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return payload, err
+	}
+
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
+
+	resMins := 60
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
+		resMins = *params.ResolutionMinutes
+	}
+	timelineStart := params.DateRange.StartDate
+	timelineEnd := params.DateRange.EndDate
+
+	query := `
+		SELECT g.n                                                                               as date,
+			   avg(value / ?)                                                                    as avg,
+			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value / ?)                           as p50,
+			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value / ?)                           as p75,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?)                           as p90,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?)                           as p99
+		  FROM generate_series(?::timestamptz, ?::timestamptz, (? * INTERVAL '1 MINUTE')::interval) g(n)
+			LEFT JOIN metrics m on m.created_at >= g.n AND m.created_at < g.n + ? * INTERVAL '1 MINUTE'
+			LEFT JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?
+		  GROUP BY date
+		  ORDER BY date;
+	`
+	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
+		return payload, err
+	}
+
+	return payload, nil
+}
+
+func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
+	var originalUnits *string
+	if metricName == "Latency" {
+		originalUnits = pointy.String("ns")
+	}
+	div := CalculateTimeUnitConversion(originalUnits, params.Units)
+
+	scan := struct {
+		Min float64
+		Max float64
+		P10 float64
+		P90 float64
+		P95 float64
+		P99 float64
+	}{}
+	query := `
+		SELECT min(value) / ? as min, max(value) / ? as max,
+			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value / ?) as p10,
+			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90,
+			   percentile_cont(0.95) WITHIN GROUP (ORDER BY value / ?) as p95,
+			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?) as p99
+		  FROM metrics
+		  INNER JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name=?
+			AND project_id=?
+			AND created_at >= ?
+			AND created_at <= ?;
+	`
+	if err := r.DB.Raw(query, div, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
+		return nil, err
+	}
+
+	numBuckets := 10
+	if params.Buckets != nil {
+		numBuckets = *params.Buckets
+	}
+	// TODO(vkorolik) pass this from UI
+	histogramMax := scan.P90
+	histogramMin := scan.Min
+	interval := (histogramMax - histogramMin) / float64(numBuckets)
+	if interval == 0. {
+		interval = 1
+	}
+
+	var buckets []struct {
+		Start float64
+		End   float64
+		Count int
+	}
+	query = `
+		SELECT g.n as start,
+			   g.n + ? as end,
+			   count(metrics.value)
+		  FROM generate_series(?::numeric, ?::numeric, ?::numeric) g(n)
+				LEFT JOIN metrics on metrics.value / ? >= g.n AND metrics.value / ? < g.n + ?
+				LEFT JOIN metric_groups mg on mg.id = metric_group_id
+		  WHERE name is null OR (name=? AND project_id=? AND created_at >= ? AND created_at <= ?)
+		  GROUP BY start
+		  ORDER BY start;
+	`
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.MetricsHistogram", tracer.ResourceName("db.queryHistogram"))
+	histogramQuerySpan.SetTag("projectID", projectID)
+	histogramQuerySpan.SetTag("metricName", metricName)
+	histogramQuerySpan.SetTag("buckets", params.Buckets)
+	tx := r.DB.Raw(query, interval, histogramMin, histogramMax, interval, div, div, interval, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	histogramQuerySpan.Finish()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	var payloadBuckets []*modelInputs.HistogramBucket
+	for i, b := range buckets {
+		payloadBuckets = append(payloadBuckets, &modelInputs.HistogramBucket{
+			Bucket:     float64(i),
+			RangeStart: b.Start,
+			RangeEnd:   b.End,
+			Count:      b.Count,
+		})
+	}
+	return &modelInputs.HistogramPayload{
+		Buckets: payloadBuckets,
+		Min:     scan.Min,
+		Max:     scan.Max,
+		P10:     scan.P10,
+		P90:     scan.P90,
+		P95:     scan.P95,
+		P99:     scan.P99,
+	}, nil
+}
+
+func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	var buckets []*modelInputs.CategoryHistogramBucket
+	if err := r.DB.Raw(`
+		SELECT m.category as category,
+			   count(m.category) as count
+		FROM metrics m
+			INNER JOIN metric_groups mg on m.metric_group_id = mg.id
+		WHERE mg.project_id = ?
+		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
+		  AND m.created_at <= NOW()
+		  AND m.name = ?
+		GROUP BY category
+		HAVING count(m.category) > 1
+		ORDER BY count desc
+		LIMIT 50;
+	`, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
+}
+
+func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
 	payload := []*modelInputs.MetricPreview{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return payload, nil
@@ -4969,7 +5387,7 @@ func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, typeAr
 	return payload, nil
 }
 
-func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*model.MetricMonitor, error) {
+func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model.MetricMonitor, error) {
 	metricMonitors := []*model.MetricMonitor{}
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -4977,7 +5395,11 @@ func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int) ([]*m
 		return metricMonitors, nil
 	}
 
-	if err := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID).Find(&metricMonitors).Error; err != nil {
+	query := r.DB.Order("created_at asc").Model(&model.MetricMonitor{}).Where("project_id = ?", projectID)
+	if metricName != nil && *metricName != "" {
+		query = query.Where("metric_to_monitor = ?", *metricName)
+	}
+	if err := query.Find(&metricMonitors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitors")
 	}
 	return metricMonitors, nil
@@ -5077,11 +5499,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	var deviceMemory *int
 	metric := &model.Metric{}
 
-	if err := r.DB.Model(&model.Metric{}).Where(&model.Metric{
-		Type:      modelInputs.MetricTypeDevice,
-		Name:      "DeviceMemory",
-		SessionID: obj.ID,
-	}).First(&metric).Error; err != nil {
+	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name = ?`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			log.Error(err)
 		}

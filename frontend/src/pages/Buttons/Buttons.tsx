@@ -10,7 +10,12 @@ import React, { useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
 import styles from './Buttons.module.scss';
-import { CustomError, DefaultError, RandomError } from './ButtonsHelper';
+import {
+    CustomError,
+    DefaultError,
+    NestedError,
+    RandomError,
+} from './ButtonsHelper';
 
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
@@ -78,6 +83,22 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
+                        NestedError('outer error');
+                    }}
+                >
+                    Throw a nested Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        NestedError('outer error 2');
+                    }}
+                >
+                    Throw a different nested error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
                         console.error('boba');
                     }}
                 >
@@ -124,6 +145,14 @@ export const Buttons = () => {
                     }}
                 >
                     Track
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.toggleSessionFeedbackModal();
+                    }}
+                >
+                    toggleSessionFeedbackModal
                 </button>
                 <SampleBuggyButton />
                 <button

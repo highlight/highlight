@@ -9,6 +9,7 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -21,6 +22,8 @@ import (
 var (
 	AuthClient *auth.Client
 )
+
+var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io", "@runhighlight.com"}
 
 func SetupAuthClient() {
 	secret := os.Getenv("FIREBASE_SECRET")
@@ -54,7 +57,8 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 			email = userRecord.Email
 
 			// This is to prevent attackers from impersonating Highlight staff.
-			if strings.Contains(userRecord.Email, "@highlight.run") && !userRecord.EmailVerified {
+			_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
+			if isAdmin && !userRecord.EmailVerified {
 				email = ""
 			}
 		}

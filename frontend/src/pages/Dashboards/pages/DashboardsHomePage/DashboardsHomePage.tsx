@@ -1,4 +1,3 @@
-import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
@@ -6,6 +5,7 @@ import Table from '@components/Table/Table';
 import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
+import CreateDashboardModal from '@pages/Dashboards/components/CreateDashboardModal/CreateDashboardModal';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -19,19 +19,7 @@ const DashboardsHomePage = () => {
         variables: { project_id },
     });
     const history = useHistory();
-    const { dashboards } = useDashboardsContext();
-
-    const onCreateNewDashboard = () => {
-        // TODO: Create a new dashboard in DB.
-        alert(
-            "Hi I don't do anything yet. I only show up for Highlight staff."
-        );
-        if (false) {
-            const newId = 2;
-
-            history.push(`/${project_id}/dashboards/${newId}`);
-        }
-    };
+    const { dashboards, allAdmins } = useDashboardsContext();
 
     return (
         <div>
@@ -41,14 +29,7 @@ const DashboardsHomePage = () => {
                     app.
                 </p>
                 <HighlightGate>
-                    <Button
-                        trackingId="NewDashboard"
-                        className={alertStyles.callToAction}
-                        onClick={onCreateNewDashboard}
-                        type="primary"
-                    >
-                        New Dashboard
-                    </Button>
+                    <CreateDashboardModal />
                 </HighlightGate>
             </div>
 
@@ -56,7 +37,7 @@ const DashboardsHomePage = () => {
                 <Table
                     columns={TABLE_COLUMNS}
                     loading={loading}
-                    dataSource={dashboards}
+                    dataSource={dashboards.map((d) => ({ ...d, allAdmins }))}
                     pagination={false}
                     showHeader={false}
                     rowHasPadding
@@ -67,13 +48,7 @@ const DashboardsHomePage = () => {
                             customTitle={`Your project doesn't have any dashboards yet 😔`}
                             customDescription={
                                 <>
-                                    <Button
-                                        trackingId="NewDashboard"
-                                        className={alertStyles.callToAction}
-                                        onClick={onCreateNewDashboard}
-                                    >
-                                        New Dashboard
-                                    </Button>
+                                    <CreateDashboardModal />
                                 </>
                             }
                         />
@@ -103,7 +78,7 @@ const TABLE_COLUMNS = [
         key: 'name',
         render: (name: string, record: any) => {
             return (
-                <div className={alertStyles.nameCell}>
+                <div className={alertStyles.nameCell} key={name}>
                     <div className={alertStyles.primary}>{name}</div>
                     <div>
                         <AlertLastEditedBy

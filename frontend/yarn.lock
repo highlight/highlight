@@ -3097,14 +3097,6 @@
     prop-types "^15.6.0"
     react-transition-group "^4.3.0"
 
-"@highlight-run/react-virtuoso@^2.2.7":
-  version "2.2.7"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react-virtuoso/-/react-virtuoso-2.2.7.tgz#019c25996b28d2fb9554f5dcda8c63a12119e0c8"
-  integrity sha512-asYcwVg7RTRtyp6dd1K/c50SpHgB3Gm+odaaWDSHFcplYy+G8UcDnfoWjxxdkaKhmqWqjDVC6hjOX+1N9q9eww==
-  dependencies:
-    "@virtuoso.dev/react-urx" "^0.2.8"
-    "@virtuoso.dev/urx" "^0.2.8"
-
 "@highlight-run/react@^1.1.6":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.1.6.tgz#b5f045f2797cd7942e1ed82f674d5df6665c6b84"
@@ -4034,6 +4026,13 @@
     "@types/react-dom" "*"
     "@types/react-transition-group" "*"
 
+"@types/react-slider@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@types/react-slider/-/react-slider-1.3.1.tgz#a3816989eb4fc172e7df316930f242fec90690fc"
+  integrity sha512-4X2yK7RyCIy643YCFL+bc6XNmcnBtt8n88uuyihvcn5G7Lut23eNQU3q3KmwF7MWIfKfsW5NxCjw0SeDZRtgaA==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-syntax-highlighter@^13.5.2":
   version "13.5.2"
   resolved "https://registry.yarnpkg.com/@types/react-syntax-highlighter/-/react-syntax-highlighter-13.5.2.tgz#357cc03581dc434c57c3b31f70e0eecdbf7b3ab0"
@@ -4305,17 +4304,17 @@
   resolved "https://registry.yarnpkg.com/@ungap/global-this/-/global-this-0.4.4.tgz#8a1b2cfcd3e26e079a847daba879308c924dd695"
   integrity sha512-mHkm6FvepJECMNthFuIgpAEFmPOk71UyXuIxYfjytvFTnSDBIz7jmViO+LfHI/AjrazWije0PnSP3+/NlwzqtA==
 
-"@virtuoso.dev/react-urx@^0.2.8":
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/@virtuoso.dev/react-urx/-/react-urx-0.2.10.tgz#6d94c1ebd58d8c3a76284f2c04b0c2a14a8e6818"
-  integrity sha512-ihs17eovHF9ZZM3OoKm4anKp7XLcyLaz6+iNzchimCWBTNBvA/MF4wS8MtqYZlELPj+s4+1nzgNCWGW5dL+fxw==
+"@virtuoso.dev/react-urx@^0.2.12":
+  version "0.2.13"
+  resolved "https://registry.yarnpkg.com/@virtuoso.dev/react-urx/-/react-urx-0.2.13.tgz#e2cfc42d259d2a002695e7517d34cb97b64ee9c4"
+  integrity sha512-MY0ugBDjFb5Xt8v2HY7MKcRGqw/3gTpMlLXId2EwQvYJoC8sP7nnXjAxcBtTB50KTZhO0SbzsFimaZ7pSdApwA==
   dependencies:
-    "@virtuoso.dev/urx" "^0.2.10"
+    "@virtuoso.dev/urx" "^0.2.13"
 
-"@virtuoso.dev/urx@^0.2.10", "@virtuoso.dev/urx@^0.2.8":
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/@virtuoso.dev/urx/-/urx-0.2.10.tgz#d05458ff4472960f390da0cb60cd82335d072a34"
-  integrity sha512-Eop6vdPnVomXi+uFF5Jz/I2/MTo3dZMm+XttV5yXNAKX0dYys2d3RctzJmONtOxc7kAaxnaKB8QYnMFN/mFITA==
+"@virtuoso.dev/urx@^0.2.12", "@virtuoso.dev/urx@^0.2.13":
+  version "0.2.13"
+  resolved "https://registry.yarnpkg.com/@virtuoso.dev/urx/-/urx-0.2.13.tgz#a65e7e8d923cb03397ac876bfdd45c7f71c8edf1"
+  integrity sha512-iirJNv92A1ZWxoOHHDYW/1KPoi83939o83iUBQHIim0i3tMeSKEh+bxhJdTHQ86Mr4uXx9xGUTq69cp52ZP8Xw==
 
 "@webassemblyjs/ast@1.9.0":
   version "1.9.0"
@@ -9199,10 +9198,10 @@ highlight.js@^10.4.1, highlight.js@~10.7.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
   integrity sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==
 
-highlight.run@^4.2.5:
-  version "4.2.5"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.2.5.tgz#251efc61afc8c8cc5a41a51a41cf4cc56dcc40bc"
-  integrity sha512-JOSqt2lG0cLe4G9M5tqajkiW/iIYMYAjDDQkU1TRLjFdsoBaPh2Z6mTVeHl0e940qhrC64kCxJel6RgwQcdbew==
+highlight.run@^4.2.7:
+  version "4.2.7"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.2.7.tgz#c1f998defcb09261d57c5bbc754ee072ebb02476"
+  integrity sha512-SBWIUzJQXJaN/L3k47SS6iidYl5pTM2a43xni24XYT/LaVJikQ+bS15sL/+nNO+2yUwhCfsXY/4PGwj4/hyrXw==
 
 history@^4.9.0:
   version "4.10.1"
@@ -13817,7 +13816,7 @@ prop-types@15, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop
     object-assign "^4.1.1"
     react-is "^16.8.1"
 
-prop-types@15.x, prop-types@^15.0.0, prop-types@^15.6.1:
+prop-types@15.x, prop-types@^15.0.0, prop-types@^15.6.1, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -14866,6 +14865,13 @@ react-side-effect@^2.1.0:
   resolved "https://registry.yarnpkg.com/react-side-effect/-/react-side-effect-2.1.1.tgz#66c5701c3e7560ab4822a4ee2742dee215d72eb3"
   integrity sha512-2FoTQzRNTncBVtnzxFOk2mCpcfxQpenBMbk5kSVBg5UcPqV9fRbgY2zhb7GTWWOlpFmAxhClBDlIq8Rsubz1yQ==
 
+react-slider@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/react-slider/-/react-slider-2.0.1.tgz#51fb80aaebb98a07d6563b757a49c437a5142fed"
+  integrity sha512-EnPLeyPGQcgpU9i+OvdD6W1Fk+rHg7LOVGvREXqLnbSngYvnE+d++nus0iHho1kcDw6NzF1OXzqWXAEs2Nbl4Q==
+  dependencies:
+    prop-types "^15.8.1"
+
 react-smooth@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/react-smooth/-/react-smooth-1.0.6.tgz#18b964f123f7bca099e078324338cd8739346d0a"
@@ -14976,6 +14982,14 @@ react-use@^17.2.4:
     throttle-debounce "^3.0.1"
     ts-easing "^0.2.0"
     tslib "^2.1.0"
+
+react-virtuoso@^2.13.1:
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/react-virtuoso/-/react-virtuoso-2.13.1.tgz#55f9f1d6021984d6f6fb91414f6bca8116724fed"
+  integrity sha512-Wek6hYPYU7W1r9fGEF1/sMrFOH8VV8PW64fCRxx9OSSlq5q+5Cp0uf+7eP0jFWqpZtC2DrqFoj+seZXjkiyHrA==
+  dependencies:
+    "@virtuoso.dev/react-urx" "^0.2.12"
+    "@virtuoso.dev/urx" "^0.2.12"
 
 react@^16.13.1, react@^16.7.0-alpha.0:
   version "16.14.0"

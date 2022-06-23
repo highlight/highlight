@@ -10,6 +10,7 @@ export const feedContent: string;
 export const feedItems: string;
 export const feedLine: string;
 export const feedWrapper: string;
+export const filtersContainer: string;
 export const fixedContent: string;
 export const hasScrolled: string;
 export const ignored: string;

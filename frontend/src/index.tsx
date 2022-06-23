@@ -23,6 +23,7 @@ import { datadogLogs } from '@datadog/browser-logs';
 import { useGetAdminLazyQuery } from '@graph/hooks';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
+import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
 import { showHiringMessage } from '@util/console/hiringMessage';
 import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -79,6 +80,17 @@ if (dev) {
             Math.floor(Math.random() * sampleEnvironmentNames.length)
         ]
     }-localhost`;
+    options.feedbackWidget = {
+        title: 'Test Feedback Widget',
+        subTitle: '(subtitle)',
+        enabled: true,
+        onSubmit: () => {
+            console.log('feedbackWidget onSubmit called!');
+        },
+        onCancel: () => {
+            console.log('feedbackWidget onCancel called!');
+        },
+    };
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
@@ -183,7 +195,11 @@ const AuthenticationRouter = () => {
 
     useEffect(() => {
         if (adminData) {
-            if (adminData.admin?.email.includes('@highlight.run')) {
+            if (
+                HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
+                    adminData.admin?.email.includes(d)
+                )
+            ) {
                 setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
             } else if (adminData.admin) {
                 setAuthRole(AuthRole.AUTHENTICATED);

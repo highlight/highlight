@@ -21,8 +21,10 @@ import (
 const KafkaOperationTimeout = 25 * time.Second
 
 const (
-	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
-	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
+	taskRetries           = 5
+	prefetchQueueCapacity = 64
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
+	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
 var (
@@ -39,8 +41,8 @@ var (
 type Mode int
 
 const (
-	Producer Mode = iota
-	Consumer Mode = iota
+	Producer Mode = 1 << iota
+	Consumer Mode = 1 << iota
 )
 
 type Queue struct {
@@ -82,17 +84,44 @@ func New(topic string, mode Mode) *Queue {
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
-				NumPartitions:     64,
-				ReplicationFactor: 3,
+				NumPartitions:     8,
+				ReplicationFactor: 2,
 			}},
 		})
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
+		res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+			Addr: kafka.TCP(brokers...),
+			Resources: []kafka.AlterConfigRequestResource{
+				{
+					ResourceType: kafka.ResourceTypeTopic,
+					ResourceName: topic,
+					Configs: []kafka.AlterConfigRequestConfig{
+						{
+							Name:  "delete.retention.ms",
+							Value: "604800000",
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to update topic retention"))
+		} else {
+			err = res.Errors[kafka.AlterConfigsResponseResource{
+				Type: int8(kafka.ResourceTypeTopic),
+				Name: topic,
+			}]
+			if err != nil {
+				log.Error(errors.Wrap(err, "topic retention failed server-side"))
+			}
+		}
 	}
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
-	if mode == Producer {
+	if mode&1 == 1 {
+		log.Infof("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
@@ -116,7 +145,9 @@ func New(topic string, mode Mode) *Queue {
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
-	} else if mode == Consumer {
+	}
+	if (mode>>1)&1 == 1 {
+		log.Infof("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
@@ -132,7 +163,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     512,
+			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
@@ -167,6 +198,7 @@ func (p *Queue) Stop() {
 
 func (p *Queue) Submit(msg *Message, partitionKey string) error {
 	start := time.Now()
+	msg.MaxRetries = taskRetries
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
@@ -199,11 +231,11 @@ func (p *Queue) Receive() (msg *Message) {
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)
-	msg.KafkaMessage = &m
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
+	msg.KafkaMessage = &m
 	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
 	hlog.Histogram("worker.kafka.receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
