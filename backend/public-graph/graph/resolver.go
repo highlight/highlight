@@ -760,7 +760,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		errorAsJson := interface{}(nil)
 		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
 			var project model.Project
-			if err := r.DB.Where("project_id = ?", projectID).First(&project).Error; err != nil {
+			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
 				return nil, e.Wrap(err, "error querying project")
 			}
 
@@ -1749,7 +1749,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
 		if err != nil {
-			log.Errorf("Error updating error group: %v", errorToInsert)
+			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
 		}
 
@@ -2012,7 +2012,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
 			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
 			if err != nil {
-				log.Errorf("Error updating error group: %v", errorToInsert)
+				log.Error(e.Wrap(err, "Error updating error group"))
 				continue
 			}
 

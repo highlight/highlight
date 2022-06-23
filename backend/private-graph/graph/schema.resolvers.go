@@ -1158,7 +1158,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
-	if err := r.DB.Where("project_id = ?", projectID).First(&project).Error; err != nil {
+	if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
