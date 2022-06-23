@@ -1521,16 +1521,15 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
 	for groupName, metricInputs := range metricsByGroup {
-		mg := &model.MetricGroup{
+		var mg *model.MetricGroup
+		if err := r.DB.Debug().Where(&model.MetricGroup{
+			GroupName: groupName,
+			SessionID: sessionID,
+		}).Attrs(&model.MetricGroup{
 			GroupName: groupName,
 			SessionID: sessionID,
 			ProjectID: projectID,
-			Metrics:   nil,
-		}
-		if err := r.DB.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "group_name"}, {Name: "session_id"}},
-			DoNothing: true,
-		}).Where(&model.MetricGroup{GroupName: mg.GroupName, SessionID: sessionID}).FirstOrCreate(&mg).Error; err != nil {
+		}).FirstOrCreate(&mg).Error; err != nil {
 			return err
 		}
 		for _, m := range metricInputs {
@@ -2038,15 +2037,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
-		mg := &model.MetricGroup{
+		var mg *model.MetricGroup
+		if err := r.DB.Debug().Where(&model.MetricGroup{
+			GroupName: re.RequestResponsePairs.Request.ID,
+			SessionID: sessionObj.ID,
+		}).Attrs(&model.MetricGroup{
 			GroupName: re.RequestResponsePairs.Request.ID,
 			SessionID: sessionObj.ID,
 			ProjectID: sessionObj.ProjectID,
-		}
-		if err := r.DB.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "group_name"}, {Name: "session_id"}},
-			DoNothing: true,
-		}).Where(&model.MetricGroup{GroupName: mg.GroupName, SessionID: sessionObj.ID}).FirstOrCreate(&mg).Error; err != nil {
+		}).FirstOrCreate(&mg).Error; err != nil {
 			return err
 		}
 
