@@ -110,7 +110,7 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 		}
 		mappedStackFrame, err := processStackFrame(projectId, version, *stackFrame, storageClient)
 		if err != nil {
-			if !util.IsDevOrTestEnv() {
+			if util.IsDevOrTestEnv() {
 				log.Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{
