@@ -1579,19 +1579,32 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
 	for groupName, metricInputs := range metricsByGroup {
-		var mg *model.MetricGroup
-		if err := r.DB.Where(&model.MetricGroup{
-			GroupName: groupName,
-			SessionID: sessionID,
-		}).Attrs(&model.MetricGroup{
+		mg := &model.MetricGroup{
 			GroupName: groupName,
 			SessionID: sessionID,
 			ProjectID: projectID,
-		}).FirstOrCreate(&mg).Error; err != nil {
+		}
+		tx := r.DB.Where(&model.MetricGroup{
+			GroupName: groupName,
+			SessionID: sessionID,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
+			DoNothing:    true,
+		}).Create(&mg)
+		if err := tx.Error; err != nil {
 			return err
 		}
+		if tx.RowsAffected == 0 {
+			if err := r.DB.Where(&model.MetricGroup{
+				GroupName: groupName,
+				SessionID: sessionID,
+			}).First(&mg).Error; err != nil {
+				return err
+			}
+		}
+		var newMetrics []*model.Metric
 		for _, m := range metricInputs {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
+			newMetrics = append(newMetrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          m.Name,
 				Value:         m.Value,
@@ -1599,7 +1612,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 				CreatedAt:     m.Timestamp,
 			})
 		}
-		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
 		}
 	}
@@ -1807,8 +1820,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
+		defer util.Recover()
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		defer parseEventsSpan.Finish()
 		if hasBeacon {
 			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
@@ -1864,14 +1879,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				}
 			}
 		}
-		parseEventsSpan.Finish()
 		return nil
 	})
 
 	// unmarshal messages
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		defer unmarshalMessagesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
 		}
@@ -1885,20 +1901,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error creating messages object")
 			}
 		}
-		unmarshalMessagesSpan.Finish()
 		return nil
 	})
 
 	// unmarshal resources
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		defer unmarshalResourcesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
 		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return e.Wrap(err, "error decoding resource data")
+			return nil
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
@@ -1912,12 +1929,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error creating resources object")
 			}
 		}
-		unmarshalResourcesSpan.Finish()
 		return nil
 	})
 
 	// process errors
 	g.Go(func() error {
+		defer util.Recover()
 		if hasBeacon {
 			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
