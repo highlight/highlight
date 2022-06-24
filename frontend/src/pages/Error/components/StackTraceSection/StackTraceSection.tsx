@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible';
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
@@ -6,7 +5,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
-import StackTraceSourcemaps from '@pages/Error/components/StackTraceSourcemaps/StackTraceSourcemaps';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -39,7 +38,7 @@ const StackTraceSection = ({
     compact = false,
     errorObject,
 }: Props) => {
-    const { isHighlightAdmin } = useAuthContext();
+    const { project_id } = useParams<{ project_id: string }>();
 
     const structuredStackTrace =
         errorGroup?.structured_stack_trace ??
@@ -75,19 +74,19 @@ const StackTraceSection = ({
     return (
         <div className={styles.stackTraceCard}>
             {showStackFrameNotUseful && !loading && (
-                <>
-                    <Alert
-                        trackingId="PrivacySourceMapEducation"
-                        className={styles.alert}
-                        message="These stack frames don't look that useful 😢"
-                        type="info"
-                        description={
-                            <>
-                                We're guessing you don't ship sourcemaps with
-                                your app. Did you know that Highlight has a{' '}
-                                <a>CLI tool</a> that you can run during your
-                                CI/CD process to upload sourcemaps to Highlight
-                                without making them publicly available?
+                <Alert
+                    trackingId="PrivacySourceMapEducation"
+                    className={styles.alert}
+                    message="These stack frames don't look that useful 😢"
+                    type="info"
+                    description={
+                        <>
+                            We're guessing you don't ship sourcemaps with your
+                            app. Did you know that Highlight has a{' '}
+                            <a>CLI tool</a> that you can run during your CI/CD
+                            process to upload sourcemaps to Highlight without
+                            making them publicly available?
+                            <div className={styles.sourcemapActions}>
                                 <ButtonLink
                                     anchor
                                     trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
@@ -95,15 +94,17 @@ const StackTraceSection = ({
                                 >
                                     Learn More
                                 </ButtonLink>
-                            </>
-                        }
-                    />
-                    {isHighlightAdmin && structuredStackTrace?.length && (
-                        <StackTraceSourcemaps
-                            filePath={structuredStackTrace[0]?.fileName}
-                        />
-                    )}
-                </>
+                                <ButtonLink
+                                    trackingId="stackFrameSourcemapSettings"
+                                    to={`/${project_id}/settings#sourcemaps`}
+                                    type="default"
+                                >
+                                    Sourcemap Settings
+                                </ButtonLink>
+                            </div>
+                        </>
+                    }
+                />
             )}
             {loading ? (
                 Array(5)

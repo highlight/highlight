@@ -34,6 +34,15 @@
     a {
         margin-top: var(--size-medium);
     }
+
+    .sourcemapActions {
+        align-items: center;
+        display: flex;
+
+        a {
+            margin-right: var(--size-medium);
+        }
+    }
 }
 
 .tooltip {

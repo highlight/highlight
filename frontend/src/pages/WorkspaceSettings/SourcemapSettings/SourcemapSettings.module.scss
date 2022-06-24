@@ -1,0 +1,12 @@
+.list {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    max-height: 150px;
+    overflow-y: scroll;
+    padding: var(--size-medium);
+}
+
+.select {
+    margin-bottom: var(--size-medium);
+    width: 100%;
+}
