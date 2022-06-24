@@ -7,7 +7,7 @@
     border-radius: 8px;
     margin-top: var(--size-large);
     padding: 30px;
-    width: 700px;
+    width: 100%;
 
     h3 {
         font-size: 18px;
@@ -22,4 +22,23 @@
 .titleContainer {
     margin-bottom: var(--size-xxLarge);
     margin-top: var(--size-xxLarge);
+}
+
+.tabsContainer {
+    margin-top: var(--size-large);
+
+    // Override some defaults we don't want on tabs.
+    :global {
+        .ant-tabs-nav::before {
+            border-bottom: 0 !important;
+        }
+
+        .ant-tabs-tab {
+            margin: 0 var(--size-large) 0 0 !important;
+        }
+
+        .ant-tabs-content-holder {
+            margin-top: var(--size-xxLarge);
+        }
+    }
 }

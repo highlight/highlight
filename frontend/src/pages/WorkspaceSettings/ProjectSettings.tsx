@@ -1,49 +1,133 @@
+import LeadAlignLayout from '@components/layout/LeadAlignLayout';
+import Tabs from '@components/Tabs/Tabs';
+import { DangerForm } from '@pages/WorkspaceSettings/DangerForm/DangerForm';
 import { ErrorSettingsForm } from '@pages/WorkspaceSettings/ErrorSettingsForm/ErrorSettingsForm';
+import { ExcludedUsersForm } from '@pages/WorkspaceSettings/ExcludedUsersForm/ExcludedUsersForm';
+import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm';
 import { RageClicksForm } from '@pages/WorkspaceSettings/RageClicksForm/RageClicksForm';
-import classNames from 'classnames/bind';
+import classNames from 'classnames';
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { Route, Switch, useRouteMatch } from 'react-router-dom';
 
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { DangerForm } from './DangerForm/DangerForm';
-import { ExcludedUsersForm } from './ExcludedUsersForm/ExcludedUsersForm';
-import { FieldsForm } from './FieldsForm/FieldsForm';
 import styles from './WorkspaceSettings.module.scss';
 
 const ProjectSettings = () => {
+    const match = useRouteMatch();
+    console.log('match', match);
+
     return (
         <>
             <Helmet>
-                <title>Project Settings</title>
+                <title>Workspace Settings</title>
             </Helmet>
+
             <LeadAlignLayout>
-                <h2>Project Settings</h2>
-                <p className={layoutStyles.subTitle}>
-                    {`Manage your project details.`}
-                </p>
-                <div className={styles.fieldsBox}>
-                    <h3>Project Properties</h3>
-                    <FieldsForm />
-                </div>
-                <div className={styles.fieldsBox}>
-                    <h3>Excluded Sessions</h3>
-                    <ExcludedUsersForm />
-                </div>
-                <div className={styles.fieldsBox}>
-                    <h3>Error Grouping</h3>
-                    <ErrorSettingsForm />
-                </div>
-                <div className={styles.fieldsBox}>
-                    <h3>Rage Clicks</h3>
-                    <RageClicksForm />
-                </div>
-                <div className={styles.fieldsBox}>
-                    <h3 className={classNames(styles.dangerTitle)}>
-                        Danger Zone
-                    </h3>
-                    <DangerForm />
-                </div>
+                <h2>Workspace Settings</h2>
+
+                <Route
+                    path={`${match.path}/:tab?`}
+                    render={({ history, match: tabsMatch }) => {
+                        console.log('tabsMatch', tabsMatch);
+                        return (
+                            <div className={styles.tabsContainer}>
+                                <Switch>
+                                    <Tabs
+                                        activeKeyOverride={
+                                            tabsMatch.params.tab || 'recording'
+                                        }
+                                        onChange={(key) => {
+                                            history.push(`${match.url}/${key}`);
+                                        }}
+                                        noHeaderPadding
+                                        noPadding
+                                        id="settingsTabs"
+                                        tabs={[
+                                            {
+                                                key: 'recording',
+                                                title: 'Recording',
+                                                panelContent: (
+                                                    <>
+                                                        <div
+                                                            className={
+                                                                styles.fieldsBox
+                                                            }
+                                                        >
+                                                            <h3>
+                                                                Excluded
+                                                                Sessions
+                                                            </h3>
+                                                            <ExcludedUsersForm />
+                                                        </div>
+                                                        <div
+                                                            className={
+                                                                styles.fieldsBox
+                                                            }
+                                                        >
+                                                            <h3>Rage Clicks</h3>
+                                                            <RageClicksForm />
+                                                        </div>
+                                                    </>
+                                                ),
+                                            },
+                                            {
+                                                key: 'errors',
+                                                title: 'Errors',
+                                                panelContent: (
+                                                    <>
+                                                        <div
+                                                            className={
+                                                                styles.fieldsBox
+                                                            }
+                                                        >
+                                                            <h3>
+                                                                Error Grouping
+                                                            </h3>
+                                                            <ErrorSettingsForm />
+                                                        </div>
+                                                    </>
+                                                ),
+                                            },
+                                            {
+                                                key: 'general',
+                                                title: 'General',
+                                                panelContent: (
+                                                    <>
+                                                        <div
+                                                            className={
+                                                                styles.fieldsBox
+                                                            }
+                                                        >
+                                                            <h3>
+                                                                Project
+                                                                Properties
+                                                            </h3>
+                                                            <FieldsForm />
+                                                        </div>
+                                                        <div
+                                                            className={
+                                                                styles.fieldsBox
+                                                            }
+                                                        >
+                                                            <h3
+                                                                className={classNames(
+                                                                    styles.dangerTitle
+                                                                )}
+                                                            >
+                                                                Danger Zone
+                                                            </h3>
+                                                            <DangerForm />
+                                                        </div>
+                                                    </>
+                                                ),
+                                            },
+                                        ]}
+                                    />
+                                </Switch>
+                            </div>
+                        );
+                    }}
+                />
             </LeadAlignLayout>
         </>
     );
