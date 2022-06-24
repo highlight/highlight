@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -5323,13 +5324,21 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 }
 
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	var buckets []*modelInputs.CategoryHistogramBucket
-	if err := r.DB.Debug().Raw(`
+	var extraFilters []string
+	for _, domain := range project.BackendDomains {
+		extraFilters = append(extraFilters, fmt.Sprintf("m.category LIKE '%%%s%%'", domain))
+	}
+	filtersStr := ""
+	if len(extraFilters) > 0 {
+		filtersStr = fmt.Sprintf("AND (%s)", strings.Join(extraFilters, " OR "))
+	}
+	query := fmt.Sprintf(`
 		SELECT m.category as category,
 			   count(m.category) as count
 		FROM metrics m
@@ -5338,12 +5347,27 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
 		  AND m.created_at <= NOW()
 		  AND m.name = ?
+		  %s
 		GROUP BY category
 		HAVING count(m.category) > 1
 		ORDER BY count desc
 		LIMIT 50;
-	`, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
+	`, filtersStr)
+	if err := r.DB.Debug().Raw(query, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
 		return nil, err
+	}
+
+	// guess backend domain based on most requests
+	if len(project.BackendDomains) == 0 && len(buckets) > 0 {
+		firstURL := buckets[0].Category
+		u, err := url.Parse(firstURL)
+		if err != nil {
+			log.Warnf("failed to guess domain for project %d from %s: %s", projectID, firstURL, err)
+		}
+		domains := []string{u.Host}
+		if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Update("BackendDomains", &domains).Error; err != nil {
+			log.Error(e.Wrap(err, "failed to save guessed domain for project"))
+		}
 	}
 
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
