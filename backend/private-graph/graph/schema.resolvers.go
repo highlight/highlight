@@ -5174,7 +5174,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	}
 
 	var payload []string
-	if err := r.DB.Debug().Raw(`
+	if err := r.DB.Raw(`
 		SELECT name
 		FROM metrics
 		INNER JOIN metric_groups mg on mg.id = metric_group_id
