@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"html/template"
 	"io"
 	"net/http"
@@ -159,6 +160,7 @@ func main() {
 		log.Fatalf("error setting up db: %v", err)
 	}
 
+	tdb := timeseries.New()
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
@@ -185,6 +187,7 @@ func main() {
 	privateResolver := &private.Resolver{
 		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
 		DB:                     db,
+		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
 		StorageClient:          storage,
@@ -288,6 +291,7 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:              db,
+						TDB:             tdb,
 						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 						MailClient:      sendgrid.NewSendClient(sendgridKey),
 						StorageClient:   storage,
@@ -366,6 +370,7 @@ func main() {
 		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
 			DB:              db,
+			TDB:             tdb,
 			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,

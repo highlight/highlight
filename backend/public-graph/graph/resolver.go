@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -47,6 +48,7 @@ import (
 type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
+	TDB             timeseries.DB
 	ProducerQueue   *kafka_queue.Queue
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
@@ -1578,6 +1580,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
+	var points []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
 		mg := &model.MetricGroup{
 			GroupName: groupName,
@@ -1603,6 +1606,13 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 			}
 		}
 		var newMetrics []*model.Metric
+		firstTime := time.Time{}
+		tags := map[string]string{
+			"project_id": strconv.Itoa(projectID),
+			"session_id": strconv.Itoa(sessionID),
+			"group_name": groupName,
+		}
+		fields := map[string]interface{}{}
 		for _, m := range metricInputs {
 			newMetrics = append(newMetrics, &model.Metric{
 				MetricGroupID: mg.ID,
@@ -1611,11 +1621,23 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 				Category:      m.Category,
 				CreatedAt:     m.Timestamp,
 			})
+			if m.Timestamp.After(firstTime) {
+				firstTime = m.Timestamp
+			}
+			tags[m.Name] = m.Category
+			fields[m.Name] = m.Value
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
 		}
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        firstTime,
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(points)
 	return nil
 }
 
@@ -2111,6 +2133,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	var points []timeseries.Point
 	for _, re := range resources {
 		var mg *model.MetricGroup
 		if err := r.DB.Where(&model.MetricGroup{
@@ -2124,6 +2147,12 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			return err
 		}
 
+		tags := map[string]string{
+			"project_id": strconv.Itoa(sessionObj.ProjectID),
+			"session_id": strconv.Itoa(sessionObj.ID),
+			"group_name": re.RequestResponsePairs.Request.ID,
+		}
+		fields := map[string]interface{}{}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
 			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
 			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
@@ -2135,6 +2164,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				Name:          key.String(),
 				Value:         value,
 			})
+			fields[key.String()] = value
 		}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
 			modelInputs.NetworkRequestAttributeURL:       re.Name,
@@ -2146,10 +2176,20 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				Name:          key.String(),
 				Category:      value,
 			})
+			tags[key.String()] = value
 		}
 		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
 			return err
 		}
+		// request time is relative to session start
+		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        sessionObj.CreatedAt.Add(d),
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(points)
 	return nil
 }

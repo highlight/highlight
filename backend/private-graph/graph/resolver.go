@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -55,6 +56,7 @@ var (
 
 type Resolver struct {
 	DB                     *gorm.DB
+	TDB                    timeseries.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          *storage.StorageClient
