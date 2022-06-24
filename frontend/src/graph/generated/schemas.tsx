@@ -295,7 +295,7 @@ export type ErrorSegment = {
 export type ErrorObject = {
     __typename?: 'ErrorObject';
     id: Scalars['ID'];
-    project_id: Scalars['ID'];
+    project_id: Scalars['Int'];
     session_id: Scalars['Int'];
     error_group_id: Scalars['Int'];
     error_group_secure_id: Scalars['String'];
@@ -314,7 +314,7 @@ export type ErrorObject = {
 
 export type ErrorField = {
     __typename?: 'ErrorField';
-    project_id?: Maybe<Scalars['ID']>;
+    project_id?: Maybe<Scalars['Int']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };
@@ -324,7 +324,7 @@ export type ErrorGroup = {
     created_at: Scalars['Timestamp'];
     id: Scalars['ID'];
     secure_id: Scalars['String'];
-    project_id: Scalars['ID'];
+    project_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     structured_stack_trace: Array<Maybe<ErrorTrace>>;
