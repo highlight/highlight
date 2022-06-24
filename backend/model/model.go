@@ -261,6 +261,9 @@ type Project struct {
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
 
+	// During metrics querying for network requests, only keep these relevant URLs
+	BackendDomains pq.StringArray `gorm:"type:text[]"`
+
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
 

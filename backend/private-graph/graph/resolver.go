@@ -2165,3 +2165,11 @@ func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) fl
 	}
 	return div
 }
+
+// MetricOriginalUnits returns the input units for the metric or nil if unitless.
+func MetricOriginalUnits(metricName string) (originalUnits *string) {
+	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ns")
+	}
+	return
+}

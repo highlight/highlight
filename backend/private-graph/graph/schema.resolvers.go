@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -5174,11 +5175,11 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 
 	var payload []string
 	if err := r.DB.Raw(`
-		SELECT DISTINCT name
+		SELECT name
 		FROM metrics
 		INNER JOIN metric_groups mg on mg.id = metric_group_id
 		WHERE project_id = ?
-		  AND name ILIKE ?; 
+		  AND name ILIKE ? LIMIT 1; 
 	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return nil, err
@@ -5193,13 +5194,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		return payload, err
 	}
 
-	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
-	var originalUnits *string
-	if metricName == "Latency" {
-		originalUnits = pointy.String("ns")
-	}
-	div := CalculateTimeUnitConversion(originalUnits, params.Units)
-
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -5224,6 +5219,11 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		  GROUP BY date
 		  ORDER BY date;
 	`
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
+	timelineQuerySpan.SetTag("projectID", projectID)
+	timelineQuerySpan.SetTag("metricName", metricName)
+	timelineQuerySpan.SetTag("resMins", resMins)
+	defer timelineQuerySpan.Finish()
 	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		return payload, err
 	}
@@ -5236,13 +5236,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
-	var originalUnits *string
-	if metricName == "Latency" {
-		originalUnits = pointy.String("ns")
-	}
-	div := CalculateTimeUnitConversion(originalUnits, params.Units)
-
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	scan := struct {
 		Min float64
 		Max float64
@@ -5272,10 +5266,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	// TODO(vkorolik) pass this from UI
 	histogramMax := scan.P90
 	histogramMin := scan.Min
-	interval := (histogramMax - histogramMin) / float64(numBuckets)
+	interval := (histogramMax - histogramMin) / float64(numBuckets-1)
 	if interval == 0. {
 		interval = 1
 	}
@@ -5286,21 +5279,25 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		Count int
 	}
 	query = `
-		SELECT g.n as start,
-			   g.n + ? as end,
-			   count(metrics.value)
-		  FROM generate_series(?::numeric, ?::numeric, ?::numeric) g(n)
-				LEFT JOIN metrics on metrics.value / ? >= g.n AND metrics.value / ? < g.n + ?
-				LEFT JOIN metric_groups mg on mg.id = metric_group_id
-		  WHERE name is null OR (name=? AND project_id=? AND created_at >= ? AND created_at <= ?)
-		  GROUP BY start
-		  ORDER BY start;
+		SELECT trunc(metrics.value / ? / ?)*? as bucket,
+			   min(metrics.value / ?) as start,
+			   max(metrics.value / ?) as end,
+			   count(metrics.value / ?)
+		FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id
+		WHERE name = ?
+		  AND value >= ?
+		  AND value <= ?
+		  AND project_id = ?
+		  AND created_at >= ?
+		  AND created_at <= ?
+		GROUP BY bucket
+		ORDER BY bucket;
 	`
-	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.MetricsHistogram", tracer.ResourceName("db.queryHistogram"))
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
-	tx := r.DB.Raw(query, interval, histogramMin, histogramMax, interval, div, div, interval, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	tx := r.DB.Raw(query, div, interval, interval, div, div, div, metricName, histogramMin*div, histogramMax*div, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
 	histogramQuerySpan.Finish()
 	if err := tx.Error; err != nil {
 		return nil, err
@@ -5327,12 +5324,24 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 }
 
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
 		return nil, err
 	}
 
 	var buckets []*modelInputs.CategoryHistogramBucket
-	if err := r.DB.Raw(`
+	var extraFilters []string
+	domainsMap := make(map[string]interface{})
+	for idx, domain := range project.BackendDomains {
+		key := fmt.Sprintf("d%d", idx)
+		extraFilters = append(extraFilters, fmt.Sprintf("m.category LIKE '%%' || @%s || '%%'", key))
+		domainsMap[key] = domain
+	}
+	filtersStr := ""
+	if len(extraFilters) > 0 {
+		filtersStr = fmt.Sprintf("AND (%s)", strings.Join(extraFilters, " OR "))
+	}
+	query := fmt.Sprintf(`
 		SELECT m.category as category,
 			   count(m.category) as count
 		FROM metrics m
@@ -5341,12 +5350,27 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
 		  AND m.created_at <= NOW()
 		  AND m.name = ?
+		  %s
 		GROUP BY category
 		HAVING count(m.category) > 1
 		ORDER BY count desc
 		LIMIT 50;
-	`, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
+	`, filtersStr)
+	if err := r.DB.Raw(query, projectID, params.LookbackDays, params.Attribute.String(), domainsMap).Scan(&buckets).Error; err != nil {
 		return nil, err
+	}
+
+	// guess backend domain based on most requests
+	if len(project.BackendDomains) == 0 && len(buckets) > 0 {
+		firstURL := buckets[0].Category
+		u, err := url.Parse(firstURL)
+		if err != nil {
+			log.Warnf("failed to guess domain for project %d from %s: %s", projectID, firstURL, err)
+		}
+		domains := []string{u.Host}
+		if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Update("BackendDomains", &domains).Error; err != nil {
+			log.Error(e.Wrap(err, "failed to save guessed domain for project"))
+		}
 	}
 
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil

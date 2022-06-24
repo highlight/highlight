@@ -263,7 +263,7 @@ const AddMetricModal = ({
 
     // Ignore this so we have a consistent reference so debounce works.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), []);
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 500), []);
 
     return (
         <Modal visible={shown} onCancel={onCancel} title={'Add a Metric Chart'}>
