@@ -5174,12 +5174,12 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	}
 
 	var payload []string
-	if err := r.DB.Raw(`
-		SELECT DISTINCT name
+	if err := r.DB.Debug().Raw(`
+		SELECT name
 		FROM metrics
 		INNER JOIN metric_groups mg on mg.id = metric_group_id
 		WHERE project_id = ?
-		  AND name ILIKE ?; 
+		  AND name ILIKE ? LIMIT 1; 
 	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
 		log.Error(err)
 		return nil, err
