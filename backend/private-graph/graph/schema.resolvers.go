@@ -5331,8 +5331,11 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 
 	var buckets []*modelInputs.CategoryHistogramBucket
 	var extraFilters []string
-	for _, domain := range project.BackendDomains {
-		extraFilters = append(extraFilters, fmt.Sprintf("m.category LIKE '%%%s%%'", domain))
+	domainsMap := make(map[string]interface{})
+	for idx, domain := range project.BackendDomains {
+		key := fmt.Sprintf("d%d", idx)
+		extraFilters = append(extraFilters, fmt.Sprintf("m.category LIKE '%%' || @%s || '%%'", key))
+		domainsMap[key] = domain
 	}
 	filtersStr := ""
 	if len(extraFilters) > 0 {
@@ -5353,7 +5356,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		ORDER BY count desc
 		LIMIT 50;
 	`, filtersStr)
-	if err := r.DB.Debug().Raw(query, projectID, params.LookbackDays, params.Attribute.String()).Scan(&buckets).Error; err != nil {
+	if err := r.DB.Raw(query, projectID, params.LookbackDays, params.Attribute.String(), domainsMap).Scan(&buckets).Error; err != nil {
 		return nil, err
 	}
 
