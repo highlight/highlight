@@ -5193,13 +5193,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		return payload, err
 	}
 
-	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
-	var originalUnits *string
-	if metricName == "Latency" {
-		originalUnits = pointy.String("ns")
-	}
-	div := CalculateTimeUnitConversion(originalUnits, params.Units)
-
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -5224,6 +5218,11 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		  GROUP BY date
 		  ORDER BY date;
 	`
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
+	timelineQuerySpan.SetTag("projectID", projectID)
+	timelineQuerySpan.SetTag("metricName", metricName)
+	timelineQuerySpan.SetTag("resMins", resMins)
+	defer timelineQuerySpan.Finish()
 	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
 		return payload, err
 	}
@@ -5236,13 +5235,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	// TODO(vkorolik) somehow know which metrics are unit-ful vs not.
-	var originalUnits *string
-	if metricName == "Latency" {
-		originalUnits = pointy.String("ns")
-	}
-	div := CalculateTimeUnitConversion(originalUnits, params.Units)
-
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	scan := struct {
 		Min float64
 		Max float64
@@ -5272,10 +5265,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	// TODO(vkorolik) pass this from UI
 	histogramMax := scan.P90
 	histogramMin := scan.Min
-	interval := (histogramMax - histogramMin) / float64(numBuckets)
+	interval := (histogramMax - histogramMin) / float64(numBuckets-1)
 	if interval == 0. {
 		interval = 1
 	}
@@ -5286,21 +5278,25 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		Count int
 	}
 	query = `
-		SELECT g.n as start,
-			   g.n + ? as end,
-			   count(metrics.value)
-		  FROM generate_series(?::numeric, ?::numeric, ?::numeric) g(n)
-				LEFT JOIN metrics on metrics.value / ? >= g.n AND metrics.value / ? < g.n + ?
-				LEFT JOIN metric_groups mg on mg.id = metric_group_id
-		  WHERE name is null OR (name=? AND project_id=? AND created_at >= ? AND created_at <= ?)
-		  GROUP BY start
-		  ORDER BY start;
+		SELECT trunc(metrics.value / ? / ?)*? as bucket,
+			   min(metrics.value / ?) as start,
+			   max(metrics.value / ?) as end,
+			   count(metrics.value / ?)
+		FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id
+		WHERE name = ?
+		  AND value >= ?
+		  AND value <= ?
+		  AND project_id = ?
+		  AND created_at >= ?
+		  AND created_at <= ?
+		GROUP BY bucket
+		ORDER BY bucket;
 	`
-	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "private-graph.MetricsHistogram", tracer.ResourceName("db.queryHistogram"))
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
-	tx := r.DB.Raw(query, interval, histogramMin, histogramMax, interval, div, div, interval, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	tx := r.DB.Raw(query, div, interval, interval, div, div, div, metricName, histogramMin*div, histogramMax*div, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
 	histogramQuerySpan.Finish()
 	if err := tx.Error; err != nil {
 		return nil, err
@@ -5327,12 +5323,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 }
 
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
 		return nil, err
 	}
 
 	var buckets []*modelInputs.CategoryHistogramBucket
-	if err := r.DB.Raw(`
+	if err := r.DB.Debug().Raw(`
 		SELECT m.category as category,
 			   count(m.category) as count
 		FROM metrics m

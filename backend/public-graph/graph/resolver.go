@@ -1573,10 +1573,6 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		if m.Group != nil {
 			group = *m.Group
 		}
-		// TODO(vkorolik) do i need random string
-		if group == "" {
-			group = util.GenerateRandomString(16)
-		}
 		if _, ok := metricsByGroup[group]; !ok {
 			metricsByGroup[group] = []*customModels.MetricInput{}
 		}
