@@ -10,23 +10,14 @@ import (
 	"time"
 )
 
-const (
-	Metrics = "metrics"
-)
+type Measurement string
 
-var (
-	EnvironmentPrefix string = func() string {
-		prefix := os.Getenv("KAFKA_ENV_PREFIX")
-		if len(prefix) > 0 {
-			return prefix
-		} else {
-			return os.Getenv("DOPPLER_CONFIG")
-		}
-	}()
+const (
+	Metrics Measurement = "metrics"
 )
 
 type Point struct {
-	Measurement string
+	Measurement Measurement
 	Time        time.Time
 	Tags        map[string]string
 	Fields      map[string]interface{}
@@ -34,10 +25,11 @@ type Point struct {
 
 type DB interface {
 	Write(points []Point)
-	Query(ctx context.Context)
+	Query(ctx context.Context, m Measurement) error
 }
 
 type InfluxDB struct {
+	Bucket   string
 	client   influxdb2.Client
 	writeAPI api.WriteAPI
 	queryAPI api.QueryAPI
@@ -46,10 +38,11 @@ type InfluxDB struct {
 
 func New() *InfluxDB {
 	org := os.Getenv("INFLUXDB_ORG")
-	// create per-dev-profile data bucket
-	bucket := fmt.Sprintf("%s_%s", EnvironmentPrefix, os.Getenv("INFLUXDB_BUCKET"))
+	bucket := os.Getenv("INFLUXDB_BUCKET")
+	server := os.Getenv("INFLUXDB_SERVER")
+	token := os.Getenv("INFLUXDB_TOKEN")
 	// initialize client
-	client := influxdb2.NewClient(os.Getenv("INFLUXDB_SERVER"), os.Getenv("INFLUXDB_TOKEN"))
+	client := influxdb2.NewClient(server, token)
 	// Get non-blocking write client
 	writeAPI := client.WriteAPI(org, bucket)
 	// Get errors channel
@@ -63,6 +56,7 @@ func New() *InfluxDB {
 	// Get query client
 	queryAPI := client.QueryAPI(org)
 	return &InfluxDB{
+		Bucket:   bucket,
 		client:   client,
 		writeAPI: writeAPI,
 		queryAPI: queryAPI,
@@ -72,7 +66,7 @@ func New() *InfluxDB {
 
 func (i *InfluxDB) Write(points []Point) {
 	for _, point := range points {
-		p := influxdb2.NewPointWithMeasurement(point.Measurement)
+		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
 		for k, v := range point.Tags {
 			p = p.AddTag(k, v)
 		}
@@ -87,27 +81,27 @@ func (i *InfluxDB) Write(points []Point) {
 	i.writeAPI.Flush()
 }
 
-func (i *InfluxDB) Query(ctx context.Context) {
+func (i *InfluxDB) Query(ctx context.Context, m Measurement) error {
 	// TODO(vkorolik) not yet implemented
 	// get QueryTableResult
-	result, err := i.queryAPI.Query(ctx, `from(bucket:"my-bucket")|> range(start: -1h) |> filter(fn: (r) => r._measurement == "stat")`)
-	if err == nil {
-		// Iterate over query response
-		for result.Next() {
-			// Notice when group key has changed
-			if result.TableChanged() {
-				fmt.Printf("table: %s\n", result.TableMetadata().String())
-			}
-			// Access data
-			fmt.Printf("value: %v\n", result.Record().Value())
-		}
-		// check for an error
-		if result.Err() != nil {
-			fmt.Printf("query parsing error: %s\n", result.Err().Error())
-		}
-	} else {
-		panic(err)
+	result, err := i.queryAPI.Query(ctx, fmt.Sprintf(`from(bucket:"%s")|> range(start: -1h) |> filter(fn: (r) => r._measurement == "%s")`, i.Bucket, m))
+	if err != nil {
+		return err
 	}
+	// Iterate over query response
+	for result.Next() {
+		// Notice when group key has changed
+		if result.TableChanged() {
+			fmt.Printf("table: %s\n", result.TableMetadata().String())
+		}
+		// Access data
+		fmt.Printf("value: %v\n", result.Record().Value())
+	}
+	// check for an error
+	if result.Err() != nil {
+		log.Errorf("query parsing error: %s\n", result.Err().Error())
+	}
+	return nil
 }
 
 func (i *InfluxDB) Stop() {

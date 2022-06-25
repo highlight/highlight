@@ -473,13 +473,14 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type NetworkRequestAttribute string
 
 const (
-	NetworkRequestAttributeMethod       NetworkRequestAttribute = "method"
-	NetworkRequestAttributeURL          NetworkRequestAttribute = "url"
-	NetworkRequestAttributeBodySize     NetworkRequestAttribute = "body_size"
-	NetworkRequestAttributeResponseSize NetworkRequestAttribute = "response_size"
-	NetworkRequestAttributeStatus       NetworkRequestAttribute = "status"
-	NetworkRequestAttributeLatency      NetworkRequestAttribute = "latency"
-	NetworkRequestAttributeRequestID    NetworkRequestAttribute = "request_id"
+	NetworkRequestAttributeMethod           NetworkRequestAttribute = "method"
+	NetworkRequestAttributeURL              NetworkRequestAttribute = "url"
+	NetworkRequestAttributeBodySize         NetworkRequestAttribute = "body_size"
+	NetworkRequestAttributeResponseSize     NetworkRequestAttribute = "response_size"
+	NetworkRequestAttributeStatus           NetworkRequestAttribute = "status"
+	NetworkRequestAttributeLatency          NetworkRequestAttribute = "latency"
+	NetworkRequestAttributeRequestID        NetworkRequestAttribute = "request_id"
+	NetworkRequestAttributeGraphqlOperation NetworkRequestAttribute = "graphql_operation"
 )
 
 var AllNetworkRequestAttribute = []NetworkRequestAttribute{
@@ -490,11 +491,12 @@ var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 	NetworkRequestAttributeStatus,
 	NetworkRequestAttributeLatency,
 	NetworkRequestAttributeRequestID,
+	NetworkRequestAttributeGraphqlOperation,
 }
 
 func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
 		return true
 	}
 	return false

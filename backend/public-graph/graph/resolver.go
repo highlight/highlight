@@ -104,6 +104,7 @@ type Request struct {
 	Headers map[string]string `json:"headers"`
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
+	Body    string            `json:"body"`
 }
 
 type Response struct {
@@ -2166,11 +2167,20 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			})
 			fields[key.String()] = value
 		}
-		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
+		categories := map[modelInputs.NetworkRequestAttribute]string{
 			modelInputs.NetworkRequestAttributeURL:       re.Name,
 			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
 			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
-		} {
+		}
+		requestBody := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err != nil {
+			return nil
+		}
+		graphqlOperation := fmt.Sprintf("%s", requestBody["operationName"])
+		if len(graphqlOperation) > 0 {
+			categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = graphqlOperation
+		}
+		for key, value := range categories {
 			mg.Metrics = append(mg.Metrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          key.String(),
