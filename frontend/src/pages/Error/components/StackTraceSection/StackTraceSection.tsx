@@ -81,11 +81,9 @@ const StackTraceSection = ({
                     type="info"
                     description={
                         <>
-                            We're guessing you don't ship sourcemaps with your
-                            app. Did you know that Highlight has a{' '}
-                            <a>CLI tool</a> that you can run during your CI/CD
-                            process to upload sourcemaps to Highlight without
-                            making them publicly available?
+                            Are there sourcemaps tied to your javascript code?
+                            If yes, you can upload them to Highlight in CI/CD to
+                            get enhanced stack traces.
                             <div className={styles.sourcemapActions}>
                                 <ButtonLink
                                     anchor
