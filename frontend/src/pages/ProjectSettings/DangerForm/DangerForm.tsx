@@ -1,6 +1,6 @@
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
-import { FieldsBox } from '@pages/ProjectSettings/FieldsBox/FieldsBox';
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm';
 import { useParams } from '@util/react-router/useParams';
 import { Skeleton } from 'antd';

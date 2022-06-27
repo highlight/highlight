@@ -1,3 +1,4 @@
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Select from '@components/Select/Select';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import {
@@ -6,7 +7,6 @@ import {
     useGetProjectQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { FieldsBox } from '@pages/ProjectSettings/FieldsBox/FieldsBox';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';

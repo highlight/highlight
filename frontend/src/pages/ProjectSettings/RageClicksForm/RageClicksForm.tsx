@@ -1,8 +1,8 @@
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import InputNumber from '@components/InputNumber/InputNumber';
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { FieldsBox } from '@pages/ProjectSettings/FieldsBox/FieldsBox';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
