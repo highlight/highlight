@@ -23,7 +23,6 @@ interface Props {
                   | 'mapped_stack_trace'
                   | 'structured_stack_trace'
                   | 'type'
-                  | 'project_id'
               >
           >
         | undefined;
