@@ -1615,17 +1615,21 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		}
 		fields := map[string]interface{}{}
 		for _, m := range metricInputs {
+			category := ""
+			if m.Category != nil {
+				category = *m.Category
+			}
 			newMetrics = append(newMetrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          m.Name,
 				Value:         m.Value,
-				Category:      m.Category,
+				Category:      category,
 				CreatedAt:     m.Timestamp,
 			})
 			if m.Timestamp.After(firstTime) {
 				firstTime = m.Timestamp
 			}
-			tags[m.Name] = m.Category
+			tags[m.Name] = category
 			fields[m.Name] = m.Value
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {

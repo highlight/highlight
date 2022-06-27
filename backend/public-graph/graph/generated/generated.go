@@ -363,8 +363,11 @@ input MetricInput {
     group: String
     name: String!
     value: Float!
-    category: String!
+    category: String
     timestamp: Timestamp!
+    # kept for backwards compatibility with old clients, do not use
+    type: Any
+    url: String
 }
 
 input ReplayEventInput {
@@ -2868,7 +2871,7 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
-			it.Category, err = ec.unmarshalNString2string(ctx, v)
+			it.Category, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2877,6 +2880,22 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
 			it.Timestamp, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			it.URL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
