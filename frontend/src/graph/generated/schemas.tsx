@@ -440,6 +440,7 @@ export enum NetworkRequestAttribute {
     Status = 'status',
     Latency = 'latency',
     RequestId = 'request_id',
+    GraphqlOperation = 'graphql_operation',
 }
 
 export type NetworkHistogramParamsInput = {

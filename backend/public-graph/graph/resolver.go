@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -47,6 +48,7 @@ import (
 type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
+	TDB             timeseries.DB
 	ProducerQueue   *kafka_queue.Queue
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
@@ -102,6 +104,7 @@ type Request struct {
 	Headers map[string]string `json:"headers"`
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
+	Body    string            `json:"body"`
 }
 
 type Response struct {
@@ -1578,35 +1581,68 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
+	var points []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
-		var mg *model.MetricGroup
-		if err := r.DB.Where(&model.MetricGroup{
-			GroupName: groupName,
-			SessionID: sessionID,
-		}).Attrs(&model.MetricGroup{
+		mg := &model.MetricGroup{
 			GroupName: groupName,
 			SessionID: sessionID,
 			ProjectID: projectID,
-		}).FirstOrCreate(&mg).Error; err != nil {
+		}
+		tx := r.DB.Where(&model.MetricGroup{
+			GroupName: groupName,
+			SessionID: sessionID,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
+			DoNothing:    true,
+		}).Create(&mg)
+		if err := tx.Error; err != nil {
 			return err
 		}
+		if tx.RowsAffected == 0 {
+			if err := r.DB.Where(&model.MetricGroup{
+				GroupName: groupName,
+				SessionID: sessionID,
+			}).First(&mg).Error; err != nil {
+				return err
+			}
+		}
+		var newMetrics []*model.Metric
+		firstTime := time.Time{}
+		tags := map[string]string{
+			"project_id": strconv.Itoa(projectID),
+			"session_id": strconv.Itoa(sessionID),
+			"group_name": groupName,
+		}
+		fields := map[string]interface{}{}
 		for _, m := range metricInputs {
 			category := ""
 			if m.Category != nil {
 				category = *m.Category
 			}
-			mg.Metrics = append(mg.Metrics, &model.Metric{
+			newMetrics = append(newMetrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          m.Name,
 				Value:         m.Value,
 				Category:      category,
 				CreatedAt:     m.Timestamp,
 			})
+			if m.Timestamp.After(firstTime) {
+				firstTime = m.Timestamp
+			}
+			tags[m.Name] = category
+			fields[m.Name] = m.Value
 		}
-		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
 		}
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        firstTime,
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(points)
 	return nil
 }
 
@@ -1811,8 +1847,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
+		defer util.Recover()
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		defer parseEventsSpan.Finish()
 		if hasBeacon {
 			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
@@ -1868,14 +1906,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				}
 			}
 		}
-		parseEventsSpan.Finish()
 		return nil
 	})
 
 	// unmarshal messages
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		defer unmarshalMessagesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
 		}
@@ -1889,20 +1928,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error creating messages object")
 			}
 		}
-		unmarshalMessagesSpan.Finish()
 		return nil
 	})
 
 	// unmarshal resources
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		defer unmarshalResourcesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
 		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return e.Wrap(err, "error decoding resource data")
+			return nil
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
@@ -1916,12 +1956,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error creating resources object")
 			}
 		}
-		unmarshalResourcesSpan.Finish()
 		return nil
 	})
 
 	// process errors
 	g.Go(func() error {
+		defer util.Recover()
 		if hasBeacon {
 			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
@@ -2098,6 +2138,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	var points []timeseries.Point
 	for _, re := range resources {
 		var mg *model.MetricGroup
 		if err := r.DB.Where(&model.MetricGroup{
@@ -2111,6 +2152,12 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			return err
 		}
 
+		tags := map[string]string{
+			"project_id": strconv.Itoa(sessionObj.ProjectID),
+			"session_id": strconv.Itoa(sessionObj.ID),
+			"group_name": re.RequestResponsePairs.Request.ID,
+		}
+		fields := map[string]interface{}{}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
 			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
 			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
@@ -2122,21 +2169,41 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				Name:          key.String(),
 				Value:         value,
 			})
+			fields[key.String()] = value
 		}
-		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
+		categories := map[modelInputs.NetworkRequestAttribute]string{
 			modelInputs.NetworkRequestAttributeURL:       re.Name,
 			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
 			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
-		} {
+		}
+		requestBody := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err != nil {
+			return nil
+		}
+		graphqlOperation := fmt.Sprintf("%s", requestBody["operationName"])
+		if len(graphqlOperation) > 0 {
+			categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = graphqlOperation
+		}
+		for key, value := range categories {
 			mg.Metrics = append(mg.Metrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          key.String(),
 				Category:      value,
 			})
+			tags[key.String()] = value
 		}
 		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
 			return err
 		}
+		// request time is relative to session start
+		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        sessionObj.CreatedAt.Add(d),
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(points)
 	return nil
 }
