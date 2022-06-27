@@ -6342,6 +6342,7 @@ enum NetworkRequestAttribute {
     status
     latency
     request_id
+    graphql_operation
 }
 
 input NetworkHistogramParamsInput {
