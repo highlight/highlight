@@ -4,6 +4,7 @@ import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/component
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
+import { debounce } from 'lodash';
 import React from 'react';
 
 import styles from './SourcemapSettings.module.scss';
@@ -27,9 +28,24 @@ const SourcemapSettings = () => {
         ? fileKeys.filter((key) => key && key.indexOf(query) > -1) || []
         : fileKeys || [];
 
+    const filterResults = debounce((query: string) => {
+        setQuery(query);
+    }, 300);
+
     return (
         <div>
-            <p>Here are the sourcemap files we have for your project.</p>
+            <p>
+                Below is a list of sourcemap files we have for your project.
+                Check out{' '}
+                <a
+                    href="https://docs.highlight.run/sourcemaps"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    the sourcemap docs
+                </a>{' '}
+                to learn more about sending sourcemaps to Highlight.
+            </p>
 
             <Card
                 className={styles.list}
@@ -39,10 +55,7 @@ const SourcemapSettings = () => {
                             allowClear
                             style={{ width: '100%' }}
                             placeholder="Search for a file"
-                            value={query}
-                            onChange={(e) => {
-                                setQuery(e.target.value);
-                            }}
+                            onChange={(e) => filterResults(e.target.value)}
                             size="small"
                             disabled={loading}
                         />
@@ -72,7 +85,9 @@ const SourcemapSettings = () => {
                     }))}
                     onClickHandler={() => {}}
                     noDataMessage={
-                        !visibleFileKeys?.length && (
+                        query ? (
+                            <p>No source maps files match your search.</p>
+                        ) : (
                             <p>
                                 We don't have any sourcemap files for your
                                 project. Check{' '}
@@ -89,7 +104,11 @@ const SourcemapSettings = () => {
                             </p>
                         )
                     }
-                    noDataTitle={'No sourcemap data yet 😔'}
+                    noDataTitle={
+                        query.length
+                            ? 'Nothing to see here'
+                            : 'No sourcemap data yet 😔'
+                    }
                 />
             </Card>
         </div>
