@@ -1,6 +1,5 @@
 import Card from '@components/Card/Card';
 import Input from '@components/Input/Input';
-import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
@@ -66,13 +65,9 @@ const SourcemapSettings = () => {
                             dataIndex: 'key',
                             key: 'key',
                             width: '100%',
-                            render: (key) => {
-                                return (
-                                    <ProgressBarTableRowGroup>
-                                        <span>{key}</span>
-                                    </ProgressBarTableRowGroup>
-                                );
-                            },
+                            render: (key) => (
+                                <div className={styles.listRow}>{key}</div>
+                            ),
                         },
                     ]}
                     data={visibleFileKeys?.map((file) => ({
