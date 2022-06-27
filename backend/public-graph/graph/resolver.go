@@ -100,18 +100,18 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID      string            `json:"id"`
-	Headers map[string]string `json:"headers"`
-	URL     string            `json:"url"`
-	Method  string            `json:"verb"`
-	Body    string            `json:"body"`
+	ID      string                     `json:"id"`
+	URL     string                     `json:"url"`
+	Method  string                     `json:"verb"`
+	Headers map[string]json.RawMessage `json:"headers"`
+	Body    json.RawMessage            `json:"body"`
 }
 
 type Response struct {
-	Body    string            `json:"body"`
-	Headers map[string]string `json:"headers"`
 	Status  int               `json:"status"`
-	Size    int               `json:"size"`
+	Size    float64           `json:"size"`
+	Headers map[string]string `json:"headers"`
+	Body    json.RawMessage   `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -124,8 +124,8 @@ type NetworkResource struct {
 	StartTime            float64              `json:"startTime"`
 	ResponseEnd          float64              `json:"responseEnd"`
 	InitiatorType        string               `json:"initiatorType"`
-	TransferSize         int64                `json:"transferSize"`
-	EncodedBodySize      int64                `json:"encodedBodySize"`
+	TransferSize         float64              `json:"transferSize"`
+	EncodedBodySize      float64              `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
