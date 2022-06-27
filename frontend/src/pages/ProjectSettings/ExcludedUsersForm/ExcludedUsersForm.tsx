@@ -6,6 +6,7 @@ import {
     useGetProjectQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { FieldsBox } from '@pages/ProjectSettings/FieldsBox/FieldsBox';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
@@ -105,70 +106,75 @@ export const ExcludedUsersForm = () => {
     };
 
     return (
-        <form onSubmit={onSubmit} key={project_id}>
-            <p>
-                Enter user identifiers or emails to hide (regular expressions
-                are accepted). On completion, sessions from these users will be
-                excluded from your searches and quota.
-            </p>
-            <div className={styles.inputAndButtonRow}>
-                <Select
-                    mode="tags"
-                    placeholder={`.*@yourdomain.com`}
-                    defaultValue={data?.project?.excluded_users || undefined}
-                    onSearch={handleIdentifierSearch}
-                    options={identifierSuggestions}
-                    onChange={(excluded: string[]) => {
-                        const validRegexes: string[] = [];
-                        const invalidRegexes: string[] = [];
-                        excluded.forEach((expression) => {
-                            try {
-                                new RegExp(expression);
-                                validRegexes.push(expression);
-                            } catch (e) {
-                                invalidRegexes.push(expression);
-                            }
-                        });
-                        if (
-                            excluded.length > 0 &&
-                            invalidRegexes.length > 0 &&
-                            excluded[excluded.length - 1] ===
-                                invalidRegexes[invalidRegexes.length - 1]
-                        ) {
-                            message.error(
-                                "'" +
-                                    excluded[excluded.length - 1] +
-                                    "' is not a valid regular expression",
-                                5
-                            );
+        <FieldsBox>
+            <h3>Excluded Sessions</h3>
+            <form onSubmit={onSubmit} key={project_id}>
+                <p>
+                    Enter user identifiers or emails to hide (regular
+                    expressions are accepted). On completion, sessions from
+                    these users will be excluded from your searches and quota.
+                </p>
+                <div className={styles.inputAndButtonRow}>
+                    <Select
+                        mode="tags"
+                        placeholder={`.*@yourdomain.com`}
+                        defaultValue={
+                            data?.project?.excluded_users || undefined
                         }
-                        setExcludedUsers(validRegexes);
-                        setInvalidExcludedUsers(invalidRegexes);
-                        handleIdentifierSearch('');
-                    }}
-                />
-                <Button
-                    trackingId={`ExcludedUsersUpdate`}
-                    htmlType="submit"
-                    type="primary"
-                    className={classNames(
-                        commonStyles.submitButton,
-                        styles.saveButton
-                    )}
-                >
-                    {editProjectLoading ? (
-                        <CircularSpinner
-                            style={{
-                                fontSize: 18,
-                                color: 'var(--text-primary-inverted)',
-                            }}
-                        />
-                    ) : (
-                        'Save'
-                    )}
-                </Button>
-            </div>
-            {invalidExcludedUsers.length > 0 && <div></div>}
-        </form>
+                        onSearch={handleIdentifierSearch}
+                        options={identifierSuggestions}
+                        onChange={(excluded: string[]) => {
+                            const validRegexes: string[] = [];
+                            const invalidRegexes: string[] = [];
+                            excluded.forEach((expression) => {
+                                try {
+                                    new RegExp(expression);
+                                    validRegexes.push(expression);
+                                } catch (e) {
+                                    invalidRegexes.push(expression);
+                                }
+                            });
+                            if (
+                                excluded.length > 0 &&
+                                invalidRegexes.length > 0 &&
+                                excluded[excluded.length - 1] ===
+                                    invalidRegexes[invalidRegexes.length - 1]
+                            ) {
+                                message.error(
+                                    "'" +
+                                        excluded[excluded.length - 1] +
+                                        "' is not a valid regular expression",
+                                    5
+                                );
+                            }
+                            setExcludedUsers(validRegexes);
+                            setInvalidExcludedUsers(invalidRegexes);
+                            handleIdentifierSearch('');
+                        }}
+                    />
+                    <Button
+                        trackingId={`ExcludedUsersUpdate`}
+                        htmlType="submit"
+                        type="primary"
+                        className={classNames(
+                            commonStyles.submitButton,
+                            styles.saveButton
+                        )}
+                    >
+                        {editProjectLoading ? (
+                            <CircularSpinner
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
+                            />
+                        ) : (
+                            'Save'
+                        )}
+                    </Button>
+                </div>
+                {invalidExcludedUsers.length > 0 && <div></div>}
+            </form>
+        </FieldsBox>
     );
 };
