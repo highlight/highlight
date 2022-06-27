@@ -3,6 +3,7 @@ import Input from '@components/Input/Input';
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
+import { useParams } from '@util/react-router/useParams';
 import { debounce } from 'lodash';
 import React from 'react';
 
@@ -17,15 +18,11 @@ const SourcemapSettings = () => {
         },
     });
 
-    const fileRegExp = new RegExp(`^(${project_id}/)`);
-    const fileKeys =
-        data?.sourcemap_files?.map((file) =>
-            file.key?.replace(fileRegExp, '/')
-        ) || [];
+    const fileKeys = data?.sourcemap_files?.map((file) => file.key) || [];
 
     const visibleFileKeys = query.length
-        ? fileKeys.filter((key) => key && key.indexOf(query) > -1) || []
-        : fileKeys || [];
+        ? fileKeys.filter((key) => key && key.indexOf(query) > -1)
+        : fileKeys;
 
     const filterResults = debounce((query: string) => {
         setQuery(query);
