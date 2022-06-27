@@ -1,5 +1,6 @@
 import { ErrorSettingsForm } from '@pages/WorkspaceSettings/ErrorSettingsForm/ErrorSettingsForm';
 import { RageClicksForm } from '@pages/WorkspaceSettings/RageClicksForm/RageClicksForm';
+import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { Helmet } from 'react-helmet';
@@ -37,6 +38,10 @@ const ProjectSettings = () => {
                 <div className={styles.fieldsBox}>
                     <h3>Rage Clicks</h3>
                     <RageClicksForm />
+                </div>
+                <div className={styles.fieldsBox} id="sourcemaps">
+                    <h3>Sourcemaps</h3>
+                    <SourcemapSettings />
                 </div>
                 <div className={styles.fieldsBox}>
                     <h3 className={classNames(styles.dangerTitle)}>

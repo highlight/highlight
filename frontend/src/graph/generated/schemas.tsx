@@ -367,6 +367,11 @@ export type ErrorTrace = {
     linesAfter?: Maybe<Scalars['String']>;
 };
 
+export type S3File = {
+    __typename?: 'S3File';
+    key?: Maybe<Scalars['String']>;
+};
+
 export type ReferrerTablePayload = {
     __typename?: 'ReferrerTablePayload';
     host: Scalars['String'];
@@ -972,6 +977,7 @@ export type Query = {
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
     event_chunks: Array<EventChunk>;
+    sourcemap_files: Array<S3File>;
 };
 
 export type QueryAccount_DetailsArgs = {
@@ -1343,6 +1349,10 @@ export type QueryEvent_Chunk_UrlArgs = {
 
 export type QueryEvent_ChunksArgs = {
     secure_id: Scalars['String'];
+};
+
+export type QuerySourcemap_FilesArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type Mutation = {

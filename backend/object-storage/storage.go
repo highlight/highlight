@@ -7,16 +7,18 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"io"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/openlyinc/pointy"
+
 	"github.com/andybalholm/brotli"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -420,4 +422,18 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	}
 
 	return &signedURL, nil
+}
+
+func (s *StorageClient) GetSourcemapFilesFromS3(projectId int) ([]s3Types.Object, error) {
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: pointy.String(S3SourceMapBucketName),
+		// TODO: Figure out if we want to filter to a version and/or filename
+		Prefix: pointy.String(fmt.Sprintf("%d/", projectId)),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemaps from s3")
+	}
+
+	return output.Contents, nil
 }

@@ -1,0 +1,32 @@
+.list {
+    margin-top: var(--size-medium);
+
+    :global(.ant-table-cell) {
+        cursor: default;
+    }
+}
+
+.listHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--size-medium);
+
+    h3 {
+        margin-bottom: 0 !important;
+    }
+
+    :global(.ant-input-affix-wrapper) {
+        width: 150px;
+    }
+}
+
+.listRow {
+    display: block;
+    width: 100%;
+}
+
+.select {
+    margin-bottom: var(--size-medium);
+    width: 100%;
+}

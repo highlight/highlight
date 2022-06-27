@@ -3102,9 +3102,9 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 		Month string
 	}{}
 	if err := r.DB.Raw(`
-	select SUM(count), to_char(date, 'yyyy-MM') as month 
-	from daily_session_counts_view 
-	where project_id in (select id from projects where projects.workspace_id = ?) 
+	select SUM(count), to_char(date, 'yyyy-MM') as month
+	from daily_session_counts_view
+	where project_id in (select id from projects where projects.workspace_id = ?)
 	group by month
 	order by month
 	`, workspaceID).Scan(&queriedMonths).Error; err != nil {
@@ -3118,7 +3118,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	if err := r.DB.Raw(`
 	select SUM(count), to_char(date, 'MON-DD-YYYY') as day
 	from daily_session_counts_view
-	where project_id in (select id from projects where projects.workspace_id = ?) 
+	where project_id in (select id from projects where projects.workspace_id = ?)
 	group by date
 	order by date
 	`, workspaceID).Scan(&queriedDays).Error; err != nil {
@@ -5460,6 +5460,22 @@ func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*mo
 	}
 
 	return chunks, nil
+}
+
+func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int) ([]*modelInputs.S3File, error) {
+	res, err := r.StorageClient.GetSourcemapFilesFromS3(projectID)
+	var s3Files []*modelInputs.S3File
+
+	if err != nil {
+		return nil, e.Wrap(err, "error getting sourcemaps from s3")
+	}
+
+	for _, object := range res {
+		s3File := modelInputs.S3File{Key: object.Key}
+		s3Files = append(s3Files, &s3File)
+	}
+
+	return s3Files, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

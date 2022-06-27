@@ -97,10 +97,7 @@ query GetNetworkHistogram(
     $project_id: ID!
     $params: NetworkHistogramParamsInput!
 ) {
-    network_histogram(
-        project_id: $project_id
-        params: $params
-    ) {
+    network_histogram(project_id: $project_id, params: $params) {
         buckets {
             category
             count
@@ -1479,4 +1476,10 @@ query GetDashboardDefinitions($project_id: ID!) {
 
 query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
     suggested_metrics(project_id: $project_id, prefix: $prefix)
+}
+
+query GetSourcemapFiles($project_id: ID!) {
+    sourcemap_files(project_id: $project_id) {
+        key
+    }
 }

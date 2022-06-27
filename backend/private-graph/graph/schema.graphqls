@@ -327,6 +327,10 @@ type ErrorTrace {
     linesAfter: String
 }
 
+type S3File {
+    key: String
+}
+
 type ReferrerTablePayload {
     host: String!
     count: Int!
@@ -975,6 +979,7 @@ type Query {
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
+    sourcemap_files(project_id: ID!): [S3File!]!
 }
 
 type Mutation {
