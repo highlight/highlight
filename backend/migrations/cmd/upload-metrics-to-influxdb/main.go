@@ -48,6 +48,10 @@ func main() {
 				tags[m.Name] = m.Category
 				fields[m.Name] = m.Value
 			}
+			if len(fields) == 0 {
+				log.Warnf("no fields for mg %+v", mg)
+				continue
+			}
 			points = append(points, timeseries.Point{
 				Measurement: timeseries.Metrics,
 				Time:        firstTime,
@@ -59,7 +63,7 @@ func main() {
 		return nil
 	}
 
-	if err := db.Debug().Preload("Metrics").Model(&model.MetricGroup{}).FindInBatches(&mgs, BatchSize, inner).Error; err != nil {
+	if err := db.Preload("Metrics").Model(&model.MetricGroup{}).FindInBatches(&mgs, BatchSize, inner).Error; err != nil {
 		log.Fatalf("failed: %v", err)
 	}
 }
