@@ -1,4 +1,7 @@
-import Select from '@components/Select/Select';
+import Card from '@components/Card/Card';
+import Input from '@components/Input/Input';
+import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
+import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -7,98 +10,88 @@ import styles from './SourcemapSettings.module.scss';
 
 const SourcemapSettings = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const [versions, setVersions] = React.useState<string[]>([]);
-    const [selectedVersion, setSelectedVersion] = React.useState<string>('');
+    const [query, setQuery] = React.useState<string>('');
     const { data, loading } = useGetSourcemapFilesQuery({
         variables: {
             project_id,
         },
-        // TODO: Consider refactoring so we make a separate request to get the
-        // available versions from S3 rather than relying on string parsing.
-        onCompleted: (data) => {
-            if (!data?.sourcemap_files.length) {
-                return;
-            }
-
-            const appVersions: string[] = [];
-            data.sourcemap_files.forEach((file) => {
-                const version = file.key?.split('/')[1];
-
-                if (version && appVersions.indexOf(version) === -1) {
-                    appVersions.push(version);
-                }
-            });
-
-            setVersions(appVersions);
-        },
     });
 
-    if (loading) {
-        return <p>Loading sourcemaps...</p>;
-    }
+    const fileRegExp = new RegExp(`^(${project_id}/)`);
+    const fileKeys =
+        data?.sourcemap_files?.map((file) =>
+            file.key?.replace(fileRegExp, '/')
+        ) || [];
 
-    if (!data?.sourcemap_files.length) {
-        return (
-            <p>
-                We don't have any sourcemap files for your project. Check{' '}
-                <a
-                    href="https://docs.highlight.run/sourcemaps"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    the docs on uploading sourcemaps
-                </a>{' '}
-                for information on how to set this up. Once you have sourcemaps
-                uploaded you will be able to view them here.
-            </p>
-        );
-    }
-
-    const prefix = `${project_id}/${selectedVersion}`;
-    const visibleFiles = data?.sourcemap_files.filter(
-        (file) => !selectedVersion || file.key?.startsWith(prefix)
-    );
-
-    const versionSelectOptions = versions.map((version) => ({
-        value: version,
-        id: version,
-        displayValue: version,
-    }));
-
-    versionSelectOptions.unshift({
-        id: '',
-        displayValue: 'All versions',
-        value: '',
-    });
+    const visibleFileKeys = query.length
+        ? fileKeys.filter((key) => key && key.indexOf(query) > -1) || []
+        : fileKeys || [];
 
     return (
         <div>
             <p>Here are the sourcemap files we have for your project.</p>
 
-            {versions.length > 1 && (
-                <div>
-                    <p>
-                        We have sourcemaps for more than one version of your
-                        app. Select an app version to filter the sourcemaps.
-                    </p>
-
-                    <Select
-                        aria-label="App Version"
-                        className={styles.select}
-                        options={versionSelectOptions}
-                        onChange={setSelectedVersion}
-                        value={selectedVersion}
-                    />
-                </div>
-            )}
-
-            <div className={styles.list}>
-                <ul>
-                    {visibleFiles.map((file) => (
-                        <li key={file.key}>{file.key}</li>
-                    ))}
-                </ul>
-            </div>
+            <Card
+                className={styles.list}
+                title={
+                    <div className={styles.listHeader}>
+                        <Input
+                            allowClear
+                            style={{ width: '100%' }}
+                            placeholder="Search for a file"
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
+                }
+            >
+                <ProgressBarTable
+                    loading={loading}
+                    columns={[
+                        {
+                            title: 'Sourcemap',
+                            dataIndex: 'key',
+                            key: 'key',
+                            width: '100%',
+                            render: (key) => {
+                                return (
+                                    <ProgressBarTableRowGroup>
+                                        <span>{key}</span>
+                                    </ProgressBarTableRowGroup>
+                                );
+                            },
+                        },
+                    ]}
+                    data={visibleFileKeys?.map((file) => ({
+                        key: file,
+                        file: file,
+                    }))}
+                    onClickHandler={() => {}}
+                    noDataMessage={
+                        !visibleFileKeys?.length && (
+                            <p>
+                                We don't have any sourcemap files for your
+                                project. Check{' '}
+                                <a
+                                    href="https://docs.highlight.run/sourcemaps"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    the docs on uploading sourcemaps
+                                </a>{' '}
+                                for information on how to set this up. Once you
+                                have sourcemaps uploaded you will be able to
+                                view them here.
+                            </p>
+                        )
+                    }
+                    noDataTitle={'No sourcemap data yet 😔'}
+                />
+            </Card>
         </div>
     );
 };
