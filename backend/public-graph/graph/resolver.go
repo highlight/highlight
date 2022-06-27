@@ -108,10 +108,10 @@ type Request struct {
 }
 
 type Response struct {
-	Status  int               `json:"status"`
-	Size    float64           `json:"size"`
-	Headers map[string]string `json:"headers"`
-	Body    json.RawMessage   `json:"body"`
+	Status  float64                    `json:"status"`
+	Size    float64                    `json:"size"`
+	Headers map[string]json.RawMessage `json:"headers"`
+	Body    json.RawMessage            `json:"body"`
 }
 
 type RequestResponsePairs struct {
