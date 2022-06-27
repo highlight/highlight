@@ -16,6 +16,12 @@ const (
 	Metrics Measurement = "metrics"
 )
 
+var IgnoredTags = map[string]bool{
+	"group_name": true,
+	"request_id": true,
+	"session_id": true,
+}
+
 type Point struct {
 	Measurement Measurement
 	Time        time.Time
@@ -68,6 +74,9 @@ func (i *InfluxDB) Write(points []Point) {
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
 		for k, v := range point.Tags {
+			if ok := IgnoredTags[k]; ok {
+				continue
+			}
 			p = p.AddTag(k, v)
 		}
 		for k, v := range point.Fields {
