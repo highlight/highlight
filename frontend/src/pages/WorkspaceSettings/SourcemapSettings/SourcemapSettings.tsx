@@ -3,7 +3,6 @@ import Input from '@components/Input/Input';
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
-import { useParams } from '@util/react-router/useParams';
 import { debounce } from 'lodash';
 import React from 'react';
 
@@ -90,17 +89,8 @@ const SourcemapSettings = () => {
                         ) : (
                             <p>
                                 We don't have any sourcemap files for your
-                                project. Check{' '}
-                                <a
-                                    href="https://docs.highlight.run/sourcemaps"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    the docs on uploading sourcemaps
-                                </a>{' '}
-                                for information on how to set this up. Once you
-                                have sourcemaps uploaded you will be able to
-                                view them here.
+                                project. Once you upload some you will be able
+                                to view them here.
                             </p>
                         )
                     }
