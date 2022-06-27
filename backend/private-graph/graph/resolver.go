@@ -1322,7 +1322,7 @@ const (
 	projectIdClaimName = "project_id"
 	expClaimName       = "exp"
 	projectIdUrlParam  = "project_id"
-	uuidUrlParam       = "uuid"
+	hashValUrlParam    = "hash_val"
 )
 
 func getProjectCookieName(projectId int) string {
@@ -1395,36 +1395,37 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
-	uuid := chi.URLParam(req, uuidUrlParam)
-	var result model.SavedAsset
-	if err := r.DB.Where(&model.SavedAsset{UUID: uuid}).
-		First(&result).Error; err != nil {
-		log.Error(e.Wrap(err, "error querying saved asset"))
-		http.Error(w, "", http.StatusForbidden)
+	projectIdParam := chi.URLParam(req, projectIdUrlParam)
+	hashValParam := chi.URLParam(req, hashValUrlParam)
+
+	projectId, err := strconv.Atoi(projectIdParam)
+	if err != nil {
+		log.Error(e.Wrap(err, "error converting project_id param to string"))
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
-	projectCookie, err := req.Cookie(getProjectCookieName(result.ProjectID))
+	projectCookie, err := req.Cookie(getProjectCookieName(projectId))
 	if err != nil {
 		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
-	projectId, err := getProjectIdFromToken(projectCookie.Value)
+	projectIdFromToken, err := getProjectIdFromToken(projectCookie.Value)
 	if err != nil {
 		log.Error(e.Wrap(err, "error getting project id from token claims"))
 		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
-	if projectId != result.ProjectID {
+	if projectIdFromToken != projectId {
 		log.Error(e.Wrap(err, "project id mismatch"))
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	url, err := r.StorageClient.GetAssetURL(uuid)
+	url, err := r.StorageClient.GetAssetURL(projectIdParam, hashValParam)
 	if err != nil {
 		log.Error(e.Wrap(err, "failed to generate asset url"))
 		w.WriteHeader(http.StatusInternalServerError)

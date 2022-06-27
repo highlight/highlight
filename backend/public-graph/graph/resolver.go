@@ -1850,7 +1850,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 						log.Error(e.Wrap(err, "error unmarshalling event"))
 						continue
 					}
-					parse.ReplaceAssetsRecursively(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
+					err = parse.ReplaceAssets(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
+					if err != nil {
+						log.Error(e.Wrap(err, "error replacing assets"))
+						continue
+					}
 					event.Data, err = json.Marshal(s)
 					if err != nil {
 						log.Error(e.Wrap(err, "error remarshalling event"))

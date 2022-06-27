@@ -458,10 +458,10 @@ func (s *StorageClient) UploadAsset(uuid string, contentLength int64, contentTyp
 	return nil
 }
 
-func (s *StorageClient) GetAssetURL(uuid string) (string, error) {
+func (s *StorageClient) GetAssetURL(projectId string, hashVal string) (string, error) {
 	input := s3.GetObjectInput{
 		Bucket: &S3ResourcesBucketName,
-		Key:    &uuid,
+		Key:    pointy.String(projectId + "/" + hashVal),
 	}
 
 	resp, err := s.S3PresignClient.PresignGetObject(context.TODO(), &input)

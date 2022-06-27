@@ -959,10 +959,10 @@ type SessionPayload struct {
 }
 
 type SavedAsset struct {
-	ProjectID   int    `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	ProjectID   int    `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date;index:idx_project_id_hash_val"`
 	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
-	UUID        string `gorm:"index"`
+	HashVal     string `gorm:"index:idx_project_id_hash_val"`
 }
 
 type AlertEvent struct {

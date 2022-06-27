@@ -234,7 +234,7 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
-			r.Get("/assets/{uuid}", privateResolver.AssetHandler)
+			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
