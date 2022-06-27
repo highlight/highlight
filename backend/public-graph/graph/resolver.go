@@ -1591,11 +1591,15 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 			return err
 		}
 		for _, m := range metricInputs {
+			category := ""
+			if m.Category != nil {
+				category = *m.Category
+			}
 			mg.Metrics = append(mg.Metrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          m.Name,
 				Value:         m.Value,
-				Category:      m.Category,
+				Category:      category,
 				CreatedAt:     m.Timestamp,
 			})
 		}

@@ -31,12 +31,14 @@ type ErrorObjectInput struct {
 }
 
 type MetricInput struct {
-	SessionSecureID string    `json:"session_secure_id"`
-	Group           *string   `json:"group"`
-	Name            string    `json:"name"`
-	Value           float64   `json:"value"`
-	Category        string    `json:"category"`
-	Timestamp       time.Time `json:"timestamp"`
+	SessionSecureID string      `json:"session_secure_id"`
+	Group           *string     `json:"group"`
+	Name            string      `json:"name"`
+	Value           float64     `json:"value"`
+	Category        *string     `json:"category"`
+	Timestamp       time.Time   `json:"timestamp"`
+	Type            interface{} `json:"type"`
+	URL             *string     `json:"url"`
 }
 
 type ReplayEventInput struct {

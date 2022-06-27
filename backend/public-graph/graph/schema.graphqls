@@ -51,8 +51,11 @@ input MetricInput {
     group: String
     name: String!
     value: Float!
-    category: String!
+    category: String
     timestamp: Timestamp!
+    # kept for backwards compatibility with old clients, do not use
+    type: Any
+    url: String
 }
 
 input ReplayEventInput {

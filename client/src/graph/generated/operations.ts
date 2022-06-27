@@ -71,8 +71,10 @@ export type MetricInput = {
   group?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   value: Scalars['Float'];
-  category: Scalars['String'];
+  category?: Maybe<Scalars['String']>;
   timestamp: Scalars['Timestamp'];
+  type?: Maybe<Scalars['Any']>;
+  url?: Maybe<Scalars['String']>;
 };
 
 export type ReplayEventInput = {
