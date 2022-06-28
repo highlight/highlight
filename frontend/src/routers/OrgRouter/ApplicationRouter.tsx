@@ -13,7 +13,7 @@ const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
-import ProjectSettings from '../../pages/WorkspaceSettings/ProjectSettings';
+import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings';
 
 interface Props {
     integrated: boolean;

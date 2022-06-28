@@ -1,3 +1,4 @@
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Select from '@components/Select/Select';
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
@@ -58,38 +59,44 @@ export const ErrorSettingsForm = () => {
     }
 
     return (
-        <form onSubmit={onSubmit} key={project_id}>
-            <p>Enter JSON expressions to use for grouping your errors.</p>
-            <div className={styles.inputAndButtonRow}>
-                <Select
-                    mode="tags"
-                    placeholder="$.context.messages[0]"
-                    defaultValue={data?.project?.error_json_paths || undefined}
-                    onChange={(paths: string[]) => {
-                        setErrorJsonPaths(paths);
-                    }}
-                />
-                <Button
-                    trackingId="UpdateErrorJsonPaths"
-                    htmlType="submit"
-                    type="primary"
-                    className={classNames(
-                        commonStyles.submitButton,
-                        styles.saveButton
-                    )}
-                >
-                    {editProjectLoading ? (
-                        <CircularSpinner
-                            style={{
-                                fontSize: 18,
-                                color: 'var(--text-primary-inverted)',
-                            }}
-                        />
-                    ) : (
-                        'Save'
-                    )}
-                </Button>
-            </div>
-        </form>
+        <FieldsBox>
+            <h3>Error Grouping</h3>
+
+            <form onSubmit={onSubmit} key={project_id}>
+                <p>Enter JSON expressions to use for grouping your errors.</p>
+                <div className={styles.inputAndButtonRow}>
+                    <Select
+                        mode="tags"
+                        placeholder="$.context.messages[0]"
+                        defaultValue={
+                            data?.project?.error_json_paths || undefined
+                        }
+                        onChange={(paths: string[]) => {
+                            setErrorJsonPaths(paths);
+                        }}
+                    />
+                    <Button
+                        trackingId="UpdateErrorJsonPaths"
+                        htmlType="submit"
+                        type="primary"
+                        className={classNames(
+                            commonStyles.submitButton,
+                            styles.saveButton
+                        )}
+                    >
+                        {editProjectLoading ? (
+                            <CircularSpinner
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
+                            />
+                        ) : (
+                            'Save'
+                        )}
+                    </Button>
+                </div>
+            </form>
+        </FieldsBox>
     );
 };

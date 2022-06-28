@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Input from '@components/Input/Input';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import { useGetSourcemapFilesQuery } from '@graph/hooks';
@@ -28,7 +29,7 @@ const SourcemapSettings = () => {
     }, 300);
 
     return (
-        <div>
+        <FieldsBox>
             <p>
                 Below is a list of sourcemap files we have for your project.
                 Check out{' '}
@@ -93,7 +94,7 @@ const SourcemapSettings = () => {
                     }
                 />
             </Card>
-        </div>
+        </FieldsBox>
     );
 };
 
