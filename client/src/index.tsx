@@ -33,7 +33,6 @@ import { SegmentIntegrationListener } from './listeners/segment-integration-list
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
-import 'clientjs';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
@@ -52,6 +51,7 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
+import { ClientJS } from "clientjs";
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -652,7 +652,6 @@ export class Highlight {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
-                // @ts-ignore
                 const client = new ClientJS();
                 let fingerprint = 0;
                 if ('getFingerprint' in client) {
