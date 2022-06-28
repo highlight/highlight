@@ -17,7 +17,6 @@ const SourcemapSettings = () => {
     const [query, setQuery] = React.useState<string>('');
     const [versions, setVersions] = React.useState<string[]>([]);
     const [selectedVersion, setSelectedVersion] = React.useState<string>();
-    const needToSelectVersion = versions.length > 1 && !selectedVersion;
 
     const [
         getSourcemapFilesQuery,
@@ -44,12 +43,11 @@ const SourcemapSettings = () => {
         },
     });
 
+    const needToSelectVersion =
+        (versionsData?.sourcemap_versions.length || 0) > 1 && !selectedVersion;
+
     useEffect(() => {
-        if (
-            versionsLoading ||
-            !versionsData?.sourcemap_versions.length ||
-            needToSelectVersion
-        ) {
+        if (versionsLoading || needToSelectVersion) {
             return;
         }
 
