@@ -4,6 +4,7 @@ import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm';
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm';
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm';
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm';
+import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
@@ -53,7 +54,10 @@ const ProjectSettings = () => {
                                                 key: 'errors',
                                                 title: 'Errors',
                                                 panelContent: (
-                                                    <ErrorSettingsForm />
+                                                    <>
+                                                        <ErrorSettingsForm />
+                                                        <SourcemapSettings />
+                                                    </>
                                                 ),
                                             },
                                             {
