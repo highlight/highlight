@@ -5246,31 +5246,49 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	query := fmt.Sprintf(`
+	  do = (q) =>
 		from(bucket: "%s")
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
 		  |> filter(fn: (r) => r["project_id"] == "%d")
+		  |> group(columns: ["project_id"])
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
-		  |> quantile(q: 0.01)
+		  |> quantile(q:q, method: "estimate_tdigest", compression: 1000.0)
+          |> set(key: "quantile", value: string(v:q))
 		  |> highestMax(n: 1)
+      union(tables: [
+		do(q:0.),
+		do(q:0.10),
+		do(q:0.90),
+		do(q:0.95),
+		do(q:0.99),
+		do(q:1.),
+	  ])
+		  |> sort()
   `, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div)
 	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
 	histogramRangeQuerySpan.SetTag("projectID", projectID)
 	histogramRangeQuerySpan.SetTag("metricName", metricName)
 	results, err := r.TDB.Query(ctx, query)
 	histogramRangeQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+	histogramPayload := &modelInputs.HistogramPayload{
+		Min: *results[0].Value,
+		P10: *results[1].Value,
+		P90: *results[2].Value,
+		P95: *results[3].Value,
+		P99: *results[4].Value,
+		Max: *results[5].Value,
+	}
 
 	numBuckets := 10
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	histogramMax := 0.
-	if len(results) > 0 && results[0].Value != nil {
-		histogramMax = *results[0].Value
-	}
-	histogramMin := 0.
-	bucketSize := (histogramMax - histogramMin) / float64(numBuckets)
+	bucketSize := (histogramPayload.P90 - histogramPayload.P10) / float64(numBuckets)
 	if bucketSize == 0. {
 		bucketSize = 1
 	}
@@ -5284,8 +5302,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> group(columns: ["project_id"])
           |> map(fn: (r) => ({r with _value: r._value / %f}))
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
-	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div, histogramMin, bucketSize, numBuckets)
-	log.Infof("query %s", query)
+	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div, histogramPayload.Min, bucketSize, numBuckets)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
@@ -5297,28 +5314,22 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
+	var previousCount = 0
 	for i, r := range results {
 		le := r.Values["le"].(float64)
 		b := &modelInputs.HistogramBucket{
 			Bucket:     float64(i),
 			RangeStart: le - bucketSize,
 			RangeEnd:   le,
-			Count:      int(*r.Value),
+			Count:      int(*r.Value) - previousCount,
 		}
+		previousCount += b.Count
 		if !math.IsInf(b.RangeStart, 1) {
 			payloadBuckets = append(payloadBuckets, b)
 		}
 	}
-	// TODO(vkorolik) calculate more quantiles
-	return &modelInputs.HistogramPayload{
-		Buckets: payloadBuckets,
-		Min:     histogramMin,
-		Max:     histogramMax,
-		P10:     histogramMin,
-		P90:     histogramMax,
-		P95:     histogramMax,
-		P99:     histogramMax,
-	}, nil
+	histogramPayload.Buckets = payloadBuckets
+	return histogramPayload, nil
 }
 
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
