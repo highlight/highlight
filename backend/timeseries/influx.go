@@ -112,7 +112,15 @@ func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, 
 		val := result.Record().Value()
 		var v *float64
 		if val != nil {
-			v = pointy.Float64(val.(float64))
+			vPtr, ok := val.(float64)
+			if !ok {
+				vIntPtr, ok := val.(int64)
+				if ok {
+					v = pointy.Float64(float64(vIntPtr))
+				}
+			} else {
+				v = pointy.Float64(vPtr)
+			}
 		}
 		r := &Result{
 			Name:   result.Record().Result(),

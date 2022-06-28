@@ -5370,36 +5370,47 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return nil, err
 	}
 
-	var buckets []*modelInputs.CategoryHistogramBucket
 	var extraFilters []string
-	domainsMap := make(map[string]interface{})
-	for idx, domain := range project.BackendDomains {
-		key := fmt.Sprintf("d%d", idx)
-		extraFilters = append(extraFilters, fmt.Sprintf("m.category LIKE '%%' || @%s || '%%'", key))
-		domainsMap[key] = domain
+	for _, domain := range project.BackendDomains {
+		extraFilters = append(extraFilters, fmt.Sprintf(`r["%s"] =~ /%s/`, params.Attribute.String(), domain))
 	}
-	filtersStr := ""
+	extraFiltersStr := ""
 	if len(extraFilters) > 0 {
-		filtersStr = fmt.Sprintf("AND (%s)", strings.Join(extraFilters, " OR "))
+		extraFiltersStr = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(extraFilters, " or "))
 	}
-	// TODO(vkorolik) use influx
+	days := 1
+	if params.LookbackDays != nil {
+		days = *params.LookbackDays
+	}
 	query := fmt.Sprintf(`
-		SELECT m.category as category,
-			   count(m.category) as count
-		FROM metrics m
-			INNER JOIN metric_groups mg on m.metric_group_id = mg.id
-		WHERE mg.project_id = ?
-		  AND m.created_at >= NOW() - (? * INTERVAL '1 DAY')
-		  AND m.created_at <= NOW()
-		  AND m.name = ?
-		  %s
-		GROUP BY category
-		HAVING count(m.category) > 1
-		ORDER BY count desc
-		LIMIT 50;
-	`, filtersStr)
-	if err := r.DB.Raw(query, projectID, params.LookbackDays, params.Attribute.String(), domainsMap).Scan(&buckets).Error; err != nil {
+		from(bucket: "%s")
+		  |> range(start: -%dd)
+		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  |> filter(fn: (r) => r["project_id"] == "%d")
+          %s
+		  |> group(columns: ["%s"])
+		  |> count()
+          |> group()
+		  |> sort(desc: true)
+          |> limit(n: 10)
+		  |> yield(name: "count")
+	`, r.TDB.GetBucket(), days, timeseries.Metrics, projectID, extraFiltersStr, params.Attribute.String())
+	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
+	networkHistogramSpan.SetTag("projectID", projectID)
+	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
+	networkHistogramSpan.SetTag("lookbackDays", params.LookbackDays)
+	results, err := r.TDB.Query(ctx, query)
+	networkHistogramSpan.Finish()
+	if err != nil {
 		return nil, err
+	}
+
+	var buckets []*modelInputs.CategoryHistogramBucket
+	for _, r := range results {
+		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
+			Category: r.Values["url"].(string),
+			Count:    int(*r.Value),
+		})
 	}
 
 	// guess backend domain based on most requests

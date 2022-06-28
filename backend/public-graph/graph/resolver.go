@@ -2147,9 +2147,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		}
 		fields := map[string]interface{}{}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
-			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
-			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
-			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
+			modelInputs.NetworkRequestAttributeBodySize:     re.EncodedBodySize,
+			modelInputs.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
+			modelInputs.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
 			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
 			fields[key.String()] = value
@@ -2160,7 +2160,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
 		}
 		requestBody := make(map[string]interface{})
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err != nil {
+		if err := json.Unmarshal(re.RequestResponsePairs.Request.Body, &requestBody); err != nil {
 			return nil
 		}
 		graphqlOperation := fmt.Sprintf("%s", requestBody["operationName"])
