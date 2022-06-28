@@ -501,13 +501,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
                         height={235}
-                        data={(
-                            histogramData?.metrics_histogram.buckets || []
-                        ).filter(
-                            (x) =>
-                                x.range_start <=
-                                (histogramData?.metrics_histogram.p90 || 0)
-                        )}
+                        data={histogramData?.metrics_histogram.buckets || []}
                         referenceLines={[
                             {
                                 label: 'Goal',
