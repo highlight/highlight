@@ -2140,18 +2140,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	var points []timeseries.Point
 	for _, re := range resources {
-		var mg *model.MetricGroup
-		if err := r.DB.Where(&model.MetricGroup{
-			GroupName: re.RequestResponsePairs.Request.ID,
-			SessionID: sessionObj.ID,
-		}).Attrs(&model.MetricGroup{
-			GroupName: re.RequestResponsePairs.Request.ID,
-			SessionID: sessionObj.ID,
-			ProjectID: sessionObj.ProjectID,
-		}).FirstOrCreate(&mg).Error; err != nil {
-			return err
-		}
-
 		tags := map[string]string{
 			"project_id": strconv.Itoa(sessionObj.ProjectID),
 			"session_id": strconv.Itoa(sessionObj.ID),
@@ -2164,11 +2152,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
 			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
-				MetricGroupID: mg.ID,
-				Name:          key.String(),
-				Value:         value,
-			})
 			fields[key.String()] = value
 		}
 		categories := map[modelInputs.NetworkRequestAttribute]string{
@@ -2185,15 +2168,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = graphqlOperation
 		}
 		for key, value := range categories {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
-				MetricGroupID: mg.ID,
-				Name:          key.String(),
-				Category:      value,
-			})
 			tags[key.String()] = value
-		}
-		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
-			return err
 		}
 		// request time is relative to session start
 		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))

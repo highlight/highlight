@@ -2,9 +2,9 @@ package timeseries
 
 import (
 	"context"
-	"fmt"
 	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -29,9 +29,17 @@ type Point struct {
 	Fields      map[string]interface{}
 }
 
+type Result struct {
+	Name   string
+	Time   time.Time
+	Value  *float64
+	Values map[string]interface{}
+}
+
 type DB interface {
+	GetBucket() string
 	Write(points []Point)
-	Query(ctx context.Context, m Measurement) error
+	Query(ctx context.Context, query string) (results []*Result, e error)
 }
 
 type InfluxDB struct {
@@ -70,6 +78,10 @@ func New() *InfluxDB {
 	}
 }
 
+func (i *InfluxDB) GetBucket() string {
+	return i.Bucket
+}
+
 func (i *InfluxDB) Write(points []Point) {
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
@@ -90,27 +102,28 @@ func (i *InfluxDB) Write(points []Point) {
 	i.writeAPI.Flush()
 }
 
-func (i *InfluxDB) Query(ctx context.Context, m Measurement) error {
-	// TODO(vkorolik) not yet implemented
-	// get QueryTableResult
-	result, err := i.queryAPI.Query(ctx, fmt.Sprintf(`from(bucket:"%s")|> range(start: -1h) |> filter(fn: (r) => r._measurement == "%s")`, i.Bucket, m))
+func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, e error) {
+	result, err := i.queryAPI.Query(ctx, query)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	// Iterate over query response
 	for result.Next() {
-		// Notice when group key has changed
-		if result.TableChanged() {
-			fmt.Printf("table: %s\n", result.TableMetadata().String())
+		val := result.Record().Value()
+		var v *float64
+		if val != nil {
+			v = pointy.Float64(val.(float64))
 		}
-		// Access data
-		fmt.Printf("value: %v\n", result.Record().Value())
+		results = append(results, &Result{
+			Name:   result.Record().Result(),
+			Time:   result.Record().Time(),
+			Value:  v,
+			Values: result.Record().Values(),
+		})
 	}
-	// check for an error
-	if result.Err() != nil {
-		log.Errorf("query parsing error: %s\n", result.Err().Error())
+	if err = result.Err(); err != nil {
+		return nil, err
 	}
-	return nil
+	return
 }
 
 func (i *InfluxDB) Stop() {

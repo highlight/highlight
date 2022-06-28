@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -5189,9 +5190,8 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 }
 
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	payload := []*modelInputs.DashboardPayload{}
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return payload, err
+		return nil, err
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
@@ -5199,33 +5199,41 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
 	}
-	timelineStart := params.DateRange.StartDate
-	timelineEnd := params.DateRange.EndDate
 
-	query := `
-		SELECT g.n                                                                               as date,
-			   avg(value / ?)                                                                    as avg,
-			   percentile_cont(0.50) WITHIN GROUP (ORDER BY value / ?)                           as p50,
-			   percentile_cont(0.75) WITHIN GROUP (ORDER BY value / ?)                           as p75,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?)                           as p90,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?)                           as p99
-		  FROM generate_series(?::timestamptz, ?::timestamptz, (? * INTERVAL '1 MINUTE')::interval) g(n)
-			LEFT JOIN metrics m on m.created_at >= g.n AND m.created_at < g.n + ? * INTERVAL '1 MINUTE'
-			LEFT JOIN metric_groups mg on mg.id = metric_group_id
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?
-		  GROUP BY date
-		  ORDER BY date;
-	`
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+		  |> range(start: %s, stop: %s)
+		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  |> filter(fn: (r) => r["_field"] == "%s")
+		  |> filter(fn: (r) => r["project_id"] == "%d")
+		  |> group(columns: ["project_id"])
+		  |> aggregateWindow(every: %dm, fn: median, createEmpty: false)
+		  |> yield(name: "median")
+	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
 	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
 	timelineQuerySpan.SetTag("projectID", projectID)
 	timelineQuerySpan.SetTag("metricName", metricName)
 	timelineQuerySpan.SetTag("resMins", resMins)
-	defer timelineQuerySpan.Finish()
-	if err := r.DB.Raw(query, div, div, div, div, div, timelineStart, timelineEnd, resMins, resMins, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&payload).Error; err != nil {
-		return payload, err
+	results, err := r.TDB.Query(ctx, query)
+	timelineQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	var payload []*modelInputs.DashboardPayload
+	for _, r := range results {
+		v := 0.
+		if r.Value != nil {
+			v = *r.Value / div
+		}
+		payload = append(payload, &modelInputs.DashboardPayload{
+			Date: r.Time.Format(time.RFC3339Nano),
+			Avg:  0,
+			P50:  v,
+			P75:  0,
+			P90:  0,
+			P99:  0,
+		})
 	}
 
 	return payload, nil
@@ -5237,89 +5245,79 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	scan := struct {
-		Min float64
-		Max float64
-		P10 float64
-		P90 float64
-		P95 float64
-		P99 float64
-	}{}
-	query := `
-		SELECT min(value) / ? as min, max(value) / ? as max,
-			   percentile_cont(0.10) WITHIN GROUP (ORDER BY value / ?) as p10,
-			   percentile_cont(0.90) WITHIN GROUP (ORDER BY value / ?) as p90,
-			   percentile_cont(0.95) WITHIN GROUP (ORDER BY value / ?) as p95,
-			   percentile_cont(0.99) WITHIN GROUP (ORDER BY value / ?) as p99
-		  FROM metrics
-		  INNER JOIN metric_groups mg on mg.id = metric_group_id
-		  WHERE name=?
-			AND project_id=?
-			AND created_at >= ?
-			AND created_at <= ?;
-	`
-	if err := r.DB.Raw(query, div, div, div, div, div, div, metricName, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Find(&scan).Error; err != nil {
-		return nil, err
-	}
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+		  |> range(start: %s, stop: %s)
+		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  |> filter(fn: (r) => r["_field"] == "%s")
+		  |> filter(fn: (r) => r["project_id"] == "%d")
+		  |> map(fn: (r) => ({r with _value: r._value / %f}))
+		  |> quantile(q: 0.01)
+		  |> highestMax(n: 1)
+  `, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div)
+	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
+	histogramRangeQuerySpan.SetTag("projectID", projectID)
+	histogramRangeQuerySpan.SetTag("metricName", metricName)
+	results, err := r.TDB.Query(ctx, query)
+	histogramRangeQuerySpan.Finish()
 
 	numBuckets := 10
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	histogramMax := scan.P90
-	histogramMin := scan.Min
-	interval := (histogramMax - histogramMin) / float64(numBuckets-1)
-	if interval == 0. {
-		interval = 1
+	histogramMax := 0.
+	if len(results) > 0 && results[0].Value != nil {
+		histogramMax = *results[0].Value
+	}
+	histogramMin := 0.
+	bucketSize := (histogramMax - histogramMin) / float64(numBuckets)
+	if bucketSize == 0. {
+		bucketSize = 1
 	}
 
-	var buckets []struct {
-		Start float64
-		End   float64
-		Count int
-	}
-	query = `
-		SELECT trunc(metrics.value / ? / ?)*? as bucket,
-			   min(metrics.value / ?) as start,
-			   max(metrics.value / ?) as end,
-			   count(metrics.value / ?)
-		FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id
-		WHERE name = ?
-		  AND value >= ?
-		  AND value <= ?
-		  AND project_id = ?
-		  AND created_at >= ?
-		  AND created_at <= ?
-		GROUP BY bucket
-		ORDER BY bucket;
-	`
+	query = fmt.Sprintf(`
+		from(bucket: "%s")
+		  |> range(start: %s, stop: %s)
+		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  |> filter(fn: (r) => r["_field"] == "%s")
+		  |> filter(fn: (r) => r["project_id"] == "%d")
+		  |> group(columns: ["project_id"])
+          |> map(fn: (r) => ({r with _value: r._value / %f}))
+		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
+	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div, histogramMin, bucketSize, numBuckets)
+	log.Infof("query %s", query)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
-	tx := r.DB.Raw(query, div, interval, interval, div, div, div, metricName, histogramMin*div, histogramMax*div, projectID, params.DateRange.StartDate, params.DateRange.EndDate).Scan(&buckets)
+	results, err = r.TDB.Query(ctx, query)
 	histogramQuerySpan.Finish()
-	if err := tx.Error; err != nil {
+	if err != nil {
 		return nil, err
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
-	for i, b := range buckets {
-		payloadBuckets = append(payloadBuckets, &modelInputs.HistogramBucket{
+	for i, r := range results {
+		le := r.Values["le"].(float64)
+		b := &modelInputs.HistogramBucket{
 			Bucket:     float64(i),
-			RangeStart: b.Start,
-			RangeEnd:   b.End,
-			Count:      b.Count,
-		})
+			RangeStart: le - bucketSize,
+			RangeEnd:   le,
+			Count:      int(*r.Value),
+		}
+		if !math.IsInf(b.RangeStart, 1) {
+			payloadBuckets = append(payloadBuckets, b)
+		}
 	}
+	// TODO(vkorolik) calculate more quantiles
 	return &modelInputs.HistogramPayload{
 		Buckets: payloadBuckets,
-		Min:     scan.Min,
-		Max:     scan.Max,
-		P10:     scan.P10,
-		P90:     scan.P90,
-		P95:     scan.P95,
-		P99:     scan.P99,
+		Min:     histogramMin,
+		Max:     histogramMax,
+		P10:     histogramMin,
+		P90:     histogramMax,
+		P95:     histogramMax,
+		P99:     histogramMax,
 	}, nil
 }
 
