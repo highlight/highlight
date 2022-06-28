@@ -93,7 +93,7 @@ const StackTraceSection = ({
                                 </ButtonLink>
                                 <ButtonLink
                                     trackingId="stackFrameSourcemapSettings"
-                                    to={`/${project_id}/settings`}
+                                    to={`/${project_id}/settings/errors`}
                                     type="default"
                                 >
                                     Sourcemap Settings
