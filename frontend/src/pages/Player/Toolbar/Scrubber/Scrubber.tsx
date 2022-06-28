@@ -52,6 +52,15 @@ const Scrubber = ({}: {}) => {
     const getSliderPercent = useCallback(
         (time: number) => {
             let sliderPercent = 0;
+            const numIntervals = sessionIntervals.length;
+            if (numIntervals > 0) {
+                if (time < sessionIntervals[0].startTime) {
+                    return 0;
+                }
+                if (time > sessionIntervals[numIntervals - 1].endTime) {
+                    return 1;
+                }
+            }
             for (const interval of sessionIntervals) {
                 if (time < interval.endTime && time >= interval.startTime) {
                     const segmentPercent =
