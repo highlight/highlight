@@ -30,10 +30,11 @@ type Point struct {
 }
 
 type Result struct {
-	Name   string
-	Time   time.Time
-	Value  *float64
-	Values map[string]interface{}
+	Name      string
+	Time      time.Time
+	Value     *float64
+	Values    map[string]interface{}
+	TableName string
 }
 
 type DB interface {
@@ -113,12 +114,16 @@ func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, 
 		if val != nil {
 			v = pointy.Float64(val.(float64))
 		}
-		results = append(results, &Result{
+		r := &Result{
 			Name:   result.Record().Result(),
 			Time:   result.Record().Time(),
 			Value:  v,
 			Values: result.Record().Values(),
-		})
+		}
+		if result.TableChanged() {
+			r.TableName = result.TableMetadata().Column(0).DefaultValue()
+		}
+		results = append(results, r)
 	}
 	if err = result.Err(); err != nil {
 		return nil, err

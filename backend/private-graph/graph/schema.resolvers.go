@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -34,6 +33,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
@@ -5201,14 +5201,30 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	}
 
 	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> filter(fn: (r) => r["project_id"] == "%d")
+      query = () => 
+		from(bucket: "%[1]s")
+		  |> range(start: %[2]s, stop: %[3]s)
+		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
+		  |> filter(fn: (r) => r["_field"] == "%[5]s")
+		  |> filter(fn: (r) => r["project_id"] == "%[6]d")
 		  |> group(columns: ["project_id"])
-		  |> aggregateWindow(every: %dm, fn: median, createEmpty: false)
-		  |> yield(name: "median")
+      do = (q) =>
+        query()
+		  |> aggregateWindow(
+               every: %[7]dm, 
+               fn: (column, tables=<-) => tables |> quantile(q:q, column: column), 
+               createEmpty: false)
+      query()
+		  |> aggregateWindow(every: %[7]dm, fn: mean, createEmpty: false)
+          |> yield(name: "avg")
+	  do(q:0.50)
+          |> yield(name: "p50")
+      do(q:0.75)
+          |> yield(name: "p75")
+      do(q:0.90)
+          |> yield(name: "p90")
+      do(q:0.99)
+          |> yield(name: "p95")
 	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
 	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
 	timelineQuerySpan.SetTag("projectID", projectID)
@@ -5221,19 +5237,31 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	}
 
 	var payload []*modelInputs.DashboardPayload
-	for _, r := range results {
+	tableName := ""
+	for idx, r := range results {
+		if len(r.TableName) > 0 {
+			tableName = r.TableName
+		}
 		v := 0.
 		if r.Value != nil {
 			v = *r.Value / div
 		}
-		payload = append(payload, &modelInputs.DashboardPayload{
-			Date: r.Time.Format(time.RFC3339Nano),
-			Avg:  0,
-			P50:  v,
-			P75:  0,
-			P90:  0,
-			P99:  0,
-		})
+		if idx < len(results)/5 {
+			payload = append(payload, &modelInputs.DashboardPayload{
+				Date: r.Time.Format(time.RFC3339Nano),
+			})
+		}
+		if tableName == "avg" {
+			payload[idx%len(payload)].Avg = v
+		} else if tableName == "p50" {
+			payload[idx%len(payload)].P50 = v
+		} else if tableName == "p75" {
+			payload[idx%len(payload)].P75 = v
+		} else if tableName == "p90" {
+			payload[idx%len(payload)].P90 = v
+		} else if tableName == "p99" {
+			payload[idx%len(payload)].P99 = v
+		}
 	}
 
 	return payload, nil
@@ -5254,11 +5282,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> filter(fn: (r) => r["project_id"] == "%d")
 		  |> group(columns: ["project_id"])
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
-		  |> quantile(q:q, method: "estimate_tdigest", compression: 1000.0)
+		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
           |> set(key: "quantile", value: string(v:q))
 		  |> highestMax(n: 1)
       union(tables: [
 		do(q:0.),
+		do(q:0.01),
+		do(q:0.05),
 		do(q:0.10),
 		do(q:0.90),
 		do(q:0.95),
@@ -5277,18 +5307,20 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
 		Min: *results[0].Value,
-		P10: *results[1].Value,
-		P90: *results[2].Value,
-		P95: *results[3].Value,
-		P99: *results[4].Value,
-		Max: *results[5].Value,
+		P1:  *results[1].Value,
+		P5:  *results[2].Value,
+		P10: *results[3].Value,
+		P90: *results[4].Value,
+		P95: *results[5].Value,
+		P99: *results[6].Value,
+		Max: *results[7].Value,
 	}
 
 	numBuckets := 10
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	bucketSize := (histogramPayload.P90 - histogramPayload.P10) / float64(numBuckets)
+	bucketSize := (histogramPayload.P99 - histogramPayload.P1) / float64(numBuckets)
 	if bucketSize == 0. {
 		bucketSize = 1
 	}
@@ -5350,6 +5382,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	if len(extraFilters) > 0 {
 		filtersStr = fmt.Sprintf("AND (%s)", strings.Join(extraFilters, " OR "))
 	}
+	// TODO(vkorolik) use influx
 	query := fmt.Sprintf(`
 		SELECT m.category as category,
 			   count(m.category) as count

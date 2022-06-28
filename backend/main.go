@@ -8,8 +8,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -356,6 +358,17 @@ func main() {
 		})
 		r.Handle("/*", fileHandler)
 	}
+
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-sigc
+		tdb.Stop()
+	}()
 
 	/*
 		Decide what binary to run

@@ -353,7 +353,9 @@ type ComplexityRoot struct {
 		Buckets func(childComplexity int) int
 		Max     func(childComplexity int) int
 		Min     func(childComplexity int) int
+		P1      func(childComplexity int) int
 		P10     func(childComplexity int) int
+		P5      func(childComplexity int) int
 		P90     func(childComplexity int) int
 		P95     func(childComplexity int) int
 		P99     func(childComplexity int) int
@@ -2487,12 +2489,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HistogramPayload.Min(childComplexity), true
 
+	case "HistogramPayload.p1":
+		if e.complexity.HistogramPayload.P1 == nil {
+			break
+		}
+
+		return e.complexity.HistogramPayload.P1(childComplexity), true
+
 	case "HistogramPayload.p10":
 		if e.complexity.HistogramPayload.P10 == nil {
 			break
 		}
 
 		return e.complexity.HistogramPayload.P10(childComplexity), true
+
+	case "HistogramPayload.p5":
+		if e.complexity.HistogramPayload.P5 == nil {
+			break
+		}
+
+		return e.complexity.HistogramPayload.P5(childComplexity), true
 
 	case "HistogramPayload.p90":
 		if e.complexity.HistogramPayload.P90 == nil {
@@ -6706,6 +6722,8 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
+    p1: Float!
+    p5: Float!
     p10: Float!
     p90: Float!
     p95: Float!
@@ -18835,6 +18853,76 @@ func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Max, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HistogramPayload_p1(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "HistogramPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P1, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HistogramPayload_p5(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "HistogramPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P5, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37252,6 +37340,26 @@ func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.Selec
 		case "max":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._HistogramPayload_max(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p1":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._HistogramPayload_p1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p5":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._HistogramPayload_p5(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
