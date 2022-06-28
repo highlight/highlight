@@ -1478,8 +1478,12 @@ query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
     suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
-query GetSourcemapFiles($project_id: ID!) {
-    sourcemap_files(project_id: $project_id) {
+query GetSourcemapFiles($project_id: ID!, $version: String) {
+    sourcemap_files(project_id: $project_id, version: $version) {
         key
     }
+}
+
+query GetSourcemapVersions($project_id: ID!) {
+    sourcemap_versions(project_id: $project_id)
 }

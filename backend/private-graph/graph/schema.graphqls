@@ -981,7 +981,8 @@ type Query {
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
-    sourcemap_files(project_id: ID!): [S3File!]!
+    sourcemap_files(project_id: ID!, version: String): [S3File!]!
+    sourcemap_versions(project_id: ID!): [String!]!
 }
 
 type Mutation {

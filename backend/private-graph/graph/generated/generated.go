@@ -576,7 +576,8 @@ type ComplexityRoot struct {
 		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
-		SourcemapFiles               func(childComplexity int, projectID int) int
+		SourcemapFiles               func(childComplexity int, projectID int, version *string) int
+		SourcemapVersions            func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
 		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
@@ -1050,7 +1051,8 @@ type QueryResolver interface {
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
-	SourcemapFiles(ctx context.Context, projectID int) ([]*model.S3File, error)
+	SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*model.S3File, error)
+	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -4463,7 +4465,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SourcemapFiles(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.SourcemapFiles(childComplexity, args["project_id"].(int), args["version"].(*string)), true
+
+	case "Query.sourcemap_versions":
+		if e.complexity.Query.SourcemapVersions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sourcemap_versions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SourcemapVersions(childComplexity, args["project_id"].(int)), true
 
 	case "Query.subscription_details":
 		if e.complexity.Query.SubscriptionDetails == nil {
@@ -6967,7 +6981,8 @@ type Query {
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
-    sourcemap_files(project_id: ID!): [S3File!]!
+    sourcemap_files(project_id: ID!, version: String): [S3File!]!
+    sourcemap_versions(project_id: ID!): [String!]!
 }
 
 type Mutation {
@@ -11797,6 +11812,30 @@ func (ec *executionContext) field_Query_slack_members_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_sourcemap_files_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["version"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["version"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sourcemap_versions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -26732,7 +26771,7 @@ func (ec *executionContext) _Query_sourcemap_files(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SourcemapFiles(rctx, args["project_id"].(int))
+		return ec.resolvers.Query().SourcemapFiles(rctx, args["project_id"].(int), args["version"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26747,6 +26786,48 @@ func (ec *executionContext) _Query_sourcemap_files(ctx context.Context, field gr
 	res := resTmp.([]*model.S3File)
 	fc.Result = res
 	return ec.marshalNS3File2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3Fileᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_sourcemap_versions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_sourcemap_versions_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SourcemapVersions(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -40530,6 +40611,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sourcemap_files(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "sourcemap_versions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sourcemap_versions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
