@@ -6,14 +6,14 @@ import {
     useGetSourcemapFilesLazyQuery,
     useGetSourcemapVersionsQuery,
 } from '@graph/hooks';
+import { useParams } from '@util/react-router/useParams';
 import { debounce } from 'lodash';
 import React, { useEffect } from 'react';
 
 import styles from './SourcemapSettings.module.scss';
 
 const SourcemapSettings = () => {
-    // const { project_id } = useParams<{ project_id: string }>();
-    const project_id = '726';
+    const { project_id } = useParams<{ project_id: string }>();
     const [query, setQuery] = React.useState<string>('');
     const [versions, setVersions] = React.useState<string[]>([]);
     const [selectedVersion, setSelectedVersion] = React.useState<string>();
