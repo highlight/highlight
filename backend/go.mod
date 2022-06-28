@@ -26,6 +26,7 @@ require (
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
+	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb
@@ -57,6 +58,8 @@ require (
 
 require (
 	github.com/PaesslerAG/gval v1.2.0 // indirect
+	github.com/deepmap/oapi-codegen v1.8.2 // indirect
+	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 )
@@ -117,7 +120,7 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20211013180041-c96bc1413d57 // indirect
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect

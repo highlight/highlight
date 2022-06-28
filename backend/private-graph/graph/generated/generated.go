@@ -353,7 +353,9 @@ type ComplexityRoot struct {
 		Buckets func(childComplexity int) int
 		Max     func(childComplexity int) int
 		Min     func(childComplexity int) int
+		P1      func(childComplexity int) int
 		P10     func(childComplexity int) int
+		P5      func(childComplexity int) int
 		P90     func(childComplexity int) int
 		P95     func(childComplexity int) int
 		P99     func(childComplexity int) int
@@ -574,6 +576,7 @@ type ComplexityRoot struct {
 		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
+		SourcemapFiles               func(childComplexity int, projectID int) int
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
 		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
@@ -613,6 +616,10 @@ type ComplexityRoot struct {
 		Count   func(childComplexity int) int
 		Host    func(childComplexity int) int
 		Percent func(childComplexity int) int
+	}
+
+	S3File struct {
+		Key func(childComplexity int) int
 	}
 
 	SanitizedAdmin struct {
@@ -1043,6 +1050,7 @@ type QueryResolver interface {
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
+	SourcemapFiles(ctx context.Context, projectID int) ([]*model.S3File, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -2481,12 +2489,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HistogramPayload.Min(childComplexity), true
 
+	case "HistogramPayload.p1":
+		if e.complexity.HistogramPayload.P1 == nil {
+			break
+		}
+
+		return e.complexity.HistogramPayload.P1(childComplexity), true
+
 	case "HistogramPayload.p10":
 		if e.complexity.HistogramPayload.P10 == nil {
 			break
 		}
 
 		return e.complexity.HistogramPayload.P10(childComplexity), true
+
+	case "HistogramPayload.p5":
+		if e.complexity.HistogramPayload.P5 == nil {
+			break
+		}
+
+		return e.complexity.HistogramPayload.P5(childComplexity), true
 
 	case "HistogramPayload.p90":
 		if e.complexity.HistogramPayload.P90 == nil {
@@ -4431,6 +4453,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SlackMembers(childComplexity, args["project_id"].(int)), true
 
+	case "Query.sourcemap_files":
+		if e.complexity.Query.SourcemapFiles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sourcemap_files_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SourcemapFiles(childComplexity, args["project_id"].(int)), true
+
 	case "Query.subscription_details":
 		if e.complexity.Query.SubscriptionDetails == nil {
 			break
@@ -4715,6 +4749,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReferrerTablePayload.Percent(childComplexity), true
+
+	case "S3File.key":
+		if e.complexity.S3File.Key == nil {
+			break
+		}
+
+		return e.complexity.S3File.Key(childComplexity), true
 
 	case "SanitizedAdmin.email":
 		if e.complexity.SanitizedAdmin.Email == nil {
@@ -6272,6 +6313,10 @@ type ErrorTrace {
     linesAfter: String
 }
 
+type S3File {
+    key: String
+}
+
 type ReferrerTablePayload {
     host: String!
     count: Int!
@@ -6342,6 +6387,7 @@ enum NetworkRequestAttribute {
     status
     latency
     request_id
+    graphql_operation
 }
 
 input NetworkHistogramParamsInput {
@@ -6676,6 +6722,8 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
+    p1: Float!
+    p5: Float!
     p10: Float!
     p90: Float!
     p95: Float!
@@ -6919,6 +6967,7 @@ type Query {
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
+    sourcemap_files(project_id: ID!): [S3File!]!
 }
 
 type Mutation {
@@ -11733,6 +11782,21 @@ func (ec *executionContext) field_Query_slack_channel_suggestion_args(ctx contex
 }
 
 func (ec *executionContext) field_Query_slack_members_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sourcemap_files_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -18789,6 +18853,76 @@ func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Max, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HistogramPayload_p1(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "HistogramPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P1, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HistogramPayload_p5(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "HistogramPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.P5, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26573,6 +26707,48 @@ func (ec *executionContext) _Query_event_chunks(ctx context.Context, field graph
 	return ec.marshalNEventChunk2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunkᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_sourcemap_files(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_sourcemap_files_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SourcemapFiles(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.S3File)
+	fc.Result = res
+	return ec.marshalNS3File2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3Fileᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27097,6 +27273,38 @@ func (ec *executionContext) _ReferrerTablePayload_percent(ctx context.Context, f
 	res := resTmp.(float64)
 	fc.Result = res
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _S3File_key(ctx context.Context, field graphql.CollectedField, obj *model.S3File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "S3File",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SanitizedAdmin_id(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedAdmin) (ret graphql.Marshaler) {
@@ -37139,6 +37347,26 @@ func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "p1":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._HistogramPayload_p1(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "p5":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._HistogramPayload_p5(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "p10":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._HistogramPayload_p10(ctx, field, obj)
@@ -40292,6 +40520,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "sourcemap_files":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sourcemap_files(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -40499,6 +40750,34 @@ func (ec *executionContext) _ReferrerTablePayload(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var s3FileImplementors = []string{"S3File"}
+
+func (ec *executionContext) _S3File(ctx context.Context, sel ast.SelectionSet, obj *model.S3File) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, s3FileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("S3File")
+		case "key":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._S3File_key(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44725,6 +45004,60 @@ func (ec *executionContext) marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhi
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNS3File2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3Fileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.S3File) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNS3File2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3File(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNS3File2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐS3File(ctx context.Context, sel ast.SelectionSet, v *model.S3File) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._S3File(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSanitizedAdmin2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v model.SanitizedAdmin) graphql.Marshaler {

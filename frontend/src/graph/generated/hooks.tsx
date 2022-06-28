@@ -9731,3 +9731,59 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
     Types.GetSuggestedMetricsQuery,
     Types.GetSuggestedMetricsQueryVariables
 >;
+export const GetSourcemapFilesDocument = gql`
+    query GetSourcemapFiles($project_id: ID!) {
+        sourcemap_files(project_id: $project_id) {
+            key
+        }
+    }
+`;
+
+/**
+ * __useGetSourcemapFilesQuery__
+ *
+ * To run a query within a React component, call `useGetSourcemapFilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSourcemapFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSourcemapFilesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetSourcemapFilesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >(GetSourcemapFilesDocument, baseOptions);
+}
+export function useGetSourcemapFilesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >(GetSourcemapFilesDocument, baseOptions);
+}
+export type GetSourcemapFilesQueryHookResult = ReturnType<
+    typeof useGetSourcemapFilesQuery
+>;
+export type GetSourcemapFilesLazyQueryHookResult = ReturnType<
+    typeof useGetSourcemapFilesLazyQuery
+>;
+export type GetSourcemapFilesQueryResult = Apollo.QueryResult<
+    Types.GetSourcemapFilesQuery,
+    Types.GetSourcemapFilesQueryVariables
+>;

@@ -327,6 +327,10 @@ type ErrorTrace {
     linesAfter: String
 }
 
+type S3File {
+    key: String
+}
+
 type ReferrerTablePayload {
     host: String!
     count: Int!
@@ -397,6 +401,7 @@ enum NetworkRequestAttribute {
     status
     latency
     request_id
+    graphql_operation
 }
 
 input NetworkHistogramParamsInput {
@@ -731,6 +736,8 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
+    p1: Float!
+    p5: Float!
     p10: Float!
     p90: Float!
     p95: Float!
@@ -974,6 +981,7 @@ type Query {
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
+    sourcemap_files(project_id: ID!): [S3File!]!
 }
 
 type Mutation {
