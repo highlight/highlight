@@ -5539,7 +5539,6 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 		return nil, e.Wrap(err, "error getting sourcemaps from s3")
 	}
 
-	fmt.Printf("%+v\n", res)
 	for _, v := range res {
 		appVersions = append(appVersions, *v.Prefix)
 	}
