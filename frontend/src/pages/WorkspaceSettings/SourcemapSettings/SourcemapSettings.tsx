@@ -59,7 +59,7 @@ const SourcemapSettings = () => {
             },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [versionsLoading, selectedVersion, project_id]);
+    }, [versionsLoading, needToSelectVersion, selectedVersion]);
 
     const fileKeys = data?.sourcemap_files?.map((file) => file.key) || [];
 
