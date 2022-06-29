@@ -25,6 +25,7 @@ import SessionFeedConfiguration, {
 import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
+import useLocalStorage from '@rehooks/local-storage';
 import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -71,6 +72,10 @@ export const SessionFeed = React.memo(() => {
     ] = useState(true);
 
     const totalPages = useRef<number>(0);
+    const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
+        `sessionsCount-project-${project_id}`,
+        0
+    );
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const {
@@ -83,6 +88,7 @@ export const SessionFeed = React.memo(() => {
     } = useSearchContext();
     const { integrated } = useIntegrated();
     const searchParamsChanged = useRef<Date>();
+    const projectHasManySessions = sessionsCount > PAGE_SIZE;
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
@@ -110,6 +116,7 @@ export const SessionFeed = React.memo(() => {
             totalPages.current = Math.ceil(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
+            setSessionsCount(response?.sessions_opensearch.totalCount);
         }
         setShowLoadingSkeleton(false);
     };
@@ -124,6 +131,7 @@ export const SessionFeed = React.memo(() => {
         },
         onCompleted: addSessions,
         skip: !searchQuery,
+        fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
     });
 
     useEffect(() => {
