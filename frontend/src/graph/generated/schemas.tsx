@@ -803,9 +803,7 @@ export type HistogramPayload = {
     buckets: Array<HistogramBucket>;
     min: Scalars['Float'];
     max: Scalars['Float'];
-    p10: Scalars['Float'];
-    p90: Scalars['Float'];
-    p95: Scalars['Float'];
+    p1: Scalars['Float'];
     p99: Scalars['Float'];
 };
 

@@ -1,3 +1,4 @@
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
 import React from 'react';
 
@@ -16,17 +17,17 @@ const WorkspaceSettings = () => {
                     </p>
                 </div>
             </div>
-            <div className={styles.fieldsBox}>
+            <FieldsBox>
                 <FieldsForm />
-            </div>
-            <div className={styles.fieldsBox}>
+            </FieldsBox>
+            <FieldsBox>
                 <h3>Auto Join</h3>
                 <p>
                     Enable auto join to allow anyone with an approved email
                     origin join.
                 </p>
                 <AutoJoinForm />
-            </div>
+            </FieldsBox>
         </>
     );
 };

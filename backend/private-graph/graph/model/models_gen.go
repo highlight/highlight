@@ -184,9 +184,7 @@ type HistogramPayload struct {
 	Buckets []*HistogramBucket `json:"buckets"`
 	Min     float64            `json:"min"`
 	Max     float64            `json:"max"`
-	P10     float64            `json:"p10"`
-	P90     float64            `json:"p90"`
-	P95     float64            `json:"p95"`
+	P1      float64            `json:"p1"`
 	P99     float64            `json:"p99"`
 }
 
