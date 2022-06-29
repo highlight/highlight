@@ -1055,10 +1055,12 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
 		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
+		log.Warnf("failed to initialized session, will not return error to client: %s", err)
+		return nil, nil
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
-		Infof("initialized session: %s", session.Identifier)
+		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
