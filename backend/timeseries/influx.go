@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -32,7 +31,7 @@ type Point struct {
 type Result struct {
 	Name      string
 	Time      time.Time
-	Value     *float64
+	Value     interface{}
 	Values    map[string]interface{}
 	TableName string
 }
@@ -109,23 +108,10 @@ func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, 
 		return nil, err
 	}
 	for result.Next() {
-		val := result.Record().Value()
-		var v *float64
-		if val != nil {
-			vPtr, ok := val.(float64)
-			if !ok {
-				vIntPtr, ok := val.(int64)
-				if ok {
-					v = pointy.Float64(float64(vIntPtr))
-				}
-			} else {
-				v = pointy.Float64(vPtr)
-			}
-		}
 		r := &Result{
 			Name:   result.Record().Result(),
 			Time:   result.Record().Time(),
-			Value:  v,
+			Value:  result.Record().Value(),
 			Values: result.Record().Values(),
 		}
 		if result.TableChanged() {

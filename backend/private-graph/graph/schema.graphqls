@@ -737,10 +737,6 @@ type HistogramPayload {
     min: Float!
     max: Float!
     p1: Float!
-    p5: Float!
-    p10: Float!
-    p90: Float!
-    p95: Float!
     p99: Float!
 }
 

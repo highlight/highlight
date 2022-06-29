@@ -5174,19 +5174,30 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		return nil, err
 	}
 
-	var payload []string
-	if err := r.DB.Raw(`
-		SELECT name
-		FROM metrics
-		INNER JOIN metric_groups mg on mg.id = metric_group_id
-		WHERE project_id = ?
-		  AND name ILIKE ? LIMIT 1; 
-	`, projectID, prefix+"%").Scan(&payload).Error; err != nil {
-		log.Error(err)
+	filter := ""
+	if len(prefix) > 0 {
+		filter = fmt.Sprintf(`|> filter(fn: (r) => r["_field"] =~ /%s/)`, prefix)
+	}
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+		  |> range(start: -30d)
+		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  %s
+		  |> group(columns: ["_field"])
+		  |> distinct(column: "_field")
+		  |> yield(name: "distinct")
+	`, r.TDB.GetBucket(), timeseries.Metrics, filter)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
 		return nil, err
 	}
 
-	return payload, nil
+	return lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), nil
 }
 
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
@@ -5226,7 +5237,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
       do(q:0.99)
           |> yield(name: "p95")
 	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
-	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	timelineQuerySpan.SetTag("projectID", projectID)
 	timelineQuerySpan.SetTag("metricName", metricName)
 	timelineQuerySpan.SetTag("resMins", resMins)
@@ -5244,7 +5255,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		}
 		v := 0.
 		if r.Value != nil {
-			v = *r.Value / div
+			v = r.Value.(float64) / div
 		}
 		if idx < len(results)/5 {
 			payload = append(payload, &modelInputs.DashboardPayload{
@@ -5281,23 +5292,15 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> filter(fn: (r) => r["_field"] == "%s")
 		  |> filter(fn: (r) => r["project_id"] == "%d")
 		  |> group(columns: ["project_id"])
-		  |> map(fn: (r) => ({r with _value: r._value / %f}))
 		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
-          |> set(key: "quantile", value: string(v:q))
-		  |> highestMax(n: 1)
+		  |> map(fn: (r) => ({r with _value: r._value / %f}))
       union(tables: [
-		do(q:0.),
 		do(q:0.01),
-		do(q:0.05),
-		do(q:0.10),
-		do(q:0.90),
-		do(q:0.95),
-		do(q:0.99),
-		do(q:1.),
+		do(q:0.99)
 	  ])
 		  |> sort()
   `, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div)
-	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
+	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramRangeQuerySpan.SetTag("projectID", projectID)
 	histogramRangeQuerySpan.SetTag("metricName", metricName)
 	results, err := r.TDB.Query(ctx, query)
@@ -5306,14 +5309,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
-		Min: *results[0].Value,
-		P1:  *results[1].Value,
-		P5:  *results[2].Value,
-		P10: *results[3].Value,
-		P90: *results[4].Value,
-		P95: *results[5].Value,
-		P99: *results[6].Value,
-		Max: *results[7].Value,
+		Min: 0.,
+		P1:  results[0].Value.(float64),
+		P99: results[1].Value.(float64),
+		Max: 0.,
 	}
 
 	numBuckets := 10
@@ -5332,10 +5331,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> filter(fn: (r) => r["_field"] == "%s")
 		  |> filter(fn: (r) => r["project_id"] == "%d")
 		  |> group(columns: ["project_id"])
-          |> map(fn: (r) => ({r with _value: r._value / %f}))
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
-	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div, histogramPayload.Min, bucketSize, numBuckets)
-	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "db.queryHistogram")
+          |> map(fn: (r) => ({r with le: r.le / %f}))
+	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, histogramPayload.P1*div, bucketSize*div, numBuckets, div)
+	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
@@ -5353,7 +5352,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 			Bucket:     float64(i),
 			RangeStart: le - bucketSize,
 			RangeEnd:   le,
-			Count:      int(*r.Value) - previousCount,
+			Count:      int(r.Value.(float64)) - previousCount,
 		}
 		previousCount += b.Count
 		if !math.IsInf(b.RangeStart, 1) {
@@ -5395,7 +5394,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
           |> limit(n: 10)
 		  |> yield(name: "count")
 	`, r.TDB.GetBucket(), days, timeseries.Metrics, projectID, extraFiltersStr, params.Attribute.String())
-	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "db.queryTimeline")
+	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
 	networkHistogramSpan.SetTag("lookbackDays", params.LookbackDays)
@@ -5409,7 +5408,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	for _, r := range results {
 		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
 			Category: r.Values["url"].(string),
-			Count:    int(*r.Value),
+			Count:    int(r.Value.(float64)),
 		})
 	}
 
