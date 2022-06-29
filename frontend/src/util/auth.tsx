@@ -1,6 +1,6 @@
-import 'firebase/auth';
+import 'firebase/compat/auth';
 
-import Firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 
 let firebaseConfig: any;
 let firebaseConfigString: string;
@@ -23,6 +23,6 @@ try {
 
 window._highlightFirebaseConfig = firebaseConfig;
 
-Firebase.initializeApp(firebaseConfig);
-export const googleProvider = new Firebase.auth.GoogleAuthProvider();
-export const auth = Firebase.auth();
+firebase.initializeApp(firebaseConfig);
+export const googleProvider = new firebase.auth.GoogleAuthProvider();
+export const auth = firebase.auth();

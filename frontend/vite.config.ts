@@ -1,15 +1,14 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
-import svgrPlugin from 'vite-plugin-svgr';
-
+import fs from 'fs';
 import lessToJS from 'less-vars-to-js';
 import * as path from 'path';
 import { resolve } from 'path';
-import fs from 'fs';
+import visualizer from 'rollup-plugin-visualizer';
+import { defineConfig } from 'vite';
 import envCompatible from 'vite-plugin-env-compatible';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import vitePluginImp from 'vite-plugin-imp';
+import svgrPlugin from 'vite-plugin-svgr';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 const pathResolver = (path: string) => resolve(__dirname, path);
 const themeVariables = lessToJS(
@@ -58,10 +57,48 @@ export default defineConfig({
             ],
         }),
     ],
-    build: {
-        outDir: 'build',
+    esbuild: {
         minify: true,
         sourcemap: true,
+        treeShaking: true,
+    },
+    define: {
+        // By default, Vite doesn't include shims for NodeJS/
+        // necessary for segment analytics lib to work
+        global: {
+            window: {
+                CustomEvent: {},
+            },
+        },
+    },
+    build: {
+        outDir: 'build',
+        manifest: true,
+        cssCodeSplit: true,
+        sourcemap: true,
+        minify: true,
+        reportCompressedSize: true,
+        rollupOptions: {
+            output: {
+                compact: true,
+                sourcemap: true,
+                minifyInternalExports: true,
+                manualChunks: {
+                    rrweb: ['@highlight-run/rrweb'],
+                    lodash: ['lodash'],
+                    antd: ['antd'],
+                    reactAwesomeQueryBuilder: ['react-awesome-query-builder'],
+                    recharts: ['recharts', 'react-grid-layout'],
+                },
+            },
+            plugins: [
+                visualizer({
+                    filename: resolve(__dirname, 'build/stats.html'),
+                    template: 'treemap', // sunburst|treemap|network
+                    sourcemap: true,
+                }),
+            ],
+        },
     },
     server: {
         https: true,
