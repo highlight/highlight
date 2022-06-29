@@ -65,11 +65,7 @@ export default defineConfig({
     define: {
         // By default, Vite doesn't include shims for NodeJS/
         // necessary for segment analytics lib to work
-        global: {
-            window: {
-                CustomEvent: {},
-            },
-        },
+        'global.window.CustomEvent': {},
     },
     build: {
         outDir: 'build',
@@ -84,11 +80,12 @@ export default defineConfig({
                 sourcemap: true,
                 minifyInternalExports: true,
                 manualChunks: {
-                    rrweb: ['@highlight-run/rrweb'],
-                    lodash: ['lodash'],
                     antd: ['antd'],
+                    lodash: ['lodash'],
                     reactAwesomeQueryBuilder: ['react-awesome-query-builder'],
                     recharts: ['recharts', 'react-grid-layout'],
+                    rehooks: ['@rehooks/local-storage', '@rehooks/window-size'],
+                    rrweb: ['@highlight-run/rrweb'],
                 },
             },
             plugins: [
