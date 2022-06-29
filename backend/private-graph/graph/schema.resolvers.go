@@ -5408,7 +5408,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	for _, r := range results {
 		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
 			Category: r.Values["url"].(string),
-			Count:    int(r.Value.(float64)),
+			Count:    int(r.Value.(int64)),
 		})
 	}
 
