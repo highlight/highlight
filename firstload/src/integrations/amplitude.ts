@@ -16,10 +16,10 @@ export const setupAmplitudeIntegration: Integration = ({
         var r = t.createElement('script');
         r.type = 'text/javascript';
         r.integrity =
-            'sha384-u0hlTAJ1tNefeBKwiBNwB4CkHZ1ck4ajx/pKmwWtc+IufKJiCQZ+WjJIi+7C6Ntm';
+            'sha384-+EO59vL/X7v6VE2s6/F4HxfHlK0nDUVWKVg8K9oUlvffAeeaShVBmbORTC2D3UF+';
         r.crossOrigin = 'anonymous';
         r.async = true;
-        r.src = 'https://cdn.amplitude.com/libs/amplitude-8.1.0-min.gz.js';
+        r.src = 'https://cdn.amplitude.com/libs/amplitude-8.17.0-min.gz.js';
         r.onload = function () {
             if (!e.amplitude.runQueuedFunctions) {
                 console.log('[Amplitude] Error: could not load SDK');
