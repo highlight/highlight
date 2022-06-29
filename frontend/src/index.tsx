@@ -39,7 +39,7 @@ import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
-const dev = process.env.NODE_ENV === 'development' ? true : false;
+const dev = process.env.NODE_ENV === 'development';
 let commitSHA = process.env.REACT_APP_COMMIT_SHA || '';
 if (commitSHA.length > 8) {
     commitSHA = commitSHA.substring(0, 8);
@@ -59,6 +59,7 @@ const options: HighlightOptions = {
             projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
         },
     },
+    scriptUrl: 'https://static.highlight.run/beta/index.js',
     sessionShortcut: 'alt+1,command+`,alt+esc',
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
