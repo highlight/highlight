@@ -439,6 +439,7 @@ export type HistogramParamsInput = {
 
 export enum NetworkRequestAttribute {
     Method = 'method',
+    InitiatorType = 'initiator_type',
     Url = 'url',
     BodySize = 'body_size',
     ResponseSize = 'response_size',
