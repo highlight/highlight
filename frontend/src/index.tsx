@@ -58,9 +58,6 @@ const options: HighlightOptions = {
         mixpanel: {
             projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
         },
-        amplitude: {
-            apiKey: '',
-        },
     },
     sessionShortcut: 'alt+1,command+`,alt+esc',
 };
