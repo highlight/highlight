@@ -96,6 +96,11 @@ const NewProjectPage = () => {
                     name: name,
                     workspace_id,
                 },
+                refetchQueries: [
+                    namedOperations.Query.GetProjects,
+                    namedOperations.Query.GetProjectDropdownOptions,
+                    namedOperations.Query.GetProjectsAndWorkspaces,
+                ],
             });
             H.track('CreateProject', { name });
             await client.cache.reset();

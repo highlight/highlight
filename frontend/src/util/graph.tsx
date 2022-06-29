@@ -114,7 +114,7 @@ const cache = new InMemoryCache({
 persistCache({
     cache,
     storage: localStorage,
-}).then(() => console.log('synced apollo cache'));
+}).catch(console.error);
 
 export const client = new ApolloClient({
     link: ApolloLink.split(
