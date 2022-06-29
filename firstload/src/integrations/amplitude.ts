@@ -117,7 +117,6 @@ export const setupAmplitudeIntegration: Integration = ({
             return n._iq[e];
         };
         e.amplitude = n;
-        console.log('vadim', 'configured amplitude', e.amplitude)
     })(window, document);
 };
 

@@ -69,12 +69,6 @@ if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082/public';
 
-    options.integrations = {
-        amplitude: {
-            apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
-        },
-    };
-
     const sampleEnvironmentNames = [
         'john',
         'jay',
