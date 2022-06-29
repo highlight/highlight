@@ -10,8 +10,8 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
-    useGetMetricsDashboardLazyQuery,
     useGetMetricsHistogramLazyQuery,
+    useGetMetricsTimelineLazyQuery,
 } from '@graph/hooks';
 import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -404,13 +404,15 @@ const ChartContainer = React.memo(
         const NUM_HISTOGRAM_BUCKETS = 50;
         const { project_id } = useParams<{ project_id: string }>();
         const [dateRange] = React.useState<{
-            start: string;
-            end: string;
+            start_date: string;
+            end_date: string;
         }>({
-            start: moment(new Date())
+            start_date: moment(new Date())
                 .subtract(lookbackDays, 'days')
                 .format('YYYY-MM-DDT00:00:00.000000000Z'),
-            end: moment(new Date()).format('YYYY-MM-DDT23:59:59.999999999Z'),
+            end_date: moment(new Date()).format(
+                'YYYY-MM-DDT23:59:59.999999999Z'
+            ),
         });
         const resolutionMinutes = Math.ceil(
             moment.duration(lookbackDays, 'days').as('minutes') / NUM_BUCKETS
@@ -418,15 +420,13 @@ const ChartContainer = React.memo(
         const [
             loadTimeline,
             { data: timelineData, loading: timelineLoading },
-        ] = useGetMetricsDashboardLazyQuery({
+        ] = useGetMetricsTimelineLazyQuery({
             variables: {
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    date_range: {
-                        end_date: dateRange.end,
-                        start_date: dateRange.start,
-                    },
+                    aggregate_function: 'p50',
+                    date_range: dateRange,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
@@ -442,10 +442,7 @@ const ChartContainer = React.memo(
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    date_range: {
-                        end_date: dateRange.end,
-                        start_date: dateRange.start,
-                    },
+                    date_range: dateRange,
                     buckets: NUM_HISTOGRAM_BUCKETS,
                     units: metricConfig.units,
                 },
@@ -550,7 +547,12 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
                         height={235}
-                        data={timelineData?.metrics_timeline || []}
+                        data={(timelineData?.metrics_timeline || []).map(
+                            (x) => ({
+                                date: x?.date,
+                                [x?.aggregate_function || 'avg']: x?.value,
+                            })
+                        )}
                         referenceLines={[
                             {
                                 label: 'Goal',
