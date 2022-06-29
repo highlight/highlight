@@ -58,8 +58,11 @@ const SourcemapSettings = () => {
                 version: selectedVersion,
             },
         });
+        // Only needs to be triggered when loading is complete or the selected
+        // version changes. We don't update when needToSelectVersion changes
+        // because we can't reset data.sourcemap_files.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [versionsLoading, needToSelectVersion, selectedVersion]);
+    }, [versionsLoading, selectedVersion]);
 
     const fileKeys = data?.sourcemap_files?.map((file) => file.key) || [];
 
