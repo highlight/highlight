@@ -5539,7 +5539,9 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 	}
 
 	for _, v := range res {
-		appVersions = append(appVersions, *v.Prefix)
+		if v.Prefix != nil {
+			appVersions = append(appVersions, *v.Prefix)
+		}
 	}
 
 	return appVersions, nil
