@@ -1945,11 +1945,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			return nil
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
-			if projectID == 1 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
 			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
