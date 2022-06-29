@@ -1611,7 +1611,7 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
     metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
         Types.HistogramPayload,
-        'min' | 'max' | 'p10' | 'p90'
+        'min' | 'max' | 'p1' | 'p99'
     > & {
             buckets: Array<
                 { __typename?: 'HistogramBucket' } & Pick<
