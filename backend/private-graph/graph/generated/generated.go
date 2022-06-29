@@ -6363,6 +6363,7 @@ input HistogramParamsInput {
 
 enum NetworkRequestAttribute {
     method
+    initiator_type
     url
     body_size
     response_size

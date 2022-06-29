@@ -476,6 +476,7 @@ type NetworkRequestAttribute string
 
 const (
 	NetworkRequestAttributeMethod           NetworkRequestAttribute = "method"
+	NetworkRequestAttributeInitiatorType    NetworkRequestAttribute = "initiator_type"
 	NetworkRequestAttributeURL              NetworkRequestAttribute = "url"
 	NetworkRequestAttributeBodySize         NetworkRequestAttribute = "body_size"
 	NetworkRequestAttributeResponseSize     NetworkRequestAttribute = "response_size"
@@ -487,6 +488,7 @@ const (
 
 var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 	NetworkRequestAttributeMethod,
+	NetworkRequestAttributeInitiatorType,
 	NetworkRequestAttributeURL,
 	NetworkRequestAttributeBodySize,
 	NetworkRequestAttributeResponseSize,
@@ -498,7 +500,7 @@ var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 
 func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeInitiatorType, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
 		return true
 	}
 	return false
