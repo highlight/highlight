@@ -424,11 +424,15 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	return &signedURL, nil
 }
 
-func (s *StorageClient) GetSourcemapFilesFromS3(projectId int) ([]s3Types.Object, error) {
+func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) ([]s3Types.Object, error) {
+	if version == nil || len(*version) == 0 {
+		// If no version is specified we put files in an "unversioned" directory.
+		version = pointy.String("unversioned")
+	}
+
 	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: pointy.String(S3SourceMapBucketName),
-		// TODO: Figure out if we want to filter to a version and/or filename
-		Prefix: pointy.String(fmt.Sprintf("%d/", projectId)),
+		Prefix: pointy.String(fmt.Sprintf("%d/%s/", projectId, *version)),
 	})
 
 	if err != nil {
@@ -436,4 +440,18 @@ func (s *StorageClient) GetSourcemapFilesFromS3(projectId int) ([]s3Types.Object
 	}
 
 	return output.Contents, nil
+}
+
+func (s *StorageClient) GetSourcemapVersionsFromS3(projectId int) ([]s3Types.CommonPrefix, error) {
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket:    pointy.String(S3SourceMapBucketName),
+		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
+		Delimiter: pointy.String("/"),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
+	}
+
+	return output.CommonPrefixes, nil
 }

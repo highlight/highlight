@@ -9732,8 +9732,8 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
     Types.GetSuggestedMetricsQueryVariables
 >;
 export const GetSourcemapFilesDocument = gql`
-    query GetSourcemapFiles($project_id: ID!) {
-        sourcemap_files(project_id: $project_id) {
+    query GetSourcemapFiles($project_id: ID!, $version: String) {
+        sourcemap_files(project_id: $project_id, version: $version) {
             key
         }
     }
@@ -9752,6 +9752,7 @@ export const GetSourcemapFilesDocument = gql`
  * const { data, loading, error } = useGetSourcemapFilesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      version: // value for 'version'
  *   },
  * });
  */
@@ -9786,4 +9787,58 @@ export type GetSourcemapFilesLazyQueryHookResult = ReturnType<
 export type GetSourcemapFilesQueryResult = Apollo.QueryResult<
     Types.GetSourcemapFilesQuery,
     Types.GetSourcemapFilesQueryVariables
+>;
+export const GetSourcemapVersionsDocument = gql`
+    query GetSourcemapVersions($project_id: ID!) {
+        sourcemap_versions(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetSourcemapVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetSourcemapVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSourcemapVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSourcemapVersionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetSourcemapVersionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >(GetSourcemapVersionsDocument, baseOptions);
+}
+export function useGetSourcemapVersionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >(GetSourcemapVersionsDocument, baseOptions);
+}
+export type GetSourcemapVersionsQueryHookResult = ReturnType<
+    typeof useGetSourcemapVersionsQuery
+>;
+export type GetSourcemapVersionsLazyQueryHookResult = ReturnType<
+    typeof useGetSourcemapVersionsLazyQuery
+>;
+export type GetSourcemapVersionsQueryResult = Apollo.QueryResult<
+    Types.GetSourcemapVersionsQuery,
+    Types.GetSourcemapVersionsQueryVariables
 >;

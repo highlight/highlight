@@ -3734,6 +3734,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetSourcemapFilesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
+    version?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type GetSourcemapFilesQuery = { __typename?: 'Query' } & {
@@ -3741,6 +3742,15 @@ export type GetSourcemapFilesQuery = { __typename?: 'Query' } & {
         { __typename?: 'S3File' } & Pick<Types.S3File, 'key'>
     >;
 };
+
+export type GetSourcemapVersionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetSourcemapVersionsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'sourcemap_versions'
+>;
 
 export const namedOperations = {
     Query: {
@@ -3825,6 +3835,7 @@ export const namedOperations = {
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
         GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
         GetSourcemapFiles: 'GetSourcemapFiles' as const,
+        GetSourcemapVersions: 'GetSourcemapVersions' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

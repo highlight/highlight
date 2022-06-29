@@ -976,6 +976,7 @@ export type Query = {
     event_chunk_url: Scalars['String'];
     event_chunks: Array<EventChunk>;
     sourcemap_files: Array<S3File>;
+    sourcemap_versions: Array<Scalars['String']>;
 };
 
 export type QueryAccount_DetailsArgs = {
@@ -1350,6 +1351,11 @@ export type QueryEvent_ChunksArgs = {
 };
 
 export type QuerySourcemap_FilesArgs = {
+    project_id: Scalars['ID'];
+    version?: Maybe<Scalars['String']>;
+};
+
+export type QuerySourcemap_VersionsArgs = {
     project_id: Scalars['ID'];
 };
 

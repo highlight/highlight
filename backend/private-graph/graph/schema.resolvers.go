@@ -28,7 +28,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -5212,7 +5212,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	}
 
 	query := fmt.Sprintf(`
-      query = () => 
+      query = () =>
 		from(bucket: "%[1]s")
 		  |> range(start: %[2]s, stop: %[3]s)
 		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
@@ -5222,8 +5222,8 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
       do = (q) =>
         query()
 		  |> aggregateWindow(
-               every: %[7]dm, 
-               fn: (column, tables=<-) => tables |> quantile(q:q, column: column), 
+               every: %[7]dm,
+               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: false)
       query()
 		  |> aggregateWindow(every: %[7]dm, fn: mean, createEmpty: false)
@@ -5514,8 +5514,8 @@ func (r *queryResolver) EventChunks(ctx context.Context, secureID string) ([]*mo
 	return chunks, nil
 }
 
-func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int) ([]*modelInputs.S3File, error) {
-	res, err := r.StorageClient.GetSourcemapFilesFromS3(projectID)
+func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*modelInputs.S3File, error) {
+	res, err := r.StorageClient.GetSourcemapFilesFromS3(projectID, version)
 	var s3Files []*modelInputs.S3File
 
 	if err != nil {
@@ -5528,6 +5528,23 @@ func (r *queryResolver) SourcemapFiles(ctx context.Context, projectID int) ([]*m
 	}
 
 	return s3Files, nil
+}
+
+func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([]string, error) {
+	res, err := r.StorageClient.GetSourcemapVersionsFromS3(projectID)
+	var appVersions []string
+
+	if err != nil {
+		return nil, e.Wrap(err, "error getting sourcemaps from s3")
+	}
+
+	for _, v := range res {
+		if v.Prefix != nil {
+			appVersions = append(appVersions, *v.Prefix)
+		}
+	}
+
+	return appVersions, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

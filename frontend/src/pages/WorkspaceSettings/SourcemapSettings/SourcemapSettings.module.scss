@@ -7,9 +7,6 @@
 }
 
 .listHeader {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
     margin-bottom: var(--size-medium);
 
     h3 {
@@ -18,6 +15,11 @@
 
     :global(.ant-input-affix-wrapper) {
         width: 150px;
+    }
+
+    .versionSelect {
+        margin-bottom: var(--size-medium);
+        width: 100%;
     }
 }
 
