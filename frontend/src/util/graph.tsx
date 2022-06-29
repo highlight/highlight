@@ -13,6 +13,7 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { persistCache } from 'apollo3-cache-persist';
 import * as firebase from 'firebase/app';
 
 const uri =
@@ -85,6 +86,36 @@ const GraphCDNOperations = [
     Query.GetRageClicksForProject,
 ] as const;
 
+const cache = new InMemoryCache({
+    typePolicies: {
+        Session: {
+            keyFields: ['secure_id'],
+        },
+        ErrorGroup: {
+            keyFields: ['secure_id'],
+        },
+        DashboardPayload: {
+            fields: {
+                metrics_histogram: {
+                    keyArgs: ['project_id', 'metric_name', 'params'],
+                },
+            },
+        },
+        HistogramPayload: {
+            fields: {
+                metrics_histogram: {
+                    keyArgs: ['project_id', 'metric_name', 'params'],
+                },
+            },
+        },
+    },
+});
+
+persistCache({
+    cache,
+    storage: localStorage,
+}).then(() => console.log('synced apollo cache'));
+
 export const client = new ApolloClient({
     link: ApolloLink.split(
         (operation) => {
@@ -96,25 +127,12 @@ export const client = new ApolloClient({
 
             // Check to see if the operation is one that we should send to GraphCDN instead of private graph.
             // @ts-expect-error
-            if (GraphCDNOperations.includes(operation.operationName)) {
-                return true;
-            }
-            return false;
+            return GraphCDNOperations.includes(operation.operationName);
         },
         authLink.concat(graphCdnGraph),
         authLink.concat(splitLink || highlightGraph)
     ),
-    cache: new InMemoryCache({
-        typePolicies: {
-            Session: {
-                keyFields: ['secure_id'],
-            },
-            ErrorGroup: {
-                keyFields: ['secure_id'],
-            },
-        },
-    }),
+    cache: cache,
     assumeImmutableResults: true,
-    connectToDevTools:
-        process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,
+    connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev',
 });

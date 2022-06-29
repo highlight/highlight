@@ -24,7 +24,6 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
-import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
@@ -208,13 +207,7 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                dateRange={{
-                                    start: moment(new Date()).subtract(
-                                        dateRangeLength.value * 24,
-                                        'hours'
-                                    ),
-                                    end: moment(new Date()),
-                                }}
+                                lookbackDays={dateRangeLength.value}
                             />
                         </div>
                     ))}

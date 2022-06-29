@@ -37,10 +37,7 @@ interface Props {
     metricConfig: DashboardMetricConfig;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
-    dateRange: {
-        start: moment.Moment;
-        end: moment.Moment;
-    };
+    lookbackDays: number;
     isEditing?: boolean;
 }
 
@@ -49,7 +46,7 @@ const DashboardCard = ({
     metricConfig,
     updateMetric,
     deleteMetric,
-    dateRange,
+    lookbackDays,
     isEditing,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -218,7 +215,7 @@ const DashboardCard = ({
                     }
                     poorValue={metricConfig.poor_value}
                     updateMetric={updateMetric}
-                    dateRange={dateRange}
+                    lookbackDays={lookbackDays}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
@@ -234,7 +231,7 @@ const EditMetricModal = ({
     updateMetric,
     onDelete,
     onCancel,
-    dateRange,
+    lookbackDays,
     setShowEditModal,
     setShowDeleteModal,
     shown = false,
@@ -244,10 +241,7 @@ const EditMetricModal = ({
     updateMetric: UpdateMetricFn;
     onDelete: () => void;
     onCancel: () => void;
-    dateRange: {
-        start: moment.Moment;
-        end: moment.Moment;
-    };
+    lookbackDays: number;
     setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
     setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     shown?: boolean;
@@ -363,7 +357,7 @@ const EditMetricModal = ({
                         }
                         setPoorValue={setPoorValue}
                         showEditModal={false}
-                        dateRange={dateRange}
+                        lookbackDays={lookbackDays}
                         setShowDeleteModal={setShowDeleteModal}
                         setShowEditModal={setShowEditModal}
                         updateMetric={updateMetric}
@@ -386,7 +380,7 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        dateRange,
+        lookbackDays,
         showEditModal,
         setShowEditModal,
         setShowDeleteModal,
@@ -401,20 +395,26 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        dateRange: {
-            start: moment.Moment;
-            end: moment.Moment;
-        };
+        lookbackDays: number;
         showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
-        const { project_id } = useParams<{ project_id: string }>();
-        const NUM_BUCKETS = 24;
-        const resolutionMinutes = Math.ceil(
-            dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
-        );
+        const NUM_BUCKETS = 25;
         const NUM_HISTOGRAM_BUCKETS = 50;
+        const { project_id } = useParams<{ project_id: string }>();
+        const [dateRange] = React.useState<{
+            start: string;
+            end: string;
+        }>({
+            start: moment(new Date())
+                .subtract(lookbackDays, 'days')
+                .format('YYYY-MM-DDT00:00:00.000000000Z'),
+            end: moment(new Date()).format('YYYY-MM-DDT23:59:59.999999999Z'),
+        });
+        const resolutionMinutes = Math.ceil(
+            moment.duration(lookbackDays, 'days').as('minutes') / NUM_BUCKETS
+        );
         const [
             loadTimeline,
             { data: timelineData, loading: timelineLoading },
@@ -424,14 +424,15 @@ const ChartContainer = React.memo(
                 metric_name: metricConfig.name,
                 params: {
                     date_range: {
-                        end_date: dateRange.end.toISOString(),
-                        start_date: dateRange.start.toISOString(),
+                        end_date: dateRange.end,
+                        start_date: dateRange.start,
                     },
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
                 },
             },
+            fetchPolicy: 'cache-first',
         });
         const [
             loadHistogram,
@@ -442,13 +443,14 @@ const ChartContainer = React.memo(
                 metric_name: metricConfig.name,
                 params: {
                     date_range: {
-                        end_date: dateRange.end.toISOString(),
-                        start_date: dateRange.start.toISOString(),
+                        end_date: dateRange.end,
+                        start_date: dateRange.start,
                     },
                     buckets: NUM_HISTOGRAM_BUCKETS,
                     units: metricConfig.units,
                 },
             },
+            fetchPolicy: 'cache-first',
         });
 
         useEffect(() => {
@@ -485,7 +487,7 @@ const ChartContainer = React.memo(
                     metricConfig={metricConfig}
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
-                    dateRange={dateRange}
+                    lookbackDays={lookbackDays}
                     setShowDeleteModal={setShowDeleteModal}
                     setShowEditModal={setShowEditModal}
                 />
@@ -609,7 +611,7 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
-        prevProps.dateRange === nextProps.dateRange &&
+        prevProps.lookbackDays === nextProps.lookbackDays &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
