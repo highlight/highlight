@@ -100,18 +100,18 @@ type FieldData struct {
 }
 
 type Request struct {
-	ID      string                     `json:"id"`
-	URL     string                     `json:"url"`
-	Method  string                     `json:"verb"`
-	Headers map[string]json.RawMessage `json:"headers"`
-	Body    json.RawMessage            `json:"body"`
+	ID      string            `json:"id"`
+	URL     string            `json:"url"`
+	Method  string            `json:"verb"`
+	Headers map[string]string `json:"headers"`
+	Body    string            `json:"body"`
 }
 
 type Response struct {
-	Status  float64                    `json:"status"`
-	Size    float64                    `json:"size"`
-	Headers map[string]json.RawMessage `json:"headers"`
-	Body    json.RawMessage            `json:"body"`
+	Status  float64           `json:"status"`
+	Size    float64           `json:"size"`
+	Headers map[string]string `json:"headers"`
+	Body    string            `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -2144,7 +2144,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		}
 		fields := map[string]interface{}{}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
-			modelInputs.NetworkRequestAttributeBodySize:     re.EncodedBodySize,
+			modelInputs.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
 			modelInputs.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
 			modelInputs.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
 			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
@@ -2152,17 +2152,17 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			fields[key.String()] = value
 		}
 		categories := map[modelInputs.NetworkRequestAttribute]string{
-			modelInputs.NetworkRequestAttributeURL:       re.Name,
-			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
-			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
+			modelInputs.NetworkRequestAttributeURL:           re.Name,
+			modelInputs.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
+			modelInputs.NetworkRequestAttributeInitiatorType: re.InitiatorType,
+			modelInputs.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
 		}
 		requestBody := make(map[string]interface{})
-		if err := json.Unmarshal(re.RequestResponsePairs.Request.Body, &requestBody); err != nil {
-			return nil
-		}
-		graphqlOperation := fmt.Sprintf("%s", requestBody["operationName"])
-		if len(graphqlOperation) > 0 {
-			categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = graphqlOperation
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+			if _, ok := requestBody["operationName"]; ok {
+				categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
+			}
 		}
 		for key, value := range categories {
 			tags[key.String()] = value
