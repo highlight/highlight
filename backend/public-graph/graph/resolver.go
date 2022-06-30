@@ -819,8 +819,10 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		for _, f := range fingerprints {
 			f.ErrorGroupId = errorGroup.ID
 		}
-		if err := r.DB.Model(&model.ErrorFingerprint{}).Create(fingerprints).Error; err != nil {
-			return e.Wrap(err, "error appending new fingerprints")
+		if len(fingerprints) > 0 {
+			if err := r.DB.Model(&model.ErrorFingerprint{}).Create(fingerprints).Error; err != nil {
+				return e.Wrap(err, "error appending new fingerprints")
+			}
 		}
 
 		var newIds []int
@@ -927,10 +929,12 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		})
 	}
 
-	if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(entries).Error; err != nil {
-		return e.Wrap(err, "error updating fields")
+	if len(entries) > 0 {
+		if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(entries).Error; err != nil {
+			return e.Wrap(err, "error updating fields")
+		}
 	}
 
 	return nil
