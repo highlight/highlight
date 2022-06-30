@@ -1258,7 +1258,9 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		session.Identifier = userIdentifier
 	}
 
-	session.Identified = true
+	if !backfill {
+		session.Identified = true
+	}
 
 	// TODO(ccschmitz): Should we add `identified`` to this?
 	openSearchProperties := map[string]interface{}{
