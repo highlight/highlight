@@ -9,6 +9,7 @@ import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
+import useLocalStorage from '@rehooks/local-storage';
 import { getErrorTitle } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
@@ -31,6 +32,10 @@ export const ErrorFeedV2 = () => {
         totalCount: 0,
     });
     const totalPages = useRef<number>(0);
+    const [errorsCount, setErrorsCount] = useLocalStorage<number>(
+        `errorsCount-project-${project_id}`,
+        0
+    );
     const {
         searchParams,
         searchQuery,
@@ -43,6 +48,7 @@ export const ErrorFeedV2 = () => {
     ] = useState(true);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
+    const projectHasManyErrors = errorsCount > PAGE_SIZE;
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
@@ -58,9 +64,11 @@ export const ErrorFeedV2 = () => {
                 totalPages.current = Math.ceil(
                     r?.error_groups_opensearch.totalCount / PAGE_SIZE
                 );
+                setErrorsCount(r?.error_groups_opensearch.totalCount);
             }
         },
         skip: !searchQuery,
+        fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
 
     useEffect(() => {
