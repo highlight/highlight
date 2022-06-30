@@ -1073,7 +1073,6 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
 	}
 
-	// TODO(ccschmitz): Figure out how to add session.Identified to opensearch.
 	sessionProperties := map[string]string{
 		"os_name":         session.OSName,
 		"os_version":      session.OSVersion,
@@ -1262,7 +1261,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		session.Identified = true
 	}
 
-	// TODO(ccschmitz): Should we add `identified`` to this?
 	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,

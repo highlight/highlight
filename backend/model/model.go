@@ -436,7 +436,6 @@ type Session struct {
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	// For associating unidentified sessions with a user after identification
-	// TODO(ccschmitz): Is there a better naming convention for the index?
 	ClientID string `json:"client_id" gorm:"index:idx_client_project,option:CONCURRENTLY;not null;default:''"`
 	// Whether a session has been identified.
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
