@@ -46,7 +46,9 @@ export const ErrorFeedV2 = () => {
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     useEffect(() => {
-        setShowLoadingSkeleton(true);
+        if (searchQuery) {
+            setShowLoadingSkeleton(true);
+        }
     }, [searchQuery, page]);
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({

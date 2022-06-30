@@ -458,10 +458,12 @@ const ChartContainer = React.memo(
             }
         }, [chartType, loadTimeline, loadHistogram]);
         useEffect(() => {
-            // round to the nearest hour or less if we use a fine granularity
+            // round to the nearest 15 mins or less if we use a fine granularity.
+            // this ensures that even for large time ranges data will only be cached
+            // for up to 15 minutes (cache key is based on the arguments).
             const now = roundDate(
                 moment(new Date()),
-                Math.min(60, lookbackMinutes)
+                Math.min(15, lookbackMinutes)
             );
             setDateRange({
                 start_date: moment(now)
