@@ -1239,21 +1239,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 
-	backfillSessions := []*model.Session{}
-	if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Find(&backfillSessions).Error; err != nil {
-		return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
-	}
-
-	// Identify past sessions with same ClientID unless performing a backfill.
-	highlightSession := session.ProjectID == 1
-	if highlightSession && !backfill {
-		for _, session := range backfillSessions {
-			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
-				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
-			}
-		}
-	}
-
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
@@ -1290,6 +1275,21 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
+	}
+
+	highlightSession := session.ProjectID == 1
+	if highlightSession && !backfill {
+		// Find past unidentified sessions and identify them.
+		backfillSessions := []*model.Session{}
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Where(&model.Session{Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
+		}
+
+		for _, session := range backfillSessions {
+			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
+			}
+		}
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
