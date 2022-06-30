@@ -815,7 +815,13 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
+		// rather than performing fingerprint creation via `Append`, use
+		// explicit create with set foreign key to avoid gorm
+		// updating the parent ErrorGroup
+		for _, f := range fingerprints {
+			f.ErrorGroupId = errorGroup.ID
+		}
+		if err := r.DB.Model(&model.ErrorFingerprint{}).Create(fingerprints).Error; err != nil {
 			return e.Wrap(err, "error appending new fingerprints")
 		}
 
@@ -910,8 +916,29 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 
 	// We append to this session in the join table regardless.
-	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
-		return e.Wrap(err, "error updating error fields")
+	var entries []struct {
+		ErrorGroupID int
+		FieldID      int
+	}
+	for _, f := range fieldsToAppend {
+		entries = append(entries, struct {
+			ErrorGroupID int
+			FieldID      int
+		}{
+			ErrorGroupID: errorGroup.ID,
+			FieldID:      f.ID,
+		})
+	}
+	// Associate the fields with this error group.
+	// Do this manually to avoid updating the session `updated_at` column
+	// since this operation is typically done as part of
+	// other steps that update the error group `updated_at`.
+	// Constantly writing to `updated_at` is a source of DB contention.
+	if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(entries).Error; err != nil {
+
+		return e.Wrap(err, "error updating error group fields")
 	}
 
 	return nil
