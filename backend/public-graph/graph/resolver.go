@@ -1280,7 +1280,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	if highlightSession && !backfill {
 		// Find past unidentified sessions and identify them.
 		backfillSessions := []*model.Session{}
-		if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Where(&model.Session{Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID, Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
 			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
 		}
 
