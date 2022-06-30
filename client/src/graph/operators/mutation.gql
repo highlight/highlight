@@ -77,6 +77,7 @@ mutation initializeSession(
     $id: String!
     $appVersion: String
     $session_secure_id: String
+    $client_id: String
 ) {
     initializeSession(
         organization_verbose_id: $organization_verbose_id
@@ -89,6 +90,7 @@ mutation initializeSession(
         appVersion: $appVersion
         fingerprint: $id
         session_secure_id: $session_secure_id
+        client_id: $client_id
     ) {
         id
         secure_id
