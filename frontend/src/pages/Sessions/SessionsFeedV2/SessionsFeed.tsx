@@ -76,8 +76,6 @@ export const SessionFeed = React.memo(() => {
         `sessionsCount-project-${project_id}`,
         0
     );
-    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
-    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const {
         searchParams,
         showStarredSessions,
@@ -98,12 +96,14 @@ export const SessionFeed = React.memo(() => {
     } = useGetSessionsOpenSearchQuery({
         variables: {
             project_id,
-            count: 0, // Don't need any results, just the count
+            count: PAGE_SIZE,
+            page: 1,
             query: getUnprocessedSessionsQuery(searchQuery),
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
         skip: !searchQuery,
         pollInterval: 5000,
+        fetchPolicy: 'network-only',
     });
 
     // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
@@ -118,7 +118,6 @@ export const SessionFeed = React.memo(() => {
             );
             setSessionsCount(response?.sessions_opensearch.totalCount);
         }
-        setShowLoadingSkeleton(false);
     };
 
     const { loading, called } = useGetSessionsOpenSearchQuery({
@@ -133,14 +132,6 @@ export const SessionFeed = React.memo(() => {
         skip: !searchQuery,
         fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
     });
-
-    useEffect(() => {
-        if (loading) {
-            setShowLoadingSkeleton(true);
-        }
-        // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, page]);
 
     useEffect(() => {
         // we just loaded the page for the first time
@@ -313,7 +304,7 @@ export const SessionFeed = React.memo(() => {
                         [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
                     })}
                 >
-                    {showLoadingSkeleton ? (
+                    {loading ? (
                         <Skeleton
                             height={!showDetailedSessionView ? 74 : 125}
                             count={3}

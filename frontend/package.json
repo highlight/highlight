@@ -24,7 +24,6 @@
         "@types/react-router-dom": "^5.1.5",
         "@types/react-select": "^3.0.28",
         "antd": "^4.6.3",
-        "apollo3-cache-persist": "^0.14.0",
         "classnames": "^2.2.6",
         "color-hash": "^2.0.1",
         "craco-antd": "^1.19.0",

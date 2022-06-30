@@ -13,7 +13,6 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
-import { persistCache } from 'apollo3-cache-persist';
 import * as firebase from 'firebase/app';
 
 const uri =
@@ -110,11 +109,6 @@ const cache = new InMemoryCache({
         },
     },
 });
-
-persistCache({
-    cache,
-    storage: localStorage,
-}).catch(console.error);
 
 export const client = new ApolloClient({
     link: ApolloLink.split(
