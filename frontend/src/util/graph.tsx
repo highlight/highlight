@@ -111,11 +111,11 @@ const cache = new InMemoryCache({
     },
 });
 
-// graphql queries that should be stored in sessionStorage
+// graphql queries that should be stored in localStorage
 const STORED_QUERIES = ['metrics_histogram', 'metrics_timeline'] as const;
 persistCache({
     cache,
-    storage: sessionStorage,
+    storage: localStorage,
     key: 'highlight-apollo-cache',
     persistenceMapper: async (data: string) => {
         const d: { ROOT_QUERY?: { [key: string]: any } } = JSON.parse(data);
