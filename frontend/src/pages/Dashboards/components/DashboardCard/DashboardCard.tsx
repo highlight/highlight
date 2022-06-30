@@ -37,7 +37,7 @@ interface Props {
     metricConfig: DashboardMetricConfig;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
-    lookbackDays: number;
+    lookbackMinutes: number;
     isEditing?: boolean;
 }
 
@@ -46,7 +46,7 @@ const DashboardCard = ({
     metricConfig,
     updateMetric,
     deleteMetric,
-    lookbackDays,
+    lookbackMinutes,
     isEditing,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -215,7 +215,7 @@ const DashboardCard = ({
                     }
                     poorValue={metricConfig.poor_value}
                     updateMetric={updateMetric}
-                    lookbackDays={lookbackDays}
+                    lookbackMinutes={lookbackMinutes}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
@@ -231,7 +231,7 @@ const EditMetricModal = ({
     updateMetric,
     onDelete,
     onCancel,
-    lookbackDays,
+    lookbackMinutes,
     setShowEditModal,
     setShowDeleteModal,
     shown = false,
@@ -241,7 +241,7 @@ const EditMetricModal = ({
     updateMetric: UpdateMetricFn;
     onDelete: () => void;
     onCancel: () => void;
-    lookbackDays: number;
+    lookbackMinutes: number;
     setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
     setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     shown?: boolean;
@@ -357,7 +357,7 @@ const EditMetricModal = ({
                         }
                         setPoorValue={setPoorValue}
                         showEditModal={false}
-                        lookbackDays={lookbackDays}
+                        lookbackMinutes={lookbackMinutes}
                         setShowDeleteModal={setShowDeleteModal}
                         setShowEditModal={setShowEditModal}
                         updateMetric={updateMetric}
@@ -366,6 +366,11 @@ const EditMetricModal = ({
             </ModalBody>
         </Modal>
     );
+};
+
+const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 const ChartContainer = React.memo(
@@ -380,7 +385,7 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        lookbackDays,
+        lookbackMinutes,
         showEditModal,
         setShowEditModal,
         setShowDeleteModal,
@@ -395,27 +400,22 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        lookbackDays: number;
+        lookbackMinutes: number;
         showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
-        const NUM_BUCKETS = 25;
-        const NUM_HISTOGRAM_BUCKETS = 50;
+        const NUM_BUCKETS = 60;
+        const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
+        const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
-        const [dateRange] = React.useState<{
+        const [dateRange, setDateRange] = React.useState<{
             start_date: string;
             end_date: string;
-        }>({
-            start_date: moment(new Date())
-                .subtract(lookbackDays, 'days')
-                .format('YYYY-MM-DDT00:00:00.000000000Z'),
-            end_date: moment(new Date()).format(
-                'YYYY-MM-DDT23:59:59.999999999Z'
-            ),
-        });
+        }>();
         const resolutionMinutes = Math.ceil(
-            moment.duration(lookbackDays, 'days').as('minutes') / NUM_BUCKETS
+            moment.duration(lookbackMinutes, 'minutes').as('minutes') /
+                NUM_BUCKETS
         );
         const [
             loadTimeline,
@@ -443,7 +443,7 @@ const ChartContainer = React.memo(
                 metric_name: metricConfig.name,
                 params: {
                     date_range: dateRange,
-                    buckets: NUM_HISTOGRAM_BUCKETS,
+                    buckets: NUM_BUCKETS,
                     units: metricConfig.units,
                 },
             },
@@ -457,13 +457,37 @@ const ChartContainer = React.memo(
                 loadTimeline();
             }
         }, [chartType, loadTimeline, loadHistogram]);
+        useEffect(() => {
+            // round to the nearest hour or less if we use a fine granularity
+            const now = roundDate(
+                moment(new Date()),
+                Math.min(60, lookbackMinutes)
+            );
+            setDateRange({
+                start_date: moment(now)
+                    .subtract(lookbackMinutes, 'minutes')
+                    .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
+                end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+            });
+        }, [lookbackMinutes]);
 
+        const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
         const seenDays: Set<string> = new Set<string>();
+        let lastDate: moment.Moment | undefined = undefined;
         for (const d of timelineData?.metrics_timeline || []) {
             const pointDate = d?.date;
             if (pointDate) {
-                const formattedDate = moment(pointDate).format('D MMM');
+                const newDate = moment(pointDate);
+                if (
+                    lastDate &&
+                    newDate.diff(lastDate, 'minutes') <
+                        BUCKET_MINS * TICK_EVERY_BUCKETS
+                ) {
+                    continue;
+                }
+                lastDate = moment(newDate);
+                const formattedDate = newDate.format(tickFormat);
                 if (!seenDays.has(formattedDate)) {
                     ticks.push(d.date);
                     seenDays.add(formattedDate);
@@ -484,11 +508,11 @@ const ChartContainer = React.memo(
                     metricConfig={metricConfig}
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
-                    lookbackDays={lookbackDays}
+                    lookbackMinutes={lookbackMinutes}
                     setShowDeleteModal={setShowDeleteModal}
                     setShowEditModal={setShowEditModal}
                 />
-                {timelineLoading || histogramLoading ? (
+                {!dateRange || timelineLoading || histogramLoading ? (
                     <Skeleton height={235} />
                 ) : !timelineData?.metrics_timeline.length &&
                   !histogramData?.metrics_histogram.buckets.length ? (
@@ -587,10 +611,7 @@ const ChartContainer = React.memo(
                         ]}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) => {
-                            return moment(
-                                new Date(tickItem),
-                                'DD MMM YYYY'
-                            ).format('D MMM');
+                            return moment(tickItem).format(tickFormat);
                         }}
                         xAxisProps={{
                             ticks: ticks,
@@ -613,7 +634,7 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
-        prevProps.lookbackDays === nextProps.lookbackDays &&
+        prevProps.lookbackMinutes === nextProps.lookbackMinutes &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&

@@ -37,6 +37,8 @@ export const ErrorFeedV2 = () => {
         0
     );
     const { searchQuery, page, setPage } = useErrorSearchContext();
+    const projectHasManyErrors = errorsCount > PAGE_SIZE;
+
     const [
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
@@ -46,7 +48,6 @@ export const ErrorFeedV2 = () => {
     useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchQuery, page]);
-    const projectHasManyErrors = errorsCount > PAGE_SIZE;
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
