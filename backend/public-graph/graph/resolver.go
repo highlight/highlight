@@ -610,25 +610,12 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	}{}
 
 	if err := r.DB.Raw(`
-		WITH json_results AS (
-			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
-			FROM json_array_elements_text(@jsonString) with ordinality
-		)
 	    SELECT id, sum(score) FROM (
 			SELECT id, 100 AS score, 0
 			FROM error_groups
 			WHERE event = @event
 			AND id IS NOT NULL
 			AND project_id = @projectID
-			UNION ALL
-			(SELECT DISTINCT ef.error_group_id, jr.score, 0
-			FROM error_fingerprints ef
-			INNER JOIN json_results jr
-			on ef.value = jr.value
-			WHERE
-				(ef.type = 'JSON'
-				AND ef.project_id = @projectID
-				AND ef.error_group_id IS NOT NULL))
 			UNION ALL
 			(SELECT DISTINCT error_group_id, 10 AS score, 0
 			FROM error_fingerprints
