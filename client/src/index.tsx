@@ -58,7 +58,7 @@ export const HighlightWarning = (context: string, msg: any) => {
 };
 
 enum LOCAL_STORAGE_KEYS {
-    CLIENT_ID = 'client_id',
+    CLIENT_ID = 'highlightClientID',
 }
 
 class Logger {
