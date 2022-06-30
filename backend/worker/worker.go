@@ -371,7 +371,7 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
 	}
 
-	parallelWorkers := 32
+	parallelWorkers := 64
 	workerPrefetch := 4
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
