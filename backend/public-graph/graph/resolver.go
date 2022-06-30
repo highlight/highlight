@@ -1204,7 +1204,7 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 	return nil
 }
 
-func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
+func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1239,12 +1239,20 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 
-	// backfillSessions := []*model.Session{}
-	// if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Find(&backfillSessions) {
-	// 	return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
-	// }
+	backfillSessions := []*model.Session{}
+	if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Find(&backfillSessions).Error; err != nil {
+		return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
+	}
 
-	// Iterate over sessions to backfill and call IdentifySession again
+	// Identify past sessions with same ClientID unless performing a backfill.
+	highlightSession := session.ProjectID == 1
+	if highlightSession && !backfill {
+		for _, session := range backfillSessions {
+			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
+			}
+		}
+	}
 
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
