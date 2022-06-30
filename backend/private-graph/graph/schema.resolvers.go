@@ -13,7 +13,6 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -5407,22 +5406,9 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 	var buckets []*modelInputs.CategoryHistogramBucket
 	for _, r := range results {
 		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
-			Category: r.Values["url"].(string),
+			Category: r.Values[params.Attribute.String()].(string),
 			Count:    int(r.Value.(int64)),
 		})
-	}
-
-	// guess backend domain based on most requests
-	if len(project.BackendDomains) == 0 && len(buckets) > 0 {
-		firstURL := buckets[0].Category
-		u, err := url.Parse(firstURL)
-		if err != nil {
-			log.Warnf("failed to guess domain for project %d from %s: %s", projectID, firstURL, err)
-		}
-		domains := []string{u.Host}
-		if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Update("BackendDomains", &domains).Error; err != nil {
-			log.Error(e.Wrap(err, "failed to save guessed domain for project"))
-		}
 	}
 
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
