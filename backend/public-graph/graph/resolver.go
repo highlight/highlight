@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -967,7 +968,14 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+	// The clientID param was added in early July 2022. This check is needed until
+	// we are confident all clients are loading a version of the client script
+	// that sends this parameter.
+	if clientID == nil {
+		clientID = pointy.String("")
+	}
+
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -1011,6 +1019,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
+		ClientID:                       *clientID,
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
@@ -1064,6 +1073,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
 	}
 
+	// TODO(ccschmitz): Figure out how to add session.Identified to opensearch.
 	sessionProperties := map[string]string{
 		"os_name":         session.OSName,
 		"os_version":      session.OSVersion,
@@ -1228,6 +1238,14 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
+
+	// backfillSessions := []*model.Session{}
+	// if err := r.DB.Where(&model.Session{ClientID: session.ClientID}).Find(&backfillSessions) {
+	// 	return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
+	// }
+
+	// Iterate over sessions to backfill and call IdentifySession again
+
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
@@ -1248,6 +1266,9 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 		session.Identifier = userIdentifier
 	}
 
+	session.Identified = true
+
+	// TODO(ccschmitz): Should we add `identified`` to this?
 	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,
