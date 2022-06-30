@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -2135,6 +2136,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	project := &model.Project{}
+	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
+	}
+
 	var points []timeseries.Point
 	for _, re := range resources {
 		tags := map[string]string{
@@ -2152,7 +2158,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			fields[key.String()] = value
 		}
 		categories := map[modelInputs.NetworkRequestAttribute]string{
-			modelInputs.NetworkRequestAttributeURL:           re.Name,
 			modelInputs.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
 			modelInputs.NetworkRequestAttributeInitiatorType: re.InitiatorType,
 			modelInputs.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
@@ -2164,6 +2169,17 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
 			}
 		}
+
+		// only record urls for network requests that match config to limit metric cardinality
+		u, err := url.Parse(re.Name)
+		if err == nil {
+			for _, d := range project.BackendDomains {
+				if u.Host == d {
+					categories[modelInputs.NetworkRequestAttributeURL] = re.Name
+				}
+			}
+		}
+
 		for key, value := range categories {
 			tags[key.String()] = value
 		}
