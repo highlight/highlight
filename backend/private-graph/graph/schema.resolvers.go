@@ -5334,10 +5334,13 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 
 	var buckets []*modelInputs.CategoryHistogramBucket
 	for _, r := range results {
-		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
-			Category: r.Values[params.Attribute.String()].(string),
-			Count:    int(r.Value.(int64)),
-		})
+		v, ok := r.Values[params.Attribute.String()].(string)
+		if ok {
+			buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
+				Category: v,
+				Count:    int(r.Value.(int64)),
+			})
+		}
 	}
 
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
