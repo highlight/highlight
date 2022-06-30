@@ -252,6 +252,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         const event = e as HighlightEvent;
         if (usefulEvent(event)) {
             setCurrentEvent(event.identifier);
+            console.log('setCurrentEvent', event);
         }
 
         if ((event as customEvent)?.data?.tag === 'Stop') {

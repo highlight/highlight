@@ -2,7 +2,6 @@ import Switch from '@components/Switch/Switch';
 import ActivityIcon from '@icons/ActivityIcon';
 import SvgReload from '@icons/Reload';
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
-import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import {
@@ -262,15 +261,12 @@ export const Toolbar = React.memo(() => {
                 }}
             >
                 {histogramOn && (
-                    <>
-                        <TimelineIndicatorsBarGraph
-                            sessionIntervals={sessionIntervals}
-                            selectedTimelineAnnotationTypes={
-                                selectedTimelineAnnotationTypes
-                            }
-                        />
-                        <Scrubber />
-                    </>
+                    <TimelineIndicatorsBarGraph
+                        sessionIntervals={sessionIntervals}
+                        selectedTimelineAnnotationTypes={
+                            selectedTimelineAnnotationTypes
+                        }
+                    />
                 )}
                 {!histogramOn && (
                     <>

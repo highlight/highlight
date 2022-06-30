@@ -126,6 +126,21 @@
     z-index: 150;
 }
 
+.inactivePopover {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.inactivePopoverDescription {
+    color: var(--color-gray-400);
+    font-size: 10px;
+}
+
+.inactivePopoverTime {
+    font-size: 10px;
+}
+
 .inactiveArea {
     background: var(--color-scrubber-inactive-region);
     // border-radius: 5px;

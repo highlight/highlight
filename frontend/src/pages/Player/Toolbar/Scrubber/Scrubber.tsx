@@ -14,8 +14,6 @@ import { NumberParam, useQueryParam } from 'use-query-params';
 
 import styles from './Scrubber.module.scss';
 
-const TICK_COUNT = 5;
-
 const Scrubber = () => {
     const {
         zoomAreaLeft,
@@ -183,12 +181,12 @@ const Scrubber = () => {
 
     let eventCounts = [];
     if (!!session?.event_counts) {
-        eventCounts = JSON.parse(session.event_counts).map(
-            (v: number, k: number) => {
-                return { ts: k, value: v };
-            }
-        );
+        eventCounts = JSON.parse(session.event_counts).map((v: number) => {
+            return { value: v };
+        });
     }
+
+    console.log('eventCounts', eventCounts);
 
     return (
         <div className={styles.scrubberBackground}>
@@ -219,29 +217,9 @@ const Scrubber = () => {
                     <ActivityGraph
                         data={eventCounts}
                         height={20}
+                        disableAnimation
                     ></ActivityGraph>
                 </div>
-                {/* <div
-                    className={styles.tickWrapper}
-                    onClick={(e) => {
-                        const target = e.target as HTMLDivElement;
-                        const rect = target.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const sliderPercent = x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setTime(newTime);
-                    }}
-                >
-                    {[...Array(TICK_COUNT).keys()].map((i) => {
-                        const sliderPercent = i / (TICK_COUNT - 1);
-                        const newTime = getSliderTime(sliderPercent);
-                        return (
-                            <span className={styles.tick} key={i}>
-                                {MillisToMinutesAndSeconds(newTime)}
-                            </span>
-                        );
-                    })}
-                </div> */}
                 <Draggable
                     nodeRef={draggableRef}
                     axis="x"
@@ -371,7 +349,33 @@ const Scrubber = () => {
                         return (
                             <Tooltip
                                 key={i.startPercent}
-                                title={'Inactive'}
+                                title={
+                                    <div className={styles.inactivePopover}>
+                                        <div>Inactive</div>
+                                        <div
+                                            className={
+                                                styles.inactivePopoverDescription
+                                            }
+                                        >
+                                            Inactivity represents time where the
+                                            user isn't scrolling, clicking or
+                                            interacting with your application.
+                                        </div>
+                                        <div
+                                            className={
+                                                styles.inactivePopoverTime
+                                            }
+                                        >
+                                            {MillisToMinutesAndSeconds(
+                                                i.startTime
+                                            )}{' '}
+                                            to{' '}
+                                            {MillisToMinutesAndSeconds(
+                                                i.endTime
+                                            )}
+                                        </div>
+                                    </div>
+                                }
                                 mouseEnterDelay={0}
                             >
                                 <div

@@ -11,6 +11,7 @@ import {
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement';
+import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
@@ -254,35 +255,38 @@ const TimelineIndicatorsBarGraph = React.memo(
                 : MillisToMinutesAndSeconds(t);
 
         return (
-            <div className={styles.histogramContainer}>
-                <Histogram
-                    startTime={combined.startTime}
-                    endTime={combined.endTime}
-                    onAreaChanged={(left, right) => {
-                        setZoomAreaLeft(
-                            (zoomAreaRight - zoomAreaLeft) *
-                                left *
-                                percentPerBar +
-                                (zoomAreaLeft ?? 0)
-                        );
-                        setZoomAreaRight(
-                            (zoomAreaRight - zoomAreaLeft) *
-                                (right * percentPerBar + percentPerBar) +
-                                zoomAreaLeft
-                        );
-                    }}
-                    onBucketClicked={(bucketIndex) => {
-                        setTime(bucketTimes[bucketIndex]);
-                    }}
-                    seriesList={series}
-                    timeFormatter={timeFormatter}
-                    bucketTimes={bucketTimes}
-                    tooltipContent={tooltipContent}
-                    gotoAction={(bucketIndex) => {
-                        setTime(bucketTimes[bucketIndex]);
-                    }}
-                />
-            </div>
+            <>
+                <div className={styles.histogramContainer}>
+                    <Histogram
+                        startTime={combined.startTime}
+                        endTime={combined.endTime}
+                        onAreaChanged={(left, right) => {
+                            setZoomAreaLeft(
+                                (zoomAreaRight - zoomAreaLeft) *
+                                    left *
+                                    percentPerBar +
+                                    (zoomAreaLeft ?? 0)
+                            );
+                            setZoomAreaRight(
+                                (zoomAreaRight - zoomAreaLeft) *
+                                    (right * percentPerBar + percentPerBar) +
+                                    zoomAreaLeft
+                            );
+                        }}
+                        onBucketClicked={(bucketIndex) => {
+                            setTime(bucketTimes[bucketIndex]);
+                        }}
+                        seriesList={series}
+                        timeFormatter={timeFormatter}
+                        bucketTimes={bucketTimes}
+                        tooltipContent={tooltipContent}
+                        gotoAction={(bucketIndex) => {
+                            setTime(bucketTimes[bucketIndex]);
+                        }}
+                    />
+                </div>
+                <Scrubber />
+            </>
         );
     }
 );
@@ -316,7 +320,7 @@ const getEventsInTimeBucket = (
     const data: { [key: string]: any } = {};
 
     for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = { firstEvent: {} };
+        data[i.toString()] = { firstEvent: {}, count: 0 };
     }
 
     interval.sessionEvents.forEach((event) => {
@@ -328,6 +332,7 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(event, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!(eventType in data[bucketKey])) {
                 data[bucketKey][eventType] = 1;
@@ -345,6 +350,7 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(error, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!('Errors' in data[bucketKey])) {
                 data[bucketKey]['Errors'] = 1;
@@ -362,6 +368,7 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(comment, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!('Comments' in data[bucketKey])) {
                 data[bucketKey]['Comments'] = 1;
