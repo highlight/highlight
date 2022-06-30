@@ -23,6 +23,7 @@ import {
     SessionInterval,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
+import { usefulEvent } from '@pages/Player/components/EventStream/EventStream';
 import {
     findLatestUrl,
     getAllPerformanceEvents,
@@ -197,6 +198,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
+    const [currentEvent, setCurrentEvent] = useState<string>('');
+
     // eventsKey represents the chunk index for all loaded chunks. This is
     // subscribed to for knowing when new chunks have been loaded in or removed.
     let eventsKey = '';
@@ -247,6 +250,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const onevent = (e: any) => {
         const event = e as HighlightEvent;
+        if (usefulEvent(event)) {
+            setCurrentEvent(event.identifier);
+        }
 
         if ((event as customEvent)?.data?.tag === 'Stop') {
             setState(ReplayerState.SessionRecordingStopped);
@@ -1263,6 +1269,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         isLoadingEvents,
         setIsLoadingEvents,
         sessionMetadata,
+        currentEvent,
+        setCurrentEvent,
     };
 };
 

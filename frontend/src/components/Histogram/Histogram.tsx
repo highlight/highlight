@@ -1,7 +1,9 @@
+import GoToButton from '@components/Button/GoToButton';
 import React, { useEffect, useState } from 'react';
 import {
     Bar,
     BarChart,
+    Cell,
     ReferenceArea,
     ResponsiveContainer,
     Tooltip,
@@ -16,6 +18,7 @@ interface Series {
 }
 
 const POPOVER_TIMEOUT_MS = 300;
+const BAR_RADIUS_PX = 2;
 
 interface Props {
     startTime: number;
@@ -26,6 +29,7 @@ interface Props {
     seriesList: Series[];
     timeFormatter: (value: number) => string;
     tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
+    gotoAction?: (bucketIndex: number) => void;
 }
 
 const Histogram = ({
@@ -36,6 +40,7 @@ const Histogram = ({
     bucketTimes,
     timeFormatter,
     tooltipContent,
+    gotoAction,
 }: Props) => {
     const [dragStart, setDragStart] = useState<number | undefined>();
     const [dragEnd, setDragEnd] = useState<number | undefined>();
@@ -71,6 +76,26 @@ const Histogram = ({
         }
     }
 
+    const firstSeries: string[] = [];
+    const lastSeries: string[] = [];
+
+    const reversedSeriesList = seriesList.slice().reverse();
+    for (let i = 0; i < seriesLength; i++) {
+        const curData = chartData[i];
+        for (const s of seriesList) {
+            if (curData[s.label]) {
+                firstSeries[i] = s.label;
+                break;
+            }
+        }
+        for (const s of reversedSeriesList) {
+            if (curData[s.label]) {
+                lastSeries[i] = s.label;
+                break;
+            }
+        }
+    }
+
     useEffect(() => {
         // Return if we don't want the tooltip to be hidden or it's already hidden
         // Any existing timeout will be cleared
@@ -92,8 +117,7 @@ const Histogram = ({
             const rightTime = timeFormatter(bucketEndTimes[dragRight]);
             inner = (
                 <div className={styles.title}>
-                    {leftTime}
-                    {dragLeft !== dragRight && ` to ${rightTime}`}
+                    {leftTime} to {rightTime}
                 </div>
             );
         } else {
@@ -103,6 +127,9 @@ const Histogram = ({
                 <>
                     <div className={styles.title}>
                         {`${leftTime} to ${rightTime}`}
+                        {gotoAction && (
+                            <GoToButton onClick={() => gotoAction(label)} />
+                        )}
                     </div>
                     <div className={styles.popoverContent}>
                         {tooltipContent(label)}
@@ -195,6 +222,13 @@ const Histogram = ({
                                     scale: tooltipHidden ? 0 : 1,
                                     pointerEvents: 'inherit',
                                 }}
+                                cursor={{
+                                    fill:
+                                        dragLeft !== undefined &&
+                                        dragRight !== undefined
+                                            ? 'transparent'
+                                            : 'rgba(204, 204, 204, .5)',
+                                }}
                                 allowEscapeViewBox={{
                                     x: false,
                                     y: false,
@@ -207,15 +241,31 @@ const Histogram = ({
                                     dataKey={s.label}
                                     stackId="a"
                                     fill={`var(${s.color})`}
-                                />
+                                >
+                                    {chartData.map((entry, i) => {
+                                        const isFirst =
+                                            firstSeries[i] === s.label;
+                                        const isLast =
+                                            lastSeries[i] === s.label;
+
+                                        return (
+                                            <Cell
+                                                key={`cell-${i}`}
+                                                // @ts-ignore
+                                                radius={[
+                                                    isLast ? BAR_RADIUS_PX : 0,
+                                                    isLast ? BAR_RADIUS_PX : 0,
+                                                    isFirst ? BAR_RADIUS_PX : 0,
+                                                    isFirst ? BAR_RADIUS_PX : 0,
+                                                ]}
+                                            />
+                                        );
+                                    })}
+                                </Bar>
                             ))}
                             {dragStart !== undefined &&
                             dragEnd !== undefined ? (
-                                <ReferenceArea
-                                    x1={dragLeft}
-                                    x2={dragRight}
-                                    strokeOpacity={0.3}
-                                />
+                                <ReferenceArea x1={dragLeft} x2={dragRight} />
                             ) : null}
                         </BarChart>
                     </ResponsiveContainer>

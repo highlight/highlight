@@ -263,13 +263,13 @@ export const Toolbar = React.memo(() => {
             >
                 {histogramOn && (
                     <>
-                        <Scrubber />
                         <TimelineIndicatorsBarGraph
                             sessionIntervals={sessionIntervals}
                             selectedTimelineAnnotationTypes={
                                 selectedTimelineAnnotationTypes
                             }
                         />
+                        <Scrubber />
                     </>
                 )}
                 {!histogramOn && (

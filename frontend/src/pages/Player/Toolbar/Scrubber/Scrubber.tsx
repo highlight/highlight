@@ -4,6 +4,7 @@ import SvgDragIcon from '@icons/DragIcon';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
+import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
@@ -15,7 +16,7 @@ import styles from './Scrubber.module.scss';
 
 const TICK_COUNT = 5;
 
-const Scrubber = ({}: {}) => {
+const Scrubber = () => {
     const {
         zoomAreaLeft,
         setZoomAreaLeft,
@@ -27,6 +28,7 @@ const Scrubber = ({}: {}) => {
         setTime,
         sessionMetadata,
         sessionIntervals,
+        session,
     } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const draggableRef = useRef(null);
@@ -34,7 +36,7 @@ const Scrubber = ({}: {}) => {
     const rightRef = useRef(null);
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
-        (sliderWrapperRef.current?.getBoundingClientRect().width ?? 1) - 12;
+        sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [dragTime, setDragTime] = useState(0);
     const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft);
     const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight);
@@ -179,6 +181,15 @@ const Scrubber = ({}: {}) => {
     const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth;
     const dragRightPixels = (dragAreaRight / 100) * wrapperWidth;
 
+    let eventCounts = [];
+    if (!!session?.event_counts) {
+        eventCounts = JSON.parse(session.event_counts).map(
+            (v: number, k: number) => {
+                return { ts: k, value: v };
+            }
+        );
+    }
+
     return (
         <div className={styles.scrubberBackground}>
             {isZoomed && (
@@ -204,7 +215,13 @@ const Scrubber = ({}: {}) => {
                 </div>
             )}
             <div className={styles.innerBounds} ref={sliderWrapperRef}>
-                <div
+                <div className={styles.activityGraphWrapper}>
+                    <ActivityGraph
+                        data={eventCounts}
+                        height={20}
+                    ></ActivityGraph>
+                </div>
+                {/* <div
                     className={styles.tickWrapper}
                     onClick={(e) => {
                         const target = e.target as HTMLDivElement;
@@ -224,7 +241,7 @@ const Scrubber = ({}: {}) => {
                             </span>
                         );
                     })}
-                </div>
+                </div> */}
                 <Draggable
                     nodeRef={draggableRef}
                     axis="x"
@@ -248,95 +265,103 @@ const Scrubber = ({}: {}) => {
                             getSliderPercent(dragTime) * wrapperWidth,
                             0
                         ),
-                        y: -36,
+                        y: -28,
                     }}
                 >
-                    <div className={styles.handleContainer} ref={draggableRef}>
+                    <div
+                        className={styles.scrubHandleContainer}
+                        ref={draggableRef}
+                    >
                         <div className={styles.scrubHandle}>
                             <div className={styles.timeText}>{curTime}</div>
                             <div className={styles.timeMarker}></div>
                         </div>
                     </div>
                 </Draggable>
-                <Draggable
-                    nodeRef={leftRef}
-                    axis="x"
-                    bounds={{
-                        left: 0,
-                        right: dragRightPixels,
-                    }}
-                    position={{
-                        x: dragLeftPixels,
-                        y: 6,
-                    }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setZoomAreaLeft(sliderPercent * 100);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setDragAreaLeft(sliderPercent * 100);
-                    }}
-                >
-                    <div
-                        className={classNames(
-                            styles.zoomAreaHandle,
-                            styles.handleLeft
-                        )}
-                        ref={leftRef}
+                <div className={styles.zoomer}>
+                    <Draggable
+                        nodeRef={leftRef}
+                        axis="x"
+                        bounds={{
+                            left: 0,
+                            right: dragRightPixels,
+                        }}
+                        position={{
+                            x: dragLeftPixels,
+                            y: 0,
+                        }}
+                        onStop={(e, data) => {
+                            const sliderPercent = data.x / wrapperWidth;
+                            setZoomAreaLeft(sliderPercent * 100);
+                        }}
+                        onDrag={(e, data) => {
+                            const sliderPercent = data.x / wrapperWidth;
+                            setDragAreaLeft(sliderPercent * 100);
+                        }}
                     >
-                        <SvgDragIcon
-                            style={{
-                                color: 'var(--color-scrubber-zoom-handle)',
-                                transform: 'translateY(-1px)',
-                            }}
-                        />
-                    </div>
-                </Draggable>
-                <Draggable
-                    nodeRef={rightRef}
-                    axis="x"
-                    bounds={{
-                        left: dragLeftPixels,
-                        right: wrapperWidth,
-                    }}
-                    position={{
-                        x: dragRightPixels,
-                        y: 6,
-                    }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setZoomAreaRight(sliderPercent * 100);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setDragAreaRight(sliderPercent * 100);
-                    }}
-                >
-                    <div
-                        className={classNames(
-                            styles.zoomAreaHandle,
-                            styles.handleRight
-                        )}
-                        ref={rightRef}
+                        <div className={styles.handleContainer} ref={leftRef}>
+                            <div
+                                className={classNames(
+                                    styles.zoomAreaHandle,
+                                    styles.handleLeft
+                                )}
+                            >
+                                <SvgDragIcon
+                                    style={{
+                                        color:
+                                            'var(--color-scrubber-zoom-handle)',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </Draggable>
+                    <Draggable
+                        nodeRef={rightRef}
+                        axis="x"
+                        bounds={{
+                            left: dragLeftPixels,
+                            right: wrapperWidth,
+                        }}
+                        position={{
+                            x: dragRightPixels,
+                            y: 0,
+                        }}
+                        onStop={(e, data) => {
+                            const sliderPercent = data.x / wrapperWidth;
+                            setZoomAreaRight(sliderPercent * 100);
+                        }}
+                        onDrag={(e, data) => {
+                            const sliderPercent = data.x / wrapperWidth;
+                            setDragAreaRight(sliderPercent * 100);
+                        }}
                     >
-                        <SvgDragIcon
-                            style={{
-                                color: 'var(--color-scrubber-zoom-handle)',
-                                transform: 'translateY(-1px)',
-                            }}
-                        />
-                    </div>
-                </Draggable>
-                <div
-                    className={classNames(styles.zoomArea, {
-                        [styles.zoomAreaCanReset]: false,
-                    })}
-                    style={{
-                        left: `${dragAreaLeft}%`,
-                        width: `${dragAreaRight - dragAreaLeft}%`,
-                    }}
-                ></div>
+                        <div className={styles.handleContainer} ref={rightRef}>
+                            <div
+                                className={classNames(
+                                    styles.zoomAreaHandle,
+                                    styles.handleRight
+                                )}
+                            >
+                                <SvgDragIcon
+                                    style={{
+                                        color:
+                                            'var(--color-scrubber-zoom-handle)',
+                                        transform: 'translateX(-2px)',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </Draggable>
+                    <div
+                        className={classNames(styles.zoomArea, {
+                            [styles.zoomAreaCanReset]: false,
+                        })}
+                        style={{
+                            left: `${dragAreaLeft}%`,
+                            width: `${dragAreaRight - dragAreaLeft}%`,
+                        }}
+                    ></div>
+                </div>
                 <div className={styles.inactiveContainer}>
                     {sessionIntervals.map((i) => {
                         if (i.active) {
@@ -344,7 +369,11 @@ const Scrubber = ({}: {}) => {
                         }
 
                         return (
-                            <Tooltip key={i.startPercent} title={'Inactive'}>
+                            <Tooltip
+                                key={i.startPercent}
+                                title={'Inactive'}
+                                mouseEnterDelay={0}
+                            >
                                 <div
                                     className={styles.inactiveArea}
                                     style={{

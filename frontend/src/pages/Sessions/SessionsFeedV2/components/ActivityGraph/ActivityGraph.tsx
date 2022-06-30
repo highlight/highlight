@@ -3,14 +3,15 @@ import { Area, ComposedChart, ResponsiveContainer } from 'recharts';
 
 interface Props {
     data: any[];
+    height?: number;
 }
 
-const ActivityGraph = ({ data }: Props) => {
+const ActivityGraph = ({ data, height = 20 }: Props) => {
     const gradientId = `session-activity-graph-colorUv`;
     const lineColor = 'var(--color-purple)';
 
     return (
-        <ResponsiveContainer width="100%" height={20}>
+        <ResponsiveContainer width="100%" height={height}>
             <ComposedChart
                 data={data}
                 height={200}

@@ -125,10 +125,11 @@
     --color-error-open: var(--color-red-400);
 
     // Scrubber
-    --color-scrubber-zoom-region: #565656;
+    --color-scrubber-zoom-region-border: #565656;
+    --color-scrubber-zoom-region: #56565622;
     --color-scrubber-zoom-handle: #757575;
     --color-scrubber-scrub-handle: #ca0000;
-    --color-scrubber-inactive-region: #c17272;
+    --color-scrubber-inactive-region: #60484877;
 }
 
 [data-theme='dark'] {

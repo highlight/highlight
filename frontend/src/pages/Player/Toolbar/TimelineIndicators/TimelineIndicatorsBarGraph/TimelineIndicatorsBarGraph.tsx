@@ -1,6 +1,6 @@
-import GoToButton from '@components/Button/GoToButton';
-import SessionComment from '@components/Comment/SessionComment/SessionComment';
+import Button from '@components/Button/Button/Button';
 import Histogram from '@components/Histogram/Histogram';
+import { Skeleton } from '@components/Skeleton/Skeleton';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import {
@@ -10,13 +10,7 @@ import {
     ParsedSessionInterval,
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
-import {
-    getEventRenderDetails,
-    getPlayerEventIcon,
-} from '@pages/Player/StreamElement/StreamElement';
-import StreamElementPayload from '@pages/Player/StreamElement/StreamElementPayload';
-import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
+import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
@@ -28,7 +22,6 @@ import React, { useEffect } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
 import { TimelineAnnotationColors } from '../../Toolbar';
-import toolbarStyles from '../../Toolbar.module.scss';
 import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
@@ -44,13 +37,12 @@ const TimelineIndicatorsBarGraph = React.memo(
             zoomAreaRight,
             setZoomAreaRight,
         } = useToolbarItemsContext();
+        const { showPlayerAbsoluteTime } = usePlayerConfiguration();
         const {
-            showPlayerAbsoluteTime,
-            setShowDevTools,
-            setSelectedDevToolsTab,
-        } = usePlayerConfiguration();
-        const { sessionMetadata, setTime } = useReplayerContext();
-        const { setErrorPanel } = useResourceOrErrorDetailPanel();
+            sessionMetadata,
+            setTime,
+            setCurrentEvent,
+        } = useReplayerContext();
         const { session_secure_id } = useParams<{
             session_secure_id: string;
         }>();
@@ -61,7 +53,7 @@ const TimelineIndicatorsBarGraph = React.memo(
         }, [session_secure_id, setZoomAreaLeft, setZoomAreaRight]);
 
         if (sessionIntervals.length === 0) {
-            return null;
+            return <Skeleton />;
         }
 
         const numberOfBars = 50;
@@ -189,92 +181,29 @@ const TimelineIndicatorsBarGraph = React.memo(
             bucketTimes.push(getTimeFromPercent(p) ?? 0);
         }
 
-        const displayEvent = (e: ParsedHighlightEvent) => {
-            const details = getEventRenderDetails(e);
-            const Icon = getPlayerEventIcon(
-                details.title || '',
-                details.payload
-            );
-            return (
-                <>
-                    <span
-                        className={classNames(
-                            timelineAnnotationStyles.title,
-                            styles.eventTitle
-                        )}
-                    >
-                        <span
-                            className={timelineAnnotationStyles.iconContainer}
-                            style={{
-                                background: `var(${
-                                    // @ts-ignore
-                                    TimelineAnnotationColors[details.title]
-                                })`,
-                            }}
-                        >
-                            {Icon}
-                        </span>
-                        {getTimelineEventDisplayName(details.title || '')}
-                    </span>
-                    <div
-                        key={e.timestamp}
-                        className={classNames(
-                            toolbarStyles.popoverContent,
-                            styles.eventContent
-                        )}
-                    >
-                        <StreamElementPayload
-                            payload={
-                                typeof details.payload === 'object'
-                                    ? JSON.stringify(details.payload)
-                                    : typeof details.payload === 'boolean' &&
-                                      details.title?.includes('Tab')
-                                    ? details.payload
-                                        ? 'The user switched away from this tab.'
-                                        : 'The user is currently active on this tab.'
-                                    : details.payload
-                            }
-                        />
-                    </div>
-                </>
-            );
-        };
-
-        const displayError = (e: ParsedErrorObject) => {
-            return (
-                <div className={toolbarStyles.popoverContent}>
-                    {e.source}
-                    <div className={toolbarStyles.buttonContainer}>
-                        <GoToButton
-                            onClick={() => {
-                                setShowDevTools(true);
-                                setSelectedDevToolsTab(DevToolTabType.Errors);
-                                setErrorPanel(e);
-                            }}
-                            label="More info"
-                        />
-                    </div>
-                </div>
-            );
-        };
-
-        const displayComment = (c: ParsedSessionComment) => {
-            return (
-                <div className={toolbarStyles.popoverContent}>
-                    <SessionComment comment={c} />
-                </div>
-            );
-        };
-
-        const displayAggregate = (count: number, eventType: string) => {
+        const displayAggregate = (
+            count: number,
+            eventType: string,
+            firstEvent:
+                | ParsedErrorObject
+                | ParsedHighlightEvent
+                | ParsedSessionComment
+        ) => {
             const Icon = getPlayerEventIcon(eventType);
             return (
                 <>
-                    <div
+                    <Button
                         className={classNames(
                             timelineAnnotationStyles.title,
                             styles.eventTitle
                         )}
+                        type="text"
+                        trackingId="ViewEventDetail"
+                        onClick={() => {
+                            if ('identifier' in firstEvent) {
+                                setCurrentEvent(firstEvent.identifier);
+                            }
+                        }}
                     >
                         <span
                             className={timelineAnnotationStyles.iconContainer}
@@ -283,12 +212,15 @@ const TimelineIndicatorsBarGraph = React.memo(
                                     // @ts-ignore
                                     TimelineAnnotationColors[eventType]
                                 })`,
+                                width: '30px',
+                                height: '30px',
                             }}
                         >
                             {Icon}
                         </span>
-                        {getTimelineEventDisplayName(eventType || '')} x {count}
-                    </div>
+                        {getTimelineEventDisplayName(eventType || '')}
+                        {count > 1 && ` x ${count}`}
+                    </Button>
                 </>
             );
         };
@@ -302,29 +234,14 @@ const TimelineIndicatorsBarGraph = React.memo(
             for (const e of EventsForTimeline) {
                 const count = bucket[e];
                 if (count > 0) {
-                    if (count > 2) {
-                        labels.push(displayAggregate(count, e));
-                    } else {
-                        if (e === 'Errors') {
-                            labels.push(bucket.errors.map(displayError));
-                        } else if (e === 'Comments') {
-                            labels.push(bucket.comments.map(displayComment));
-                        } else {
-                            labels.push(
-                                bucket.events
-                                    .filter(
-                                        (event: any) => event.data.tag === e
-                                    )
-                                    .map(displayEvent)
-                            );
-                        }
-                    }
+                    const firstEvent = bucket.firstEvent[e];
+                    labels.push(displayAggregate(count, e, firstEvent));
                 }
             }
             if (labels.length === 0) {
                 return null;
             } else {
-                return <div>{labels}</div>;
+                return <>{labels}</>;
             }
         };
 
@@ -361,6 +278,9 @@ const TimelineIndicatorsBarGraph = React.memo(
                     timeFormatter={timeFormatter}
                     bucketTimes={bucketTimes}
                     tooltipContent={tooltipContent}
+                    gotoAction={(bucketIndex) => {
+                        setTime(bucketTimes[bucketIndex]);
+                    }}
                 />
             </div>
         );
@@ -396,7 +316,7 @@ const getEventsInTimeBucket = (
     const data: { [key: string]: any } = {};
 
     for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = { events: [], errors: [], comments: [] };
+        data[i.toString()] = { firstEvent: {} };
     }
 
     interval.sessionEvents.forEach((event) => {
@@ -411,10 +331,10 @@ const getEventsInTimeBucket = (
 
             if (!(eventType in data[bucketKey])) {
                 data[bucketKey][eventType] = 1;
+                data[bucketKey].firstEvent[eventType] = event;
             } else {
                 data[bucketKey][eventType]++;
             }
-            data[bucketKey].events.push(event);
         }
     });
 
@@ -428,10 +348,10 @@ const getEventsInTimeBucket = (
 
             if (!('Errors' in data[bucketKey])) {
                 data[bucketKey]['Errors'] = 1;
+                data[bucketKey].firstEvent['Errors'] = error;
             } else {
                 data[bucketKey]['Errors']++;
             }
-            data[bucketKey].errors.push(error);
         });
     }
 
@@ -445,10 +365,10 @@ const getEventsInTimeBucket = (
 
             if (!('Comments' in data[bucketKey])) {
                 data[bucketKey]['Comments'] = 1;
+                data[bucketKey].firstEvent['Comments'] = comment;
             } else {
                 data[bucketKey]['Comments']++;
             }
-            data[bucketKey].comments.push(comment);
         });
     }
 
