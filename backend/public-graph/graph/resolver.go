@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -815,8 +816,13 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
-			return e.Wrap(err, "error appending new fingerprints")
+		for _, f := range fingerprints {
+			f.ErrorGroupId = errorGroup.ID
+		}
+		if len(fingerprints) > 0 {
+			if err := r.DB.Model(&model.ErrorFingerprint{}).Create(fingerprints).Error; err != nil {
+				return e.Wrap(err, "error appending new fingerprints")
+			}
 		}
 
 		var newIds []int
@@ -909,9 +915,26 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		}
 	}
 
-	// We append to this session in the join table regardless.
-	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
-		return e.Wrap(err, "error updating error fields")
+	var entries []struct {
+		ErrorGroupID int
+		ErrorFieldID int
+	}
+	for _, f := range fieldsToAppend {
+		entries = append(entries, struct {
+			ErrorGroupID int
+			ErrorFieldID int
+		}{
+			ErrorGroupID: errorGroup.ID,
+			ErrorFieldID: f.ID,
+		})
+	}
+
+	if len(entries) > 0 {
+		if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(entries).Error; err != nil {
+			return e.Wrap(err, "error updating fields")
+		}
 	}
 
 	return nil
