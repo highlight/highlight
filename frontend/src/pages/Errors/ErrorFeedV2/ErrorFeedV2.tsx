@@ -41,6 +41,11 @@ export const ErrorFeedV2 = () => {
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchQuery, page]);
     const projectHasManyErrors = errorsCount > PAGE_SIZE;
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
@@ -58,6 +63,7 @@ export const ErrorFeedV2 = () => {
                 );
                 setErrorsCount(r?.error_groups_opensearch.totalCount);
             }
+            setShowLoadingSkeleton(false);
         },
         skip: !searchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
@@ -96,7 +102,7 @@ export const ErrorFeedV2 = () => {
                     })}
                     onScroll={onFeedScrollListener}
                 >
-                    {loading ? (
+                    {showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
