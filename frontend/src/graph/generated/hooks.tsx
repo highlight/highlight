@@ -6006,6 +6006,7 @@ export const GetSessionsOpenSearchDocument = gql`
             sessions {
                 id
                 secure_id
+                client_id
                 fingerprint
                 identifier
                 os_name

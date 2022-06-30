@@ -572,6 +572,7 @@ query GetSessionsOpenSearch(
         sessions {
             id
             secure_id
+            client_id
             fingerprint
             identifier
             os_name
