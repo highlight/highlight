@@ -1069,7 +1069,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient)
 }
 
 func (w *Worker) RefreshMaterializedViews() {

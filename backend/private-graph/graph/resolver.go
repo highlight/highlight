@@ -2131,22 +2131,35 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	return &existingChannels, newChannelsCount, nil
 }
 
-func GetAggregateSQLStatement(aggregateFunctionName string) string {
-	aggregateStatement := "AVG(value)"
+func GetAggregateFluxStatement(aggregateFunctionName string, resMins int) string {
+	aggregateStatement := fmt.Sprintf(`
+      query()
+		  |> aggregateWindow(every: %dm, fn: mean, createEmpty: false)
+          |> yield(name: "avg")
+	`, resMins)
 
+	quantile := 0.
+	// explicitly validate the aggregate func to ensure no query injection possible
 	switch aggregateFunctionName {
 	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.5
 	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.75
 	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.9
+	case "p95":
+		quantile = 0.95
 	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.99
 	case "avg":
 	default:
 		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
-		aggregateStatement = "AVG(value)"
+	}
+	if quantile > 0. {
+		aggregateStatement = fmt.Sprintf(`
+		  do(q:%f)
+			  |> yield(name: "p%d")
+		`, quantile, int(quantile*100))
 	}
 
 	return aggregateStatement
@@ -2172,6 +2185,57 @@ func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) fl
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
+	}
+	return
+}
+
+func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	resMins := 60
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
+		resMins = *params.ResolutionMinutes
+	}
+
+	query := fmt.Sprintf(`
+      query = () =>
+		from(bucket: "%[1]s")
+		  |> range(start: %[2]s, stop: %[3]s)
+		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
+		  |> filter(fn: (r) => r["_field"] == "%[5]s")
+		  |> filter(fn: (r) => r["project_id"] == "%[6]d")
+		  |> group(columns: ["project_id"])
+      do = (q) =>
+        query()
+		  |> aggregateWindow(
+               every: %[7]dm,
+               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
+               createEmpty: true)
+	`, tdb.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
+	agg := "avg"
+	if params.AggregateFunction != nil && *params.AggregateFunction != "" {
+		agg = *params.AggregateFunction
+	}
+	query += GetAggregateFluxStatement(agg, resMins)
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	timelineQuerySpan.SetTag("projectID", projectID)
+	timelineQuerySpan.SetTag("metricName", metricName)
+	timelineQuerySpan.SetTag("resMins", resMins)
+	results, err := tdb.Query(ctx, query)
+	timelineQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range results {
+		v := 0.
+		if r.Value != nil {
+			v = r.Value.(float64) / div
+		}
+		payload = append(payload, &modelInputs.DashboardPayload{
+			Date:              r.Time.Format(time.RFC3339Nano),
+			Value:             v,
+			AggregateFunction: &agg,
+		})
 	}
 	return
 }

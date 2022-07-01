@@ -24,7 +24,6 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
-import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
@@ -34,11 +33,13 @@ import styles from './DashboardPage.module.scss';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const timeFilter = [
-    { label: 'Last 24 hours', value: 1 },
-    { label: 'Last 7 days', value: 7 },
-    { label: 'Last 30 days', value: 30 },
-    { label: 'Last 90 days', value: 90 },
-    { label: 'This year', value: 30 * 12 },
+    { label: 'Last 1 minute', value: 1 },
+    { label: 'Last 15 minutes', value: 15 },
+    { label: 'Last 1 hours', value: 60 },
+    { label: 'Last 6 hours', value: 6 * 60 },
+    { label: 'Last 24 hours', value: 24 * 60 },
+    { label: 'Last 7 days', value: 7 * 24 * 60 },
+    { label: 'Last 30 days', value: 30 * 24 * 60 },
 ] as { label: string; value: number }[];
 
 interface MetricOption {
@@ -51,8 +52,8 @@ const DashboardPage = () => {
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
     const { dashboards, updateDashboard } = useDashboardsContext();
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
-        `highlight-dashboard-${project_id}-${id}-date-range`,
-        timeFilter[0]
+        `highlight-dashboard-${project_id}-${id}-date-range-v2`,
+        timeFilter[1]
     );
     const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
     const [isEditing, setIsEditing] = useState(false);
@@ -208,13 +209,7 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                dateRange={{
-                                    start: moment(new Date()).subtract(
-                                        dateRangeLength.value * 24,
-                                        'hours'
-                                    ),
-                                    end: moment(new Date()),
-                                }}
+                                lookbackMinutes={dateRangeLength.value}
                             />
                         </div>
                     ))}

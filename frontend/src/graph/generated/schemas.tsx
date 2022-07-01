@@ -429,6 +429,7 @@ export type DashboardParamsInput = {
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
     units?: Maybe<Scalars['String']>;
+    aggregate_function?: Maybe<Scalars['String']>;
 };
 
 export type HistogramParamsInput = {
@@ -784,11 +785,8 @@ export type Metric = {
 export type DashboardPayload = {
     __typename?: 'DashboardPayload';
     date: Scalars['String'];
-    avg: Scalars['Float'];
-    p50: Scalars['Float'];
-    p75: Scalars['Float'];
-    p90: Scalars['Float'];
-    p99: Scalars['Float'];
+    value: Scalars['Float'];
+    aggregate_function?: Maybe<Scalars['String']>;
 };
 
 export type HistogramBucket = {
@@ -972,7 +970,6 @@ export type Query = {
     metrics_timeline: Array<Maybe<DashboardPayload>>;
     metrics_histogram: HistogramPayload;
     network_histogram: CategoryHistogramPayload;
-    metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
     event_chunks: Array<EventChunk>;
@@ -1329,12 +1326,6 @@ export type QueryMetrics_HistogramArgs = {
 export type QueryNetwork_HistogramArgs = {
     project_id: Scalars['ID'];
     params: NetworkHistogramParamsInput;
-};
-
-export type QueryMetric_PreviewArgs = {
-    project_id: Scalars['ID'];
-    name: Scalars['String'];
-    aggregateFunction: Scalars['String'];
 };
 
 export type QueryMetric_MonitorsArgs = {
