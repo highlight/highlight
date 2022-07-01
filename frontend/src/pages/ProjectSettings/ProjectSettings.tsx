@@ -3,6 +3,7 @@ import Tabs from '@components/Tabs/Tabs';
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm';
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm';
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm';
+import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm';
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm';
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings';
 import React from 'react';
@@ -47,6 +48,7 @@ const ProjectSettings = () => {
                                                     <>
                                                         <ExcludedUsersForm />
                                                         <RageClicksForm />
+                                                        <NetworkRecordingForm />
                                                     </>
                                                 ),
                                             },
