@@ -3108,7 +3108,7 @@
     babel-plugin-css-modules-transform "^1.6.2"
     typescript "^4.1.2"
 
-"@highlight-run/rrdom@>=0.1.12":
+"@highlight-run/rrdom@>=0.1.13":
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.14.tgz#d52b39327d29b904e49eaab6f1e6a13a41308a70"
   integrity sha512-aN8Oy3zA7ABX6zDETXuvoI08TwSR7FJlhA8+8/ICe4CLVWqjdsJuFfPq+ZZ+FFN6BIdAtMot+NBfdDbp2d8PnA==
@@ -3120,12 +3120,12 @@
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
   integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
 
-"@highlight-run/rrweb@2.0.15":
-  version "2.0.15"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.15.tgz#3bc7f532421928118ed6dfcb0f928a5e6e781396"
-  integrity sha512-dPZ0MvkAEpRpyxSZKNHjZ/hHIua6E4j3moxygELQKYy7GDUUFsZWIfN1yx+RLM29t66hlBpbLLKlq6lMEgEvUg==
+"@highlight-run/rrweb@2.0.16":
+  version "2.0.16"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.16.tgz#848a157de3e88b0fb071a6e91970bf0bd71e5342"
+  integrity sha512-eX9vOWVEux0fvZRabeKAbUB4j0B5+qvSa+bFQx003MKI0dldh3cfHTv8wqeTSHvLbElStqRpOTY8ALL6Gcutrw==
   dependencies:
-    "@highlight-run/rrdom" ">=0.1.12"
+    "@highlight-run/rrdom" ">=0.1.13"
     "@highlight-run/rrweb-snapshot" ">=1.1.22"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
