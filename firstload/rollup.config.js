@@ -11,6 +11,7 @@ import esbuild from 'rollup-plugin-esbuild';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 import pkg from './package.json';
 import consts from "rollup-plugin-consts";
+import replace from '@rollup/plugin-replace'
 
 const development = process.env.ENVIRONMENT === 'dev';
 const sourceMap = development;
@@ -34,6 +35,12 @@ const basePlugins = [
     }),
     typescript(),
     json(),
+    replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(
+            development ? 'development' : 'production'
+        )
+    }),
     commonjs({sourceMap}),
     esbuild({
         minify,
