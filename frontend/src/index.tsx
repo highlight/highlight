@@ -85,14 +85,14 @@ if (dev) {
     }-localhost`;
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
-        favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
+        favicon.href = `${process.env.REACT_APP_PUBLIC_URL}/favicon-localhost.ico`;
     }
 } else if (
     window.location.href.includes('onrender') ||
     window.location.href.includes('amplifyapp')
 ) {
     if (favicon) {
-        favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
+        favicon.href = `${process.env.REACT_APP_PUBLIC_URL}/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
