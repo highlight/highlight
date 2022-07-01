@@ -52,6 +52,7 @@ import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 import { ClientJS } from "clientjs";
+import publicGraphURI from 'consts:publicGraphURI';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -268,7 +269,7 @@ export class Highlight {
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
-            process.env.PUBLIC_GRAPH_URI ||
+            publicGraphURI ||
             'https://pub.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
@@ -410,7 +411,7 @@ export class Highlight {
             this.logger.log(
                 `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
                     user_object
-                )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                )} @ ${publicGraphURI}`
             );
             this.numberOfFailedRequests = 0;
         } catch (e) {
@@ -532,7 +533,7 @@ export class Highlight {
                     `AddSessionProperties to session (${
                         this.sessionData.sessionID
                     }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                        process.env.PUBLIC_GRAPH_URI
+                        publicGraphURI
                     }`
                 );
                 this.numberOfFailedRequests = 0;
@@ -569,7 +570,7 @@ export class Highlight {
                         this.sessionData.sessionID
                     }, source: ${sourceString}) w/ obj: ${stringify(
                         properties_obj
-                    )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
@@ -692,7 +693,7 @@ export class Highlight {
                     );
                     this.logger.log(
                         `Loaded Highlight
-  Remote: ${process.env.PUBLIC_GRAPH_URI}
+  Remote: ${publicGraphURI}
   Friendly Project ID: ${this.organizationID}
   Short Project ID: ${this.sessionData.projectID}
   SessionID: ${this.sessionData.sessionID}

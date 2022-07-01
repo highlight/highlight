@@ -10,6 +10,7 @@ import json from 'rollup-plugin-json';
 import esbuild from 'rollup-plugin-esbuild';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 import pkg from './package.json';
+import consts from "rollup-plugin-consts";
 
 const development = process.env.ENVIRONMENT === 'dev';
 const sourceMap = development;
@@ -22,6 +23,9 @@ const output = {
     sourcemap: sourceMap
 };
 const basePlugins = [
+    consts({
+        publicGraphURI: process.env.PUBLIC_GRAPH_URI,
+    }),
     resolve({ browser: true }),
     webWorkerLoader({
         targetPlatform: 'browser',
