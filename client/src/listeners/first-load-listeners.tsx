@@ -160,8 +160,8 @@ export class FirstLoadListeners {
             sThis.urlBlocklist = [];
         } else {
             if (options.networkRecording?.enabled !== undefined) {
-                sThis.disableNetworkRecording = !options.networkRecording
-                    .enabled;
+                sThis.disableNetworkRecording =
+                    !options.networkRecording.enabled;
             } else {
                 sThis.disableNetworkRecording = false;
             }
@@ -185,18 +185,20 @@ export class FirstLoadListeners {
             // `headerKeysToRecord` override `networkHeadersToRedact`.
             if (sThis.networkHeaderKeysToRecord) {
                 sThis.networkHeadersToRedact = [];
-                sThis.networkHeaderKeysToRecord = sThis.networkHeaderKeysToRecord.map(
-                    (key) => key.toLocaleLowerCase()
-                );
+                sThis.networkHeaderKeysToRecord =
+                    sThis.networkHeaderKeysToRecord.map((key) =>
+                        key.toLocaleLowerCase()
+                    );
             }
 
             sThis.networkBodyKeysToRecord =
                 options.networkRecording?.bodyKeysToRecord;
 
             if (sThis.networkBodyKeysToRecord) {
-                sThis.networkBodyKeysToRecord = sThis.networkBodyKeysToRecord.map(
-                    (key) => key.toLocaleLowerCase()
-                );
+                sThis.networkBodyKeysToRecord =
+                    sThis.networkBodyKeysToRecord.map((key) =>
+                        key.toLocaleLowerCase()
+                    );
             }
         }
 

@@ -405,7 +405,8 @@ function same(path: Path, input: Element) {
 
 const regexAnySingleEscape = /[ -,\.\/:-@\[-\^`\{-~]/;
 const regexSingleEscape = /[ -,\.\/:-@\[\]\^`\{-~]/;
-const regexExcessiveSpaces = /(^|\\+)?(\\[A-F0-9]{1,6})\x20(?![a-fA-F0-9\x20])/g;
+const regexExcessiveSpaces =
+    /(^|\\+)?(\\[A-F0-9]{1,6})\x20(?![a-fA-F0-9\x20])/g;
 
 const defaultOptions = {
     escapeEverything: false,
