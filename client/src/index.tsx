@@ -752,8 +752,9 @@ export class Highlight {
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    // TODO(vkorolik) release as options with new firstload
                     inlineStylesheet: true,
-                    inlineImages: this.inlineImages,
+                    inlineImages: true,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
