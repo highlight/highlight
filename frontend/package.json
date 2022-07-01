@@ -34,7 +34,7 @@
         "framer-motion": "^4.1.17",
         "graphql": "^15.5.0",
         "graphql-ws": "^5.9.1",
-        "highlight.run": "^4.2.7",
+        "highlight.run": "^4.2.8",
         "intro.js": "^4.1.0",
         "intro.js-react": "^0.4.0",
         "lottie-react": "^2.1.0",
