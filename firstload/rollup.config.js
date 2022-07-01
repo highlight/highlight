@@ -60,10 +60,7 @@ if (development) {
                 filesize(),
                 dev({
                     host: 'localhost',
-                    port: 9000,
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    port: 9000
                 })
             ]
         }
