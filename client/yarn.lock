@@ -1285,27 +1285,25 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@highlight-run/rrdom@>0.1.2":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.8.tgz#ad05a202b46fc361b14834244c401f10dc02b740"
-  integrity sha512-QpTZshgtXHwDDa7jl/YIr5+KHpVjSJ7yhD5Qxb8UdMykFFOEh8PxNAFCMpmx087Q72kpwv8Qo1CJOKk6v0DgZA==
+"@highlight-run/rrdom@>=0.1.14":
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.14.tgz#d52b39327d29b904e49eaab6f1e6a13a41308a70"
+  integrity sha512-aN8Oy3zA7ABX6zDETXuvoI08TwSR7FJlhA8+8/ICe4CLVWqjdsJuFfPq+ZZ+FFN6BIdAtMot+NBfdDbp2d8PnA==
   dependencies:
-    cssom "^0.5.0"
-    cssstyle "^2.3.0"
-    nwsapi "^2.2.0"
+    "@highlight-run/rrweb-snapshot" ">=1.1.22"
 
-"@highlight-run/rrweb-snapshot@>1.1.15":
-  version "1.1.21"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.21.tgz#e5cf52b04e3da7fab5d5eaa9093bddfefcf09577"
-  integrity sha512-c3ShfjYs7j30oLYu5mqOCMPICgc0hvR+Tj/DgDXjcfYcDoGxPvDLbtS24SVvTO8nHK7xapKRnNWbo1Z0lccfqQ==
+"@highlight-run/rrweb-snapshot@>=1.1.22":
+  version "1.1.22"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
+  integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
 
-"@highlight-run/rrweb@2.0.10":
-  version "2.0.10"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.10.tgz#54f4107a870dc70666466d2344c1f225e2432760"
-  integrity sha512-ITnW7Y4EXIuvgFSi+S6HsUPG0ZpFDKCa/7s/34qWjHOBkQaoWOYzEc/Aps9hHwbiuGBtAGIO8WrrqXjDAwZTOQ==
+"@highlight-run/rrweb@2.0.17":
+  version "2.0.17"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.17.tgz#a8a8b28dcc18b08d3db8de52f3e69dcafee37bf8"
+  integrity sha512-SpS7Z1BqYtAalQ3DDOabrBRsxsrYxHThB26lf1VBX40D51O9hcLD85dgh0pmYGdgjwV2WeQi49ouiE4VLt3HGw==
   dependencies:
-    "@highlight-run/rrdom" ">0.1.2"
-    "@highlight-run/rrweb-snapshot" ">1.1.15"
+    "@highlight-run/rrdom" ">=0.1.14"
+    "@highlight-run/rrweb-snapshot" ">=1.1.22"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
@@ -3114,11 +3112,6 @@ cssom@^0.4.4:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
   integrity sha512-p3pvU7r1MyyqbTk+WbNJIgJjG2VmTIaB10rI93LzVPrmDJKkzKYMtxxyAvQXR/NS6otuzveI7+7BBq3SjBS2mw==
-
-cssom@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.5.0.tgz#d254fa92cd8b6fbd83811b9fbaed34663cc17c36"
-  integrity sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==
 
 cssom@~0.3.6:
   version "0.3.8"
