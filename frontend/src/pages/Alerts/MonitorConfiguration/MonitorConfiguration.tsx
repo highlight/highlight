@@ -3,6 +3,7 @@ import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import { Slider } from '@components/Slider/Slider';
 import Switch from '@components/Switch/Switch';
 import {
     useGetMetricsTimelineQuery,
@@ -102,6 +103,7 @@ const MonitorConfiguration = ({
                 aggregate_function: aggregateFunction,
                 date_range: dateRange,
                 resolution_minutes: 1,
+                units: 'ms',
             },
         },
     });
@@ -145,6 +147,9 @@ const MonitorConfiguration = ({
         data,
         loading,
     ]);
+    const graphMax = useMemo(() => {
+        return Math.max(...graphData.map((x) => x.value || 0));
+    }, [graphData]);
 
     const metricTypeOptions: OptionType[] =
         metricOptions?.suggested_metrics.map((key) => {
@@ -178,40 +183,53 @@ const MonitorConfiguration = ({
                 {metricPreviewLoading || graphData.length === 0 ? (
                     <Skeleton height="231px" />
                 ) : (
-                    <LineChart
-                        height={235}
-                        data={graphData}
-                        hideLegend
-                        xAxisDataKeyName="date"
-                        lineColorMapping={{
-                            value: 'var(--color-blue-400)',
-                        }}
-                        yAxisLabel={config.units}
-                        referenceAreaProps={
-                            graphData.length > 0
-                                ? {
-                                      x1: graphData[0].date,
-                                      y1: threshold,
-                                      fill: 'var(--color-red-200)',
-                                      fillOpacity: 0.3,
-                                  }
-                                : undefined
-                        }
-                        referenceLines={[
-                            {
-                                value: threshold,
-                                color: 'var(--color-red-400)',
-                            },
-                        ]}
-                        xAxisProps={{
-                            tickLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                            axisLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                        }}
-                    />
+                    <>
+                        <div style={{ height: 300, position: 'absolute' }}>
+                            <Slider
+                                min={0}
+                                max={graphMax}
+                                values={[0, threshold, graphMax]}
+                                onChange={(value) => {
+                                    onThresholdChange(value[1]);
+                                }}
+                                orientation={'vertical'}
+                            />
+                        </div>
+                        <LineChart
+                            height={235}
+                            data={graphData}
+                            hideLegend
+                            xAxisDataKeyName="date"
+                            lineColorMapping={{
+                                value: 'var(--color-blue-400)',
+                            }}
+                            yAxisLabel={config.units}
+                            referenceAreaProps={
+                                graphData.length > 0
+                                    ? {
+                                          x1: graphData[0].date,
+                                          y1: threshold,
+                                          fill: 'var(--color-red-200)',
+                                          fillOpacity: 0.3,
+                                      }
+                                    : undefined
+                            }
+                            referenceLines={[
+                                {
+                                    value: threshold,
+                                    color: 'var(--color-red-400)',
+                                },
+                            ]}
+                            xAxisProps={{
+                                tickLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                                axisLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                            }}
+                        />
+                    </>
                 )}
             </div>
             <form name="newMonitor" onSubmit={onFormSubmit} autoComplete="off">

@@ -29,6 +29,12 @@ import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
 
+export const UNIT_OPTIONS = [
+    { label: 'Milliseconds', value: 'ms' },
+    { label: 'Seconds', value: 's' },
+    { label: 'No Units', value: '' },
+];
+
 type UpdateMetricFn = (idx: number, value: DashboardMetricConfig) => void;
 type DeleteMetricFn = (idx: number) => void;
 
@@ -231,9 +237,6 @@ const EditMetricModal = ({
     updateMetric,
     onDelete,
     onCancel,
-    lookbackMinutes,
-    setShowEditModal,
-    setShowDeleteModal,
     shown = false,
 }: {
     metricIdx: number;
@@ -241,23 +244,12 @@ const EditMetricModal = ({
     updateMetric: UpdateMetricFn;
     onDelete: () => void;
     onCancel: () => void;
-    lookbackMinutes: number;
-    setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
-    setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     shown?: boolean;
 }) => {
     const [units, setUnits] = useState<string>(metricConfig.units);
     const [helpArticle, setHelpArticle] = useState<string>(
         metricConfig.help_article
     );
-    const [maxGoodValue, setMaxGoodValue] = useState<number>(
-        metricConfig.max_good_value
-    );
-    const [
-        maxNeedsImprovementValue,
-        setMaxNeedsImprovementValue,
-    ] = useState<number>(metricConfig.max_needs_improvement_value);
-    const [poorValue, setPoorValue] = useState<number>(metricConfig.poor_value);
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
     );
@@ -271,13 +263,14 @@ const EditMetricModal = ({
             <ModalBody>
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <Input
-                            placeholder="Units"
-                            name="Units"
-                            value={units}
-                            onChange={(e) => {
-                                setUnits(e.target?.value || '');
-                            }}
+                        <StandardDropdown
+                            data={UNIT_OPTIONS}
+                            defaultValue={
+                                UNIT_OPTIONS.filter(
+                                    (x) => x.value === metricConfig.units
+                                )[0]
+                            }
+                            onSelect={(value) => setUnits(value)}
                         />
                         <Input
                             placeholder="Help Article"
@@ -316,9 +309,10 @@ const EditMetricModal = ({
                                     description: metricConfig.description,
                                     units: units,
                                     help_article: helpArticle,
-                                    max_good_value: maxGoodValue,
-                                    max_needs_improvement_value: maxNeedsImprovementValue,
-                                    poor_value: poorValue,
+                                    max_good_value: metricConfig.max_good_value,
+                                    max_needs_improvement_value:
+                                        metricConfig.max_needs_improvement_value,
+                                    poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
                                 });
                                 onCancel();
@@ -342,26 +336,6 @@ const EditMetricModal = ({
                             Delete
                         </Button>
                     </div>
-                </section>
-                <section className={dashStyles.section}>
-                    <ChartContainer
-                        metricIdx={metricIdx}
-                        metricConfig={metricConfig}
-                        chartType={chartType}
-                        maxGoodValue={maxGoodValue}
-                        maxNeedsImprovementValue={maxNeedsImprovementValue}
-                        poorValue={poorValue}
-                        setMaxGoodValue={setMaxGoodValue}
-                        setMaxNeedsImprovementValue={
-                            setMaxNeedsImprovementValue
-                        }
-                        setPoorValue={setPoorValue}
-                        showEditModal={false}
-                        lookbackMinutes={lookbackMinutes}
-                        setShowDeleteModal={setShowDeleteModal}
-                        setShowEditModal={setShowEditModal}
-                        updateMetric={updateMetric}
-                    />
                 </section>
             </ModalBody>
         </Modal>
@@ -510,9 +484,6 @@ const ChartContainer = React.memo(
                     metricConfig={metricConfig}
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
-                    lookbackMinutes={lookbackMinutes}
-                    setShowDeleteModal={setShowDeleteModal}
-                    setShowEditModal={setShowEditModal}
                 />
                 {!dateRange || timelineLoading || histogramLoading ? (
                     <Skeleton height={235} />
@@ -642,7 +613,9 @@ const ChartContainer = React.memo(
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
         prevProps.metricIdx === nextProps.metricIdx &&
-        prevProps.metricConfig.chart_type === nextProps.metricConfig.chart_type
+        prevProps.metricConfig.chart_type ===
+            nextProps.metricConfig.chart_type &&
+        prevProps.metricConfig.units === nextProps.metricConfig.units
 );
 
 export default DashboardCard;

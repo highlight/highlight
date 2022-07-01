@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { Slider } from '@components/Slider/Slider';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
 import SvgShieldWarningIcon from '@icons/ShieldWarningIcon';
 import SvgSkullIcon from '@icons/SkullIcon';
@@ -9,7 +10,6 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import ReactSlider from 'react-slider';
 import {
     CartesianGrid,
     Label,
@@ -100,12 +100,10 @@ const LineChart = ({
     return (
         <>
             {!!draggableReferenceLines?.length && (
-                <ReactSlider
-                    className={styles.verticalSlider}
-                    thumbClassName={styles.sliderThumb}
-                    max={max}
+                <Slider
                     min={0}
-                    value={draggableReferenceLines.map((rl) => rl.value)}
+                    max={max}
+                    values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
                             const d = draggableReferenceLines[idx].onDrag;
@@ -114,13 +112,6 @@ const LineChart = ({
                             }
                         });
                     }}
-                    renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow.toFixed(1)}</div>
-                    )}
-                    pearling
-                    invert
-                    minDistance={0}
-                    step={0.1}
                     orientation={'vertical'}
                 />
             )}
