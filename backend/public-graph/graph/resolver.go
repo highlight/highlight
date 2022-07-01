@@ -609,6 +609,13 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		Sum int
 	}{}
 
+	// temporarily disable error group matching
+	// for Gorillamind
+	// because their huge traceback
+	// slows this process down too much
+	if projectID == 356 {
+		return nil, nil
+	}
 	if err := r.DB.Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
