@@ -10,6 +10,7 @@ import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { useHistory } from 'react-router';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import homePageStyles from '../../HomePage.module.scss';
@@ -17,6 +18,7 @@ import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersCon
 import styles from './TopRoutesTable.module.scss';
 
 const TopRoutesTable = () => {
+    const history = useHistory();
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -66,8 +68,16 @@ const TopRoutesTable = () => {
                 noDataMessage={
                     !data?.network_histogram.buckets.length && (
                         <>
-                            It doesn't look like we have any sessions with
-                            network traffic.
+                            Have you{' '}
+                            <a
+                                onClick={() =>
+                                    history.push(
+                                        `/${project_id}/settings/recording/network`
+                                    )
+                                }
+                            >
+                                configured your backend domains?
+                            </a>
                         </>
                     )
                 }

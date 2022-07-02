@@ -25,8 +25,9 @@ const ProjectSettings = () => {
                 <h2>Project Settings</h2>
 
                 <Route
-                    path={`${match.path}/:tab?`}
+                    path={`${match.path}/:tab?/:section?`}
                     render={({ history, match: tabsMatch }) => {
+                        const section = tabsMatch.params.section;
                         return (
                             <div className={styles.tabsContainer}>
                                 <Switch>
@@ -46,9 +47,24 @@ const ProjectSettings = () => {
                                                 title: 'Recording',
                                                 panelContent: (
                                                     <>
-                                                        <ExcludedUsersForm />
-                                                        <RageClicksForm />
-                                                        <NetworkRecordingForm />
+                                                        <ExcludedUsersForm
+                                                            focus={
+                                                                section ===
+                                                                'users'
+                                                            }
+                                                        />
+                                                        <RageClicksForm
+                                                            focus={
+                                                                section ===
+                                                                'rage'
+                                                            }
+                                                        />
+                                                        <NetworkRecordingForm
+                                                            focus={
+                                                                section ===
+                                                                'network'
+                                                            }
+                                                        />
                                                     </>
                                                 ),
                                             },
@@ -57,8 +73,18 @@ const ProjectSettings = () => {
                                                 title: 'Errors',
                                                 panelContent: (
                                                     <>
-                                                        <ErrorSettingsForm />
-                                                        <SourcemapSettings />
+                                                        <ErrorSettingsForm
+                                                            focus={
+                                                                section ===
+                                                                'errors'
+                                                            }
+                                                        />
+                                                        <SourcemapSettings
+                                                            focus={
+                                                                section ===
+                                                                'sourcemaps'
+                                                            }
+                                                        />
                                                     </>
                                                 ),
                                             },
