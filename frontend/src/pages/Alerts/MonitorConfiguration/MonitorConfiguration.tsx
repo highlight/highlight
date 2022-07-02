@@ -3,7 +3,6 @@ import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import { Slider } from '@components/Slider/Slider';
 import Switch from '@components/Switch/Switch';
 import {
     useGetMetricsTimelineQuery,
@@ -16,6 +15,7 @@ import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
+import { Slider } from 'antd';
 import { Divider } from 'antd';
 import moment from 'moment';
 import React, { useMemo, useState } from 'react';
@@ -147,8 +147,16 @@ const MonitorConfiguration = ({
         data,
         loading,
     ]);
+    const graphMin = useMemo(() => {
+        return (
+            Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
+            10
+        );
+    }, [graphData]);
     const graphMax = useMemo(() => {
-        return Math.max(...graphData.map((x) => x.value || 0));
+        return (
+            Math.ceil(Math.max(...graphData.map((x) => x.value || 0)) / 10) * 10
+        );
     }, [graphData]);
 
     const metricTypeOptions: OptionType[] =
@@ -184,19 +192,22 @@ const MonitorConfiguration = ({
                     <Skeleton height="231px" />
                 ) : (
                     <>
-                        <div style={{ height: 300, position: 'absolute' }}>
+                        <div style={{ height: 163, position: 'absolute' }}>
                             <Slider
-                                min={0}
-                                max={graphMax}
-                                values={[0, threshold, graphMax]}
-                                onChange={(value) => {
-                                    onThresholdChange(value[1]);
+                                vertical
+                                className={styles.slider}
+                                tooltipPlacement={'bottom'}
+                                min={graphMin}
+                                max={Math.max(graphMax, threshold)}
+                                value={threshold}
+                                onChange={(v) => {
+                                    onThresholdChange(v);
                                 }}
-                                orientation={'vertical'}
                             />
                         </div>
                         <LineChart
                             height={235}
+                            domain={[graphMin, Math.max(graphMax, threshold)]}
                             data={graphData}
                             hideLegend
                             xAxisDataKeyName="date"

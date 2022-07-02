@@ -25,6 +25,7 @@ import {
     XAxisProps,
     YAxis,
 } from 'recharts';
+import { AxisDomain } from 'recharts/types/util/types';
 
 import styles from './LineChart.module.scss';
 
@@ -39,6 +40,7 @@ export interface Reference {
 
 export interface Props {
     data: any[];
+    domain?: AxisDomain;
     referenceLines?: Reference[];
     showReferenceLineLabels?: boolean;
     height: number;
@@ -73,6 +75,7 @@ const LineChart = ({
     showReferenceLineLabels,
     xAxisDataKeyName = 'date',
     data,
+    domain,
     xAxisTickFormatter,
     hideXAxis = false,
     yAxisTickFormatter,
@@ -147,6 +150,8 @@ const LineChart = ({
                         tick={{ fontSize: '8px', fill: labelColor }}
                         tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                         axisLine={{ stroke: gridColor }}
+                        domain={domain}
+                        type={'number'}
                         dx={0}
                         unit={yAxisLabel}
                     />
