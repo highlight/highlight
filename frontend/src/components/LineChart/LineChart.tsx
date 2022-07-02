@@ -152,7 +152,7 @@ const LineChart = ({
                         axisLine={{ stroke: gridColor }}
                         domain={domain}
                         type={'number'}
-                        dx={0}
+                        dx={-2}
                         unit={yAxisLabel}
                     />
 
