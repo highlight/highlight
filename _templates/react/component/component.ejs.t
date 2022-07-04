@@ -1,17 +1,17 @@
 ---
-to: frontend/src/<%= isPage && 'pages' || 'components' %>/<%= name %>/<%= name %>.tsx
+to: frontend/src/<%= name %>/<%= componentName %>.tsx
 ---
 
 import React from 'react';
 
-import styles from './TestComponent.module.scss';
+import styles from './<%= name %>.module.scss';
 
 interface Props {}
 
-const TestComponent: React.FC<Props> = (props) => {
+const <%= componentName %>: React.FC<Props> = (props) => {
     return (
-        <div className={styles.testComponent}>Hello from TestComponent!</div>
+        <div className={styles.<%= h.changeCase.camel(componentName) %>}>Hello from <%= componentName %>!</div>
     );
 };
 
-export default TestComponent;
+export default <%= componentName %>;

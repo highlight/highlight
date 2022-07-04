@@ -1,7 +1,7 @@
 ---
-to: frontend/src/<%= isPage && 'pages' || 'components' %>/<%= name %>/<%= name %>.module.scss
+to: frontend/src/<%= name %>/<%= componentName %>.module.scss
 ---
 
-.<%= h.changeCase.camel(name) %> {
+.<%= h.changeCase.camel(componentName) %> {
 
 }
