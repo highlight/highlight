@@ -172,12 +172,9 @@ type ComplexityRoot struct {
 	}
 
 	DashboardPayload struct {
-		Avg  func(childComplexity int) int
-		Date func(childComplexity int) int
-		P50  func(childComplexity int) int
-		P75  func(childComplexity int) int
-		P90  func(childComplexity int) int
-		P99  func(childComplexity int) int
+		AggregateFunction func(childComplexity int) int
+		Date              func(childComplexity int) int
+		Value             func(childComplexity int) int
 	}
 
 	DateRange struct {
@@ -543,7 +540,6 @@ type ComplexityRoot struct {
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
-		MetricPreview                func(childComplexity int, projectID int, name string, aggregateFunction string) int
 		MetricsHistogram             func(childComplexity int, projectID int, metricName string, params model.HistogramParamsInput) int
 		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -1044,7 +1040,6 @@ type QueryResolver interface {
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricsHistogram(ctx context.Context, projectID int, metricName string, params model.HistogramParamsInput) (*model.HistogramPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
-	MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*model.MetricPreview, error)
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
@@ -1599,12 +1594,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.Units(childComplexity), true
 
-	case "DashboardPayload.avg":
-		if e.complexity.DashboardPayload.Avg == nil {
+	case "DashboardPayload.aggregate_function":
+		if e.complexity.DashboardPayload.AggregateFunction == nil {
 			break
 		}
 
-		return e.complexity.DashboardPayload.Avg(childComplexity), true
+		return e.complexity.DashboardPayload.AggregateFunction(childComplexity), true
 
 	case "DashboardPayload.date":
 		if e.complexity.DashboardPayload.Date == nil {
@@ -1613,33 +1608,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardPayload.Date(childComplexity), true
 
-	case "DashboardPayload.p50":
-		if e.complexity.DashboardPayload.P50 == nil {
+	case "DashboardPayload.value":
+		if e.complexity.DashboardPayload.Value == nil {
 			break
 		}
 
-		return e.complexity.DashboardPayload.P50(childComplexity), true
-
-	case "DashboardPayload.p75":
-		if e.complexity.DashboardPayload.P75 == nil {
-			break
-		}
-
-		return e.complexity.DashboardPayload.P75(childComplexity), true
-
-	case "DashboardPayload.p90":
-		if e.complexity.DashboardPayload.P90 == nil {
-			break
-		}
-
-		return e.complexity.DashboardPayload.P90(childComplexity), true
-
-	case "DashboardPayload.p99":
-		if e.complexity.DashboardPayload.P99 == nil {
-			break
-		}
-
-		return e.complexity.DashboardPayload.P99(childComplexity), true
+		return e.complexity.DashboardPayload.Value(childComplexity), true
 
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
@@ -4086,18 +4060,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MetricMonitors(childComplexity, args["project_id"].(int), args["metric_name"].(*string)), true
 
-	case "Query.metric_preview":
-		if e.complexity.Query.MetricPreview == nil {
-			break
-		}
-
-		args, err := ec.field_Query_metric_preview_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MetricPreview(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregateFunction"].(string)), true
-
 	case "Query.metrics_histogram":
 		if e.complexity.Query.MetricsHistogram == nil {
 			break
@@ -6362,6 +6324,7 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
+    aggregate_function: String
 }
 
 input HistogramParamsInput {
@@ -6372,6 +6335,7 @@ input HistogramParamsInput {
 
 enum NetworkRequestAttribute {
     method
+    initiator_type
     url
     body_size
     response_size
@@ -6695,11 +6659,8 @@ type Metric {
 
 type DashboardPayload {
     date: String!
-    avg: Float!
-    p50: Float!
-    p75: Float!
-    p90: Float!
-    p99: Float!
+    value: Float!
+    aggregate_function: String
 }
 
 type HistogramBucket {
@@ -6946,11 +6907,6 @@ type Query {
         project_id: ID!
         params: NetworkHistogramParamsInput!
     ): CategoryHistogramPayload!
-    metric_preview(
-        project_id: ID!
-        name: String!
-        aggregateFunction: String!
-    ): [MetricPreview]!
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
@@ -11217,39 +11173,6 @@ func (ec *executionContext) field_Query_metric_monitors_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_metric_preview_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["aggregateFunction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateFunction"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["aggregateFunction"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_metrics_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14618,7 +14541,7 @@ func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DashboardPayload_avg(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _DashboardPayload_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14636,7 +14559,7 @@ func (ec *executionContext) _DashboardPayload_avg(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Avg, nil
+		return obj.Value, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14653,7 +14576,7 @@ func (ec *executionContext) _DashboardPayload_avg(ctx context.Context, field gra
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DashboardPayload_p50(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _DashboardPayload_aggregate_function(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14671,126 +14594,18 @@ func (ec *executionContext) _DashboardPayload_p50(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.P50, nil
+		return obj.AggregateFunction, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DashboardPayload_p75(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P75, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DashboardPayload_p90(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P90, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DashboardPayload_p99(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DashboardPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P99, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
@@ -26411,48 +26226,6 @@ func (ec *executionContext) _Query_network_histogram(ctx context.Context, field 
 	return ec.marshalNCategoryHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐCategoryHistogramPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_metric_preview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_metric_preview_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricPreview(rctx, args["project_id"].(int), args["name"].(string), args["aggregateFunction"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.MetricPreview)
-	fc.Result = res
-	return ec.marshalNMetricPreview2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_metric_monitors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -34128,6 +33901,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "aggregate_function":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregate_function"))
+			it.AggregateFunction, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -35665,9 +35446,9 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "avg":
+		case "value":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_avg(ctx, field, obj)
+				return ec._DashboardPayload_value(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -35675,46 +35456,13 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "p50":
+		case "aggregate_function":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_p50(ctx, field, obj)
+				return ec._DashboardPayload_aggregate_function(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p75":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_p75(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p90":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_p90(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p99":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_p99(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40337,29 +40085,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "metric_preview":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_metric_preview(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "metric_monitors":
 			field := field
 
@@ -44615,44 +44340,6 @@ func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlight
 	return ret
 }
 
-func (ec *executionContext) marshalNMetricPreview2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx context.Context, sel ast.SelectionSet, v []*model.MetricPreview) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {
 	res, err := ec.unmarshalInputNetworkHistogramParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46790,13 +46477,6 @@ func (ec *executionContext) marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._MetricMonitor(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOMetricPreview2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricPreview(ctx context.Context, sel ast.SelectionSet, v *model.MetricPreview) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._MetricPreview(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {

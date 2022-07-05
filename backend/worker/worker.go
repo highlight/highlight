@@ -371,7 +371,7 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
 	}
 
-	parallelWorkers := 16
+	parallelWorkers := 64
 	workerPrefetch := 4
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
@@ -1069,7 +1069,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient)
 }
 
 func (w *Worker) RefreshMaterializedViews() {

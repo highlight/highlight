@@ -1585,18 +1585,18 @@ export type SessionPayloadFragmentFragment = {
         >;
     };
 
-export type GetMetricsDashboardQueryVariables = Types.Exact<{
+export type GetMetricsTimelineQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
     params: Types.DashboardParamsInput;
 }>;
 
-export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
+export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
     metrics_timeline: Array<
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'avg' | 'p50' | 'p75' | 'p90' | 'p99'
+                'date' | 'value' | 'aggregate_function'
             >
         >
     >;
@@ -1636,23 +1636,6 @@ export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
             >
         >;
     };
-};
-
-export type GetMetricPreviewQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    aggregateFunction: Types.Scalars['String'];
-}>;
-
-export type GetMetricPreviewQuery = { __typename?: 'Query' } & {
-    metric_preview: Array<
-        Types.Maybe<
-            { __typename?: 'MetricPreview' } & Pick<
-                Types.MetricPreview,
-                'value' | 'date'
-            >
-        >
-    >;
 };
 
 export type GetSessionPayloadQueryVariables = Types.Exact<{
@@ -3755,10 +3738,9 @@ export type GetSourcemapVersionsQuery = { __typename?: 'Query' } & Pick<
 
 export const namedOperations = {
     Query: {
-        GetMetricsDashboard: 'GetMetricsDashboard' as const,
+        GetMetricsTimeline: 'GetMetricsTimeline' as const,
         GetMetricsHistogram: 'GetMetricsHistogram' as const,
         GetNetworkHistogram: 'GetNetworkHistogram' as const,
-        GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetEventChunkURL: 'GetEventChunkURL' as const,

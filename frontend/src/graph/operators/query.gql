@@ -51,7 +51,7 @@ fragment SessionPayloadFragment on SessionPayload {
     last_user_interaction_time
 }
 
-query GetMetricsDashboard(
+query GetMetricsTimeline(
     $project_id: ID!
     $metric_name: String!
     $params: DashboardParamsInput!
@@ -62,11 +62,8 @@ query GetMetricsDashboard(
         params: $params
     ) {
         date
-        avg
-        p50
-        p75
-        p90
-        p99
+        value
+        aggregate_function
     }
 }
 
@@ -102,21 +99,6 @@ query GetNetworkHistogram(
             category
             count
         }
-    }
-}
-
-query GetMetricPreview(
-    $project_id: ID!
-    $name: String!
-    $aggregateFunction: String!
-) {
-    metric_preview(
-        project_id: $project_id
-        name: $name
-        aggregateFunction: $aggregateFunction
-    ) {
-        value
-        date
     }
 }
 

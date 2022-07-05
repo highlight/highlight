@@ -13,7 +13,6 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -5204,78 +5203,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-
-	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	resMins := 60
-	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
-		resMins = *params.ResolutionMinutes
-	}
-
-	query := fmt.Sprintf(`
-      query = () =>
-		from(bucket: "%[1]s")
-		  |> range(start: %[2]s, stop: %[3]s)
-		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
-		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  |> filter(fn: (r) => r["project_id"] == "%[6]d")
-		  |> group(columns: ["project_id"])
-      do = (q) =>
-        query()
-		  |> aggregateWindow(
-               every: %[7]dm,
-               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
-               createEmpty: false)
-      query()
-		  |> aggregateWindow(every: %[7]dm, fn: mean, createEmpty: false)
-          |> yield(name: "avg")
-	  do(q:0.50)
-          |> yield(name: "p50")
-      do(q:0.75)
-          |> yield(name: "p75")
-      do(q:0.90)
-          |> yield(name: "p90")
-      do(q:0.99)
-          |> yield(name: "p95")
-	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
-	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	timelineQuerySpan.SetTag("projectID", projectID)
-	timelineQuerySpan.SetTag("metricName", metricName)
-	timelineQuerySpan.SetTag("resMins", resMins)
-	results, err := r.TDB.Query(ctx, query)
-	timelineQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	var payload []*modelInputs.DashboardPayload
-	tableName := ""
-	for idx, r := range results {
-		if len(r.TableName) > 0 {
-			tableName = r.TableName
-		}
-		v := 0.
-		if r.Value != nil {
-			v = r.Value.(float64) / div
-		}
-		if idx < len(results)/5 {
-			payload = append(payload, &modelInputs.DashboardPayload{
-				Date: r.Time.Format(time.RFC3339Nano),
-			})
-		}
-		if tableName == "avg" {
-			payload[idx%len(payload)].Avg = v
-		} else if tableName == "p50" {
-			payload[idx%len(payload)].P50 = v
-		} else if tableName == "p75" {
-			payload[idx%len(payload)].P75 = v
-		} else if tableName == "p90" {
-			payload[idx%len(payload)].P90 = v
-		} else if tableName == "p99" {
-			payload[idx%len(payload)].P99 = v
-		}
-	}
-
-	return payload, nil
+	return GetMetricTimeline(ctx, r.TDB, projectID, metricName, params)
 }
 
 func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
@@ -5406,61 +5334,16 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 
 	var buckets []*modelInputs.CategoryHistogramBucket
 	for _, r := range results {
-		buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
-			Category: r.Values["url"].(string),
-			Count:    int(r.Value.(int64)),
-		})
-	}
-
-	// guess backend domain based on most requests
-	if len(project.BackendDomains) == 0 && len(buckets) > 0 {
-		firstURL := buckets[0].Category
-		u, err := url.Parse(firstURL)
-		if err != nil {
-			log.Warnf("failed to guess domain for project %d from %s: %s", projectID, firstURL, err)
-		}
-		domains := []string{u.Host}
-		if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Update("BackendDomains", &domains).Error; err != nil {
-			log.Error(e.Wrap(err, "failed to save guessed domain for project"))
+		v, ok := r.Values[params.Attribute.String()].(string)
+		if ok {
+			buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
+				Category: v,
+				Count:    int(r.Value.(int64)),
+			})
 		}
 	}
 
 	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
-}
-
-func (r *queryResolver) MetricPreview(ctx context.Context, projectID int, name string, aggregateFunction string) ([]*modelInputs.MetricPreview, error) {
-	payload := []*modelInputs.MetricPreview{}
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return payload, nil
-	}
-	aggregateStatement := GetAggregateSQLStatement(aggregateFunction)
-
-	if err := r.DB.Raw(fmt.Sprintf(`
-	SELECT
-		*
-	from
-		(
-		SELECT
-			date_trunc('minute', created_at) date,
-			%s as value
-		FROM
-			metrics
-		where
-			name = '%s'
-			and project_id = %d
-			group by 1, name
-		order by
-			1 desc
-		limit 100
-		) as newestPoints
-	order by
-		date asc;
-	`, aggregateStatement, name, projectID)).Scan(&payload).Error; err != nil {
-		log.Error(err)
-		return payload, nil
-	}
-
-	return payload, nil
 }
 
 func (r *queryResolver) MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model.MetricMonitor, error) {

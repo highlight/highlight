@@ -4172,8 +4172,8 @@ export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
     Types.UpsertDashboardMutation,
     Types.UpsertDashboardMutationVariables
 >;
-export const GetMetricsDashboardDocument = gql`
-    query GetMetricsDashboard(
+export const GetMetricsTimelineDocument = gql`
+    query GetMetricsTimeline(
         $project_id: ID!
         $metric_name: String!
         $params: DashboardParamsInput!
@@ -4184,26 +4184,23 @@ export const GetMetricsDashboardDocument = gql`
             params: $params
         ) {
             date
-            avg
-            p50
-            p75
-            p90
-            p99
+            value
+            aggregate_function
         }
     }
 `;
 
 /**
- * __useGetMetricsDashboardQuery__
+ * __useGetMetricsTimelineQuery__
  *
- * To run a query within a React component, call `useGetMetricsDashboardQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetMetricsTimelineQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsTimelineQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetMetricsDashboardQuery({
+ * const { data, loading, error } = useGetMetricsTimelineQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
@@ -4211,37 +4208,37 @@ export const GetMetricsDashboardDocument = gql`
  *   },
  * });
  */
-export function useGetMetricsDashboardQuery(
+export function useGetMetricsTimelineQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
+    >(GetMetricsTimelineDocument, baseOptions);
 }
-export function useGetMetricsDashboardLazyQuery(
+export function useGetMetricsTimelineLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
+    >(GetMetricsTimelineDocument, baseOptions);
 }
-export type GetMetricsDashboardQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardQuery
+export type GetMetricsTimelineQueryHookResult = ReturnType<
+    typeof useGetMetricsTimelineQuery
 >;
-export type GetMetricsDashboardLazyQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardLazyQuery
+export type GetMetricsTimelineLazyQueryHookResult = ReturnType<
+    typeof useGetMetricsTimelineLazyQuery
 >;
-export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
-    Types.GetMetricsDashboardQuery,
-    Types.GetMetricsDashboardQueryVariables
+export type GetMetricsTimelineQueryResult = Apollo.QueryResult<
+    Types.GetMetricsTimelineQuery,
+    Types.GetMetricsTimelineQueryVariables
 >;
 export const GetMetricsHistogramDocument = gql`
     query GetMetricsHistogram(
@@ -4380,73 +4377,6 @@ export type GetNetworkHistogramLazyQueryHookResult = ReturnType<
 export type GetNetworkHistogramQueryResult = Apollo.QueryResult<
     Types.GetNetworkHistogramQuery,
     Types.GetNetworkHistogramQueryVariables
->;
-export const GetMetricPreviewDocument = gql`
-    query GetMetricPreview(
-        $project_id: ID!
-        $name: String!
-        $aggregateFunction: String!
-    ) {
-        metric_preview(
-            project_id: $project_id
-            name: $name
-            aggregateFunction: $aggregateFunction
-        ) {
-            value
-            date
-        }
-    }
-`;
-
-/**
- * __useGetMetricPreviewQuery__
- *
- * To run a query within a React component, call `useGetMetricPreviewQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricPreviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMetricPreviewQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      aggregateFunction: // value for 'aggregateFunction'
- *   },
- * });
- */
-export function useGetMetricPreviewQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >(GetMetricPreviewDocument, baseOptions);
-}
-export function useGetMetricPreviewLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >(GetMetricPreviewDocument, baseOptions);
-}
-export type GetMetricPreviewQueryHookResult = ReturnType<
-    typeof useGetMetricPreviewQuery
->;
-export type GetMetricPreviewLazyQueryHookResult = ReturnType<
-    typeof useGetMetricPreviewLazyQuery
->;
-export type GetMetricPreviewQueryResult = Apollo.QueryResult<
-    Types.GetMetricPreviewQuery,
-    Types.GetMetricPreviewQueryVariables
 >;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(

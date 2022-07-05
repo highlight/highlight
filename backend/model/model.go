@@ -836,11 +836,11 @@ var Fingerprint = struct {
 
 type ErrorFingerprint struct {
 	Model
-	ProjectID    int             `gorm:"index:idx_project_error_group_type_value_index"`
-	ErrorGroupId int             `gorm:"index:idx_project_error_group_type_value_index"`
-	Type         FingerprintType `gorm:"index:idx_project_error_group_type_value_index"`
-	Value        string          `gorm:"index:idx_project_error_group_type_value_index"`
-	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
+	ProjectID    int
+	ErrorGroupId int
+	Type         FingerprintType
+	Value        string
+	Index        int
 }
 
 type ExternalAttachment struct {

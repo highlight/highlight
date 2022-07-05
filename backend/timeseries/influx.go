@@ -2,6 +2,7 @@ package timeseries
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	log "github.com/sirupsen/logrus"
@@ -43,11 +44,12 @@ type DB interface {
 }
 
 type InfluxDB struct {
-	Bucket   string
-	client   influxdb2.Client
-	writeAPI api.WriteAPI
-	queryAPI api.QueryAPI
-	errorsCh <-chan error
+	Bucket       string
+	client       influxdb2.Client
+	writeAPI     api.WriteAPI
+	queryAPI     api.QueryAPI
+	errorsCh     <-chan error
+	messagesSent int
 }
 
 func New() *InfluxDB {
@@ -83,6 +85,7 @@ func (i *InfluxDB) GetBucket() string {
 }
 
 func (i *InfluxDB) Write(points []Point) {
+	start := time.Now()
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
 		for k, v := range point.Tags {
@@ -98,8 +101,14 @@ func (i *InfluxDB) Write(points []Point) {
 		// write asynchronously
 		i.writeAPI.WritePoint(p)
 	}
-	// Force all unwritten data to be sent
-	i.writeAPI.Flush()
+	// periodically flush messages
+	if i.messagesSent%10000 == 0 {
+		// Force all unwritten data to be sent
+		i.writeAPI.Flush()
+	}
+	i.messagesSent++
+	hlog.Incr("worker.influx.writeMessageCount", nil, 1)
+	hlog.Histogram("worker.influx.writeSec", time.Since(start).Seconds(), nil, 1)
 }
 
 func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, e error) {

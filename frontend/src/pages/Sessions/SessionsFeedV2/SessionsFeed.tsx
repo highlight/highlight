@@ -25,6 +25,7 @@ import SessionFeedConfiguration, {
 import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
+import useLocalStorage from '@rehooks/local-storage';
 import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -71,8 +72,10 @@ export const SessionFeed = React.memo(() => {
     ] = useState(true);
 
     const totalPages = useRef<number>(0);
-    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
-    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
+    const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
+        `sessionsCount-project-${project_id}`,
+        0
+    );
     const {
         searchParams,
         showStarredSessions,
@@ -83,6 +86,7 @@ export const SessionFeed = React.memo(() => {
     } = useSearchContext();
     const { integrated } = useIntegrated();
     const searchParamsChanged = useRef<Date>();
+    const projectHasManySessions = sessionsCount > PAGE_SIZE;
 
     const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
@@ -92,13 +96,21 @@ export const SessionFeed = React.memo(() => {
     } = useGetSessionsOpenSearchQuery({
         variables: {
             project_id,
-            count: 0, // Don't need any results, just the count
+            count: PAGE_SIZE,
+            page: 1,
             query: getUnprocessedSessionsQuery(searchQuery),
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
         },
         skip: !searchQuery,
         pollInterval: 5000,
+        fetchPolicy: 'network-only',
     });
+
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchQuery, page]);
 
     // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
     const unprocessedSessionsCount: number | undefined =
@@ -110,6 +122,7 @@ export const SessionFeed = React.memo(() => {
             totalPages.current = Math.ceil(
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
+            setSessionsCount(response?.sessions_opensearch.totalCount);
         }
         setShowLoadingSkeleton(false);
     };
@@ -124,15 +137,8 @@ export const SessionFeed = React.memo(() => {
         },
         onCompleted: addSessions,
         skip: !searchQuery,
+        fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
     });
-
-    useEffect(() => {
-        if (loading) {
-            setShowLoadingSkeleton(true);
-        }
-        // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, page]);
 
     useEffect(() => {
         // we just loaded the page for the first time

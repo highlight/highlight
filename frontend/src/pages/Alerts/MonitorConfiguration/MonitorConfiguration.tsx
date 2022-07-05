@@ -5,7 +5,7 @@ import Select, { OptionType } from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import Switch from '@components/Switch/Switch';
 import {
-    useGetMetricPreviewQuery,
+    useGetMetricsTimelineQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
@@ -87,11 +87,22 @@ const MonitorConfiguration = ({
     }>();
     const { currentWorkspace } = useApplicationContext();
     const [searchQuery, setSearchQuery] = useState('');
-    const { data, loading: metricPreviewLoading } = useGetMetricPreviewQuery({
+    const [dateRange] = React.useState<{
+        start_date: string;
+        end_date: string;
+    }>({
+        start_date: moment(new Date()).subtract(15, 'minutes').toISOString(),
+        end_date: moment(new Date()).toISOString(),
+    });
+    const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
         variables: {
             project_id,
-            aggregateFunction: aggregateFunction,
-            name: metricToMonitorName,
+            metric_name: metricToMonitorName,
+            params: {
+                aggregate_function: aggregateFunction,
+                date_range: dateRange,
+                resolution_minutes: 1,
+            },
         },
     });
     const { data: metricOptions } = useGetSuggestedMetricsQuery({
@@ -121,7 +132,7 @@ const MonitorConfiguration = ({
                 };
             });
         } else {
-            return data.metric_preview.map((point, index) => ({
+            return data.metrics_timeline.map((point, index) => ({
                 value: point?.value,
                 date: moment(now)
                     .subtract(pointsToGenerate - index, 'minutes')

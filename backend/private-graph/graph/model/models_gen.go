@@ -100,15 +100,13 @@ type DashboardParamsInput struct {
 	ResolutionMinutes *int            `json:"resolution_minutes"`
 	Timezone          *string         `json:"timezone"`
 	Units             *string         `json:"units"`
+	AggregateFunction *string         `json:"aggregate_function"`
 }
 
 type DashboardPayload struct {
-	Date string  `json:"date"`
-	Avg  float64 `json:"avg"`
-	P50  float64 `json:"p50"`
-	P75  float64 `json:"p75"`
-	P90  float64 `json:"p90"`
-	P99  float64 `json:"p99"`
+	Date              string  `json:"date"`
+	Value             float64 `json:"value"`
+	AggregateFunction *string `json:"aggregate_function"`
 }
 
 type DateRangeInput struct {
@@ -476,6 +474,7 @@ type NetworkRequestAttribute string
 
 const (
 	NetworkRequestAttributeMethod           NetworkRequestAttribute = "method"
+	NetworkRequestAttributeInitiatorType    NetworkRequestAttribute = "initiator_type"
 	NetworkRequestAttributeURL              NetworkRequestAttribute = "url"
 	NetworkRequestAttributeBodySize         NetworkRequestAttribute = "body_size"
 	NetworkRequestAttributeResponseSize     NetworkRequestAttribute = "response_size"
@@ -487,6 +486,7 @@ const (
 
 var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 	NetworkRequestAttributeMethod,
+	NetworkRequestAttributeInitiatorType,
 	NetworkRequestAttributeURL,
 	NetworkRequestAttributeBodySize,
 	NetworkRequestAttributeResponseSize,
@@ -498,7 +498,7 @@ var AllNetworkRequestAttribute = []NetworkRequestAttribute{
 
 func (e NetworkRequestAttribute) IsValid() bool {
 	switch e {
-	case NetworkRequestAttributeMethod, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
+	case NetworkRequestAttributeMethod, NetworkRequestAttributeInitiatorType, NetworkRequestAttributeURL, NetworkRequestAttributeBodySize, NetworkRequestAttributeResponseSize, NetworkRequestAttributeStatus, NetworkRequestAttributeLatency, NetworkRequestAttributeRequestID, NetworkRequestAttributeGraphqlOperation:
 		return true
 	}
 	return false

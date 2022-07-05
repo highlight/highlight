@@ -386,6 +386,7 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
+    aggregate_function: String
 }
 
 input HistogramParamsInput {
@@ -396,6 +397,7 @@ input HistogramParamsInput {
 
 enum NetworkRequestAttribute {
     method
+    initiator_type
     url
     body_size
     response_size
@@ -719,11 +721,8 @@ type Metric {
 
 type DashboardPayload {
     date: String!
-    avg: Float!
-    p50: Float!
-    p75: Float!
-    p90: Float!
-    p99: Float!
+    value: Float!
+    aggregate_function: String
 }
 
 type HistogramBucket {
@@ -970,11 +969,6 @@ type Query {
         project_id: ID!
         params: NetworkHistogramParamsInput!
     ): CategoryHistogramPayload!
-    metric_preview(
-        project_id: ID!
-        name: String!
-        aggregateFunction: String!
-    ): [MetricPreview]!
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
