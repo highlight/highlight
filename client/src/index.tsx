@@ -57,6 +57,10 @@ export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
 };
 
+enum LOCAL_STORAGE_KEYS {
+    CLIENT_ID = 'highlightClientID',
+}
+
 class Logger {
     debug: boolean | undefined;
 
@@ -614,6 +618,18 @@ export class Highlight {
                 );
             }
 
+            let clientID = window.localStorage.getItem(
+                LOCAL_STORAGE_KEYS['CLIENT_ID']
+            );
+
+            if (!clientID) {
+                clientID = GenerateSecureID();
+                window.localStorage.setItem(
+                    LOCAL_STORAGE_KEYS['CLIENT_ID'],
+                    clientID
+                );
+            }
+
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
             if (
@@ -645,6 +661,7 @@ export class Highlight {
                         id: fingerprint.toString(),
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
+                        client_id: clientID,
                     });
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
@@ -690,7 +707,7 @@ export class Highlight {
                                     value: deviceDetails.deviceMemory,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    category: "Device",
+                                    category: 'Device',
                                     group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
@@ -857,7 +874,7 @@ export class Highlight {
                                     value,
                                     session_secure_id: this.sessionData
                                         .sessionSecureID,
-                                    category: "WebVital",
+                                    category: 'WebVital',
                                     group: window.location.href,
                                     timestamp: new Date().toISOString(),
                                 },
