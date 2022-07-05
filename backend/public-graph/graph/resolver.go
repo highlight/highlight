@@ -2118,26 +2118,40 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
-	fieldsToUpdate := model.Session{
-		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
-	}
+	// Update only if any of these fields are changing
+	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
+	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
+		now.Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Second ||
+		beaconTime != nil ||
+		hasSessionUnloaded != sessionObj.HasUnloaded ||
+		(sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
+		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
+		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	// We only want to update the `HasErrors` field if the session has errors.
-	if sessionHasErrors {
-		fieldsToUpdate.HasErrors = &model.T
-
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return err
+	if doUpdate {
+		fieldsToUpdate := model.Session{
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
 		}
-	} else {
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return err
+
+		// We only want to update the `HasErrors` field if the session has errors.
+		if sessionHasErrors {
+			fieldsToUpdate.HasErrors = &model.T
+
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+				return err
+			}
+		} else {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+				return err
+			}
 		}
 	}
 
