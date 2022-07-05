@@ -38,7 +38,6 @@ interface Props {
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
     lookbackMinutes: number;
-    isEditing?: boolean;
 }
 
 const DashboardCard = ({
@@ -47,7 +46,6 @@ const DashboardCard = ({
     updateMetric,
     deleteMetric,
     lookbackMinutes,
-    isEditing,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -94,76 +92,68 @@ const DashboardCard = ({
                                 />
                             )}
                         </h3>
-                        <div
-                            className={classNames(styles.headerActions, {
-                                [styles.isEditing]: isEditing,
-                            })}
-                        >
-                            {isEditing ? (
-                                <div className={styles.draggable}>
-                                    <SvgDragIcon />
-                                </div>
-                            ) : (
-                                <div className={styles.chartButtons}>
-                                    {metricMonitorsLoading ? (
-                                        <Skeleton width={111} />
-                                    ) : metricMonitors?.metric_monitors
-                                          .length ? (
-                                        <StandardDropdown
-                                            data={metricMonitors?.metric_monitors.map(
-                                                (mm) => ({
-                                                    label: mm?.name || '',
-                                                    value: mm?.id || '',
-                                                })
-                                            )}
-                                            onSelect={(mmId) =>
-                                                history.push(
-                                                    `/${project_id}/alerts/monitor/${mmId}`
-                                                )
-                                            }
-                                            className={styles.monitorItem}
-                                            labelClassName={styles.monitorName}
-                                        />
-                                    ) : (
-                                        <Button
-                                            icon={
-                                                <SvgAnnouncementIcon
-                                                    style={{
-                                                        marginRight:
-                                                            'var(--size-xSmall)',
-                                                    }}
-                                                />
-                                            }
-                                            trackingId={
-                                                'DashboardCardCreateMonitor'
-                                            }
-                                            onClick={() => {
-                                                history.push(
-                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                                );
-                                            }}
-                                        >
-                                            Create Alert
-                                        </Button>
-                                    )}
+                        <div className={classNames(styles.headerActions)}>
+                            <div className={styles.chartButtons}>
+                                {metricMonitorsLoading ? (
+                                    <Skeleton width={111} />
+                                ) : metricMonitors?.metric_monitors.length ? (
+                                    <StandardDropdown
+                                        data={metricMonitors?.metric_monitors.map(
+                                            (mm) => ({
+                                                label: mm?.name || '',
+                                                value: mm?.id || '',
+                                            })
+                                        )}
+                                        onSelect={(mmId) =>
+                                            history.push(
+                                                `/${project_id}/alerts/monitor/${mmId}`
+                                            )
+                                        }
+                                        className={styles.monitorItem}
+                                        labelClassName={styles.monitorName}
+                                    />
+                                ) : (
                                     <Button
                                         icon={
-                                            <EditIcon
+                                            <SvgAnnouncementIcon
                                                 style={{
                                                     marginRight:
                                                         'var(--size-xSmall)',
                                                 }}
                                             />
                                         }
-                                        trackingId={'DashboardCardEditMetric'}
+                                        trackingId={
+                                            'DashboardCardCreateMonitor'
+                                        }
                                         onClick={() => {
-                                            setShowEditModal(true);
+                                            history.push(
+                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                            );
                                         }}
                                     >
-                                        Edit
+                                        Create Alert
                                     </Button>
+                                )}
+                                <Button
+                                    icon={
+                                        <EditIcon
+                                            style={{
+                                                marginRight:
+                                                    'var(--size-xSmall)',
+                                            }}
+                                        />
+                                    }
+                                    trackingId={'DashboardCardEditMetric'}
+                                    onClick={() => {
+                                        setShowEditModal(true);
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                                <div className={styles.draggable}>
+                                    <SvgDragIcon />
                                 </div>
-                            )}
+                            </div>
                         </div>
                         <Modal
                             visible={showDeleteModal}
