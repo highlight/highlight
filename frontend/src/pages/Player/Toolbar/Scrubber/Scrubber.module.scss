@@ -18,6 +18,12 @@
     width: 100%;
 }
 
+.mask {
+    background-color: var(--color-primary-background);
+    height: 100%;
+    position: absolute;
+}
+
 .activityGraphWrapper {
     position: relative;
 }

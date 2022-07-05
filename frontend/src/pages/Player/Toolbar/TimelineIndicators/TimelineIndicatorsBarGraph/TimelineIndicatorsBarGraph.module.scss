@@ -10,5 +10,23 @@
 
 .histogramContainer {
     margin-bottom: 26px;
+    position: relative;
     z-index: 300;
+}
+
+.timeMarker {
+    background: var(--color-scrubber-scrub-handle);
+    height: 44px;
+    position: absolute;
+    top: 10px;
+    width: 2px;
+    z-index: 200;
+}
+
+.innerBounds {
+    height: 100%;
+    margin-left: var(--size-medium);
+    margin-right: var(--size-medium);
+    position: absolute;
+    width: 100%;
 }

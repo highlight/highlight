@@ -8,6 +8,7 @@ export const inactivePopover: string;
 export const inactivePopoverDescription: string;
 export const inactivePopoverTime: string;
 export const innerBounds: string;
+export const mask: string;
 export const scrubberBackground: string;
 export const scrubHandle: string;
 export const scrubHandleContainer: string;

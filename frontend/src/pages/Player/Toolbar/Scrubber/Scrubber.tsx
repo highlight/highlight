@@ -14,7 +14,14 @@ import { NumberParam, useQueryParam } from 'use-query-params';
 
 import styles from './Scrubber.module.scss';
 
-const Scrubber = () => {
+interface Props {
+    chartData: any[];
+    sliderPercent: number;
+}
+
+const ActivityGraphMemoized = React.memo(ActivityGraph);
+
+const Scrubber = ({ chartData, sliderPercent }: Props) => {
     const {
         zoomAreaLeft,
         setZoomAreaLeft,
@@ -26,7 +33,6 @@ const Scrubber = () => {
         setTime,
         sessionMetadata,
         sessionIntervals,
-        session,
     } = useReplayerContext();
     const { showPlayerAbsoluteTime } = usePlayerConfiguration();
     const draggableRef = useRef(null);
@@ -48,35 +54,13 @@ const Scrubber = () => {
     );
     const [isDragging, setIsDragging] = useState(false);
     const [zoomHistory, setZoomHistory] = useState<[number, number][]>([]);
+    const [eventCounts, setEventCounts] = useState<any[]>([]);
 
-    const getSliderPercent = useCallback(
-        (time: number) => {
-            let sliderPercent = 0;
-            const numIntervals = sessionIntervals.length;
-            if (numIntervals > 0) {
-                if (time < sessionIntervals[0].startTime) {
-                    return 0;
-                }
-                if (time > sessionIntervals[numIntervals - 1].endTime) {
-                    return 1;
-                }
-            }
-            for (const interval of sessionIntervals) {
-                if (time < interval.endTime && time >= interval.startTime) {
-                    const segmentPercent =
-                        (time - interval.startTime) /
-                        (interval.endTime - interval.startTime);
-                    sliderPercent =
-                        segmentPercent *
-                            (interval.endPercent - interval.startPercent) +
-                        interval.startPercent;
-                    return sliderPercent;
-                }
-            }
-            return sliderPercent;
-        },
-        [sessionIntervals]
-    );
+    useEffect(() => {
+        if (chartData) {
+            setEventCounts(chartData.map((d) => ({ value: d.count })));
+        }
+    }, [chartData]);
 
     const getSliderTime = useCallback(
         (sliderPercent: number) => {
@@ -179,15 +163,6 @@ const Scrubber = () => {
     const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth;
     const dragRightPixels = (dragAreaRight / 100) * wrapperWidth;
 
-    let eventCounts = [];
-    if (!!session?.event_counts) {
-        eventCounts = JSON.parse(session.event_counts).map((v: number) => {
-            return { value: v };
-        });
-    }
-
-    console.log('eventCounts', eventCounts);
-
     return (
         <div className={styles.scrubberBackground}>
             {isZoomed && (
@@ -213,12 +188,18 @@ const Scrubber = () => {
                 </div>
             )}
             <div className={styles.innerBounds} ref={sliderWrapperRef}>
-                <div className={styles.activityGraphWrapper}>
-                    <ActivityGraph
+                <div
+                    className={styles.activityGraphWrapper}
+                    style={{
+                        left: `${zoomAreaLeft}%`,
+                        width: `${zoomAreaRight - zoomAreaLeft}%`,
+                    }}
+                >
+                    <ActivityGraphMemoized
                         data={eventCounts}
                         height={20}
                         disableAnimation
-                    ></ActivityGraph>
+                    ></ActivityGraphMemoized>
                 </div>
                 <Draggable
                     nodeRef={draggableRef}
@@ -239,10 +220,7 @@ const Scrubber = () => {
                         setIsDragging(true);
                     }}
                     position={{
-                        x: Math.max(
-                            getSliderPercent(dragTime) * wrapperWidth,
-                            0
-                        ),
+                        x: Math.max(sliderPercent * wrapperWidth, 0),
                         y: -28,
                     }}
                 >
