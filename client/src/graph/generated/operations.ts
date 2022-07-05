@@ -113,6 +113,7 @@ export type MutationInitializeSessionArgs = {
   appVersion?: Maybe<Scalars['String']>;
   fingerprint: Scalars['String'];
   session_secure_id?: Maybe<Scalars['String']>;
+  client_id?: Maybe<Scalars['String']>;
 };
 
 
