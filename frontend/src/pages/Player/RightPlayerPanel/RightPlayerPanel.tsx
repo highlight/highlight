@@ -57,7 +57,6 @@ const RightPlayerPanel = React.memo(() => {
                     direction="right"
                     isOpen={showRightPanel}
                     onClick={() => {
-                        console.log('!showRightPanel', !showRightPanel);
                         setShowRightPanel(!showRightPanel);
                     }}
                 />

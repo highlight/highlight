@@ -40,7 +40,6 @@ const Histogram = React.memo(
         tooltipContent,
         gotoAction,
     }: Props) => {
-        console.log('Histogram');
         const [dragStart, setDragStart] = useState<number | undefined>();
         const [dragEnd, setDragEnd] = useState<number | undefined>();
         const [tooltipHidden, setTooltipHidden] = useState(true);

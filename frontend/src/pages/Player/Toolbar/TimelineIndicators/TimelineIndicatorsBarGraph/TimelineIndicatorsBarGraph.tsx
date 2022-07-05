@@ -366,7 +366,16 @@ const TimelineIndicatorsBarGraph = React.memo(
         );
 
         if (sessionIntervals.length === 0) {
-            return <Skeleton />;
+            return (
+                <>
+                    <div className={styles.histogramSkeleton}>
+                        <Skeleton height={62} />
+                    </div>
+                    <div className={styles.scrubberSkeleton}>
+                        <Skeleton height={40} />
+                    </div>
+                </>
+            );
         }
 
         const sliderPercent = getSliderPercent(time);

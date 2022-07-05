@@ -1,11 +1,9 @@
 import Button from '@components/Button/Button/Button';
 import Tooltip from '@components/Tooltip/Tooltip';
 import SvgDragIcon from '@icons/DragIcon';
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -28,13 +26,7 @@ const Scrubber = ({ chartData, sliderPercent }: Props) => {
         zoomAreaRight,
         setZoomAreaRight,
     } = useToolbarItemsContext();
-    const {
-        time,
-        setTime,
-        sessionMetadata,
-        sessionIntervals,
-    } = useReplayerContext();
-    const { showPlayerAbsoluteTime } = usePlayerConfiguration();
+    const { time, setTime, sessionIntervals } = useReplayerContext();
     const draggableRef = useRef(null);
     const leftRef = useRef(null);
     const rightRef = useRef(null);
@@ -153,12 +145,7 @@ const Scrubber = ({ chartData, sliderPercent }: Props) => {
     }, [setZoomAreaLeft, setZoomAreaRight, zoomHistory.length]);
 
     const isZoomed = zoomAreaLeft > 0 || zoomAreaRight < 100;
-    const curTime = showPlayerAbsoluteTime
-        ? playerTimeToSessionAbsoluteTime({
-              sessionStartTime: sessionMetadata.startTime,
-              relativeTime: dragTime,
-          }).toString()
-        : MillisToMinutesAndSeconds(dragTime);
+    const curTime = MillisToMinutesAndSeconds(dragTime);
 
     const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth;
     const dragRightPixels = (dragAreaRight / 100) * wrapperWidth;
