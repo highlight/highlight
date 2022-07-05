@@ -22,6 +22,7 @@ import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -55,8 +56,8 @@ const DashboardPage = () => {
         `highlight-dashboard-${project_id}-${id}-date-range-v2`,
         timeFilter[1]
     );
+    const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
-    const [isEditing, setIsEditing] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
@@ -87,6 +88,11 @@ const DashboardPage = () => {
         });
     };
 
+    const handleDashboardChange = (layout: ReactGridLayout.Layout[]) => {
+        setLayout({ lg: layout });
+        setCanSaveChanges(true);
+    };
+
     if (!dashboard) {
         return null;
     }
@@ -110,6 +116,38 @@ const DashboardPage = () => {
             />
             <div className={styles.dateRangePickerContainer}>
                 <HighlightGate>
+                    <>
+                        {canSaveChanges && (
+                            <Button
+                                trackingId="DashboardEditLayout"
+                                type="primary"
+                                onClick={() => {
+                                    setCanSaveChanges(false);
+
+                                    const newLayout = JSON.stringify(layout);
+
+                                    if (
+                                        dashboard &&
+                                        newLayout !== dashboard.layout
+                                    ) {
+                                        updateDashboard({
+                                            id: id,
+                                            name: dashboard.name,
+                                            metrics: dashboard.metrics,
+                                            layout: newLayout,
+                                        });
+                                    }
+
+                                    message.success(
+                                        'Dashboard layout updated!',
+                                        5
+                                    );
+                                }}
+                            >
+                                Save Changes
+                            </Button>
+                        )}
+                    </>
                     <Button
                         trackingId="DashboardAddLayout"
                         type="ghost"
@@ -119,28 +157,6 @@ const DashboardPage = () => {
                     >
                         Add
                         <PlusIcon style={{ marginLeft: '1em' }} />
-                    </Button>
-                    <Button
-                        trackingId="DashboardEditLayout"
-                        type="ghost"
-                        onClick={() => {
-                            setIsEditing((prev) => !prev);
-                            const newLayout = JSON.stringify(layout);
-                            if (
-                                isEditing &&
-                                dashboard &&
-                                newLayout !== dashboard.layout
-                            ) {
-                                updateDashboard({
-                                    id: id,
-                                    name: dashboard.name,
-                                    metrics: dashboard.metrics,
-                                    layout: newLayout,
-                                });
-                            }
-                        }}
-                    >
-                        {isEditing ? 'Done' : 'Edit'}
                     </Button>
                 </HighlightGate>
                 <StandardDropdown
@@ -157,7 +173,13 @@ const DashboardPage = () => {
             <div className={classNames(styles.gridContainer, styles.isEditing)}>
                 <ResponsiveGridLayout
                     layouts={layout}
-                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    cols={{
+                        lg: 12,
+                        md: 10,
+                        sm: 6,
+                        xs: 4,
+                        xxs: 2,
+                    }}
                     breakpoints={{
                         lg: 1200,
                         md: 996,
@@ -165,31 +187,18 @@ const DashboardPage = () => {
                         xs: 480,
                         xxs: 0,
                     }}
-                    isDraggable={isEditing}
-                    isResizable={isEditing}
+                    isDraggable
+                    isResizable
                     containerPadding={[0, 0]}
                     rowHeight={155}
                     resizeHandles={['se']}
-                    onDragStop={(layout) => {
-                        setLayout({
-                            lg: layout,
-                        });
-                    }}
-                    onResizeStop={(layout) => {
-                        setLayout({
-                            lg: layout,
-                        });
-                    }}
-                    onResize={(layout) => {
-                        setLayout({
-                            lg: layout,
-                        });
-                    }}
+                    onDragStop={handleDashboardChange}
+                    onResizeStop={handleDashboardChange}
+                    onResize={handleDashboardChange}
                 >
                     {dashboard.metrics.map((metric, index) => (
                         <div key={index.toString()}>
                             <DashboardCard
-                                isEditing={isEditing}
                                 metricIdx={index}
                                 metricConfig={metric}
                                 updateMetric={(
