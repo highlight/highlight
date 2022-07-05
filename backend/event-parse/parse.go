@@ -404,7 +404,7 @@ lexerLoop:
 }
 
 func ReplaceAssets(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) error {
-	urls := getAssetUrlsFromTree(projectId, root, nil)
+	urls := getAssetUrlsFromTree(projectId, root, map[string]string{})
 	replacements, err := getOrCreateUrls(projectId, urls, s, db)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
