@@ -15,6 +15,7 @@ type Field {
 type Session {
     id: ID!
     secure_id: String!
+    client_id: String!
     fingerprint: Int
     os_name: String!
     os_version: String!

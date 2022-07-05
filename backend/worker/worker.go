@@ -315,7 +315,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.IdentifySession == nil {
 			break
 		}
-		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
+		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			w.processWorkerError(task, err)
@@ -520,7 +520,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Delete any event chunks which were previously written for this session
 	if err := w.Resolver.DB.Exec(`
-		DELETE 
+		DELETE
 		FROM event_chunks
 		WHERE session_id = ?
 	`, s.ID).Error; err != nil {
