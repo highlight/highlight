@@ -7,5 +7,6 @@ export const fillerText: string;
 export const functionName: string;
 export const lineNumber: string;
 export const skeleton: string;
+export const sourcemapActions: string;
 export const stackTraceCard: string;
 export const tooltip: string;

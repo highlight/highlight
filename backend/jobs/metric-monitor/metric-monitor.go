@@ -1,7 +1,12 @@
 package metric_monitor
 
 import (
+	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/private-graph/graph"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/openlyinc/pointy"
 	"os"
 	"strconv"
 	"time"
@@ -11,24 +16,23 @@ import (
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
-	graph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func WatchMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client) {
+func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client) {
 	log.Info("Starting to watch Metric Monitors")
 
 	for range time.Tick(time.Minute * 1) {
 		go func() {
 			metricMonitors := getMetricMonitors(DB)
-			processMetricMonitors(DB, MailClient, metricMonitors)
+			processMetricMonitors(DB, TDB, MailClient, metricMonitors)
 		}()
 	}
 }
 
 func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
-	metricMonitors := []*model.MetricMonitor{}
+	var metricMonitors []*model.MetricMonitor
 	if err := DB.Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("Error querying for metric monitors")
@@ -38,24 +42,29 @@ func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	return metricMonitors
 }
 
-func processMetricMonitors(DB *gorm.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor) {
+func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor) {
 	log.Info("Number of Metric Monitors to Process: ", len(metricMonitors))
 	for _, metricMonitor := range metricMonitors {
-		aggregateStatement := graph.GetAggregateSQLStatement(metricMonitor.Function)
 		var value float64
-
-		if err := DB.Raw(fmt.Sprintf(`
-		SELECT
-			COALESCE(%s, 0) as value
-	      	FROM
-			metrics
-	      	WHERE
-			name = '%s'
-			AND project_id = %d
-			AND created_at >= NOW() - INTERVAL '1 minutes';
-	`, aggregateStatement, metricMonitor.MetricToMonitor, metricMonitor.ProjectID)).Scan(&value).Error; err != nil {
+		end := time.Now()
+		start := end.Add(-time.Minute)
+		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
+			DateRange: &modelInputs.DateRangeInput{
+				StartDate: &start,
+				EndDate:   &end,
+			},
+			ResolutionMinutes: pointy.Int(1),
+			AggregateFunction: &metricMonitor.Function,
+		})
+		if err != nil {
 			log.Error(err)
+			continue
 		}
+		if len(payload) != 1 {
+			log.Errorf("invalid metrics payload %+v", payload)
+			continue
+		}
+		value = payload[0].Value
 
 		log.Infof("Processing %s for Project %d. ID: %d", metricMonitor.Name, metricMonitor.ProjectID, metricMonitor.ID)
 		log.Infof("Current value: %f, Threshold: %f", value, metricMonitor.Threshold)

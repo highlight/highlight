@@ -194,6 +194,7 @@ type Project {
     rage_click_window_seconds: Int
     rage_click_radius_pixels: Int
     rage_click_count: Int
+    backend_domains: StringArray
 }
 
 type Account {
@@ -327,6 +328,10 @@ type ErrorTrace {
     linesAfter: String
 }
 
+type S3File {
+    key: String
+}
+
 type ReferrerTablePayload {
     host: String!
     count: Int!
@@ -381,6 +386,7 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
+    aggregate_function: String
 }
 
 input HistogramParamsInput {
@@ -391,12 +397,14 @@ input HistogramParamsInput {
 
 enum NetworkRequestAttribute {
     method
+    initiator_type
     url
     body_size
     response_size
     status
     latency
     request_id
+    graphql_operation
 }
 
 input NetworkHistogramParamsInput {
@@ -713,11 +721,8 @@ type Metric {
 
 type DashboardPayload {
     date: String!
-    avg: Float!
-    p50: Float!
-    p75: Float!
-    p90: Float!
-    p99: Float!
+    value: Float!
+    aggregate_function: String
 }
 
 type HistogramBucket {
@@ -731,9 +736,7 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p10: Float!
-    p90: Float!
-    p95: Float!
+    p1: Float!
     p99: Float!
 }
 
@@ -966,14 +969,11 @@ type Query {
         project_id: ID!
         params: NetworkHistogramParamsInput!
     ): CategoryHistogramPayload!
-    metric_preview(
-        project_id: ID!
-        name: String!
-        aggregateFunction: String!
-    ): [MetricPreview]!
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!
+    sourcemap_files(project_id: ID!, version: String): [S3File!]!
+    sourcemap_versions(project_id: ID!): [String!]!
 }
 
 type Mutation {
@@ -989,6 +989,7 @@ type Mutation {
         rage_click_window_seconds: Int
         rage_click_radius_pixels: Int
         rage_click_count: Int
+        backend_domains: StringArray
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session

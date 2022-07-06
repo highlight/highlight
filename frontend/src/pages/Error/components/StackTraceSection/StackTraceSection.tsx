@@ -5,6 +5,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -36,6 +37,8 @@ const StackTraceSection = ({
     compact = false,
     errorObject,
 }: Props) => {
+    const { project_id } = useParams<{ project_id: string }>();
+
     const structuredStackTrace =
         errorGroup?.structured_stack_trace ??
         errorObject?.structured_stack_trace;
@@ -77,18 +80,25 @@ const StackTraceSection = ({
                     type="info"
                     description={
                         <>
-                            We're guessing you don't ship sourcemaps with your
-                            app. Did you know that Highlight has a{' '}
-                            <a>CLI tool</a> that you can run during your CI/CD
-                            process to upload sourcemaps to Highlight without
-                            making them publicly available?
-                            <ButtonLink
-                                anchor
-                                trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-                                href="https://docs.highlight.run/sourcemaps"
-                            >
-                                Learn More
-                            </ButtonLink>
+                            Are there sourcemaps tied to your javascript code?
+                            If yes, you can upload them to Highlight in CI/CD to
+                            get enhanced stack traces.
+                            <div className={styles.sourcemapActions}>
+                                <ButtonLink
+                                    anchor
+                                    trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
+                                    href="https://docs.highlight.run/sourcemaps"
+                                >
+                                    Learn More
+                                </ButtonLink>
+                                <ButtonLink
+                                    trackingId="stackFrameSourcemapSettings"
+                                    to={`/${project_id}/settings/errors`}
+                                    type="default"
+                                >
+                                    Sourcemap Settings
+                                </ButtonLink>
+                            </div>
                         </>
                     }
                 />

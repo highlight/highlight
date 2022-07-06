@@ -199,6 +199,7 @@ export type EditProjectMutationVariables = Types.Exact<{
     rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_count?: Types.Maybe<Types.Scalars['Int']>;
+    backend_domains?: Types.Maybe<Types.Scalars['StringArray']>;
 }>;
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -213,6 +214,7 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
 };
@@ -1585,18 +1587,18 @@ export type SessionPayloadFragmentFragment = {
         >;
     };
 
-export type GetMetricsDashboardQueryVariables = Types.Exact<{
+export type GetMetricsTimelineQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     metric_name: Types.Scalars['String'];
     params: Types.DashboardParamsInput;
 }>;
 
-export type GetMetricsDashboardQuery = { __typename?: 'Query' } & {
+export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
     metrics_timeline: Array<
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'avg' | 'p50' | 'p75' | 'p90' | 'p99'
+                'date' | 'value' | 'aggregate_function'
             >
         >
     >;
@@ -1611,7 +1613,7 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
     metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
         Types.HistogramPayload,
-        'min' | 'max' | 'p10' | 'p90'
+        'min' | 'max' | 'p1' | 'p99'
     > & {
             buckets: Array<
                 { __typename?: 'HistogramBucket' } & Pick<
@@ -1636,23 +1638,6 @@ export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
             >
         >;
     };
-};
-
-export type GetMetricPreviewQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    aggregateFunction: Types.Scalars['String'];
-}>;
-
-export type GetMetricPreviewQuery = { __typename?: 'Query' } & {
-    metric_preview: Array<
-        Types.Maybe<
-            { __typename?: 'MetricPreview' } & Pick<
-                Types.MetricPreview,
-                'value' | 'date'
-            >
-        >
-    >;
 };
 
 export type GetSessionPayloadQueryVariables = Types.Exact<{
@@ -2617,6 +2602,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
     workspace?: Types.Maybe<
@@ -3732,12 +3718,31 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
     'suggested_metrics'
 >;
 
+export type GetSourcemapFilesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    version?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type GetSourcemapFilesQuery = { __typename?: 'Query' } & {
+    sourcemap_files: Array<
+        { __typename?: 'S3File' } & Pick<Types.S3File, 'key'>
+    >;
+};
+
+export type GetSourcemapVersionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetSourcemapVersionsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'sourcemap_versions'
+>;
+
 export const namedOperations = {
     Query: {
-        GetMetricsDashboard: 'GetMetricsDashboard' as const,
+        GetMetricsTimeline: 'GetMetricsTimeline' as const,
         GetMetricsHistogram: 'GetMetricsHistogram' as const,
         GetNetworkHistogram: 'GetNetworkHistogram' as const,
-        GetMetricPreview: 'GetMetricPreview' as const,
         GetSessionPayload: 'GetSessionPayload' as const,
         GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetEventChunkURL: 'GetEventChunkURL' as const,
@@ -3814,6 +3819,8 @@ export const namedOperations = {
         GetWebVitals: 'GetWebVitals' as const,
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
         GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
+        GetSourcemapFiles: 'GetSourcemapFiles' as const,
+        GetSourcemapVersions: 'GetSourcemapVersions' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

@@ -264,6 +264,9 @@ type Project struct {
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
 
+	// During metrics querying for network requests, only keep these relevant URLs
+	BackendDomains pq.StringArray `gorm:"type:text[]"`
+
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
 
@@ -633,9 +636,10 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL            = "sessions"
-	DAILY_ERROR_COUNTS_TBL  = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+	SESSIONS_TBL                    = "sessions"
+	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
 )
 
 type DailyErrorCount struct {
@@ -831,11 +835,11 @@ var Fingerprint = struct {
 
 type ErrorFingerprint struct {
 	Model
-	ProjectID    int             `gorm:"index:idx_project_error_group_type_value_index"`
-	ErrorGroupId int             `gorm:"index:idx_project_error_group_type_value_index"`
-	Type         FingerprintType `gorm:"index:idx_project_error_group_type_value_index"`
-	Value        string          `gorm:"index:idx_project_error_group_type_value_index"`
-	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
+	ProjectID    int
+	ErrorGroupId int
+	Type         FingerprintType
+	Value        string
+	Index        int
 }
 
 type ExternalAttachment struct {
@@ -1144,17 +1148,24 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
 	}
 
-	if err := DB.Exec(`
+	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
-		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_metric_groups_name_session')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_metric_groups_name_session ON metric_groups (group_name, session_id);
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_metric_groups_name_session")
+			BEGIN
+				BEGIN
+					IF NOT EXISTS 
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
+					THEN
+						ALTER TABLE metric_groups
+						ADD CONSTRAINT %s
+							UNIQUE (group_name, session_id);
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'metric_groups.%s already exists';
+				END;
+			END $$;
+	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
 	if err := DB.Exec(`

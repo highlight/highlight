@@ -223,6 +223,7 @@ export type Project = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type Account = {
@@ -367,6 +368,11 @@ export type ErrorTrace = {
     linesAfter?: Maybe<Scalars['String']>;
 };
 
+export type S3File = {
+    __typename?: 'S3File';
+    key?: Maybe<Scalars['String']>;
+};
+
 export type ReferrerTablePayload = {
     __typename?: 'ReferrerTablePayload';
     host: Scalars['String'];
@@ -424,6 +430,7 @@ export type DashboardParamsInput = {
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
     units?: Maybe<Scalars['String']>;
+    aggregate_function?: Maybe<Scalars['String']>;
 };
 
 export type HistogramParamsInput = {
@@ -434,12 +441,14 @@ export type HistogramParamsInput = {
 
 export enum NetworkRequestAttribute {
     Method = 'method',
+    InitiatorType = 'initiator_type',
     Url = 'url',
     BodySize = 'body_size',
     ResponseSize = 'response_size',
     Status = 'status',
     Latency = 'latency',
     RequestId = 'request_id',
+    GraphqlOperation = 'graphql_operation',
 }
 
 export type NetworkHistogramParamsInput = {
@@ -777,11 +786,8 @@ export type Metric = {
 export type DashboardPayload = {
     __typename?: 'DashboardPayload';
     date: Scalars['String'];
-    avg: Scalars['Float'];
-    p50: Scalars['Float'];
-    p75: Scalars['Float'];
-    p90: Scalars['Float'];
-    p99: Scalars['Float'];
+    value: Scalars['Float'];
+    aggregate_function?: Maybe<Scalars['String']>;
 };
 
 export type HistogramBucket = {
@@ -797,9 +803,7 @@ export type HistogramPayload = {
     buckets: Array<HistogramBucket>;
     min: Scalars['Float'];
     max: Scalars['Float'];
-    p10: Scalars['Float'];
-    p90: Scalars['Float'];
-    p95: Scalars['Float'];
+    p1: Scalars['Float'];
     p99: Scalars['Float'];
 };
 
@@ -967,10 +971,11 @@ export type Query = {
     metrics_timeline: Array<Maybe<DashboardPayload>>;
     metrics_histogram: HistogramPayload;
     network_histogram: CategoryHistogramPayload;
-    metric_preview: Array<Maybe<MetricPreview>>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
     event_chunks: Array<EventChunk>;
+    sourcemap_files: Array<S3File>;
+    sourcemap_versions: Array<Scalars['String']>;
 };
 
 export type QueryAccount_DetailsArgs = {
@@ -1324,12 +1329,6 @@ export type QueryNetwork_HistogramArgs = {
     params: NetworkHistogramParamsInput;
 };
 
-export type QueryMetric_PreviewArgs = {
-    project_id: Scalars['ID'];
-    name: Scalars['String'];
-    aggregateFunction: Scalars['String'];
-};
-
 export type QueryMetric_MonitorsArgs = {
     project_id: Scalars['ID'];
     metric_name?: Maybe<Scalars['String']>;
@@ -1342,6 +1341,15 @@ export type QueryEvent_Chunk_UrlArgs = {
 
 export type QueryEvent_ChunksArgs = {
     secure_id: Scalars['String'];
+};
+
+export type QuerySourcemap_FilesArgs = {
+    project_id: Scalars['ID'];
+    version?: Maybe<Scalars['String']>;
+};
+
+export type QuerySourcemap_VersionsArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type Mutation = {
@@ -1435,6 +1443,7 @@ export type MutationEditProjectArgs = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type MutationEditWorkspaceArgs = {

@@ -7,11 +7,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -47,6 +50,7 @@ import (
 type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
+	TDB             timeseries.DB
 	ProducerQueue   *kafka_queue.Queue
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
@@ -99,16 +103,17 @@ type FieldData struct {
 
 type Request struct {
 	ID      string            `json:"id"`
-	Headers map[string]string `json:"headers"`
 	URL     string            `json:"url"`
 	Method  string            `json:"verb"`
+	Headers map[string]string `json:"headers"`
+	Body    string            `json:"body"`
 }
 
 type Response struct {
-	Body    string            `json:"body"`
+	Status  float64           `json:"status"`
+	Size    float64           `json:"size"`
 	Headers map[string]string `json:"headers"`
-	Status  int               `json:"status"`
-	Size    int               `json:"size"`
+	Body    string            `json:"body"`
 }
 
 type RequestResponsePairs struct {
@@ -121,8 +126,8 @@ type NetworkResource struct {
 	StartTime            float64              `json:"startTime"`
 	ResponseEnd          float64              `json:"responseEnd"`
 	InitiatorType        string               `json:"initiatorType"`
-	TransferSize         int64                `json:"transferSize"`
-	EncodedBodySize      int64                `json:"encodedBodySize"`
+	TransferSize         float64              `json:"transferSize"`
+	EncodedBodySize      float64              `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
@@ -402,7 +407,8 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
 	// get version from session
 	var version *string
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: errorObj.SessionID}}).
+	if err := r.DB.Model(&model.Session{}).
+		Where("id = ?", errorObj.SessionID).
 		Select("app_version").Scan(&version).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, e.Wrap(err, "error getting app version from session")
@@ -604,6 +610,13 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		Sum int
 	}{}
 
+	// temporarily disable error group matching
+	// for Gorillamind
+	// because their huge traceback
+	// slows this process down too much
+	if projectID == 356 {
+		return nil, nil
+	}
 	if err := r.DB.Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
@@ -685,6 +698,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if errorObj.Event == "" || errorObj.Event == "<nil>" {
 		return nil, e.New("error object event was nil or empty")
+	}
+
+	if projectID == 356 {
+		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
+			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
+			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
+			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
+			return nil, e.New("Filtering out noisy Gorilla Mind error")
+		}
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -811,8 +833,13 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		if err := r.DB.Model(errorGroup).Association("Fingerprints").Append(fingerprints); err != nil {
-			return e.Wrap(err, "error appending new fingerprints")
+		for _, f := range fingerprints {
+			f.ErrorGroupId = errorGroup.ID
+		}
+		if len(fingerprints) > 0 {
+			if err := r.DB.Model(&model.ErrorFingerprint{}).Create(fingerprints).Error; err != nil {
+				return e.Wrap(err, "error appending new fingerprints")
+			}
 		}
 
 		var newIds []int
@@ -905,9 +932,26 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		}
 	}
 
-	// We append to this session in the join table regardless.
-	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
-		return e.Wrap(err, "error updating error fields")
+	var entries []struct {
+		ErrorGroupID int
+		ErrorFieldID int
+	}
+	for _, f := range fieldsToAppend {
+		entries = append(entries, struct {
+			ErrorGroupID int
+			ErrorFieldID int
+		}{
+			ErrorGroupID: errorGroup.ID,
+			ErrorFieldID: f.ID,
+		})
+	}
+
+	if len(entries) > 0 {
+		if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(entries).Error; err != nil {
+			return e.Wrap(err, "error updating fields")
+		}
 	}
 
 	return nil
@@ -1573,40 +1617,73 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 		if m.Group != nil {
 			group = *m.Group
 		}
-		// TODO(vkorolik) do i need random string
-		if group == "" {
-			group = util.GenerateRandomString(16)
-		}
 		if _, ok := metricsByGroup[group]; !ok {
 			metricsByGroup[group] = []*customModels.MetricInput{}
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
+	var points []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
-		var mg *model.MetricGroup
-		if err := r.DB.Where(&model.MetricGroup{
-			GroupName: groupName,
-			SessionID: sessionID,
-		}).Attrs(&model.MetricGroup{
+		mg := &model.MetricGroup{
 			GroupName: groupName,
 			SessionID: sessionID,
 			ProjectID: projectID,
-		}).FirstOrCreate(&mg).Error; err != nil {
+		}
+		tx := r.DB.Where(&model.MetricGroup{
+			GroupName: groupName,
+			SessionID: sessionID,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
+			DoNothing:    true,
+		}).Create(&mg)
+		if err := tx.Error; err != nil {
 			return err
 		}
+		if tx.RowsAffected == 0 {
+			if err := r.DB.Where(&model.MetricGroup{
+				GroupName: groupName,
+				SessionID: sessionID,
+			}).First(&mg).Error; err != nil {
+				return err
+			}
+		}
+		var newMetrics []*model.Metric
+		firstTime := time.Time{}
+		tags := map[string]string{
+			"project_id": strconv.Itoa(projectID),
+			"session_id": strconv.Itoa(sessionID),
+			"group_name": groupName,
+		}
+		fields := map[string]interface{}{}
 		for _, m := range metricInputs {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
+			category := ""
+			if m.Category != nil {
+				category = *m.Category
+			}
+			newMetrics = append(newMetrics, &model.Metric{
 				MetricGroupID: mg.ID,
 				Name:          m.Name,
 				Value:         m.Value,
-				Category:      m.Category,
+				Category:      category,
 				CreatedAt:     m.Timestamp,
 			})
+			if m.Timestamp.After(firstTime) {
+				firstTime = m.Timestamp
+			}
+			tags[m.Name] = category
+			fields[m.Name] = m.Value
 		}
-		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
+		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
 		}
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        firstTime,
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(strconv.Itoa(projectID), points)
 	return nil
 }
 
@@ -1814,6 +1891,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		defer util.Recover()
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		defer parseEventsSpan.Finish()
 		if hasBeacon {
 			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
@@ -1892,7 +1970,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				}
 			}
 		}
-		parseEventsSpan.Finish()
 		return nil
 	})
 
@@ -1901,6 +1978,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		defer util.Recover()
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		defer unmarshalMessagesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.MessagesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.MessagesObject{})
 		}
@@ -1914,7 +1992,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error creating messages object")
 			}
 		}
-		unmarshalMessagesSpan.Finish()
 		return nil
 	})
 
@@ -1923,26 +2000,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		defer util.Recover()
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		defer unmarshalResourcesSpan.Finish()
 		if hasBeacon {
 			r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
 		}
 		resourcesParsed := make(map[string][]NetworkResource)
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return e.Wrap(err, "error decoding resource data")
+			return nil
 		}
 		if len(resourcesParsed["resources"]) > 0 {
-			// TODO(vkorolik) frontend metrics recording only for highlight project for now to ensure we do not overwhelm our message processing
-			if projectID == 1 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
 			}
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return e.Wrap(err, "error creating resources object")
 			}
 		}
-		unmarshalResourcesSpan.Finish()
 		return nil
 	})
 
@@ -2077,26 +2151,40 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
-	fieldsToUpdate := model.Session{
-		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
-	}
+	// Update only if any of these fields are changing
+	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
+	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
+		now.Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Second ||
+		beaconTime != nil ||
+		hasSessionUnloaded != sessionObj.HasUnloaded ||
+		(sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
+		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
+		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	// We only want to update the `HasErrors` field if the session has errors.
-	if sessionHasErrors {
-		fieldsToUpdate.HasErrors = &model.T
-
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return err
+	if doUpdate {
+		fieldsToUpdate := model.Session{
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
 		}
-	} else {
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return err
+
+		// We only want to update the `HasErrors` field if the session has errors.
+		if sessionHasErrors {
+			fieldsToUpdate.HasErrors = &model.T
+
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+				return err
+			}
+		} else {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+				return err
+			}
 		}
 	}
 
@@ -2125,45 +2213,62 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 }
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	for _, re := range resources {
-		var mg *model.MetricGroup
-		if err := r.DB.Where(&model.MetricGroup{
-			GroupName: re.RequestResponsePairs.Request.ID,
-			SessionID: sessionObj.ID,
-		}).Attrs(&model.MetricGroup{
-			GroupName: re.RequestResponsePairs.Request.ID,
-			SessionID: sessionObj.ID,
-			ProjectID: sessionObj.ProjectID,
-		}).FirstOrCreate(&mg).Error; err != nil {
-			return err
-		}
+	project := &model.Project{}
+	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
+	}
 
+	var points []timeseries.Point
+	for _, re := range resources {
+		tags := map[string]string{
+			"project_id": strconv.Itoa(sessionObj.ProjectID),
+			"session_id": strconv.Itoa(sessionObj.ID),
+			"group_name": re.RequestResponsePairs.Request.ID,
+		}
+		fields := map[string]interface{}{}
 		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
-			modelInputs.NetworkRequestAttributeBodySize:     float64(re.EncodedBodySize),
-			modelInputs.NetworkRequestAttributeResponseSize: float64(re.RequestResponsePairs.Response.Size),
-			modelInputs.NetworkRequestAttributeStatus:       float64(re.RequestResponsePairs.Response.Status),
+			modelInputs.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
+			modelInputs.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
+			modelInputs.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
 			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
-				MetricGroupID: mg.ID,
-				Name:          key.String(),
-				Value:         value,
-			})
+			fields[key.String()] = value
 		}
-		for key, value := range map[modelInputs.NetworkRequestAttribute]string{
-			modelInputs.NetworkRequestAttributeURL:       re.Name,
-			modelInputs.NetworkRequestAttributeMethod:    re.RequestResponsePairs.Request.Method,
-			modelInputs.NetworkRequestAttributeRequestID: re.RequestResponsePairs.Request.ID,
-		} {
-			mg.Metrics = append(mg.Metrics, &model.Metric{
-				MetricGroupID: mg.ID,
-				Name:          key.String(),
-				Category:      value,
-			})
+		categories := map[modelInputs.NetworkRequestAttribute]string{
+			modelInputs.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
+			modelInputs.NetworkRequestAttributeInitiatorType: re.InitiatorType,
+			modelInputs.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
 		}
-		if err := r.DB.Create(&mg.Metrics).Error; err != nil {
-			return err
+		requestBody := make(map[string]interface{})
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+			if _, ok := requestBody["operationName"]; ok {
+				categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
+			}
 		}
+
+		// only record urls for network requests that match config to limit metric cardinality
+		u, err := url.Parse(re.Name)
+		if err == nil {
+			for _, d := range project.BackendDomains {
+				if u.Host == d {
+					categories[modelInputs.NetworkRequestAttributeURL] = re.Name
+				}
+			}
+		}
+
+		for key, value := range categories {
+			tags[key.String()] = value
+		}
+		// request time is relative to session start
+		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
+		points = append(points, timeseries.Point{
+			Measurement: timeseries.Metrics,
+			Time:        sessionObj.CreatedAt.Add(d),
+			Tags:        tags,
+			Fields:      fields,
+		})
 	}
+	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
 }

@@ -10,8 +10,8 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import {
     useGetMetricMonitorsQuery,
-    useGetMetricsDashboardLazyQuery,
     useGetMetricsHistogramLazyQuery,
+    useGetMetricsTimelineLazyQuery,
 } from '@graph/hooks';
 import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -29,6 +29,12 @@ import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
 
+export const UNIT_OPTIONS = [
+    { label: 'Milliseconds', value: 'ms' },
+    { label: 'Seconds', value: 's' },
+    { label: 'No Units', value: '' },
+];
+
 type UpdateMetricFn = (idx: number, value: DashboardMetricConfig) => void;
 type DeleteMetricFn = (idx: number) => void;
 
@@ -37,11 +43,7 @@ interface Props {
     metricConfig: DashboardMetricConfig;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
-    dateRange: {
-        start: moment.Moment;
-        end: moment.Moment;
-    };
-    isEditing?: boolean;
+    lookbackMinutes: number;
 }
 
 const DashboardCard = ({
@@ -49,8 +51,7 @@ const DashboardCard = ({
     metricConfig,
     updateMetric,
     deleteMetric,
-    dateRange,
-    isEditing,
+    lookbackMinutes,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -97,76 +98,68 @@ const DashboardCard = ({
                                 />
                             )}
                         </h3>
-                        <div
-                            className={classNames(styles.headerActions, {
-                                [styles.isEditing]: isEditing,
-                            })}
-                        >
-                            {isEditing ? (
-                                <div className={styles.draggable}>
-                                    <SvgDragIcon />
-                                </div>
-                            ) : (
-                                <div className={styles.chartButtons}>
-                                    {metricMonitorsLoading ? (
-                                        <Skeleton width={111} />
-                                    ) : metricMonitors?.metric_monitors
-                                          .length ? (
-                                        <StandardDropdown
-                                            data={metricMonitors?.metric_monitors.map(
-                                                (mm) => ({
-                                                    label: mm?.name || '',
-                                                    value: mm?.id || '',
-                                                })
-                                            )}
-                                            onSelect={(mmId) =>
-                                                history.push(
-                                                    `/${project_id}/alerts/monitor/${mmId}`
-                                                )
-                                            }
-                                            className={styles.monitorItem}
-                                            labelClassName={styles.monitorName}
-                                        />
-                                    ) : (
-                                        <Button
-                                            icon={
-                                                <SvgAnnouncementIcon
-                                                    style={{
-                                                        marginRight:
-                                                            'var(--size-xSmall)',
-                                                    }}
-                                                />
-                                            }
-                                            trackingId={
-                                                'DashboardCardCreateMonitor'
-                                            }
-                                            onClick={() => {
-                                                history.push(
-                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                                );
-                                            }}
-                                        >
-                                            Create Alert
-                                        </Button>
-                                    )}
+                        <div className={classNames(styles.headerActions)}>
+                            <div className={styles.chartButtons}>
+                                {metricMonitorsLoading ? (
+                                    <Skeleton width={111} />
+                                ) : metricMonitors?.metric_monitors.length ? (
+                                    <StandardDropdown
+                                        data={metricMonitors?.metric_monitors.map(
+                                            (mm) => ({
+                                                label: mm?.name || '',
+                                                value: mm?.id || '',
+                                            })
+                                        )}
+                                        onSelect={(mmId) =>
+                                            history.push(
+                                                `/${project_id}/alerts/monitor/${mmId}`
+                                            )
+                                        }
+                                        className={styles.monitorItem}
+                                        labelClassName={styles.monitorName}
+                                    />
+                                ) : (
                                     <Button
                                         icon={
-                                            <EditIcon
+                                            <SvgAnnouncementIcon
                                                 style={{
                                                     marginRight:
                                                         'var(--size-xSmall)',
                                                 }}
                                             />
                                         }
-                                        trackingId={'DashboardCardEditMetric'}
+                                        trackingId={
+                                            'DashboardCardCreateMonitor'
+                                        }
                                         onClick={() => {
-                                            setShowEditModal(true);
+                                            history.push(
+                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                            );
                                         }}
                                     >
-                                        Edit
+                                        Create Alert
                                     </Button>
+                                )}
+                                <Button
+                                    icon={
+                                        <EditIcon
+                                            style={{
+                                                marginRight:
+                                                    'var(--size-xSmall)',
+                                            }}
+                                        />
+                                    }
+                                    trackingId={'DashboardCardEditMetric'}
+                                    onClick={() => {
+                                        setShowEditModal(true);
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                                <div className={styles.draggable}>
+                                    <SvgDragIcon />
                                 </div>
-                            )}
+                            </div>
                         </div>
                         <Modal
                             visible={showDeleteModal}
@@ -218,7 +211,7 @@ const DashboardCard = ({
                     }
                     poorValue={metricConfig.poor_value}
                     updateMetric={updateMetric}
-                    dateRange={dateRange}
+                    lookbackMinutes={lookbackMinutes}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
@@ -234,9 +227,6 @@ const EditMetricModal = ({
     updateMetric,
     onDelete,
     onCancel,
-    dateRange,
-    setShowEditModal,
-    setShowDeleteModal,
     shown = false,
 }: {
     metricIdx: number;
@@ -244,26 +234,12 @@ const EditMetricModal = ({
     updateMetric: UpdateMetricFn;
     onDelete: () => void;
     onCancel: () => void;
-    dateRange: {
-        start: moment.Moment;
-        end: moment.Moment;
-    };
-    setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
-    setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     shown?: boolean;
 }) => {
     const [units, setUnits] = useState<string>(metricConfig.units);
     const [helpArticle, setHelpArticle] = useState<string>(
         metricConfig.help_article
     );
-    const [maxGoodValue, setMaxGoodValue] = useState<number>(
-        metricConfig.max_good_value
-    );
-    const [
-        maxNeedsImprovementValue,
-        setMaxNeedsImprovementValue,
-    ] = useState<number>(metricConfig.max_needs_improvement_value);
-    const [poorValue, setPoorValue] = useState<number>(metricConfig.poor_value);
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
     );
@@ -277,13 +253,14 @@ const EditMetricModal = ({
             <ModalBody>
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <Input
-                            placeholder="Units"
-                            name="Units"
-                            value={units}
-                            onChange={(e) => {
-                                setUnits(e.target?.value || '');
-                            }}
+                        <StandardDropdown
+                            data={UNIT_OPTIONS}
+                            defaultValue={
+                                UNIT_OPTIONS.filter(
+                                    (x) => x.value === metricConfig.units
+                                )[0]
+                            }
+                            onSelect={(value) => setUnits(value)}
                         />
                         <Input
                             placeholder="Help Article"
@@ -322,9 +299,10 @@ const EditMetricModal = ({
                                     description: metricConfig.description,
                                     units: units,
                                     help_article: helpArticle,
-                                    max_good_value: maxGoodValue,
-                                    max_needs_improvement_value: maxNeedsImprovementValue,
-                                    poor_value: poorValue,
+                                    max_good_value: metricConfig.max_good_value,
+                                    max_needs_improvement_value:
+                                        metricConfig.max_needs_improvement_value,
+                                    poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
                                 });
                                 onCancel();
@@ -349,29 +327,14 @@ const EditMetricModal = ({
                         </Button>
                     </div>
                 </section>
-                <section className={dashStyles.section}>
-                    <ChartContainer
-                        metricIdx={metricIdx}
-                        metricConfig={metricConfig}
-                        chartType={chartType}
-                        maxGoodValue={maxGoodValue}
-                        maxNeedsImprovementValue={maxNeedsImprovementValue}
-                        poorValue={poorValue}
-                        setMaxGoodValue={setMaxGoodValue}
-                        setMaxNeedsImprovementValue={
-                            setMaxNeedsImprovementValue
-                        }
-                        setPoorValue={setPoorValue}
-                        showEditModal={false}
-                        dateRange={dateRange}
-                        setShowDeleteModal={setShowDeleteModal}
-                        setShowEditModal={setShowEditModal}
-                        updateMetric={updateMetric}
-                    />
-                </section>
             </ModalBody>
         </Modal>
     );
+};
+
+const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 const ChartContainer = React.memo(
@@ -386,7 +349,7 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        dateRange,
+        lookbackMinutes,
         showEditModal,
         setShowEditModal,
         setShowDeleteModal,
@@ -401,37 +364,39 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        dateRange: {
-            start: moment.Moment;
-            end: moment.Moment;
-        };
+        lookbackMinutes: number;
         showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
+        const NUM_BUCKETS = 60;
+        const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
+        const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
-        const NUM_BUCKETS = 24;
+        const [dateRange, setDateRange] = React.useState<{
+            start_date: string;
+            end_date: string;
+        }>();
         const resolutionMinutes = Math.ceil(
-            dateRange.end.diff(dateRange.start, 'minute') / NUM_BUCKETS
+            moment.duration(lookbackMinutes, 'minutes').as('minutes') /
+                NUM_BUCKETS
         );
-        const NUM_HISTOGRAM_BUCKETS = 50;
         const [
             loadTimeline,
             { data: timelineData, loading: timelineLoading },
-        ] = useGetMetricsDashboardLazyQuery({
+        ] = useGetMetricsTimelineLazyQuery({
             variables: {
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    date_range: {
-                        end_date: dateRange.end.toISOString(),
-                        start_date: dateRange.start.toISOString(),
-                    },
+                    aggregate_function: 'p50',
+                    date_range: dateRange,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
                 },
             },
+            fetchPolicy: 'cache-first',
         });
         const [
             loadHistogram,
@@ -441,14 +406,12 @@ const ChartContainer = React.memo(
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    date_range: {
-                        end_date: dateRange.end.toISOString(),
-                        start_date: dateRange.start.toISOString(),
-                    },
-                    buckets: NUM_HISTOGRAM_BUCKETS,
+                    date_range: dateRange,
+                    buckets: NUM_BUCKETS,
                     units: metricConfig.units,
                 },
             },
+            fetchPolicy: 'cache-first',
         });
 
         useEffect(() => {
@@ -458,13 +421,39 @@ const ChartContainer = React.memo(
                 loadTimeline();
             }
         }, [chartType, loadTimeline, loadHistogram]);
+        useEffect(() => {
+            // round to the nearest 15 mins or less if we use a fine granularity.
+            // this ensures that even for large time ranges data will only be cached
+            // for up to 15 minutes (cache key is based on the arguments).
+            const now = roundDate(
+                moment(new Date()),
+                Math.min(15, lookbackMinutes)
+            );
+            setDateRange({
+                start_date: moment(now)
+                    .subtract(lookbackMinutes, 'minutes')
+                    .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
+                end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+            });
+        }, [lookbackMinutes]);
 
+        const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
         const seenDays: Set<string> = new Set<string>();
+        let lastDate: moment.Moment | undefined = undefined;
         for (const d of timelineData?.metrics_timeline || []) {
             const pointDate = d?.date;
             if (pointDate) {
-                const formattedDate = moment(pointDate).format('D MMM');
+                const newDate = moment(pointDate);
+                if (
+                    lastDate &&
+                    newDate.diff(lastDate, 'minutes') <
+                        BUCKET_MINS * TICK_EVERY_BUCKETS
+                ) {
+                    continue;
+                }
+                lastDate = moment(newDate);
+                const formattedDate = newDate.format(tickFormat);
                 if (!seenDays.has(formattedDate)) {
                     ticks.push(d.date);
                     seenDays.add(formattedDate);
@@ -485,11 +474,8 @@ const ChartContainer = React.memo(
                     metricConfig={metricConfig}
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
-                    dateRange={dateRange}
-                    setShowDeleteModal={setShowDeleteModal}
-                    setShowEditModal={setShowEditModal}
                 />
-                {timelineLoading || histogramLoading ? (
+                {!dateRange || timelineLoading || histogramLoading ? (
                     <Skeleton height={235} />
                 ) : !timelineData?.metrics_timeline.length &&
                   !histogramData?.metrics_histogram.buckets.length ? (
@@ -501,13 +487,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
                         height={235}
-                        data={(
-                            histogramData?.metrics_histogram.buckets || []
-                        ).filter(
-                            (x) =>
-                                x.range_start <=
-                                (histogramData?.metrics_histogram.p90 || 0)
-                        )}
+                        data={histogramData?.metrics_histogram.buckets || []}
                         referenceLines={[
                             {
                                 label: 'Goal',
@@ -554,7 +534,12 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
                         height={235}
-                        data={timelineData?.metrics_timeline || []}
+                        data={(timelineData?.metrics_timeline || []).map(
+                            (x) => ({
+                                date: x?.date,
+                                [x?.aggregate_function || 'avg']: x?.value,
+                            })
+                        )}
                         referenceLines={[
                             {
                                 label: 'Goal',
@@ -589,10 +574,7 @@ const ChartContainer = React.memo(
                         ]}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) => {
-                            return moment(
-                                new Date(tickItem),
-                                'DD MMM YYYY'
-                            ).format('D MMM');
+                            return moment(tickItem).format(tickFormat);
                         }}
                         xAxisProps={{
                             ticks: ticks,
@@ -615,13 +597,15 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
-        prevProps.dateRange === nextProps.dateRange &&
+        prevProps.lookbackMinutes === nextProps.lookbackMinutes &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
         prevProps.metricIdx === nextProps.metricIdx &&
-        prevProps.metricConfig.chart_type === nextProps.metricConfig.chart_type
+        prevProps.metricConfig.chart_type ===
+            nextProps.metricConfig.chart_type &&
+        prevProps.metricConfig.units === nextProps.metricConfig.units
 );
 
 export default DashboardCard;

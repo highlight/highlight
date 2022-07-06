@@ -371,8 +371,8 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
 	}
 
-	parallelWorkers := 16
-	workerPrefetch := 4
+	parallelWorkers := 32
+	workerPrefetch := 8
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
@@ -423,35 +423,6 @@ func (w *Worker) DeleteCompletedSessions() {
 		}
 		deleteSpan.Finish()
 	}
-}
-
-// DeleteOldMetrics will delete any metrics that are older than N days.
-func (w *Worker) DeleteOldMetrics() {
-	const expirationDays = 30
-
-	deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
-		tracer.ResourceName("worker.deleteNetworkRequests"), tracer.Tag("expirationDays", expirationDays))
-	if err := w.Resolver.DB.Exec(`
-		DELETE FROM network_requests n
-		       USING metrics m
-		       WHERE n.id = m.request_id
-					AND m.category != 'WebVital' AND m.category != 'Device'
-					AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, expirationDays).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting expired metrics"))
-	}
-	deleteSpan.Finish()
-
-	deleteSpan, _ = tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
-		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
-	if err := w.Resolver.DB.Exec(`
-		DELETE FROM metrics m
-		WHERE m.category != 'WebVital' AND m.category != 'Device'
-		AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, expirationDays).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting expired metrics"))
-	}
-	deleteSpan.Finish()
 }
 
 func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
@@ -1069,7 +1040,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient)
 }
 
 func (w *Worker) RefreshMaterializedViews() {
@@ -1178,8 +1149,6 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.RefreshMaterializedViews
 	case "delete-completed-sessions":
 		return w.DeleteCompletedSessions
-	case "delete-old-metrics":
-		return w.DeleteOldMetrics
 	case "public-worker":
 		return w.PublicWorker
 	default:

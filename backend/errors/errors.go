@@ -110,7 +110,7 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 		}
 		mappedStackFrame, err := processStackFrame(projectId, version, *stackFrame, storageClient)
 		if err != nil {
-			if !util.IsDevOrTestEnv() {
+			if util.IsDevOrTestEnv() {
 				log.Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{
@@ -179,7 +179,6 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	sourceMapFileName := string(regexp.MustCompile(`(?m)^//# sourceMappingURL=(.*)$`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
 		sourceMapFileName = fmt.Sprintf("%s.map", path.Base(stackTraceFileURL))
-		log.Warnf("file does not contain source map url: %v. using default fallback %s", stackTraceFileURL, sourceMapFileName)
 	} else {
 		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}

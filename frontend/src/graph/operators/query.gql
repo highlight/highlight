@@ -51,7 +51,7 @@ fragment SessionPayloadFragment on SessionPayload {
     last_user_interaction_time
 }
 
-query GetMetricsDashboard(
+query GetMetricsTimeline(
     $project_id: ID!
     $metric_name: String!
     $params: DashboardParamsInput!
@@ -62,11 +62,8 @@ query GetMetricsDashboard(
         params: $params
     ) {
         date
-        avg
-        p50
-        p75
-        p90
-        p99
+        value
+        aggregate_function
     }
 }
 
@@ -88,8 +85,8 @@ query GetMetricsHistogram(
         }
         min
         max
-        p10
-        p90
+        p1
+        p99
     }
 }
 
@@ -97,29 +94,11 @@ query GetNetworkHistogram(
     $project_id: ID!
     $params: NetworkHistogramParamsInput!
 ) {
-    network_histogram(
-        project_id: $project_id
-        params: $params
-    ) {
+    network_histogram(project_id: $project_id, params: $params) {
         buckets {
             category
             count
         }
-    }
-}
-
-query GetMetricPreview(
-    $project_id: ID!
-    $name: String!
-    $aggregateFunction: String!
-) {
-    metric_preview(
-        project_id: $project_id
-        name: $name
-        aggregateFunction: $aggregateFunction
-    ) {
-        value
-        date
     }
 }
 
@@ -794,6 +773,7 @@ query GetProject($id: ID!) {
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count
+        backend_domains
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -1479,4 +1459,14 @@ query GetDashboardDefinitions($project_id: ID!) {
 
 query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
     suggested_metrics(project_id: $project_id, prefix: $prefix)
+}
+
+query GetSourcemapFiles($project_id: ID!, $version: String) {
+    sourcemap_files(project_id: $project_id, version: $version) {
+        key
+    }
+}
+
+query GetSourcemapVersions($project_id: ID!) {
+    sourcemap_versions(project_id: $project_id)
 }

@@ -992,6 +992,7 @@ export const EditProjectDocument = gql`
         $rage_click_window_seconds: Int
         $rage_click_radius_pixels: Int
         $rage_click_count: Int
+        $backend_domains: StringArray
     ) {
         editProject(
             id: $id
@@ -1002,6 +1003,7 @@ export const EditProjectDocument = gql`
             rage_click_window_seconds: $rage_click_window_seconds
             rage_click_radius_pixels: $rage_click_radius_pixels
             rage_click_count: $rage_click_count
+            backend_domains: $backend_domains
         ) {
             id
             name
@@ -1011,6 +1013,7 @@ export const EditProjectDocument = gql`
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
+            backend_domains
         }
     }
 `;
@@ -1040,6 +1043,7 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
+ *      backend_domains: // value for 'backend_domains'
  *   },
  * });
  */
@@ -4172,8 +4176,8 @@ export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
     Types.UpsertDashboardMutation,
     Types.UpsertDashboardMutationVariables
 >;
-export const GetMetricsDashboardDocument = gql`
-    query GetMetricsDashboard(
+export const GetMetricsTimelineDocument = gql`
+    query GetMetricsTimeline(
         $project_id: ID!
         $metric_name: String!
         $params: DashboardParamsInput!
@@ -4184,26 +4188,23 @@ export const GetMetricsDashboardDocument = gql`
             params: $params
         ) {
             date
-            avg
-            p50
-            p75
-            p90
-            p99
+            value
+            aggregate_function
         }
     }
 `;
 
 /**
- * __useGetMetricsDashboardQuery__
+ * __useGetMetricsTimelineQuery__
  *
- * To run a query within a React component, call `useGetMetricsDashboardQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetMetricsTimelineQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsTimelineQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetMetricsDashboardQuery({
+ * const { data, loading, error } = useGetMetricsTimelineQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
@@ -4211,37 +4212,37 @@ export const GetMetricsDashboardDocument = gql`
  *   },
  * });
  */
-export function useGetMetricsDashboardQuery(
+export function useGetMetricsTimelineQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
+    >(GetMetricsTimelineDocument, baseOptions);
 }
-export function useGetMetricsDashboardLazyQuery(
+export function useGetMetricsTimelineLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetMetricsDashboardQuery,
-        Types.GetMetricsDashboardQueryVariables
-    >(GetMetricsDashboardDocument, baseOptions);
+        Types.GetMetricsTimelineQuery,
+        Types.GetMetricsTimelineQueryVariables
+    >(GetMetricsTimelineDocument, baseOptions);
 }
-export type GetMetricsDashboardQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardQuery
+export type GetMetricsTimelineQueryHookResult = ReturnType<
+    typeof useGetMetricsTimelineQuery
 >;
-export type GetMetricsDashboardLazyQueryHookResult = ReturnType<
-    typeof useGetMetricsDashboardLazyQuery
+export type GetMetricsTimelineLazyQueryHookResult = ReturnType<
+    typeof useGetMetricsTimelineLazyQuery
 >;
-export type GetMetricsDashboardQueryResult = Apollo.QueryResult<
-    Types.GetMetricsDashboardQuery,
-    Types.GetMetricsDashboardQueryVariables
+export type GetMetricsTimelineQueryResult = Apollo.QueryResult<
+    Types.GetMetricsTimelineQuery,
+    Types.GetMetricsTimelineQueryVariables
 >;
 export const GetMetricsHistogramDocument = gql`
     query GetMetricsHistogram(
@@ -4262,8 +4263,8 @@ export const GetMetricsHistogramDocument = gql`
             }
             min
             max
-            p10
-            p90
+            p1
+            p99
         }
     }
 `;
@@ -4380,73 +4381,6 @@ export type GetNetworkHistogramLazyQueryHookResult = ReturnType<
 export type GetNetworkHistogramQueryResult = Apollo.QueryResult<
     Types.GetNetworkHistogramQuery,
     Types.GetNetworkHistogramQueryVariables
->;
-export const GetMetricPreviewDocument = gql`
-    query GetMetricPreview(
-        $project_id: ID!
-        $name: String!
-        $aggregateFunction: String!
-    ) {
-        metric_preview(
-            project_id: $project_id
-            name: $name
-            aggregateFunction: $aggregateFunction
-        ) {
-            value
-            date
-        }
-    }
-`;
-
-/**
- * __useGetMetricPreviewQuery__
- *
- * To run a query within a React component, call `useGetMetricPreviewQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricPreviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMetricPreviewQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      aggregateFunction: // value for 'aggregateFunction'
- *   },
- * });
- */
-export function useGetMetricPreviewQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >(GetMetricPreviewDocument, baseOptions);
-}
-export function useGetMetricPreviewLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetMetricPreviewQuery,
-        Types.GetMetricPreviewQueryVariables
-    >(GetMetricPreviewDocument, baseOptions);
-}
-export type GetMetricPreviewQueryHookResult = ReturnType<
-    typeof useGetMetricPreviewQuery
->;
-export type GetMetricPreviewLazyQueryHookResult = ReturnType<
-    typeof useGetMetricPreviewLazyQuery
->;
-export type GetMetricPreviewQueryResult = Apollo.QueryResult<
-    Types.GetMetricPreviewQuery,
-    Types.GetMetricPreviewQueryVariables
 >;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(
@@ -6824,6 +6758,7 @@ export const GetProjectDocument = gql`
             rage_click_window_seconds
             rage_click_radius_pixels
             rage_click_count
+            backend_domains
         }
         workspace: workspace_for_project(project_id: $id) {
             id
@@ -9730,4 +9665,115 @@ export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
 export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
     Types.GetSuggestedMetricsQuery,
     Types.GetSuggestedMetricsQueryVariables
+>;
+export const GetSourcemapFilesDocument = gql`
+    query GetSourcemapFiles($project_id: ID!, $version: String) {
+        sourcemap_files(project_id: $project_id, version: $version) {
+            key
+        }
+    }
+`;
+
+/**
+ * __useGetSourcemapFilesQuery__
+ *
+ * To run a query within a React component, call `useGetSourcemapFilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSourcemapFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSourcemapFilesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      version: // value for 'version'
+ *   },
+ * });
+ */
+export function useGetSourcemapFilesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >(GetSourcemapFilesDocument, baseOptions);
+}
+export function useGetSourcemapFilesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSourcemapFilesQuery,
+        Types.GetSourcemapFilesQueryVariables
+    >(GetSourcemapFilesDocument, baseOptions);
+}
+export type GetSourcemapFilesQueryHookResult = ReturnType<
+    typeof useGetSourcemapFilesQuery
+>;
+export type GetSourcemapFilesLazyQueryHookResult = ReturnType<
+    typeof useGetSourcemapFilesLazyQuery
+>;
+export type GetSourcemapFilesQueryResult = Apollo.QueryResult<
+    Types.GetSourcemapFilesQuery,
+    Types.GetSourcemapFilesQueryVariables
+>;
+export const GetSourcemapVersionsDocument = gql`
+    query GetSourcemapVersions($project_id: ID!) {
+        sourcemap_versions(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetSourcemapVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetSourcemapVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSourcemapVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSourcemapVersionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetSourcemapVersionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >(GetSourcemapVersionsDocument, baseOptions);
+}
+export function useGetSourcemapVersionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSourcemapVersionsQuery,
+        Types.GetSourcemapVersionsQueryVariables
+    >(GetSourcemapVersionsDocument, baseOptions);
+}
+export type GetSourcemapVersionsQueryHookResult = ReturnType<
+    typeof useGetSourcemapVersionsQuery
+>;
+export type GetSourcemapVersionsLazyQueryHookResult = ReturnType<
+    typeof useGetSourcemapVersionsLazyQuery
+>;
+export type GetSourcemapVersionsQueryResult = Apollo.QueryResult<
+    Types.GetSourcemapVersionsQuery,
+    Types.GetSourcemapVersionsQueryVariables
 >;

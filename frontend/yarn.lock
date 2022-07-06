@@ -4771,6 +4771,11 @@ anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
+apollo3-cache-persist@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/apollo3-cache-persist/-/apollo3-cache-persist-0.14.0.tgz#457519f548698fb1e70f99d81e59652fc289ab19"
+  integrity sha512-jT3wkB3IJGNyK1XTtS2WbaAyD/Z9Z4HuFEsU0kIpYceqdtT8gV1kNSX+4YMBt0XgS954zMKY6cs8Q4zt7NNPeQ==
+
 aproba@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/aproba/-/aproba-1.2.0.tgz#6802e6264efd18c790a1b0d517f0f2627bf2c94a"

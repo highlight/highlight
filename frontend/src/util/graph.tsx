@@ -13,6 +13,7 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { persistCache } from 'apollo3-cache-persist';
 import * as firebase from 'firebase/app';
 
 const uri =
@@ -85,6 +86,54 @@ const GraphCDNOperations = [
     Query.GetRageClicksForProject,
 ] as const;
 
+const cache = new InMemoryCache({
+    typePolicies: {
+        Session: {
+            keyFields: ['secure_id'],
+        },
+        ErrorGroup: {
+            keyFields: ['secure_id'],
+        },
+        DashboardPayload: {
+            fields: {
+                metrics_histogram: {
+                    keyArgs: ['project_id', 'metric_name', 'params'],
+                },
+            },
+        },
+        HistogramPayload: {
+            fields: {
+                metrics_histogram: {
+                    keyArgs: ['project_id', 'metric_name', 'params'],
+                },
+            },
+        },
+    },
+});
+
+// graphql queries that should be stored in sessionStorage
+const STORED_QUERIES = ['metrics_histogram', 'metrics_timeline'] as const;
+persistCache({
+    cache,
+    storage: sessionStorage,
+    key: 'highlight-apollo-cache',
+    persistenceMapper: async (data: string) => {
+        const d: { ROOT_QUERY?: { [key: string]: any } } = JSON.parse(data);
+        const saved: { ROOT_QUERY: { [key: string]: any } } = {
+            ROOT_QUERY: {},
+        };
+        for (const k in d.ROOT_QUERY) {
+            for (const storedKey of STORED_QUERIES) {
+                if (k.startsWith(storedKey)) {
+                    saved.ROOT_QUERY[k] = d.ROOT_QUERY[k];
+                    break;
+                }
+            }
+        }
+        return JSON.stringify(saved);
+    },
+}).catch(console.error);
+
 export const client = new ApolloClient({
     link: ApolloLink.split(
         (operation) => {
@@ -96,25 +145,12 @@ export const client = new ApolloClient({
 
             // Check to see if the operation is one that we should send to GraphCDN instead of private graph.
             // @ts-expect-error
-            if (GraphCDNOperations.includes(operation.operationName)) {
-                return true;
-            }
-            return false;
+            return GraphCDNOperations.includes(operation.operationName);
         },
         authLink.concat(graphCdnGraph),
         authLink.concat(splitLink || highlightGraph)
     ),
-    cache: new InMemoryCache({
-        typePolicies: {
-            Session: {
-                keyFields: ['secure_id'],
-            },
-            ErrorGroup: {
-                keyFields: ['secure_id'],
-            },
-        },
-    }),
+    cache: cache,
     assumeImmutableResults: true,
-    connectToDevTools:
-        process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,
+    connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev',
 });

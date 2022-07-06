@@ -6,6 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -58,6 +61,7 @@ var (
 
 type Resolver struct {
 	DB                     *gorm.DB
+	TDB                    timeseries.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          *storage.StorageClient
@@ -2252,22 +2256,145 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	return &existingChannels, newChannelsCount, nil
 }
 
-func GetAggregateSQLStatement(aggregateFunctionName string) string {
-	aggregateStatement := "AVG(value)"
+func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.DashboardMetric) error {
+	var projectID int
+	if err := r.DB.Raw(`
+		SELECT d.project_id
+		FROM dashboard_metrics dm
+				 INNER JOIN dashboards d on dm.dashboard_id = d.id
+		WHERE dm.id = ?
+	`, metric.ID).First(&projectID).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve metrics to create alert")
+	}
 
+	var monitors int64
+	if err := r.DB.Model(&model.MetricMonitor{}).Where(&model.MetricMonitor{
+		ProjectID:       projectID,
+		MetricToMonitor: metric.Name,
+	}).Count(&monitors).Error; err != nil {
+		return e.Wrap(err, "failed to count existing monitors")
+	}
+	if monitors > 0 {
+		return nil
+	}
+
+	var slackChannels []*modelInputs.SanitizedSlackChannel
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.webhook_channel_id, s.webhook_channel) * FROM (
+				SELECT json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel' #>>'{}'    as webhook_channel,
+					   json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel_id' #>>'{}' as webhook_channel_id
+				FROM metric_monitors mm
+				WHERE mm.project_id = ?
+				  and mm.channels_to_notify is not null
+			) s
+		`, projectID).Scan(&slackChannels).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve slack channels to create alert")
+	}
+	var channelsString *string
+	if len(slackChannels) > 0 {
+		channelsBytes, err := json.Marshal(slackChannels)
+		if err != nil {
+			return e.Wrap(err, "error parsing slack channels")
+		}
+		cs := string(channelsBytes)
+		channelsString = &cs
+	}
+
+	var emails []*string
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.email) * FROM (
+				SELECT json_array_elements(cast(mm.emails_to_notify as json)) #>>'{}' as email
+				FROM metric_monitors mm
+				WHERE mm.project_id = ? and mm.emails_to_notify is not null
+			) s
+		`, projectID).Scan(&emails).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve emails to create alert")
+	}
+	if len(emails) < 1 {
+		if err := r.DB.Raw(`
+			SELECT array_agg(DISTINCT a.email) as emails
+			FROM project_admins pa
+			INNER JOIN admins a on pa.admin_id = a.id
+			WHERE pa.project_id = ?
+			GROUP BY pa.project_id
+		`, projectID).Scan(&emails).Error; err != nil {
+			return e.Wrap(err, "failed to retrieve emails to create alert")
+		}
+	}
+	var emailsString *string
+	if len(emails) > 0 {
+		var err error
+		emailsString, err = r.MarshalAlertEmails(emails)
+		if err != nil {
+			return e.Wrap(err, "failed to marshall emails for auto created metric monitor")
+		}
+	}
+
+	// calculate a reasonable threshold
+	end := time.Now()
+	start := time.Now().Add(-24 * time.Hour)
+	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
+		DateRange: &modelInputs.DateRangeInput{
+			StartDate: &start,
+			EndDate:   &end,
+		},
+		ResolutionMinutes: pointy.Int(60),
+		Units:             pointy.String(metric.Units),
+		AggregateFunction: pointy.String("p90"),
+	})
+	if err != nil {
+		return e.Wrap(err, "failed to retrieve recent metric data for threshold calculation")
+	}
+	threshold := 1.
+	if len(points) > 0 {
+		threshold = points[len(points)-1].Value
+	}
+	caser := cases.Title(language.AmericanEnglish)
+	name := caser.String(strings.ToLower(metric.Name))
+	newMetricMonitor := &model.MetricMonitor{
+		ProjectID:        projectID,
+		Name:             fmt.Sprintf("%s Default Monitor", name),
+		Function:         "p50",
+		Threshold:        threshold,
+		MetricToMonitor:  metric.Name,
+		ChannelsToNotify: channelsString,
+		EmailsToNotify:   emailsString,
+	}
+	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
+		return e.Wrap(err, "failed to auto create metric monitor")
+	}
+	return nil
+}
+
+func GetAggregateFluxStatement(aggregateFunctionName string, resMins int) string {
+	aggregateStatement := fmt.Sprintf(`
+      query()
+		  |> aggregateWindow(every: %dm, fn: mean, createEmpty: false)
+          |> yield(name: "avg")
+	`, resMins)
+
+	quantile := 0.
+	// explicitly validate the aggregate func to ensure no query injection possible
 	switch aggregateFunctionName {
 	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.5
 	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.75
 	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.9
+	case "p95":
+		quantile = 0.95
 	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
+		quantile = 0.99
 	case "avg":
 	default:
 		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
-		aggregateStatement = "AVG(value)"
+	}
+	if quantile > 0. {
+		aggregateStatement = fmt.Sprintf(`
+		  do(q:%f)
+			  |> yield(name: "p%d")
+		`, quantile, int(quantile*100))
 	}
 
 	return aggregateStatement
@@ -2287,4 +2414,62 @@ func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) fl
 		return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
 	}
 	return div
+}
+
+// MetricOriginalUnits returns the input units for the metric or nil if unitless.
+func MetricOriginalUnits(metricName string) (originalUnits *string) {
+	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ns")
+	}
+	return
+}
+
+func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
+	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	resMins := 60
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
+		resMins = *params.ResolutionMinutes
+	}
+
+	query := fmt.Sprintf(`
+      query = () =>
+		from(bucket: "%[1]s")
+		  |> range(start: %[2]s, stop: %[3]s)
+		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
+		  |> filter(fn: (r) => r["_field"] == "%[5]s")
+		  |> group()
+      do = (q) =>
+        query()
+		  |> aggregateWindow(
+               every: %[6]dm,
+               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
+               createEmpty: true)
+	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, resMins)
+	agg := "avg"
+	if params.AggregateFunction != nil && *params.AggregateFunction != "" {
+		agg = *params.AggregateFunction
+	}
+	query += GetAggregateFluxStatement(agg, resMins)
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	timelineQuerySpan.SetTag("projectID", projectID)
+	timelineQuerySpan.SetTag("metricName", metricName)
+	timelineQuerySpan.SetTag("resMins", resMins)
+	results, err := tdb.Query(ctx, query)
+	timelineQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range results {
+		v := 0.
+		if r.Value != nil {
+			v = r.Value.(float64) / div
+		}
+		payload = append(payload, &modelInputs.DashboardPayload{
+			Date:              r.Time.Format(time.RFC3339Nano),
+			Value:             v,
+			AggregateFunction: &agg,
+		})
+	}
+	return
 }

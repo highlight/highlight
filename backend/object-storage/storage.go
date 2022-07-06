@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -470,4 +471,36 @@ func (s *StorageClient) GetAssetURL(projectId string, hashVal string) (string, e
 	}
 
 	return resp.URL, nil
+}
+
+func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) ([]s3Types.Object, error) {
+	if version == nil || len(*version) == 0 {
+		// If no version is specified we put files in an "unversioned" directory.
+		version = pointy.String("unversioned")
+	}
+
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: pointy.String(S3SourceMapBucketName),
+		Prefix: pointy.String(fmt.Sprintf("%d/%s/", projectId, *version)),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemaps from s3")
+	}
+
+	return output.Contents, nil
+}
+
+func (s *StorageClient) GetSourcemapVersionsFromS3(projectId int) ([]s3Types.CommonPrefix, error) {
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket:    pointy.String(S3SourceMapBucketName),
+		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
+		Delimiter: pointy.String("/"),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
+	}
+
+	return output.CommonPrefixes, nil
 }
