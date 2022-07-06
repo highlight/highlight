@@ -107,64 +107,71 @@ const DashboardCard = ({
                         </h3>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
-                                {metricMonitorsLoading ? (
-                                    <Skeleton width={111} />
-                                ) : metricMonitors?.metric_monitors.length ? (
-                                    <StandardDropdown
-                                        display={
-                                            <div>
+                                {metricConfig.name.length ? (
+                                    metricMonitorsLoading ? (
+                                        <Skeleton width={111} />
+                                    ) : metricMonitors?.metric_monitors
+                                          .length ? (
+                                        <StandardDropdown
+                                            display={
+                                                <div>
+                                                    <SvgAnnouncementIcon
+                                                        style={{
+                                                            marginBottom: -3,
+                                                            marginRight:
+                                                                'var(--size-xSmall)',
+                                                        }}
+                                                    />
+                                                    {
+                                                        metricMonitors
+                                                            ?.metric_monitors
+                                                            .length
+                                                    }
+                                                    {metricMonitors
+                                                        ?.metric_monitors
+                                                        .length > 1
+                                                        ? ' Monitors'
+                                                        : ' Monitor'}
+                                                </div>
+                                            }
+                                            data={metricMonitors?.metric_monitors.map(
+                                                (mm) => ({
+                                                    label: mm?.name || '',
+                                                    value: mm?.id || '',
+                                                })
+                                            )}
+                                            onSelect={(mmId) =>
+                                                history.push(
+                                                    `/${project_id}/alerts/monitor/${mmId}`
+                                                )
+                                            }
+                                            className={styles.monitorItem}
+                                            labelClassName={styles.monitorName}
+                                        />
+                                    ) : (
+                                        <Button
+                                            icon={
                                                 <SvgAnnouncementIcon
                                                     style={{
-                                                        marginBottom: -3,
                                                         marginRight:
                                                             'var(--size-xSmall)',
                                                     }}
                                                 />
-                                                {
-                                                    metricMonitors
-                                                        ?.metric_monitors.length
-                                                }
-                                                {metricMonitors?.metric_monitors
-                                                    .length > 1
-                                                    ? ' Monitors'
-                                                    : ' Monitor'}
-                                            </div>
-                                        }
-                                        data={metricMonitors?.metric_monitors.map(
-                                            (mm) => ({
-                                                label: mm?.name || '',
-                                                value: mm?.id || '',
-                                            })
-                                        )}
-                                        onSelect={(mmId) =>
-                                            history.push(
-                                                `/${project_id}/alerts/monitor/${mmId}`
-                                            )
-                                        }
-                                        className={styles.monitorItem}
-                                        labelClassName={styles.monitorName}
-                                    />
+                                            }
+                                            trackingId={
+                                                'DashboardCardCreateMonitor'
+                                            }
+                                            onClick={() => {
+                                                history.push(
+                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                                );
+                                            }}
+                                        >
+                                            Create Alert
+                                        </Button>
+                                    )
                                 ) : (
-                                    <Button
-                                        icon={
-                                            <SvgAnnouncementIcon
-                                                style={{
-                                                    marginRight:
-                                                        'var(--size-xSmall)',
-                                                }}
-                                            />
-                                        }
-                                        trackingId={
-                                            'DashboardCardCreateMonitor'
-                                        }
-                                        onClick={() => {
-                                            history.push(
-                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                            );
-                                        }}
-                                    >
-                                        Create Alert
-                                    </Button>
+                                    <div style={{ width: 161 }}></div>
                                 )}
                                 <Button
                                     icon={
