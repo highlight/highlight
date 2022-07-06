@@ -717,6 +717,7 @@ type MetricMonitor struct {
 	ProjectID         int `gorm:"index;not null;"`
 	Name              string
 	Function          string
+	PeriodMinutes     *int // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`

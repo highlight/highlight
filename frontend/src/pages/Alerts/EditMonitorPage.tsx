@@ -42,6 +42,7 @@ const EditMonitorPage = ({
     );
     const [monitorName, setMonitorName] = useState('');
     const [functionName, setFunctionName] = useState<string>('p90');
+    const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
@@ -51,6 +52,7 @@ const EditMonitorPage = ({
             metric_monitor_id: id,
             project_id,
             function: functionName,
+            periodMinutes: periodMinutes,
             metric_to_monitor: metricToMonitorName,
             name: monitorName,
             slack_channels: slackChannels.map((webhook_channel_id: string) => ({
@@ -91,6 +93,7 @@ const EditMonitorPage = ({
             const {
                 channels_to_notify,
                 function: functionName,
+                period_minutes: period,
                 metric_to_monitor,
                 name,
                 threshold,
@@ -108,6 +111,7 @@ const EditMonitorPage = ({
                 ) || []
             );
             setFunctionName(functionName);
+            setPeriodMinutes(period || 1);
             setIsDisabled(disabled);
         }
 
@@ -134,6 +138,9 @@ const EditMonitorPage = ({
                 <Card>
                     <MonitorConfiguration
                         onAggregateFunctionChange={setFunctionName}
+                        onAggregatePeriodChange={(p) =>
+                            setPeriodMinutes(Number(p))
+                        }
                         onMonitorNameChange={setMonitorName}
                         onConfigChange={setConfig}
                         onMetricToMonitorNameChange={setMetricToMonitorName}
@@ -141,6 +148,7 @@ const EditMonitorPage = ({
                         slackChannels={slackChannels}
                         onThresholdChange={setThreshold}
                         aggregateFunction={functionName}
+                        aggregatePeriodMinutes={periodMinutes}
                         config={config}
                         loading={loading}
                         metricToMonitorName={metricToMonitorName}

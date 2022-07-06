@@ -24,6 +24,9 @@ import { Link } from 'react-router-dom';
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss';
 import styles from './MonitorConfiguration.module.scss';
 
+// show the last 3 periods
+const PREVIEW_PERIODS = 3;
+
 interface Props {
     loading: boolean;
     metricToMonitorName: string;
@@ -31,7 +34,9 @@ interface Props {
     monitorName: string;
     onMonitorNameChange: (newName: string) => void;
     aggregateFunction: string;
+    aggregatePeriodMinutes: number;
     onAggregateFunctionChange: (newAggregateFunction: string) => void;
+    onAggregatePeriodChange: (newPeriod: string) => void;
     threshold: number;
     onThresholdChange: (newThreshold: number) => void;
     slackChannels: string[];
@@ -57,6 +62,7 @@ interface Props {
 const MonitorConfiguration = ({
     loading,
     aggregateFunction,
+    aggregatePeriodMinutes,
     metricToMonitorName,
     monitorName,
     config,
@@ -73,6 +79,7 @@ const MonitorConfiguration = ({
     formCancelButtonLabel,
     onFormCancel,
     onAggregateFunctionChange,
+    onAggregatePeriodChange,
     onMonitorNameChange,
     onMetricToMonitorNameChange,
     onThresholdChange,
@@ -88,21 +95,23 @@ const MonitorConfiguration = ({
     }>();
     const { currentWorkspace } = useApplicationContext();
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateRange] = React.useState<{
-        start_date: string;
-        end_date: string;
-    }>({
-        start_date: moment(new Date()).subtract(15, 'minutes').toISOString(),
-        end_date: moment(new Date()).toISOString(),
-    });
+    const [endDate] = React.useState<moment.Moment>(moment(new Date()));
     const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
         variables: {
             project_id,
             metric_name: metricToMonitorName,
             params: {
                 aggregate_function: aggregateFunction,
-                date_range: dateRange,
-                resolution_minutes: 1,
+                date_range: {
+                    start_date: moment(endDate)
+                        .subtract(
+                            PREVIEW_PERIODS * aggregatePeriodMinutes,
+                            'minutes'
+                        )
+                        .toISOString(),
+                    end_date: endDate.toISOString(),
+                },
+                resolution_minutes: aggregatePeriodMinutes,
                 units: 'ms',
             },
         },
@@ -134,11 +143,13 @@ const MonitorConfiguration = ({
                 };
             });
         } else {
-            return data.metrics_timeline.map((point, index) => ({
+            return data.metrics_timeline.map((point) => ({
                 value: point?.value,
-                date: moment(now)
-                    .subtract(pointsToGenerate - index, 'minutes')
-                    .format('h:mm A'),
+                date: moment(point?.date).format(
+                    aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
+                        ? 'D MMM h:mm A'
+                        : 'h:mm A'
+                ),
             }));
         }
     }, [
@@ -146,6 +157,7 @@ const MonitorConfiguration = ({
         config.max_needs_improvement_value,
         data,
         loading,
+        aggregatePeriodMinutes,
     ]);
     const graphMin = useMemo(() => {
         return (
@@ -170,6 +182,16 @@ const MonitorConfiguration = ({
         }) || [];
 
     const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
+    const periodOptions = [
+        { label: '1 minute', value: 1 },
+        { label: '5 minutes', value: 5 },
+        { label: '15 minutes', value: 15 },
+        { label: '30 minutes', value: 3 },
+        { label: '1 hour', value: 60 },
+        { label: '6 hours', value: 6 * 60 },
+        { label: '12 hours', value: 12 * 60 },
+        { label: '1 day', value: 24 * 60 },
+    ] as { label: string; value: number }[];
 
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
@@ -281,6 +303,28 @@ const MonitorConfiguration = ({
                         value={aggregateFunction}
                         onChange={(e) => {
                             onAggregateFunctionChange(e);
+                        }}
+                    />
+                </section>
+
+                <section>
+                    <h3>Period</h3>
+                    <p>
+                        This aggregation window will be used to determine if the
+                        value is exceeding the threshold. For example, if set to
+                        5 minutes with an aggregator function of p50, a 5 minute
+                        window median must exceed the threshold for an alert.
+                    </p>
+                    <Select
+                        options={periodOptions.map((o) => ({
+                            displayValue: o.label,
+                            id: o.value.toString(),
+                            value: o.value.toString(),
+                        }))}
+                        className={styles.select}
+                        value={aggregatePeriodMinutes.toString()}
+                        onChange={(e) => {
+                            onAggregatePeriodChange(e);
                         }}
                     />
                 </section>
