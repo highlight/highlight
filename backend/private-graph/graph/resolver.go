@@ -2160,7 +2160,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 			SELECT DISTINCT ON (s.webhook_channel_id, s.webhook_channel) * FROM (
 				SELECT json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel' #>>'{}'    as webhook_channel,
 					   json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel_id' #>>'{}' as webhook_channel_id
-				FROM postgres.public.metric_monitors mm
+				FROM metric_monitors mm
 				WHERE mm.project_id = ?
 				  and mm.channels_to_notify is not null
 			) s
@@ -2181,7 +2181,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	if err := r.DB.Raw(`
 			SELECT DISTINCT ON (s.email) * FROM (
 				SELECT json_array_elements(cast(mm.emails_to_notify as json)) #>>'{}' as email
-				FROM postgres.public.metric_monitors mm
+				FROM metric_monitors mm
 				WHERE mm.project_id = ? and mm.emails_to_notify is not null
 			) s
 		`, projectID).Scan(&emails).Error; err != nil {
