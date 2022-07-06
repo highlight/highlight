@@ -407,7 +407,8 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
 	// get version from session
 	var version *string
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: errorObj.SessionID}}).
+	if err := r.DB.Model(&model.Session{}).
+		Where("id = ?", errorObj.SessionID).
 		Select("app_version").Scan(&version).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, e.Wrap(err, "error getting app version from session")
