@@ -4,7 +4,7 @@ import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Input from '@components/Input/Input';
-import LineChart from '@components/LineChart/LineChart';
+import LineChart, { Reference } from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
@@ -21,6 +21,7 @@ import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
+import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import moment from 'moment';
@@ -104,6 +105,25 @@ const DashboardCard = ({
                                     <Skeleton width={111} />
                                 ) : metricMonitors?.metric_monitors.length ? (
                                     <StandardDropdown
+                                        display={
+                                            <div>
+                                                <SvgAnnouncementIcon
+                                                    style={{
+                                                        marginBottom: -3,
+                                                        marginRight:
+                                                            'var(--size-xSmall)',
+                                                    }}
+                                                />
+                                                {
+                                                    metricMonitors
+                                                        ?.metric_monitors.length
+                                                }
+                                                {metricMonitors?.metric_monitors
+                                                    .length > 1
+                                                    ? ' Monitors'
+                                                    : ' Monitor'}
+                                            </div>
+                                        }
                                         data={metricMonitors?.metric_monitors.map(
                                             (mm) => ({
                                                 label: mm?.name || '',
@@ -460,6 +480,41 @@ const ChartContainer = React.memo(
                 }
             }
         }
+        let referenceLines: Reference[] = [];
+        if (WEB_VITALS_CONFIGURATION[metricConfig.name]) {
+            referenceLines = [
+                {
+                    label: 'Goal',
+                    value: maxGoodValue,
+                    color: 'var(--color-green-300)',
+                    onDrag:
+                        setMaxGoodValue &&
+                        ((y) => {
+                            setMaxGoodValue(y);
+                        }),
+                },
+                {
+                    label: 'Needs Improvement',
+                    value: maxNeedsImprovementValue,
+                    color: 'var(--color-red-200)',
+                    onDrag:
+                        setMaxNeedsImprovementValue &&
+                        ((y) => {
+                            setMaxNeedsImprovementValue(y);
+                        }),
+                },
+                {
+                    label: 'Poor',
+                    value: poorValue,
+                    color: 'var(--color-red-400)',
+                    onDrag:
+                        setPoorValue &&
+                        ((y) => {
+                            setPoorValue(y);
+                        }),
+                },
+            ];
+        }
 
         return (
             <>
@@ -488,38 +543,7 @@ const ChartContainer = React.memo(
                     <BarChartV2
                         height={235}
                         data={histogramData?.metrics_histogram.buckets || []}
-                        referenceLines={[
-                            {
-                                label: 'Goal',
-                                value: maxGoodValue,
-                                color: 'var(--color-green-300)',
-                                onDrag:
-                                    setMaxGoodValue &&
-                                    ((y) => {
-                                        setMaxGoodValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: maxNeedsImprovementValue,
-                                color: 'var(--color-red-200)',
-                                onDrag:
-                                    setMaxNeedsImprovementValue &&
-                                    ((y) => {
-                                        setMaxNeedsImprovementValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Poor',
-                                value: poorValue,
-                                color: 'var(--color-red-400)',
-                                onDrag:
-                                    setPoorValue &&
-                                    ((y) => {
-                                        setPoorValue(y);
-                                    }),
-                            },
-                        ]}
+                        referenceLines={referenceLines}
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
@@ -540,38 +564,7 @@ const ChartContainer = React.memo(
                                 [x?.aggregate_function || 'avg']: x?.value,
                             })
                         )}
-                        referenceLines={[
-                            {
-                                label: 'Goal',
-                                value: maxGoodValue,
-                                color: 'var(--color-green-300)',
-                                onDrag:
-                                    setMaxGoodValue &&
-                                    ((y) => {
-                                        setMaxGoodValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: maxNeedsImprovementValue,
-                                color: 'var(--color-red-200)',
-                                onDrag:
-                                    setMaxNeedsImprovementValue &&
-                                    ((y) => {
-                                        setMaxNeedsImprovementValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Poor',
-                                value: poorValue,
-                                color: 'var(--color-red-400)',
-                                onDrag:
-                                    setPoorValue &&
-                                    ((y) => {
-                                        setPoorValue(y);
-                                    }),
-                            },
-                        ]}
+                        referenceLines={referenceLines}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) => {
                             return moment(tickItem).format(tickFormat);

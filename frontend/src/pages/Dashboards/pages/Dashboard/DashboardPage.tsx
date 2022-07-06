@@ -18,7 +18,6 @@ import {
     DEFAULT_METRICS_LAYOUT,
     getDefaultMetricConfig,
 } from '@pages/Dashboards/Metrics';
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -240,7 +239,7 @@ const AddMetricModal = ({
     const { project_id } = useParams<{ project_id: string }>();
     const [isTyping, setIsTyping] = useState(false);
     const [metricName, setMetricName] = useState('');
-    const { loading, refetch } = useGetSuggestedMetricsQuery({
+    const { data: suggestedMetrics, loading } = useGetSuggestedMetricsQuery({
         variables: {
             project_id,
             prefix: '',
@@ -251,23 +250,24 @@ const AddMetricModal = ({
         input: string,
         callback: (s: MetricOption[]) => void
     ) => {
-        refetch({
-            project_id,
-            prefix: input,
-        })?.then((fetched) => {
-            setIsTyping(false);
-            callback(
-                fetched.data.suggested_metrics.map((s) => ({
+        const options =
+            suggestedMetrics?.suggested_metrics
+                .filter(
+                    (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
+                )
+                .map((s) => ({
                     label: s,
                     value: s,
-                }))
-            );
-        });
+                })) || [];
+        setIsTyping(false);
+        callback(options);
     };
 
     // Ignore this so we have a consistent reference so debounce works.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadOptions = useMemo(() => _.debounce(getValueOptions, 500), []);
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), [
+        suggestedMetrics?.suggested_metrics,
+    ]);
 
     return (
         <Modal visible={shown} onCancel={onCancel} title={'Add a Metric Chart'}>
@@ -314,20 +314,12 @@ const AddMetricModal = ({
                                         label?: string;
                                     }>
                                 ) => {
-                                    if (newValue?.value) {
-                                        setMetricName(newValue.value);
-                                    }
+                                    setMetricName(newValue?.value || '');
                                 }}
                                 isLoading={loading}
                                 isClearable={false}
-                                value={{
-                                    value: metricName,
-                                    label: metricName,
-                                }}
                                 escapeClearsValue={true}
-                                defaultOptions={Object.keys(
-                                    WEB_VITALS_CONFIGURATION
-                                ).map(
+                                defaultOptions={suggestedMetrics?.suggested_metrics.map(
                                     (k) =>
                                         ({
                                             label: k,
@@ -351,6 +343,7 @@ const AddMetricModal = ({
                             }}
                             trackingId={'AddNewMetric'}
                             onClick={() => {
+                                console.log('adding metric', metricName);
                                 onAddNewMetric(metricName);
                                 setMetricName('');
                             }}
