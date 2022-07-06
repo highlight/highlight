@@ -257,8 +257,8 @@ const EditMetricModal = ({
     shown?: boolean;
 }) => {
     const [units, setUnits] = useState<string>(metricConfig.units);
-    const [helpArticle, setHelpArticle] = useState<string>(
-        metricConfig.help_article
+    const [description, setDescription] = useState<string>(
+        metricConfig.description
     );
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
@@ -282,14 +282,6 @@ const EditMetricModal = ({
                             }
                             onSelect={(value) => setUnits(value)}
                         />
-                        <Input
-                            placeholder="Help Article"
-                            name="Help Article"
-                            value={helpArticle}
-                            onChange={(e) => {
-                                setHelpArticle(e.target?.value || '');
-                            }}
-                        />
                         <StandardDropdown
                             data={Object.keys(DashboardChartType).map(
                                 (value) => ({
@@ -303,8 +295,24 @@ const EditMetricModal = ({
                             }}
                             onSelect={(value) => setChartType(value)}
                         />
+                        <Input
+                            placeholder="Description"
+                            name="Description"
+                            value={description}
+                            onChange={(e) => {
+                                setDescription(e.target?.value || '');
+                            }}
+                        />
+                    </div>
+                </section>
+                <section className={dashStyles.section}>
+                    <div className={styles.submitRow}>
                         <Button
-                            style={{ width: 90 }}
+                            type={'primary'}
+                            style={{
+                                width: 90,
+                                marginRight: 'var(--size-xSmall)',
+                            }}
                             icon={
                                 <SaveIcon
                                     style={{
@@ -316,9 +324,9 @@ const EditMetricModal = ({
                             onClick={() => {
                                 updateMetric(metricIdx, {
                                     name: metricConfig.name,
-                                    description: metricConfig.description,
+                                    description: description,
                                     units: units,
-                                    help_article: helpArticle,
+                                    help_article: metricConfig.help_article,
                                     max_good_value: metricConfig.max_good_value,
                                     max_needs_improvement_value:
                                         metricConfig.max_needs_improvement_value,
@@ -598,7 +606,9 @@ const ChartContainer = React.memo(
         prevProps.metricIdx === nextProps.metricIdx &&
         prevProps.metricConfig.chart_type ===
             nextProps.metricConfig.chart_type &&
-        prevProps.metricConfig.units === nextProps.metricConfig.units
+        prevProps.metricConfig.units === nextProps.metricConfig.units &&
+        prevProps.metricConfig.description ===
+            nextProps.metricConfig.description
 );
 
 export default DashboardCard;
