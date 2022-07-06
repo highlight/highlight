@@ -71,4 +71,5 @@ func main() {
 	if err := db.Preload("Metrics").Model(&model.MetricGroup{}).FindInBatches(&mgs, BatchSize, inner).Error; err != nil {
 		log.Fatalf("failed: %v", err)
 	}
+	tdb.Stop()
 }
