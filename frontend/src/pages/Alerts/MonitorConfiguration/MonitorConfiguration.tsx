@@ -172,6 +172,14 @@ const MonitorConfiguration = ({
         id: email,
     }));
 
+    const [referenceArea, setReferenceArea] = React.useState<{
+        left: number;
+        right: number;
+    }>({
+        left: 0,
+        right: 0,
+    });
+
     return (
         <div>
             <div className={styles.chartContainer}>
@@ -188,14 +196,18 @@ const MonitorConfiguration = ({
                         }}
                         yAxisLabel={config.units}
                         referenceAreaProps={
-                            graphData.length > 0
-                                ? {
-                                      x1: graphData[0].date,
-                                      y1: threshold,
-                                      fill: 'var(--color-red-200)',
-                                      fillOpacity: 0.3,
-                                  }
-                                : undefined
+                            {
+                                x1: referenceArea.left,
+                                x2: referenceArea.right,
+                            }
+                            // graphData.length > 0
+                            //     ? {
+                            //           x1: graphData[0].date,
+                            //           y1: threshold,
+                            //           fill: 'var(--color-red-200)',
+                            //           fillOpacity: 0.3,
+                            //       }
+                            //     : undefined
                         }
                         referenceLines={[
                             {
@@ -210,6 +222,75 @@ const MonitorConfiguration = ({
                             axisLine: {
                                 stroke: 'var(--color-gray-600)',
                             },
+                        }}
+                        onMouseDown={(e: any) => {
+                            setReferenceArea({
+                                left: e.activeLabel,
+                                right: referenceArea.right,
+                            });
+                            console.log('DOWN', e);
+                            // this.setState({ refAreaLeft: e.activeLabel })
+                        }}
+                        onMouseMove={(e: any) => {
+                            setReferenceArea({
+                                left: referenceArea.left,
+                                right: e.activeLabel,
+                            });
+                            console.log('MOVE', e);
+                            // this.state.refAreaLeft &&
+                            // this.setState({ refAreaRight: e.activeLabel })
+                        }}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onMouseUp={(e: any) => {
+                            console.log('UP', e);
+                            setReferenceArea({ left: 0, right: 0 });
+
+                            // let { refAreaLeft, refAreaRight } = this.state;
+                            // const { data } = this.state;
+
+                            // if (
+                            //     refAreaLeft === refAreaRight ||
+                            //     refAreaRight === ''
+                            // ) {
+                            //     this.setState(() => ({
+                            //         refAreaLeft: '',
+                            //         refAreaRight: '',
+                            //     }));
+                            //     return;
+                            // }
+
+                            // // xAxis domain
+                            // if (refAreaLeft > refAreaRight)
+                            //     [refAreaLeft, refAreaRight] = [
+                            //         refAreaRight,
+                            //         refAreaLeft,
+                            //     ];
+
+                            // // yAxis domain
+                            // const [bottom, top] = getAxisYDomain(
+                            //     refAreaLeft,
+                            //     refAreaRight,
+                            //     'cost',
+                            //     1
+                            // );
+                            // const [bottom2, top2] = getAxisYDomain(
+                            //     refAreaLeft,
+                            //     refAreaRight,
+                            //     'impression',
+                            //     50
+                            // );
+
+                            // this.setState(() => ({
+                            //     refAreaLeft: '',
+                            //     refAreaRight: '',
+                            //     data: data.slice(),
+                            //     left: refAreaLeft,
+                            //     right: refAreaRight,
+                            //     bottom,
+                            //     top,
+                            //     bottom2,
+                            //     top2,
+                            // }));
                         }}
                     />
                 )}

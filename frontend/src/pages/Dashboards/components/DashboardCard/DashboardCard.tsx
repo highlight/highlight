@@ -413,6 +413,10 @@ const ChartContainer = React.memo(
             start_date: string;
             end_date: string;
         }>();
+        const [referenceArea, setReferenceArea] = React.useState<{
+            left: number;
+            right: number;
+        }>({ left: 0, right: 0 });
         const resolutionMinutes = Math.ceil(
             moment.duration(lookbackMinutes, 'minutes').as('minutes') /
                 NUM_BUCKETS
@@ -628,6 +632,20 @@ const ChartContainer = React.memo(
                             avg: 'var(--color-gray-400)',
                         }}
                         yAxisLabel={metricConfig.units}
+                        onMouseDown={(e: any) => {
+                            console.log('DOWN', e);
+                            // this.setState({ refAreaLeft: e.activeLabel })
+                        }}
+                        onMouseMove={(e: any) => {
+                            console.log('MOVE', e);
+                            // this.state.refAreaLeft &&
+                            // this.setState({ refAreaRight: e.activeLabel })
+                        }}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onMouseUp={(e: any) => {
+                            console.log('UP', e);
+                            // this.zoom.bind(this)
+                        }}
                     />
                 ) : null}
             </>

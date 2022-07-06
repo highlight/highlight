@@ -51,6 +51,9 @@ export interface Props {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+    onMouseDown?: (e: any) => void;
+    onMouseMove?: (e: any) => void;
+    onMouseUp?: (e: any) => void;
 }
 
 export function findMax(data: any[], key?: string) {
@@ -81,7 +84,11 @@ const LineChart = ({
     hideLegend = false,
     referenceAreaProps,
     xAxisProps,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
 }: Props) => {
+    console.log(referenceAreaProps);
     const nonXAxisKeys =
         data.length > 0
             ? Object.keys(data[0]).filter(
@@ -135,6 +142,9 @@ const LineChart = ({
                         left: -18,
                         bottom: 0,
                     }}
+                    onMouseDown={onMouseDown}
+                    onMouseMove={onMouseMove}
+                    onMouseUp={onMouseUp}
                 >
                     <CartesianGrid
                         strokeDasharray=""
