@@ -1673,7 +1673,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(projectID), points)
 	return nil
 }
 
@@ -2236,6 +2236,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
 }

@@ -2,9 +2,11 @@ package timeseries
 
 import (
 	"context"
+	"fmt"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/domain"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -20,6 +22,7 @@ var IgnoredTags = map[string]bool{
 	"group_name": true,
 	"request_id": true,
 	"session_id": true,
+	"project_id": true,
 }
 
 type Point struct {
@@ -38,29 +41,60 @@ type Result struct {
 }
 
 type DB interface {
-	GetBucket() string
-	Write(points []Point)
+	GetBucket(bucket string) string
+	Write(bucket string, points []Point)
 	Query(ctx context.Context, query string) (results []*Result, e error)
 }
 
 type InfluxDB struct {
-	Bucket       string
+	BucketPrefix string
+	org          string
+	orgID        string
 	client       influxdb2.Client
-	writeAPI     api.WriteAPI
+	writeAPIs    map[string]api.WriteAPI
 	queryAPI     api.QueryAPI
-	errorsCh     <-chan error
 	messagesSent int
 }
 
 func New() *InfluxDB {
 	org := os.Getenv("INFLUXDB_ORG")
-	bucket := os.Getenv("INFLUXDB_BUCKET")
+	bucketPrefix := os.Getenv("INFLUXDB_BUCKET")
 	server := os.Getenv("INFLUXDB_SERVER")
 	token := os.Getenv("INFLUXDB_TOKEN")
 	// initialize client
 	client := influxdb2.NewClient(server, token)
+	var orgID *string
+	orgs, err := client.OrganizationsAPI().GetOrganizations(context.Background())
+	if err != nil {
+		log.Fatalf("failed to get influxdb organization")
+	}
+	orgID = (*orgs)[0].Id
+	// Get query client
+	queryAPI := client.QueryAPI(org)
+	return &InfluxDB{
+		BucketPrefix: bucketPrefix,
+		org:          org,
+		orgID:        *orgID,
+		client:       client,
+		writeAPIs:    make(map[string]api.WriteAPI),
+		queryAPI:     queryAPI,
+	}
+}
+
+func (i *InfluxDB) GetBucket(bucket string) string {
+	return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+}
+
+func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
+	b := i.GetBucket(bucket)
+	// ignore bucket already exists error
+	_, _ = i.client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+		// 90 day metric expiry
+		EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
+		Type:         domain.RetentionRuleTypeExpire,
+	})
 	// Get non-blocking write client
-	writeAPI := client.WriteAPI(org, bucket)
+	writeAPI := i.client.WriteAPI(i.org, b)
 	// Get errors channel
 	errorsCh := writeAPI.Errors()
 	// Create go proc for reading and logging errors
@@ -69,23 +103,20 @@ func New() *InfluxDB {
 			log.Errorf("influxdb write error: %s\n", err.Error())
 		}
 	}()
-	// Get query client
-	queryAPI := client.QueryAPI(org)
-	return &InfluxDB{
-		Bucket:   bucket,
-		client:   client,
-		writeAPI: writeAPI,
-		queryAPI: queryAPI,
-		errorsCh: errorsCh,
+	return writeAPI
+}
+
+func (i *InfluxDB) getWriteAPI(bucket string) api.WriteAPI {
+	b := i.GetBucket(bucket)
+	if _, ok := i.writeAPIs[b]; !ok {
+		i.writeAPIs[b] = i.createWriteAPI(bucket)
 	}
+	return i.writeAPIs[b]
 }
 
-func (i *InfluxDB) GetBucket() string {
-	return i.Bucket
-}
-
-func (i *InfluxDB) Write(points []Point) {
+func (i *InfluxDB) Write(bucket string, points []Point) {
 	start := time.Now()
+	writeAPI := i.getWriteAPI(bucket)
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
 		for k, v := range point.Tags {
@@ -99,12 +130,14 @@ func (i *InfluxDB) Write(points []Point) {
 		}
 		p.SetTime(point.Time)
 		// write asynchronously
-		i.writeAPI.WritePoint(p)
+		writeAPI.WritePoint(p)
 	}
 	// periodically flush messages
 	if i.messagesSent%10000 == 0 {
-		// Force all unwritten data to be sent
-		i.writeAPI.Flush()
+		for _, w := range i.writeAPIs {
+			// Force all unwritten data to be sent
+			w.Flush()
+		}
 	}
 	i.messagesSent++
 	hlog.Incr("worker.influx.writeMessageCount", nil, 1)
@@ -135,6 +168,10 @@ func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, 
 }
 
 func (i *InfluxDB) Stop() {
+	for _, w := range i.writeAPIs {
+		// Force all unwritten data to be sent
+		w.Flush()
+	}
 	// Ensures background processes finishes
 	i.client.Close()
 }

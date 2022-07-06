@@ -372,7 +372,7 @@ func (w *Worker) PublicWorker() {
 	}
 
 	parallelWorkers := 64
-	workerPrefetch := 4
+	workerPrefetch := 8
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
