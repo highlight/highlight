@@ -436,6 +436,10 @@ export type DashboardParamsInput = {
 export type HistogramParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     buckets?: Maybe<Scalars['Int']>;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
     units?: Maybe<Scalars['String']>;
 };
 
@@ -803,8 +807,6 @@ export type HistogramPayload = {
     buckets: Array<HistogramBucket>;
     min: Scalars['Float'];
     max: Scalars['Float'];
-    p1: Scalars['Float'];
-    p99: Scalars['Float'];
 };
 
 export type CategoryHistogramBucket = {

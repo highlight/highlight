@@ -551,6 +551,8 @@ const ChartContainer = React.memo(
                     date_range: dateRange,
                     buckets: NUM_BUCKETS,
                     units: metricConfig.units,
+                    min_percentile: 0.1,
+                    max_percentile: 0.9,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -669,11 +671,12 @@ const ChartContainer = React.memo(
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
-                        xAxisDataKeyName="range_start"
+                        xAxisDataKeyName="range_end"
                         xAxisLabel={metricConfig.units}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
+                        xAxisUnits={metricConfig.units}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />

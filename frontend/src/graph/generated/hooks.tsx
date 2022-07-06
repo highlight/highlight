@@ -4263,8 +4263,6 @@ export const GetMetricsHistogramDocument = gql`
             }
             min
             max
-            p1
-            p99
         }
     }
 `;

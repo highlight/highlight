@@ -5216,7 +5216,16 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	query := fmt.Sprintf(`
+	if params.MinValue == nil || params.MaxValue == nil {
+		minPercentile := 0.01
+		if params.MinPercentile != nil {
+			minPercentile = *params.MinPercentile
+		}
+		maxPercentile := 0.99
+		if params.MaxPercentile != nil {
+			maxPercentile = *params.MaxPercentile
+		}
+		query := fmt.Sprintf(`
 	  do = (q) =>
 		from(bucket: "%s")
 		  |> range(start: %s, stop: %s)
@@ -5226,39 +5235,46 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
       union(tables: [
-		do(q:0.01),
-		do(q:0.99)
+		do(q:%f),
+		do(q:%f)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div)
-	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
-	histogramRangeQuerySpan.SetTag("projectID", projectID)
-	histogramRangeQuerySpan.SetTag("metricName", metricName)
-	results, err := r.TDB.Query(ctx, query)
-	histogramRangeQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-	if len(results) < 1 {
-		return nil, nil
+  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div, minPercentile, maxPercentile)
+		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
+		histogramRangeQuerySpan.SetTag("projectID", projectID)
+		histogramRangeQuerySpan.SetTag("metricName", metricName)
+		results, err := r.TDB.Query(ctx, query)
+		histogramRangeQuerySpan.Finish()
+		if err != nil {
+			return nil, err
+		}
+		if len(results) < 1 {
+			return nil, nil
+		}
+		if params.MinValue == nil {
+			f := results[0].Value.(float64)
+			params.MinValue = &f
+		}
+		if params.MaxValue == nil {
+			f := results[1].Value.(float64)
+			params.MaxValue = &f
+		}
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
-		Min: 0.,
-		P1:  results[0].Value.(float64),
-		P99: results[1].Value.(float64),
-		Max: 0.,
+		Min: *params.MinValue,
+		Max: *params.MaxValue,
 	}
 
 	numBuckets := 10
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	bucketSize := (histogramPayload.P99 - histogramPayload.P1) / float64(numBuckets)
+	bucketSize := (histogramPayload.Max - histogramPayload.Min) / float64(numBuckets)
 	if bucketSize == 0. {
 		bucketSize = 1
 	}
 
-	query = fmt.Sprintf(`
+	query := fmt.Sprintf(`
 		from(bucket: "%s")
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
@@ -5266,12 +5282,12 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.P1*div, bucketSize*div, numBuckets, div)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
-	results, err = r.TDB.Query(ctx, query)
+	results, err := r.TDB.Query(ctx, query)
 	histogramQuerySpan.Finish()
 	if err != nil {
 		return nil, err

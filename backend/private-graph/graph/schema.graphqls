@@ -392,6 +392,10 @@ input DashboardParamsInput {
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
     units: String
 }
 
@@ -736,8 +740,6 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p1: Float!
-    p99: Float!
 }
 
 type CategoryHistogramBucket {

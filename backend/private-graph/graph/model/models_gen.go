@@ -173,17 +173,19 @@ type HistogramBucket struct {
 }
 
 type HistogramParamsInput struct {
-	DateRange *DateRangeInput `json:"date_range"`
-	Buckets   *int            `json:"buckets"`
-	Units     *string         `json:"units"`
+	DateRange     *DateRangeInput `json:"date_range"`
+	Buckets       *int            `json:"buckets"`
+	MinValue      *float64        `json:"min_value"`
+	MinPercentile *float64        `json:"min_percentile"`
+	MaxValue      *float64        `json:"max_value"`
+	MaxPercentile *float64        `json:"max_percentile"`
+	Units         *string         `json:"units"`
 }
 
 type HistogramPayload struct {
 	Buckets []*HistogramBucket `json:"buckets"`
 	Min     float64            `json:"min"`
 	Max     float64            `json:"max"`
-	P1      float64            `json:"p1"`
-	P99     float64            `json:"p99"`
 }
 
 type Invoice struct {
