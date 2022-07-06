@@ -10,18 +10,19 @@ export const FieldsBox = ({
 }: React.PropsWithChildren<{ id?: string }>) => {
     const location = useLocation();
     const divRef = React.createRef<HTMLDivElement>();
-    const focus = location.hash === `#${id}`;
     React.useEffect(() => {
-        if (focus && divRef.current) {
-            divRef.current.scrollIntoView();
-        }
-    }, [focus, divRef]);
+        window.setTimeout(() => {
+            if (divRef.current && location.hash === `#${id}`) {
+                divRef.current.scrollIntoView();
+            }
+        }, 1);
+    }, [id, location.hash, divRef]);
     return (
         <div
             id={id}
             ref={divRef}
             className={classNames(styles.fieldsBox, {
-                [styles.focus]: focus,
+                [styles.focus]: location.hash === `#${id}`,
             })}
         >
             {children}
