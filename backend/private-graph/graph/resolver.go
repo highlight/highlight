@@ -2210,7 +2210,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
                every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, tdb.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
+	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, resMins)
 	agg := "avg"
 	if params.AggregateFunction != nil && *params.AggregateFunction != "" {
 		agg = *params.AggregateFunction
