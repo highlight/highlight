@@ -6,8 +6,8 @@ import {
     Props as LineChartProps,
 } from '@components/LineChart/LineChart';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { Slider } from '@components/Slider/Slider';
 import React, { useState } from 'react';
-import ReactSlider from 'react-slider';
 import {
     Bar,
     BarChart as RechartsBarChart,
@@ -68,13 +68,10 @@ const BarChartV2 = ({
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             {!!draggableReferenceLines?.length && (
-                <ReactSlider
-                    className={styles.horizontalSlider}
-                    thumbClassName={styles.sliderThumb}
-                    trackClassName={styles.sliderTrack}
-                    max={max}
+                <Slider
                     min={0}
-                    value={draggableReferenceLines.map((rl) => rl.value)}
+                    max={max}
+                    values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
                             const d = draggableReferenceLines[idx].onDrag;
@@ -83,12 +80,6 @@ const BarChartV2 = ({
                             }
                         });
                     }}
-                    renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow.toFixed(1)}</div>
-                    )}
-                    pearling
-                    minDistance={0}
-                    step={0.1}
                 />
             )}
             <ResponsiveContainer width="100%" height={height}>
