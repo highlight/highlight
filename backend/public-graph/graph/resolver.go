@@ -614,6 +614,9 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	// for Gorillamind
 	// because their huge traceback
 	// slows this process down too much
+	if projectID == 356 {
+		return nil, nil
+	}
 	if err := r.DB.Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
@@ -699,7 +702,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 
 	if projectID == 356 {
 		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
-			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` {
+			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
+			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
+			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
 			return nil, e.New("Filtering out noisy Gorilla Mind error")
 		}
 	}
