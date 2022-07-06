@@ -58,7 +58,7 @@ export const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
     }
     return {
         name: name,
-        description: cfg?.description || '',
+        description: cfg?.description || 'New Chart',
         help_article: cfg?.help_article || '',
         units: cfg?.units || '',
         max_good_value: cfg?.max_good_value || 10,
