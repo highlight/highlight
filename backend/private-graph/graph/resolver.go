@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/timeseries"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -2129,6 +2131,116 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	existingChannels = append(existingChannels, filteredNewChannels...)
 
 	return &existingChannels, newChannelsCount, nil
+}
+
+func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.DashboardMetric) error {
+	var projectID int
+	if err := r.DB.Raw(`
+		SELECT d.project_id
+		FROM dashboard_metrics dm
+				 INNER JOIN dashboards d on dm.dashboard_id = d.id
+		WHERE dm.id = ?
+	`, metric.ID).First(&projectID).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve metrics to create alert")
+	}
+
+	var monitors int64
+	if err := r.DB.Model(&model.MetricMonitor{}).Where(&model.MetricMonitor{
+		ProjectID:       projectID,
+		MetricToMonitor: metric.Name,
+	}).Count(&monitors).Error; err != nil {
+		return e.Wrap(err, "failed to count existing monitors")
+	}
+	if monitors > 0 {
+		return nil
+	}
+
+	var slackChannels []*modelInputs.SanitizedSlackChannel
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.webhook_channel_id, s.webhook_channel) * FROM (
+				SELECT json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel' #>>'{}'    as webhook_channel,
+					   json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel_id' #>>'{}' as webhook_channel_id
+				FROM postgres.public.metric_monitors mm
+				WHERE mm.project_id = ?
+				  and mm.channels_to_notify is not null
+			) s
+		`, projectID).Scan(&slackChannels).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve slack channels to create alert")
+	}
+	var channelsString *string
+	if len(slackChannels) > 0 {
+		channelsBytes, err := json.Marshal(slackChannels)
+		if err != nil {
+			return e.Wrap(err, "error parsing slack channels")
+		}
+		cs := string(channelsBytes)
+		channelsString = &cs
+	}
+
+	var emails []*string
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.email) * FROM (
+				SELECT json_array_elements(cast(mm.emails_to_notify as json)) #>>'{}' as email
+				FROM postgres.public.metric_monitors mm
+				WHERE mm.project_id = ? and mm.emails_to_notify is not null
+			) s
+		`, projectID).Scan(&emails).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve emails to create alert")
+	}
+	if len(emails) < 1 {
+		if err := r.DB.Raw(`
+			SELECT array_agg(DISTINCT a.email) as emails
+			FROM project_admins pa
+			INNER JOIN admins a on pa.admin_id = a.id
+			WHERE pa.project_id = ?
+			GROUP BY pa.project_id
+		`, projectID).Scan(&emails).Error; err != nil {
+			return e.Wrap(err, "failed to retrieve emails to create alert")
+		}
+	}
+	var emailsString *string
+	if len(emails) > 0 {
+		var err error
+		emailsString, err = r.MarshalAlertEmails(emails)
+		if err != nil {
+			return e.Wrap(err, "failed to marshall emails for auto created metric monitor")
+		}
+	}
+
+	// calculate a reasonable threshold
+	end := time.Now()
+	start := time.Now().Add(-24 * time.Hour)
+	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
+		DateRange: &modelInputs.DateRangeInput{
+			StartDate: &start,
+			EndDate:   &end,
+		},
+		ResolutionMinutes: pointy.Int(60),
+		Units:             pointy.String(metric.Units),
+		AggregateFunction: pointy.String("p90"),
+	})
+	if err != nil {
+		return e.Wrap(err, "failed to retrieve recent metric data for threshold calculation")
+	}
+	threshold := 1.
+	if len(points) > 0 {
+		threshold = points[len(points)-1].Value
+	}
+	caser := cases.Title(language.AmericanEnglish)
+	name := caser.String(strings.ToLower(metric.Name))
+	newMetricMonitor := &model.MetricMonitor{
+		ProjectID:        projectID,
+		Name:             fmt.Sprintf("%s Default Monitor", name),
+		Function:         "p50",
+		Threshold:        threshold,
+		MetricToMonitor:  metric.Name,
+		ChannelsToNotify: channelsString,
+		EmailsToNotify:   emailsString,
+	}
+	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
+		return e.Wrap(err, "failed to auto create metric monitor")
+	}
+	return nil
 }
 
 func GetAggregateFluxStatement(aggregateFunctionName string, resMins int) string {

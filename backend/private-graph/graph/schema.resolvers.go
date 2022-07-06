@@ -92,7 +92,7 @@ func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.Erro
 			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date ASC;
+		ORDER BY d.date;
 	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}
@@ -2975,6 +2975,9 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
 		}
+		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
+			log.Errorf("failed to auto create metric monitor: %s", err)
+		}
 	}
 
 	// Update the existing record if it already exists
@@ -5235,6 +5238,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	histogramRangeQuerySpan.Finish()
 	if err != nil {
 		return nil, err
+	}
+	if len(results) < 1 {
+		return nil, nil
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
 		Min: 0.,
