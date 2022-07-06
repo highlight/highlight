@@ -700,6 +700,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		return nil, e.New("error object event was nil or empty")
 	}
 
+	if projectID == 356 {
+		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
+			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
+			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
+			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
+			return nil, e.New("Filtering out noisy Gorilla Mind error")
+		}
+	}
+
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
 	}
