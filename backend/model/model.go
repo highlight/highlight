@@ -1142,15 +1142,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					ALTER TABLE metric_groups
-					ADD CONSTRAINT %s
-						UNIQUE (group_name, session_id);
+					IF NOT EXISTS 
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
+					THEN
+						ALTER TABLE metric_groups
+						ADD CONSTRAINT %s
+							UNIQUE (group_name, session_id);
+					END IF;
 				EXCEPTION
 					WHEN duplicate_table
 					THEN RAISE NOTICE 'metric_groups.%s already exists';
 				END;
 			END $$;
-	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
 		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
