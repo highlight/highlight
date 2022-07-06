@@ -92,7 +92,7 @@ func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.Erro
 			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date ASC;
+		ORDER BY d.date;
 	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}
@@ -347,7 +347,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -371,6 +371,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		BillingEmail:   billingEmail,
 		ExcludedUsers:  excludedUsers,
 		ErrorJsonPaths: errorJSONPaths,
+		BackendDomains: backendDomains,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -4535,7 +4536,7 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 			    WHERE admin_id = ?
 			    )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
-			ORDER BY workspaces.name ASC
+			ORDER BY workspaces.name;
 		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
 		return nil, e.Wrap(err, "error getting joinable workspaces")
 	}
@@ -5544,7 +5545,7 @@ func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.Se
 			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date ASC;
+		ORDER BY d.date;
 	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}

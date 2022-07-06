@@ -75,7 +75,7 @@ const SourcemapSettings = () => {
     }, 300);
 
     return (
-        <FieldsBox>
+        <FieldsBox id={'sourcemaps'}>
             <p>
                 Below is a list of sourcemap files we have for your project.
                 Check out{' '}

@@ -223,6 +223,7 @@ export type Project = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type Account = {
@@ -1442,6 +1443,7 @@ export type MutationEditProjectArgs = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type MutationEditWorkspaceArgs = {

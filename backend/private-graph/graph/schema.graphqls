@@ -194,6 +194,7 @@ type Project {
     rage_click_window_seconds: Int
     rage_click_radius_pixels: Int
     rage_click_count: Int
+    backend_domains: StringArray
 }
 
 type Account {
@@ -988,6 +989,7 @@ type Mutation {
         rage_click_window_seconds: Int
         rage_click_radius_pixels: Int
         rage_click_count: Int
+        backend_domains: StringArray
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session

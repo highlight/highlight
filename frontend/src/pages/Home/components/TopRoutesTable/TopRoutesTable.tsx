@@ -10,6 +10,7 @@ import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { Link } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import homePageStyles from '../../HomePage.module.scss';
@@ -66,8 +67,12 @@ const TopRoutesTable = () => {
                 noDataMessage={
                     !data?.network_histogram.buckets.length && (
                         <>
-                            It doesn't look like we have any sessions with
-                            network traffic.
+                            Have you{' '}
+                            <Link
+                                to={`/${project_id}/settings/recording#network`}
+                            >
+                                configured your backend domains?
+                            </Link>
                         </>
                     )
                 }
