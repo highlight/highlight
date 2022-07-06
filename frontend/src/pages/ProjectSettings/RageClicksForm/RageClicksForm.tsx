@@ -13,7 +13,7 @@ import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import styles from './RageClicksForm.module.scss';
 
-export const RageClicksForm = ({ focus }: { focus?: boolean }) => {
+export const RageClicksForm = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -78,7 +78,7 @@ export const RageClicksForm = ({ focus }: { focus?: boolean }) => {
     }
 
     return (
-        <FieldsBox focus={focus}>
+        <FieldsBox id={'rage'}>
             <h3>Rage Clicks</h3>
             <form onSubmit={onSubmit} key={project_id}>
                 <p>

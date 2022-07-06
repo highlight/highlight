@@ -17,7 +17,7 @@ import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import styles from './ExcludedUsersForm.module.scss';
 
-export const ExcludedUsersForm = ({ focus }: { focus?: boolean }) => {
+export const ExcludedUsersForm = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -103,7 +103,7 @@ export const ExcludedUsersForm = ({ focus }: { focus?: boolean }) => {
     };
 
     return (
-        <FieldsBox focus={focus}>
+        <FieldsBox id={'users'}>
             <h3>Excluded Sessions</h3>
             <form onSubmit={onSubmit} key={project_id}>
                 <p>

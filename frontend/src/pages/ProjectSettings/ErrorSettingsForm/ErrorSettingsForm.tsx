@@ -12,7 +12,7 @@ import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import styles from './ErrorSettingsForm.module.scss';
 
-export const ErrorSettingsForm = ({ focus }: { focus?: boolean }) => {
+export const ErrorSettingsForm = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -56,7 +56,7 @@ export const ErrorSettingsForm = ({ focus }: { focus?: boolean }) => {
     }
 
     return (
-        <FieldsBox focus={focus}>
+        <FieldsBox id={'errors'}>
             <h3>Error Grouping</h3>
 
             <form onSubmit={onSubmit} key={project_id}>

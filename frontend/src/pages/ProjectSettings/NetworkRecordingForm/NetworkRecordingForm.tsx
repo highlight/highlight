@@ -13,7 +13,7 @@ import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import styles from './NetworkRecordingForm.module.scss';
 
-export const NetworkRecordingForm = ({ focus }: { focus?: boolean }) => {
+export const NetworkRecordingForm = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const [backendDomains, setBackendDomains] = useState<string[]>([]);
     const { data, loading } = useGetProjectQuery({
@@ -56,7 +56,7 @@ export const NetworkRecordingForm = ({ focus }: { focus?: boolean }) => {
     }
 
     return (
-        <FieldsBox focus={focus}>
+        <FieldsBox id={'network'}>
             <h3>Network Recording Settings</h3>
             <form onSubmit={onSubmit} key={project_id}>
                 <p>

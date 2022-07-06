@@ -13,7 +13,7 @@ import React, { useEffect } from 'react';
 
 import styles from './SourcemapSettings.module.scss';
 
-const SourcemapSettings = ({ focus }: { focus?: boolean }) => {
+const SourcemapSettings = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const [query, setQuery] = React.useState<string>('');
     const [versions, setVersions] = React.useState<string[]>([]);
@@ -75,7 +75,7 @@ const SourcemapSettings = ({ focus }: { focus?: boolean }) => {
     }, 300);
 
     return (
-        <FieldsBox focus={focus}>
+        <FieldsBox id={'sourcemaps'}>
             <p>
                 Below is a list of sourcemap files we have for your project.
                 Check out{' '}
