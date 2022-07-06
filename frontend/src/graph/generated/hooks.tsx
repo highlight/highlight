@@ -9554,6 +9554,10 @@ export const GetDashboardDefinitionsDocument = gql`
                 units
                 help_article
                 chart_type
+                min_value
+                min_percentile
+                max_value
+                max_percentile
             }
             last_admin_to_edit_id
             layout

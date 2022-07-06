@@ -319,6 +319,10 @@ type DashboardMetric struct {
 	PoorValue                float64
 	Units                    string
 	HelpArticle              string
+	MinValue                 *float64
+	MinPercentile            *float64
+	MaxValue                 *float64
+	MaxPercentile            *float64
 }
 
 type SlackChannel struct {

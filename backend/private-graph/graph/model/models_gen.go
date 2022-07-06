@@ -82,6 +82,10 @@ type DashboardMetricConfig struct {
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
 	ChartType                DashboardChartType `json:"chart_type"`
+	MinValue                 *float64           `json:"min_value"`
+	MinPercentile            *float64           `json:"min_percentile"`
+	MaxValue                 *float64           `json:"max_value"`
+	MaxPercentile            *float64           `json:"max_percentile"`
 }
 
 type DashboardMetricConfigInput struct {
@@ -93,6 +97,10 @@ type DashboardMetricConfigInput struct {
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
 	ChartType                DashboardChartType `json:"chart_type"`
+	MinValue                 *float64           `json:"min_value"`
+	MinPercentile            *float64           `json:"min_percentile"`
+	MaxValue                 *float64           `json:"max_value"`
+	MaxPercentile            *float64           `json:"max_percentile"`
 }
 
 type DashboardParamsInput struct {

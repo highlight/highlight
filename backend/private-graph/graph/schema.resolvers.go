@@ -2972,6 +2972,10 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			PoorValue:                m.PoorValue,
 			Units:                    m.Units,
 			HelpArticle:              m.HelpArticle,
+			MinValue:                 m.MinValue,
+			MinPercentile:            m.MinPercentile,
+			MaxValue:                 m.MaxValue,
+			MaxPercentile:            m.MaxPercentile,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -5157,6 +5161,10 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				PoorValue:                metric.PoorValue,
 				Units:                    metric.Units,
 				HelpArticle:              metric.HelpArticle,
+				MinValue:                 metric.MinValue,
+				MinPercentile:            metric.MinPercentile,
+				MaxValue:                 metric.MaxValue,
+				MaxPercentile:            metric.MaxPercentile,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{

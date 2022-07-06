@@ -765,6 +765,10 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardMetricConfig {
@@ -776,6 +780,10 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardDefinition {

@@ -834,6 +834,10 @@ export type DashboardMetricConfigInput = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
 };
 
 export type DashboardMetricConfig = {
@@ -846,6 +850,10 @@ export type DashboardMetricConfig = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
 };
 
 export type DashboardDefinition = {

@@ -3701,6 +3701,10 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'units'
                             | 'help_article'
                             | 'chart_type'
+                            | 'min_value'
+                            | 'min_percentile'
+                            | 'max_value'
+                            | 'max_percentile'
                         >
                     >;
                 }
