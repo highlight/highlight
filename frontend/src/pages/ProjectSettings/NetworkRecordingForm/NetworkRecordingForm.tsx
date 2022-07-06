@@ -35,7 +35,7 @@ export const NetworkRecordingForm = () => {
         },
     });
 
-    const onSubmit = (e: { preventDefault: () => void }) => {
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         editProject({
             variables: {
