@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { Slider } from '@components/Slider/Slider';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
 import SvgShieldWarningIcon from '@icons/ShieldWarningIcon';
 import SvgSkullIcon from '@icons/SkullIcon';
@@ -9,7 +10,6 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import ReactSlider from 'react-slider';
 import {
     CartesianGrid,
     Label,
@@ -25,6 +25,7 @@ import {
     XAxisProps,
     YAxis,
 } from 'recharts';
+import { AxisDomain } from 'recharts/types/util/types';
 
 import styles from './LineChart.module.scss';
 
@@ -39,6 +40,7 @@ export interface Reference {
 
 export interface Props {
     data: any[];
+    domain?: AxisDomain;
     referenceLines?: Reference[];
     showReferenceLineLabels?: boolean;
     height: number;
@@ -73,6 +75,7 @@ const LineChart = ({
     showReferenceLineLabels,
     xAxisDataKeyName = 'date',
     data,
+    domain,
     xAxisTickFormatter,
     hideXAxis = false,
     yAxisTickFormatter,
@@ -100,12 +103,10 @@ const LineChart = ({
     return (
         <>
             {!!draggableReferenceLines?.length && (
-                <ReactSlider
-                    className={styles.verticalSlider}
-                    thumbClassName={styles.sliderThumb}
-                    max={max}
+                <Slider
                     min={0}
-                    value={draggableReferenceLines.map((rl) => rl.value)}
+                    max={max}
+                    values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
                             const d = draggableReferenceLines[idx].onDrag;
@@ -114,13 +115,6 @@ const LineChart = ({
                             }
                         });
                     }}
-                    renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow.toFixed(1)}</div>
-                    )}
-                    pearling
-                    invert
-                    minDistance={0}
-                    step={0.1}
                     orientation={'vertical'}
                 />
             )}
@@ -156,7 +150,9 @@ const LineChart = ({
                         tick={{ fontSize: '8px', fill: labelColor }}
                         tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                         axisLine={{ stroke: gridColor }}
-                        dx={0}
+                        domain={domain}
+                        type={'number'}
+                        dx={-2}
                         unit={yAxisLabel}
                     />
 
