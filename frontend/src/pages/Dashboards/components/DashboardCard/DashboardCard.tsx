@@ -435,56 +435,66 @@ const EditMetricModal = ({
                         />
                     </div>
                 </section>
-                <section className={dashStyles.section}>
-                    <div className={styles.minMaxRow}>
-                        <Form.Item
-                            label="Minimum"
-                            className={styles.percentileInput}
-                        />
-                        <Input
-                            type={'number'}
-                            placeholder="Min"
-                            name="Min"
-                            value={min * 100}
-                            min={minValue ? undefined : 0}
-                            max={minValue ? undefined : 100}
-                            onChange={(e) => {
-                                setMin((Number(e.target?.value) || 0) / 100);
-                            }}
-                        />
-                        <Switch
-                            label={minValue ? 'Value' : 'Percentile'}
-                            trackingId={'EditDashboardChartMinPercentileToggle'}
-                            checked={!minValue}
-                            onChange={(checked) => {
-                                setMinValue(!checked);
-                            }}
-                        />
-                        <Form.Item
-                            label="Maximum"
-                            className={styles.percentileInput}
-                        />
-                        <Input
-                            type={'number'}
-                            placeholder="Max"
-                            name="Max"
-                            value={max * 100}
-                            min={maxValue ? undefined : 0}
-                            max={maxValue ? undefined : 100}
-                            onChange={(e) => {
-                                setMax((Number(e.target?.value) || 0) / 100);
-                            }}
-                        />
-                        <Switch
-                            label={maxValue ? 'Value' : 'Percentile'}
-                            trackingId={'EditDashboardChartMaxPercentileToggle'}
-                            checked={!maxValue}
-                            onChange={(checked) => {
-                                setMaxValue(!checked);
-                            }}
-                        />
-                    </div>
-                </section>
+                {chartType === DashboardChartType.Histogram && (
+                    <section className={dashStyles.section}>
+                        <div className={styles.minMaxRow}>
+                            <Form.Item
+                                label="Minimum"
+                                className={styles.percentileInput}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Min"
+                                name="Min"
+                                value={min * 100}
+                                min={minValue ? undefined : 0}
+                                max={minValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMin(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={minValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMinPercentileToggle'
+                                }
+                                checked={!minValue}
+                                onChange={(checked) => {
+                                    setMinValue(!checked);
+                                }}
+                            />
+                            <Form.Item
+                                label="Maximum"
+                                className={styles.percentileInput}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Max"
+                                name="Max"
+                                value={max * 100}
+                                min={maxValue ? undefined : 0}
+                                max={maxValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMax(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={maxValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMaxPercentileToggle'
+                                }
+                                checked={!maxValue}
+                                onChange={(checked) => {
+                                    setMaxValue(!checked);
+                                }}
+                            />
+                        </div>
+                    </section>
+                )}
                 <section className={dashStyles.section}>
                     <div className={styles.submitRow}>
                         <Button
