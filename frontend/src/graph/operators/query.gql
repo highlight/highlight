@@ -1384,6 +1384,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         emails_to_notify
         function
+        period_minutes
         metric_to_monitor
         last_admin_to_edit_id
         threshold

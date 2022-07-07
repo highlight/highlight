@@ -2244,6 +2244,7 @@ export const CreateMetricMonitorDocument = gql`
         $name: String!
         $function: String!
         $threshold: Float!
+        $periodMinutes: Int
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
         $emails: [String]!
@@ -2253,6 +2254,7 @@ export const CreateMetricMonitorDocument = gql`
             threshold: $threshold
             name: $name
             function: $function
+            periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
             emails: $emails
@@ -2266,6 +2268,7 @@ export const CreateMetricMonitorDocument = gql`
             }
             emails_to_notify
             function
+            period_minutes
             metric_to_monitor
             last_admin_to_edit_id
             threshold
@@ -2294,6 +2297,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      function: // value for 'function'
  *      threshold: // value for 'threshold'
+ *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
  *      emails: // value for 'emails'
@@ -2326,6 +2330,7 @@ export const UpdateMetricMonitorDocument = gql`
         $name: String!
         $function: String!
         $threshold: Float!
+        $periodMinutes: Int
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
         $emails: [String]!
@@ -2337,6 +2342,7 @@ export const UpdateMetricMonitorDocument = gql`
             threshold: $threshold
             name: $name
             function: $function
+            periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
             emails: $emails
@@ -2351,6 +2357,7 @@ export const UpdateMetricMonitorDocument = gql`
             }
             emails_to_notify
             function
+            period_minutes
             metric_to_monitor
             last_admin_to_edit_id
             threshold
@@ -2380,6 +2387,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      function: // value for 'function'
  *      threshold: // value for 'threshold'
+ *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
  *      emails: // value for 'emails'
@@ -9203,6 +9211,7 @@ export const GetAlertsPagePayloadDocument = gql`
             }
             emails_to_notify
             function
+            period_minutes
             metric_to_monitor
             last_admin_to_edit_id
             threshold

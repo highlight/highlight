@@ -40,6 +40,7 @@ const NewMonitorPage = ({
     );
     const [monitorName, setMonitorName] = useState('New Monitor');
     const [functionName, setFunctionName] = useState<string>('p90');
+    const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [emails, setEmails] = useState<string[]>([]);
@@ -47,6 +48,7 @@ const NewMonitorPage = ({
         variables: {
             project_id,
             function: functionName,
+            periodMinutes: periodMinutes,
             metric_to_monitor: metricToMonitorName,
             name: monitorName,
             slack_channels: slackChannels.map((webhook_channel_id: string) => ({
@@ -91,6 +93,9 @@ const NewMonitorPage = ({
                 <Card>
                     <MonitorConfiguration
                         onAggregateFunctionChange={setFunctionName}
+                        onAggregatePeriodChange={(p) =>
+                            setPeriodMinutes(Number(p))
+                        }
                         onMonitorNameChange={setMonitorName}
                         onConfigChange={setConfig}
                         onMetricToMonitorNameChange={setMetricToMonitorName}
@@ -98,6 +103,7 @@ const NewMonitorPage = ({
                         slackChannels={slackChannels}
                         onThresholdChange={setThreshold}
                         aggregateFunction={functionName}
+                        aggregatePeriodMinutes={periodMinutes}
                         config={config}
                         loading={loading}
                         metricToMonitorName={metricToMonitorName}
