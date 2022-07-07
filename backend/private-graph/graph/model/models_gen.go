@@ -82,6 +82,7 @@ type DashboardMetricConfig struct {
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
 	ChartType                DashboardChartType `json:"chart_type"`
+	Aggregator               MetricAggregator   `json:"aggregator"`
 	MinValue                 *float64           `json:"min_value"`
 	MinPercentile            *float64           `json:"min_percentile"`
 	MaxValue                 *float64           `json:"max_value"`
@@ -97,6 +98,7 @@ type DashboardMetricConfigInput struct {
 	Units                    string             `json:"units"`
 	HelpArticle              string             `json:"help_article"`
 	ChartType                DashboardChartType `json:"chart_type"`
+	Aggregator               MetricAggregator   `json:"aggregator"`
 	MinValue                 *float64           `json:"min_value"`
 	MinPercentile            *float64           `json:"min_percentile"`
 	MaxValue                 *float64           `json:"max_value"`
@@ -104,17 +106,17 @@ type DashboardMetricConfigInput struct {
 }
 
 type DashboardParamsInput struct {
-	DateRange         *DateRangeInput `json:"date_range"`
-	ResolutionMinutes *int            `json:"resolution_minutes"`
-	Timezone          *string         `json:"timezone"`
-	Units             *string         `json:"units"`
-	AggregateFunction *string         `json:"aggregate_function"`
+	DateRange         *DateRangeInput   `json:"date_range"`
+	ResolutionMinutes *int              `json:"resolution_minutes"`
+	Timezone          *string           `json:"timezone"`
+	Units             *string           `json:"units"`
+	Aggregator        *MetricAggregator `json:"aggregator"`
 }
 
 type DashboardPayload struct {
-	Date              string  `json:"date"`
-	Value             float64 `json:"value"`
-	AggregateFunction *string `json:"aggregate_function"`
+	Date       string            `json:"date"`
+	Value      float64           `json:"value"`
+	Aggregator *MetricAggregator `json:"aggregator"`
 }
 
 type DateRangeInput struct {
@@ -477,6 +479,59 @@ func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricAggregator string
+
+const (
+	MetricAggregatorAvg   MetricAggregator = "Avg"
+	MetricAggregatorP50   MetricAggregator = "P50"
+	MetricAggregatorP75   MetricAggregator = "P75"
+	MetricAggregatorP90   MetricAggregator = "P90"
+	MetricAggregatorP95   MetricAggregator = "P95"
+	MetricAggregatorP99   MetricAggregator = "P99"
+	MetricAggregatorMax   MetricAggregator = "Max"
+	MetricAggregatorCount MetricAggregator = "Count"
+)
+
+var AllMetricAggregator = []MetricAggregator{
+	MetricAggregatorAvg,
+	MetricAggregatorP50,
+	MetricAggregatorP75,
+	MetricAggregatorP90,
+	MetricAggregatorP95,
+	MetricAggregatorP99,
+	MetricAggregatorMax,
+	MetricAggregatorCount,
+}
+
+func (e MetricAggregator) IsValid() bool {
+	switch e {
+	case MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP75, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorCount:
+		return true
+	}
+	return false
+}
+
+func (e MetricAggregator) String() string {
+	return string(e)
+}
+
+func (e *MetricAggregator) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricAggregator(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricAggregator", str)
+	}
+	return nil
+}
+
+func (e MetricAggregator) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

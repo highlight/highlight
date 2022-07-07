@@ -658,7 +658,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
 export type CreateMetricMonitorMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
@@ -678,7 +678,7 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -700,7 +700,7 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     metric_monitor_id: Types.Scalars['ID'];
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
@@ -721,7 +721,7 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -752,7 +752,7 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -1602,7 +1602,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregate_function'
+                'date' | 'value' | 'aggregator'
             >
         >
     >;
@@ -3579,7 +3579,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'name'
                 | 'emails_to_notify'
-                | 'function'
+                | 'aggregator'
                 | 'period_minutes'
                 | 'metric_to_monitor'
                 | 'last_admin_to_edit_id'
@@ -3697,6 +3697,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'units'
                             | 'help_article'
                             | 'chart_type'
+                            | 'aggregator'
                             | 'min_value'
                             | 'min_percentile'
                             | 'max_value'

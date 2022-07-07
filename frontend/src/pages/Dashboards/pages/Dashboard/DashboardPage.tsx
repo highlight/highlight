@@ -9,8 +9,10 @@ import PlusIcon from '@icons/PlusIcon';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import {
-    DEFAULT_METRICS_LAYOUT,
+    DEFAULT_SINGLE_LAYOUT,
     getDefaultMetricConfig,
+    LAYOUT_CHART_WIDTH,
+    LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -43,7 +45,7 @@ const DashboardPage = () => {
         timeFilter[1]
     );
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
-    const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
+    const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
@@ -62,8 +64,12 @@ const DashboardPage = () => {
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
     const pushNewMetricConfig = (nm: DashboardMetricConfig[]) => {
-        const newPos = { ...layout.lg[0] };
+        const newPos = { ...DEFAULT_SINGLE_LAYOUT };
         newPos.i = (nm.length - 1).toString();
+        newPos.x = ((nm.length - 1) * LAYOUT_CHART_WIDTH) % LAYOUT_ROW_WIDTH;
+        newPos.y = Math.floor(
+            ((nm.length - 1) * LAYOUT_CHART_WIDTH) / LAYOUT_ROW_WIDTH
+        );
         const l = { lg: [...layout.lg, newPos].slice(0, nm.length) };
         updateDashboard({
             id,

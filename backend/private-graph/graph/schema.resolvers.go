@@ -1758,7 +1758,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1779,7 +1779,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:         projectID,
 		Name:              name,
-		Function:          function,
+		Aggregator:        aggregator,
 		PeriodMinutes:     periodMinutes,
 		Threshold:         threshold,
 		MetricToMonitor:   metricToMonitor,
@@ -1798,7 +1798,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1830,8 +1830,8 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	if name != nil {
 		metricMonitor.Name = *name
 	}
-	if function != nil {
-		metricMonitor.Function = *function
+	if aggregator != nil {
+		metricMonitor.Aggregator = *aggregator
 	}
 	metricMonitor.PeriodMinutes = periodMinutes
 	if threshold != nil {
@@ -2969,6 +2969,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			Name:                     m.Name,
 			Description:              m.Description,
 			ChartType:                m.ChartType,
+			Aggregator:               m.Aggregator,
 			MaxGoodValue:             m.MaxGoodValue,
 			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
 			PoorValue:                m.PoorValue,
@@ -5158,6 +5159,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				Name:                     metric.Name,
 				Description:              metric.Description,
 				ChartType:                metric.ChartType,
+				Aggregator:               metric.Aggregator,
 				MaxGoodValue:             metric.MaxGoodValue,
 				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
 				PoorValue:                metric.PoorValue,
@@ -5304,8 +5306,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
-	var previousCount = 0
+	var previousCount = -1
 	for i, r := range results {
+		// the first bucket LE bound is actually the start value so use it to offset the histogram
+		if previousCount == -1 {
+			previousCount = int(r.Value.(float64))
+			continue
+		}
 		le := r.Values["le"].(float64)
 		b := &modelInputs.HistogramBucket{
 			Bucket:     float64(i),

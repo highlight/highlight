@@ -2242,7 +2242,7 @@ export const CreateMetricMonitorDocument = gql`
     mutation CreateMetricMonitor(
         $project_id: ID!
         $name: String!
-        $function: String!
+        $aggregator: MetricAggregator!
         $threshold: Float!
         $periodMinutes: Int
         $metric_to_monitor: String!
@@ -2253,7 +2253,7 @@ export const CreateMetricMonitorDocument = gql`
             project_id: $project_id
             threshold: $threshold
             name: $name
-            function: $function
+            aggregator: $aggregator
             periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
@@ -2267,7 +2267,7 @@ export const CreateMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -2295,7 +2295,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      function: // value for 'function'
+ *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2328,7 +2328,7 @@ export const UpdateMetricMonitorDocument = gql`
         $metric_monitor_id: ID!
         $project_id: ID!
         $name: String!
-        $function: String!
+        $aggregator: MetricAggregator!
         $threshold: Float!
         $periodMinutes: Int
         $metric_to_monitor: String!
@@ -2341,7 +2341,7 @@ export const UpdateMetricMonitorDocument = gql`
             project_id: $project_id
             threshold: $threshold
             name: $name
-            function: $function
+            aggregator: $aggregator
             periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
@@ -2356,7 +2356,7 @@ export const UpdateMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -2385,7 +2385,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      metric_monitor_id: // value for 'metric_monitor_id'
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      function: // value for 'function'
+ *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2428,7 +2428,7 @@ export const DeleteMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             metric_to_monitor
             last_admin_to_edit_id
             threshold
@@ -4197,7 +4197,7 @@ export const GetMetricsTimelineDocument = gql`
         ) {
             date
             value
-            aggregate_function
+            aggregator
         }
     }
 `;
@@ -9204,7 +9204,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -9559,6 +9559,7 @@ export const GetDashboardDefinitionsDocument = gql`
                 units
                 help_article
                 chart_type
+                aggregator
                 min_value
                 min_percentile
                 max_value

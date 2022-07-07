@@ -16,7 +16,11 @@ import {
     useGetMetricsTimelineLazyQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
-import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
+import {
+    DashboardChartType,
+    DashboardMetricConfig,
+    MetricAggregator,
+} from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -91,7 +95,9 @@ const DashboardCard = ({
                                 paddingRight: 'var(--size-small)',
                             }}
                         >
-                            {metricConfig.description || metricConfig.name}
+                            {metricConfig.description ||
+                                metricConfig.name ||
+                                'New Chart'}
                             {metricConfig.help_article && (
                                 <InfoTooltip
                                     className={styles.infoTooltip}
@@ -225,6 +231,8 @@ const DashboardCard = ({
                                         type="primary"
                                         className={styles.button}
                                         onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setShowEditModal(false);
                                             deleteMetric(metricIdx);
                                         }}
                                     >
@@ -240,6 +248,7 @@ const DashboardCard = ({
                     metricIdx={metricIdx}
                     metricConfig={metricConfig}
                     chartType={metricConfig.chart_type}
+                    aggregator={metricConfig.aggregator}
                     maxGoodValue={metricConfig.max_good_value}
                     maxNeedsImprovementValue={
                         metricConfig.max_needs_improvement_value
@@ -390,6 +399,9 @@ const EditMetricModal = ({
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
     );
+    const [aggregator, setAggregator] = useState<MetricAggregator>(
+        metricConfig.aggregator
+    );
     console.log({ metricConfig, minValue, min, maxValue, max });
     return (
         <Modal
@@ -403,6 +415,23 @@ const EditMetricModal = ({
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
                         <MetricSelector onSelectMetric={setMetricName} />
+                        <StandardDropdown
+                            data={Object.values(MetricAggregator).map((v) => ({
+                                label: v,
+                                value: v,
+                            }))}
+                            defaultValue={
+                                Object.values(MetricAggregator)
+                                    .filter(
+                                        (x) => x === metricConfig.aggregator
+                                    )
+                                    .map((v) => ({
+                                        label: v,
+                                        value: v,
+                                    }))[0]
+                            }
+                            onSelect={(value) => setAggregator(value)}
+                        />
                         <StandardDropdown
                             data={UNIT_OPTIONS}
                             defaultValue={
@@ -522,6 +551,7 @@ const EditMetricModal = ({
                                         metricConfig.max_needs_improvement_value,
                                     poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
+                                    aggregator: aggregator,
                                     ...(minValue
                                         ? { min_value: min }
                                         : { min_percentile: min }),
@@ -566,6 +596,7 @@ const ChartContainer = React.memo(
         metricIdx,
         metricConfig,
         chartType,
+        aggregator,
         maxGoodValue,
         maxNeedsImprovementValue,
         poorValue,
@@ -581,6 +612,7 @@ const ChartContainer = React.memo(
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
         chartType: DashboardChartType;
+        aggregator: MetricAggregator;
         maxGoodValue: number;
         maxNeedsImprovementValue: number;
         poorValue: number;
@@ -613,7 +645,7 @@ const ChartContainer = React.memo(
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    aggregate_function: 'p50',
+                    aggregator: aggregator,
                     date_range: dateRange,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
@@ -770,7 +802,8 @@ const ChartContainer = React.memo(
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregate_function || 'avg']: x?.value,
+                                [x?.aggregator ||
+                                MetricAggregator.Avg]: x?.value,
                             })
                         )}
                         referenceLines={referenceLines}
@@ -784,11 +817,14 @@ const ChartContainer = React.memo(
                             scale: 'point',
                         }}
                         lineColorMapping={{
-                            p99: 'var(--color-red-400)',
-                            p90: 'var(--color-orange-400)',
-                            p75: 'var(--color-green-600)',
-                            p50: 'var(--color-blue-400)',
-                            avg: 'var(--color-gray-400)',
+                            [MetricAggregator.Max]: 'var(--color-red-500)',
+                            [MetricAggregator.P99]: 'var(--color-red-400)',
+                            [MetricAggregator.P95]: 'var(--color-orange-500)',
+                            [MetricAggregator.P90]: 'var(--color-orange-400)',
+                            [MetricAggregator.P75]: 'var(--color-green-600)',
+                            [MetricAggregator.P50]: 'var(--color-blue-400)',
+                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
+                            [MetricAggregator.Count]: 'var(--color-green-500)',
                         }}
                         yAxisLabel={metricConfig.units}
                     />
@@ -799,6 +835,7 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
+        prevProps.aggregator === nextProps.aggregator &&
         prevProps.lookbackMinutes === nextProps.lookbackMinutes &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===

@@ -95,10 +95,9 @@ const BarChartV2 = ({
                         left: -18,
                         bottom: 0,
                     }}
-                    barSize={5}
-                    barGap={3}
-                    barCategoryGap={3}
-                    maxBarSize={3}
+                    barSize={7}
+                    barGap={0}
+                    barCategoryGap={0}
                 >
                     <CartesianGrid
                         strokeDasharray=""
@@ -193,6 +192,7 @@ const BarChartV2 = ({
                             stroke={barColorMapping[key]}
                             fill={barColorMapping[key]}
                             animationDuration={100}
+                            radius={[2, 2, 0, 0]}
                         />
                     ))}
                     {referenceAreaProps && (
