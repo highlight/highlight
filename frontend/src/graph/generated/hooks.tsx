@@ -6063,11 +6063,6 @@ export const GetErrorGroupsOpenSearchDocument = gql`
                     functionName
                     columnNumber
                 }
-                metadata_log {
-                    error_id
-                    session_secure_id
-                    timestamp
-                }
                 error_frequency
             }
             totalCount

@@ -2339,16 +2339,6 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
                                 >
                             >
                         >;
-                        metadata_log: Array<
-                            Types.Maybe<
-                                { __typename?: 'ErrorMetadata' } & Pick<
-                                    Types.ErrorMetadata,
-                                    | 'error_id'
-                                    | 'session_secure_id'
-                                    | 'timestamp'
-                                >
-                            >
-                        >;
                     }
             >;
         };
