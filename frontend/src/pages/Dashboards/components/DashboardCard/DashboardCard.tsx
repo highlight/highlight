@@ -71,7 +71,7 @@ const DashboardCard = ({
         <>
             <Card
                 interactable
-                style={{ paddingTop: 'var(--size-small)' }}
+                className={styles.card}
                 title={
                     <div className={styles.cardHeader}>
                         <h3

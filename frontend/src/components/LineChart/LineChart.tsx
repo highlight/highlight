@@ -91,7 +91,6 @@ const LineChart = ({
     onMouseMove,
     onMouseUp,
 }: Props) => {
-    console.log(referenceAreaProps);
     const nonXAxisKeys =
         data.length > 0
             ? Object.keys(data[0]).filter(
