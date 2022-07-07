@@ -81,6 +81,7 @@ type Mutation {
         appVersion: String
         fingerprint: String!
         session_secure_id: String
+        client_id: String
     ): Session
     identifySession(
         session_id: ID!

@@ -2263,6 +2263,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     Types.Session,
                     | 'id'
                     | 'secure_id'
+                    | 'client_id'
                     | 'fingerprint'
                     | 'identifier'
                     | 'os_name'

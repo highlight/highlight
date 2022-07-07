@@ -434,12 +434,16 @@ type SessionResults struct {
 type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
-	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	Fingerprint int    `json:"fingerprint"`
+	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	// For associating unidentified sessions with a user after identification
+	ClientID string `json:"client_id" gorm:"index:idx_client_project,option:CONCURRENTLY;not null;default:''"`
+	// Whether a session has been identified.
+	Identified  bool `json:"identified" gorm:"default:false;not null"`
+	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	ProjectID      int    `json:"project_id" gorm:"index:idx_client_project,option:CONCURRENTLY"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -1160,7 +1164,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	if err := DB.Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
