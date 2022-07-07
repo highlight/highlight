@@ -301,10 +301,14 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 			} else {
 				hasher := sha256.New()
 				pr, pw := io.Pipe()
+				log.Debug("hello!")
 				tr := io.TeeReader(response.Body, pw)
+				log.Debug("hello2!")
 				if _, err := io.Copy(hasher, tr); err != nil {
+					log.Debug("goodbye :(")
 					return nil, errors.Wrap(err, "error hashing response body")
 				}
+				log.Debug("hello3!")
 				hashVal = string(hasher.Sum(nil))
 				contentType := response.Header.Get("Content-Type")
 				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, response.ContentLength, contentType, pr)
