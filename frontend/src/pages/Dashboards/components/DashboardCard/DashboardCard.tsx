@@ -2,9 +2,10 @@ import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Input from '@components/Input/Input';
-import LineChart from '@components/LineChart/LineChart';
+import LineChart, { Reference } from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
@@ -12,8 +13,11 @@ import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
     useGetMetricsTimelineLazyQuery,
+    useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
+import { SingleValue } from '@highlight-run/react-select';
+import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
@@ -21,10 +25,13 @@ import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
+import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
+import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
+import _ from 'lodash';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -100,45 +107,71 @@ const DashboardCard = ({
                         </h3>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
-                                {metricMonitorsLoading ? (
-                                    <Skeleton width={111} />
-                                ) : metricMonitors?.metric_monitors.length ? (
-                                    <StandardDropdown
-                                        data={metricMonitors?.metric_monitors.map(
-                                            (mm) => ({
-                                                label: mm?.name || '',
-                                                value: mm?.id || '',
-                                            })
-                                        )}
-                                        onSelect={(mmId) =>
-                                            history.push(
-                                                `/${project_id}/alerts/monitor/${mmId}`
-                                            )
-                                        }
-                                        className={styles.monitorItem}
-                                        labelClassName={styles.monitorName}
-                                    />
+                                {metricConfig.name.length ? (
+                                    metricMonitorsLoading ? (
+                                        <Skeleton width={111} />
+                                    ) : metricMonitors?.metric_monitors
+                                          .length ? (
+                                        <StandardDropdown
+                                            display={
+                                                <div>
+                                                    <SvgAnnouncementIcon
+                                                        style={{
+                                                            marginBottom: -3,
+                                                            marginRight:
+                                                                'var(--size-xSmall)',
+                                                        }}
+                                                    />
+                                                    {
+                                                        metricMonitors
+                                                            ?.metric_monitors
+                                                            .length
+                                                    }
+                                                    {metricMonitors
+                                                        ?.metric_monitors
+                                                        .length > 1
+                                                        ? ' Monitors'
+                                                        : ' Monitor'}
+                                                </div>
+                                            }
+                                            data={metricMonitors?.metric_monitors.map(
+                                                (mm) => ({
+                                                    label: mm?.name || '',
+                                                    value: mm?.id || '',
+                                                })
+                                            )}
+                                            onSelect={(mmId) =>
+                                                history.push(
+                                                    `/${project_id}/alerts/monitor/${mmId}`
+                                                )
+                                            }
+                                            className={styles.monitorItem}
+                                            labelClassName={styles.monitorName}
+                                        />
+                                    ) : (
+                                        <Button
+                                            icon={
+                                                <SvgAnnouncementIcon
+                                                    style={{
+                                                        marginRight:
+                                                            'var(--size-xSmall)',
+                                                    }}
+                                                />
+                                            }
+                                            trackingId={
+                                                'DashboardCardCreateMonitor'
+                                            }
+                                            onClick={() => {
+                                                history.push(
+                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                                );
+                                            }}
+                                        >
+                                            Create Alert
+                                        </Button>
+                                    )
                                 ) : (
-                                    <Button
-                                        icon={
-                                            <SvgAnnouncementIcon
-                                                style={{
-                                                    marginRight:
-                                                        'var(--size-xSmall)',
-                                                }}
-                                            />
-                                        }
-                                        trackingId={
-                                            'DashboardCardCreateMonitor'
-                                        }
-                                        onClick={() => {
-                                            history.push(
-                                                `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                            );
-                                        }}
-                                    >
-                                        Create Alert
-                                    </Button>
+                                    <div style={{ width: 161 }}></div>
                                 )}
                                 <Button
                                     icon={
@@ -221,6 +254,105 @@ const DashboardCard = ({
     );
 };
 
+interface MetricOption {
+    value: string;
+    label: string;
+}
+
+export const MetricSelector = ({
+    onSelectMetric,
+}: {
+    onSelectMetric: (metricName: string) => void;
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const [isTyping, setIsTyping] = useState(false);
+    const { data: suggestedMetrics, loading } = useGetSuggestedMetricsQuery({
+        variables: {
+            project_id,
+            prefix: '',
+        },
+    });
+
+    const getValueOptions = (
+        input: string,
+        callback: (s: MetricOption[]) => void
+    ) => {
+        const options =
+            suggestedMetrics?.suggested_metrics
+                .filter(
+                    (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
+                )
+                .map((s) => ({
+                    label: s,
+                    value: s,
+                })) || [];
+        setIsTyping(false);
+        callback(options);
+    };
+
+    // Ignore this so we have a consistent reference so debounce works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), [
+        suggestedMetrics?.suggested_metrics,
+    ]);
+
+    return (
+        <div className={dashStyles.container}>
+            <DropdownIndicator height={26} isLoading={loading || isTyping} />
+            <AsyncSelect
+                // @ts-expect-error
+                styles={{
+                    ...styleProps,
+                    valueContainer: (provided) => ({
+                        ...provided,
+                        padding: '0 12px',
+                        height: '40px',
+                        cursor: 'text',
+                    }),
+                }}
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={dashStyles.dropdownPlaceholder}></div>
+                    ),
+                }}
+                loadOptions={(
+                    input,
+                    callback: (options: MetricOption[]) => void
+                ) => {
+                    loadOptions(input, callback);
+                }}
+                onInputChange={(newValue) => {
+                    setIsTyping(newValue !== '');
+                }}
+                onChange={(
+                    newValue: SingleValue<{
+                        value?: string;
+                        label?: string;
+                    }>
+                ) => {
+                    onSelectMetric(newValue?.value || '');
+                }}
+                isLoading={loading}
+                isClearable={false}
+                escapeClearsValue={true}
+                defaultOptions={suggestedMetrics?.suggested_metrics.map(
+                    (k) =>
+                        ({
+                            label: k,
+                            value: k,
+                        } as MetricOption)
+                )}
+                noOptionsMessage={({ inputValue }) =>
+                    !inputValue ? null : `No results for "${inputValue}"`
+                }
+                placeholder="Search for a metric..."
+                isSearchable
+                maxMenuHeight={500}
+            />
+        </div>
+    );
+};
+
 const EditMetricModal = ({
     metricIdx,
     metricConfig,
@@ -237,8 +369,9 @@ const EditMetricModal = ({
     shown?: boolean;
 }) => {
     const [units, setUnits] = useState<string>(metricConfig.units);
-    const [helpArticle, setHelpArticle] = useState<string>(
-        metricConfig.help_article
+    const [metricName, setMetricName] = useState<string>(metricConfig.name);
+    const [description, setDescription] = useState<string>(
+        metricConfig.description
     );
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
@@ -253,6 +386,7 @@ const EditMetricModal = ({
             <ModalBody>
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
+                        <MetricSelector onSelectMetric={setMetricName} />
                         <StandardDropdown
                             data={UNIT_OPTIONS}
                             defaultValue={
@@ -261,14 +395,6 @@ const EditMetricModal = ({
                                 )[0]
                             }
                             onSelect={(value) => setUnits(value)}
-                        />
-                        <Input
-                            placeholder="Help Article"
-                            name="Help Article"
-                            value={helpArticle}
-                            onChange={(e) => {
-                                setHelpArticle(e.target?.value || '');
-                            }}
                         />
                         <StandardDropdown
                             data={Object.keys(DashboardChartType).map(
@@ -283,8 +409,24 @@ const EditMetricModal = ({
                             }}
                             onSelect={(value) => setChartType(value)}
                         />
+                        <Input
+                            placeholder="Description"
+                            name="Description"
+                            value={description}
+                            onChange={(e) => {
+                                setDescription(e.target?.value || '');
+                            }}
+                        />
+                    </div>
+                </section>
+                <section className={dashStyles.section}>
+                    <div className={styles.submitRow}>
                         <Button
-                            style={{ width: 90 }}
+                            type={'primary'}
+                            style={{
+                                width: 90,
+                                marginRight: 'var(--size-xSmall)',
+                            }}
                             icon={
                                 <SaveIcon
                                     style={{
@@ -295,10 +437,10 @@ const EditMetricModal = ({
                             trackingId={'SaveMetric'}
                             onClick={() => {
                                 updateMetric(metricIdx, {
-                                    name: metricConfig.name,
-                                    description: metricConfig.description,
+                                    name: metricName,
+                                    description: description,
                                     units: units,
-                                    help_article: helpArticle,
+                                    help_article: metricConfig.help_article,
                                     max_good_value: metricConfig.max_good_value,
                                     max_needs_improvement_value:
                                         metricConfig.max_needs_improvement_value,
@@ -460,6 +602,41 @@ const ChartContainer = React.memo(
                 }
             }
         }
+        let referenceLines: Reference[] = [];
+        if (WEB_VITALS_CONFIGURATION[metricConfig.name]) {
+            referenceLines = [
+                {
+                    label: 'Goal',
+                    value: maxGoodValue,
+                    color: 'var(--color-green-300)',
+                    onDrag:
+                        setMaxGoodValue &&
+                        ((y) => {
+                            setMaxGoodValue(y);
+                        }),
+                },
+                {
+                    label: 'Needs Improvement',
+                    value: maxNeedsImprovementValue,
+                    color: 'var(--color-red-200)',
+                    onDrag:
+                        setMaxNeedsImprovementValue &&
+                        ((y) => {
+                            setMaxNeedsImprovementValue(y);
+                        }),
+                },
+                {
+                    label: 'Poor',
+                    value: poorValue,
+                    color: 'var(--color-red-400)',
+                    onDrag:
+                        setPoorValue &&
+                        ((y) => {
+                            setPoorValue(y);
+                        }),
+                },
+            ];
+        }
 
         return (
             <>
@@ -488,38 +665,7 @@ const ChartContainer = React.memo(
                     <BarChartV2
                         height={235}
                         data={histogramData?.metrics_histogram.buckets || []}
-                        referenceLines={[
-                            {
-                                label: 'Goal',
-                                value: maxGoodValue,
-                                color: 'var(--color-green-300)',
-                                onDrag:
-                                    setMaxGoodValue &&
-                                    ((y) => {
-                                        setMaxGoodValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: maxNeedsImprovementValue,
-                                color: 'var(--color-red-200)',
-                                onDrag:
-                                    setMaxNeedsImprovementValue &&
-                                    ((y) => {
-                                        setMaxNeedsImprovementValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Poor',
-                                value: poorValue,
-                                color: 'var(--color-red-400)',
-                                onDrag:
-                                    setPoorValue &&
-                                    ((y) => {
-                                        setPoorValue(y);
-                                    }),
-                            },
-                        ]}
+                        referenceLines={referenceLines}
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
@@ -540,38 +686,7 @@ const ChartContainer = React.memo(
                                 [x?.aggregate_function || 'avg']: x?.value,
                             })
                         )}
-                        referenceLines={[
-                            {
-                                label: 'Goal',
-                                value: maxGoodValue,
-                                color: 'var(--color-green-300)',
-                                onDrag:
-                                    setMaxGoodValue &&
-                                    ((y) => {
-                                        setMaxGoodValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Needs Improvement',
-                                value: maxNeedsImprovementValue,
-                                color: 'var(--color-red-200)',
-                                onDrag:
-                                    setMaxNeedsImprovementValue &&
-                                    ((y) => {
-                                        setMaxNeedsImprovementValue(y);
-                                    }),
-                            },
-                            {
-                                label: 'Poor',
-                                value: poorValue,
-                                color: 'var(--color-red-400)',
-                                onDrag:
-                                    setPoorValue &&
-                                    ((y) => {
-                                        setPoorValue(y);
-                                    }),
-                            },
-                        ]}
+                        referenceLines={referenceLines}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) => {
                             return moment(tickItem).format(tickFormat);
@@ -603,9 +718,12 @@ const ChartContainer = React.memo(
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
         prevProps.metricIdx === nextProps.metricIdx &&
+        prevProps.metricConfig.name === nextProps.metricConfig.name &&
         prevProps.metricConfig.chart_type ===
             nextProps.metricConfig.chart_type &&
-        prevProps.metricConfig.units === nextProps.metricConfig.units
+        prevProps.metricConfig.units === nextProps.metricConfig.units &&
+        prevProps.metricConfig.description ===
+            nextProps.metricConfig.description
 );
 
 export default DashboardCard;

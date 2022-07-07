@@ -59,7 +59,10 @@ const NewMonitorPage = ({
             threshold,
             emails,
         },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        refetchQueries: [
+            namedOperations.Query.GetAlertsPagePayload,
+            namedOperations.Query.GetMetricMonitors,
+        ],
     });
 
     const onFinish = (e: { preventDefault: () => void }) => {
