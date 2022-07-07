@@ -313,6 +313,7 @@ type DashboardMetric struct {
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
 	ChartType                modelInputs.DashboardChartType
+	Aggregator               modelInputs.MetricAggregator `gorm:"default:P50"`
 	Description              string
 	MaxGoodValue             float64
 	MaxNeedsImprovementValue float64
@@ -724,8 +725,8 @@ type MetricMonitor struct {
 	Model
 	ProjectID         int `gorm:"index;not null;"`
 	Name              string
-	Function          string
-	PeriodMinutes     *int // apply aggregator function on PeriodMinutes lookback
+	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`

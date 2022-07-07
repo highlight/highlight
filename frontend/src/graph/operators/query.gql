@@ -63,7 +63,7 @@ query GetMetricsTimeline(
     ) {
         date
         value
-        aggregate_function
+        aggregator
     }
 }
 
@@ -1382,7 +1382,7 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
         period_minutes
         metric_to_monitor
         last_admin_to_edit_id
@@ -1451,6 +1451,7 @@ query GetDashboardDefinitions($project_id: ID!) {
             units
             help_article
             chart_type
+            aggregator
             min_value
             min_percentile
             max_value

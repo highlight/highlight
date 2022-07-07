@@ -387,7 +387,7 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 input HistogramParamsInput {
@@ -727,7 +727,7 @@ type Metric {
 type DashboardPayload {
     date: String!
     value: Float!
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 type HistogramBucket {
@@ -757,6 +757,17 @@ enum DashboardChartType {
     Histogram
 }
 
+enum MetricAggregator {
+    Avg
+    P50
+    P75
+    P90
+    P95
+    P99
+    Max
+    Count
+}
+
 input DashboardMetricConfigInput {
     name: String!
     description: String!
@@ -766,6 +777,7 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
     min_value: Float
     min_percentile: Float
     max_value: Float
@@ -781,6 +793,7 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
     min_value: Float
     min_percentile: Float
     max_value: Float
@@ -808,7 +821,7 @@ type MetricMonitor {
     name: String!
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
-    function: String!
+    aggregator: MetricAggregator!
     period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
@@ -1167,7 +1180,7 @@ type Mutation {
     createMetricMonitor(
         project_id: ID!
         name: String!
-        function: String!
+        aggregator: MetricAggregator!
         periodMinutes: Int
         threshold: Float!
         metric_to_monitor: String!
@@ -1178,7 +1191,7 @@ type Mutation {
         metric_monitor_id: ID!
         project_id: ID!
         name: String
-        function: String
+        aggregator: MetricAggregator
         periodMinutes: Int
         threshold: Float
         metric_to_monitor: String

@@ -1,4 +1,8 @@
-import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
+import {
+    DashboardChartType,
+    DashboardMetricConfig,
+    MetricAggregator,
+} from '@graph/schemas';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 
 export const DEFAULT_METRICS_LAYOUT = {
@@ -65,5 +69,6 @@ export const getDefaultMetricConfig = (name: string): DashboardMetricConfig => {
         max_needs_improvement_value: cfg?.max_needs_improvement_value || 100,
         poor_value: cfg?.poor_value || 1000,
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     };
 };
