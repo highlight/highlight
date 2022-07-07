@@ -2212,9 +2212,11 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		}
 	}
 
-	// calculate a reasonable threshold
+	// calculate a reasonable threshold using p90
 	end := time.Now()
 	start := time.Now().Add(-24 * time.Hour)
+	// different than the metric monitor aggregator because we want to get a high value
+	// that won't trigger with the monitor aggregator of p50
 	agg := modelInputs.MetricAggregatorP90
 	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
 		DateRange: &modelInputs.DateRangeInput{
