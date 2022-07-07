@@ -1625,6 +1625,7 @@ const QueryBuilder = ({
                 </div>
             </div>
             <div>
+                {/* Something about filterrules is causing a re-render */}
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>
                         {filterRules.flatMap((rule, index) => [

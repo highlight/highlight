@@ -20,8 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm/clause"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -29,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
