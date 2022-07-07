@@ -231,6 +231,8 @@ const DashboardCard = ({
                                         type="primary"
                                         className={styles.button}
                                         onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setShowEditModal(false);
                                             deleteMetric(metricIdx);
                                         }}
                                     >
