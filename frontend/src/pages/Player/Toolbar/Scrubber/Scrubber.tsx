@@ -1,5 +1,4 @@
 import Button from '@components/Button/Button/Button';
-import Tooltip from '@components/Tooltip/Tooltip';
 import SvgDragIcon from '@icons/DragIcon';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
@@ -14,12 +13,12 @@ import styles from './Scrubber.module.scss';
 
 interface Props {
     chartData: any[];
-    sliderPercent: number;
+    getSliderPercent: (time: number) => number;
 }
 
 const ActivityGraphMemoized = React.memo(ActivityGraph);
 
-const Scrubber = ({ chartData, sliderPercent }: Props) => {
+const Scrubber = ({ chartData, getSliderPercent }: Props) => {
     const {
         zoomAreaLeft,
         setZoomAreaLeft,
@@ -207,7 +206,10 @@ const Scrubber = ({ chartData, sliderPercent }: Props) => {
                         setIsDragging(true);
                     }}
                     position={{
-                        x: Math.max(sliderPercent * wrapperWidth, 0),
+                        x: Math.max(
+                            getSliderPercent(dragTime) * wrapperWidth,
+                            0
+                        ),
                         y: -28,
                     }}
                 >
@@ -296,6 +298,20 @@ const Scrubber = ({ chartData, sliderPercent }: Props) => {
                         </div>
                     </Draggable>
                     <div
+                        className={styles.zoomAreaMask}
+                        style={{
+                            left: `0`,
+                            width: `${dragAreaLeft}%`,
+                        }}
+                    ></div>
+                    <div
+                        className={styles.zoomAreaMask}
+                        style={{
+                            left: `${dragAreaRight}%`,
+                            width: `${100 - dragAreaRight}%`,
+                        }}
+                    ></div>
+                    <div
                         className={classNames(styles.zoomArea, {
                             [styles.zoomAreaCanReset]: false,
                         })}
@@ -312,48 +328,16 @@ const Scrubber = ({ chartData, sliderPercent }: Props) => {
                         }
 
                         return (
-                            <Tooltip
+                            <div
                                 key={i.startPercent}
-                                title={
-                                    <div className={styles.inactivePopover}>
-                                        <div>Inactive</div>
-                                        <div
-                                            className={
-                                                styles.inactivePopoverDescription
-                                            }
-                                        >
-                                            Inactivity represents time where the
-                                            user isn't scrolling, clicking or
-                                            interacting with your application.
-                                        </div>
-                                        <div
-                                            className={
-                                                styles.inactivePopoverTime
-                                            }
-                                        >
-                                            {MillisToMinutesAndSeconds(
-                                                i.startTime
-                                            )}{' '}
-                                            to{' '}
-                                            {MillisToMinutesAndSeconds(
-                                                i.endTime
-                                            )}
-                                        </div>
-                                    </div>
-                                }
-                                mouseEnterDelay={0}
-                            >
-                                <div
-                                    className={styles.inactiveArea}
-                                    style={{
-                                        left: `${i.startPercent * 100}%`,
-                                        width: `${
-                                            (i.endPercent - i.startPercent) *
-                                            100
-                                        }%`,
-                                    }}
-                                ></div>
-                            </Tooltip>
+                                className={styles.inactiveArea}
+                                style={{
+                                    left: `${i.startPercent * 100}%`,
+                                    width: `${
+                                        (i.endPercent - i.startPercent) * 100
+                                    }%`,
+                                }}
+                            ></div>
                         );
                     })}
                 </div>

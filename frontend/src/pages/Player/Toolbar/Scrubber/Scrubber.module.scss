@@ -49,6 +49,13 @@
     cursor: pointer;
 }
 
+.zoomAreaMask {
+    background-color: var(--color-primary-background);
+    height: 32px;
+    position: absolute;
+    z-index: 2;
+}
+
 .scrubHandleContainer {
     position: absolute;
     z-index: 200;

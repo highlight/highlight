@@ -19,5 +19,6 @@ export const timeText: string;
 export const zoomArea: string;
 export const zoomAreaCanReset: string;
 export const zoomAreaHandle: string;
+export const zoomAreaMask: string;
 export const zoomControlsWrapper: string;
 export const zoomer: string;

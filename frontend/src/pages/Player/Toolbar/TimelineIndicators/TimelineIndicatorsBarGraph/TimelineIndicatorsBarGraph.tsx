@@ -406,7 +406,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                 </div>
                 <Scrubber
                     chartData={seriesState.chartData}
-                    sliderPercent={sliderPercent}
+                    getSliderPercent={getSliderPercent}
                 />
             </>
         );
