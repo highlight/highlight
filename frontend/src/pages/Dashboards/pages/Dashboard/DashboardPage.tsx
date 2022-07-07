@@ -45,7 +45,7 @@ const DashboardPage = () => {
         timeFilter[1]
     );
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
-    const [layout, setLayout] = useState<Layouts>({});
+    const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
