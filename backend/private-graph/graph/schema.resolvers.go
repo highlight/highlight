@@ -5306,8 +5306,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
-	var previousCount = 0
+	var previousCount = -1
 	for i, r := range results {
+		// the first bucket LE bound is actually the start value so use it to offset the histogram
+		if previousCount == -1 {
+			previousCount = int(r.Value.(float64))
+			continue
+		}
 		le := r.Values["le"].(float64)
 		b := &modelInputs.HistogramBucket{
 			Bucket:     float64(i),
