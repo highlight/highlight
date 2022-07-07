@@ -87,30 +87,33 @@ type DashboardMetricConfig struct {
 	MinPercentile            *float64           `json:"min_percentile"`
 	MaxValue                 *float64           `json:"max_value"`
 	MaxPercentile            *float64           `json:"max_percentile"`
+	Filters                  []*MetricTagFilter `json:"filters"`
 }
 
 type DashboardMetricConfigInput struct {
-	Name                     string             `json:"name"`
-	Description              string             `json:"description"`
-	MaxGoodValue             float64            `json:"max_good_value"`
-	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
-	PoorValue                float64            `json:"poor_value"`
-	Units                    string             `json:"units"`
-	HelpArticle              string             `json:"help_article"`
-	ChartType                DashboardChartType `json:"chart_type"`
-	Aggregator               MetricAggregator   `json:"aggregator"`
-	MinValue                 *float64           `json:"min_value"`
-	MinPercentile            *float64           `json:"min_percentile"`
-	MaxValue                 *float64           `json:"max_value"`
-	MaxPercentile            *float64           `json:"max_percentile"`
+	Name                     string                  `json:"name"`
+	Description              string                  `json:"description"`
+	MaxGoodValue             float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue float64                 `json:"max_needs_improvement_value"`
+	PoorValue                float64                 `json:"poor_value"`
+	Units                    string                  `json:"units"`
+	HelpArticle              string                  `json:"help_article"`
+	ChartType                DashboardChartType      `json:"chart_type"`
+	Aggregator               MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                `json:"min_value"`
+	MinPercentile            *float64                `json:"min_percentile"`
+	MaxValue                 *float64                `json:"max_value"`
+	MaxPercentile            *float64                `json:"max_percentile"`
+	Filters                  []*MetricTagFilterInput `json:"filters"`
 }
 
 type DashboardParamsInput struct {
-	DateRange         *DateRangeInput   `json:"date_range"`
-	ResolutionMinutes *int              `json:"resolution_minutes"`
-	Timezone          *string           `json:"timezone"`
-	Units             *string           `json:"units"`
-	Aggregator        *MetricAggregator `json:"aggregator"`
+	DateRange         *DateRangeInput         `json:"date_range"`
+	ResolutionMinutes *int                    `json:"resolution_minutes"`
+	Timezone          *string                 `json:"timezone"`
+	Units             *string                 `json:"units"`
+	Aggregator        *MetricAggregator       `json:"aggregator"`
+	Filters           []*MetricTagFilterInput `json:"filters"`
 }
 
 type DashboardPayload struct {
@@ -183,13 +186,14 @@ type HistogramBucket struct {
 }
 
 type HistogramParamsInput struct {
-	DateRange     *DateRangeInput `json:"date_range"`
-	Buckets       *int            `json:"buckets"`
-	MinValue      *float64        `json:"min_value"`
-	MinPercentile *float64        `json:"min_percentile"`
-	MaxValue      *float64        `json:"max_value"`
-	MaxPercentile *float64        `json:"max_percentile"`
-	Units         *string         `json:"units"`
+	DateRange     *DateRangeInput         `json:"date_range"`
+	Buckets       *int                    `json:"buckets"`
+	MinValue      *float64                `json:"min_value"`
+	MinPercentile *float64                `json:"min_percentile"`
+	MaxValue      *float64                `json:"max_value"`
+	MaxPercentile *float64                `json:"max_percentile"`
+	Units         *string                 `json:"units"`
+	Filters       []*MetricTagFilterInput `json:"filters"`
 }
 
 type HistogramPayload struct {
@@ -221,6 +225,16 @@ type LinearTeam struct {
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
+}
+
+type MetricTagFilter struct {
+	Tag   string `json:"tag"`
+	Value string `json:"value"`
+}
+
+type MetricTagFilterInput struct {
+	Tag   string `json:"tag"`
+	Value string `json:"value"`
 }
 
 type NamedCount struct {

@@ -2965,6 +2965,13 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	}
 
 	for _, m := range metrics {
+		var filters []*model.DashboardMetricFilter
+		for _, f := range m.Filters {
+			filters = append(filters, &model.DashboardMetricFilter{
+				Tag:   f.Tag,
+				Value: f.Value,
+			})
+		}
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
@@ -2979,6 +2986,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			MinPercentile:            m.MinPercentile,
 			MaxValue:                 m.MaxValue,
 			MaxPercentile:            m.MaxPercentile,
+			Filters:                  filters,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -5155,6 +5163,13 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	for _, d := range dashboards {
 		var metrics []*modelInputs.DashboardMetricConfig
 		for _, metric := range d.Metrics {
+			var filters []*modelInputs.MetricTagFilter
+			for _, f := range metric.Filters {
+				filters = append(filters, &modelInputs.MetricTagFilter{
+					Tag:   f.Tag,
+					Value: f.Value,
+				})
+			}
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
@@ -5169,6 +5184,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				MinPercentile:            metric.MinPercentile,
 				MaxValue:                 metric.MaxValue,
 				MaxPercentile:            metric.MaxPercentile,
+				Filters:                  filters,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{
@@ -5228,6 +5244,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
 		minPercentile := 0.01
 		if params.MinPercentile != nil {
@@ -5291,10 +5308,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> group()
+          %s|> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)

@@ -272,8 +272,10 @@ interface MetricOption {
 
 export const MetricSelector = ({
     onSelectMetric,
+    currentMetric,
 }: {
     onSelectMetric: (metricName: string) => void;
+    currentMetric?: string;
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
     const [isTyping, setIsTyping] = useState(false);
@@ -346,6 +348,18 @@ export const MetricSelector = ({
                 isLoading={loading}
                 isClearable={false}
                 escapeClearsValue={true}
+                defaultValue={
+                    suggestedMetrics?.suggested_metrics
+                        .filter((k) => k === currentMetric)
+                        .map(
+                            (k) =>
+                                ({
+                                    label: k,
+                                    value: k,
+                                } as MetricOption)
+                        )[0]
+                }
+                defaultInputValue={currentMetric}
                 defaultOptions={suggestedMetrics?.suggested_metrics.map(
                     (k) =>
                         ({
@@ -414,7 +428,10 @@ const EditMetricModal = ({
             <ModalBody>
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <MetricSelector onSelectMetric={setMetricName} />
+                        <MetricSelector
+                            onSelectMetric={setMetricName}
+                            currentMetric={metricName}
+                        />
                         <StandardDropdown
                             data={Object.values(MetricAggregator).map((v) => ({
                                 label: v,

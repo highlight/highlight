@@ -3702,7 +3702,18 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'min_percentile'
                             | 'max_value'
                             | 'max_percentile'
-                        >
+                        > & {
+                                filters?: Types.Maybe<
+                                    Array<
+                                        {
+                                            __typename?: 'MetricTagFilter';
+                                        } & Pick<
+                                            Types.MetricTagFilter,
+                                            'value' | 'tag'
+                                        >
+                                    >
+                                >;
+                            }
                     >;
                 }
         >

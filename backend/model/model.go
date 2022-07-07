@@ -160,6 +160,7 @@ var Models = []interface{}{
 	&EventChunk{},
 	&Dashboard{},
 	&DashboardMetric{},
+	&DashboardMetricFilter{},
 }
 
 func init() {
@@ -324,6 +325,14 @@ type DashboardMetric struct {
 	MinPercentile            *float64
 	MaxValue                 *float64
 	MaxPercentile            *float64
+	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+}
+
+type DashboardMetricFilter struct {
+	Model
+	MetricID int    `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Tag      string `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Value    string
 }
 
 type SlackChannel struct {
@@ -642,10 +651,11 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                    = "sessions"
-	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
-	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
+	SESSIONS_TBL                              = "sessions"
+	DAILY_ERROR_COUNTS_TBL                    = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ                   = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ           = "metric_groups_name_session_uniq"
+	DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT = "dashboard_metric_filters_chart_id"
 )
 
 type DailyErrorCount struct {
@@ -1166,6 +1176,27 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END $$;
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
 		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
+	}
+
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS 
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
+					THEN
+						alter table dashboard_metric_filters
+							add constraint %[1]s
+								foreign key (metric_id) references dashboard_metrics (id)
+									on update cascade on delete cascade;
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
+				END;
+			END $$;
+	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`

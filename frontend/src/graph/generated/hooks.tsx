@@ -9564,6 +9564,10 @@ export const GetDashboardDefinitionsDocument = gql`
                 min_percentile
                 max_value
                 max_percentile
+                filters {
+                    value
+                    tag
+                }
             }
             last_admin_to_edit_id
             layout
