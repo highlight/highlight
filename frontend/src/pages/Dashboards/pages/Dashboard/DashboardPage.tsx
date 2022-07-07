@@ -25,6 +25,7 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
+import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
@@ -33,7 +34,7 @@ import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const timeFilter = [
+export const timeFilter = [
     { label: 'Last 1 minute', value: 1 },
     { label: 'Last 15 minutes', value: 15 },
     { label: 'Last 1 hours', value: 60 },
@@ -51,10 +52,18 @@ interface MetricOption {
 const DashboardPage = () => {
     const history = useHistory();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
-    const { dashboards, updateDashboard } = useDashboardsContext();
+    const {
+        dashboards,
+        updateDashboard,
+        setDateRange,
+        lookbackMinutes,
+    } = useDashboardsContext();
+    const initialDateRangeLength = timeFilter.find(
+        (x) => x.value === lookbackMinutes
+    );
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
         `highlight-dashboard-${project_id}-${id}-date-range-v2`,
-        timeFilter[1]
+        initialDateRangeLength
     );
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
@@ -73,6 +82,18 @@ const DashboardPage = () => {
             history.replace({ state: { dashboardName: name } });
         }
     }, [dashboards, history, id]);
+
+    useEffect(() => {
+        if (dateRangeLength?.value) {
+            const endDate = moment(new Date());
+            const startDate = moment(new Date()).subtract(
+                dateRangeLength.value,
+                'minutes'
+            );
+
+            setDateRange(startDate.format(), endDate.format());
+        }
+    }, [dateRangeLength?.value]);
 
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
@@ -192,6 +213,7 @@ const DashboardPage = () => {
                     containerPadding={[0, 0]}
                     rowHeight={155}
                     resizeHandles={['se']}
+                    draggableHandle="[data-drag-handle]"
                     onDragStop={handleDashboardChange}
                     onResizeStop={handleDashboardChange}
                     onResize={handleDashboardChange}
@@ -218,7 +240,6 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                lookbackMinutes={dateRangeLength.value}
                             />
                         </div>
                     ))}

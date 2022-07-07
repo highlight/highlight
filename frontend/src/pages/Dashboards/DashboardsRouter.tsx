@@ -12,11 +12,17 @@ import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
+import moment from 'moment';
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 
 const DashboardsRouter = () => {
+    const [dateRange, setDateRange] = React.useState<{
+        start_date: string;
+        end_date: string;
+    }>();
+    const [lookbackMinutes, setLookbackMinutes] = React.useState<number>(15);
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
     const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
@@ -43,6 +49,16 @@ const DashboardsRouter = () => {
         }
     }, [project_id, upsertDashboardMutation, loading, data]);
 
+    useEffect(() => {
+        if (dateRange?.start_date && dateRange.end_date) {
+            const start = moment(dateRange.start_date);
+            const end = moment(dateRange.end_date);
+            const minutes = moment.duration(end.diff(start)).asMinutes();
+
+            setLookbackMinutes(minutes);
+        }
+    }, [dateRange?.start_date, dateRange?.end_date]);
+
     return (
         <DashboardsContextProvider
             value={{
@@ -59,6 +75,35 @@ const DashboardsRouter = () => {
                         },
                     });
                 },
+                dateRange,
+                setDateRange: (start, end) => {
+                    const startDate = moment(start);
+                    const endDate = moment(end);
+                    const minutesDiff = moment
+                        .duration(endDate.diff(startDate))
+                        .asMinutes();
+
+                    const roundedEnd = roundDate(
+                        endDate,
+                        Math.min(15, minutesDiff)
+                    );
+                    const roundedStart = roundDate(
+                        startDate,
+                        Math.min(15, minutesDiff)
+                    );
+
+                    setDateRange({
+                        start_date: moment(roundedStart)
+                            .subtract(minutesDiff, 'minutes')
+                            .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
+                        end_date: roundedEnd.format(
+                            'YYYY-MM-DDTHH:mm:59.999999999Z'
+                        ),
+                    });
+
+                    setLookbackMinutes(minutesDiff);
+                },
+                lookbackMinutes,
             }}
         >
             <Helmet>
@@ -84,6 +129,11 @@ const DashboardsRouter = () => {
             </LeadAlignLayout>
         </DashboardsContextProvider>
     );
+};
+
+export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 export default DashboardsRouter;

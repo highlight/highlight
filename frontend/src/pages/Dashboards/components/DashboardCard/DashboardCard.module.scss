@@ -1,3 +1,11 @@
+.card {
+    padding-top: var(--size-small);
+
+    :global(.recharts-cartesian-axis-tick) {
+        user-select: none;
+    }
+}
+
 .noDataContainer {
     align-items: center;
     display: flex;

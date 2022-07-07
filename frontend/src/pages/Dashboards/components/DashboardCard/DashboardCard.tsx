@@ -19,6 +19,7 @@ import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
+import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { useParams } from '@util/react-router/useParams';
@@ -43,7 +44,6 @@ interface Props {
     metricConfig: DashboardMetricConfig;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
-    lookbackMinutes: number;
 }
 
 const DashboardCard = ({
@@ -51,7 +51,6 @@ const DashboardCard = ({
     metricConfig,
     updateMetric,
     deleteMetric,
-    lookbackMinutes,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -156,7 +155,10 @@ const DashboardCard = ({
                                 >
                                     Edit
                                 </Button>
-                                <div className={styles.draggable}>
+                                <div
+                                    className={styles.draggable}
+                                    data-drag-handle
+                                >
                                     <SvgDragIcon />
                                 </div>
                             </div>
@@ -211,7 +213,6 @@ const DashboardCard = ({
                     }
                     poorValue={metricConfig.poor_value}
                     updateMetric={updateMetric}
-                    lookbackMinutes={lookbackMinutes}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
@@ -332,11 +333,6 @@ const EditMetricModal = ({
     );
 };
 
-const roundDate = (d: moment.Moment, toMinutes: number) => {
-    const remainder = toMinutes - (d.minute() % toMinutes);
-    return d.add(remainder, 'minutes');
-};
-
 const ChartContainer = React.memo(
     ({
         metricIdx,
@@ -349,7 +345,6 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        lookbackMinutes,
         showEditModal,
         setShowEditModal,
         setShowDeleteModal,
@@ -364,19 +359,19 @@ const ChartContainer = React.memo(
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        lookbackMinutes: number;
         showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
+        const {
+            dateRange,
+            lookbackMinutes,
+            setDateRange,
+        } = useDashboardsContext();
         const NUM_BUCKETS = 60;
         const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
         const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
-        const [dateRange, setDateRange] = React.useState<{
-            start_date: string;
-            end_date: string;
-        }>();
         const [referenceArea, setReferenceArea] = React.useState<{
             left: number;
             right: number;
@@ -425,21 +420,6 @@ const ChartContainer = React.memo(
                 loadTimeline();
             }
         }, [chartType, loadTimeline, loadHistogram]);
-        useEffect(() => {
-            // round to the nearest 15 mins or less if we use a fine granularity.
-            // this ensures that even for large time ranges data will only be cached
-            // for up to 15 minutes (cache key is based on the arguments).
-            const now = roundDate(
-                moment(new Date()),
-                Math.min(15, lookbackMinutes)
-            );
-            setDateRange({
-                start_date: moment(now)
-                    .subtract(lookbackMinutes, 'minutes')
-                    .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
-                end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
-            });
-        }, [lookbackMinutes]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
@@ -593,19 +573,31 @@ const ChartContainer = React.memo(
                             avg: 'var(--color-gray-400)',
                         }}
                         yAxisLabel={metricConfig.units}
+                        referenceAreaProps={{
+                            x1: referenceArea.left,
+                            x2: referenceArea.right,
+                        }}
                         onMouseDown={(e: any) => {
-                            console.log('DOWN', e);
-                            // this.setState({ refAreaLeft: e.activeLabel })
+                            setReferenceArea({
+                                left: e.activeLabel,
+                                right: referenceArea.right,
+                            });
                         }}
                         onMouseMove={(e: any) => {
-                            console.log('MOVE', e);
-                            // this.state.refAreaLeft &&
-                            // this.setState({ refAreaRight: e.activeLabel })
+                            referenceArea.left &&
+                                setReferenceArea({
+                                    left: referenceArea.left,
+                                    right: e.activeLabel,
+                                });
                         }}
                         // eslint-disable-next-line react/jsx-no-bind
                         onMouseUp={(e: any) => {
-                            console.log('UP', e);
-                            // this.zoom.bind(this)
+                            if (Object.values(referenceArea).includes(0)) {
+                                return;
+                            }
+
+                            setDateRange(referenceArea.left, e.activeLabel);
+                            setReferenceArea({ left: 0, right: 0 });
                         }}
                     />
                 ) : null}
@@ -615,7 +607,6 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
-        prevProps.lookbackMinutes === nextProps.lookbackMinutes &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&

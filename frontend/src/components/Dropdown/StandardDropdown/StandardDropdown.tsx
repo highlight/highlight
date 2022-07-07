@@ -1,6 +1,6 @@
 import { Dropdown } from 'antd';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
 import styles from './StandardDropdown.module.scss';
@@ -27,6 +27,13 @@ export const StandardDropdown = ({
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
+
+    useEffect(() => {
+        if (defaultValue) {
+            setSelection(defaultValue);
+        }
+    }, [defaultValue]);
+
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>

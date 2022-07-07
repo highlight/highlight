@@ -7,6 +7,7 @@ import {
     Maybe,
 } from '@graph/schemas';
 import { createContext } from '@util/context/context';
+import moment from 'moment';
 
 interface DashboardsContext {
     allAdmins: Maybe<
@@ -27,6 +28,12 @@ interface DashboardsContext {
         metrics: DashboardMetricConfigInput[];
         layout?: string;
     }) => Promise<FetchResult<UpsertDashboardMutation>>;
+    dateRange: { start_date: string; end_date: string } | undefined;
+    setDateRange: (
+        startDate: moment.MomentInput,
+        endDate: moment.MomentInput
+    ) => void;
+    lookbackMinutes: number;
 }
 
 export const [
