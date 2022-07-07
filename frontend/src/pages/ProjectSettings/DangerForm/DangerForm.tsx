@@ -1,5 +1,6 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Input from '@components/Input/Input';
+import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm';
 import { useParams } from '@util/react-router/useParams';
@@ -10,10 +11,6 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import {
-    useDeleteProjectMutation,
-    useGetProjectQuery,
-} from '../../../graph/generated/hooks';
 import styles from './DangerForm.module.scss';
 
 export const DangerForm = () => {
@@ -39,11 +36,11 @@ export const DangerForm = () => {
     }
     return (
         <>
-            <FieldsBox>
+            <FieldsBox id={'project'}>
                 <h3>Project Properties</h3>
                 <FieldsForm />
             </FieldsBox>
-            <FieldsBox>
+            <FieldsBox id={'danger'}>
                 <h3>Danger Zone</h3>
 
                 <form onSubmit={onSubmit}>

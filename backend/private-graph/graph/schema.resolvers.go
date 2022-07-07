@@ -92,7 +92,7 @@ func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.Erro
 			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date ASC;
+		ORDER BY d.date;
 	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}
@@ -347,7 +347,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 	return workspace, nil
 }
 
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model.Project, error) {
 	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -371,6 +371,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		BillingEmail:   billingEmail,
 		ExcludedUsers:  excludedUsers,
 		ErrorJsonPaths: errorJSONPaths,
+		BackendDomains: backendDomains,
 	}
 
 	if rageClickWindowSeconds != nil {
@@ -2975,6 +2976,9 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
 		}
+		if err := r.AutoCreateMetricMonitor(ctx, &dashboardMetric); err != nil {
+			log.Errorf("failed to auto create metric monitor: %s", err)
+		}
 	}
 
 	// Update the existing record if it already exists
@@ -4535,7 +4539,7 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 			    WHERE admin_id = ?
 			    )
 				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
-			ORDER BY workspaces.name ASC
+			ORDER BY workspaces.name;
 		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
 		return nil, e.Wrap(err, "error getting joinable workspaces")
 	}
@@ -5179,13 +5183,13 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	}
 	query := fmt.Sprintf(`
 		from(bucket: "%s")
-		  |> range(start: -30d)
+		  |> range(start: -1d)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  %s
 		  |> group(columns: ["_field"])
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(), timeseries.Metrics, filter)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
@@ -5218,8 +5222,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> filter(fn: (r) => r["project_id"] == "%d")
-		  |> group(columns: ["project_id"])
+		  |> group()
 		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
       union(tables: [
@@ -5227,7 +5230,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		do(q:0.99)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, div)
+  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div)
 	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramRangeQuerySpan.SetTag("projectID", projectID)
 	histogramRangeQuerySpan.SetTag("metricName", metricName)
@@ -5235,6 +5238,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	histogramRangeQuerySpan.Finish()
 	if err != nil {
 		return nil, err
+	}
+	if len(results) < 1 {
+		return nil, nil
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
 		Min: 0.,
@@ -5257,11 +5263,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> filter(fn: (r) => r["project_id"] == "%d")
-		  |> group(columns: ["project_id"])
+		  |> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, projectID, histogramPayload.P1*div, bucketSize*div, numBuckets, div)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.P1*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
@@ -5313,7 +5318,6 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		from(bucket: "%s")
 		  |> range(start: -%dd)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["project_id"] == "%d")
           %s
 		  |> group(columns: ["%s"])
 		  |> count()
@@ -5321,7 +5325,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  |> sort(desc: true)
           |> limit(n: 10)
 		  |> yield(name: "count")
-	`, r.TDB.GetBucket(), days, timeseries.Metrics, projectID, extraFiltersStr, params.Attribute.String())
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
 	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
@@ -5544,7 +5548,7 @@ func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.Se
 			AND e.alert_id=?
 			AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date ASC;
+		ORDER BY d.date;
 	`, obj.Type, obj.ID, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}

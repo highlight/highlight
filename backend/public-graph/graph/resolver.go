@@ -407,7 +407,8 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
 	// get version from session
 	var version *string
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: errorObj.SessionID}}).
+	if err := r.DB.Model(&model.Session{}).
+		Where("id = ?", errorObj.SessionID).
 		Select("app_version").Scan(&version).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, e.Wrap(err, "error getting app version from session")
@@ -697,6 +698,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if errorObj.Event == "" || errorObj.Event == "<nil>" {
 		return nil, e.New("error object event was nil or empty")
+	}
+
+	if projectID == 356 {
+		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
+			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
+			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
+			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
+			return nil, e.New("Filtering out noisy Gorilla Mind error")
+		}
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -1673,7 +1683,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(projectID), points)
 	return nil
 }
 
@@ -2118,26 +2128,40 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
-	fieldsToUpdate := model.Session{
-		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
-	}
+	// Update only if any of these fields are changing
+	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
+	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
+		now.Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Second ||
+		beaconTime != nil ||
+		hasSessionUnloaded != sessionObj.HasUnloaded ||
+		(sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
+		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
+		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	// We only want to update the `HasErrors` field if the session has errors.
-	if sessionHasErrors {
-		fieldsToUpdate.HasErrors = &model.T
-
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return err
+	if doUpdate {
+		fieldsToUpdate := model.Session{
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
 		}
-	} else {
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return err
+
+		// We only want to update the `HasErrors` field if the session has errors.
+		if sessionHasErrors {
+			fieldsToUpdate.HasErrors = &model.T
+
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+				return err
+			}
+		} else {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+				return err
+			}
 		}
 	}
 
@@ -2222,6 +2246,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
 }

@@ -15,6 +15,7 @@ import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
+import { Slider } from 'antd';
 import { Divider } from 'antd';
 import moment from 'moment';
 import React, { useMemo, useState } from 'react';
@@ -102,6 +103,7 @@ const MonitorConfiguration = ({
                 aggregate_function: aggregateFunction,
                 date_range: dateRange,
                 resolution_minutes: 1,
+                units: 'ms',
             },
         },
     });
@@ -145,6 +147,17 @@ const MonitorConfiguration = ({
         data,
         loading,
     ]);
+    const graphMin = useMemo(() => {
+        return (
+            Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
+            10
+        );
+    }, [graphData]);
+    const graphMax = useMemo(() => {
+        return (
+            Math.ceil(Math.max(...graphData.map((x) => x.value || 0)) / 10) * 10
+        );
+    }, [graphData]);
 
     const metricTypeOptions: OptionType[] =
         metricOptions?.suggested_metrics.map((key) => {
@@ -186,113 +199,56 @@ const MonitorConfiguration = ({
                 {metricPreviewLoading || graphData.length === 0 ? (
                     <Skeleton height="231px" />
                 ) : (
-                    <LineChart
-                        height={235}
-                        data={graphData}
-                        hideLegend
-                        xAxisDataKeyName="date"
-                        lineColorMapping={{
-                            value: 'var(--color-blue-400)',
-                        }}
-                        yAxisLabel={config.units}
-                        referenceAreaProps={
-                            {
-                                x1: referenceArea.left,
-                                x2: referenceArea.right,
+                    <>
+                        <div style={{ height: 163, position: 'absolute' }}>
+                            <Slider
+                                vertical
+                                className={styles.slider}
+                                tooltipPlacement={'bottom'}
+                                min={graphMin}
+                                max={Math.max(graphMax, threshold)}
+                                value={threshold}
+                                onChange={(v) => {
+                                    onThresholdChange(v);
+                                }}
+                            />
+                        </div>
+                        <LineChart
+                            height={235}
+                            domain={[graphMin, Math.max(graphMax, threshold)]}
+                            data={graphData}
+                            hideLegend
+                            xAxisDataKeyName="date"
+                            lineColorMapping={{
+                                value: 'var(--color-blue-400)',
+                            }}
+                            yAxisLabel={config.units}
+                            referenceAreaProps={
+                                graphData.length > 0
+                                    ? {
+                                          x1: graphData[0].date,
+                                          y1: threshold,
+                                          fill: 'var(--color-red-200)',
+                                          fillOpacity: 0.3,
+                                      }
+                                    : undefined
                             }
-                            // graphData.length > 0
-                            //     ? {
-                            //           x1: graphData[0].date,
-                            //           y1: threshold,
-                            //           fill: 'var(--color-red-200)',
-                            //           fillOpacity: 0.3,
-                            //       }
-                            //     : undefined
-                        }
-                        referenceLines={[
-                            {
-                                value: threshold,
-                                color: 'var(--color-red-400)',
-                            },
-                        ]}
-                        xAxisProps={{
-                            tickLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                            axisLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                        }}
-                        onMouseDown={(e: any) => {
-                            setReferenceArea({
-                                left: e.activeLabel,
-                                right: referenceArea.right,
-                            });
-                            console.log('DOWN', e);
-                            // this.setState({ refAreaLeft: e.activeLabel })
-                        }}
-                        onMouseMove={(e: any) => {
-                            setReferenceArea({
-                                left: referenceArea.left,
-                                right: e.activeLabel,
-                            });
-                            console.log('MOVE', e);
-                            // this.state.refAreaLeft &&
-                            // this.setState({ refAreaRight: e.activeLabel })
-                        }}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onMouseUp={(e: any) => {
-                            console.log('UP', e);
-                            setReferenceArea({ left: 0, right: 0 });
-
-                            // let { refAreaLeft, refAreaRight } = this.state;
-                            // const { data } = this.state;
-
-                            // if (
-                            //     refAreaLeft === refAreaRight ||
-                            //     refAreaRight === ''
-                            // ) {
-                            //     this.setState(() => ({
-                            //         refAreaLeft: '',
-                            //         refAreaRight: '',
-                            //     }));
-                            //     return;
-                            // }
-
-                            // // xAxis domain
-                            // if (refAreaLeft > refAreaRight)
-                            //     [refAreaLeft, refAreaRight] = [
-                            //         refAreaRight,
-                            //         refAreaLeft,
-                            //     ];
-
-                            // // yAxis domain
-                            // const [bottom, top] = getAxisYDomain(
-                            //     refAreaLeft,
-                            //     refAreaRight,
-                            //     'cost',
-                            //     1
-                            // );
-                            // const [bottom2, top2] = getAxisYDomain(
-                            //     refAreaLeft,
-                            //     refAreaRight,
-                            //     'impression',
-                            //     50
-                            // );
-
-                            // this.setState(() => ({
-                            //     refAreaLeft: '',
-                            //     refAreaRight: '',
-                            //     data: data.slice(),
-                            //     left: refAreaLeft,
-                            //     right: refAreaRight,
-                            //     bottom,
-                            //     top,
-                            //     bottom2,
-                            //     top2,
-                            // }));
-                        }}
-                    />
+                            referenceLines={[
+                                {
+                                    value: threshold,
+                                    color: 'var(--color-red-400)',
+                                },
+                            ]}
+                            xAxisProps={{
+                                tickLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                                axisLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                            }}
+                        />
+                    </>
                 )}
             </div>
             <form name="newMonitor" onSubmit={onFormSubmit} autoComplete="off">

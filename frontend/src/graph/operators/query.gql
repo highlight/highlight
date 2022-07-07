@@ -773,6 +773,7 @@ query GetProject($id: ID!) {
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count
+        backend_domains
     }
     workspace: workspace_for_project(project_id: $id) {
         id

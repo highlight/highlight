@@ -199,6 +199,7 @@ export type EditProjectMutationVariables = Types.Exact<{
     rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_count?: Types.Maybe<Types.Scalars['Int']>;
+    backend_domains?: Types.Maybe<Types.Scalars['StringArray']>;
 }>;
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -213,6 +214,7 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
 };
@@ -2600,6 +2602,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
     workspace?: Types.Maybe<

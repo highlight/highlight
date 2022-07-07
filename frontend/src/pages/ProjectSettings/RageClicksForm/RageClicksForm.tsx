@@ -1,6 +1,7 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import InputNumber from '@components/InputNumber/InputNumber';
+import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
@@ -10,10 +11,6 @@ import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import {
-    CircularSpinner,
-    LoadingBar,
-} from '../../../components/Loading/Loading';
 import styles from './RageClicksForm.module.scss';
 
 export const RageClicksForm = () => {
@@ -81,7 +78,7 @@ export const RageClicksForm = () => {
     }
 
     return (
-        <FieldsBox>
+        <FieldsBox id={'rage'}>
             <h3>Rage Clicks</h3>
             <form onSubmit={onSubmit} key={project_id}>
                 <p>
