@@ -372,31 +372,49 @@ func (w *Worker) PublicWorker() {
 	}
 
 	parallelWorkers := 16
-	workerPrefetch := 8
+	workerPrefetch := 16
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
-		go func() {
+		go func(workerId int) {
 			for {
 				func() {
 					defer util.Recover()
-					task := <-messages
-					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
 					defer s.Finish()
+
+					s1 := tracer.StartSpan("worker.kafka.retrieveMessage", tracer.ChildOf(s.Context()))
+					task := <-messages
+					s1.Finish()
+					s.SetTag("taskType", task.Type)
+
+					s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 					w.processPublicWorkerMessage(task)
+					s2.Finish()
+
+					s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
 					w.KafkaQueue.Commit(task.KafkaMessage)
+					s3.Finish()
+
 					hlog.Incr("worker.kafka.processed.total", nil, 1)
 				}()
 			}
-		}()
+		}(i)
 	}
 	for {
+		s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.receive"))
+
+		s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
 		task := w.KafkaQueue.Receive()
+		s1.Finish()
+
 		if task == nil {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
+		s.SetTag("taskType", task.Type)
 		messages <- task
+		s.Finish()
 	}
 }
 
