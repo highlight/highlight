@@ -660,6 +660,7 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
     function: Types.Scalars['String'];
     threshold: Types.Scalars['Float'];
+    periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -678,6 +679,7 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'name'
             | 'emails_to_notify'
             | 'function'
+            | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -700,6 +702,7 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
     function: Types.Scalars['String'];
     threshold: Types.Scalars['Float'];
+    periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -719,6 +722,7 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'name'
             | 'emails_to_notify'
             | 'function'
+            | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -2259,6 +2263,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     Types.Session,
                     | 'id'
                     | 'secure_id'
+                    | 'client_id'
                     | 'fingerprint'
                     | 'identifier'
                     | 'os_name'
@@ -3585,6 +3590,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 | 'name'
                 | 'emails_to_notify'
                 | 'function'
+                | 'period_minutes'
                 | 'metric_to_monitor'
                 | 'last_admin_to_edit_id'
                 | 'threshold'

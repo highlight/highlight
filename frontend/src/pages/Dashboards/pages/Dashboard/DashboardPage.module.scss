@@ -44,7 +44,7 @@
 .metric {
     display: grid;
     grid-gap: var(--size-medium);
-    grid-template-columns: 1fr 1fr auto 90px 90px;
+    grid-template-columns: 2fr 1fr 1fr 2fr;
 }
 
 .newMetric {
@@ -56,7 +56,7 @@
 .container {
     flex-grow: 1;
     position: relative;
-    width: 80%;
+    width: 100%;
 }
 
 .dropdownPlaceholder {

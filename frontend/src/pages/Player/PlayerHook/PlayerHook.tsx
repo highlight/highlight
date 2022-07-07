@@ -23,6 +23,7 @@ import {
     SessionInterval,
     viewportResizeDimension,
 } from '@highlight-run/rrweb/dist/types';
+import { usefulEvent } from '@pages/Player/components/EventStream/EventStream';
 import {
     findLatestUrl,
     getAllPerformanceEvents,
@@ -197,6 +198,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [onEventsLoaded, setOnEventsLoaded] = useState<() => void>();
 
+    const [currentEvent, setCurrentEvent] = useState<string>('');
+
     // eventsKey represents the chunk index for all loaded chunks. This is
     // subscribed to for knowing when new chunks have been loaded in or removed.
     let eventsKey = '';
@@ -247,6 +250,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const onevent = (e: any) => {
         const event = e as HighlightEvent;
+        if (usefulEvent(event)) {
+            setCurrentEvent(event.identifier);
+        }
 
         if ((event as customEvent)?.data?.tag === 'Stop') {
             setState(ReplayerState.SessionRecordingStopped);
@@ -544,7 +550,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
             setUnsubscribeSessionPayloadFn(() => unsubscribe);
             if (state === ReplayerState.Paused) {
-                play();
+                play(time);
             }
         } else if (!isLiveMode && unsubscribeSessionPayloadFn) {
             unsubscribeSessionPayloadFn!();
@@ -916,7 +922,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionMetadata(sessionMetadata);
             if (isLiveMode && state > ReplayerState.Loading) {
                 // Resynchronize player timestamp after each batch of events
-                play();
+                play(time);
             }
             // If there is a callback set to run on load, invoke it
             onEventsLoaded && onEventsLoaded();
@@ -1015,7 +1021,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     ]);
 
     const play = useCallback(
-        (newTime?: number) => {
+        (newTime: number) => {
             if (isLiveMode) {
                 // Return if no events
                 if (events.length === 0) {
@@ -1028,7 +1034,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
                 // the last UI the user idled in is displayed.
                 if (
-                    desiredTime - time > 5000 ||
+                    desiredTime - newTime > 5000 ||
                     state != ReplayerState.Playing
                 ) {
                     newTime = Math.min(desiredTime, sessionEndTime - 1);
@@ -1037,14 +1043,13 @@ export const usePlayer = (): ReplayerContextInterface => {
                 }
             }
             // Don't play the session if the player is already at the end of the session.
-            if ((newTime ?? time) >= sessionEndTime) {
+            if (newTime >= sessionEndTime) {
                 return;
             }
             setState(ReplayerState.Playing);
-            setTime(newTime ?? time);
+            setTime(newTime);
 
-            const newTs =
-                (newTime ?? time ?? 0) + (sessionMetadata.startTime ?? 0);
+            const newTs = (newTime ?? 0) + (sessionMetadata.startTime ?? 0);
             const newTimeWithOffset =
                 replayer === undefined || newTime === undefined
                     ? undefined
@@ -1082,7 +1087,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             sessionEndTime,
             sessionMetadata.startTime,
             state,
-            time,
         ]
     );
 
@@ -1184,23 +1188,33 @@ export const usePlayer = (): ReplayerContextInterface => {
     /**
      * Wraps the setTime call so we can also forward the setTime request to the Replayer. Without forwarding time and Replayer.getCurrentTime() would be out of sync.
      */
-    const setTimeHandler = (newTime?: number) => {
-        switch (state) {
-            case ReplayerState.Playing:
-                play(newTime);
-                return;
-            case ReplayerState.Paused:
-            case ReplayerState.LoadedAndUntouched:
-            case ReplayerState.LoadedWithDeepLink:
-            case ReplayerState.SessionRecordingStopped:
-            case ReplayerState.SessionEnded:
-                pause(newTime);
-                return;
+    const setTimeHandler = useCallback(
+        (newTime: number) => {
+            switch (state) {
+                case ReplayerState.Playing:
+                    play(newTime);
+                    return;
+                case ReplayerState.Paused:
+                case ReplayerState.LoadedAndUntouched:
+                case ReplayerState.LoadedWithDeepLink:
+                case ReplayerState.SessionRecordingStopped:
+                case ReplayerState.SessionEnded:
+                    pause(newTime);
+                    return;
 
-            default:
-                return;
-        }
-    };
+                default:
+                    return;
+            }
+        },
+        [pause, play, state]
+    );
+
+    const playHandler = useCallback(
+        (newTime?: number) => {
+            play(newTime ?? time);
+        },
+        [play, time]
+    );
 
     const updateLastActiveString = (currentTime: number) => {
         const lastActiveTimestamp = lastActiveTimestampRef.current;
@@ -1234,7 +1248,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         rageClicks,
         events,
         performancePayloads,
-        play,
+        play: playHandler,
         pause,
         errors,
         sessionComments,
@@ -1263,6 +1277,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         isLoadingEvents,
         setIsLoadingEvents,
         sessionMetadata,
+        currentEvent,
+        setCurrentEvent,
     };
 };
 

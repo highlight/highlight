@@ -2134,6 +2134,11 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 }
 
 func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.DashboardMetric) error {
+	// avoid creating invalid metric monitors
+	if metric.Name == "" {
+		return nil
+	}
+
 	var projectID int
 	if err := r.DB.Raw(`
 		SELECT d.project_id

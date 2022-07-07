@@ -76,7 +76,7 @@
     justify-content: space-between;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
-    width: 245px;
+    width: 275px;
 
     button {
         height: var(--size-xLarge);
@@ -97,7 +97,7 @@
     display: flex;
     height: var(--size-xLarge);
     margin: 0 !important;
-    width: 131px;
+    width: 161px;
 }
 
 .monitorName {
@@ -107,4 +107,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 70px;
+}
+
+.submitRow {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
 }

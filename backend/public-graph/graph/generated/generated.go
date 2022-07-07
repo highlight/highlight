@@ -49,7 +49,7 @@ type ComplexityRoot struct {
 		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) int
+		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string, clientID *string) int
 		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
 		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
@@ -69,7 +69,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string) (*model1.Session, error)
+	InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string, clientID *string) (*model1.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
@@ -156,7 +156,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string), args["client_id"].(*string)), true
 
 	case "Mutation.markBackendSetup":
 		if e.complexity.Mutation.MarkBackendSetup == nil {
@@ -393,6 +393,7 @@ type Mutation {
         appVersion: String
         fingerprint: String!
         session_secure_id: String
+        client_id: String
     ): Session
     identifySession(
         session_id: ID!
@@ -659,6 +660,15 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["session_secure_id"] = arg9
+	var arg10 *string
+	if tmp, ok := rawArgs["client_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("client_id"))
+		arg10, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["client_id"] = arg10
 	return args, nil
 }
 
@@ -878,7 +888,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string))
+		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["session_secure_id"].(*string), args["client_id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -389,6 +389,7 @@ type ComplexityRoot struct {
 		LastAdminToEditID func(childComplexity int) int
 		MetricToMonitor   func(childComplexity int) int
 		Name              func(childComplexity int) int
+		PeriodMinutes     func(childComplexity int) int
 		Threshold         func(childComplexity int) int
 		UpdatedAt         func(childComplexity int) int
 	}
@@ -408,7 +409,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
-		CreateMetricMonitor              func(childComplexity int, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
+		CreateMetricMonitor              func(childComplexity int, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
@@ -455,7 +456,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
-		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) int
+		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
@@ -664,6 +665,7 @@ type ComplexityRoot struct {
 		Chunked                        func(childComplexity int) int
 		City                           func(childComplexity int) int
 		ClientConfig                   func(childComplexity int) int
+		ClientID                       func(childComplexity int) int
 		ClientVersion                  func(childComplexity int) int
 		CreatedAt                      func(childComplexity int) int
 		DeviceMemory                   func(childComplexity int) int
@@ -928,8 +930,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model1.SessionAlert, error)
-	CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*model1.MetricMonitor, error)
-	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model1.MetricMonitor, error)
+	CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*model1.MetricMonitor, error)
+	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model1.MetricMonitor, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model1.ErrorAlert, error)
 	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
@@ -2630,6 +2632,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MetricMonitor.Name(childComplexity), true
 
+	case "MetricMonitor.period_minutes":
+		if e.complexity.MetricMonitor.PeriodMinutes == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.PeriodMinutes(childComplexity), true
+
 	case "MetricMonitor.threshold":
 		if e.complexity.MetricMonitor.Threshold == nil {
 			break
@@ -2776,7 +2785,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string)), true
+		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["function"].(string), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string)), true
 
 	case "Mutation.createNewSessionAlert":
 		if e.complexity.Mutation.CreateNewSessionAlert == nil {
@@ -3340,7 +3349,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool)), true
+		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool)), true
 
 	case "Mutation.updateNewSessionAlert":
 		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
@@ -4954,6 +4963,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.ClientConfig(childComplexity), true
 
+	case "Session.client_id":
+		if e.complexity.Session.ClientID == nil {
+			break
+		}
+
+		return e.complexity.Session.ClientID(childComplexity), true
+
 	case "Session.client_version":
 		if e.complexity.Session.ClientVersion == nil {
 			break
@@ -5953,6 +5969,7 @@ type Field {
 type Session {
     id: ID!
     secure_id: String!
+    client_id: String!
     fingerprint: Int
     os_name: String!
     os_version: String!
@@ -6736,6 +6753,7 @@ type MetricMonitor {
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
     function: String!
+    period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
@@ -7094,6 +7112,7 @@ type Mutation {
         project_id: ID!
         name: String!
         function: String!
+        periodMinutes: Int
         threshold: Float!
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -7104,6 +7123,7 @@ type Mutation {
         project_id: ID!
         name: String
         function: String
+        periodMinutes: Int
         threshold: Float
         metric_to_monitor: String
         slack_channels: [SanitizedSlackChannelInput]
@@ -7874,42 +7894,51 @@ func (ec *executionContext) field_Mutation_createMetricMonitor_args(ctx context.
 		}
 	}
 	args["function"] = arg2
-	var arg3 float64
+	var arg3 *int
+	if tmp, ok := rawArgs["periodMinutes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("periodMinutes"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["periodMinutes"] = arg3
+	var arg4 float64
 	if tmp, ok := rawArgs["threshold"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg3, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		arg4, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["threshold"] = arg3
-	var arg4 string
+	args["threshold"] = arg4
+	var arg5 string
 	if tmp, ok := rawArgs["metric_to_monitor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_to_monitor"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		arg5, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["metric_to_monitor"] = arg4
-	var arg5 []*model.SanitizedSlackChannelInput
+	args["metric_to_monitor"] = arg5
+	var arg6 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["slack_channels"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg6, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slack_channels"] = arg5
-	var arg6 []*string
+	args["slack_channels"] = arg6
+	var arg7 []*string
 	if tmp, ok := rawArgs["emails"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg6, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		arg7, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["emails"] = arg6
+	args["emails"] = arg7
 	return args, nil
 }
 
@@ -9695,51 +9724,60 @@ func (ec *executionContext) field_Mutation_updateMetricMonitor_args(ctx context.
 		}
 	}
 	args["function"] = arg3
-	var arg4 *float64
+	var arg4 *int
+	if tmp, ok := rawArgs["periodMinutes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("periodMinutes"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["periodMinutes"] = arg4
+	var arg5 *float64
 	if tmp, ok := rawArgs["threshold"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg4, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		arg5, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["threshold"] = arg4
-	var arg5 *string
+	args["threshold"] = arg5
+	var arg6 *string
 	if tmp, ok := rawArgs["metric_to_monitor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_to_monitor"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["metric_to_monitor"] = arg5
-	var arg6 []*model.SanitizedSlackChannelInput
+	args["metric_to_monitor"] = arg6
+	var arg7 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["slack_channels"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg6, err = ec.unmarshalOSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg7, err = ec.unmarshalOSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slack_channels"] = arg6
-	var arg7 []*string
+	args["slack_channels"] = arg7
+	var arg8 []*string
 	if tmp, ok := rawArgs["emails"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg7, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		arg8, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["emails"] = arg7
-	var arg8 *bool
+	args["emails"] = arg8
+	var arg9 *bool
 	if tmp, ok := rawArgs["disabled"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-		arg8, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["disabled"] = arg8
+	args["disabled"] = arg9
 	return args, nil
 }
 
@@ -19452,6 +19490,38 @@ func (ec *executionContext) _MetricMonitor_function(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _MetricMonitor_period_minutes(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PeriodMinutes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _MetricMonitor_metric_to_monitor(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21265,7 +21335,7 @@ func (ec *executionContext) _Mutation_createMetricMonitor(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, args["project_id"].(int), args["name"].(string), args["function"].(string), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string))
+		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, args["project_id"].(int), args["name"].(string), args["function"].(string), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21304,7 +21374,7 @@ func (ec *executionContext) _Mutation_updateMetricMonitor(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool))
+		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28004,6 +28074,41 @@ func (ec *executionContext) _Session_secure_id(ctx context.Context, field graphq
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SecureID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_client_id(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37382,6 +37487,13 @@ func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "period_minutes":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MetricMonitor_period_minutes(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "metric_to_monitor":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._MetricMonitor_metric_to_monitor(ctx, field, obj)
@@ -40791,6 +40903,16 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "secure_id":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Session_secure_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "client_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Session_client_id(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

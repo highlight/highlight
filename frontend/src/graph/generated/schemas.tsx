@@ -32,6 +32,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
+    client_id: Scalars['String'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -871,6 +872,7 @@ export type MetricMonitor = {
     channels_to_notify: Array<Maybe<SanitizedSlackChannel>>;
     emails_to_notify: Array<Maybe<Scalars['String']>>;
     function: Scalars['String'];
+    period_minutes?: Maybe<Scalars['Int']>;
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
     threshold: Scalars['Float'];
@@ -1688,6 +1690,7 @@ export type MutationCreateMetricMonitorArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
     function: Scalars['String'];
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold: Scalars['Float'];
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
@@ -1699,6 +1702,7 @@ export type MutationUpdateMetricMonitorArgs = {
     project_id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     function?: Maybe<Scalars['String']>;
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold?: Maybe<Scalars['Float']>;
     metric_to_monitor?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;

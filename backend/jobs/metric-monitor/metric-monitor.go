@@ -48,12 +48,16 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 		var value float64
 		end := time.Now()
 		start := end.Add(-time.Minute)
+		resMins := 1
+		if metricMonitor.PeriodMinutes != nil && *metricMonitor.PeriodMinutes > 0 {
+			resMins = *metricMonitor.PeriodMinutes
+		}
 		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
 			DateRange: &modelInputs.DateRangeInput{
 				StartDate: &start,
 				EndDate:   &end,
 			},
-			ResolutionMinutes: pointy.Int(1),
+			ResolutionMinutes: pointy.Int(resMins),
 			AggregateFunction: &metricMonitor.Function,
 		})
 		if err != nil {

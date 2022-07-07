@@ -10,3 +10,4 @@ export const infoTooltip: string;
 export const monitorItem: string;
 export const monitorName: string;
 export const noDataContainer: string;
+export const submitRow: string;

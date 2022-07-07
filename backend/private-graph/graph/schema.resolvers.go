@@ -1758,7 +1758,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1780,6 +1780,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		ProjectID:         projectID,
 		Name:              name,
 		Function:          function,
+		PeriodMinutes:     periodMinutes,
 		Threshold:         threshold,
 		MetricToMonitor:   metricToMonitor,
 		ChannelsToNotify:  channelsString,
@@ -1797,7 +1798,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1832,6 +1833,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	if function != nil {
 		metricMonitor.Function = *function
 	}
+	metricMonitor.PeriodMinutes = periodMinutes
 	if threshold != nil {
 		metricMonitor.Threshold = *threshold
 	}

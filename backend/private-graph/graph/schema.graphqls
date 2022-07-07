@@ -15,6 +15,7 @@ type Field {
 type Session {
     id: ID!
     secure_id: String!
+    client_id: String!
     fingerprint: Int
     os_name: String!
     os_version: String!
@@ -798,6 +799,7 @@ type MetricMonitor {
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
     function: String!
+    period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
@@ -1156,6 +1158,7 @@ type Mutation {
         project_id: ID!
         name: String!
         function: String!
+        periodMinutes: Int
         threshold: Float!
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -1166,6 +1169,7 @@ type Mutation {
         project_id: ID!
         name: String
         function: String
+        periodMinutes: Int
         threshold: Float
         metric_to_monitor: String
         slack_channels: [SanitizedSlackChannelInput]
