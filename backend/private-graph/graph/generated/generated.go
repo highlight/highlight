@@ -166,6 +166,10 @@ type ComplexityRoot struct {
 		HelpArticle              func(childComplexity int) int
 		MaxGoodValue             func(childComplexity int) int
 		MaxNeedsImprovementValue func(childComplexity int) int
+		MaxPercentile            func(childComplexity int) int
+		MaxValue                 func(childComplexity int) int
+		MinPercentile            func(childComplexity int) int
+		MinValue                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PoorValue                func(childComplexity int) int
 		Units                    func(childComplexity int) int
@@ -350,8 +354,6 @@ type ComplexityRoot struct {
 		Buckets func(childComplexity int) int
 		Max     func(childComplexity int) int
 		Min     func(childComplexity int) int
-		P1      func(childComplexity int) int
-		P99     func(childComplexity int) int
 	}
 
 	Invoice struct {
@@ -1575,6 +1577,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.MaxNeedsImprovementValue(childComplexity), true
 
+	case "DashboardMetricConfig.max_percentile":
+		if e.complexity.DashboardMetricConfig.MaxPercentile == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MaxPercentile(childComplexity), true
+
+	case "DashboardMetricConfig.max_value":
+		if e.complexity.DashboardMetricConfig.MaxValue == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MaxValue(childComplexity), true
+
+	case "DashboardMetricConfig.min_percentile":
+		if e.complexity.DashboardMetricConfig.MinPercentile == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MinPercentile(childComplexity), true
+
+	case "DashboardMetricConfig.min_value":
+		if e.complexity.DashboardMetricConfig.MinValue == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MinValue(childComplexity), true
+
 	case "DashboardMetricConfig.name":
 		if e.complexity.DashboardMetricConfig.Name == nil {
 			break
@@ -2463,20 +2493,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HistogramPayload.Min(childComplexity), true
-
-	case "HistogramPayload.p1":
-		if e.complexity.HistogramPayload.P1 == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.P1(childComplexity), true
-
-	case "HistogramPayload.p99":
-		if e.complexity.HistogramPayload.P99 == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.P99(childComplexity), true
 
 	case "Invoice.amountDue":
 		if e.complexity.Invoice.AmountDue == nil {
@@ -6347,6 +6363,10 @@ input DashboardParamsInput {
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
     units: String
 }
 
@@ -6691,8 +6711,6 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p1: Float!
-    p99: Float!
 }
 
 type CategoryHistogramBucket {
@@ -6718,6 +6736,10 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardMetricConfig {
@@ -6729,6 +6751,10 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardDefinition {
@@ -14554,6 +14580,134 @@ func (ec *executionContext) _DashboardMetricConfig_chart_type(ctx context.Contex
 	return ec.marshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DashboardMetricConfig_min_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_min_percentile(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinPercentile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_max_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_max_percentile(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxPercentile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18728,76 +18882,6 @@ func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Max, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _HistogramPayload_p1(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P1, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _HistogramPayload_p99(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P99, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -33966,6 +34050,38 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "min_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
+			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
+			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
+			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
+			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -34159,6 +34275,38 @@ func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buckets"))
 			it.Buckets, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
+			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
+			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
+			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
+			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35527,6 +35675,34 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "min_value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_min_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "min_percentile":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_min_percentile(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_max_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_percentile":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_max_percentile(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37149,26 +37325,6 @@ func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.Selec
 		case "max":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._HistogramPayload_max(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p1":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._HistogramPayload_p1(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p99":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._HistogramPayload_p99(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

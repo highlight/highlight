@@ -9,6 +9,7 @@ import LineChart, { Reference } from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import Switch from '@components/Switch/Switch';
 import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
@@ -28,6 +29,7 @@ import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/Em
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
+import { Form } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
@@ -368,6 +370,18 @@ const EditMetricModal = ({
     onCancel: () => void;
     shown?: boolean;
 }) => {
+    const [minValue, setMinValue] = useState<boolean>(
+        metricConfig.min_value !== null
+    );
+    const [maxValue, setMaxValue] = useState<boolean>(
+        metricConfig.max_value !== null
+    );
+    const [min, setMin] = useState<number>(
+        metricConfig.min_value || metricConfig.min_percentile || 0
+    );
+    const [max, setMax] = useState<number>(
+        metricConfig.max_value || metricConfig.max_percentile || 0
+    );
     const [units, setUnits] = useState<string>(metricConfig.units);
     const [metricName, setMetricName] = useState<string>(metricConfig.name);
     const [description, setDescription] = useState<string>(
@@ -376,12 +390,14 @@ const EditMetricModal = ({
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
     );
+    console.log({ metricConfig, minValue, min, maxValue, max });
     return (
         <Modal
             onCancel={onCancel}
             visible={shown}
             title={'Edit Metric'}
             width="800px"
+            mask
         >
             <ModalBody>
                 <section className={dashStyles.section}>
@@ -419,6 +435,66 @@ const EditMetricModal = ({
                         />
                     </div>
                 </section>
+                {chartType === DashboardChartType.Histogram && (
+                    <section className={dashStyles.section}>
+                        <div className={styles.minMaxRow}>
+                            <Form.Item
+                                label="Minimum"
+                                className={styles.percentileInput}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Min"
+                                name="Min"
+                                value={min * 100}
+                                min={minValue ? undefined : 0}
+                                max={minValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMin(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={minValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMinPercentileToggle'
+                                }
+                                checked={!minValue}
+                                onChange={(checked) => {
+                                    setMinValue(!checked);
+                                }}
+                            />
+                            <Form.Item
+                                label="Maximum"
+                                className={styles.percentileInput}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Max"
+                                name="Max"
+                                value={max * 100}
+                                min={maxValue ? undefined : 0}
+                                max={maxValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMax(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={maxValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMaxPercentileToggle'
+                                }
+                                checked={!maxValue}
+                                onChange={(checked) => {
+                                    setMaxValue(!checked);
+                                }}
+                            />
+                        </div>
+                    </section>
+                )}
                 <section className={dashStyles.section}>
                     <div className={styles.submitRow}>
                         <Button
@@ -446,6 +522,12 @@ const EditMetricModal = ({
                                         metricConfig.max_needs_improvement_value,
                                     poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
+                                    ...(minValue
+                                        ? { min_value: min }
+                                        : { min_percentile: min }),
+                                    ...(maxValue
+                                        ? { max_value: max }
+                                        : { max_percentile: max }),
                                 });
                                 onCancel();
                             }}
@@ -551,6 +633,10 @@ const ChartContainer = React.memo(
                     date_range: dateRange,
                     buckets: NUM_BUCKETS,
                     units: metricConfig.units,
+                    min_value: metricConfig.min_value,
+                    min_percentile: metricConfig.min_percentile,
+                    max_value: metricConfig.max_value,
+                    max_percentile: metricConfig.max_percentile,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -669,11 +755,12 @@ const ChartContainer = React.memo(
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
-                        xAxisDataKeyName="range_start"
+                        xAxisDataKeyName="range_end"
                         xAxisLabel={metricConfig.units}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
+                        xAxisUnits={metricConfig.units}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />
@@ -723,7 +810,13 @@ const ChartContainer = React.memo(
             nextProps.metricConfig.chart_type &&
         prevProps.metricConfig.units === nextProps.metricConfig.units &&
         prevProps.metricConfig.description ===
-            nextProps.metricConfig.description
+            nextProps.metricConfig.description &&
+        prevProps.metricConfig.min_value === nextProps.metricConfig.min_value &&
+        prevProps.metricConfig.min_percentile ===
+            nextProps.metricConfig.min_percentile &&
+        prevProps.metricConfig.max_value === nextProps.metricConfig.max_value &&
+        prevProps.metricConfig.max_percentile ===
+            nextProps.metricConfig.max_percentile
 );
 
 export default DashboardCard;

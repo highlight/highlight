@@ -4271,8 +4271,6 @@ export const GetMetricsHistogramDocument = gql`
             }
             min
             max
-            p1
-            p99
         }
     }
 `;
@@ -9566,6 +9564,10 @@ export const GetDashboardDefinitionsDocument = gql`
                 units
                 help_article
                 chart_type
+                min_value
+                min_percentile
+                max_value
+                max_percentile
             }
             last_admin_to_edit_id
             layout
