@@ -78,6 +78,7 @@ const DashboardPage = () => {
 
             setDateRange(startDate.format(), endDate.format());
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dateRangeLength?.value]);
 
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);

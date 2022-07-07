@@ -53,6 +53,7 @@ export interface Props {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+    syncId?: string;
     onMouseDown?: (e: any) => void;
     onMouseMove?: (e: any) => void;
     onMouseUp?: (e: any) => void;
@@ -87,6 +88,7 @@ const LineChart = ({
     hideLegend = false,
     referenceAreaProps,
     xAxisProps,
+    syncId,
     onMouseDown,
     onMouseMove,
     onMouseUp,
@@ -135,6 +137,7 @@ const LineChart = ({
                         left: -18,
                         bottom: 0,
                     }}
+                    syncId={syncId}
                     onMouseDown={onMouseDown}
                     onMouseMove={onMouseMove}
                     onMouseUp={onMouseUp}

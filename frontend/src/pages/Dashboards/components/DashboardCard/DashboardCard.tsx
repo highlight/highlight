@@ -664,6 +664,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
                         height={235}
+                        syncId="dashboardChart"
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
@@ -673,12 +674,15 @@ const ChartContainer = React.memo(
                         referenceLines={referenceLines}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) => {
+                            console.log('FORMAT TICK', tickItem);
                             return moment(tickItem).format(tickFormat);
                         }}
                         xAxisProps={{
                             ticks: ticks,
                             domain: ['dataMin', 'dataMax'],
                             scale: 'point',
+                            tickCount: ticks.length,
+                            interval: 0, // show all ticks
                         }}
                         lineColorMapping={{
                             p99: 'var(--color-red-400)',
@@ -693,25 +697,29 @@ const ChartContainer = React.memo(
                             x2: referenceArea.right,
                         }}
                         onMouseDown={(e: any) => {
-                            setReferenceArea({
-                                left: e.activeLabel,
-                                right: referenceArea.right,
-                            });
+                            e.activeLabel &&
+                                setReferenceArea({
+                                    left: e.activeLabel,
+                                    right: referenceArea.right,
+                                });
                         }}
                         onMouseMove={(e: any) => {
-                            referenceArea.left &&
+                            e.activeLabel &&
+                                referenceArea.left &&
                                 setReferenceArea({
                                     left: referenceArea.left,
                                     right: e.activeLabel,
                                 });
                         }}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onMouseUp={(e: any) => {
+                        onMouseUp={() => {
                             if (Object.values(referenceArea).includes(0)) {
                                 return;
                             }
 
-                            setDateRange(referenceArea.left, e.activeLabel);
+                            setDateRange(
+                                referenceArea.left,
+                                referenceArea.right
+                            );
                             setReferenceArea({ left: 0, right: 0 });
                         }}
                     />

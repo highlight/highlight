@@ -55,7 +55,8 @@ const DashboardsRouter = () => {
             const end = moment(dateRange.end_date);
             const minutes = moment.duration(end.diff(start)).asMinutes();
 
-            setLookbackMinutes(minutes);
+            // debugger;
+            // setLookbackMinutes(minutes);
         }
     }, [dateRange?.start_date, dateRange?.end_date]);
 
@@ -93,10 +94,10 @@ const DashboardsRouter = () => {
                     );
 
                     setDateRange({
-                        start_date: moment(roundedStart)
+                        start_date: moment(startDate)
                             .subtract(minutesDiff, 'minutes')
                             .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
-                        end_date: roundedEnd.format(
+                        end_date: endDate.format(
                             'YYYY-MM-DDTHH:mm:59.999999999Z'
                         ),
                     });
