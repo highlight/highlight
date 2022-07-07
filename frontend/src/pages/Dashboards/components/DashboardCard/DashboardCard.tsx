@@ -820,6 +820,7 @@ const ChartContainer = React.memo(
                             [MetricAggregator.P75]: 'var(--color-green-600)',
                             [MetricAggregator.P50]: 'var(--color-blue-400)',
                             [MetricAggregator.Avg]: 'var(--color-gray-400)',
+                            [MetricAggregator.Count]: 'var(--color-green-500)',
                         }}
                         yAxisLabel={metricConfig.units}
                     />

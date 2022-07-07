@@ -2250,12 +2250,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 }
 
 func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins int) string {
-	aggregateStatement := fmt.Sprintf(`
-      query()
-		  |> aggregateWindow(every: %dm, fn: mean, createEmpty: false)
-          |> yield(name: "avg")
-	`, resMins)
-
+	fn := "mean"
 	quantile := 0.
 	// explicitly validate the aggregate func to ensure no query injection possible
 	switch aggregator {
@@ -2272,11 +2267,16 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 	case modelInputs.MetricAggregatorMax:
 		quantile = 1.0
 	case modelInputs.MetricAggregatorCount:
-		// TODO(vkorolik)
+		fn = "count"
 	case modelInputs.MetricAggregatorAvg:
 	default:
 		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
 	}
+	aggregateStatement := fmt.Sprintf(`
+      query()
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: false)
+          |> yield(name: "avg")
+	`, resMins, fn)
 	if quantile > 0. {
 		aggregateStatement = fmt.Sprintf(`
 		  do(q:%f)
@@ -2350,7 +2350,12 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	for _, r := range results {
 		v := 0.
 		if r.Value != nil {
-			v = r.Value.(float64) / div
+			x, ok := r.Value.(float64)
+			if !ok {
+				v = float64(r.Value.(int64)) / div
+			} else {
+				v = x / div
+			}
 		}
 		payload = append(payload, &modelInputs.DashboardPayload{
 			Date:       r.Time.Format(time.RFC3339Nano),
