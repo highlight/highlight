@@ -1724,7 +1724,7 @@ export type MutationUpdateMetricMonitorArgs = {
     metric_monitor_id: Scalars['ID'];
     project_id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
-    aggregator: MetricAggregator;
+    aggregator?: Maybe<MetricAggregator>;
     periodMinutes?: Maybe<Scalars['Int']>;
     threshold?: Maybe<Scalars['Float']>;
     metric_to_monitor?: Maybe<Scalars['String']>;
