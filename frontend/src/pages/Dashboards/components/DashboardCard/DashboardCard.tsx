@@ -95,7 +95,9 @@ const DashboardCard = ({
                                 paddingRight: 'var(--size-small)',
                             }}
                         >
-                            {metricConfig.description || metricConfig.name}
+                            {metricConfig.description ||
+                                metricConfig.name ||
+                                'New Chart'}
                             {metricConfig.help_article && (
                                 <InfoTooltip
                                     className={styles.infoTooltip}

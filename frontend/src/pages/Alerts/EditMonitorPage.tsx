@@ -85,7 +85,7 @@ const EditMonitorPage = ({
     };
 
     useEffect(() => {
-        if (config) {
+        if (config?.max_good_value) {
             setThreshold(config.max_good_value);
         }
     }, [config]);
