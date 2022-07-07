@@ -1,6 +1,6 @@
-import GoToButton from '@components/Button/GoToButton';
-import SessionComment from '@components/Comment/SessionComment/SessionComment';
-import Histogram from '@components/Histogram/Histogram';
+import Button from '@components/Button/Button/Button';
+import Histogram, { Series } from '@components/Histogram/Histogram';
+import { Skeleton } from '@components/Skeleton/Skeleton';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import {
@@ -10,30 +10,29 @@ import {
     ParsedSessionInterval,
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
-import {
-    getEventRenderDetails,
-    getPlayerEventIcon,
-} from '@pages/Player/StreamElement/StreamElement';
-import StreamElementPayload from '@pages/Player/StreamElement/StreamElementPayload';
-import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
-import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
+import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement';
+import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import { useParams } from '@util/react-router/useParams';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
-import { TimelineAnnotationColors } from '../../Toolbar';
-import toolbarStyles from '../../Toolbar.module.scss';
+import { getAnnotationColor, TimelineAnnotationColors } from '../../Toolbar';
 import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
     sessionIntervals: ParsedSessionInterval[];
     selectedTimelineAnnotationTypes: string[];
+}
+
+interface SeriesState {
+    bucketTimes: number[];
+    chartData: any[];
+    eventsSeries: Series[];
 }
 
 const TimelineIndicatorsBarGraph = React.memo(
@@ -44,13 +43,13 @@ const TimelineIndicatorsBarGraph = React.memo(
             zoomAreaRight,
             setZoomAreaRight,
         } = useToolbarItemsContext();
+        const { showPlayerAbsoluteTime } = usePlayerConfiguration();
         const {
-            showPlayerAbsoluteTime,
-            setShowDevTools,
-            setSelectedDevToolsTab,
-        } = usePlayerConfiguration();
-        const { sessionMetadata, setTime } = useReplayerContext();
-        const { setErrorPanel } = useResourceOrErrorDetailPanel();
+            time,
+            sessionMetadata,
+            setTime,
+            setCurrentEvent,
+        } = useReplayerContext();
         const { session_secure_id } = useParams<{
             session_secure_id: string;
         }>();
@@ -60,309 +59,356 @@ const TimelineIndicatorsBarGraph = React.memo(
             setZoomAreaRight(100);
         }, [session_secure_id, setZoomAreaLeft, setZoomAreaRight]);
 
-        if (sessionIntervals.length === 0) {
-            return null;
-        }
+        const [seriesState, setSeriesState] = useState<SeriesState>({
+            bucketTimes: [],
+            chartData: [],
+            eventsSeries: [],
+        });
+
+        const getTimeFromPercent = useCallback(
+            (percent: number): number | undefined => {
+                for (const interval of sessionIntervals) {
+                    if (
+                        interval.startPercent * 100 <= percent &&
+                        interval.endPercent * 100 >= percent
+                    ) {
+                        const globalPctInInterval =
+                            percent - interval.startPercent * 100;
+                        const intervalOffset =
+                            globalPctInInterval /
+                            (interval.endPercent - interval.startPercent) /
+                            100;
+                        const timeOffset =
+                            (interval.endTime - interval.startTime) *
+                            intervalOffset;
+                        return interval.startTime + timeOffset;
+                    }
+                }
+            },
+            [sessionIntervals]
+        );
 
         const numberOfBars = 50;
         const percentPerBar = 1 / numberOfBars;
-
-        const startTime = sessionIntervals[0].startTime;
-        const endTime = sessionIntervals[sessionIntervals.length - 1].endTime;
-
-        const combined = sessionIntervals.reduce(
-            (acc, interval) => {
-                return {
-                    ...acc,
-                    errors: [
-                        ...acc.errors,
-                        ...interval.errors.map((e) => ({
-                            ...e,
-                            relativeIntervalPercentage:
-                                interval.startPercent * 100 +
-                                (interval.endPercent - interval.startPercent) *
-                                    (e.relativeIntervalPercentage ?? 0),
-                        })),
-                    ],
-                    sessionEvents: [
-                        ...acc.sessionEvents,
-                        ...interval.sessionEvents.map((e) => ({
-                            ...e,
-                            relativeIntervalPercentage:
-                                interval.startPercent * 100 +
-                                (interval.endPercent - interval.startPercent) *
-                                    (e.relativeIntervalPercentage ?? 0),
-                        })),
-                    ],
-                    comments: [
-                        ...acc.comments,
-                        ...interval.comments.map((e) => ({
-                            ...e,
-                            relativeIntervalPercentage:
-                                interval.startPercent * 100 +
-                                (interval.endPercent - interval.startPercent) *
-                                    (e.relativeIntervalPercentage ?? 0),
-                        })),
-                    ],
-                };
-            },
-            {
-                startTime,
-                endTime,
-                duration: endTime - startTime,
-                active: true,
-                startPercent: 0,
-                endPercent: 1,
-                errors: [],
-                sessionEvents: [],
-                comments: [],
-            }
-        );
+        const scale = zoomAreaRight - zoomAreaLeft;
 
         // Filter the events and map to a new relativeIntervalPercentage (since the window size has shrunk)
-        const filterAndMap = <
-            T extends { relativeIntervalPercentage?: number }
-        >(
-            events: T[]
-        ): T[] =>
-            events
-                .filter(
-                    (e) =>
-                        e.relativeIntervalPercentage !== undefined &&
-                        e.relativeIntervalPercentage >= zoomAreaLeft &&
-                        e.relativeIntervalPercentage <= zoomAreaRight
-                )
-                .map((e) => ({
-                    ...e,
-                    relativeIntervalPercentage:
-                        ((e.relativeIntervalPercentage! - zoomAreaLeft) /
-                            (zoomAreaRight - zoomAreaLeft)) *
-                        100,
-                }));
-
-        combined.errors = filterAndMap(combined.errors);
-        combined.sessionEvents = filterAndMap(combined.sessionEvents);
-        combined.comments = filterAndMap(combined.comments);
-
-        const getTimeFromPercent = (percent: number): number | undefined => {
-            for (const interval of sessionIntervals) {
-                if (
-                    interval.startPercent * 100 <= percent &&
-                    interval.endPercent * 100 >= percent
-                ) {
-                    const globalPctInInterval =
-                        percent - interval.startPercent * 100;
-                    const intervalOffset =
-                        globalPctInInterval /
-                        (interval.endPercent - interval.startPercent) /
-                        100;
-                    const timeOffset =
-                        (interval.endTime - interval.startTime) *
-                        intervalOffset;
-                    return interval.startTime + timeOffset;
-                }
-            }
-        };
-
-        const chartData = getEventsInTimeBucket(
-            combined,
-            selectedTimelineAnnotationTypes,
-            percentPerBar
+        const filterAndMap = useCallback(
+            <T extends { relativeIntervalPercentage?: number }>(
+                events: T[]
+            ): T[] =>
+                events
+                    .filter(
+                        (e) =>
+                            e.relativeIntervalPercentage !== undefined &&
+                            e.relativeIntervalPercentage >= zoomAreaLeft &&
+                            e.relativeIntervalPercentage <= zoomAreaRight
+                    )
+                    .map((e) => ({
+                        ...e,
+                        relativeIntervalPercentage:
+                            ((e.relativeIntervalPercentage! - zoomAreaLeft) /
+                                (zoomAreaRight - zoomAreaLeft)) *
+                            100,
+                    })),
+            [zoomAreaLeft, zoomAreaRight]
         );
 
-        const series = EventsForTimeline.map((eventType) => ({
-            label: eventType,
-            color: getAnnotationColor(eventType),
-            counts: new Array<number>(),
-        }));
-
-        for (const d of chartData) {
-            for (const s of series) {
-                s.counts.push(d[s.label] || 0);
-            }
-        }
-
-        const scale = zoomAreaRight - zoomAreaLeft;
-        const bucketTimes: number[] = [];
-        for (let i = 0; i <= numberOfBars; i++) {
-            const p = i * percentPerBar * scale + zoomAreaLeft;
-            bucketTimes.push(getTimeFromPercent(p) ?? 0);
-        }
-
-        const displayEvent = (e: ParsedHighlightEvent) => {
-            const details = getEventRenderDetails(e);
-            const Icon = getPlayerEventIcon(
-                details.title || '',
-                details.payload
-            );
-            return (
-                <>
-                    <span
-                        className={classNames(
-                            timelineAnnotationStyles.title,
-                            styles.eventTitle
-                        )}
-                    >
-                        <span
-                            className={timelineAnnotationStyles.iconContainer}
-                            style={{
-                                background: `var(${
-                                    // @ts-ignore
-                                    TimelineAnnotationColors[details.title]
-                                })`,
-                            }}
-                        >
-                            {Icon}
-                        </span>
-                        {getTimelineEventDisplayName(details.title || '')}
-                    </span>
-                    <div
-                        key={e.timestamp}
-                        className={classNames(
-                            toolbarStyles.popoverContent,
-                            styles.eventContent
-                        )}
-                    >
-                        <StreamElementPayload
-                            payload={
-                                typeof details.payload === 'object'
-                                    ? JSON.stringify(details.payload)
-                                    : typeof details.payload === 'boolean' &&
-                                      details.title?.includes('Tab')
-                                    ? details.payload
-                                        ? 'The user switched away from this tab.'
-                                        : 'The user is currently active on this tab.'
-                                    : details.payload
-                            }
-                        />
-                    </div>
-                </>
-            );
-        };
-
-        const displayError = (e: ParsedErrorObject) => {
-            return (
-                <div className={toolbarStyles.popoverContent}>
-                    {e.source}
-                    <div className={toolbarStyles.buttonContainer}>
-                        <GoToButton
-                            onClick={() => {
-                                setShowDevTools(true);
-                                setSelectedDevToolsTab(DevToolTabType.Errors);
-                                setErrorPanel(e);
-                            }}
-                            label="More info"
-                        />
-                    </div>
-                </div>
-            );
-        };
-
-        const displayComment = (c: ParsedSessionComment) => {
-            return (
-                <div className={toolbarStyles.popoverContent}>
-                    <SessionComment comment={c} />
-                </div>
-            );
-        };
-
-        const displayAggregate = (count: number, eventType: string) => {
-            const Icon = getPlayerEventIcon(eventType);
-            return (
-                <>
-                    <div
-                        className={classNames(
-                            timelineAnnotationStyles.title,
-                            styles.eventTitle
-                        )}
-                    >
-                        <span
-                            className={timelineAnnotationStyles.iconContainer}
-                            style={{
-                                background: `var(${
-                                    // @ts-ignore
-                                    TimelineAnnotationColors[eventType]
-                                })`,
-                            }}
-                        >
-                            {Icon}
-                        </span>
-                        {getTimelineEventDisplayName(eventType || '')} x {count}
-                    </div>
-                </>
-            );
-        };
-
-        const tooltipContent = (bucketIndex: number | undefined) => {
-            if (bucketIndex === undefined) {
+        useEffect(() => {
+            if (sessionIntervals.length == 0) {
                 return;
             }
-            const bucket = chartData[bucketIndex];
-            const labels = [];
-            for (const e of EventsForTimeline) {
-                const count = bucket[e];
-                if (count > 0) {
-                    if (count > 2) {
-                        labels.push(displayAggregate(count, e));
-                    } else {
-                        if (e === 'Errors') {
-                            labels.push(bucket.errors.map(displayError));
-                        } else if (e === 'Comments') {
-                            labels.push(bucket.comments.map(displayComment));
-                        } else {
-                            labels.push(
-                                bucket.events
-                                    .filter(
-                                        (event: any) => event.data.tag === e
-                                    )
-                                    .map(displayEvent)
-                            );
-                        }
-                    }
+
+            const startTime = sessionIntervals[0].startTime;
+            const endTime =
+                sessionIntervals[sessionIntervals.length - 1].endTime;
+
+            const combined = sessionIntervals.reduce(
+                (acc, interval) => {
+                    return {
+                        ...acc,
+                        errors: [
+                            ...acc.errors,
+                            ...interval.errors.map((e) => ({
+                                ...e,
+                                relativeIntervalPercentage:
+                                    interval.startPercent * 100 +
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                        (e.relativeIntervalPercentage ?? 0),
+                            })),
+                        ],
+                        sessionEvents: [
+                            ...acc.sessionEvents,
+                            ...interval.sessionEvents.map((e) => ({
+                                ...e,
+                                relativeIntervalPercentage:
+                                    interval.startPercent * 100 +
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                        (e.relativeIntervalPercentage ?? 0),
+                            })),
+                        ],
+                        comments: [
+                            ...acc.comments,
+                            ...interval.comments.map((e) => ({
+                                ...e,
+                                relativeIntervalPercentage:
+                                    interval.startPercent * 100 +
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                        (e.relativeIntervalPercentage ?? 0),
+                            })),
+                        ],
+                    };
+                },
+                {
+                    startTime,
+                    endTime,
+                    duration: endTime - startTime,
+                    active: true,
+                    startPercent: 0,
+                    endPercent: 1,
+                    errors: [],
+                    sessionEvents: [],
+                    comments: [],
+                }
+            );
+
+            combined.errors = filterAndMap(combined.errors);
+            combined.sessionEvents = filterAndMap(combined.sessionEvents);
+            combined.comments = filterAndMap(combined.comments);
+
+            const tempChartData = getEventsInTimeBucket(
+                combined,
+                selectedTimelineAnnotationTypes,
+                percentPerBar
+            );
+
+            const tempBucketTimes: number[] = [];
+            for (let i = 0; i <= numberOfBars; i++) {
+                const p = i * percentPerBar * scale + zoomAreaLeft;
+                tempBucketTimes.push(getTimeFromPercent(p) ?? 0);
+            }
+
+            const tempEventsSeries = EventsForTimeline.map((eventType) => ({
+                label: eventType,
+                color: getAnnotationColor(eventType),
+                counts: new Array<number>(),
+            }));
+
+            for (const d of tempChartData) {
+                for (const s of tempEventsSeries) {
+                    s.counts.push(d[s.label] || 0);
                 }
             }
-            if (labels.length === 0) {
-                return null;
-            } else {
-                return <div>{labels}</div>;
-            }
-        };
 
-        const timeFormatter = (t: number) =>
-            showPlayerAbsoluteTime
-                ? playerTimeToSessionAbsoluteTime({
-                      sessionStartTime: sessionMetadata.startTime,
-                      relativeTime: t,
-                  }).toString()
-                : MillisToMinutesAndSeconds(t);
+            setSeriesState({
+                bucketTimes: tempBucketTimes,
+                chartData: tempChartData,
+                eventsSeries: tempEventsSeries,
+            });
+        }, [
+            filterAndMap,
+            getTimeFromPercent,
+            percentPerBar,
+            scale,
+            selectedTimelineAnnotationTypes,
+            sessionIntervals,
+            zoomAreaLeft,
+        ]);
+
+        const timeFormatter = useCallback(
+            (t: number) =>
+                showPlayerAbsoluteTime
+                    ? playerTimeToSessionAbsoluteTime({
+                          sessionStartTime: sessionMetadata.startTime,
+                          relativeTime: t,
+                      }).toString()
+                    : MillisToMinutesAndSeconds(t),
+            [sessionMetadata.startTime, showPlayerAbsoluteTime]
+        );
+
+        const onBucketClicked = useCallback(
+            (bucketIndex) => {
+                setTime(seriesState.bucketTimes[bucketIndex]);
+            },
+            [seriesState.bucketTimes, setTime]
+        );
+
+        const onAreaChanged = useCallback(
+            (left, right) => {
+                setZoomAreaLeft(
+                    (zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
+                        (zoomAreaLeft ?? 0)
+                );
+                setZoomAreaRight(
+                    (zoomAreaRight - zoomAreaLeft) *
+                        (right * percentPerBar + percentPerBar) +
+                        zoomAreaLeft
+                );
+            },
+            [
+                percentPerBar,
+                setZoomAreaLeft,
+                setZoomAreaRight,
+                zoomAreaLeft,
+                zoomAreaRight,
+            ]
+        );
+
+        const displayAggregate = useCallback(
+            (
+                count: number,
+                eventType: string,
+                firstEvent:
+                    | ParsedErrorObject
+                    | ParsedHighlightEvent
+                    | ParsedSessionComment
+            ) => {
+                const Icon = getPlayerEventIcon(eventType);
+                return (
+                    <>
+                        <Button
+                            className={classNames(
+                                timelineAnnotationStyles.title,
+                                styles.eventTitle
+                            )}
+                            type="text"
+                            trackingId="ViewEventDetail"
+                            onClick={() => {
+                                if ('identifier' in firstEvent) {
+                                    setCurrentEvent(firstEvent.identifier);
+                                }
+                            }}
+                        >
+                            <span
+                                className={
+                                    timelineAnnotationStyles.iconContainer
+                                }
+                                style={{
+                                    background: `var(${
+                                        // @ts-ignore
+                                        TimelineAnnotationColors[eventType]
+                                    })`,
+                                    width: '30px',
+                                    height: '30px',
+                                }}
+                            >
+                                {Icon}
+                            </span>
+                            {getTimelineEventDisplayName(eventType || '')}
+                            {count > 1 && ` x ${count}`}
+                        </Button>
+                    </>
+                );
+            },
+            [setCurrentEvent]
+        );
+
+        const tooltipContent = useCallback(
+            (bucketIndex: number | undefined) => {
+                if (bucketIndex === undefined) {
+                    return;
+                }
+                const bucket = seriesState.chartData[bucketIndex];
+                const labels = [];
+                for (const e of EventsForTimeline) {
+                    const count = bucket[e];
+                    if (count > 0) {
+                        const firstEvent = bucket.firstEvent[e];
+                        labels.push(displayAggregate(count, e, firstEvent));
+                    }
+                }
+                if (labels.length === 0) {
+                    return null;
+                } else {
+                    return <>{labels}</>;
+                }
+            },
+            [seriesState.chartData, displayAggregate]
+        );
+
+        const gotoAction = useCallback(
+            (bucketIndex) => {
+                setTime(seriesState.bucketTimes[bucketIndex]);
+            },
+            [seriesState.bucketTimes, setTime]
+        );
+
+        const getSliderPercent = useCallback(
+            (time: number) => {
+                let sliderPercent = 0;
+                const numIntervals = sessionIntervals.length;
+                if (numIntervals > 0) {
+                    if (time < sessionIntervals[0].startTime) {
+                        return 0;
+                    }
+                    if (time > sessionIntervals[numIntervals - 1].endTime) {
+                        return 1;
+                    }
+                }
+                for (const interval of sessionIntervals) {
+                    if (time < interval.endTime && time >= interval.startTime) {
+                        const segmentPercent =
+                            (time - interval.startTime) /
+                            (interval.endTime - interval.startTime);
+                        sliderPercent =
+                            segmentPercent *
+                                (interval.endPercent - interval.startPercent) +
+                            interval.startPercent;
+                        return sliderPercent;
+                    }
+                }
+                return sliderPercent;
+            },
+            [sessionIntervals]
+        );
+
+        if (sessionIntervals.length === 0) {
+            return (
+                <>
+                    <div className={styles.histogramSkeleton}>
+                        <Skeleton height={62} />
+                    </div>
+                    <div className={styles.scrubberSkeleton}>
+                        <Skeleton height={40} />
+                    </div>
+                </>
+            );
+        }
+
+        const sliderPercent = getSliderPercent(time);
+        const relativePercent =
+            (100 * (sliderPercent * 100 - zoomAreaLeft)) /
+            (zoomAreaRight - zoomAreaLeft);
 
         return (
-            <div className={styles.histogramContainer}>
-                <Histogram
-                    startTime={combined.startTime}
-                    endTime={combined.endTime}
-                    onAreaChanged={(left, right) => {
-                        setZoomAreaLeft(
-                            (zoomAreaRight - zoomAreaLeft) *
-                                left *
-                                percentPerBar +
-                                (zoomAreaLeft ?? 0)
-                        );
-                        setZoomAreaRight(
-                            (zoomAreaRight - zoomAreaLeft) *
-                                (right * percentPerBar + percentPerBar) +
-                                zoomAreaLeft
-                        );
-                    }}
-                    onBucketClicked={(bucketIndex) => {
-                        setTime(bucketTimes[bucketIndex]);
-                    }}
-                    seriesList={series}
-                    timeFormatter={timeFormatter}
-                    bucketTimes={bucketTimes}
-                    tooltipContent={tooltipContent}
+            <>
+                <div className={styles.histogramContainer}>
+                    <div className={styles.innerBounds}>
+                        {relativePercent >= 0 && relativePercent <= 100 && (
+                            <div
+                                className={styles.timeMarker}
+                                style={{ left: `${relativePercent}%` }}
+                            ></div>
+                        )}
+                    </div>
+                    <Histogram
+                        onAreaChanged={onAreaChanged}
+                        onBucketClicked={onBucketClicked}
+                        seriesList={seriesState.eventsSeries}
+                        timeFormatter={timeFormatter}
+                        bucketTimes={seriesState.bucketTimes}
+                        tooltipContent={tooltipContent}
+                        gotoAction={gotoAction}
+                    />
+                </div>
+                <Scrubber
+                    chartData={seriesState.chartData}
+                    getSliderPercent={getSliderPercent}
                 />
-            </div>
+            </>
         );
     }
 );
@@ -396,7 +442,7 @@ const getEventsInTimeBucket = (
     const data: { [key: string]: any } = {};
 
     for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = { events: [], errors: [], comments: [] };
+        data[i.toString()] = { firstEvent: {}, count: 0 };
     }
 
     interval.sessionEvents.forEach((event) => {
@@ -408,13 +454,14 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(event, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!(eventType in data[bucketKey])) {
                 data[bucketKey][eventType] = 1;
+                data[bucketKey].firstEvent[eventType] = event;
             } else {
                 data[bucketKey][eventType]++;
             }
-            data[bucketKey].events.push(event);
         }
     });
 
@@ -425,13 +472,14 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(error, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!('Errors' in data[bucketKey])) {
                 data[bucketKey]['Errors'] = 1;
+                data[bucketKey].firstEvent['Errors'] = error;
             } else {
                 data[bucketKey]['Errors']++;
             }
-            data[bucketKey].errors.push(error);
         });
     }
 
@@ -442,13 +490,14 @@ const getEventsInTimeBucket = (
             }
 
             const bucketKey = getBucketKey(comment, numberOfBuckets);
+            data[bucketKey].count++;
 
             if (!('Comments' in data[bucketKey])) {
                 data[bucketKey]['Comments'] = 1;
+                data[bucketKey].firstEvent['Comments'] = comment;
             } else {
                 data[bucketKey]['Comments']++;
             }
-            data[bucketKey].comments.push(comment);
         });
     }
 
