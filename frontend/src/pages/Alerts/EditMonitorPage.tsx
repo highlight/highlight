@@ -42,7 +42,7 @@ const EditMonitorPage = ({
     );
     const [monitorName, setMonitorName] = useState('');
     const [aggregator, setAggregator] = useState<MetricAggregator>(
-        MetricAggregator.P90
+        MetricAggregator.P50
     );
     const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
