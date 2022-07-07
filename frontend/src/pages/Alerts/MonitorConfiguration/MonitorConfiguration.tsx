@@ -311,7 +311,7 @@ const MonitorConfiguration = ({
                     <p>
                         This aggregation window will be used to determine if the
                         value is exceeding the threshold. For example, if set to
-                        5 minutes with an aggregator function of p50, a 5 minute
+                        5 minutes with an aggregator function of P50, a 5 minute
                         window median must exceed the threshold for an alert.
                     </p>
                     <Select

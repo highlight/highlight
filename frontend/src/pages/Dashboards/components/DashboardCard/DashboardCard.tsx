@@ -798,7 +798,8 @@ const ChartContainer = React.memo(
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregator || 'avg']: x?.value,
+                                [x?.aggregator ||
+                                MetricAggregator.Avg]: x?.value,
                             })
                         )}
                         referenceLines={referenceLines}
@@ -812,11 +813,13 @@ const ChartContainer = React.memo(
                             scale: 'point',
                         }}
                         lineColorMapping={{
-                            p99: 'var(--color-red-400)',
-                            p90: 'var(--color-orange-400)',
-                            p75: 'var(--color-green-600)',
-                            p50: 'var(--color-blue-400)',
-                            avg: 'var(--color-gray-400)',
+                            [MetricAggregator.Max]: 'var(--color-red-500)',
+                            [MetricAggregator.P99]: 'var(--color-red-400)',
+                            [MetricAggregator.P95]: 'var(--color-orange-500)',
+                            [MetricAggregator.P90]: 'var(--color-orange-400)',
+                            [MetricAggregator.P75]: 'var(--color-green-600)',
+                            [MetricAggregator.P50]: 'var(--color-blue-400)',
+                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
                         }}
                         yAxisLabel={metricConfig.units}
                     />
