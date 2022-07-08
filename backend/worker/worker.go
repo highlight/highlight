@@ -378,11 +378,11 @@ func (w *Worker) PublicWorker() {
 		go func(workerId int) {
 			for {
 				func() {
-					ctx := context.Background()
 					defer util.Recover()
-					s, _ := tracer.StartSpanFromContext(ctx, "processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
 					defer s.Finish()
 
+					ctx := tracer.ContextWithSpan(context.Background(), s)
 					s1 := tracer.StartSpan("worker.kafka.retrieveMessage", tracer.ChildOf(s.Context()))
 					task := <-messages
 					s1.Finish()
