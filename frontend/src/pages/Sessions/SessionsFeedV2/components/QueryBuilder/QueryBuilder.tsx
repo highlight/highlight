@@ -1329,23 +1329,6 @@ const QueryBuilder = ({
     });
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
-    // const [timeRangeRule, setTimeRangeRule] = useState<RuleProps>({
-    //     field: {
-    //         kind: 'single',
-    //         label: 'created_at',
-    //         value: 'custom_created_at',
-    //     },
-    //     op: 'between_date',
-    //     val: {
-    //         kind: 'multi',
-    //         options: [
-    //             {
-    //                 label: 'May 6 to May 6',
-    //                 value: '2022-05-06T22:54:20.000Z_2022-05-06T22:54:25.000Z',
-    //             },
-    //         ],
-    //     },
-    // });
     const defaultTimeRangeRule: RuleProps = {
         field: {
             kind: 'single',
@@ -1372,19 +1355,6 @@ const QueryBuilder = ({
         () => rules.filter((rule) => rule.field?.value !== 'custom_created_at'),
         [rules]
     );
-    const updateTimeRangeRule = (val: OnChangeInput) => {
-        const index = rules.findIndex(
-            (rule) => rule.field?.value === 'custom_created_at'
-        );
-        if (index === -1) {
-            addRule({ ...defaultTimeRangeRule, val: val as MultiselectOption });
-        } else {
-            updateRule(rules[index], { val: val as MultiselectOption });
-        }
-    };
-    console.log('Rich: ', JSON.stringify(rules));
-    console.log('Rich filterRules: ', JSON.stringify(filterRules));
-
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
     };
@@ -1593,17 +1563,20 @@ const QueryBuilder = ({
     }
 
     if (!timeRangeRule) {
-        updateTimeRangeRule(defaultTimeRangeRule.val);
+        addRule(defaultTimeRangeRule);
     }
-
     return (
         <div className={styles.builderContainer}>
             <div>
                 <div className={styles.rulesContainer}>
-                    <TimeRangeFilter
-                        rule={timeRangeRule || defaultTimeRangeRule}
-                        onChangeValue={updateTimeRangeRule}
-                    />
+                    {timeRangeRule && (
+                        <TimeRangeFilter
+                            rule={timeRangeRule}
+                            onChangeValue={(val) =>
+                                updateRule(timeRangeRule, { val: val })
+                            }
+                        />
+                    )}
                     {!readonly && (
                         <Button
                             className={styles.syncButton}
