@@ -2258,7 +2258,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if err == nil {
 			for _, d := range project.BackendDomains {
 				if u.Host == d {
-					categories[modelInputs.NetworkRequestAttributeURL] = re.Name
+					u.RawQuery = ""
+					u.Fragment = ""
+					categories[modelInputs.NetworkRequestAttributeURL] = u.String()
 				}
 			}
 		}
