@@ -41,7 +41,7 @@ import { Form } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -382,14 +382,63 @@ export const MetricSelector = ({
     );
 };
 
+export const TagFilters = ({
+    metricName,
+    onSelectTags,
+    currentTags,
+}: {
+    metricName: string;
+    onSelectTags: (tags: MetricTagFilter[]) => void;
+    currentTags: MetricTagFilter[];
+}) => {
+    return (
+        <>
+            {[...currentTags, undefined].map((v, idx) => (
+                <section
+                    className={dashStyles.section}
+                    key={`tag-filter-${v?.tag || idx}`}
+                >
+                    <div className={styles.filtersRow}>
+                        <Form.Item
+                            label="Filter by:"
+                            className={styles.formLabel}
+                        />
+                        <TagFilterSelector
+                            metricName={metricName}
+                            onSelectTag={(t) =>
+                                onSelectTags([...currentTags, t])
+                            }
+                            currentTag={v}
+                            usedTags={currentTags.map((t) => t.tag)}
+                        />
+                        <Button
+                            trackingId={'EditMetricRemoveTagFilter'}
+                            className={styles.removeTagFilterButton}
+                            onClick={() => {
+                                onSelectTags(
+                                    currentTags.filter((t) => t.tag !== v?.tag)
+                                );
+                            }}
+                        >
+                            <TrashIcon />
+                        </Button>
+                    </div>
+                </section>
+            ))}
+        </>
+    );
+};
+
 export const TagFilterSelector = ({
     metricName,
     onSelectTag,
     currentTag,
+    usedTags,
 }: {
     metricName: string;
     onSelectTag: (tags: MetricTagFilter) => void;
     currentTag?: MetricTagFilter;
+    usedTags?: string[];
 }) => {
     const [tag, setTag] = useState<string | undefined>(currentTag?.tag);
     const [value, setValue] = useState<string | undefined>(currentTag?.value);
@@ -419,11 +468,15 @@ export const TagFilterSelector = ({
             <Select
                 placeholder={`graphql_operation`}
                 options={
-                    data?.metric_tags.map((t) => ({
-                        value: t,
-                        id: t,
-                        displayValue: t,
-                    })) || []
+                    data?.metric_tags
+                        .filter((t) =>
+                            usedTags ? !usedTags.includes(t) : true
+                        )
+                        .map((t) => ({
+                            value: t,
+                            id: t,
+                            displayValue: t,
+                        })) || []
                 }
                 value={tag}
                 onChange={(t) => {
@@ -493,7 +546,6 @@ const EditMetricModal = ({
     const [filters, setFilters] = useState<MetricTagFilter[]>(
         metricConfig.filters || []
     );
-    console.log({ metricConfig, minValue, min, maxValue, max });
     return (
         <Modal
             onCancel={onCancel}
@@ -618,19 +670,11 @@ const EditMetricModal = ({
                         </div>
                     </section>
                 )}
-                <section className={dashStyles.section}>
-                    <div className={styles.filtersRow}>
-                        <Form.Item
-                            label="Filter by:"
-                            className={styles.formLabel}
-                        />
-                        <TagFilterSelector
-                            metricName={metricName}
-                            onSelectTag={(t) => setFilters([t])}
-                            currentTag={filters[0]}
-                        />
-                    </div>
-                </section>
+                <TagFilters
+                    metricName={metricName}
+                    onSelectTags={(t) => setFilters(t)}
+                    currentTags={filters}
+                />
                 <section className={dashStyles.section}>
                     <div className={styles.submitRow}>
                         <Button
@@ -741,13 +785,18 @@ const ChartContainer = React.memo(
             start_date: string;
             end_date: string;
         }>();
+        const refetchInterval = useRef<number>();
         const resolutionMinutes = Math.ceil(
             moment.duration(lookbackMinutes, 'minutes').as('minutes') /
                 NUM_BUCKETS
         );
         const [
             loadTimeline,
-            { data: timelineData, loading: timelineLoading },
+            {
+                data: timelineData,
+                loading: timelineLoading,
+                refetch: refetchTimeline,
+            },
         ] = useGetMetricsTimelineLazyQuery({
             variables: {
                 project_id,
@@ -765,7 +814,11 @@ const ChartContainer = React.memo(
         });
         const [
             loadHistogram,
-            { data: histogramData, loading: histogramLoading },
+            {
+                data: histogramData,
+                loading: histogramLoading,
+                refetch: refetchHistogram,
+            },
         ] = useGetMetricsHistogramLazyQuery({
             variables: {
                 project_id,
@@ -785,26 +838,46 @@ const ChartContainer = React.memo(
         });
 
         useEffect(() => {
+            if (!dateRange) return;
             if (chartType === DashboardChartType.Histogram) {
-                loadHistogram();
+                if (refetchHistogram) {
+                    refetchHistogram().catch(console.error);
+                } else {
+                    loadHistogram();
+                }
             } else if (chartType === DashboardChartType.Timeline) {
-                loadTimeline();
+                if (refetchTimeline) {
+                    refetchTimeline().catch(console.error);
+                } else {
+                    loadTimeline();
+                }
             }
-        }, [chartType, loadTimeline, loadHistogram]);
+        }, [
+            chartType,
+            dateRange,
+            refetchHistogram,
+            refetchTimeline,
+            loadTimeline,
+            loadHistogram,
+        ]);
         useEffect(() => {
-            // round to the nearest 15 mins or less if we use a fine granularity.
-            // this ensures that even for large time ranges data will only be cached
-            // for up to 15 minutes (cache key is based on the arguments).
-            const now = roundDate(
-                moment(new Date()),
-                Math.min(15, lookbackMinutes)
-            );
-            setDateRange({
-                start_date: moment(now)
-                    .subtract(lookbackMinutes, 'minutes')
-                    .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
-                end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
-            });
+            const handler = () => {
+                // this ensures that even for large time ranges data will only be cached
+                // for up to 1 minutes (cache key is based on the arguments).
+                const now = roundDate(moment(new Date()), 1);
+                setDateRange({
+                    start_date: moment(now)
+                        .subtract(lookbackMinutes, 'minutes')
+                        .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
+                    end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+                });
+            };
+            if (refetchInterval.current) {
+                window.clearInterval(refetchInterval.current);
+            } else {
+                handler();
+            }
+            refetchInterval.current = window.setInterval(handler, 60000);
         }, [lookbackMinutes]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';

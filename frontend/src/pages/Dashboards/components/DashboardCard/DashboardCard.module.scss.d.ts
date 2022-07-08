@@ -12,4 +12,5 @@ export const minMaxRow: string;
 export const monitorItem: string;
 export const monitorName: string;
 export const noDataContainer: string;
+export const removeTagFilterButton: string;
 export const submitRow: string;
