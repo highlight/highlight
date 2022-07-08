@@ -253,10 +253,9 @@ const getAbsoluteStartTime = (value?: string): string | null => {
         // value is a relative duration such as '7 days', subtract it from current time
         const amount = parseInt(value.split(' ')[0]);
         const unit = value.split(' ')[1].toLowerCase();
-        const result = moment()
+        return moment()
             .subtract(amount, unit as unitOfTime.DurationConstructor)
             .toISOString();
-        return result;
     }
     return value!.split('_')[0];
 };
