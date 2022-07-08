@@ -10,7 +10,6 @@ import QueryBuilder, {
     BOOLEAN_OPERATORS,
     CUSTOM_TYPE,
     CustomField,
-    DATE_OPERATORS,
     deserializeGroup,
     FetchFieldVariables,
     propertiesToRules,
@@ -30,14 +29,6 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'app_version',
         options: {
             type: 'text',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'created_at',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
         },
     },
     {

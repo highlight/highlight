@@ -5,7 +5,6 @@ import {
 } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext';
 import QueryBuilder, {
     CustomField,
-    DATE_OPERATORS,
     deserializeGroup,
     ERROR_FIELD_TYPE,
     ERROR_TYPE,
@@ -44,14 +43,6 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'browser',
         options: {
             type: 'text',
-        },
-    },
-    {
-        type: ERROR_FIELD_TYPE,
-        name: 'timestamp',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
         },
     },
     {
