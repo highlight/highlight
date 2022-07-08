@@ -2155,6 +2155,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
+	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	defer updateSpan.Finish()
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||

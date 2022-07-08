@@ -279,8 +279,7 @@ func (w *Worker) processWorkerError(task *kafkaqueue.Message, err error) {
 	}
 }
 
-func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
-	ctx := context.Background()
+func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
@@ -379,8 +378,9 @@ func (w *Worker) PublicWorker() {
 		go func(workerId int) {
 			for {
 				func() {
+					ctx := context.Background()
 					defer util.Recover()
-					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
+					s, _ := tracer.StartSpanFromContext(ctx, "processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
 					defer s.Finish()
 
 					s1 := tracer.StartSpan("worker.kafka.retrieveMessage", tracer.ChildOf(s.Context()))
@@ -389,7 +389,7 @@ func (w *Worker) PublicWorker() {
 					s.SetTag("taskType", task.Type)
 
 					s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
-					w.processPublicWorkerMessage(task)
+					w.processPublicWorkerMessage(ctx, task)
 					s2.Finish()
 
 					s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
