@@ -14,10 +14,9 @@ import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilde
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
-import * as chrono from 'chrono-node';
 import classNames from 'classnames';
 import _ from 'lodash';
-import moment from 'moment';
+import moment, { unitOfTime } from 'moment';
 import React, {
     useCallback,
     useEffect,
@@ -236,19 +235,38 @@ const ScrolledTextHighlighter = ({
         />
     );
 };
-const getIndividualDateLabel = (date: string): string => {
-    // Allow relative ranges like '7 days ago'
-    return moment(date).isValid()
-        ? moment(chrono.parseDate(date)).format('MMM D')
-        : date;
-};
 const getDateLabel = (value: string): string => {
+    if (!value.includes('_')) {
+        // Value is a duration such as '7 days'
+        return 'Last ' + value;
+    }
     const split = value.split('_');
     const start = split[0];
     const end = split[1];
-    const startStr = getIndividualDateLabel(start);
-    const endStr = getIndividualDateLabel(end);
-    return `${startStr} to ${endStr}`;
+    const startStr = moment(start).format('MMM D');
+    const endStr = moment(end).format('MMM D');
+    return `${startStr} and ${endStr}`;
+};
+const getAbsoluteStartTime = (value?: string): string | null => {
+    if (!value) return null;
+    if (!value.includes('_')) {
+        // value is a relative duration such as '7 days', subtract it from current time
+        const amount = parseInt(value.split(' ')[0]);
+        const unit = value.split(' ')[1].toLowerCase();
+        const result = moment()
+            .subtract(amount, unit as unitOfTime.DurationConstructor)
+            .toISOString();
+        return result;
+    }
+    return value!.split('_')[0];
+};
+const getAbsoluteEndTime = (value?: string): string | null => {
+    if (!value) return null;
+    if (!value.includes('_')) {
+        // value is a relative duration such as '7 days', use current time as end of range
+        return moment().toISOString();
+    }
+    return value!.split('_')[1];
 };
 
 const getLengthLabel = (value: string): string => {
@@ -544,18 +562,14 @@ const PopoutContent = ({
                     startDate={
                         value?.kind === 'multi'
                             ? new Date(
-                                  chrono.parseDate(
-                                      value.options[0]?.value.split('_')[0]
-                                  )
+                                  getAbsoluteStartTime(value.options[0]?.value)!
                               )
                             : undefined
                     }
                     endDate={
                         value?.kind === 'multi'
                             ? new Date(
-                                  chrono.parseDate(
-                                      value.options[0]?.value.split('_')[1]
-                                  )
+                                  getAbsoluteEndTime(value.options[0]?.value)!
                               )
                             : undefined
                     }
@@ -1169,12 +1183,8 @@ const QueryBuilder = ({
                         return {
                             range: {
                                 [name]: {
-                                    gte: chrono.parseDate(
-                                        value?.split('_')[0] || ''
-                                    ),
-                                    lte: chrono.parseDate(
-                                        value?.split('_')[1] || ''
-                                    ),
+                                    gte: getAbsoluteStartTime(value),
+                                    lte: getAbsoluteEndTime(value),
                                 },
                             },
                         };
@@ -1340,8 +1350,8 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: '7 days ago to Now',
-                    value: '7 days ago_Now',
+                    label: 'Last 7 days',
+                    value: '7 days',
                 },
             ],
         },
