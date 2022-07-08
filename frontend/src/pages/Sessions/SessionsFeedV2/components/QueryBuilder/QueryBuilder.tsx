@@ -1379,9 +1379,11 @@ const QueryBuilder = ({
         if (index === -1) {
             addRule({ ...defaultTimeRangeRule, val: val as MultiselectOption });
         } else {
-            updateRule(index, { val: val as MultiselectOption });
+            updateRule(rules[index], { val: val as MultiselectOption });
         }
     };
+    console.log('Rich: ', JSON.stringify(rules));
+    console.log('Rich filterRules: ', JSON.stringify(filterRules));
 
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
@@ -1398,12 +1400,12 @@ const QueryBuilder = ({
         setRules([...rules, rule]);
         setCurrentRule(undefined);
     };
-    const removeRule = (index: number) =>
-        setRules(rules.filter((_, idx) => idx !== index));
-    const updateRule = (index: number, newProps: any) => {
+    const removeRule = (targetRule: RuleProps) =>
+        setRules(rules.filter((rule) => rule !== targetRule));
+    const updateRule = (targetRule: RuleProps, newProps: any) => {
         setRules(
-            rules.map((rule, idx) =>
-                idx !== index ? rule : { ...rule, ...newProps }
+            rules.map((rule) =>
+                rule !== targetRule ? rule : { ...rule, ...newProps }
             )
         );
     };
@@ -1625,7 +1627,6 @@ const QueryBuilder = ({
                 </div>
             </div>
             <div>
-                {/* Something about filterrules is causing a re-render */}
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>
                         {filterRules.flatMap((rule, index) => [
@@ -1649,18 +1650,18 @@ const QueryBuilder = ({
                                 onChangeKey={(val) => {
                                     // Default to 'is' when rule is not defined yet
                                     if (rule.op === undefined) {
-                                        updateRule(index, {
+                                        updateRule(rule, {
                                             field: val,
                                             op: getDefaultOperator(rule.field),
                                         });
                                     } else {
-                                        updateRule(index, { field: val });
+                                        updateRule(rule, { field: val });
                                     }
                                 }}
                                 getKeyOptions={getKeyOptions}
                                 onChangeOperator={(val) => {
                                     if (val?.kind === 'single') {
-                                        updateRule(index, { op: val.value });
+                                        updateRule(rule, { op: val.value });
                                     }
                                 }}
                                 getOperatorOptions={getOperatorOptionsCallback(
@@ -1668,12 +1669,12 @@ const QueryBuilder = ({
                                     rule.val
                                 )}
                                 onChangeValue={(val) => {
-                                    updateRule(index, { val: val });
+                                    updateRule(rule, { val: val });
                                 }}
                                 getValueOptions={getValueOptionsCallback(
                                     rule.field
                                 )}
-                                onRemove={() => removeRule(index)}
+                                onRemove={() => removeRule(rule)}
                                 readonly={readonly ?? false}
                             />,
                         ])}
