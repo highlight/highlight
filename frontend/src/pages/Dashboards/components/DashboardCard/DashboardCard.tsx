@@ -8,18 +8,22 @@ import Input from '@components/Input/Input';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
+import Select from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import Switch from '@components/Switch/Switch';
 import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
     useGetMetricsTimelineLazyQuery,
+    useGetMetricTagsQuery,
+    useGetMetricTagValuesLazyQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import {
     DashboardChartType,
     DashboardMetricConfig,
     MetricAggregator,
+    MetricTagFilter,
 } from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
@@ -378,6 +382,76 @@ export const MetricSelector = ({
     );
 };
 
+export const TagFilterSelector = ({
+    metricName,
+    onSelectTag,
+    currentTag,
+}: {
+    metricName: string;
+    onSelectTag: (tags: MetricTagFilter) => void;
+    currentTag?: MetricTagFilter;
+}) => {
+    const [tag, setTag] = useState<string | undefined>(currentTag?.tag);
+    const [value, setValue] = useState<string | undefined>(currentTag?.value);
+    const { project_id } = useParams<{ project_id: string }>();
+    const { data } = useGetMetricTagsQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+        },
+    });
+    const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+            tag_name: tag || '',
+        },
+    });
+
+    useEffect(() => {
+        if (tag?.length) {
+            load();
+        }
+    }, [tag, load]);
+
+    return (
+        <>
+            <Select
+                placeholder={`graphql_operation`}
+                options={
+                    data?.metric_tags.map((t) => ({
+                        value: t,
+                        id: t,
+                        displayValue: t,
+                    })) || []
+                }
+                value={tag}
+                onChange={(t) => {
+                    setTag(t);
+                    setValue(undefined);
+                }}
+            />
+            <Select
+                placeholder={`GetSession`}
+                options={
+                    values?.metric_tag_values.map((t) => ({
+                        value: t,
+                        id: t,
+                        displayValue: t,
+                    })) || []
+                }
+                value={value}
+                onChange={(v) => {
+                    setValue(v);
+                    if (tag?.length) {
+                        onSelectTag({ tag: tag, value: v });
+                    }
+                }}
+            />
+        </>
+    );
+};
+
 const EditMetricModal = ({
     metricIdx,
     metricConfig,
@@ -415,6 +489,9 @@ const EditMetricModal = ({
     );
     const [aggregator, setAggregator] = useState<MetricAggregator>(
         metricConfig.aggregator
+    );
+    const [filters, setFilters] = useState<MetricTagFilter[]>(
+        metricConfig.filters || []
     );
     console.log({ metricConfig, minValue, min, maxValue, max });
     return (
@@ -486,7 +563,7 @@ const EditMetricModal = ({
                         <div className={styles.minMaxRow}>
                             <Form.Item
                                 label="Minimum"
-                                className={styles.percentileInput}
+                                className={styles.formLabel}
                             />
                             <Input
                                 type={'number'}
@@ -513,7 +590,7 @@ const EditMetricModal = ({
                             />
                             <Form.Item
                                 label="Maximum"
-                                className={styles.percentileInput}
+                                className={styles.formLabel}
                             />
                             <Input
                                 type={'number'}
@@ -542,6 +619,19 @@ const EditMetricModal = ({
                     </section>
                 )}
                 <section className={dashStyles.section}>
+                    <div className={styles.filtersRow}>
+                        <Form.Item
+                            label="Filter by:"
+                            className={styles.formLabel}
+                        />
+                        <TagFilterSelector
+                            metricName={metricName}
+                            onSelectTag={(t) => setFilters([t])}
+                            currentTag={filters[0]}
+                        />
+                    </div>
+                </section>
+                <section className={dashStyles.section}>
                     <div className={styles.submitRow}>
                         <Button
                             type={'primary'}
@@ -569,6 +659,7 @@ const EditMetricModal = ({
                                     poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
                                     aggregator: aggregator,
+                                    filters: filters,
                                     ...(minValue
                                         ? { min_value: min }
                                         : { min_percentile: min }),
@@ -667,6 +758,7 @@ const ChartContainer = React.memo(
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
+                    filters: metricConfig.filters,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -686,6 +778,7 @@ const ChartContainer = React.memo(
                     min_percentile: metricConfig.min_percentile,
                     max_value: metricConfig.max_value,
                     max_percentile: metricConfig.max_percentile,
+                    filters: metricConfig.filters,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -870,7 +963,11 @@ const ChartContainer = React.memo(
             nextProps.metricConfig.min_percentile &&
         prevProps.metricConfig.max_value === nextProps.metricConfig.max_value &&
         prevProps.metricConfig.max_percentile ===
-            nextProps.metricConfig.max_percentile
+            nextProps.metricConfig.max_percentile &&
+        _.isEqual(
+            prevProps.metricConfig.filters,
+            nextProps.metricConfig.filters
+        )
 );
 
 export default DashboardCard;

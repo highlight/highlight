@@ -5155,7 +5155,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
@@ -5220,6 +5220,53 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), nil
+}
+
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), nil
+}
+
+func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), tagName, timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	tdbQuerySpan.SetTag("tagName", tagName)
 	results, err := r.TDB.Query(ctx, query)
 	tdbQuerySpan.Finish()
 	if err != nil {

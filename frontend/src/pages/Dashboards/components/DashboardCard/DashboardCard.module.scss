@@ -113,7 +113,13 @@
     grid-template-columns: 80px 1fr 150px 80px 1fr 150px;
 }
 
-.percentileInput {
+.filtersRow {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 80px 340px 300px;
+}
+
+.formLabel {
     margin-bottom: 0;
     margin-top: 4px;
 }

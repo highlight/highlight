@@ -3730,6 +3730,27 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
     'suggested_metrics'
 >;
 
+export type GetMetricTagsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tags'
+>;
+
+export type GetMetricTagValuesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+    tag_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagValuesQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tag_values'
+>;
+
 export type GetSourcemapFilesQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     version?: Types.Maybe<Types.Scalars['String']>;
@@ -3831,6 +3852,8 @@ export const namedOperations = {
         GetWebVitals: 'GetWebVitals' as const,
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
         GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
+        GetMetricTags: 'GetMetricTags' as const,
+        GetMetricTagValues: 'GetMetricTagValues' as const,
         GetSourcemapFiles: 'GetSourcemapFiles' as const,
         GetSourcemapVersions: 'GetSourcemapVersions' as const,
     },

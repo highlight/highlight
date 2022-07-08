@@ -1465,6 +1465,14 @@ query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
     suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
+query GetMetricTags($project_id: ID!, $metric_name: String!) {
+    metric_tags(project_id: $project_id, metric_name: $metric_name)
+}
+
+query GetMetricTagValues($project_id: ID!, $metric_name: String!, $tag_name: String!) {
+    metric_tag_values(project_id: $project_id, metric_name: $metric_name, tag_name: $tag_name)
+}
+
 query GetSourcemapFiles($project_id: ID!, $version: String) {
     sourcemap_files(project_id: $project_id, version: $version) {
         key
