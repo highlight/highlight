@@ -99,8 +99,7 @@ export declare type HighlightOptions = {
      */
     enableCanvasRecording?: boolean;
     /**
-     * Specifies whether to record canvas elements or not.
-     * @default false
+     * Configure the recording sampling options, eg. how frequently we record canvas updates.
      */
     samplingStrategy?: SamplingStrategy;
     /**
