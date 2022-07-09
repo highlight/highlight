@@ -30,8 +30,7 @@ const basePlugins = [
     resolve({ browser: true }),
     webWorkerLoader({
         targetPlatform: 'browser',
-        inline: true,
-        sourceMap,
+        inline: true
     }),
     typescript(),
     json(),
@@ -41,10 +40,9 @@ const basePlugins = [
             development ? 'development' : 'production'
         )
     }),
-    commonjs({sourceMap}),
+    commonjs({}),
     esbuild({
         minify,
-        sourceMap,
         target: 'es6'
     })
 ]

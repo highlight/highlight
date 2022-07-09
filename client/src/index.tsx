@@ -6,6 +6,7 @@ import {
 import {
     eventWithTime,
     listenerHandler,
+    SamplingStrategy,
 } from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
@@ -88,7 +89,9 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    samplingStrategy?: SamplingStrategy;
     inlineImages?: boolean;
+    inlineStylesheet?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -175,7 +178,9 @@ export class Highlight {
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    samplingStrategy!: SamplingStrategy;
     inlineImages!: boolean;
+    inlineStylesheet!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -750,12 +755,12 @@ export class Highlight {
                     enableStrictPrivacy: this.enableStrictPrivacy,
                     maskAllInputs: this.enableStrictPrivacy,
                     recordCanvas: this.enableCanvasRecording,
+                    sampling: this.samplingStrategy,
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
-                    // TODO(vkorolik) release as options with new firstload
-                    inlineStylesheet: true,
-                    inlineImages: true,
+                    inlineImages: this.inlineImages,
+                    inlineStylesheet: this.inlineStylesheet,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
