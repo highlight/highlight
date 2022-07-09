@@ -51,7 +51,7 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
-import { ClientJS } from "clientjs";
+import { ClientJS } from 'clientjs';
 import publicGraphURI from 'consts:publicGraphURI';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -532,9 +532,9 @@ export class Highlight {
                 this.logger.log(
                     `AddSessionProperties to session (${
                         this.sessionData.sessionID
-                    }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                        publicGraphURI
-                    }`
+                    }) w/ obj: ${JSON.stringify(
+                        properties_obj
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
