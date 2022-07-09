@@ -135,6 +135,12 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  */
 const SEND_FREQUENCY = 1000 * 2;
 /**
+ * The amount of time between sending the client-side payload to Highlight backend client.
+ * Increased for canvas recording due to large number of events.
+ * In milliseconds.
+ */
+const CANVAS_SEND_FREQUENCY = 500;
+/**
  * The amount of time allowed after the last push before creating a new session.
  * In milliseconds.
  */
@@ -1126,7 +1132,7 @@ export class Highlight {
             }
             this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
-            }, SEND_FREQUENCY);
+            }, this.options.enableCanvasRecording ? CANVAS_SEND_FREQUENCY : SEND_FREQUENCY);
         }
     }
 
@@ -1212,7 +1218,9 @@ export class Highlight {
             // 2. rrweb pushes to this.events (with M events)
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
+            this.logger.log(`Removing ${events.length}. Before cut have ${this.events.length} events.`)
             this.events = this.events.slice(events.length);
+            this.logger.log(`Removed ${events.length}. Now have ${this.events.length} events.`)
 
             this._eventBytesSinceSnapshot =
                 this._eventBytesSinceSnapshot + eventsSize;
