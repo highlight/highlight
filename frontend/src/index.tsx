@@ -39,7 +39,7 @@ import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
-const dev = process.env.NODE_ENV === 'dev';
+const dev = process.env.NODE_ENV === 'development';
 let commitSHA = process.env.REACT_APP_COMMIT_SHA || '';
 if (commitSHA.length > 8) {
     commitSHA = commitSHA.substring(0, 8);
