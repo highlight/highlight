@@ -2313,8 +2313,19 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	return
 }
 
+// GetTagFilters returns the influxdb filter for a particular set of tag filters
+func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) {
+	for _, f := range filters {
+		if f != nil {
+			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] == "%s")`, f.Tag, f.Value) + "\n"
+		}
+	}
+	return
+}
+
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	tagFilters := GetTagFilters(params.Filters)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -2326,14 +2337,14 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		  |> range(start: %[2]s, stop: %[3]s)
 		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
 		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  |> group()
+		  %[6]s|> group()
       do = (q) =>
         query()
 		  |> aggregateWindow(
-               every: %[6]dm,
+               every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, resMins)
+	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, resMins)
 	agg := modelInputs.MetricAggregatorAvg
 	if params.Aggregator != nil {
 		agg = *params.Aggregator

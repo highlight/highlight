@@ -432,6 +432,7 @@ export type DashboardParamsInput = {
     timezone?: Maybe<Scalars['String']>;
     units?: Maybe<Scalars['String']>;
     aggregator?: Maybe<MetricAggregator>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
 };
 
 export type HistogramParamsInput = {
@@ -442,6 +443,18 @@ export type HistogramParamsInput = {
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
     units?: Maybe<Scalars['String']>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
+};
+
+export type MetricTagFilter = {
+    __typename?: 'MetricTagFilter';
+    tag: Scalars['String'];
+    value: Scalars['String'];
+};
+
+export type MetricTagFilterInput = {
+    tag: Scalars['String'];
+    value: Scalars['String'];
 };
 
 export enum NetworkRequestAttribute {
@@ -851,6 +864,7 @@ export type DashboardMetricConfigInput = {
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
 };
 
 export type DashboardMetricConfig = {
@@ -868,6 +882,7 @@ export type DashboardMetricConfig = {
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
+    filters?: Maybe<Array<MetricTagFilter>>;
 };
 
 export type DashboardDefinition = {
@@ -993,6 +1008,8 @@ export type Query = {
     subscription_details: SubscriptionDetails;
     dashboard_definitions: Array<Maybe<DashboardDefinition>>;
     suggested_metrics: Array<Scalars['String']>;
+    metric_tags: Array<Scalars['String']>;
+    metric_tag_values: Array<Scalars['String']>;
     metrics_timeline: Array<Maybe<DashboardPayload>>;
     metrics_histogram: HistogramPayload;
     network_histogram: CategoryHistogramPayload;
@@ -1335,6 +1352,17 @@ export type QueryDashboard_DefinitionsArgs = {
 export type QuerySuggested_MetricsArgs = {
     project_id: Scalars['ID'];
     prefix: Scalars['String'];
+};
+
+export type QueryMetric_TagsArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+};
+
+export type QueryMetric_Tag_ValuesArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+    tag_name: Scalars['String'];
 };
 
 export type QueryMetrics_TimelineArgs = {

@@ -388,6 +388,7 @@ input DashboardParamsInput {
     timezone: String
     units: String
     aggregator: MetricAggregator
+    filters: [MetricTagFilterInput!]
 }
 
 input HistogramParamsInput {
@@ -398,6 +399,17 @@ input HistogramParamsInput {
     max_value: Float
     max_percentile: Float
     units: String
+    filters: [MetricTagFilterInput!]
+}
+
+type MetricTagFilter {
+    tag: String!
+    value: String!
+}
+
+input MetricTagFilterInput {
+    tag: String!
+    value: String!
 }
 
 enum NetworkRequestAttribute {
@@ -782,6 +794,7 @@ input DashboardMetricConfigInput {
     min_percentile: Float
     max_value: Float
     max_percentile: Float
+    filters: [MetricTagFilterInput!]
 }
 
 type DashboardMetricConfig {
@@ -798,6 +811,7 @@ type DashboardMetricConfig {
     min_percentile: Float
     max_value: Float
     max_percentile: Float
+    filters: [MetricTagFilter!]
 }
 
 type DashboardDefinition {
@@ -980,6 +994,8 @@ type Query {
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+    metric_tags(project_id: ID!, metric_name: String!): [String!]!
+    metric_tag_values(project_id: ID!, metric_name: String!, tag_name: String!): [String!]!
     metrics_timeline(
         project_id: ID!
         metric_name: String!

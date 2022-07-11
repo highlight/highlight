@@ -2965,6 +2965,13 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	}
 
 	for _, m := range metrics {
+		var filters []*model.DashboardMetricFilter
+		for _, f := range m.Filters {
+			filters = append(filters, &model.DashboardMetricFilter{
+				Tag:   f.Tag,
+				Value: f.Value,
+			})
+		}
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
@@ -2979,6 +2986,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			MinPercentile:            m.MinPercentile,
 			MaxValue:                 m.MaxValue,
 			MaxPercentile:            m.MaxPercentile,
+			Filters:                  filters,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -5147,7 +5155,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
@@ -5155,6 +5163,13 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	for _, d := range dashboards {
 		var metrics []*modelInputs.DashboardMetricConfig
 		for _, metric := range d.Metrics {
+			var filters []*modelInputs.MetricTagFilter
+			for _, f := range metric.Filters {
+				filters = append(filters, &modelInputs.MetricTagFilter{
+					Tag:   f.Tag,
+					Value: f.Value,
+				})
+			}
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
@@ -5169,6 +5184,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				MinPercentile:            metric.MinPercentile,
 				MaxValue:                 metric.MaxValue,
 				MaxPercentile:            metric.MaxPercentile,
+				Filters:                  filters,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{
@@ -5215,6 +5231,55 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	}), nil
 }
 
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), func(t string, _ int) bool {
+		return !strings.HasPrefix(t, "_")
+	}), nil
+}
+
+func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), tagName, timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	tdbQuerySpan.SetTag("tagName", tagName)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), nil
+}
+
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
@@ -5228,6 +5293,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
 		minPercentile := 0.01
 		if params.MinPercentile != nil {
@@ -5291,10 +5357,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> group()
+          %s|> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)

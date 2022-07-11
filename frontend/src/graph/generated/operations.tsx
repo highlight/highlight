@@ -3702,7 +3702,18 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'min_percentile'
                             | 'max_value'
                             | 'max_percentile'
-                        >
+                        > & {
+                                filters?: Types.Maybe<
+                                    Array<
+                                        {
+                                            __typename?: 'MetricTagFilter';
+                                        } & Pick<
+                                            Types.MetricTagFilter,
+                                            'value' | 'tag'
+                                        >
+                                    >
+                                >;
+                            }
                     >;
                 }
         >
@@ -3717,6 +3728,27 @@ export type GetSuggestedMetricsQueryVariables = Types.Exact<{
 export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'suggested_metrics'
+>;
+
+export type GetMetricTagsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tags'
+>;
+
+export type GetMetricTagValuesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+    tag_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagValuesQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tag_values'
 >;
 
 export type GetSourcemapFilesQueryVariables = Types.Exact<{
@@ -3820,6 +3852,8 @@ export const namedOperations = {
         GetWebVitals: 'GetWebVitals' as const,
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
         GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
+        GetMetricTags: 'GetMetricTags' as const,
+        GetMetricTagValues: 'GetMetricTagValues' as const,
         GetSourcemapFiles: 'GetSourcemapFiles' as const,
         GetSourcemapVersions: 'GetSourcemapVersions' as const,
     },

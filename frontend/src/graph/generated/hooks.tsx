@@ -9564,6 +9564,10 @@ export const GetDashboardDefinitionsDocument = gql`
                 min_percentile
                 max_value
                 max_percentile
+                filters {
+                    value
+                    tag
+                }
             }
             last_admin_to_edit_id
             layout
@@ -9673,6 +9677,125 @@ export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
 export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
     Types.GetSuggestedMetricsQuery,
     Types.GetSuggestedMetricsQueryVariables
+>;
+export const GetMetricTagsDocument = gql`
+    query GetMetricTags($project_id: ID!, $metric_name: String!) {
+        metric_tags(project_id: $project_id, metric_name: $metric_name)
+    }
+`;
+
+/**
+ * __useGetMetricTagsQuery__
+ *
+ * To run a query within a React component, call `useGetMetricTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricTagsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *   },
+ * });
+ */
+export function useGetMetricTagsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >(GetMetricTagsDocument, baseOptions);
+}
+export function useGetMetricTagsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >(GetMetricTagsDocument, baseOptions);
+}
+export type GetMetricTagsQueryHookResult = ReturnType<
+    typeof useGetMetricTagsQuery
+>;
+export type GetMetricTagsLazyQueryHookResult = ReturnType<
+    typeof useGetMetricTagsLazyQuery
+>;
+export type GetMetricTagsQueryResult = Apollo.QueryResult<
+    Types.GetMetricTagsQuery,
+    Types.GetMetricTagsQueryVariables
+>;
+export const GetMetricTagValuesDocument = gql`
+    query GetMetricTagValues(
+        $project_id: ID!
+        $metric_name: String!
+        $tag_name: String!
+    ) {
+        metric_tag_values(
+            project_id: $project_id
+            metric_name: $metric_name
+            tag_name: $tag_name
+        )
+    }
+`;
+
+/**
+ * __useGetMetricTagValuesQuery__
+ *
+ * To run a query within a React component, call `useGetMetricTagValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricTagValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricTagValuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *      tag_name: // value for 'tag_name'
+ *   },
+ * });
+ */
+export function useGetMetricTagValuesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >(GetMetricTagValuesDocument, baseOptions);
+}
+export function useGetMetricTagValuesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >(GetMetricTagValuesDocument, baseOptions);
+}
+export type GetMetricTagValuesQueryHookResult = ReturnType<
+    typeof useGetMetricTagValuesQuery
+>;
+export type GetMetricTagValuesLazyQueryHookResult = ReturnType<
+    typeof useGetMetricTagValuesLazyQuery
+>;
+export type GetMetricTagValuesQueryResult = Apollo.QueryResult<
+    Types.GetMetricTagValuesQuery,
+    Types.GetMetricTagValuesQueryVariables
 >;
 export const GetSourcemapFilesDocument = gql`
     query GetSourcemapFiles($project_id: ID!, $version: String) {
