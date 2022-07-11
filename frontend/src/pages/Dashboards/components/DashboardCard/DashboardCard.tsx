@@ -405,9 +405,21 @@ export const TagFilters = ({
                         />
                         <TagFilterSelector
                             metricName={metricName}
-                            onSelectTag={(t) =>
-                                onSelectTags([...currentTags, t])
-                            }
+                            onSelectTag={(t) => {
+                                // ensure changing an existing tag updates rather than adding
+                                const newTags = [];
+                                for (const x of currentTags) {
+                                    if (x.tag === t.tag) {
+                                        newTags.push({
+                                            tag: x.tag,
+                                            value: t.value,
+                                        } as MetricTagFilter);
+                                    } else {
+                                        newTags.push(x);
+                                    }
+                                }
+                                onSelectTags(newTags);
+                            }}
                             currentTag={v}
                             usedTags={currentTags.map((t) => t.tag)}
                         />
