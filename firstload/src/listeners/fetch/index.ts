@@ -18,7 +18,11 @@ export const initializeFetchListener = () => {
             input: RequestInfo,
             init: RequestInit | undefined
         ) => {
-            return window._fetchProxy.call(this || window || global, input, init);
+            return window._fetchProxy.call(
+                window || global,
+                input,
+                init
+            );
         };
 
         window.fetch = window._highlightFetchPatch;

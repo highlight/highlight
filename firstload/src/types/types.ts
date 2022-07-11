@@ -18,7 +18,7 @@ export declare type SamplingStrategy = {
      * Number is only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
      */
     canvas: 'all' | number;
-}
+};
 
 export declare type HighlightOptions = {
     /**
