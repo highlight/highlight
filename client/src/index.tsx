@@ -129,11 +129,10 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  */
 const SEND_FREQUENCY = 1000 * 2;
 /**
- * The amount of time between sending the client-side payload to Highlight backend client.
- * Increased for canvas recording due to large number of events.
+ * The amount of time allowed after the last push before creating a new session.
  * In milliseconds.
  */
-const CANVAS_SEND_FREQUENCY = 500;
+const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 /**
  * Maximum length of a session
@@ -268,7 +267,7 @@ export class Highlight {
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
-        this.samplingStrategy = options.samplingStrategy || {canvas: 1};
+        this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
@@ -1116,7 +1115,7 @@ export class Highlight {
             }
             this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
-            }, this.options.enableCanvasRecording ? CANVAS_SEND_FREQUENCY : SEND_FREQUENCY);
+            }, SEND_FREQUENCY);
         }
     }
 
