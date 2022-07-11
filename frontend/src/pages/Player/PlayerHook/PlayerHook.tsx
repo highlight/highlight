@@ -22,7 +22,7 @@ import {
     playerMetaData,
     SessionInterval,
     viewportResizeDimension,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream';
 import {
     findLatestUrl,
@@ -624,6 +624,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             mouseTail: showPlayerMouseTail,
             UNSAFE_replayCanvas: true,
             liveMode: isLiveMode,
+            useVirtualDom: false,
         });
 
         const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents);
