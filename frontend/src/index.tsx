@@ -85,11 +85,11 @@ if (dev) {
     }-localhost`;
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
-        favicon.href = `${process.env.REACT_APP_FRONTEND_URI}/favicon-localhost.ico`;
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
     }
 } else if (window.location.href.includes('onrender')) {
     if (favicon) {
-        favicon.href = `${process.env.REACT_APP_FRONTEND_URI}/favicon-pr.ico`;
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
