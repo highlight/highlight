@@ -62,6 +62,7 @@ const options: HighlightOptions = {
             apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
         },
     },
+    scriptUrl: 'https://static.highlight.run/beta/index.js',
     sessionShortcut: 'alt+1,command+`,alt+esc',
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
