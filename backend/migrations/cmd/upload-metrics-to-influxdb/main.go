@@ -32,7 +32,7 @@ func main() {
 	var mgs []*model.MetricGroup
 
 	inner := func(tx *gorm.DB, batch int) error {
-		var points []timeseries.Point
+		pointsByProject := make(map[int][]timeseries.Point)
 		for _, mg := range mgs {
 			firstTime := time.Time{}
 			tags := map[string]string{
@@ -52,18 +52,24 @@ func main() {
 				log.Warnf("no fields for mg %+v", mg)
 				continue
 			}
-			points = append(points, timeseries.Point{
+			if _, ok := pointsByProject[mg.ProjectID]; !ok {
+				pointsByProject[mg.ProjectID] = []timeseries.Point{}
+			}
+			pointsByProject[mg.ProjectID] = append(pointsByProject[mg.ProjectID], timeseries.Point{
 				Measurement: timeseries.Metrics,
 				Time:        firstTime,
 				Tags:        tags,
 				Fields:      fields,
 			})
 		}
-		tdb.Write(points)
+		for projectID, points := range pointsByProject {
+			tdb.Write(strconv.Itoa(projectID), points)
+		}
 		return nil
 	}
 
 	if err := db.Preload("Metrics").Model(&model.MetricGroup{}).FindInBatches(&mgs, BatchSize, inner).Error; err != nil {
 		log.Fatalf("failed: %v", err)
 	}
+	tdb.Stop()
 }

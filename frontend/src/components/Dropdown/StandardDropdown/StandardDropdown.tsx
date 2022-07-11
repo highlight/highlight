@@ -13,6 +13,7 @@ type Option = {
 export const StandardDropdown = ({
     data,
     onSelect,
+    display,
     defaultValue,
     disabled,
     className,
@@ -20,6 +21,7 @@ export const StandardDropdown = ({
 }: {
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
+    display?: React.ReactNode;
     defaultValue?: Option;
     disabled?: boolean;
     className?: string;
@@ -60,11 +62,18 @@ export const StandardDropdown = ({
                 className={styles.dropdownHandler}
                 onClick={(e) => e.preventDefault()}
             >
-                <div
-                    className={classNames(styles.labelNameText, labelClassName)}
-                >
-                    {selection.label}
-                </div>
+                {display ? (
+                    display
+                ) : (
+                    <div
+                        className={classNames(
+                            styles.labelNameText,
+                            labelClassName
+                        )}
+                    >
+                        {selection.label}
+                    </div>
+                )}
                 <DownIcon
                     className={styles.icon}
                     style={{

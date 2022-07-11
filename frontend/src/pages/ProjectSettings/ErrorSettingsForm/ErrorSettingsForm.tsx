@@ -1,4 +1,5 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox';
+import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
@@ -9,10 +10,6 @@ import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import {
-    CircularSpinner,
-    LoadingBar,
-} from '../../../components/Loading/Loading';
 import styles from './ErrorSettingsForm.module.scss';
 
 export const ErrorSettingsForm = () => {
@@ -59,7 +56,7 @@ export const ErrorSettingsForm = () => {
     }
 
     return (
-        <FieldsBox>
+        <FieldsBox id={'errors'}>
             <h3>Error Grouping</h3>
 
             <form onSubmit={onSubmit} key={project_id}>

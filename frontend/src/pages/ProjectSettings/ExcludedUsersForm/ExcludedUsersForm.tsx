@@ -1,4 +1,5 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox';
+import { CircularSpinner, LoadingBar } from '@components/Loading/Loading';
 import Select from '@components/Select/Select';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import {
@@ -14,10 +15,6 @@ import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import {
-    CircularSpinner,
-    LoadingBar,
-} from '../../../components/Loading/Loading';
 import styles from './ExcludedUsersForm.module.scss';
 
 export const ExcludedUsersForm = () => {
@@ -106,7 +103,7 @@ export const ExcludedUsersForm = () => {
     };
 
     return (
-        <FieldsBox>
+        <FieldsBox id={'users'}>
             <h3>Excluded Sessions</h3>
             <form onSubmit={onSubmit} key={project_id}>
                 <p>

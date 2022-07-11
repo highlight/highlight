@@ -9,12 +9,13 @@ import {
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { DashboardMetricConfig } from '@graph/schemas';
+import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
+import { Slider } from 'antd';
 import { Divider } from 'antd';
 import moment from 'moment';
 import React, { useMemo, useState } from 'react';
@@ -23,14 +24,19 @@ import { Link } from 'react-router-dom';
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss';
 import styles from './MonitorConfiguration.module.scss';
 
+// show the last 5 periods
+const PREVIEW_PERIODS = 5;
+
 interface Props {
     loading: boolean;
     metricToMonitorName: string;
     onMetricToMonitorNameChange: (newMetric: string) => void;
     monitorName: string;
     onMonitorNameChange: (newName: string) => void;
-    aggregateFunction: string;
-    onAggregateFunctionChange: (newAggregateFunction: string) => void;
+    aggregator: MetricAggregator;
+    aggregatePeriodMinutes: number;
+    onAggregateFunctionChange: (newAggregateFunction: MetricAggregator) => void;
+    onAggregatePeriodChange: (newPeriod: string) => void;
     threshold: number;
     onThresholdChange: (newThreshold: number) => void;
     slackChannels: string[];
@@ -55,7 +61,8 @@ interface Props {
 
 const MonitorConfiguration = ({
     loading,
-    aggregateFunction,
+    aggregator,
+    aggregatePeriodMinutes,
     metricToMonitorName,
     monitorName,
     config,
@@ -72,6 +79,7 @@ const MonitorConfiguration = ({
     formCancelButtonLabel,
     onFormCancel,
     onAggregateFunctionChange,
+    onAggregatePeriodChange,
     onMonitorNameChange,
     onMetricToMonitorNameChange,
     onThresholdChange,
@@ -87,21 +95,24 @@ const MonitorConfiguration = ({
     }>();
     const { currentWorkspace } = useApplicationContext();
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateRange] = React.useState<{
-        start_date: string;
-        end_date: string;
-    }>({
-        start_date: moment(new Date()).subtract(15, 'minutes').toISOString(),
-        end_date: moment(new Date()).toISOString(),
-    });
+    const [endDate] = React.useState<moment.Moment>(moment(new Date()));
     const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
         variables: {
             project_id,
             metric_name: metricToMonitorName,
             params: {
-                aggregate_function: aggregateFunction,
-                date_range: dateRange,
-                resolution_minutes: 1,
+                aggregator,
+                date_range: {
+                    start_date: moment(endDate)
+                        .subtract(
+                            PREVIEW_PERIODS * aggregatePeriodMinutes,
+                            'minutes'
+                        )
+                        .toISOString(),
+                    end_date: endDate.toISOString(),
+                },
+                resolution_minutes: aggregatePeriodMinutes,
+                units: 'ms',
             },
         },
     });
@@ -132,11 +143,13 @@ const MonitorConfiguration = ({
                 };
             });
         } else {
-            return data.metrics_timeline.map((point, index) => ({
+            return data.metrics_timeline.map((point) => ({
                 value: point?.value,
-                date: moment(now)
-                    .subtract(pointsToGenerate - index, 'minutes')
-                    .format('h:mm A'),
+                date: moment(point?.date).format(
+                    aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
+                        ? 'D MMM h:mm A'
+                        : 'h:mm A'
+                ),
             }));
         }
     }, [
@@ -144,7 +157,19 @@ const MonitorConfiguration = ({
         config.max_needs_improvement_value,
         data,
         loading,
+        aggregatePeriodMinutes,
     ]);
+    const graphMin = useMemo(() => {
+        return (
+            Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
+            10
+        );
+    }, [graphData]);
+    const graphMax = useMemo(() => {
+        return (
+            Math.ceil(Math.max(...graphData.map((x) => x.value || 0)) / 10) * 10
+        );
+    }, [graphData]);
 
     const metricTypeOptions: OptionType[] =
         metricOptions?.suggested_metrics.map((key) => {
@@ -156,7 +181,16 @@ const MonitorConfiguration = ({
             };
         }) || [];
 
-    const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
+    const periodOptions = [
+        { label: '1 minute', value: 1 },
+        { label: '5 minutes', value: 5 },
+        { label: '15 minutes', value: 15 },
+        { label: '30 minutes', value: 30 },
+        { label: '1 hour', value: 60 },
+        { label: '6 hours', value: 6 * 60 },
+        { label: '12 hours', value: 12 * 60 },
+        { label: '1 day', value: 24 * 60 },
+    ] as { label: string; value: number }[];
 
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
@@ -178,40 +212,56 @@ const MonitorConfiguration = ({
                 {metricPreviewLoading || graphData.length === 0 ? (
                     <Skeleton height="231px" />
                 ) : (
-                    <LineChart
-                        height={235}
-                        data={graphData}
-                        hideLegend
-                        xAxisDataKeyName="date"
-                        lineColorMapping={{
-                            value: 'var(--color-blue-400)',
-                        }}
-                        yAxisLabel={config.units}
-                        referenceAreaProps={
-                            graphData.length > 0
-                                ? {
-                                      x1: graphData[0].date,
-                                      y1: threshold,
-                                      fill: 'var(--color-red-200)',
-                                      fillOpacity: 0.3,
-                                  }
-                                : undefined
-                        }
-                        referenceLines={[
-                            {
-                                value: threshold,
-                                color: 'var(--color-red-400)',
-                            },
-                        ]}
-                        xAxisProps={{
-                            tickLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                            axisLine: {
-                                stroke: 'var(--color-gray-600)',
-                            },
-                        }}
-                    />
+                    <>
+                        <div style={{ height: 163, position: 'absolute' }}>
+                            <Slider
+                                vertical
+                                className={styles.slider}
+                                tooltipPlacement={'bottom'}
+                                min={graphMin}
+                                max={Math.max(graphMax, threshold)}
+                                value={threshold}
+                                onChange={(v) => {
+                                    onThresholdChange(v);
+                                }}
+                            />
+                        </div>
+                        <LineChart
+                            height={235}
+                            domain={[graphMin, Math.max(graphMax, threshold)]}
+                            data={graphData}
+                            hideLegend
+                            xAxisDataKeyName="date"
+                            lineColorMapping={{
+                                value: 'var(--color-blue-400)',
+                            }}
+                            yAxisLabel={config.units}
+                            referenceAreaProps={
+                                graphData.length > 0
+                                    ? {
+                                          x1: graphData[0].date,
+                                          y1: threshold,
+                                          fill: 'var(--color-red-200)',
+                                          fillOpacity: 0.3,
+                                      }
+                                    : undefined
+                            }
+                            referenceLines={[
+                                {
+                                    value: threshold,
+                                    color: 'var(--color-red-400)',
+                                },
+                            ]}
+                            xAxisProps={{
+                                tickLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                                axisLine: {
+                                    stroke: 'var(--color-gray-600)',
+                                },
+                            }}
+                        />
+                    </>
                 )}
             </div>
             <form name="newMonitor" onSubmit={onFormSubmit} autoComplete="off">
@@ -243,15 +293,37 @@ const MonitorConfiguration = ({
                         threshold when deciding whether to create an alert.
                     </p>
                     <Select
-                        options={functionOptions.map((functionName) => ({
-                            displayValue: functionName,
-                            id: functionName,
-                            value: functionName,
+                        options={Object.values(MetricAggregator).map((v) => ({
+                            displayValue: v,
+                            id: v,
+                            value: v,
                         }))}
                         className={styles.select}
-                        value={aggregateFunction}
+                        value={aggregator}
                         onChange={(e) => {
                             onAggregateFunctionChange(e);
+                        }}
+                    />
+                </section>
+
+                <section>
+                    <h3>Period</h3>
+                    <p>
+                        This aggregation window will be used to determine if the
+                        value is exceeding the threshold. For example, if set to
+                        5 minutes with an aggregator function of P50, a 5 minute
+                        window median must exceed the threshold for an alert.
+                    </p>
+                    <Select
+                        options={periodOptions.map((o) => ({
+                            displayValue: o.label,
+                            id: o.value.toString(),
+                            value: o.value.toString(),
+                        }))}
+                        className={styles.select}
+                        value={aggregatePeriodMinutes.toString()}
+                        onChange={(e) => {
+                            onAggregatePeriodChange(e);
                         }}
                     />
                 </section>
@@ -266,7 +338,7 @@ const MonitorConfiguration = ({
                                     color: 'var(--color-blue-400)',
                                 }}
                             >
-                                {aggregateFunction}({metricToMonitorName})
+                                {aggregator}({metricToMonitorName})
                             </b>
                         </code>{' '}
                         is over{' '}

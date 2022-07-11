@@ -195,6 +195,7 @@ type Project {
     rage_click_window_seconds: Int
     rage_click_radius_pixels: Int
     rage_click_count: Int
+    backend_domains: StringArray
 }
 
 type Account {
@@ -386,12 +387,16 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
     units: String
 }
 
@@ -722,7 +727,7 @@ type Metric {
 type DashboardPayload {
     date: String!
     value: Float!
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 type HistogramBucket {
@@ -736,8 +741,6 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p1: Float!
-    p99: Float!
 }
 
 type CategoryHistogramBucket {
@@ -754,6 +757,17 @@ enum DashboardChartType {
     Histogram
 }
 
+enum MetricAggregator {
+    Avg
+    P50
+    P75
+    P90
+    P95
+    P99
+    Max
+    Count
+}
+
 input DashboardMetricConfigInput {
     name: String!
     description: String!
@@ -763,6 +777,11 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardMetricConfig {
@@ -774,6 +793,11 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
 }
 
 type DashboardDefinition {
@@ -797,7 +821,8 @@ type MetricMonitor {
     name: String!
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
-    function: String!
+    aggregator: MetricAggregator!
+    period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
@@ -989,6 +1014,7 @@ type Mutation {
         rage_click_window_seconds: Int
         rage_click_radius_pixels: Int
         rage_click_count: Int
+        backend_domains: StringArray
     ): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
@@ -1154,7 +1180,8 @@ type Mutation {
     createMetricMonitor(
         project_id: ID!
         name: String!
-        function: String!
+        aggregator: MetricAggregator!
+        periodMinutes: Int
         threshold: Float!
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -1164,7 +1191,8 @@ type Mutation {
         metric_monitor_id: ID!
         project_id: ID!
         name: String
-        function: String
+        aggregator: MetricAggregator
+        periodMinutes: Int
         threshold: Float
         metric_to_monitor: String
         slack_channels: [SanitizedSlackChannelInput]

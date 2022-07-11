@@ -313,12 +313,17 @@ type DashboardMetric struct {
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
 	ChartType                modelInputs.DashboardChartType
+	Aggregator               modelInputs.MetricAggregator `gorm:"default:P50"`
 	Description              string
 	MaxGoodValue             float64
 	MaxNeedsImprovementValue float64
 	PoorValue                float64
 	Units                    string
 	HelpArticle              string
+	MinValue                 *float64
+	MinPercentile            *float64
+	MaxValue                 *float64
+	MaxPercentile            *float64
 }
 
 type SlackChannel struct {
@@ -720,7 +725,8 @@ type MetricMonitor struct {
 	Model
 	ProjectID         int `gorm:"index;not null;"`
 	Name              string
-	Function          string
+	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
@@ -1146,15 +1152,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					ALTER TABLE metric_groups
-					ADD CONSTRAINT %s
-						UNIQUE (group_name, session_id);
+					IF NOT EXISTS 
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
+					THEN
+						ALTER TABLE metric_groups
+						ADD CONSTRAINT %s
+							UNIQUE (group_name, session_id);
+					END IF;
 				EXCEPTION
 					WHEN duplicate_table
 					THEN RAISE NOTICE 'metric_groups.%s already exists';
 				END;
 			END $$;
-	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
 		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
