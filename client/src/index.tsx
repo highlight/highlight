@@ -128,6 +128,12 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * In milliseconds.
  */
 const SEND_FREQUENCY = 1000 * 2;
+/**
+ * The amount of time between sending the client-side payload to Highlight backend client.
+ * Increased for canvas recording due to large number of events.
+ * In milliseconds.
+ */
+const CANVAS_SEND_FREQUENCY = 500;
 
 /**
  * Maximum length of a session
@@ -1109,7 +1115,7 @@ export class Highlight {
             }
             this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
-            }, SEND_FREQUENCY);
+            }, this.options.enableCanvasRecording ? CANVAS_SEND_FREQUENCY : SEND_FREQUENCY);
         }
     }
 
