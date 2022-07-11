@@ -161,20 +161,26 @@ type ComplexityRoot struct {
 	}
 
 	DashboardMetricConfig struct {
+		Aggregator               func(childComplexity int) int
 		ChartType                func(childComplexity int) int
 		Description              func(childComplexity int) int
+		Filters                  func(childComplexity int) int
 		HelpArticle              func(childComplexity int) int
 		MaxGoodValue             func(childComplexity int) int
 		MaxNeedsImprovementValue func(childComplexity int) int
+		MaxPercentile            func(childComplexity int) int
+		MaxValue                 func(childComplexity int) int
+		MinPercentile            func(childComplexity int) int
+		MinValue                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		PoorValue                func(childComplexity int) int
 		Units                    func(childComplexity int) int
 	}
 
 	DashboardPayload struct {
-		AggregateFunction func(childComplexity int) int
-		Date              func(childComplexity int) int
-		Value             func(childComplexity int) int
+		Aggregator func(childComplexity int) int
+		Date       func(childComplexity int) int
+		Value      func(childComplexity int) int
 	}
 
 	DateRange struct {
@@ -350,8 +356,6 @@ type ComplexityRoot struct {
 		Buckets func(childComplexity int) int
 		Max     func(childComplexity int) int
 		Min     func(childComplexity int) int
-		P1      func(childComplexity int) int
-		P99     func(childComplexity int) int
 	}
 
 	Invoice struct {
@@ -381,10 +385,10 @@ type ComplexityRoot struct {
 	}
 
 	MetricMonitor struct {
+		Aggregator        func(childComplexity int) int
 		ChannelsToNotify  func(childComplexity int) int
 		Disabled          func(childComplexity int) int
 		EmailsToNotify    func(childComplexity int) int
-		Function          func(childComplexity int) int
 		ID                func(childComplexity int) int
 		LastAdminToEditID func(childComplexity int) int
 		MetricToMonitor   func(childComplexity int) int
@@ -399,6 +403,11 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	MetricTagFilter struct {
+		Tag   func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddIntegrationToProject          func(childComplexity int, integrationType *model.IntegrationType, projectID int, code string) int
@@ -409,7 +418,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
-		CreateMetricMonitor              func(childComplexity int, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
+		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
@@ -456,7 +465,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
-		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) int
+		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
@@ -542,6 +551,8 @@ type ComplexityRoot struct {
 		LiveUsersCount               func(childComplexity int, projectID int) int
 		Messages                     func(childComplexity int, sessionSecureID string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
+		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
+		MetricTags                   func(childComplexity int, projectID int, metricName string) int
 		MetricsHistogram             func(childComplexity int, projectID int, metricName string, params model.HistogramParamsInput) int
 		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -930,8 +941,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model1.SessionAlert, error)
-	CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*model1.MetricMonitor, error)
-	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model1.MetricMonitor, error)
+	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*model1.MetricMonitor, error)
+	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model1.MetricMonitor, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model1.ErrorAlert, error)
 	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
@@ -1039,6 +1050,8 @@ type QueryResolver interface {
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
 	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
+	MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error)
+	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	MetricsHistogram(ctx context.Context, projectID int, metricName string, params model.HistogramParamsInput) (*model.HistogramPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
@@ -1540,6 +1553,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardDefinition.UpdatedAt(childComplexity), true
 
+	case "DashboardMetricConfig.aggregator":
+		if e.complexity.DashboardMetricConfig.Aggregator == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.Aggregator(childComplexity), true
+
 	case "DashboardMetricConfig.chart_type":
 		if e.complexity.DashboardMetricConfig.ChartType == nil {
 			break
@@ -1553,6 +1573,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardMetricConfig.Description(childComplexity), true
+
+	case "DashboardMetricConfig.filters":
+		if e.complexity.DashboardMetricConfig.Filters == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.Filters(childComplexity), true
 
 	case "DashboardMetricConfig.help_article":
 		if e.complexity.DashboardMetricConfig.HelpArticle == nil {
@@ -1575,6 +1602,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.MaxNeedsImprovementValue(childComplexity), true
 
+	case "DashboardMetricConfig.max_percentile":
+		if e.complexity.DashboardMetricConfig.MaxPercentile == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MaxPercentile(childComplexity), true
+
+	case "DashboardMetricConfig.max_value":
+		if e.complexity.DashboardMetricConfig.MaxValue == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MaxValue(childComplexity), true
+
+	case "DashboardMetricConfig.min_percentile":
+		if e.complexity.DashboardMetricConfig.MinPercentile == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MinPercentile(childComplexity), true
+
+	case "DashboardMetricConfig.min_value":
+		if e.complexity.DashboardMetricConfig.MinValue == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.MinValue(childComplexity), true
+
 	case "DashboardMetricConfig.name":
 		if e.complexity.DashboardMetricConfig.Name == nil {
 			break
@@ -1596,12 +1651,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.Units(childComplexity), true
 
-	case "DashboardPayload.aggregate_function":
-		if e.complexity.DashboardPayload.AggregateFunction == nil {
+	case "DashboardPayload.aggregator":
+		if e.complexity.DashboardPayload.Aggregator == nil {
 			break
 		}
 
-		return e.complexity.DashboardPayload.AggregateFunction(childComplexity), true
+		return e.complexity.DashboardPayload.Aggregator(childComplexity), true
 
 	case "DashboardPayload.date":
 		if e.complexity.DashboardPayload.Date == nil {
@@ -2464,20 +2519,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HistogramPayload.Min(childComplexity), true
 
-	case "HistogramPayload.p1":
-		if e.complexity.HistogramPayload.P1 == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.P1(childComplexity), true
-
-	case "HistogramPayload.p99":
-		if e.complexity.HistogramPayload.P99 == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.P99(childComplexity), true
-
 	case "Invoice.amountDue":
 		if e.complexity.Invoice.AmountDue == nil {
 			break
@@ -2576,6 +2617,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metric.Value(childComplexity), true
 
+	case "MetricMonitor.aggregator":
+		if e.complexity.MetricMonitor.Aggregator == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.Aggregator(childComplexity), true
+
 	case "MetricMonitor.channels_to_notify":
 		if e.complexity.MetricMonitor.ChannelsToNotify == nil {
 			break
@@ -2596,13 +2644,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricMonitor.EmailsToNotify(childComplexity), true
-
-	case "MetricMonitor.function":
-		if e.complexity.MetricMonitor.Function == nil {
-			break
-		}
-
-		return e.complexity.MetricMonitor.Function(childComplexity), true
 
 	case "MetricMonitor.id":
 		if e.complexity.MetricMonitor.ID == nil {
@@ -2666,6 +2707,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricPreview.Value(childComplexity), true
+
+	case "MetricTagFilter.tag":
+		if e.complexity.MetricTagFilter.Tag == nil {
+			break
+		}
+
+		return e.complexity.MetricTagFilter.Tag(childComplexity), true
+
+	case "MetricTagFilter.value":
+		if e.complexity.MetricTagFilter.Value == nil {
+			break
+		}
+
+		return e.complexity.MetricTagFilter.Value(childComplexity), true
 
 	case "Mutation.addAdminToWorkspace":
 		if e.complexity.Mutation.AddAdminToWorkspace == nil {
@@ -2785,7 +2840,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["function"].(string), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string)), true
+		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregator"].(model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string)), true
 
 	case "Mutation.createNewSessionAlert":
 		if e.complexity.Mutation.CreateNewSessionAlert == nil {
@@ -3349,7 +3404,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool)), true
+		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["aggregator"].(*model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool)), true
 
 	case "Mutation.updateNewSessionAlert":
 		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
@@ -4075,6 +4130,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MetricMonitors(childComplexity, args["project_id"].(int), args["metric_name"].(*string)), true
+
+	case "Query.metric_tag_values":
+		if e.complexity.Query.MetricTagValues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metric_tag_values_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricTagValues(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["tag_name"].(string)), true
+
+	case "Query.metric_tags":
+		if e.complexity.Query.MetricTags == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metric_tags_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string)), true
 
 	case "Query.metrics_histogram":
 		if e.complexity.Query.MetricsHistogram == nil {
@@ -6341,13 +6420,29 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
-    aggregate_function: String
+    aggregator: MetricAggregator
+    filters: [MetricTagFilterInput!]
 }
 
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
     units: String
+    filters: [MetricTagFilterInput!]
+}
+
+type MetricTagFilter {
+    tag: String!
+    value: String!
+}
+
+input MetricTagFilterInput {
+    tag: String!
+    value: String!
 }
 
 enum NetworkRequestAttribute {
@@ -6677,7 +6772,7 @@ type Metric {
 type DashboardPayload {
     date: String!
     value: Float!
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 type HistogramBucket {
@@ -6691,8 +6786,6 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p1: Float!
-    p99: Float!
 }
 
 type CategoryHistogramBucket {
@@ -6709,6 +6802,17 @@ enum DashboardChartType {
     Histogram
 }
 
+enum MetricAggregator {
+    Avg
+    P50
+    P75
+    P90
+    P95
+    P99
+    Max
+    Count
+}
+
 input DashboardMetricConfigInput {
     name: String!
     description: String!
@@ -6718,6 +6822,12 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
+    filters: [MetricTagFilterInput!]
 }
 
 type DashboardMetricConfig {
@@ -6729,6 +6839,12 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
+    filters: [MetricTagFilter!]
 }
 
 type DashboardDefinition {
@@ -6752,7 +6868,7 @@ type MetricMonitor {
     name: String!
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
-    function: String!
+    aggregator: MetricAggregator!
     period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
@@ -6911,6 +7027,8 @@ type Query {
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+    metric_tags(project_id: ID!, metric_name: String!): [String!]!
+    metric_tag_values(project_id: ID!, metric_name: String!, tag_name: String!): [String!]!
     metrics_timeline(
         project_id: ID!
         metric_name: String!
@@ -7111,7 +7229,7 @@ type Mutation {
     createMetricMonitor(
         project_id: ID!
         name: String!
-        function: String!
+        aggregator: MetricAggregator!
         periodMinutes: Int
         threshold: Float!
         metric_to_monitor: String!
@@ -7122,7 +7240,7 @@ type Mutation {
         metric_monitor_id: ID!
         project_id: ID!
         name: String
-        function: String
+        aggregator: MetricAggregator
         periodMinutes: Int
         threshold: Float
         metric_to_monitor: String
@@ -7885,15 +8003,15 @@ func (ec *executionContext) field_Mutation_createMetricMonitor_args(ctx context.
 		}
 	}
 	args["name"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["function"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("function"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg2 model.MetricAggregator
+	if tmp, ok := rawArgs["aggregator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
+		arg2, err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["function"] = arg2
+	args["aggregator"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["periodMinutes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("periodMinutes"))
@@ -9715,15 +9833,15 @@ func (ec *executionContext) field_Mutation_updateMetricMonitor_args(ctx context.
 		}
 	}
 	args["name"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["function"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("function"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	var arg3 *model.MetricAggregator
+	if tmp, ok := rawArgs["aggregator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
+		arg3, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["function"] = arg3
+	args["aggregator"] = arg3
 	var arg4 *int
 	if tmp, ok := rawArgs["periodMinutes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("periodMinutes"))
@@ -11213,6 +11331,63 @@ func (ec *executionContext) field_Query_metric_monitors_args(ctx context.Context
 	if tmp, ok := rawArgs["metric_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_name"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metric_tag_values_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["metric_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_name"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["tag_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tag_name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tag_name"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["metric_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14554,6 +14729,201 @@ func (ec *executionContext) _DashboardMetricConfig_chart_type(ctx context.Contex
 	return ec.marshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DashboardMetricConfig_aggregator(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Aggregator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MetricAggregator)
+	fc.Result = res
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_min_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_min_percentile(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinPercentile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_max_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_max_percentile(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxPercentile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DashboardMetricConfig_filters(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Filters, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.MetricTagFilter)
+	fc.Result = res
+	return ec.marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14624,7 +14994,7 @@ func (ec *executionContext) _DashboardPayload_value(ctx context.Context, field g
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DashboardPayload_aggregate_function(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _DashboardPayload_aggregator(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14642,7 +15012,7 @@ func (ec *executionContext) _DashboardPayload_aggregate_function(ctx context.Con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AggregateFunction, nil
+		return obj.Aggregator, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14651,9 +15021,9 @@ func (ec *executionContext) _DashboardPayload_aggregate_function(ctx context.Con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
@@ -18744,76 +19114,6 @@ func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field gra
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _HistogramPayload_p1(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P1, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _HistogramPayload_p99(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.P99, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Invoice_amountDue(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19455,7 +19755,7 @@ func (ec *executionContext) _MetricMonitor_emails_to_notify(ctx context.Context,
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _MetricMonitor_function(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+func (ec *executionContext) _MetricMonitor_aggregator(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19473,7 +19773,7 @@ func (ec *executionContext) _MetricMonitor_function(ctx context.Context, field g
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Function, nil
+		return obj.Aggregator, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19485,9 +19785,9 @@ func (ec *executionContext) _MetricMonitor_function(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MetricMonitor_period_minutes(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
@@ -19730,6 +20030,76 @@ func (ec *executionContext) _MetricPreview_value(ctx context.Context, field grap
 	res := resTmp.(float64)
 	fc.Result = res
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricTagFilter_tag(ctx context.Context, field graphql.CollectedField, obj *model.MetricTagFilter) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricTagFilter",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tag, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetricTagFilter_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricTagFilter) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MetricTagFilter",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateAdminAboutYouDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -21335,7 +21705,7 @@ func (ec *executionContext) _Mutation_createMetricMonitor(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, args["project_id"].(int), args["name"].(string), args["function"].(string), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string))
+		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, args["project_id"].(int), args["name"].(string), args["aggregator"].(model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(float64), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21374,7 +21744,7 @@ func (ec *executionContext) _Mutation_updateMetricMonitor(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["function"].(*string), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool))
+		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["aggregator"].(*model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(*float64), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26196,6 +26566,90 @@ func (ec *executionContext) _Query_suggested_metrics(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().SuggestedMetrics(rctx, args["project_id"].(int), args["prefix"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_metric_tags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_metric_tags_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MetricTags(rctx, args["project_id"].(int), args["metric_name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_metric_tag_values(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_metric_tag_values_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MetricTagValues(rctx, args["project_id"].(int), args["metric_name"].(string), args["tag_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -33966,6 +34420,54 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "aggregator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
+			it.Aggregator, err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
+			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
+			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
+			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
+			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filters":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -34013,11 +34515,19 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "aggregate_function":
+		case "aggregator":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregate_function"))
-			it.AggregateFunction, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
+			it.Aggregator, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filters":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34162,11 +34672,51 @@ func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "min_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
+			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "min_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
+			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
+			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max_percentile":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
+			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "units":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
 			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filters":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34198,6 +34748,37 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
 			it.Max, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMetricTagFilterInput(ctx context.Context, obj interface{}) (model.MetricTagFilterInput, error) {
+	var it model.MetricTagFilterInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "tag":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tag"))
+			it.Tag, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35527,6 +36108,51 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "aggregator":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_aggregator(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "min_value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_min_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "min_percentile":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_min_percentile(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_max_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "max_percentile":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_max_percentile(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "filters":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._DashboardMetricConfig_filters(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35568,9 +36194,9 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "aggregate_function":
+		case "aggregator":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DashboardPayload_aggregate_function(ctx, field, obj)
+				return ec._DashboardPayload_aggregator(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -37156,26 +37782,6 @@ func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "p1":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._HistogramPayload_p1(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "p99":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._HistogramPayload_p99(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37477,9 +38083,9 @@ func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
-		case "function":
+		case "aggregator":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._MetricMonitor_function(ctx, field, obj)
+				return ec._MetricMonitor_aggregator(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -37568,6 +38174,47 @@ func (ec *executionContext) _MetricPreview(ctx context.Context, sel ast.Selectio
 		case "value":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._MetricPreview_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var metricTagFilterImplementors = []string{"MetricTagFilter"}
+
+func (ec *executionContext) _MetricTagFilter(ctx context.Context, sel ast.SelectionSet, obj *model.MetricTagFilter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricTagFilterImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricTagFilter")
+		case "tag":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MetricTagFilter_tag(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MetricTagFilter_value(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -40129,6 +40776,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_suggested_metrics(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "metric_tags":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metric_tags(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "metric_tag_values":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metric_tag_values(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -44428,6 +45121,16 @@ func (ec *executionContext) marshalNMetric2ᚖgithubᚗcomᚋhighlightᚑrunᚋh
 	return ec._Metric(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, v interface{}) (model.MetricAggregator, error) {
+	var res model.MetricAggregator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, sel ast.SelectionSet, v model.MetricAggregator) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -44464,6 +45167,21 @@ func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlight
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilter(ctx context.Context, sel ast.SelectionSet, v *model.MetricTagFilter) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._MetricTagFilter(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMetricTagFilterInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInput(ctx context.Context, v interface{}) (*model.MetricTagFilterInput, error) {
+	res, err := ec.unmarshalInputMetricTagFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {
@@ -46598,11 +47316,94 @@ func (ec *executionContext) marshalOLinearTeam2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	return ret
 }
 
+func (ec *executionContext) unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, v interface{}) (*model.MetricAggregator, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.MetricAggregator)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, sel ast.SelectionSet, v *model.MetricAggregator) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v *model1.MetricMonitor) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._MetricMonitor(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricTagFilter) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx context.Context, v interface{}) ([]*model.MetricTagFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.MetricTagFilterInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetricTagFilterInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {

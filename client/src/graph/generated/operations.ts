@@ -267,6 +267,7 @@ export type InitializeSessionMutationVariables = Types.Exact<{
   id: Types.Scalars['String'];
   appVersion?: Types.Maybe<Types.Scalars['String']>;
   session_secure_id?: Types.Maybe<Types.Scalars['String']>;
+  client_id?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 
@@ -345,7 +346,7 @@ export const AddSessionFeedbackDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String, $session_secure_id: String) {
+    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String, $session_secure_id: String, $client_id: String) {
   initializeSession(
     organization_verbose_id: $organization_verbose_id
     enable_strict_privacy: $enable_strict_privacy
@@ -357,6 +358,7 @@ export const InitializeSessionDocument = gql`
     appVersion: $appVersion
     fingerprint: $id
     session_secure_id: $session_secure_id
+    client_id: $client_id
   ) {
     id
     secure_id

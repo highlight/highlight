@@ -58,7 +58,7 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 				EndDate:   &end,
 			},
 			ResolutionMinutes: pointy.Int(resMins),
-			AggregateFunction: &metricMonitor.Function,
+			Aggregator:        &metricMonitor.Aggregator,
 		})
 		if err != nil {
 			log.Error(err)

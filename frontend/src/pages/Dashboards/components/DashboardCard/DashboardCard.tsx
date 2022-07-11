@@ -8,14 +8,23 @@ import Input from '@components/Input/Input';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
+import Select from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import Switch from '@components/Switch/Switch';
 import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
     useGetMetricsTimelineLazyQuery,
+    useGetMetricTagsQuery,
+    useGetMetricTagValuesLazyQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
-import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
+import {
+    DashboardChartType,
+    DashboardMetricConfig,
+    MetricAggregator,
+    MetricTagFilter,
+} from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -24,15 +33,17 @@ import EditIcon from '@icons/EditIcon';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
+import { roundDate } from '@pages/Dashboards/DashboardsRouter';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
+import { Form } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -88,7 +99,9 @@ const DashboardCard = ({
                                 paddingRight: 'var(--size-small)',
                             }}
                         >
-                            {metricConfig.description || metricConfig.name}
+                            {metricConfig.description ||
+                                metricConfig.name ||
+                                'New Chart'}
                             {metricConfig.help_article && (
                                 <InfoTooltip
                                     className={styles.infoTooltip}
@@ -225,6 +238,8 @@ const DashboardCard = ({
                                         type="primary"
                                         className={styles.button}
                                         onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setShowEditModal(false);
                                             deleteMetric(metricIdx);
                                         }}
                                     >
@@ -240,6 +255,7 @@ const DashboardCard = ({
                     metricIdx={metricIdx}
                     metricConfig={metricConfig}
                     chartType={metricConfig.chart_type}
+                    aggregator={metricConfig.aggregator}
                     maxGoodValue={metricConfig.max_good_value}
                     maxNeedsImprovementValue={
                         metricConfig.max_needs_improvement_value
@@ -262,8 +278,10 @@ interface MetricOption {
 
 export const MetricSelector = ({
     onSelectMetric,
+    currentMetric,
 }: {
     onSelectMetric: (metricName: string) => void;
+    currentMetric?: string;
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
     const [isTyping, setIsTyping] = useState(false);
@@ -336,6 +354,18 @@ export const MetricSelector = ({
                 isLoading={loading}
                 isClearable={false}
                 escapeClearsValue={true}
+                defaultValue={
+                    suggestedMetrics?.suggested_metrics
+                        .filter((k) => k === currentMetric)
+                        .map(
+                            (k) =>
+                                ({
+                                    label: k,
+                                    value: k,
+                                } as MetricOption)
+                        )[0]
+                }
+                defaultInputValue={currentMetric}
                 defaultOptions={suggestedMetrics?.suggested_metrics.map(
                     (k) =>
                         ({
@@ -354,6 +384,141 @@ export const MetricSelector = ({
     );
 };
 
+export const TagFilters = ({
+    metricName,
+    onSelectTags,
+    currentTags,
+}: {
+    metricName: string;
+    onSelectTags: (tags: MetricTagFilter[]) => void;
+    currentTags: MetricTagFilter[];
+}) => {
+    return (
+        <>
+            {[...currentTags, undefined].map((v, idx) => (
+                <section
+                    className={dashStyles.section}
+                    key={`tag-filter-${v?.tag || idx}`}
+                >
+                    <div className={styles.filtersRow}>
+                        <Form.Item
+                            label="Filter by:"
+                            className={styles.formLabel}
+                        />
+                        <TagFilterSelector
+                            metricName={metricName}
+                            onSelectTag={(t) => {
+                                // ensure changing an existing tag updates rather than adding
+                                const newTags = [];
+                                for (const x of currentTags) {
+                                    if (x.tag === t.tag) {
+                                        newTags.push({
+                                            tag: x.tag,
+                                            value: t.value,
+                                        } as MetricTagFilter);
+                                    } else {
+                                        newTags.push(x);
+                                    }
+                                }
+                                onSelectTags(newTags);
+                            }}
+                            currentTag={v}
+                            usedTags={currentTags.map((t) => t.tag)}
+                        />
+                        <Button
+                            trackingId={'EditMetricRemoveTagFilter'}
+                            className={styles.removeTagFilterButton}
+                            onClick={() => {
+                                onSelectTags(
+                                    currentTags.filter((t) => t.tag !== v?.tag)
+                                );
+                            }}
+                        >
+                            <TrashIcon />
+                        </Button>
+                    </div>
+                </section>
+            ))}
+        </>
+    );
+};
+
+export const TagFilterSelector = ({
+    metricName,
+    onSelectTag,
+    currentTag,
+    usedTags,
+}: {
+    metricName: string;
+    onSelectTag: (tags: MetricTagFilter) => void;
+    currentTag?: MetricTagFilter;
+    usedTags?: string[];
+}) => {
+    const [tag, setTag] = useState<string | undefined>(currentTag?.tag);
+    const [value, setValue] = useState<string | undefined>(currentTag?.value);
+    const { project_id } = useParams<{ project_id: string }>();
+    const { data } = useGetMetricTagsQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+        },
+    });
+    const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+            tag_name: tag || '',
+        },
+    });
+
+    useEffect(() => {
+        if (tag?.length) {
+            load();
+        }
+    }, [tag, load]);
+
+    return (
+        <>
+            <Select
+                placeholder={`graphql_operation`}
+                options={
+                    data?.metric_tags
+                        .filter((t) =>
+                            usedTags ? !usedTags.includes(t) : true
+                        )
+                        .map((t) => ({
+                            value: t,
+                            id: t,
+                            displayValue: t,
+                        })) || []
+                }
+                value={tag}
+                onChange={(t) => {
+                    setTag(t);
+                    setValue(undefined);
+                }}
+            />
+            <Select
+                placeholder={`GetSession`}
+                options={
+                    values?.metric_tag_values.map((t) => ({
+                        value: t,
+                        id: t,
+                        displayValue: t,
+                    })) || []
+                }
+                value={value}
+                onChange={(v) => {
+                    setValue(v);
+                    if (tag?.length) {
+                        onSelectTag({ tag: tag, value: v });
+                    }
+                }}
+            />
+        </>
+    );
+};
+
 const EditMetricModal = ({
     metricIdx,
     metricConfig,
@@ -369,6 +534,18 @@ const EditMetricModal = ({
     onCancel: () => void;
     shown?: boolean;
 }) => {
+    const [minValue, setMinValue] = useState<boolean>(
+        metricConfig.min_value !== null
+    );
+    const [maxValue, setMaxValue] = useState<boolean>(
+        metricConfig.max_value !== null
+    );
+    const [min, setMin] = useState<number>(
+        metricConfig.min_value || metricConfig.min_percentile || 0
+    );
+    const [max, setMax] = useState<number>(
+        metricConfig.max_value || metricConfig.max_percentile || 0
+    );
     const [units, setUnits] = useState<string>(metricConfig.units);
     const [metricName, setMetricName] = useState<string>(metricConfig.name);
     const [description, setDescription] = useState<string>(
@@ -377,17 +554,44 @@ const EditMetricModal = ({
     const [chartType, setChartType] = useState<DashboardChartType>(
         metricConfig.chart_type
     );
+    const [aggregator, setAggregator] = useState<MetricAggregator>(
+        metricConfig.aggregator
+    );
+    const [filters, setFilters] = useState<MetricTagFilter[]>(
+        metricConfig.filters || []
+    );
     return (
         <Modal
             onCancel={onCancel}
             visible={shown}
             title={'Edit Metric'}
             width="800px"
+            mask
         >
             <ModalBody>
                 <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <MetricSelector onSelectMetric={setMetricName} />
+                        <MetricSelector
+                            onSelectMetric={setMetricName}
+                            currentMetric={metricName}
+                        />
+                        <StandardDropdown
+                            data={Object.values(MetricAggregator).map((v) => ({
+                                label: v,
+                                value: v,
+                            }))}
+                            defaultValue={
+                                Object.values(MetricAggregator)
+                                    .filter(
+                                        (x) => x === metricConfig.aggregator
+                                    )
+                                    .map((v) => ({
+                                        label: v,
+                                        value: v,
+                                    }))[0]
+                            }
+                            onSelect={(value) => setAggregator(value)}
+                        />
                         <StandardDropdown
                             data={UNIT_OPTIONS}
                             defaultValue={
@@ -420,6 +624,71 @@ const EditMetricModal = ({
                         />
                     </div>
                 </section>
+                {chartType === DashboardChartType.Histogram && (
+                    <section className={dashStyles.section}>
+                        <div className={styles.minMaxRow}>
+                            <Form.Item
+                                label="Minimum"
+                                className={styles.formLabel}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Min"
+                                name="Min"
+                                value={min * 100}
+                                min={minValue ? undefined : 0}
+                                max={minValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMin(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={minValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMinPercentileToggle'
+                                }
+                                checked={!minValue}
+                                onChange={(checked) => {
+                                    setMinValue(!checked);
+                                }}
+                            />
+                            <Form.Item
+                                label="Maximum"
+                                className={styles.formLabel}
+                            />
+                            <Input
+                                type={'number'}
+                                placeholder="Max"
+                                name="Max"
+                                value={max * 100}
+                                min={maxValue ? undefined : 0}
+                                max={maxValue ? undefined : 100}
+                                onChange={(e) => {
+                                    setMax(
+                                        (Number(e.target?.value) || 0) / 100
+                                    );
+                                }}
+                            />
+                            <Switch
+                                label={maxValue ? 'Value' : 'Percentile'}
+                                trackingId={
+                                    'EditDashboardChartMaxPercentileToggle'
+                                }
+                                checked={!maxValue}
+                                onChange={(checked) => {
+                                    setMaxValue(!checked);
+                                }}
+                            />
+                        </div>
+                    </section>
+                )}
+                <TagFilters
+                    metricName={metricName}
+                    onSelectTags={(t) => setFilters(t)}
+                    currentTags={filters}
+                />
                 <section className={dashStyles.section}>
                     <div className={styles.submitRow}>
                         <Button
@@ -447,6 +716,14 @@ const EditMetricModal = ({
                                         metricConfig.max_needs_improvement_value,
                                     poor_value: metricConfig.poor_value,
                                     chart_type: chartType,
+                                    aggregator: aggregator,
+                                    filters: filters,
+                                    ...(minValue
+                                        ? { min_value: min }
+                                        : { min_percentile: min }),
+                                    ...(maxValue
+                                        ? { max_value: max }
+                                        : { max_percentile: max }),
                                 });
                                 onCancel();
                             }}
@@ -480,6 +757,7 @@ const ChartContainer = React.memo(
         metricIdx,
         metricConfig,
         chartType,
+        aggregator,
         maxGoodValue,
         maxNeedsImprovementValue,
         poorValue,
@@ -494,6 +772,7 @@ const ChartContainer = React.memo(
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
         chartType: DashboardChartType;
+        aggregator: MetricAggregator;
         maxGoodValue: number;
         maxNeedsImprovementValue: number;
         poorValue: number;
@@ -518,30 +797,40 @@ const ChartContainer = React.memo(
             left: number;
             right: number;
         }>({ left: 0, right: 0 });
+        const refetchInterval = useRef<number>();
         const resolutionMinutes = Math.ceil(
             moment.duration(lookbackMinutes, 'minutes').as('minutes') /
                 NUM_BUCKETS
         );
         const [
             loadTimeline,
-            { data: timelineData, loading: timelineLoading },
+            {
+                data: timelineData,
+                loading: timelineLoading,
+                refetch: refetchTimeline,
+            },
         ] = useGetMetricsTimelineLazyQuery({
             variables: {
                 project_id,
                 metric_name: metricConfig.name,
                 params: {
-                    aggregate_function: 'p50',
+                    aggregator: aggregator,
                     date_range: dateRange,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
+                    filters: metricConfig.filters,
                 },
             },
             fetchPolicy: 'cache-first',
         });
         const [
             loadHistogram,
-            { data: histogramData, loading: histogramLoading },
+            {
+                data: histogramData,
+                loading: histogramLoading,
+                refetch: refetchHistogram,
+            },
         ] = useGetMetricsHistogramLazyQuery({
             variables: {
                 project_id,
@@ -550,18 +839,58 @@ const ChartContainer = React.memo(
                     date_range: dateRange,
                     buckets: NUM_BUCKETS,
                     units: metricConfig.units,
+                    min_value: metricConfig.min_value,
+                    min_percentile: metricConfig.min_percentile,
+                    max_value: metricConfig.max_value,
+                    max_percentile: metricConfig.max_percentile,
+                    filters: metricConfig.filters,
                 },
             },
             fetchPolicy: 'cache-first',
         });
 
         useEffect(() => {
+            if (!dateRange) return;
             if (chartType === DashboardChartType.Histogram) {
-                loadHistogram();
+                if (refetchHistogram) {
+                    refetchHistogram().catch(console.error);
+                } else {
+                    loadHistogram();
+                }
             } else if (chartType === DashboardChartType.Timeline) {
-                loadTimeline();
+                if (refetchTimeline) {
+                    refetchTimeline().catch(console.error);
+                } else {
+                    loadTimeline();
+                }
             }
-        }, [chartType, loadTimeline, loadHistogram]);
+        }, [
+            chartType,
+            dateRange,
+            refetchHistogram,
+            refetchTimeline,
+            loadTimeline,
+            loadHistogram,
+        ]);
+        useEffect(() => {
+            const handler = () => {
+                // this ensures that even for large time ranges data will only be cached
+                // for up to 1 minutes (cache key is based on the arguments).
+                const now = roundDate(moment(new Date()), 1);
+
+                setDateRange(
+                    moment(now).subtract(lookbackMinutes, 'minutes').format(),
+                    now.format()
+                );
+            };
+
+            if (refetchInterval.current) {
+                window.clearInterval(refetchInterval.current);
+            } else {
+                handler();
+            }
+            refetchInterval.current = window.setInterval(handler, 60000);
+        }, [lookbackMinutes]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
@@ -653,11 +982,12 @@ const ChartContainer = React.memo(
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
-                        xAxisDataKeyName="range_start"
+                        xAxisDataKeyName="range_end"
                         xAxisLabel={metricConfig.units}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
+                        xAxisUnits={metricConfig.units}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />
@@ -668,7 +998,8 @@ const ChartContainer = React.memo(
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregate_function || 'avg']: x?.value,
+                                [x?.aggregator ||
+                                MetricAggregator.Avg]: x?.value,
                             })
                         )}
                         referenceLines={referenceLines}
@@ -685,11 +1016,14 @@ const ChartContainer = React.memo(
                             interval: 0, // show all ticks
                         }}
                         lineColorMapping={{
-                            p99: 'var(--color-red-400)',
-                            p90: 'var(--color-orange-400)',
-                            p75: 'var(--color-green-600)',
-                            p50: 'var(--color-blue-400)',
-                            avg: 'var(--color-gray-400)',
+                            [MetricAggregator.Max]: 'var(--color-red-500)',
+                            [MetricAggregator.P99]: 'var(--color-red-400)',
+                            [MetricAggregator.P95]: 'var(--color-orange-500)',
+                            [MetricAggregator.P90]: 'var(--color-orange-400)',
+                            [MetricAggregator.P75]: 'var(--color-green-600)',
+                            [MetricAggregator.P50]: 'var(--color-blue-400)',
+                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
+                            [MetricAggregator.Count]: 'var(--color-green-500)',
                         }}
                         yAxisLabel={metricConfig.units}
                         referenceAreaProps={{
@@ -730,6 +1064,7 @@ const ChartContainer = React.memo(
     (prevProps, nextProps) =>
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
+        prevProps.aggregator === nextProps.aggregator &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
@@ -740,7 +1075,17 @@ const ChartContainer = React.memo(
             nextProps.metricConfig.chart_type &&
         prevProps.metricConfig.units === nextProps.metricConfig.units &&
         prevProps.metricConfig.description ===
-            nextProps.metricConfig.description
+            nextProps.metricConfig.description &&
+        prevProps.metricConfig.min_value === nextProps.metricConfig.min_value &&
+        prevProps.metricConfig.min_percentile ===
+            nextProps.metricConfig.min_percentile &&
+        prevProps.metricConfig.max_value === nextProps.metricConfig.max_value &&
+        prevProps.metricConfig.max_percentile ===
+            nextProps.metricConfig.max_percentile &&
+        _.isEqual(
+            prevProps.metricConfig.filters,
+            nextProps.metricConfig.filters
+        )
 );
 
 export default DashboardCard;

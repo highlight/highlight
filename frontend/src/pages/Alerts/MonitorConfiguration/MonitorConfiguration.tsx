@@ -9,7 +9,7 @@ import {
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { DashboardMetricConfig } from '@graph/schemas';
+import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
 import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -24,8 +24,8 @@ import { Link } from 'react-router-dom';
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss';
 import styles from './MonitorConfiguration.module.scss';
 
-// show the last 3 periods
-const PREVIEW_PERIODS = 3;
+// show the last 5 periods
+const PREVIEW_PERIODS = 5;
 
 interface Props {
     loading: boolean;
@@ -33,9 +33,9 @@ interface Props {
     onMetricToMonitorNameChange: (newMetric: string) => void;
     monitorName: string;
     onMonitorNameChange: (newName: string) => void;
-    aggregateFunction: string;
+    aggregator: MetricAggregator;
     aggregatePeriodMinutes: number;
-    onAggregateFunctionChange: (newAggregateFunction: string) => void;
+    onAggregateFunctionChange: (newAggregateFunction: MetricAggregator) => void;
     onAggregatePeriodChange: (newPeriod: string) => void;
     threshold: number;
     onThresholdChange: (newThreshold: number) => void;
@@ -61,7 +61,7 @@ interface Props {
 
 const MonitorConfiguration = ({
     loading,
-    aggregateFunction,
+    aggregator,
     aggregatePeriodMinutes,
     metricToMonitorName,
     monitorName,
@@ -101,7 +101,7 @@ const MonitorConfiguration = ({
             project_id,
             metric_name: metricToMonitorName,
             params: {
-                aggregate_function: aggregateFunction,
+                aggregator,
                 date_range: {
                     start_date: moment(endDate)
                         .subtract(
@@ -181,7 +181,6 @@ const MonitorConfiguration = ({
             };
         }) || [];
 
-    const functionOptions: string[] = ['avg', 'p50', 'p75', 'p90', 'p99'];
     const periodOptions = [
         { label: '1 minute', value: 1 },
         { label: '5 minutes', value: 5 },
@@ -294,13 +293,13 @@ const MonitorConfiguration = ({
                         threshold when deciding whether to create an alert.
                     </p>
                     <Select
-                        options={functionOptions.map((functionName) => ({
-                            displayValue: functionName,
-                            id: functionName,
-                            value: functionName,
+                        options={Object.values(MetricAggregator).map((v) => ({
+                            displayValue: v,
+                            id: v,
+                            value: v,
                         }))}
                         className={styles.select}
-                        value={aggregateFunction}
+                        value={aggregator}
                         onChange={(e) => {
                             onAggregateFunctionChange(e);
                         }}
@@ -312,7 +311,7 @@ const MonitorConfiguration = ({
                     <p>
                         This aggregation window will be used to determine if the
                         value is exceeding the threshold. For example, if set to
-                        5 minutes with an aggregator function of p50, a 5 minute
+                        5 minutes with an aggregator function of P50, a 5 minute
                         window median must exceed the threshold for an alert.
                     </p>
                     <Select
@@ -339,7 +338,7 @@ const MonitorConfiguration = ({
                                     color: 'var(--color-blue-400)',
                                 }}
                             >
-                                {aggregateFunction}({metricToMonitorName})
+                                {aggregator}({metricToMonitorName})
                             </b>
                         </code>{' '}
                         is over{' '}

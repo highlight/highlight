@@ -658,7 +658,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
 export type CreateMetricMonitorMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
@@ -678,7 +678,7 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -700,7 +700,7 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     metric_monitor_id: Types.Scalars['ID'];
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
@@ -721,7 +721,7 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
@@ -752,7 +752,7 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -1602,7 +1602,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregate_function'
+                'date' | 'value' | 'aggregator'
             >
         >
     >;
@@ -1617,7 +1617,7 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
     metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
         Types.HistogramPayload,
-        'min' | 'max' | 'p1' | 'p99'
+        'min' | 'max'
     > & {
             buckets: Array<
                 { __typename?: 'HistogramBucket' } & Pick<
@@ -2336,16 +2336,6 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
                                     | 'lineNumber'
                                     | 'functionName'
                                     | 'columnNumber'
-                                >
-                            >
-                        >;
-                        metadata_log: Array<
-                            Types.Maybe<
-                                { __typename?: 'ErrorMetadata' } & Pick<
-                                    Types.ErrorMetadata,
-                                    | 'error_id'
-                                    | 'session_secure_id'
-                                    | 'timestamp'
                                 >
                             >
                         >;
@@ -3589,7 +3579,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'name'
                 | 'emails_to_notify'
-                | 'function'
+                | 'aggregator'
                 | 'period_minutes'
                 | 'metric_to_monitor'
                 | 'last_admin_to_edit_id'
@@ -3707,7 +3697,23 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'units'
                             | 'help_article'
                             | 'chart_type'
-                        >
+                            | 'aggregator'
+                            | 'min_value'
+                            | 'min_percentile'
+                            | 'max_value'
+                            | 'max_percentile'
+                        > & {
+                                filters?: Types.Maybe<
+                                    Array<
+                                        {
+                                            __typename?: 'MetricTagFilter';
+                                        } & Pick<
+                                            Types.MetricTagFilter,
+                                            'value' | 'tag'
+                                        >
+                                    >
+                                >;
+                            }
                     >;
                 }
         >
@@ -3722,6 +3728,27 @@ export type GetSuggestedMetricsQueryVariables = Types.Exact<{
 export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'suggested_metrics'
+>;
+
+export type GetMetricTagsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tags'
+>;
+
+export type GetMetricTagValuesQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    metric_name: Types.Scalars['String'];
+    tag_name: Types.Scalars['String'];
+}>;
+
+export type GetMetricTagValuesQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'metric_tag_values'
 >;
 
 export type GetSourcemapFilesQueryVariables = Types.Exact<{
@@ -3825,6 +3852,8 @@ export const namedOperations = {
         GetWebVitals: 'GetWebVitals' as const,
         GetDashboardDefinitions: 'GetDashboardDefinitions' as const,
         GetSuggestedMetrics: 'GetSuggestedMetrics' as const,
+        GetMetricTags: 'GetMetricTags' as const,
+        GetMetricTagValues: 'GetMetricTagValues' as const,
         GetSourcemapFiles: 'GetSourcemapFiles' as const,
         GetSourcemapVersions: 'GetSourcemapVersions' as const,
     },

@@ -2212,9 +2212,12 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		}
 	}
 
-	// calculate a reasonable threshold
+	// calculate a reasonable threshold using p90
 	end := time.Now()
 	start := time.Now().Add(-24 * time.Hour)
+	// different than the metric monitor aggregator because we want to get a high value
+	// that won't trigger with the monitor aggregator of p50
+	agg := modelInputs.MetricAggregatorP90
 	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
 		DateRange: &modelInputs.DateRangeInput{
 			StartDate: &start,
@@ -2222,7 +2225,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		},
 		ResolutionMinutes: pointy.Int(60),
 		Units:             pointy.String(metric.Units),
-		AggregateFunction: pointy.String("p90"),
+		Aggregator:        &agg,
 	})
 	if err != nil {
 		return e.Wrap(err, "failed to retrieve recent metric data for threshold calculation")
@@ -2236,7 +2239,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:        projectID,
 		Name:             fmt.Sprintf("%s Default Monitor", name),
-		Function:         "p50",
+		Aggregator:       modelInputs.MetricAggregatorP50,
 		Threshold:        threshold,
 		MetricToMonitor:  metric.Name,
 		ChannelsToNotify: channelsString,
@@ -2248,30 +2251,34 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	return nil
 }
 
-func GetAggregateFluxStatement(aggregateFunctionName string, resMins int) string {
-	aggregateStatement := fmt.Sprintf(`
-      query()
-		  |> aggregateWindow(every: %dm, fn: mean, createEmpty: false)
-          |> yield(name: "avg")
-	`, resMins)
-
+func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins int) string {
+	fn := "mean"
 	quantile := 0.
 	// explicitly validate the aggregate func to ensure no query injection possible
-	switch aggregateFunctionName {
-	case "p50":
+	switch aggregator {
+	case modelInputs.MetricAggregatorP50:
 		quantile = 0.5
-	case "p75":
+	case modelInputs.MetricAggregatorP75:
 		quantile = 0.75
-	case "p90":
+	case modelInputs.MetricAggregatorP90:
 		quantile = 0.9
-	case "p95":
+	case modelInputs.MetricAggregatorP95:
 		quantile = 0.95
-	case "p99":
+	case modelInputs.MetricAggregatorP99:
 		quantile = 0.99
-	case "avg":
+	case modelInputs.MetricAggregatorMax:
+		quantile = 1.0
+	case modelInputs.MetricAggregatorCount:
+		fn = "count"
+	case modelInputs.MetricAggregatorAvg:
 	default:
-		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
+		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
 	}
+	aggregateStatement := fmt.Sprintf(`
+      query()
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: false)
+          |> yield(name: "avg")
+	`, resMins, fn)
 	if quantile > 0. {
 		aggregateStatement = fmt.Sprintf(`
 		  do(q:%f)
@@ -2306,8 +2313,19 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	return
 }
 
+// GetTagFilters returns the influxdb filter for a particular set of tag filters
+func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) {
+	for _, f := range filters {
+		if f != nil {
+			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] == "%s")`, f.Tag, f.Value) + "\n"
+		}
+	}
+	return
+}
+
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	tagFilters := GetTagFilters(params.Filters)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -2319,17 +2337,17 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		  |> range(start: %[2]s, stop: %[3]s)
 		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
 		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  |> group()
+		  %[6]s|> group()
       do = (q) =>
         query()
 		  |> aggregateWindow(
-               every: %[6]dm,
+               every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, resMins)
-	agg := "avg"
-	if params.AggregateFunction != nil && *params.AggregateFunction != "" {
-		agg = *params.AggregateFunction
+	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, resMins)
+	agg := modelInputs.MetricAggregatorAvg
+	if params.Aggregator != nil {
+		agg = *params.Aggregator
 	}
 	query += GetAggregateFluxStatement(agg, resMins)
 	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
@@ -2345,12 +2363,17 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	for _, r := range results {
 		v := 0.
 		if r.Value != nil {
-			v = r.Value.(float64) / div
+			x, ok := r.Value.(float64)
+			if !ok {
+				v = float64(r.Value.(int64)) / div
+			} else {
+				v = x / div
+			}
 		}
 		payload = append(payload, &modelInputs.DashboardPayload{
-			Date:              r.Time.Format(time.RFC3339Nano),
-			Value:             v,
-			AggregateFunction: &agg,
+			Date:       r.Time.Format(time.RFC3339Nano),
+			Value:      v,
+			Aggregator: &agg,
 		})
 	}
 	return

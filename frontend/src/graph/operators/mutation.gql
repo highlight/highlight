@@ -557,7 +557,7 @@ mutation CreateErrorAlert(
 mutation CreateMetricMonitor(
     $project_id: ID!
     $name: String!
-    $function: String!
+    $aggregator: MetricAggregator!
     $threshold: Float!
     $periodMinutes: Int
     $metric_to_monitor: String!
@@ -568,7 +568,7 @@ mutation CreateMetricMonitor(
         project_id: $project_id
         threshold: $threshold
         name: $name
-        function: $function
+        aggregator: $aggregator
         periodMinutes: $periodMinutes
         metric_to_monitor: $metric_to_monitor
         slack_channels: $slack_channels
@@ -582,7 +582,7 @@ mutation CreateMetricMonitor(
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
         period_minutes
         metric_to_monitor
         last_admin_to_edit_id
@@ -594,7 +594,7 @@ mutation UpdateMetricMonitor(
     $metric_monitor_id: ID!
     $project_id: ID!
     $name: String!
-    $function: String!
+    $aggregator: MetricAggregator!
     $threshold: Float!
     $periodMinutes: Int
     $metric_to_monitor: String!
@@ -607,7 +607,7 @@ mutation UpdateMetricMonitor(
         project_id: $project_id
         threshold: $threshold
         name: $name
-        function: $function
+        aggregator: $aggregator
         periodMinutes: $periodMinutes
         metric_to_monitor: $metric_to_monitor
         slack_channels: $slack_channels
@@ -622,7 +622,7 @@ mutation UpdateMetricMonitor(
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
         period_minutes
         metric_to_monitor
         last_admin_to_edit_id
@@ -643,7 +643,7 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
         metric_to_monitor
         last_admin_to_edit_id
         threshold

@@ -2242,7 +2242,7 @@ export const CreateMetricMonitorDocument = gql`
     mutation CreateMetricMonitor(
         $project_id: ID!
         $name: String!
-        $function: String!
+        $aggregator: MetricAggregator!
         $threshold: Float!
         $periodMinutes: Int
         $metric_to_monitor: String!
@@ -2253,7 +2253,7 @@ export const CreateMetricMonitorDocument = gql`
             project_id: $project_id
             threshold: $threshold
             name: $name
-            function: $function
+            aggregator: $aggregator
             periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
@@ -2267,7 +2267,7 @@ export const CreateMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -2295,7 +2295,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      function: // value for 'function'
+ *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2328,7 +2328,7 @@ export const UpdateMetricMonitorDocument = gql`
         $metric_monitor_id: ID!
         $project_id: ID!
         $name: String!
-        $function: String!
+        $aggregator: MetricAggregator!
         $threshold: Float!
         $periodMinutes: Int
         $metric_to_monitor: String!
@@ -2341,7 +2341,7 @@ export const UpdateMetricMonitorDocument = gql`
             project_id: $project_id
             threshold: $threshold
             name: $name
-            function: $function
+            aggregator: $aggregator
             periodMinutes: $periodMinutes
             metric_to_monitor: $metric_to_monitor
             slack_channels: $slack_channels
@@ -2356,7 +2356,7 @@ export const UpdateMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -2385,7 +2385,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      metric_monitor_id: // value for 'metric_monitor_id'
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      function: // value for 'function'
+ *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2428,7 +2428,7 @@ export const DeleteMetricMonitorDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             metric_to_monitor
             last_admin_to_edit_id
             threshold
@@ -4197,7 +4197,7 @@ export const GetMetricsTimelineDocument = gql`
         ) {
             date
             value
-            aggregate_function
+            aggregator
         }
     }
 `;
@@ -4271,8 +4271,6 @@ export const GetMetricsHistogramDocument = gql`
             }
             min
             max
-            p1
-            p99
         }
     }
 `;
@@ -6064,11 +6062,6 @@ export const GetErrorGroupsOpenSearchDocument = gql`
                     lineNumber
                     functionName
                     columnNumber
-                }
-                metadata_log {
-                    error_id
-                    session_secure_id
-                    timestamp
                 }
                 error_frequency
             }
@@ -9211,7 +9204,7 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel_id
             }
             emails_to_notify
-            function
+            aggregator
             period_minutes
             metric_to_monitor
             last_admin_to_edit_id
@@ -9566,6 +9559,15 @@ export const GetDashboardDefinitionsDocument = gql`
                 units
                 help_article
                 chart_type
+                aggregator
+                min_value
+                min_percentile
+                max_value
+                max_percentile
+                filters {
+                    value
+                    tag
+                }
             }
             last_admin_to_edit_id
             layout
@@ -9675,6 +9677,125 @@ export type GetSuggestedMetricsLazyQueryHookResult = ReturnType<
 export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
     Types.GetSuggestedMetricsQuery,
     Types.GetSuggestedMetricsQueryVariables
+>;
+export const GetMetricTagsDocument = gql`
+    query GetMetricTags($project_id: ID!, $metric_name: String!) {
+        metric_tags(project_id: $project_id, metric_name: $metric_name)
+    }
+`;
+
+/**
+ * __useGetMetricTagsQuery__
+ *
+ * To run a query within a React component, call `useGetMetricTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricTagsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *   },
+ * });
+ */
+export function useGetMetricTagsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >(GetMetricTagsDocument, baseOptions);
+}
+export function useGetMetricTagsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricTagsQuery,
+        Types.GetMetricTagsQueryVariables
+    >(GetMetricTagsDocument, baseOptions);
+}
+export type GetMetricTagsQueryHookResult = ReturnType<
+    typeof useGetMetricTagsQuery
+>;
+export type GetMetricTagsLazyQueryHookResult = ReturnType<
+    typeof useGetMetricTagsLazyQuery
+>;
+export type GetMetricTagsQueryResult = Apollo.QueryResult<
+    Types.GetMetricTagsQuery,
+    Types.GetMetricTagsQueryVariables
+>;
+export const GetMetricTagValuesDocument = gql`
+    query GetMetricTagValues(
+        $project_id: ID!
+        $metric_name: String!
+        $tag_name: String!
+    ) {
+        metric_tag_values(
+            project_id: $project_id
+            metric_name: $metric_name
+            tag_name: $tag_name
+        )
+    }
+`;
+
+/**
+ * __useGetMetricTagValuesQuery__
+ *
+ * To run a query within a React component, call `useGetMetricTagValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricTagValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricTagValuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      metric_name: // value for 'metric_name'
+ *      tag_name: // value for 'tag_name'
+ *   },
+ * });
+ */
+export function useGetMetricTagValuesQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >(GetMetricTagValuesDocument, baseOptions);
+}
+export function useGetMetricTagValuesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetMetricTagValuesQuery,
+        Types.GetMetricTagValuesQueryVariables
+    >(GetMetricTagValuesDocument, baseOptions);
+}
+export type GetMetricTagValuesQueryHookResult = ReturnType<
+    typeof useGetMetricTagValuesQuery
+>;
+export type GetMetricTagValuesLazyQueryHookResult = ReturnType<
+    typeof useGetMetricTagValuesLazyQuery
+>;
+export type GetMetricTagValuesQueryResult = Apollo.QueryResult<
+    Types.GetMetricTagValuesQuery,
+    Types.GetMetricTagValuesQueryVariables
 >;
 export const GetSourcemapFilesDocument = gql`
     query GetSourcemapFiles($project_id: ID!, $version: String) {
