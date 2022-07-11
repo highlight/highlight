@@ -1,4 +1,8 @@
-import { DashboardChartType, DashboardMetricConfig } from '@graph/schemas';
+import {
+    DashboardChartType,
+    DashboardMetricConfig,
+    MetricAggregator,
+} from '@graph/schemas';
 
 export enum WebVitalName {
     CLS = 'Cumulative Layout Shift',
@@ -20,6 +24,7 @@ export const WEB_VITALS_CONFIGURATION: {
         units: 'LS',
         help_article: 'https://web.dev/cls',
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     },
     FID: {
         max_good_value: 100,
@@ -30,6 +35,7 @@ export const WEB_VITALS_CONFIGURATION: {
         units: 'ms',
         help_article: 'https://web.dev/fid',
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     },
     LCP: {
         max_good_value: 2500,
@@ -40,6 +46,7 @@ export const WEB_VITALS_CONFIGURATION: {
         units: 'ms',
         help_article: 'https://web.dev/lcp',
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     },
     FCP: {
         max_good_value: 1800,
@@ -50,6 +57,7 @@ export const WEB_VITALS_CONFIGURATION: {
         units: 'ms',
         help_article: 'https://web.dev/fcp',
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     },
     TTFB: {
         max_good_value: 500,
@@ -60,5 +68,6 @@ export const WEB_VITALS_CONFIGURATION: {
         units: 'ms',
         help_article: 'https://web.dev/ttfb',
         chart_type: DashboardChartType.Timeline,
+        aggregator: MetricAggregator.P50,
     },
 };

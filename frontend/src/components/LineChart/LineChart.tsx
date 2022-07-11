@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { Slider } from '@components/Slider/Slider';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
 import SvgShieldWarningIcon from '@icons/ShieldWarningIcon';
 import SvgSkullIcon from '@icons/SkullIcon';
@@ -9,7 +10,6 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import ReactSlider from 'react-slider';
 import {
     CartesianGrid,
     Label,
@@ -25,6 +25,7 @@ import {
     XAxisProps,
     YAxis,
 } from 'recharts';
+import { AxisDomain } from 'recharts/types/util/types';
 
 import styles from './LineChart.module.scss';
 
@@ -39,6 +40,7 @@ export interface Reference {
 
 export interface Props {
     data: any[];
+    domain?: AxisDomain;
     referenceLines?: Reference[];
     showReferenceLineLabels?: boolean;
     height: number;
@@ -53,8 +55,9 @@ export interface Props {
     referenceAreaProps?: ReferenceAreaProps;
 }
 
-export function findMax(data: any[], key?: string) {
+export function findDataDomain(data: any[], key?: string) {
     let max = Number.MIN_VALUE;
+    let min = Number.MAX_VALUE;
     for (const x of data) {
         for (const vS of (key ? [x[key]] : Object.values(x)) || []) {
             const v = Number(vS);
@@ -62,9 +65,17 @@ export function findMax(data: any[], key?: string) {
             if (v > max) {
                 max = v;
             }
+            if (v < min) {
+                min = v;
+            }
         }
     }
-    return max;
+    const range = max - min;
+    if (min < 0) {
+        min -= 0.1 * range;
+    }
+    max += 0.1 * range;
+    return { min: Math.floor(min), max: Math.ceil(max) };
 }
 
 const LineChart = ({
@@ -73,6 +84,7 @@ const LineChart = ({
     showReferenceLineLabels,
     xAxisDataKeyName = 'date',
     data,
+    domain,
     xAxisTickFormatter,
     hideXAxis = false,
     yAxisTickFormatter,
@@ -89,7 +101,7 @@ const LineChart = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : [];
-    const max = findMax(data);
+    const { min, max } = findDataDomain(data);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
@@ -100,12 +112,10 @@ const LineChart = ({
     return (
         <>
             {!!draggableReferenceLines?.length && (
-                <ReactSlider
-                    className={styles.verticalSlider}
-                    thumbClassName={styles.sliderThumb}
+                <Slider
+                    min={min}
                     max={max}
-                    min={0}
-                    value={draggableReferenceLines.map((rl) => rl.value)}
+                    values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
                             const d = draggableReferenceLines[idx].onDrag;
@@ -114,13 +124,6 @@ const LineChart = ({
                             }
                         });
                     }}
-                    renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow.toFixed(1)}</div>
-                    )}
-                    pearling
-                    invert
-                    minDistance={0}
-                    step={0.1}
                     orientation={'vertical'}
                 />
             )}
@@ -147,6 +150,7 @@ const LineChart = ({
                         tick={{ fontSize: '11px', fill: labelColor }}
                         tickLine={{ stroke: 'var(--color-gray-200)' }}
                         axisLine={{ stroke: gridColor }}
+                        domain={[min, max]}
                         dy={6}
                         hide={hideXAxis}
                         {...xAxisProps}
@@ -156,7 +160,9 @@ const LineChart = ({
                         tick={{ fontSize: '8px', fill: labelColor }}
                         tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                         axisLine={{ stroke: gridColor }}
-                        dx={0}
+                        domain={domain}
+                        type={'number'}
+                        dx={-2}
                         unit={yAxisLabel}
                     />
 
@@ -171,6 +177,7 @@ const LineChart = ({
                                             yAxisLabel={yAxisLabel}
                                             referenceLines={referenceLines}
                                             precision={1}
+                                            units={yAxisLabel}
                                         />
                                     );
                                 }}
@@ -243,11 +250,13 @@ export const CustomTooltip = ({
     yAxisLabel,
     referenceLines,
     precision,
+    units,
     payload,
 }: {
     yAxisLabel: string;
     referenceLines?: Reference[];
     precision: number;
+    units: string;
     payload: any[];
 }) => {
     return (
@@ -268,6 +277,19 @@ export const CustomTooltip = ({
                                         {entry.value.toFixed(precision)}
                                     </span>{' '}
                                     {yAxisLabel}
+                                    {entry?.payload.range_start ? (
+                                        <>
+                                            {' in '}
+                                            {entry.payload.range_start.toFixed(
+                                                precision
+                                            )}
+                                            {units} -{' '}
+                                            {entry.payload.range_end.toFixed(
+                                                precision
+                                            )}
+                                            {units}
+                                        </>
+                                    ) : null}
                                 </span>
                                 {referenceLines?.length === 2
                                     ? getScoreIcon(

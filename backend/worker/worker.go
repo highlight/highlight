@@ -279,8 +279,7 @@ func (w *Worker) processWorkerError(task *kafkaqueue.Message, err error) {
 	}
 }
 
-func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
-	ctx := context.Background()
+func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
@@ -315,7 +314,7 @@ func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
 		if task.IdentifySession == nil {
 			break
 		}
-		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
+		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			w.processWorkerError(task, err)
@@ -371,32 +370,51 @@ func (w *Worker) PublicWorker() {
 		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
 	}
 
-	parallelWorkers := 64
-	workerPrefetch := 4
+	parallelWorkers := 16
+	workerPrefetch := 16
 	// receive messages and submit them to worker pool for processing
 	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
-		go func() {
+		go func(workerId int) {
 			for {
 				func() {
 					defer util.Recover()
-					task := <-messages
-					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
 					defer s.Finish()
-					w.processPublicWorkerMessage(task)
+
+					ctx := tracer.ContextWithSpan(context.Background(), s)
+					s1 := tracer.StartSpan("worker.kafka.retrieveMessage", tracer.ChildOf(s.Context()))
+					task := <-messages
+					s1.Finish()
+					s.SetTag("taskType", task.Type)
+
+					s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
+					w.processPublicWorkerMessage(ctx, task)
+					s2.Finish()
+
+					s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
 					w.KafkaQueue.Commit(task.KafkaMessage)
+					s3.Finish()
+
 					hlog.Incr("worker.kafka.processed.total", nil, 1)
 				}()
 			}
-		}()
+		}(i)
 	}
 	for {
+		s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.receive"))
+
+		s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
 		task := w.KafkaQueue.Receive()
+		s1.Finish()
+
 		if task == nil {
 			log.Errorf("worker retrieved empty message from kafka")
 			continue
 		}
+		s.SetTag("taskType", task.Type)
 		messages <- task
+		s.Finish()
 	}
 }
 
@@ -423,35 +441,6 @@ func (w *Worker) DeleteCompletedSessions() {
 		}
 		deleteSpan.Finish()
 	}
-}
-
-// DeleteOldMetrics will delete any metrics that are older than N days.
-func (w *Worker) DeleteOldMetrics() {
-	const expirationDays = 30
-
-	deleteSpan, _ := tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
-		tracer.ResourceName("worker.deleteNetworkRequests"), tracer.Tag("expirationDays", expirationDays))
-	if err := w.Resolver.DB.Exec(`
-		DELETE FROM network_requests n
-		       USING metrics m
-		       WHERE n.id = m.request_id
-					AND m.category != 'WebVital' AND m.category != 'Device'
-					AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, expirationDays).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting expired metrics"))
-	}
-	deleteSpan.Finish()
-
-	deleteSpan, _ = tracer.StartSpanFromContext(context.Background(), "worker.deleteMetrics",
-		tracer.ResourceName("worker.deleteMetrics"), tracer.Tag("expirationDays", expirationDays))
-	if err := w.Resolver.DB.Exec(`
-		DELETE FROM metrics m
-		WHERE m.category != 'WebVital' AND m.category != 'Device'
-		AND m.created_at < NOW() - (? * INTERVAL '1 DAY')
-`, expirationDays).Error; err != nil {
-		log.Error(e.Wrap(err, "error deleting expired metrics"))
-	}
-	deleteSpan.Finish()
 }
 
 func (w *Worker) excludeSession(_ context.Context, s *model.Session) error {
@@ -520,7 +509,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Delete any event chunks which were previously written for this session
 	if err := w.Resolver.DB.Exec(`
-		DELETE 
+		DELETE
 		FROM event_chunks
 		WHERE session_id = ?
 	`, s.ID).Error; err != nil {
@@ -1178,8 +1167,6 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.RefreshMaterializedViews
 	case "delete-completed-sessions":
 		return w.DeleteCompletedSessions
-	case "delete-old-metrics":
-		return w.DeleteOldMetrics
 	case "public-worker":
 		return w.PublicWorker
 	default:

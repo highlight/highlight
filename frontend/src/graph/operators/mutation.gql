@@ -152,6 +152,7 @@ mutation EditProject(
     $rage_click_window_seconds: Int
     $rage_click_radius_pixels: Int
     $rage_click_count: Int
+    $backend_domains: StringArray
 ) {
     editProject(
         id: $id
@@ -162,6 +163,7 @@ mutation EditProject(
         rage_click_window_seconds: $rage_click_window_seconds
         rage_click_radius_pixels: $rage_click_radius_pixels
         rage_click_count: $rage_click_count
+        backend_domains: $backend_domains
     ) {
         id
         name
@@ -171,6 +173,7 @@ mutation EditProject(
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count
+        backend_domains
     }
 }
 
@@ -554,8 +557,9 @@ mutation CreateErrorAlert(
 mutation CreateMetricMonitor(
     $project_id: ID!
     $name: String!
-    $function: String!
+    $aggregator: MetricAggregator!
     $threshold: Float!
+    $periodMinutes: Int
     $metric_to_monitor: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $emails: [String]!
@@ -564,7 +568,8 @@ mutation CreateMetricMonitor(
         project_id: $project_id
         threshold: $threshold
         name: $name
-        function: $function
+        aggregator: $aggregator
+        periodMinutes: $periodMinutes
         metric_to_monitor: $metric_to_monitor
         slack_channels: $slack_channels
         emails: $emails
@@ -577,7 +582,8 @@ mutation CreateMetricMonitor(
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
+        period_minutes
         metric_to_monitor
         last_admin_to_edit_id
         threshold
@@ -588,8 +594,9 @@ mutation UpdateMetricMonitor(
     $metric_monitor_id: ID!
     $project_id: ID!
     $name: String!
-    $function: String!
+    $aggregator: MetricAggregator!
     $threshold: Float!
+    $periodMinutes: Int
     $metric_to_monitor: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $emails: [String]!
@@ -600,7 +607,8 @@ mutation UpdateMetricMonitor(
         project_id: $project_id
         threshold: $threshold
         name: $name
-        function: $function
+        aggregator: $aggregator
+        periodMinutes: $periodMinutes
         metric_to_monitor: $metric_to_monitor
         slack_channels: $slack_channels
         emails: $emails
@@ -614,7 +622,8 @@ mutation UpdateMetricMonitor(
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
+        period_minutes
         metric_to_monitor
         last_admin_to_edit_id
         threshold
@@ -634,7 +643,7 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
         metric_to_monitor
         last_admin_to_edit_id
         threshold

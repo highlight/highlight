@@ -18,12 +18,29 @@
     width: 100%;
 }
 
+.mask {
+    background-color: var(--color-primary-background);
+    height: 100%;
+    position: absolute;
+}
+
+.activityGraphWrapper {
+    position: relative;
+}
+
+.zoomer {
+    height: 100%;
+    position: absolute;
+    top: -6px;
+    width: 100%;
+}
+
 .zoomArea {
     background: var(--color-scrubber-zoom-region);
+    border: 2px solid var(--color-scrubber-zoom-region-border);
     border-radius: 5px;
-    height: 16px;
+    height: 32px;
     position: relative;
-    top: 6px;
     width: 100%;
     z-index: 2;
 }
@@ -32,7 +49,14 @@
     cursor: pointer;
 }
 
-.handleContainer {
+.zoomAreaMask {
+    background-color: var(--color-primary-background);
+    height: 32px;
+    position: absolute;
+    z-index: 2;
+}
+
+.scrubHandleContainer {
     position: absolute;
     z-index: 200;
 }
@@ -41,12 +65,13 @@
     align-items: center;
     background: var(--color-scrubber-scrub-handle);
     border-radius: var(--border-radius);
-    cursor: move;
+    cursor: ew-resize;
     display: flex;
     height: fit-content;
     justify-content: center;
     padding: 0 var(--size-xSmall);
     position: absolute;
+    top: -26px;
     transform: translateX(-28px);
     user-select: none;
     width: 56px;
@@ -89,9 +114,11 @@
 }
 
 .zoomAreaHandle {
-    background: var(--color-scrubber-zoom-region);
     cursor: ew-resize;
-    height: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 32px;
+    justify-content: center;
     position: absolute;
     width: 16px;
     z-index: 150;
@@ -104,13 +131,40 @@
 .handleRight {
     border-radius: 0 5px 5px 0;
     position: absolute;
+    transform: translateX(-16px);
+}
+
+.handleContainer {
+    position: absolute;
+    z-index: 150;
+}
+
+.inactivePopover {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.inactivePopoverDescription {
+    color: var(--color-gray-400);
+    font-size: 10px;
+}
+
+.inactivePopoverTime {
+    font-size: 10px;
 }
 
 .inactiveArea {
     background: var(--color-scrubber-inactive-region);
-    border-radius: 0 0 5px 5px;
-    height: 100%;
+    // border-radius: 5px;
+    height: 32px;
     position: absolute;
+    top: -34px;
+    transition-duration: 300ms;
+
+    &:hover {
+        transform: scale(1.1);
+    }
 }
 
 .inactiveContainer {

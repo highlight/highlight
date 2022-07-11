@@ -32,6 +32,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
+    client_id: Scalars['String'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -223,6 +224,7 @@ export type Project = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type Account = {
@@ -429,12 +431,16 @@ export type DashboardParamsInput = {
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
     units?: Maybe<Scalars['String']>;
-    aggregate_function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
 };
 
 export type HistogramParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     buckets?: Maybe<Scalars['Int']>;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
     units?: Maybe<Scalars['String']>;
 };
 
@@ -786,7 +792,7 @@ export type DashboardPayload = {
     __typename?: 'DashboardPayload';
     date: Scalars['String'];
     value: Scalars['Float'];
-    aggregate_function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
 };
 
 export type HistogramBucket = {
@@ -802,8 +808,6 @@ export type HistogramPayload = {
     buckets: Array<HistogramBucket>;
     min: Scalars['Float'];
     max: Scalars['Float'];
-    p1: Scalars['Float'];
-    p99: Scalars['Float'];
 };
 
 export type CategoryHistogramBucket = {
@@ -822,6 +826,17 @@ export enum DashboardChartType {
     Histogram = 'Histogram',
 }
 
+export enum MetricAggregator {
+    Avg = 'Avg',
+    P50 = 'P50',
+    P75 = 'P75',
+    P90 = 'P90',
+    P95 = 'P95',
+    P99 = 'P99',
+    Max = 'Max',
+    Count = 'Count',
+}
+
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
     description: Scalars['String'];
@@ -831,6 +846,11 @@ export type DashboardMetricConfigInput = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    aggregator: MetricAggregator;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
 };
 
 export type DashboardMetricConfig = {
@@ -843,6 +863,11 @@ export type DashboardMetricConfig = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    aggregator: MetricAggregator;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
 };
 
 export type DashboardDefinition = {
@@ -869,7 +894,8 @@ export type MetricMonitor = {
     name: Scalars['String'];
     channels_to_notify: Array<Maybe<SanitizedSlackChannel>>;
     emails_to_notify: Array<Maybe<Scalars['String']>>;
-    function: Scalars['String'];
+    aggregator: MetricAggregator;
+    period_minutes?: Maybe<Scalars['Int']>;
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
     threshold: Scalars['Float'];
@@ -1442,6 +1468,7 @@ export type MutationEditProjectArgs = {
     rage_click_window_seconds?: Maybe<Scalars['Int']>;
     rage_click_radius_pixels?: Maybe<Scalars['Int']>;
     rage_click_count?: Maybe<Scalars['Int']>;
+    backend_domains?: Maybe<Scalars['StringArray']>;
 };
 
 export type MutationEditWorkspaceArgs = {
@@ -1685,7 +1712,8 @@ export type MutationCreateRageClickAlertArgs = {
 export type MutationCreateMetricMonitorArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
-    function: Scalars['String'];
+    aggregator: MetricAggregator;
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold: Scalars['Float'];
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
@@ -1696,7 +1724,8 @@ export type MutationUpdateMetricMonitorArgs = {
     metric_monitor_id: Scalars['ID'];
     project_id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
-    function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold?: Maybe<Scalars['Float']>;
     metric_to_monitor?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;

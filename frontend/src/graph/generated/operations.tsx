@@ -199,6 +199,7 @@ export type EditProjectMutationVariables = Types.Exact<{
     rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>;
     rage_click_count?: Types.Maybe<Types.Scalars['Int']>;
+    backend_domains?: Types.Maybe<Types.Scalars['StringArray']>;
 }>;
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -213,6 +214,7 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
 };
@@ -656,8 +658,9 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
 export type CreateMetricMonitorMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
+    periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -675,7 +678,8 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
+            | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -696,8 +700,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     metric_monitor_id: Types.Scalars['ID'];
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
-    function: Types.Scalars['String'];
+    aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
+    periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -716,7 +721,8 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
+            | 'period_minutes'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -746,7 +752,7 @@ export type DeleteMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'updated_at'
             | 'name'
             | 'emails_to_notify'
-            | 'function'
+            | 'aggregator'
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
@@ -1596,7 +1602,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregate_function'
+                'date' | 'value' | 'aggregator'
             >
         >
     >;
@@ -1611,7 +1617,7 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
     metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
         Types.HistogramPayload,
-        'min' | 'max' | 'p1' | 'p99'
+        'min' | 'max'
     > & {
             buckets: Array<
                 { __typename?: 'HistogramBucket' } & Pick<
@@ -2257,6 +2263,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                     Types.Session,
                     | 'id'
                     | 'secure_id'
+                    | 'client_id'
                     | 'fingerprint'
                     | 'identifier'
                     | 'os_name'
@@ -2329,16 +2336,6 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
                                     | 'lineNumber'
                                     | 'functionName'
                                     | 'columnNumber'
-                                >
-                            >
-                        >;
-                        metadata_log: Array<
-                            Types.Maybe<
-                                { __typename?: 'ErrorMetadata' } & Pick<
-                                    Types.ErrorMetadata,
-                                    | 'error_id'
-                                    | 'session_secure_id'
-                                    | 'timestamp'
                                 >
                             >
                         >;
@@ -2600,6 +2597,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
             | 'rage_click_window_seconds'
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
+            | 'backend_domains'
         >
     >;
     workspace?: Types.Maybe<
@@ -3581,7 +3579,8 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'name'
                 | 'emails_to_notify'
-                | 'function'
+                | 'aggregator'
+                | 'period_minutes'
                 | 'metric_to_monitor'
                 | 'last_admin_to_edit_id'
                 | 'threshold'
@@ -3698,6 +3697,11 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'units'
                             | 'help_article'
                             | 'chart_type'
+                            | 'aggregator'
+                            | 'min_value'
+                            | 'min_percentile'
+                            | 'max_value'
+                            | 'max_percentile'
                         >
                     >;
                 }

@@ -63,7 +63,7 @@ query GetMetricsTimeline(
     ) {
         date
         value
-        aggregate_function
+        aggregator
     }
 }
 
@@ -85,8 +85,6 @@ query GetMetricsHistogram(
         }
         min
         max
-        p1
-        p99
     }
 }
 
@@ -554,6 +552,7 @@ query GetSessionsOpenSearch(
         sessions {
             id
             secure_id
+            client_id
             fingerprint
             identifier
             os_name
@@ -615,11 +614,6 @@ query GetErrorGroupsOpenSearch(
                 lineNumber
                 functionName
                 columnNumber
-            }
-            metadata_log {
-                error_id
-                session_secure_id
-                timestamp
             }
             error_frequency
         }
@@ -773,6 +767,7 @@ query GetProject($id: ID!) {
         rage_click_window_seconds
         rage_click_radius_pixels
         rage_click_count
+        backend_domains
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -1382,7 +1377,8 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
+        period_minutes
         metric_to_monitor
         last_admin_to_edit_id
         threshold
@@ -1450,6 +1446,11 @@ query GetDashboardDefinitions($project_id: ID!) {
             units
             help_article
             chart_type
+            aggregator
+            min_value
+            min_percentile
+            max_value
+            max_percentile
         }
         last_admin_to_edit_id
         layout

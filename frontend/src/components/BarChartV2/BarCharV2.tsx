@@ -2,12 +2,12 @@ import {
     CLICK_NEARBY_THRESHOLD,
     CustomLegend,
     CustomTooltip,
-    findMax,
+    findDataDomain,
     Props as LineChartProps,
 } from '@components/LineChart/LineChart';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { Slider } from '@components/Slider/Slider';
 import React, { useState } from 'react';
-import ReactSlider from 'react-slider';
 import {
     Bar,
     BarChart as RechartsBarChart,
@@ -27,6 +27,7 @@ import styles from './BarChartV2.module.scss';
 
 type Props = Omit<LineChartProps, 'lineColorMapping'> & {
     xAxisLabel?: string;
+    xAxisUnits?: string;
     yAxisKeys?: string[];
     barColorMapping: any;
     yAxisLabel: string;
@@ -41,6 +42,7 @@ const BarChartV2 = ({
     xAxisDataKeyName = 'date',
     data,
     xAxisLabel,
+    xAxisUnits,
     xAxisTickFormatter,
     hideXAxis = false,
     barColorMapping,
@@ -59,7 +61,7 @@ const BarChartV2 = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : []);
-    const max = findMax(data, 'range_start');
+    const { min, max } = findDataDomain(data, 'range_end');
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(yAxisKeys);
@@ -68,13 +70,10 @@ const BarChartV2 = ({
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             {!!draggableReferenceLines?.length && (
-                <ReactSlider
-                    className={styles.horizontalSlider}
-                    thumbClassName={styles.sliderThumb}
-                    trackClassName={styles.sliderTrack}
+                <Slider
+                    min={min}
                     max={max}
-                    min={0}
-                    value={draggableReferenceLines.map((rl) => rl.value)}
+                    values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
                         value.map((v, idx) => {
                             const d = draggableReferenceLines[idx].onDrag;
@@ -83,12 +82,6 @@ const BarChartV2 = ({
                             }
                         });
                     }}
-                    renderThumb={(props, state) => (
-                        <div {...props}>{state.valueNow.toFixed(1)}</div>
-                    )}
-                    pearling
-                    minDistance={0}
-                    step={0.1}
                 />
             )}
             <ResponsiveContainer width="100%" height={height}>
@@ -102,10 +95,9 @@ const BarChartV2 = ({
                         left: -18,
                         bottom: 0,
                     }}
-                    barSize={5}
-                    barGap={3}
-                    barCategoryGap={3}
-                    maxBarSize={3}
+                    barSize={7}
+                    barGap={0}
+                    barCategoryGap={0}
                 >
                     <CartesianGrid
                         strokeDasharray=""
@@ -118,6 +110,7 @@ const BarChartV2 = ({
                         tick={{ fontSize: '11px', fill: labelColor }}
                         tickLine={{ stroke: 'var(--color-gray-200)' }}
                         axisLine={{ stroke: gridColor }}
+                        domain={[min, max]}
                         dy={6}
                         type={'number'}
                         hide={hideXAxis}
@@ -143,6 +136,7 @@ const BarChartV2 = ({
                                             yAxisLabel={yAxisLabel}
                                             referenceLines={referenceLines}
                                             precision={0}
+                                            units={xAxisUnits || ''}
                                         />
                                     );
                                 }}
@@ -198,6 +192,7 @@ const BarChartV2 = ({
                             stroke={barColorMapping[key]}
                             fill={barColorMapping[key]}
                             animationDuration={100}
+                            radius={[2, 2, 0, 0]}
                         />
                     ))}
                     {referenceAreaProps && (

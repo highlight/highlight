@@ -407,7 +407,8 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
 	// get version from session
 	var version *string
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: errorObj.SessionID}}).
+	if err := r.DB.Model(&model.Session{}).
+		Where("id = ?", errorObj.SessionID).
 		Select("app_version").Scan(&version).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, e.Wrap(err, "error getting app version from session")
@@ -697,6 +698,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 	if errorObj.Event == "" || errorObj.Event == "<nil>" {
 		return nil, e.New("error object event was nil or empty")
+	}
+
+	if projectID == 356 {
+		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
+			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
+			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
+			errorObj.Event == `["\"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'.\""]` {
+			return nil, e.New("Filtering out noisy Gorilla Mind error")
+		}
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -998,7 +1008,14 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+	// The clientID param was added in early July 2022. This check is needed until
+	// we are confident all clients are loading a version of the client script
+	// that sends this parameter.
+	if clientID == nil {
+		clientID = pointy.String("")
+	}
+
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -1042,6 +1059,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
+		ClientID:                       *clientID,
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
@@ -1225,7 +1243,7 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 	return nil
 }
 
-func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
+func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1279,6 +1297,10 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 		session.Identifier = userIdentifier
 	}
 
+	if !backfill {
+		session.Identified = true
+	}
+
 	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,
@@ -1292,6 +1314,21 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
+	}
+
+	highlightSession := session.ProjectID == 1
+	if highlightSession && !backfill && len(session.ClientID) > 0 {
+		// Find past unidentified sessions and identify them.
+		backfillSessions := []*model.Session{}
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID, Identifier: "", Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
+		}
+
+		for _, session := range backfillSessions {
+			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
+			}
+		}
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
@@ -1673,7 +1710,7 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(projectID), points)
 	return nil
 }
 
@@ -2118,26 +2155,42 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
-	fieldsToUpdate := model.Session{
-		PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
-	}
+	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	defer updateSpan.Finish()
+	// Update only if any of these fields are changing
+	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
+	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
+		now.Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Second ||
+		beaconTime != nil ||
+		hasSessionUnloaded != sessionObj.HasUnloaded ||
+		(sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
+		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
+		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	// We only want to update the `HasErrors` field if the session has errors.
-	if sessionHasErrors {
-		fieldsToUpdate.HasErrors = &model.T
-
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-			return err
+	if doUpdate {
+		fieldsToUpdate := model.Session{
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
 		}
-	} else {
-		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
-			Updates(&fieldsToUpdate).Error; err != nil {
-			log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
-			return err
+
+		// We only want to update the `HasErrors` field if the session has errors.
+		if sessionHasErrors {
+			fieldsToUpdate.HasErrors = &model.T
+
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
+				return err
+			}
+		} else {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Updates(&fieldsToUpdate).Error; err != nil {
+				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
+				return err
+			}
 		}
 	}
 
@@ -2205,7 +2258,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if err == nil {
 			for _, d := range project.BackendDomains {
 				if u.Host == d {
-					categories[modelInputs.NetworkRequestAttributeURL] = re.Name
+					u.RawQuery = ""
+					u.Fragment = ""
+					categories[modelInputs.NetworkRequestAttributeURL] = u.String()
 				}
 			}
 		}
@@ -2222,6 +2277,6 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(points)
+	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
 }
