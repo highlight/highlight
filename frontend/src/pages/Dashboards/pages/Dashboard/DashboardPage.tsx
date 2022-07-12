@@ -60,10 +60,6 @@ const DashboardPage = () => {
         end_date: moment().format(),
     });
 
-    const lookbackMinutes = moment
-        .duration(moment(dateRange.end_date).diff(moment(dateRange.start_date)))
-        .asMinutes();
-
     const updateDateRange = (start: string, end: string, custom = false) => {
         const startDate = moment(start);
         const endDate = moment(end);
@@ -79,7 +75,7 @@ const DashboardPage = () => {
                 label: `${startDate.format('MMM D, LT')} - ${endDate.format(
                     'MMM D, LT'
                 )}`,
-                value: lookbackMinutes,
+                value: 0,
             };
 
             setCustomDateRange(customDateRange);
@@ -262,7 +258,6 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                lookbackMinutes={lookbackMinutes}
                                 customDateRange={customDateRange}
                                 dateRange={dateRange}
                                 setDateRange={updateDateRange}

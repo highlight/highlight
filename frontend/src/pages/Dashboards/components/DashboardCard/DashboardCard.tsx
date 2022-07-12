@@ -59,7 +59,6 @@ type DeleteMetricFn = (idx: number) => void;
 interface Props {
     metricIdx: number;
     metricConfig: DashboardMetricConfig;
-    lookbackMinutes: number;
     dateRange: { start_date: string; end_date: string };
     customDateRange: { label: string; value: number } | undefined;
     updateMetric: UpdateMetricFn;
@@ -74,7 +73,6 @@ interface Props {
 const DashboardCard = ({
     metricIdx,
     metricConfig,
-    lookbackMinutes,
     dateRange,
     customDateRange,
     updateMetric,
@@ -272,7 +270,6 @@ const DashboardCard = ({
                         metricConfig.max_needs_improvement_value
                     }
                     poorValue={metricConfig.poor_value}
-                    lookbackMinutes={lookbackMinutes}
                     dateRange={dateRange}
                     customDateRange={customDateRange}
                     updateMetric={updateMetric}
@@ -777,7 +774,6 @@ const ChartContainer = React.memo(
         maxNeedsImprovementValue,
         poorValue,
         showEditModal,
-        lookbackMinutes,
         dateRange,
         customDateRange,
         setMaxGoodValue,
@@ -796,7 +792,6 @@ const ChartContainer = React.memo(
         maxNeedsImprovementValue: number;
         poorValue: number;
         showEditModal: boolean;
-        lookbackMinutes: Props['lookbackMinutes'];
         dateRange: Props['dateRange'];
         customDateRange: Props['customDateRange'];
         setMaxGoodValue?: (v: number) => void;
@@ -807,6 +802,12 @@ const ChartContainer = React.memo(
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
         setDateRange: Props['setDateRange'];
     }) => {
+        // TODO: See if we can do away with this entirely.
+        const lookbackMinutes = moment
+            .duration(
+                moment(dateRange.end_date).diff(moment(dateRange.start_date))
+            )
+            .asMinutes();
         const NUM_BUCKETS = 60;
         const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
         const TICK_EVERY_BUCKETS = 10;
