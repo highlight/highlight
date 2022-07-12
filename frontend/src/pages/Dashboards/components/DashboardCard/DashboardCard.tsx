@@ -556,7 +556,7 @@ const EditMetricModal = ({
         metricConfig.min_value || metricConfig.min_percentile || 0
     );
     const [max, setMax] = useState<number>(
-        metricConfig.max_value || metricConfig.max_percentile || 0
+        metricConfig.max_value || metricConfig.max_percentile || 100
     );
     const [units, setUnits] = useState<string>(metricConfig.units);
     const [metricName, setMetricName] = useState<string>(metricConfig.name);
