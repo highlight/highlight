@@ -46,6 +46,7 @@ const EditMonitorPage = ({
     );
     const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
+    const [units, setUnits] = useState<string>();
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [emails, setEmails] = useState<string[]>([]);
@@ -65,6 +66,7 @@ const EditMonitorPage = ({
                 webhook_channel_id,
             })),
             threshold,
+            units,
             emails,
             disabled: isDisabled,
         },
@@ -99,6 +101,7 @@ const EditMonitorPage = ({
                 metric_to_monitor,
                 name,
                 threshold,
+                units,
                 emails_to_notify,
                 disabled,
             } = existingMonitor;
@@ -106,6 +109,7 @@ const EditMonitorPage = ({
             setMetricToMonitorName(metric_to_monitor);
             setMonitorName(name);
             setThreshold(threshold);
+            setUnits(units || undefined);
             setEmails((emails_to_notify as string[]) || []);
             setSlackChannels(
                 channels_to_notify?.map(
@@ -156,6 +160,8 @@ const EditMonitorPage = ({
                         metricToMonitorName={metricToMonitorName}
                         monitorName={monitorName}
                         threshold={threshold}
+                        units={units}
+                        onUnitsChange={setUnits}
                         channelSuggestions={channelSuggestions}
                         onFormSubmit={onFinish}
                         isSlackIntegrated={isSlackIntegrated}

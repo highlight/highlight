@@ -660,6 +660,7 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
     aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
+    units?: Types.Maybe<Types.Scalars['String']>;
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
@@ -683,6 +684,7 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
+            | 'units'
         > & {
                 channels_to_notify: Array<
                     Types.Maybe<
@@ -702,6 +704,7 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
     aggregator: Types.MetricAggregator;
     threshold: Types.Scalars['Float'];
+    units?: Types.Maybe<Types.Scalars['String']>;
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
     metric_to_monitor: Types.Scalars['String'];
     slack_channels:
@@ -726,6 +729,7 @@ export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
             | 'metric_to_monitor'
             | 'last_admin_to_edit_id'
             | 'threshold'
+            | 'units'
         > & {
                 channels_to_notify: Array<
                     Types.Maybe<
@@ -3590,6 +3594,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 | 'metric_to_monitor'
                 | 'last_admin_to_edit_id'
                 | 'threshold'
+                | 'units'
                 | 'disabled'
             > & {
                     channels_to_notify: Array<

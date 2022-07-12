@@ -923,6 +923,7 @@ export type MetricMonitor = {
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
     threshold: Scalars['Float'];
+    units?: Maybe<Scalars['String']>;
     disabled: Scalars['Boolean'];
 };
 
@@ -1752,6 +1753,7 @@ export type MutationCreateMetricMonitorArgs = {
     aggregator: MetricAggregator;
     periodMinutes?: Maybe<Scalars['Int']>;
     threshold: Scalars['Float'];
+    units?: Maybe<Scalars['String']>;
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
@@ -1764,6 +1766,7 @@ export type MutationUpdateMetricMonitorArgs = {
     aggregator?: Maybe<MetricAggregator>;
     periodMinutes?: Maybe<Scalars['Int']>;
     threshold?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
     metric_to_monitor?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
     emails?: Maybe<Array<Maybe<Scalars['String']>>>;

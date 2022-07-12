@@ -1388,6 +1388,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         metric_to_monitor
         last_admin_to_edit_id
         threshold
+        units
         disabled
     }
 }

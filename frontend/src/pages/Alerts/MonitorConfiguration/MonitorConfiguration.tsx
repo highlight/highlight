@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button';
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
@@ -11,6 +12,7 @@ import {
 import { namedOperations } from '@graph/operations';
 import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
+import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -39,6 +41,8 @@ interface Props {
     onAggregatePeriodChange: (newPeriod: string) => void;
     threshold: number;
     onThresholdChange: (newThreshold: number) => void;
+    units?: string;
+    onUnitsChange: (newUnits: string) => void;
     slackChannels: string[];
     onSlackChannelsChange: (newChannels: string[]) => void;
     emails: string[];
@@ -83,6 +87,8 @@ const MonitorConfiguration = ({
     onMonitorNameChange,
     onMetricToMonitorNameChange,
     onThresholdChange,
+    units,
+    onUnitsChange,
     onSlackChannelsChange,
     slackChannels,
     formDestructiveButtonLabel,
@@ -112,7 +118,7 @@ const MonitorConfiguration = ({
                     end_date: endDate.toISOString(),
                 },
                 resolution_minutes: aggregatePeriodMinutes,
-                units: 'ms',
+                units: units || undefined,
             },
         },
     });
@@ -235,7 +241,7 @@ const MonitorConfiguration = ({
                             lineColorMapping={{
                                 value: 'var(--color-blue-400)',
                             }}
-                            yAxisLabel={config.units}
+                            yAxisLabel={units || ''}
                             referenceAreaProps={
                                 graphData.length > 0
                                     ? {
@@ -347,15 +353,29 @@ const MonitorConfiguration = ({
                         </b>
                         .
                     </p>
-                    <Input
-                        addonAfter={config?.units || undefined}
-                        value={threshold}
-                        onChange={(e) => {
-                            onThresholdChange(
-                                (e.target.value as unknown) as number
-                            );
-                        }}
-                    />
+                    <div className={styles.thresholdRow}>
+                        <Input
+                            className={styles.threshold}
+                            value={threshold}
+                            onChange={(e) => {
+                                onThresholdChange(
+                                    (e.target.value as unknown) as number
+                                );
+                            }}
+                        />
+                        <StandardDropdown
+                            className={styles.thresholdUnits}
+                            data={UNIT_OPTIONS}
+                            value={
+                                UNIT_OPTIONS.filter(
+                                    (x) => x.value === (units || '')
+                                )[0]
+                            }
+                            onSelect={(value) =>
+                                onUnitsChange(value || undefined)
+                            }
+                        />
+                    </div>
                 </section>
 
                 <section>

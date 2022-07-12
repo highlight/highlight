@@ -2244,6 +2244,7 @@ export const CreateMetricMonitorDocument = gql`
         $name: String!
         $aggregator: MetricAggregator!
         $threshold: Float!
+        $units: String
         $periodMinutes: Int
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
@@ -2252,6 +2253,7 @@ export const CreateMetricMonitorDocument = gql`
         createMetricMonitor(
             project_id: $project_id
             threshold: $threshold
+            units: $units
             name: $name
             aggregator: $aggregator
             periodMinutes: $periodMinutes
@@ -2272,6 +2274,7 @@ export const CreateMetricMonitorDocument = gql`
             metric_to_monitor
             last_admin_to_edit_id
             threshold
+            units
         }
     }
 `;
@@ -2297,6 +2300,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
@@ -2330,6 +2334,7 @@ export const UpdateMetricMonitorDocument = gql`
         $name: String!
         $aggregator: MetricAggregator!
         $threshold: Float!
+        $units: String
         $periodMinutes: Int
         $metric_to_monitor: String!
         $slack_channels: [SanitizedSlackChannelInput]!
@@ -2340,6 +2345,7 @@ export const UpdateMetricMonitorDocument = gql`
             metric_monitor_id: $metric_monitor_id
             project_id: $project_id
             threshold: $threshold
+            units: $units
             name: $name
             aggregator: $aggregator
             periodMinutes: $periodMinutes
@@ -2361,6 +2367,7 @@ export const UpdateMetricMonitorDocument = gql`
             metric_to_monitor
             last_admin_to_edit_id
             threshold
+            units
         }
     }
 `;
@@ -2387,6 +2394,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
@@ -9215,6 +9223,7 @@ export const GetAlertsPagePayloadDocument = gql`
             metric_to_monitor
             last_admin_to_edit_id
             threshold
+            units
             disabled
         }
     }

@@ -23,3 +23,13 @@
     top: 36px;
     z-index: 99999;
 }
+
+.thresholdRow {
+    display: flex;
+}
+.threshold {
+    flex-grow: 1;
+}
+.thresholdUnits {
+    flex-shrink: 1;
+}

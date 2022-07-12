@@ -15,6 +15,7 @@ export const StandardDropdown = ({
     onSelect,
     display,
     defaultValue,
+    value,
     disabled,
     className,
     labelClassName,
@@ -23,12 +24,18 @@ export const StandardDropdown = ({
     onSelect: React.Dispatch<React.SetStateAction<any>>;
     display?: React.ReactNode;
     defaultValue?: Option;
+    value?: Option;
     disabled?: boolean;
     className?: string;
     labelClassName?: string;
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
+    useEffect(() => {
+        if (value !== undefined) {
+            setSelection(value);
+        }
+    }, [value]);
 
     useEffect(() => {
         if (defaultValue) {
