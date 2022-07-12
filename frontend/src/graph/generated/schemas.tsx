@@ -245,6 +245,14 @@ export type Account = {
     member_limit: Scalars['Int'];
 };
 
+export type AccountDetailsMember = {
+    __typename?: 'AccountDetailsMember';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    email: Scalars['String'];
+    last_active?: Maybe<Scalars['Timestamp']>;
+};
+
 export type AccountDetails = {
     __typename?: 'AccountDetails';
     id: Scalars['ID'];
@@ -252,6 +260,7 @@ export type AccountDetails = {
     session_count_per_month?: Maybe<Array<Maybe<NamedCount>>>;
     session_count_per_day?: Maybe<Array<Maybe<NamedCount>>>;
     stripe_customer_id: Scalars['String'];
+    members: Array<AccountDetailsMember>;
 };
 
 export type NamedCount = {

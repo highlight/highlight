@@ -215,12 +215,20 @@ type Account {
     member_limit: Int!
 }
 
+type AccountDetailsMember {
+    id: ID!
+    name: String!
+    email: String!
+    last_active: Timestamp
+}
+
 type AccountDetails {
     id: ID!
     name: String!
     session_count_per_month: [NamedCount]
     session_count_per_day: [NamedCount]
     stripe_customer_id: String!
+    members: [AccountDetailsMember!]!
 }
 
 type NamedCount {
@@ -995,7 +1003,11 @@ type Query {
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
     metric_tags(project_id: ID!, metric_name: String!): [String!]!
-    metric_tag_values(project_id: ID!, metric_name: String!, tag_name: String!): [String!]!
+    metric_tag_values(
+        project_id: ID!
+        metric_name: String!
+        tag_name: String!
+    ): [String!]!
     metrics_timeline(
         project_id: ID!
         metric_name: String!

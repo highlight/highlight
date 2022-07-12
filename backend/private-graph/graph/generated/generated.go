@@ -80,10 +80,18 @@ type ComplexityRoot struct {
 
 	AccountDetails struct {
 		ID                   func(childComplexity int) int
+		Members              func(childComplexity int) int
 		Name                 func(childComplexity int) int
 		SessionCountPerDay   func(childComplexity int) int
 		SessionCountPerMonth func(childComplexity int) int
 		StripeCustomerID     func(childComplexity int) int
+	}
+
+	AccountDetailsMember struct {
+		Email      func(childComplexity int) int
+		ID         func(childComplexity int) int
+		LastActive func(childComplexity int) int
+		Name       func(childComplexity int) int
 	}
 
 	Admin struct {
@@ -1217,6 +1225,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AccountDetails.ID(childComplexity), true
 
+	case "AccountDetails.members":
+		if e.complexity.AccountDetails.Members == nil {
+			break
+		}
+
+		return e.complexity.AccountDetails.Members(childComplexity), true
+
 	case "AccountDetails.name":
 		if e.complexity.AccountDetails.Name == nil {
 			break
@@ -1244,6 +1259,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AccountDetails.StripeCustomerID(childComplexity), true
+
+	case "AccountDetailsMember.email":
+		if e.complexity.AccountDetailsMember.Email == nil {
+			break
+		}
+
+		return e.complexity.AccountDetailsMember.Email(childComplexity), true
+
+	case "AccountDetailsMember.id":
+		if e.complexity.AccountDetailsMember.ID == nil {
+			break
+		}
+
+		return e.complexity.AccountDetailsMember.ID(childComplexity), true
+
+	case "AccountDetailsMember.last_active":
+		if e.complexity.AccountDetailsMember.LastActive == nil {
+			break
+		}
+
+		return e.complexity.AccountDetailsMember.LastActive(childComplexity), true
+
+	case "AccountDetailsMember.name":
+		if e.complexity.AccountDetailsMember.Name == nil {
+			break
+		}
+
+		return e.complexity.AccountDetailsMember.Name(childComplexity), true
 
 	case "Admin.about_you_details_filled":
 		if e.complexity.Admin.AboutYouDetailsFilled == nil {
@@ -6248,12 +6291,20 @@ type Account {
     member_limit: Int!
 }
 
+type AccountDetailsMember {
+    id: ID!
+    name: String!
+    email: String!
+    last_active: Timestamp
+}
+
 type AccountDetails {
     id: ID!
     name: String!
     session_count_per_month: [NamedCount]
     session_count_per_day: [NamedCount]
     stripe_customer_id: String!
+    members: [AccountDetailsMember!]!
 }
 
 type NamedCount {
@@ -7028,7 +7079,11 @@ type Query {
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
     metric_tags(project_id: ID!, metric_name: String!): [String!]!
-    metric_tag_values(project_id: ID!, metric_name: String!, tag_name: String!): [String!]!
+    metric_tag_values(
+        project_id: ID!
+        metric_name: String!
+        tag_name: String!
+    ): [String!]!
     metrics_timeline(
         project_id: ID!
         metric_name: String!
@@ -12937,6 +12992,178 @@ func (ec *executionContext) _AccountDetails_stripe_customer_id(ctx context.Conte
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetails_members(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Members, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AccountDetailsMember)
+	fc.Result = res
+	return ec.marshalNAccountDetailsMember2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetailsMemberᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetailsMember_id(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetailsMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetailsMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetailsMember_name(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetailsMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetailsMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetailsMember_email(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetailsMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetailsMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AccountDetailsMember_last_active(ctx context.Context, field graphql.CollectedField, obj *model.AccountDetailsMember) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AccountDetailsMember",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastActive, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_id(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -35377,6 +35604,74 @@ func (ec *executionContext) _AccountDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "members":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AccountDetails_members(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var accountDetailsMemberImplementors = []string{"AccountDetailsMember"}
+
+func (ec *executionContext) _AccountDetailsMember(ctx context.Context, sel ast.SelectionSet, obj *model.AccountDetailsMember) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, accountDetailsMemberImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AccountDetailsMember")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AccountDetailsMember_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AccountDetailsMember_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AccountDetailsMember_email(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "last_active":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AccountDetailsMember_last_active(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43776,6 +44071,60 @@ func (ec *executionContext) marshalNAccountDetails2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._AccountDetails(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAccountDetailsMember2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetailsMemberᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AccountDetailsMember) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAccountDetailsMember2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetailsMember(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAccountDetailsMember2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAccountDetailsMember(ctx context.Context, sel ast.SelectionSet, v *model.AccountDetailsMember) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AccountDetailsMember(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*model1.Admin) graphql.Marshaler {

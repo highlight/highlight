@@ -380,6 +380,12 @@ query GetAccountDetails($workspace_id: ID!) {
             count
         }
         stripe_customer_id
+        members {
+            id
+            name
+            email
+            last_active
+        }
     }
 }
 
@@ -1469,8 +1475,16 @@ query GetMetricTags($project_id: ID!, $metric_name: String!) {
     metric_tags(project_id: $project_id, metric_name: $metric_name)
 }
 
-query GetMetricTagValues($project_id: ID!, $metric_name: String!, $tag_name: String!) {
-    metric_tag_values(project_id: $project_id, metric_name: $metric_name, tag_name: $tag_name)
+query GetMetricTagValues(
+    $project_id: ID!
+    $metric_name: String!
+    $tag_name: String!
+) {
+    metric_tag_values(
+        project_id: $project_id
+        metric_name: $metric_name
+        tag_name: $tag_name
+    )
 }
 
 query GetSourcemapFiles($project_id: ID!, $version: String) {
