@@ -441,12 +441,11 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	return &signedURL, nil
 }
 
-func (s *StorageClient) UploadAsset(uuid string, contentLength int64, contentType string, reader io.Reader) error {
+func (s *StorageClient) UploadAsset(uuid string, contentType string, reader io.Reader) error {
 	_, err := s.S3ClientEast2.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:        pointy.String(S3ResourcesBucketName),
-		Key:           pointy.String(uuid),
-		Body:          reader,
-		ContentLength: contentLength,
+		Bucket: pointy.String(S3ResourcesBucketName),
+		Key:    pointy.String(uuid),
+		Body:   reader,
 		Metadata: map[string]string{
 			"Content-Type": contentType,
 		},

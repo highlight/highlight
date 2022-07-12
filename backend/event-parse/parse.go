@@ -291,27 +291,27 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 		if ok {
 			hashVal = result.HashVal
 		} else {
+			log.Info("get!")
 			response, err := http.Get(url)
+			log.Info("got!")
 			if err != nil {
 				hashVal = ErrFailedToFetch
-			} else if response.ContentLength == -1 {
-				hashVal = ErrAssetSizeUnknown
 			} else if response.ContentLength > 30e6 {
 				hashVal = ErrAssetTooLarge
 			} else {
 				hasher := sha256.New()
 				pr, pw := io.Pipe()
-				log.Debug("hello!")
+				log.Info("hello!")
 				tr := io.TeeReader(response.Body, pw)
-				log.Debug("hello2!")
+				log.Info("hello2!")
 				if _, err := io.Copy(hasher, tr); err != nil {
-					log.Debug("goodbye :(")
+					log.Info("goodbye :(")
 					return nil, errors.Wrap(err, "error hashing response body")
 				}
-				log.Debug("hello3!")
+				log.Info("hello3!")
 				hashVal = string(hasher.Sum(nil))
 				contentType := response.Header.Get("Content-Type")
-				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, response.ContentLength, contentType, pr)
+				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, contentType, pr)
 				if err != nil {
 					return nil, errors.Wrap(err, "error uploading asset")
 				}
