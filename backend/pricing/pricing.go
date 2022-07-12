@@ -3,6 +3,7 @@ package pricing
 import (
 	"context"
 	"fmt"
+	"github.com/openlyinc/pointy"
 	"os"
 	"time"
 
@@ -98,18 +99,18 @@ func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (i
 	return queriedSessionsOverQuota, nil
 }
 
-func TypeToMemberLimit(planType backend.PlanType) int {
+func TypeToMemberLimit(planType backend.PlanType) *int {
 	switch planType {
 	case backend.PlanTypeFree:
-		return 2
+		return pointy.Int(2)
 	case backend.PlanTypeBasic:
-		return 2
+		return pointy.Int(2)
 	case backend.PlanTypeStartup:
-		return 8
+		return nil
 	case backend.PlanTypeEnterprise:
-		return 15
+		return nil
 	default:
-		return 2
+		return pointy.Int(2)
 	}
 }
 
@@ -140,20 +141,6 @@ func FromPriceID(priceID string) backend.PlanType {
 		return backend.PlanTypeEnterprise
 	}
 	return backend.PlanTypeFree
-}
-
-func ToPriceID(plan backend.PlanType) string {
-	switch plan {
-	case backend.PlanTypeFree:
-		return os.Getenv("FREE_PLAN_PRICE_ID")
-	case backend.PlanTypeBasic:
-		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case backend.PlanTypeStartup:
-		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case backend.PlanTypeEnterprise:
-		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
-	}
-	return ""
 }
 
 // MustUpgradeForClearbit shows when tier is insufficient for Clearbit.
@@ -263,10 +250,6 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	return priceMap, nil
 }
 
-func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
-	return reportUsage(DB, stripeClient, workspaceID, &productType, true)
-}
-
 func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
 	return reportUsage(DB, stripeClient, workspaceID, nil, true)
 }
@@ -370,15 +353,15 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 
 		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier))
 		if workspace.MonthlyMembersLimit != nil {
-			limit = *workspace.MonthlyMembersLimit
+			limit = workspace.MonthlyMembersLimit
 		}
 
 		overage := int64(0)
-		if meter > int64(limit) {
-			overage = meter - int64(limit)
+		if limit != nil && meter > int64(*limit) {
+			overage = meter - int64(*limit)
 		}
 
-		log.Infof("reporting members usage for workspace %d", workspaceID)
+		log.Infof("reporting members usage for workspace %d. %d members, %d overage", workspaceID, meter, overage)
 		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
 			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
@@ -409,7 +392,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		if reportToHubspot && !util.IsDevEnv() {
 			go func() {
 				api := hubspotAPI.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), DB)
-				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{hubspot.Property{
+				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{{
 					Name:     "highlight_session_count",
 					Property: "highlight_session_count",
 					Value:    meter,
