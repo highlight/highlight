@@ -116,6 +116,7 @@ const LineChart = ({
         nonXAxisKeys
     );
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
+    const [showTooltip, setShowTooltip] = React.useState(false);
 
     return (
         <>
@@ -147,8 +148,16 @@ const LineChart = ({
                         bottom: 0,
                     }}
                     syncId={syncId}
+                    onMouseLeave={() => setShowTooltip(false)}
                     onMouseDown={onMouseDown}
-                    onMouseMove={onMouseMove}
+                    onMouseMove={(e: any) => {
+                        // Not using mouseEnter because it was unreliable.
+                        setShowTooltip(true);
+
+                        if (typeof onMouseMove === 'function') {
+                            onMouseMove(e);
+                        }
+                    }}
                     onMouseUp={onMouseUp}
                 >
                     <CartesianGrid
@@ -181,9 +190,9 @@ const LineChart = ({
                     <Tooltip
                         position={{ y: 0 }}
                         content={
-                            <RechartTooltip
-                                render={(payload: any[]) => {
-                                    return (
+                            showTooltip ? (
+                                <RechartTooltip
+                                    render={(payload: any[]) => (
                                         <CustomTooltip
                                             payload={payload}
                                             yAxisLabel={yAxisLabel}
@@ -191,11 +200,14 @@ const LineChart = ({
                                             precision={1}
                                             units={yAxisLabel}
                                         />
-                                    );
-                                }}
-                            />
+                                    )}
+                                />
+                            ) : (
+                                <></>
+                            )
                         }
                     />
+
                     {!hideLegend && (
                         <Legend
                             verticalAlign="bottom"
