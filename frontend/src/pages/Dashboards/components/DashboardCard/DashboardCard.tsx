@@ -587,23 +587,29 @@ const EditMetricModal = ({
                             onSelectMetric={setMetricName}
                             currentMetric={metricName}
                         />
-                        <StandardDropdown
-                            data={Object.values(MetricAggregator).map((v) => ({
-                                label: v,
-                                value: v,
-                            }))}
-                            defaultValue={
-                                Object.values(MetricAggregator)
-                                    .filter(
-                                        (x) => x === metricConfig.aggregator
-                                    )
-                                    .map((v) => ({
+                        {chartType === DashboardChartType.Timeline ? (
+                            <StandardDropdown
+                                data={Object.values(MetricAggregator).map(
+                                    (v) => ({
                                         label: v,
                                         value: v,
-                                    }))[0]
-                            }
-                            onSelect={(value) => setAggregator(value)}
-                        />
+                                    })
+                                )}
+                                defaultValue={
+                                    Object.values(MetricAggregator)
+                                        .filter(
+                                            (x) => x === metricConfig.aggregator
+                                        )
+                                        .map((v) => ({
+                                            label: v,
+                                            value: v,
+                                        }))[0]
+                                }
+                                onSelect={(value) => setAggregator(value)}
+                            />
+                        ) : (
+                            <div />
+                        )}
                         <StandardDropdown
                             data={UNIT_OPTIONS}
                             defaultValue={
