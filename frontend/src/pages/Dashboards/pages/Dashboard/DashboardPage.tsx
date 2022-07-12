@@ -37,8 +37,6 @@ const timeFilters = [
     { label: 'Last 30 days', value: 30 * 24 * 60 },
 ] as { label: string; value: number }[];
 
-// Range selection logic:
-// - By default, get the value from localStorage and assign that
 const DashboardPage = () => {
     const history = useHistory();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();

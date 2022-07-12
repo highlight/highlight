@@ -883,12 +883,12 @@ const ChartContainer = React.memo(
         }, [chartType, dateRange.start_date, dateRange.end_date]);
 
         useEffect(() => {
+            if (refetchInterval.current) {
+                window.clearInterval(refetchInterval.current);
+            }
+
             // Stop polling once a user selects a custom range.
             if (customDateRange) {
-                if (interval) {
-                    window.clearInterval(interval);
-                }
-
                 return;
             }
 
@@ -904,9 +904,7 @@ const ChartContainer = React.memo(
                 );
             };
 
-            if (refetchInterval.current) {
-                window.clearInterval(refetchInterval.current);
-            } else {
+            if (!refetchInterval.current) {
                 handler();
             }
 
