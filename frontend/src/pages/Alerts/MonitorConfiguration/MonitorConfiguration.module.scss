@@ -23,7 +23,6 @@
     top: 36px;
     z-index: 99999;
 
-
     :global(.ant-slider:hover .ant-slider-track) {
         background-color: var(--color-blue-400) !important;
     }
@@ -53,7 +52,6 @@
         border-color: var(--color-blue-400) !important;
         box-shadow: 0 0 0 5px var(--color-blue-400) !important;
     }
-
 }
 
 .thresholdRow {
