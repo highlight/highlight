@@ -32,8 +32,7 @@ import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
-import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
-import { roundDate } from '@pages/Dashboards/DashboardsRouter';
+import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -60,15 +59,27 @@ type DeleteMetricFn = (idx: number) => void;
 interface Props {
     metricIdx: number;
     metricConfig: DashboardMetricConfig;
+    lookbackMinutes: number;
+    dateRange: { start_date: string; end_date: string };
+    customDateRange: { label: string; value: number } | undefined;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
+    setDateRange: (
+        start_date: string,
+        end_date: string,
+        custom?: boolean
+    ) => void;
 }
 
 const DashboardCard = ({
     metricIdx,
     metricConfig,
+    lookbackMinutes,
+    dateRange,
+    customDateRange,
     updateMetric,
     deleteMetric,
+    setDateRange,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -261,10 +272,14 @@ const DashboardCard = ({
                         metricConfig.max_needs_improvement_value
                     }
                     poorValue={metricConfig.poor_value}
+                    lookbackMinutes={lookbackMinutes}
+                    dateRange={dateRange}
+                    customDateRange={customDateRange}
                     updateMetric={updateMetric}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
+                    setDateRange={setDateRange}
                 />
             </Card>
         </>
@@ -761,13 +776,17 @@ const ChartContainer = React.memo(
         maxGoodValue,
         maxNeedsImprovementValue,
         poorValue,
+        showEditModal,
+        lookbackMinutes,
+        dateRange,
+        customDateRange,
         setMaxGoodValue,
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        showEditModal,
         setShowEditModal,
         setShowDeleteModal,
+        setDateRange,
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
@@ -776,44 +795,28 @@ const ChartContainer = React.memo(
         maxGoodValue: number;
         maxNeedsImprovementValue: number;
         poorValue: number;
+        showEditModal: boolean;
+        lookbackMinutes: Props['lookbackMinutes'];
+        dateRange: Props['dateRange'];
+        customDateRange: Props['customDateRange'];
         setMaxGoodValue?: (v: number) => void;
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
+        setDateRange: Props['setDateRange'];
     }) => {
-        const {
-            dateRange,
-            getLookbackMinutes,
-            setDateRange,
-        } = useDashboardsContext();
-        const lookbackMinutes = getLookbackMinutes();
         const NUM_BUCKETS = 60;
         const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
         const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
         const [referenceArea, setReferenceArea] = React.useState<{
-            start: number;
-            end: number;
-        }>({ start: 0, end: 0 });
+            start: string;
+            end: string;
+        }>({ start: '', end: '' });
         const refetchInterval = useRef<number>();
         const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
-        console.log('::: QUERY :::', {
-            variables: {
-                project_id,
-                metric_name: metricConfig.name,
-                params: {
-                    aggregator: aggregator,
-                    date_range: _.pick(dateRange, 'start_date', 'end_date'),
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    resolution_minutes: resolutionMinutes,
-                    units: metricConfig.units,
-                    filters: metricConfig.filters,
-                },
-            },
-        });
         const [
             loadTimeline,
             {
@@ -827,7 +830,7 @@ const ChartContainer = React.memo(
                 metric_name: metricConfig.name,
                 params: {
                     aggregator: aggregator,
-                    date_range: _.pick(dateRange, 'start_date', 'end_date'),
+                    date_range: dateRange,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
@@ -862,7 +865,6 @@ const ChartContainer = React.memo(
         });
 
         useEffect(() => {
-            if (!dateRange) return;
             if (chartType === DashboardChartType.Histogram) {
                 if (refetchHistogram) {
                     refetchHistogram().catch(console.error);
@@ -876,16 +878,11 @@ const ChartContainer = React.memo(
                     loadTimeline();
                 }
             }
-        }, [
-            chartType,
-            dateRange,
-            refetchHistogram,
-            refetchTimeline,
-            loadTimeline,
-            loadHistogram,
-        ]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [chartType, dateRange.start_date, dateRange.end_date]);
         useEffect(() => {
-            if (dateRange.custom) {
+            // Don't set the
+            if (customDateRange) {
                 if (refetchInterval.current) {
                     window.clearInterval(refetchInterval.current);
                 }
@@ -901,8 +898,7 @@ const ChartContainer = React.memo(
 
                 setDateRange(
                     startDate.subtract(lookbackMinutes, 'minutes').format(),
-                    endDate.format(),
-                    false
+                    endDate.format()
                 );
             };
 
@@ -912,10 +908,14 @@ const ChartContainer = React.memo(
                 handler();
             }
 
-            refetchInterval.current = window.setInterval(handler, 60000);
-            // Only want this to fire on initialization.
+            return () => {
+                window.clearInterval(refetchInterval.current);
+            };
+
+            // refetchInterval.current = window.setInterval(handler, 60000);
+            // Only invoke on initialization and custom date range selection.
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [dateRange.custom]);
+        }, [customDateRange?.value]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
@@ -1029,10 +1029,9 @@ const ChartContainer = React.memo(
                         )}
                         referenceLines={referenceLines}
                         xAxisDataKeyName="date"
-                        xAxisTickFormatter={(tickItem) => {
-                            console.log('FORMAT TICK', tickItem);
-                            return moment(tickItem).format(tickFormat);
-                        }}
+                        xAxisTickFormatter={(tickItem) =>
+                            moment(tickItem).format(tickFormat)
+                        }
                         xAxisProps={{
                             ticks: ticks,
                             domain: ['dataMin', 'dataMax'],
@@ -1071,7 +1070,7 @@ const ChartContainer = React.memo(
                                 });
                         }}
                         onMouseUp={() => {
-                            if (Object.values(referenceArea).includes(0)) {
+                            if (Object.values(referenceArea).includes('')) {
                                 return;
                             }
 
@@ -1083,7 +1082,7 @@ const ChartContainer = React.memo(
                                 setDateRange(end, start, true);
                             }
 
-                            setReferenceArea({ start: 0, end: 0 });
+                            setReferenceArea({ start: '', end: '' });
                         }}
                     />
                 ) : null}
@@ -1114,7 +1113,8 @@ const ChartContainer = React.memo(
         _.isEqual(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
-        )
+        ) &&
+        _.isEqual(prevProps.dateRange, nextProps.dateRange)
 );
 
 export default DashboardCard;

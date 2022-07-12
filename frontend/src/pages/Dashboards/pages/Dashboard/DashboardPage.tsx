@@ -8,13 +8,13 @@ import { DashboardDefinition, DashboardMetricConfig } from '@graph/schemas';
 import PlusIcon from '@icons/PlusIcon';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
-import { timeFilters } from '@pages/Dashboards/DashboardsRouter';
 import {
     DEFAULT_SINGLE_LAYOUT,
     getDefaultMetricConfig,
     LAYOUT_CHART_WIDTH,
     LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -27,42 +27,78 @@ import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
+const timeFilters = [
+    { label: 'Last 1 minute', value: 1 },
+    { label: 'Last 15 minutes', value: 15 },
+    { label: 'Last 1 hours', value: 60 },
+    { label: 'Last 6 hours', value: 6 * 60 },
+    { label: 'Last 24 hours', value: 24 * 60 },
+    { label: 'Last 7 days', value: 7 * 24 * 60 },
+    { label: 'Last 30 days', value: 30 * 24 * 60 },
+] as { label: string; value: number }[];
+
 // Range selection logic:
 // - By default, get the value from localStorage and assign that
 const DashboardPage = () => {
     const history = useHistory();
-    const { id } = useParams<{ id: string }>();
-    const {
-        dashboards,
-        updateDashboard,
-        dateRange,
-        setDateRange,
-        getLookbackMinutes,
-        setDateRangeLength,
-    } = useDashboardsContext();
-    const [selectedFilter, setSelectedFilter] = React.useState<{
+    const { project_id, id } = useParams<{ project_id: string; id: string }>();
+    const [dateRangeLength, setDateRangeLength] = useLocalStorage(
+        `highlight-dashboard-${project_id}-${id}-date-range-v2`,
+        timeFilters[1]
+    );
+    const [customDateRange, setCustomDateRange] = React.useState<{
         label: string;
         value: number;
     }>();
+    const [dateRange, setDateRange] = React.useState<{
+        start_date: string;
+        end_date: string;
+    }>({
+        start_date: moment()
+            .subtract(dateRangeLength.value, 'minutes')
+            .format(),
+        end_date: moment().format(),
+    });
+
+    const lookbackMinutes = moment
+        .duration(moment(dateRange.end_date).diff(moment(dateRange.start_date)))
+        .asMinutes();
+
+    const updateDateRange = (start: string, end: string, custom = false) => {
+        const startDate = moment(start);
+        const endDate = moment(end);
+        const minutesDiff = moment
+            .duration(endDate.diff(startDate))
+            .asMinutes();
+
+        const roundedEnd = roundDate(endDate, Math.min(15, minutesDiff));
+        const roundedStart = roundDate(startDate, Math.min(15, minutesDiff));
+
+        if (custom) {
+            const customDateRange = {
+                label: `${startDate.format('MMM D, LT')} - ${endDate.format(
+                    'MMM D, LT'
+                )}`,
+                value: lookbackMinutes,
+            };
+
+            setCustomDateRange(customDateRange);
+        } else {
+            setCustomDateRange(undefined);
+        }
+
+        setDateRange({
+            start_date: moment(roundedStart).format(
+                'YYYY-MM-DDTHH:mm:00.000000000Z'
+            ),
+            end_date: roundedEnd.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+        });
+    };
+
+    const { dashboards, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
-
-    useEffect(() => {
-        if (dateRange.custom) {
-            const filter = {
-                label: `${moment(dateRange.start_date).format(
-                    'MMM D, LT'
-                )} - ${moment(dateRange.end_date).format('MMM D, LT')}`,
-                value: getLookbackMinutes(),
-            };
-
-            setSelectedFilter(filter);
-        }
-
-        // Only want this invoked when the date range is updated.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dateRange.custom]);
 
     useEffect(() => {
         const dashboard = dashboards.find((d) => d?.id === id);
@@ -157,11 +193,11 @@ const DashboardPage = () => {
                 </HighlightGate>
                 <StandardDropdown
                     data={
-                        selectedFilter
-                            ? [selectedFilter, ...timeFilters]
+                        customDateRange
+                            ? [customDateRange, ...timeFilters]
                             : timeFilters
                     }
-                    defaultValue={selectedFilter}
+                    defaultValue={customDateRange || dateRangeLength}
                     onSelect={(value) => {
                         const endDate = moment(new Date());
                         const startDate = moment(new Date()).subtract(
@@ -169,18 +205,10 @@ const DashboardPage = () => {
                             'minutes'
                         );
 
-                        setDateRange(
-                            startDate.format(),
-                            endDate.format(),
-                            false
+                        updateDateRange(startDate.format(), endDate.format());
+                        setDateRangeLength(
+                            timeFilters.filter((f) => f.value === value)[0]
                         );
-
-                        const selected = timeFilters.filter(
-                            (f) => f.value === value
-                        )[0];
-
-                        setSelectedFilter(selected);
-                        setDateRangeLength(selected);
                     }}
                     className={styles.dateRangePicker}
                 />
@@ -234,6 +262,10 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
+                                lookbackMinutes={lookbackMinutes}
+                                customDateRange={customDateRange}
+                                dateRange={dateRange}
+                                setDateRange={updateDateRange}
                             />
                         </div>
                     ))}
@@ -241,6 +273,11 @@ const DashboardPage = () => {
             </div>
         </>
     );
+};
+
+export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 export default DashboardPage;
