@@ -883,9 +883,6 @@ const ChartContainer = React.memo(
         }, [chartType, dateRange.start_date, dateRange.end_date]);
 
         useEffect(() => {
-            // Assign to a var to ensure it's available in cleanup function.
-            const interval = refetchInterval.current;
-
             // Stop polling once a user selects a custom range.
             if (customDateRange) {
                 if (interval) {
@@ -907,17 +904,19 @@ const ChartContainer = React.memo(
                 );
             };
 
-            if (interval) {
-                window.clearInterval(interval);
+            if (refetchInterval.current) {
+                window.clearInterval(refetchInterval.current);
             } else {
                 handler();
             }
 
-            return () => {
-                window.clearInterval(interval);
-            };
-
             refetchInterval.current = window.setInterval(handler, 60000);
+
+            // Refs could be cleaned up before the cleanup method is invoked.
+            // Hook warnings said to assign to a var to ensure it's available.
+            const interval = refetchInterval.current;
+            return () => window.clearInterval(interval);
+
             // Only invoke on initialization and custom date range selection.
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [customDateRange?.value]);
