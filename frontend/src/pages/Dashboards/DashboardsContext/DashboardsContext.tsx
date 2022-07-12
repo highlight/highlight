@@ -28,12 +28,18 @@ interface DashboardsContext {
         metrics: DashboardMetricConfigInput[];
         layout?: string;
     }) => Promise<FetchResult<UpsertDashboardMutation>>;
-    dateRange: { start_date: string; end_date: string } | undefined;
+    dateRange: {
+        start_date: string;
+        end_date: string;
+        custom: boolean;
+    };
     setDateRange: (
         startDate: moment.MomentInput,
-        endDate: moment.MomentInput
+        endDate: moment.MomentInput,
+        custom: boolean
     ) => void;
-    lookbackMinutes: number;
+    getLookbackMinutes: () => number;
+    setDateRangeLength: (filter: { label: string; value: number }) => void;
 }
 
 export const [

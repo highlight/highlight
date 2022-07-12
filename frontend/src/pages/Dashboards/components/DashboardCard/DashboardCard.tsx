@@ -786,22 +786,34 @@ const ChartContainer = React.memo(
     }) => {
         const {
             dateRange,
-            lookbackMinutes,
+            getLookbackMinutes,
             setDateRange,
         } = useDashboardsContext();
+        const lookbackMinutes = getLookbackMinutes();
         const NUM_BUCKETS = 60;
         const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
         const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
         const [referenceArea, setReferenceArea] = React.useState<{
-            left: number;
-            right: number;
-        }>({ left: 0, right: 0 });
+            start: number;
+            end: number;
+        }>({ start: 0, end: 0 });
         const refetchInterval = useRef<number>();
-        const resolutionMinutes = Math.ceil(
-            moment.duration(lookbackMinutes, 'minutes').as('minutes') /
-                NUM_BUCKETS
-        );
+        const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
+        console.log('::: QUERY :::', {
+            variables: {
+                project_id,
+                metric_name: metricConfig.name,
+                params: {
+                    aggregator: aggregator,
+                    date_range: _.pick(dateRange, 'start_date', 'end_date'),
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    resolution_minutes: resolutionMinutes,
+                    units: metricConfig.units,
+                    filters: metricConfig.filters,
+                },
+            },
+        });
         const [
             loadTimeline,
             {
@@ -815,7 +827,7 @@ const ChartContainer = React.memo(
                 metric_name: metricConfig.name,
                 params: {
                     aggregator: aggregator,
-                    date_range: dateRange,
+                    date_range: _.pick(dateRange, 'start_date', 'end_date'),
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
@@ -873,14 +885,24 @@ const ChartContainer = React.memo(
             loadHistogram,
         ]);
         useEffect(() => {
+            if (dateRange.custom) {
+                if (refetchInterval.current) {
+                    window.clearInterval(refetchInterval.current);
+                }
+
+                return;
+            }
+
             const handler = () => {
                 // this ensures that even for large time ranges data will only be cached
                 // for up to 1 minutes (cache key is based on the arguments).
-                const now = roundDate(moment(new Date()), 1);
+                const startDate = roundDate(moment(new Date()), 1);
+                const endDate = roundDate(moment(new Date()), 1);
 
                 setDateRange(
-                    moment(now).subtract(lookbackMinutes, 'minutes').format(),
-                    now.format()
+                    startDate.subtract(lookbackMinutes, 'minutes').format(),
+                    endDate.format(),
+                    false
                 );
             };
 
@@ -889,8 +911,11 @@ const ChartContainer = React.memo(
             } else {
                 handler();
             }
+
             refetchInterval.current = window.setInterval(handler, 60000);
-        }, [lookbackMinutes]);
+            // Only want this to fire on initialization.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [dateRange.custom]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
@@ -1027,22 +1052,22 @@ const ChartContainer = React.memo(
                         }}
                         yAxisLabel={metricConfig.units}
                         referenceAreaProps={{
-                            x1: referenceArea.left,
-                            x2: referenceArea.right,
+                            x1: referenceArea.start,
+                            x2: referenceArea.end,
                         }}
                         onMouseDown={(e: any) => {
                             e.activeLabel &&
                                 setReferenceArea({
-                                    left: e.activeLabel,
-                                    right: referenceArea.right,
+                                    start: e.activeLabel,
+                                    end: referenceArea.end,
                                 });
                         }}
                         onMouseMove={(e: any) => {
                             e.activeLabel &&
-                                referenceArea.left &&
+                                referenceArea.start &&
                                 setReferenceArea({
-                                    left: referenceArea.left,
-                                    right: e.activeLabel,
+                                    start: referenceArea.start,
+                                    end: e.activeLabel,
                                 });
                         }}
                         onMouseUp={() => {
@@ -1050,11 +1075,15 @@ const ChartContainer = React.memo(
                                 return;
                             }
 
-                            setDateRange(
-                                referenceArea.left,
-                                referenceArea.right
-                            );
-                            setReferenceArea({ left: 0, right: 0 });
+                            const { start, end } = referenceArea;
+
+                            if (end > start) {
+                                setDateRange(start, end, true);
+                            } else {
+                                setDateRange(end, start, true);
+                            }
+
+                            setReferenceArea({ start: 0, end: 0 });
                         }}
                     />
                 ) : null}
