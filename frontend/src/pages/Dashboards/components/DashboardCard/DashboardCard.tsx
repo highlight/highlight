@@ -880,11 +880,15 @@ const ChartContainer = React.memo(
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [chartType, dateRange.start_date, dateRange.end_date]);
+
         useEffect(() => {
-            // Don't set the
+            // Assign to a var to ensure it's available in cleanup function.
+            const interval = refetchInterval.current;
+
+            // Stop polling once a user selects a custom range.
             if (customDateRange) {
-                if (refetchInterval.current) {
-                    window.clearInterval(refetchInterval.current);
+                if (interval) {
+                    window.clearInterval(interval);
                 }
 
                 return;
@@ -902,17 +906,17 @@ const ChartContainer = React.memo(
                 );
             };
 
-            if (refetchInterval.current) {
-                window.clearInterval(refetchInterval.current);
+            if (interval) {
+                window.clearInterval(interval);
             } else {
                 handler();
             }
 
             return () => {
-                window.clearInterval(refetchInterval.current);
+                window.clearInterval(interval);
             };
 
-            // refetchInterval.current = window.setInterval(handler, 60000);
+            refetchInterval.current = window.setInterval(handler, 60000);
             // Only invoke on initialization and custom date range selection.
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [customDateRange?.value]);
