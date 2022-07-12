@@ -3,7 +3,6 @@ package pricing
 import (
 	"context"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"os"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
