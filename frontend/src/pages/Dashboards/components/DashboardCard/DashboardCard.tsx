@@ -30,6 +30,7 @@ import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
+import SvgPlusIcon from '@icons/PlusIcon';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
@@ -131,8 +132,7 @@ const DashboardCard = ({
                                 {metricConfig.name.length ? (
                                     metricMonitorsLoading ? (
                                         <Skeleton width={111} />
-                                    ) : metricMonitors?.metric_monitors
-                                          .length ? (
+                                    ) : (
                                         <StandardDropdown
                                             display={
                                                 <div>
@@ -150,46 +150,59 @@ const DashboardCard = ({
                                                     }
                                                     {metricMonitors
                                                         ?.metric_monitors
-                                                        .length > 1
-                                                        ? ' Monitors'
-                                                        : ' Monitor'}
+                                                        .length === 1
+                                                        ? ' Monitor'
+                                                        : ' Monitors'}
                                                 </div>
                                             }
-                                            data={metricMonitors?.metric_monitors.map(
-                                                (mm) => ({
+                                            renderOption={(o) =>
+                                                o.label ===
+                                                'Create New Alert' ? (
+                                                    <>
+                                                        <div
+                                                            className={
+                                                                styles.createNewAlertRow
+                                                            }
+                                                        >
+                                                            <SvgPlusIcon
+                                                                style={{
+                                                                    marginRight:
+                                                                        'var(--size-xSmall)',
+                                                                    marginBottom: 2,
+                                                                }}
+                                                            />
+                                                            Create New Alert
+                                                        </div>
+                                                    </>
+                                                ) : undefined
+                                            }
+                                            data={[
+                                                ...(
+                                                    metricMonitors?.metric_monitors ||
+                                                    []
+                                                ).map((mm) => ({
                                                     label: mm?.name || '',
                                                     value: mm?.id || '',
-                                                })
-                                            )}
-                                            onSelect={(mmId) =>
-                                                history.push(
-                                                    `/${project_id}/alerts/monitor/${mmId}`
-                                                )
-                                            }
+                                                })),
+                                                {
+                                                    label: 'Create New Alert',
+                                                    value: -1,
+                                                },
+                                            ]}
+                                            onSelect={(mmId) => {
+                                                if (mmId === -1) {
+                                                    history.push(
+                                                        `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                                    );
+                                                } else {
+                                                    history.push(
+                                                        `/${project_id}/alerts/monitor/${mmId}`
+                                                    );
+                                                }
+                                            }}
                                             className={styles.monitorItem}
                                             labelClassName={styles.monitorName}
                                         />
-                                    ) : (
-                                        <Button
-                                            icon={
-                                                <SvgAnnouncementIcon
-                                                    style={{
-                                                        marginRight:
-                                                            'var(--size-xSmall)',
-                                                    }}
-                                                />
-                                            }
-                                            trackingId={
-                                                'DashboardCardCreateMonitor'
-                                            }
-                                            onClick={() => {
-                                                history.push(
-                                                    `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                                );
-                                            }}
-                                        >
-                                            Create Alert
-                                        </Button>
                                     )
                                 ) : (
                                     <div style={{ width: 161 }}></div>

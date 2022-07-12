@@ -14,6 +14,7 @@ export const StandardDropdown = ({
     data,
     onSelect,
     display,
+    renderOption,
     defaultValue,
     value,
     disabled,
@@ -23,6 +24,7 @@ export const StandardDropdown = ({
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
     display?: React.ReactNode;
+    renderOption?: (o: Option) => React.ReactNode | undefined;
     defaultValue?: Option;
     value?: Option;
     disabled?: boolean;
@@ -56,7 +58,11 @@ export const StandardDropdown = ({
                             setVisible(false);
                         }}
                     >
-                        <div className={styles.labelText}>{o?.label}</div>
+                        <div className={styles.labelText}>
+                            {renderOption && renderOption(o)
+                                ? renderOption(o)
+                                : o?.label}
+                        </div>
                     </div>
                 ))}
             </div>

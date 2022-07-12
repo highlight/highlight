@@ -3,6 +3,7 @@ export const button: string;
 export const card: string;
 export const cardHeader: string;
 export const chartButtons: string;
+export const createNewAlertRow: string;
 export const description: string;
 export const draggable: string;
 export const filtersRow: string;
