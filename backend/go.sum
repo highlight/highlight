@@ -453,8 +453,8 @@ github.com/hashicorp/vault/sdk v0.1.14-0.20200519221838-e0cfd64bc267/go.mod h1:W
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=
 github.com/hasura/go-graphql-client v0.3.0 h1:OazwBX920Fx+FEOPVVe7Xgax/Qbcnc2MoTyeVQVPRr8=
 github.com/hasura/go-graphql-client v0.3.0/go.mod h1:ovhXpnBL/+pYmmdYHndovgAc/wmhaXKvKwJETjtMomQ=
-github.com/highlight-run/highlight-go v0.4.0 h1:I+a/BgUJ+L7etFptSF9HBIbThKcLgZN8hEK0tsvx4WU=
-github.com/highlight-run/highlight-go v0.4.0/go.mod h1:5s0djwmGhlGcM67M8/ZLf2TWd9C5rNkyyRSb4KDQyeo=
+github.com/highlight-run/highlight-go v0.5.0 h1:FsgS97/QqHwEYqQpf/4p1hfejK8gb1eS8uGy6Z3J0Ls=
+github.com/highlight-run/highlight-go v0.5.0/go.mod h1:5s0djwmGhlGcM67M8/ZLf2TWd9C5rNkyyRSb4KDQyeo=
 github.com/highlight-run/opensearch-go v1.0.1 h1:LNe4qAgQnw8YwXpAzK2Uu2RLtx61wka08Kza5c4gj30=
 github.com/highlight-run/opensearch-go v1.0.1/go.mod h1:+6/XHCuTH+fwsMJikZEWsucZ4eZMma3zNSeLrTtVGbo=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=

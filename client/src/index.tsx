@@ -640,7 +640,19 @@ export class Highlight {
                     SESSION_PUSH_THRESHOLD
             ) {
                 this.sessionData = storedSessionData;
+                this.options.sessionSecureID = this.sessionData.sessionSecureID
                 reloaded = true;
+
+                // recreate the network listener with the exiting session secure id
+                if (this._firstLoadListeners.hasNetworkRecording) {
+                    // this adds a network listener on top of the existing one
+                    // this is ok because the new listener replaces the functionality of the
+                    // old one, and the second's stop function will be called last.
+                    FirstLoadListeners.setupNetworkListener(
+                        this._firstLoadListeners,
+                        this.options
+                    );
+                }
             } else {
                 // @ts-ignore
                 const client = new ClientJS();
