@@ -1,3 +1,36 @@
+// set the vertical chart slider color scheme
+:global {
+    .ant-slider:hover .ant-slider-track {
+        background-color: var(--color-blue-400) !important;
+    }
+
+    .ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
+        border-color: var(--color-blue-400) !important;
+    }
+
+    .ant-slider-dot {
+        border-color: var(--color-blue-400) !important;
+    }
+
+    .ant-slider-handle {
+        border-color: var(--color-blue-400) !important;
+    }
+
+    .ant-slider-handle:focus {
+        border-color: var(--color-blue-400) !important;
+        box-shadow: 0 0 0 5px var(--color-blue-400) !important;
+    }
+
+    .ant-slider-handle:hover {
+        border-color: var(--color-blue-400) !important;
+    }
+
+    .ant-slider-handle-dragging.ant-slider-handle-dragging.ant-slider-handle-dragging {
+        border-color: var(--color-blue-400) !important;
+        box-shadow: 0 0 0 5px var(--color-blue-400) !important;
+    }
+}
+
 .chartContainer {
     margin-bottom: var(--size-large);
 }
@@ -22,38 +55,6 @@
     left: 27px;
     top: 36px;
     z-index: 99999;
-
-    :global {
-        .ant-slider:hover .ant-slider-track {
-            background-color: var(--color-blue-400) !important;
-        }
-
-        .ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
-            border-color: var(--color-blue-400) !important;
-        }
-
-        .ant-slider-dot {
-            border-color: var(--color-blue-400) !important;
-        }
-
-        .ant-slider-handle {
-            border-color: var(--color-blue-400) !important;
-        }
-
-        .ant-slider-handle:focus {
-            border-color: var(--color-blue-400) !important;
-            box-shadow: 0 0 0 5px var(--color-blue-400) !important;
-        }
-
-        .ant-slider-handle:hover {
-            border-color: var(--color-blue-400) !important;
-        }
-
-        .ant-slider-handle-dragging.ant-slider-handle-dragging.ant-slider-handle-dragging {
-            border-color: var(--color-blue-400) !important;
-            box-shadow: 0 0 0 5px var(--color-blue-400) !important;
-        }
-    }
 }
 
 .thresholdRow {
