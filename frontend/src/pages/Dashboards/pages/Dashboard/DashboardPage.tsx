@@ -191,7 +191,7 @@ const DashboardPage = () => {
                             ? [customDateRange, ...timeFilters]
                             : timeFilters
                     }
-                    defaultValue={customDateRange || dateRangeLength}
+                    value={customDateRange || dateRangeLength}
                     onSelect={(value) => {
                         const endDate = moment(new Date());
                         const startDate = moment(new Date()).subtract(

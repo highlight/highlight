@@ -1,4 +1,5 @@
 import Button from '@components/Button/Button/Button';
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import Input from '@components/Input/Input';
 import LineChart from '@components/LineChart/LineChart';
 import Select, { OptionType } from '@components/Select/Select';
@@ -11,12 +12,12 @@ import {
 import { namedOperations } from '@graph/operations';
 import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
+import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
-import { Slider } from 'antd';
-import { Divider } from 'antd';
+import { Divider, Slider } from 'antd';
 import moment from 'moment';
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -39,6 +40,8 @@ interface Props {
     onAggregatePeriodChange: (newPeriod: string) => void;
     threshold: number;
     onThresholdChange: (newThreshold: number) => void;
+    units?: string;
+    onUnitsChange: (newUnits: string) => void;
     slackChannels: string[];
     onSlackChannelsChange: (newChannels: string[]) => void;
     emails: string[];
@@ -83,6 +86,8 @@ const MonitorConfiguration = ({
     onMonitorNameChange,
     onMetricToMonitorNameChange,
     onThresholdChange,
+    units,
+    onUnitsChange,
     onSlackChannelsChange,
     slackChannels,
     formDestructiveButtonLabel,
@@ -112,7 +117,7 @@ const MonitorConfiguration = ({
                     end_date: endDate.toISOString(),
                 },
                 resolution_minutes: aggregatePeriodMinutes,
-                units: 'ms',
+                units: units || undefined,
             },
         },
     });
@@ -128,9 +133,9 @@ const MonitorConfiguration = ({
             return [];
         }
 
-        const pointsToGenerate = 100;
-        const now = new Date();
-        if (!data) {
+        if (!data?.metrics_timeline.length) {
+            const now = new Date();
+            const pointsToGenerate = 100;
             return Array.from(new Array(pointsToGenerate)).map((_, index) => {
                 const randomValue =
                     Math.random() * (config.max_needs_improvement_value * 0.7) +
@@ -213,54 +218,74 @@ const MonitorConfiguration = ({
                     <Skeleton height="231px" />
                 ) : (
                     <>
-                        <div style={{ height: 163, position: 'absolute' }}>
-                            <Slider
-                                vertical
-                                className={styles.slider}
-                                tooltipPlacement={'bottom'}
-                                min={graphMin}
-                                max={Math.max(graphMax, threshold)}
-                                value={threshold}
-                                onChange={(v) => {
-                                    onThresholdChange(v);
+                        <div
+                            style={{
+                                position: 'relative',
+                                float: 'right',
+                                height: '100%',
+                                width: '100%',
+                            }}
+                        >
+                            <LineChart
+                                height={235}
+                                domain={[
+                                    graphMin,
+                                    Math.max(graphMax, threshold),
+                                ]}
+                                data={graphData}
+                                hideLegend
+                                xAxisDataKeyName="date"
+                                lineColorMapping={{
+                                    value: 'var(--color-blue-400)',
+                                }}
+                                yAxisLabel={units || ''}
+                                referenceAreaProps={
+                                    graphData.length > 0
+                                        ? {
+                                              x1: graphData[0].date,
+                                              y1: threshold,
+                                              fill: 'var(--color-red-200)',
+                                              fillOpacity: 0.3,
+                                          }
+                                        : undefined
+                                }
+                                referenceLines={[
+                                    {
+                                        value: threshold,
+                                        color: 'var(--color-red-400)',
+                                    },
+                                ]}
+                                xAxisProps={{
+                                    tickLine: {
+                                        stroke: 'var(--color-gray-600)',
+                                    },
+                                    axisLine: {
+                                        stroke: 'var(--color-gray-600)',
+                                    },
                                 }}
                             />
+                            <div
+                                style={{
+                                    height: 163,
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 14,
+                                }}
+                            >
+                                <Slider
+                                    vertical
+                                    className={styles.slider}
+                                    trackStyle={{ background: 'transparent' }}
+                                    tooltipPlacement={'bottom'}
+                                    min={graphMin}
+                                    max={Math.max(graphMax, threshold)}
+                                    value={threshold}
+                                    onChange={(v) => {
+                                        onThresholdChange(v);
+                                    }}
+                                />
+                            </div>
                         </div>
-                        <LineChart
-                            height={235}
-                            domain={[graphMin, Math.max(graphMax, threshold)]}
-                            data={graphData}
-                            hideLegend
-                            xAxisDataKeyName="date"
-                            lineColorMapping={{
-                                value: 'var(--color-blue-400)',
-                            }}
-                            yAxisLabel={config.units}
-                            referenceAreaProps={
-                                graphData.length > 0
-                                    ? {
-                                          x1: graphData[0].date,
-                                          y1: threshold,
-                                          fill: 'var(--color-red-200)',
-                                          fillOpacity: 0.3,
-                                      }
-                                    : undefined
-                            }
-                            referenceLines={[
-                                {
-                                    value: threshold,
-                                    color: 'var(--color-red-400)',
-                                },
-                            ]}
-                            xAxisProps={{
-                                tickLine: {
-                                    stroke: 'var(--color-gray-600)',
-                                },
-                                axisLine: {
-                                    stroke: 'var(--color-gray-600)',
-                                },
-                            }}
-                        />
                     </>
                 )}
             </div>
@@ -347,15 +372,29 @@ const MonitorConfiguration = ({
                         </b>
                         .
                     </p>
-                    <Input
-                        addonAfter={config?.units || undefined}
-                        value={threshold}
-                        onChange={(e) => {
-                            onThresholdChange(
-                                (e.target.value as unknown) as number
-                            );
-                        }}
-                    />
+                    <div className={styles.thresholdRow}>
+                        <Input
+                            className={styles.threshold}
+                            value={threshold}
+                            onChange={(e) => {
+                                onThresholdChange(
+                                    (e.target.value as unknown) as number
+                                );
+                            }}
+                        />
+                        <StandardDropdown
+                            className={styles.thresholdUnits}
+                            data={UNIT_OPTIONS}
+                            value={
+                                UNIT_OPTIONS.filter(
+                                    (x) => x.value === (units || '')
+                                )[0]
+                            }
+                            onSelect={(value) =>
+                                onUnitsChange(value || undefined)
+                            }
+                        />
+                    </div>
                 </section>
 
                 <section>

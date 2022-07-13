@@ -738,6 +738,7 @@ type MetricMonitor struct {
 	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
 	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
+	Units             *string // Threshold value is in these Units.
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
 	EmailsToNotify    *string `gorm:"emails_to_notify"`

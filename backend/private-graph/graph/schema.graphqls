@@ -848,6 +848,7 @@ type MetricMonitor {
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
+    units: String
     disabled: Boolean!
 }
 
@@ -1211,6 +1212,7 @@ type Mutation {
         aggregator: MetricAggregator!
         periodMinutes: Int
         threshold: Float!
+        units: String
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
@@ -1222,6 +1224,7 @@ type Mutation {
         aggregator: MetricAggregator
         periodMinutes: Int
         threshold: Float
+        units: String
         metric_to_monitor: String
         slack_channels: [SanitizedSlackChannelInput]
         emails: [String]

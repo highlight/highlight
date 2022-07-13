@@ -2194,11 +2194,11 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	}
 	if len(emails) < 1 {
 		if err := r.DB.Raw(`
-			SELECT array_agg(DISTINCT a.email) as emails
+			SELECT a.email
 			FROM project_admins pa
 			INNER JOIN admins a on pa.admin_id = a.id
 			WHERE pa.project_id = ?
-			GROUP BY pa.project_id
+			GROUP BY pa.project_id, a.email
 		`, projectID).Scan(&emails).Error; err != nil {
 			return e.Wrap(err, "failed to retrieve emails to create alert")
 		}

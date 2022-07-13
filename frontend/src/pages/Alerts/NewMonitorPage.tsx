@@ -46,6 +46,9 @@ const NewMonitorPage = ({
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [emails, setEmails] = useState<string[]>([]);
+    const [units, setUnits] = useState<string>(
+        WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units
+    );
     const [createMonitor] = useCreateMetricMonitorMutation({
         variables: {
             project_id,
@@ -61,6 +64,7 @@ const NewMonitorPage = ({
                 webhook_channel_id,
             })),
             threshold,
+            units,
             emails,
         },
         refetchQueries: [
@@ -111,6 +115,8 @@ const NewMonitorPage = ({
                         metricToMonitorName={metricToMonitorName}
                         monitorName={monitorName}
                         threshold={threshold}
+                        units={units}
+                        onUnitsChange={setUnits}
                         channelSuggestions={channelSuggestions}
                         onFormSubmit={onFinish}
                         isSlackIntegrated={isSlackIntegrated}
