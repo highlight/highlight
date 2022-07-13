@@ -3164,7 +3164,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	from workspace_admins wa
 	inner join admins a on wa.admin_id = a.id 
 	inner join sessions s on s.identifier = a.email 
-	where wa.workspace_id = 1 and s.project_id = 1 
+	where wa.workspace_id = ? and s.project_id = 1 
 	group by a.id
 	`, workspaceID).Scan(&members).Error; err != nil {
 		return nil, e.Errorf("error querying members: %v", err)
