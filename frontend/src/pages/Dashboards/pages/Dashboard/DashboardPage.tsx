@@ -28,7 +28,7 @@ import styles from './DashboardPage.module.scss';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const timeFilters = [
-    { label: 'Last 1 minute', value: 1 },
+    { label: 'Last 5 minutes', value: 5 },
     { label: 'Last 15 minutes', value: 15 },
     { label: 'Last 1 hours', value: 60 },
     { label: 'Last 6 hours', value: 6 * 60 },
@@ -65,8 +65,8 @@ const DashboardPage = () => {
             .duration(endDate.diff(startDate))
             .asMinutes();
 
-        const roundedEnd = roundDate(endDate, Math.min(15, minutesDiff));
-        const roundedStart = roundDate(startDate, Math.min(15, minutesDiff));
+        const roundedEnd = roundDate(endDate, Math.min(1, minutesDiff));
+        const roundedStart = roundDate(startDate, Math.min(1, minutesDiff));
 
         if (custom) {
             const customDateRange = {
