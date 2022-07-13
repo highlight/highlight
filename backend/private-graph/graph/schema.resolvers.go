@@ -3190,7 +3190,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 			account.SessionLimit = pricing.TypeToQuota(planTier)
 		}
 
-		if account.MemberLimit == 0 {
+		if account.MemberLimit != nil && *account.MemberLimit == 0 {
 			account.MemberLimit = pricing.TypeToMemberLimit(planTier)
 		}
 	}
@@ -4550,7 +4550,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	membersLimit := pricing.TypeToMemberLimit(planType)
 	if workspace.MonthlyMembersLimit != nil {
-		membersLimit = *workspace.MonthlyMembersLimit
+		membersLimit = workspace.MonthlyMembersLimit
 	}
 
 	details := &modelInputs.BillingDetails{

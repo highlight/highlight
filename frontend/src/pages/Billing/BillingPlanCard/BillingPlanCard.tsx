@@ -82,11 +82,14 @@ export const BillingPlanCard = ({
                 ) : (
                     <>
                         <span className={styles.extraMembersCost}>
-                            {billingPlan.membersIncluded}
+                            {billingPlan.membersIncluded || 'Unlimited'}
                         </span>
                         <span className={styles.extraMembersBreakdown}>
                             {' '}
-                            members included for free
+                            members included
+                            {billingPlan.membersIncluded === undefined
+                                ? '!'
+                                : ' for free'}
                         </span>
                     </>
                 )}

@@ -119,7 +119,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -213,7 +213,7 @@ type Account {
     plan_tier: String!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {

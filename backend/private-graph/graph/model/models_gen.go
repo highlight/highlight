@@ -23,7 +23,7 @@ type Account struct {
 	PlanTier             string     `json:"plan_tier"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	MemberCount          int        `json:"member_count"`
-	MemberLimit          int        `json:"member_limit"`
+	MemberLimit          *int       `json:"member_limit"`
 }
 
 type AccountDetails struct {
@@ -265,7 +265,7 @@ type Plan struct {
 	Type         PlanType             `json:"type"`
 	Interval     SubscriptionInterval `json:"interval"`
 	Quota        int                  `json:"quota"`
-	MembersLimit int                  `json:"membersLimit"`
+	MembersLimit *int                 `json:"membersLimit"`
 }
 
 type RageClickEventForProject struct {

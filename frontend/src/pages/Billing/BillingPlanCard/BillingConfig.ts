@@ -60,11 +60,10 @@ const startupPlan: BillingPlan = {
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
         'Everything in Basic',
-        '8 members included',
+        'Unlimited members included',
         'Enhanced user metadata',
         'Issue tracking integrations',
     ],
-    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
@@ -74,12 +73,11 @@ const enterprisePlan: BillingPlan = {
     annualPrice: 800,
     advertisedFeatures: [
         'Everything in Basic/Startup',
-        '15 members included',
+        'Personalized support',
         'User RBAC/Permissioning',
         'On-premise deployments',
         'SSO/SAML',
     ],
-    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [

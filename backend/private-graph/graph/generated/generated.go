@@ -6239,7 +6239,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -6333,7 +6333,7 @@ type Account {
     plan_tier: String!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -13001,14 +13001,11 @@ func (ec *executionContext) _Account_member_limit(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_member_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27796,14 +27793,11 @@ func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -45569,9 +45563,6 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Account_member_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48502,9 +48493,6 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

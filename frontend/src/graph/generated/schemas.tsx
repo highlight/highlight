@@ -144,7 +144,7 @@ export type Plan = {
     type: PlanType;
     interval: SubscriptionInterval;
     quota: Scalars['Int'];
-    membersLimit: Scalars['Int'];
+    membersLimit?: Maybe<Scalars['Int']>;
 };
 
 export enum PlanType {
@@ -243,7 +243,7 @@ export type Account = {
     plan_tier: Scalars['String'];
     stripe_customer_id: Scalars['String'];
     member_count: Scalars['Int'];
-    member_limit: Scalars['Int'];
+    member_limit?: Maybe<Scalars['Int']>;
 };
 
 export type AccountDetailsMember = {
