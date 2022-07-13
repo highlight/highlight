@@ -267,6 +267,8 @@ export class Highlight {
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
+        this.inlineImages = options.inlineImages || false;
+        this.inlineStylesheet = options.inlineStylesheet || false;
         this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
