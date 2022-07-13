@@ -53,6 +53,10 @@ export interface Props {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+    syncId?: string;
+    onMouseDown?: (e: any) => void;
+    onMouseMove?: (e: any) => void;
+    onMouseUp?: (e: any) => void;
 }
 
 export function findDataDomain(data: any[], key?: string) {
@@ -93,6 +97,10 @@ const LineChart = ({
     hideLegend = false,
     referenceAreaProps,
     xAxisProps,
+    syncId,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
 }: Props) => {
     const nonXAxisKeys =
         data.length > 0
@@ -108,6 +116,7 @@ const LineChart = ({
         nonXAxisKeys
     );
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
+    const [showTooltip, setShowTooltip] = React.useState(false);
 
     return (
         <>
@@ -138,6 +147,18 @@ const LineChart = ({
                         left: -18,
                         bottom: 0,
                     }}
+                    syncId={syncId}
+                    onMouseLeave={() => setShowTooltip(false)}
+                    onMouseDown={onMouseDown}
+                    onMouseMove={(e: any) => {
+                        // Not using mouseEnter because it was unreliable.
+                        setShowTooltip(true);
+
+                        if (typeof onMouseMove === 'function') {
+                            onMouseMove(e);
+                        }
+                    }}
+                    onMouseUp={onMouseUp}
                 >
                     <CartesianGrid
                         strokeDasharray=""
@@ -169,9 +190,9 @@ const LineChart = ({
                     <Tooltip
                         position={{ y: 0 }}
                         content={
-                            <RechartTooltip
-                                render={(payload: any[]) => {
-                                    return (
+                            showTooltip ? (
+                                <RechartTooltip
+                                    render={(payload: any[]) => (
                                         <CustomTooltip
                                             payload={payload}
                                             yAxisLabel={yAxisLabel}
@@ -179,11 +200,14 @@ const LineChart = ({
                                             precision={1}
                                             units={yAxisLabel}
                                         />
-                                    );
-                                }}
-                            />
+                                    )}
+                                />
+                            ) : (
+                                <></>
+                            )
                         }
                     />
+
                     {!hideLegend && (
                         <Legend
                             verticalAlign="bottom"

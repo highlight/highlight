@@ -32,6 +32,7 @@ import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
+import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -58,17 +59,25 @@ type DeleteMetricFn = (idx: number) => void;
 interface Props {
     metricIdx: number;
     metricConfig: DashboardMetricConfig;
+    dateRange: { start_date: string; end_date: string };
+    customDateRange: { label: string; value: number } | undefined;
     updateMetric: UpdateMetricFn;
     deleteMetric: DeleteMetricFn;
-    lookbackMinutes: number;
+    setDateRange: (
+        start_date: string,
+        end_date: string,
+        custom?: boolean
+    ) => void;
 }
 
 const DashboardCard = ({
     metricIdx,
     metricConfig,
+    dateRange,
+    customDateRange,
     updateMetric,
     deleteMetric,
-    lookbackMinutes,
+    setDateRange,
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -89,7 +98,7 @@ const DashboardCard = ({
         <>
             <Card
                 interactable
-                style={{ paddingTop: 'var(--size-small)' }}
+                className={styles.card}
                 title={
                     <div className={styles.cardHeader}>
                         <h3
@@ -201,7 +210,10 @@ const DashboardCard = ({
                                 >
                                     Edit
                                 </Button>
-                                <div className={styles.draggable}>
+                                <div
+                                    className={styles.draggable}
+                                    data-drag-handle
+                                >
                                     <SvgDragIcon />
                                 </div>
                             </div>
@@ -258,11 +270,13 @@ const DashboardCard = ({
                         metricConfig.max_needs_improvement_value
                     }
                     poorValue={metricConfig.poor_value}
+                    dateRange={dateRange}
+                    customDateRange={customDateRange}
                     updateMetric={updateMetric}
-                    lookbackMinutes={lookbackMinutes}
                     showEditModal={showEditModal}
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
+                    setDateRange={setDateRange}
                 />
             </Card>
         </>
@@ -750,11 +764,6 @@ const EditMetricModal = ({
     );
 };
 
-const roundDate = (d: moment.Moment, toMinutes: number) => {
-    const remainder = toMinutes - (d.minute() % toMinutes);
-    return d.add(remainder, 'minutes');
-};
-
 const ChartContainer = React.memo(
     ({
         metricIdx,
@@ -764,14 +773,16 @@ const ChartContainer = React.memo(
         maxGoodValue,
         maxNeedsImprovementValue,
         poorValue,
+        showEditModal,
+        dateRange,
+        customDateRange,
         setMaxGoodValue,
         setMaxNeedsImprovementValue,
         setPoorValue,
         updateMetric,
-        lookbackMinutes,
-        showEditModal,
         setShowEditModal,
         setShowDeleteModal,
+        setDateRange,
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
@@ -780,28 +791,33 @@ const ChartContainer = React.memo(
         maxGoodValue: number;
         maxNeedsImprovementValue: number;
         poorValue: number;
+        showEditModal: boolean;
+        dateRange: Props['dateRange'];
+        customDateRange: Props['customDateRange'];
         setMaxGoodValue?: (v: number) => void;
         setMaxNeedsImprovementValue?: (v: number) => void;
         setPoorValue?: (v: number) => void;
         updateMetric: UpdateMetricFn;
-        lookbackMinutes: number;
-        showEditModal: boolean;
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
+        setDateRange: Props['setDateRange'];
     }) => {
+        // TODO: See if we can do away with this entirely.
+        const lookbackMinutes = moment
+            .duration(
+                moment(dateRange.end_date).diff(moment(dateRange.start_date))
+            )
+            .asMinutes();
         const NUM_BUCKETS = 60;
         const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
         const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
-        const [dateRange, setDateRange] = React.useState<{
-            start_date: string;
-            end_date: string;
-        }>();
+        const [referenceArea, setReferenceArea] = React.useState<{
+            start: string;
+            end: string;
+        }>({ start: '', end: '' });
         const refetchInterval = useRef<number>();
-        const resolutionMinutes = Math.ceil(
-            moment.duration(lookbackMinutes, 'minutes').as('minutes') /
-                NUM_BUCKETS
-        );
+        const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
         const [
             loadTimeline,
             {
@@ -850,7 +866,6 @@ const ChartContainer = React.memo(
         });
 
         useEffect(() => {
-            if (!dateRange) return;
             if (chartType === DashboardChartType.Histogram) {
                 if (refetchHistogram) {
                     refetchHistogram().catch(console.error);
@@ -864,33 +879,45 @@ const ChartContainer = React.memo(
                     loadTimeline();
                 }
             }
-        }, [
-            chartType,
-            dateRange,
-            refetchHistogram,
-            refetchTimeline,
-            loadTimeline,
-            loadHistogram,
-        ]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [chartType, dateRange.start_date, dateRange.end_date]);
+
         useEffect(() => {
+            if (refetchInterval.current) {
+                window.clearInterval(refetchInterval.current);
+            }
+
+            // Stop polling once a user selects a custom range.
+            if (customDateRange) {
+                return;
+            }
+
             const handler = () => {
                 // this ensures that even for large time ranges data will only be cached
                 // for up to 1 minutes (cache key is based on the arguments).
-                const now = roundDate(moment(new Date()), 1);
-                setDateRange({
-                    start_date: moment(now)
-                        .subtract(lookbackMinutes, 'minutes')
-                        .format('YYYY-MM-DDTHH:mm:00.000000000Z'),
-                    end_date: now.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
-                });
+                const startDate = roundDate(moment(new Date()), 1);
+                const endDate = roundDate(moment(new Date()), 1);
+
+                setDateRange(
+                    startDate.subtract(lookbackMinutes, 'minutes').format(),
+                    endDate.format()
+                );
             };
-            if (refetchInterval.current) {
-                window.clearInterval(refetchInterval.current);
-            } else {
+
+            if (!refetchInterval.current) {
                 handler();
             }
+
             refetchInterval.current = window.setInterval(handler, 60000);
-        }, [lookbackMinutes]);
+
+            // Refs could be cleaned up before the cleanup method is invoked.
+            // Hook warnings said to assign to a var to ensure it's available.
+            const interval = refetchInterval.current;
+            return () => window.clearInterval(interval);
+
+            // Only invoke on initialization and custom date range selection.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [customDateRange?.value]);
 
         const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
         const ticks: string[] = [];
@@ -994,6 +1021,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
                         height={235}
+                        syncId="dashboardChart"
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
@@ -1003,13 +1031,15 @@ const ChartContainer = React.memo(
                         )}
                         referenceLines={referenceLines}
                         xAxisDataKeyName="date"
-                        xAxisTickFormatter={(tickItem) => {
-                            return moment(tickItem).format(tickFormat);
-                        }}
+                        xAxisTickFormatter={(tickItem) =>
+                            moment(tickItem).format(tickFormat)
+                        }
                         xAxisProps={{
                             ticks: ticks,
                             domain: ['dataMin', 'dataMax'],
                             scale: 'point',
+                            tickCount: ticks.length,
+                            interval: 0, // show all ticks
                         }}
                         lineColorMapping={{
                             [MetricAggregator.Max]: 'var(--color-red-500)',
@@ -1022,6 +1052,40 @@ const ChartContainer = React.memo(
                             [MetricAggregator.Count]: 'var(--color-green-500)',
                         }}
                         yAxisLabel={metricConfig.units}
+                        referenceAreaProps={{
+                            x1: referenceArea.start,
+                            x2: referenceArea.end,
+                        }}
+                        onMouseDown={(e: any) => {
+                            e.activeLabel &&
+                                setReferenceArea({
+                                    start: e.activeLabel,
+                                    end: referenceArea.end,
+                                });
+                        }}
+                        onMouseMove={(e: any) => {
+                            e.activeLabel &&
+                                referenceArea.start &&
+                                setReferenceArea({
+                                    start: referenceArea.start,
+                                    end: e.activeLabel,
+                                });
+                        }}
+                        onMouseUp={() => {
+                            if (Object.values(referenceArea).includes('')) {
+                                return;
+                            }
+
+                            const { start, end } = referenceArea;
+
+                            if (end > start) {
+                                setDateRange(start, end, true);
+                            } else {
+                                setDateRange(end, start, true);
+                            }
+
+                            setReferenceArea({ start: '', end: '' });
+                        }}
                     />
                 ) : null}
             </>
@@ -1031,7 +1095,6 @@ const ChartContainer = React.memo(
         prevProps.showEditModal === nextProps.showEditModal &&
         prevProps.chartType === nextProps.chartType &&
         prevProps.aggregator === nextProps.aggregator &&
-        prevProps.lookbackMinutes === nextProps.lookbackMinutes &&
         prevProps.maxGoodValue === nextProps.maxGoodValue &&
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
@@ -1052,7 +1115,8 @@ const ChartContainer = React.memo(
         _.isEqual(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
-        )
+        ) &&
+        _.isEqual(prevProps.dateRange, nextProps.dateRange)
 );
 
 export default DashboardCard;

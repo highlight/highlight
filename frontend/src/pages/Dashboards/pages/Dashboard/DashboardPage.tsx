@@ -18,6 +18,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
@@ -26,7 +27,7 @@ import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const timeFilter = [
+const timeFilters = [
     { label: 'Last 1 minute', value: 1 },
     { label: 'Last 15 minutes', value: 15 },
     { label: 'Last 1 hours', value: 60 },
@@ -39,11 +40,56 @@ const timeFilter = [
 const DashboardPage = () => {
     const history = useHistory();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
-    const { dashboards, updateDashboard } = useDashboardsContext();
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
         `highlight-dashboard-${project_id}-${id}-date-range-v2`,
-        timeFilter[1]
+        timeFilters[1]
     );
+    const [customDateRange, setCustomDateRange] = React.useState<{
+        label: string;
+        value: number;
+    }>();
+    const [dateRange, setDateRange] = React.useState<{
+        start_date: string;
+        end_date: string;
+    }>({
+        start_date: moment()
+            .subtract(dateRangeLength.value, 'minutes')
+            .format(),
+        end_date: moment().format(),
+    });
+
+    const updateDateRange = (start: string, end: string, custom = false) => {
+        const startDate = moment(start);
+        const endDate = moment(end);
+        const minutesDiff = moment
+            .duration(endDate.diff(startDate))
+            .asMinutes();
+
+        const roundedEnd = roundDate(endDate, Math.min(15, minutesDiff));
+        const roundedStart = roundDate(startDate, Math.min(15, minutesDiff));
+
+        if (custom) {
+            const customDateRange = {
+                label: `${startDate.format('MMM D, LT')} - ${endDate.format(
+                    'MMM D, LT'
+                )}`,
+                value: 0,
+            };
+
+            setCustomDateRange(customDateRange);
+        } else {
+            setCustomDateRange(undefined);
+        }
+
+        setDateRange({
+            start_date: moment(roundedStart).format(
+                'YYYY-MM-DDTHH:mm:00.000000000Z'
+            ),
+            end_date: roundedEnd.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+        });
+    };
+
+    const { dashboards, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
@@ -140,11 +186,22 @@ const DashboardPage = () => {
                     </Button>
                 </HighlightGate>
                 <StandardDropdown
-                    data={timeFilter}
-                    defaultValue={dateRangeLength}
+                    data={
+                        customDateRange
+                            ? [customDateRange, ...timeFilters]
+                            : timeFilters
+                    }
+                    defaultValue={customDateRange || dateRangeLength}
                     onSelect={(value) => {
+                        const endDate = moment(new Date());
+                        const startDate = moment(new Date()).subtract(
+                            value,
+                            'minutes'
+                        );
+
+                        updateDateRange(startDate.format(), endDate.format());
                         setDateRangeLength(
-                            timeFilter.filter((x) => x.value === value)[0]
+                            timeFilters.filter((f) => f.value === value)[0]
                         );
                     }}
                     className={styles.dateRangePicker}
@@ -172,6 +229,7 @@ const DashboardPage = () => {
                     containerPadding={[0, 0]}
                     rowHeight={155}
                     resizeHandles={['se']}
+                    draggableHandle="[data-drag-handle]"
                     onDragStop={handleDashboardChange}
                     onResizeStop={handleDashboardChange}
                     onResize={handleDashboardChange}
@@ -198,7 +256,9 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                lookbackMinutes={dateRangeLength.value}
+                                customDateRange={customDateRange}
+                                dateRange={dateRange}
+                                setDateRange={updateDateRange}
                             />
                         </div>
                     ))}
@@ -206,6 +266,11 @@ const DashboardPage = () => {
             </div>
         </>
     );
+};
+
+export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 export default DashboardPage;
