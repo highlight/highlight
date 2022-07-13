@@ -33,17 +33,12 @@ export const StandardDropdown = ({
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
+
     useEffect(() => {
         if (value !== undefined) {
             setSelection(value);
         }
     }, [value]);
-
-    useEffect(() => {
-        if (defaultValue) {
-            setSelection(defaultValue);
-        }
-    }, [defaultValue]);
 
     const menu = (
         <div className={styles.dropdownMenu}>
