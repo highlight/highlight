@@ -2059,6 +2059,12 @@ export type GetAccountDetailsQuery = { __typename?: 'Query' } & {
                     >
                 >
             >;
+            members: Array<
+                { __typename?: 'AccountDetailsMember' } & Pick<
+                    Types.AccountDetailsMember,
+                    'id' | 'name' | 'email' | 'last_active'
+                >
+            >;
         };
 };
 

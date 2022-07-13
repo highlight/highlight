@@ -9,6 +9,8 @@ import { Table } from 'antd';
 import { dinero, down, toUnit } from 'dinero.js';
 import moment from 'moment';
 import React, { useEffect } from 'react';
+// @ts-expect-error
+import { specific } from 'react-files-hooks';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import {
     Bar,
@@ -25,6 +27,165 @@ import {
     useGetAccountDetailsQuery,
     useGetAccountsLazyQuery,
 } from '../../graph/generated/hooks';
+
+const COLUMNS = [
+    {
+        title: 'ID',
+        dataIndex: 'id',
+        sorter: (a: { id: any }, b: { id: any }) => (a.id ?? 0) - (b.id ?? 0),
+    },
+    {
+        title: 'Name',
+        dataIndex: 'name',
+        render: (
+            value: any,
+            record: {
+                id: any;
+                name:
+                    | boolean
+                    | React.ReactChild
+                    | React.ReactFragment
+                    | React.ReactPortal
+                    | null
+                    | undefined;
+            }
+        ) => <a href={`/w/${record.id}/team`}>{record.name}</a>,
+        sorter: (a: { name: any }, b: { name: any }) =>
+            (a.name ?? '').localeCompare(b.name ?? ''),
+    },
+    {
+        title: 'Email',
+        dataIndex: 'email',
+        sorter: (a: { email: any }, b: { email: any }) =>
+            (a.email ?? '').localeCompare(b.email ?? ''),
+    },
+    {
+        title: 'Stripe Customer ID',
+        dataIndex: 'stripe_customer_id',
+        render: (
+            value:
+                | boolean
+                | React.ReactChild
+                | React.ReactFragment
+                | React.ReactPortal
+                | null
+                | undefined,
+            record: { stripe_customer_id: any }
+        ) => (
+            <a
+                href={`https://dashboard.stripe.com/customers/${record.stripe_customer_id}`}
+            >
+                {value}
+            </a>
+        ),
+        sorter: (
+            a: { stripe_customer_id: any },
+            b: { stripe_customer_id: any }
+        ) =>
+            (a.stripe_customer_id ?? '').localeCompare(
+                b.stripe_customer_id ?? ''
+            ),
+    },
+    {
+        title: 'Subscription Start',
+        dataIndex: 'subscription_start',
+        render: (value: moment.MomentInput) => moment(value).format('MM/DD/YY'),
+        sorter: (
+            a: { subscription_start: any },
+            b: { subscription_start: any }
+        ) =>
+            (a.subscription_start ?? '').localeCompare(
+                b.subscription_start ?? ''
+            ),
+    },
+    {
+        title: 'Plan Tier',
+        dataIndex: 'plan_tier',
+        sorter: (a: { plan_tier: any }, b: { plan_tier: any }) =>
+            (a.plan_tier ?? '').localeCompare(b.plan_tier ?? ''),
+    },
+    {
+        title: 'Session Limit',
+        dataIndex: 'session_limit',
+        sorter: (a: { session_limit: any }, b: { session_limit: any }) =>
+            (a.session_limit ?? 0) - (b.session_limit ?? 0),
+    },
+    {
+        title: 'Sessions This Month',
+        dataIndex: 'session_count_cur',
+        sorter: (
+            a: { session_count_cur: any },
+            b: { session_count_cur: any }
+        ) => (a.session_count_cur ?? 0) - (b.session_count_cur ?? 0),
+    },
+    {
+        title: 'Sessions Last Month',
+        dataIndex: 'session_count_prev',
+        sorter: (
+            a: { session_count_prev: any },
+            b: { session_count_prev: any }
+        ) => (a.session_count_prev ?? 0) - (b.session_count_prev ?? 0),
+    },
+    {
+        title: 'Paid Last Month',
+        dataIndex: 'paid_prev',
+        render: (value: any) => {
+            const baseAmount = dinero({
+                amount: value,
+                currency: USD,
+            });
+            return (
+                '$' +
+                toUnit(baseAmount, {
+                    digits: 2,
+                    round: down,
+                })
+            );
+        },
+        sorter: (a: { paid_prev: any }, b: { paid_prev: any }) =>
+            (a.paid_prev ?? 0) - (b.paid_prev ?? 0),
+    },
+    {
+        title: 'Sessions Two Months Ago',
+        dataIndex: 'session_count_prev_prev',
+        sorter: (
+            a: { session_count_prev_prev: any },
+            b: { session_count_prev_prev: any }
+        ) =>
+            (a.session_count_prev_prev ?? 0) - (b.session_count_prev_prev ?? 0),
+    },
+    {
+        title: 'Paid Two Months Ago',
+        dataIndex: 'paid_prev_prev',
+        render: (value: any) => {
+            const baseAmount = dinero({
+                amount: value,
+                currency: USD,
+            });
+            return (
+                '$' +
+                toUnit(baseAmount, {
+                    digits: 2,
+                    round: down,
+                })
+            );
+        },
+        sorter: (a: { paid_prev_prev: any }, b: { paid_prev_prev: any }) =>
+            (a.paid_prev_prev ?? 0) - (b.paid_prev_prev ?? 0),
+    },
+    {
+        title: 'Member Count',
+        dataIndex: 'member_count',
+        sorter: (a: { member_count: any }, b: { member_count: any }) =>
+            (a.member_count ?? 0) - (b.member_count ?? 0),
+    },
+    {
+        title: 'Member Limit',
+        dataIndex: 'member_limit',
+        sorter: (a: { member_limit: any }, b: { member_limit: any }) =>
+            (a.member_limit ?? 0) - (b.member_limit ?? 0),
+    },
+];
 
 export const AccountsPage = () => {
     const { setLoadingState } = useAppLoadingContext();
@@ -112,6 +273,52 @@ export const Account = () => {
                         <Legend />
                         <Bar dataKey="amt" fill="#8884d8" />
                     </BarChart>
+                    <Table
+                        pagination={false}
+                        sticky={true}
+                        size="small"
+                        columns={[
+                            {
+                                title: 'ID',
+                                dataIndex: 'id',
+                                sorter: (a: { id: any }, b: { id: any }) =>
+                                    (a.id ?? 0) - (b.id ?? 0),
+                            },
+                            {
+                                title: 'Name',
+                                dataIndex: 'name',
+                                sorter: (
+                                    a: { name?: any },
+                                    b: { name?: any }
+                                ) => (a.name ?? '').localeCompare(b.name ?? ''),
+                            },
+                            {
+                                title: 'Email',
+                                dataIndex: 'email',
+                                sorter: (
+                                    a: { email?: any },
+                                    b: { email?: any }
+                                ) =>
+                                    (a.email ?? '').localeCompare(
+                                        b.email ?? ''
+                                    ),
+                            },
+                            {
+                                title: 'Last Active',
+                                dataIndex: 'last_active',
+                                render: (value: moment.MomentInput) =>
+                                    moment(value).format('MM/DD/YY'),
+                                sorter: (
+                                    a: { last_active?: any },
+                                    b: { last_active?: any }
+                                ) =>
+                                    (a.last_active ?? '').localeCompare(
+                                        b.last_active ?? ''
+                                    ),
+                            },
+                        ]}
+                        dataSource={accountData?.account_details.members}
+                    />
                 </>
             )}
         </ResponsiveContainer>
@@ -119,6 +326,8 @@ export const Account = () => {
 };
 
 export const Accounts = () => {
+    const { download } = specific.useTextDownloader();
+
     const history = useHistory();
     const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
         { [key: string]: any }[]
@@ -139,6 +348,44 @@ export const Accounts = () => {
             >
                 refetch
             </button>
+            <button
+                onClick={() => {
+                    let dataStr = '';
+                    let rowStarted = false;
+                    for (const c of COLUMNS) {
+                        if (rowStarted) {
+                            dataStr += ',';
+                        }
+                        rowStarted = true;
+                        dataStr += c.title;
+                    }
+                    dataStr += '\n';
+
+                    for (const d of accountDataLocal) {
+                        let rowStarted = false;
+                        for (const c of COLUMNS) {
+                            if (rowStarted) {
+                                dataStr += ',';
+                            }
+                            rowStarted = true;
+                            let v = (d[c.dataIndex] || '').toString() as string;
+                            if (v.includes(',')) {
+                                v = v.replaceAll('"', '\\"');
+                                v = `"${v}"`;
+                            }
+                            dataStr += v;
+                        }
+                        dataStr += '\n';
+                    }
+
+                    download({
+                        data: dataStr,
+                        name: 'accounts.csv',
+                    });
+                }}
+            >
+                download CSV
+            </button>
             {loading ? (
                 'loading...'
             ) : (
@@ -153,135 +400,7 @@ export const Accounts = () => {
                         };
                     }}
                     size="small"
-                    columns={[
-                        {
-                            title: 'Name',
-                            dataIndex: 'name',
-                            render: (value, record) => (
-                                <a href={`/w/${record.id}/team`}>
-                                    {record.name}
-                                </a>
-                            ),
-                            sorter: (a, b) =>
-                                (a.name ?? '').localeCompare(b.name ?? ''),
-                        },
-                        {
-                            title: 'Email',
-                            dataIndex: 'email',
-                            sorter: (a, b) =>
-                                (a.email ?? '').localeCompare(b.email ?? ''),
-                        },
-                        {
-                            title: 'Stripe Customer ID',
-                            dataIndex: 'stripe_customer_id',
-                            render: (value, record) => (
-                                <a
-                                    href={`https://dashboard.stripe.com/customers/${record.stripe_customer_id}`}
-                                >
-                                    {value}
-                                </a>
-                            ),
-                            sorter: (a, b) =>
-                                (a.stripe_customer_id ?? '').localeCompare(
-                                    b.stripe_customer_id ?? ''
-                                ),
-                        },
-                        {
-                            title: 'Subscription Start',
-                            dataIndex: 'subscription_start',
-                            render: (value) => moment(value).format('MM/DD/YY'),
-                            sorter: (a, b) =>
-                                (a.subscription_start ?? '').localeCompare(
-                                    b.subscription_start ?? ''
-                                ),
-                        },
-                        {
-                            title: 'Plan Tier',
-                            dataIndex: 'plan_tier',
-                            sorter: (a, b) =>
-                                (a.plan_tier ?? '').localeCompare(
-                                    b.plan_tier ?? ''
-                                ),
-                        },
-                        {
-                            title: 'Session Limit',
-                            dataIndex: 'session_limit',
-                            sorter: (a, b) =>
-                                (a.session_limit ?? 0) - (b.session_limit ?? 0),
-                        },
-                        {
-                            title: 'Sessions This Month',
-                            dataIndex: 'session_count_cur',
-                            sorter: (a, b) =>
-                                (a.session_count_cur ?? 0) -
-                                (b.session_count_cur ?? 0),
-                        },
-                        {
-                            title: 'Sessions Last Month',
-                            dataIndex: 'session_count_prev',
-                            sorter: (a, b) =>
-                                (a.session_count_prev ?? 0) -
-                                (b.session_count_prev ?? 0),
-                        },
-                        {
-                            title: 'Paid Last Month',
-                            dataIndex: 'paid_prev',
-                            render: (value) => {
-                                const baseAmount = dinero({
-                                    amount: value,
-                                    currency: USD,
-                                });
-                                return (
-                                    '$' +
-                                    toUnit(baseAmount, {
-                                        digits: 2,
-                                        round: down,
-                                    })
-                                );
-                            },
-                            sorter: (a, b) =>
-                                (a.paid_prev ?? 0) - (b.paid_prev ?? 0),
-                        },
-                        {
-                            title: 'Sessions Two Months Ago',
-                            dataIndex: 'session_count_prev_prev',
-                            sorter: (a, b) =>
-                                (a.session_count_prev_prev ?? 0) -
-                                (b.session_count_prev_prev ?? 0),
-                        },
-                        {
-                            title: 'Paid Two Months Ago',
-                            dataIndex: 'paid_prev_prev',
-                            render: (value) => {
-                                const baseAmount = dinero({
-                                    amount: value,
-                                    currency: USD,
-                                });
-                                return (
-                                    '$' +
-                                    toUnit(baseAmount, {
-                                        digits: 2,
-                                        round: down,
-                                    })
-                                );
-                            },
-                            sorter: (a, b) =>
-                                (a.paid_prev_prev ?? 0) -
-                                (b.paid_prev_prev ?? 0),
-                        },
-                        {
-                            title: 'Member Count',
-                            dataIndex: 'member_count',
-                            sorter: (a, b) =>
-                                (a.member_count ?? 0) - (b.member_count ?? 0),
-                        },
-                        {
-                            title: 'Member Limit',
-                            dataIndex: 'member_limit',
-                            sorter: (a, b) =>
-                                (a.member_limit ?? 0) - (b.member_limit ?? 0),
-                        },
-                    ]}
+                    columns={COLUMNS}
                     dataSource={
                         accountDataLocal.map((a: any, i: any) => {
                             return {

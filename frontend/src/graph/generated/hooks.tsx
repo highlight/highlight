@@ -5218,6 +5218,12 @@ export const GetAccountDetailsDocument = gql`
                 count
             }
             stripe_customer_id
+            members {
+                id
+                name
+                email
+                last_active
+            }
         }
     }
 `;

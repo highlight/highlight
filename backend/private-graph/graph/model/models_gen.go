@@ -27,11 +27,19 @@ type Account struct {
 }
 
 type AccountDetails struct {
-	ID                   int           `json:"id"`
-	Name                 string        `json:"name"`
-	SessionCountPerMonth []*NamedCount `json:"session_count_per_month"`
-	SessionCountPerDay   []*NamedCount `json:"session_count_per_day"`
-	StripeCustomerID     string        `json:"stripe_customer_id"`
+	ID                   int                     `json:"id"`
+	Name                 string                  `json:"name"`
+	SessionCountPerMonth []*NamedCount           `json:"session_count_per_month"`
+	SessionCountPerDay   []*NamedCount           `json:"session_count_per_day"`
+	StripeCustomerID     string                  `json:"stripe_customer_id"`
+	Members              []*AccountDetailsMember `json:"members"`
+}
+
+type AccountDetailsMember struct {
+	ID         int        `json:"id"`
+	Name       string     `json:"name"`
+	Email      string     `json:"email"`
+	LastActive *time.Time `json:"last_active"`
 }
 
 type AdminAboutYouDetails struct {
