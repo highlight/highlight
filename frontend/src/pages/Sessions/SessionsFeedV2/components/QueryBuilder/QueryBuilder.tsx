@@ -247,7 +247,7 @@ const getDateLabel = (value: string): string => {
     const endStr = moment(end).format('MMM D');
     return `${startStr} and ${endStr}`;
 };
-const getAbsoluteStartTime = (value?: string): string | null => {
+export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
     if (!value.includes('_')) {
         // value is a relative duration such as '7 days', subtract it from current time
@@ -259,7 +259,7 @@ const getAbsoluteStartTime = (value?: string): string | null => {
     }
     return value!.split('_')[0];
 };
-const getAbsoluteEndTime = (value?: string): string | null => {
+export const getAbsoluteEndTime = (value?: string): string | null => {
     if (!value) return null;
     if (!value.includes('_')) {
         // value is a relative duration such as '7 days', use current time as end of range
