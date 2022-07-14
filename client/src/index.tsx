@@ -52,6 +52,7 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
+import {getPreviousSessionData, SessionData} from "./utils/sessionStorage/highlightSession";
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -110,16 +111,6 @@ type PropertyType = {
 
 type Source = 'segment' | undefined;
 
-export type SessionData = {
-    sessionID: number;
-    sessionSecureID: string;
-    projectID: number;
-    sessionStartTime?: number;
-    lastPushTime?: number;
-    userIdentifier?: string;
-    userObject?: Object;
-};
-
 /**
  *  The amount of time to wait until sending the first payload.
  */
@@ -129,11 +120,6 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * In milliseconds.
  */
 const SEND_FREQUENCY = 1000 * 2;
-/**
- * The amount of time allowed after the last push before creating a new session.
- * In milliseconds.
- */
-const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 /**
  * Maximum length of a session
@@ -235,6 +221,8 @@ export class Highlight {
             window.sessionStorage.removeItem(storageKeyName);
         }
 
+        // no need to set the sessionStorage value here since firstload won't call
+        // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
@@ -587,11 +575,7 @@ export class Highlight {
                 } = initializeFeedbackWidget(this.feedbackWidgetOptions);
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
-            let storedSessionData = JSON.parse(
-                window.sessionStorage.getItem(
-                    SESSION_STORAGE_KEYS.SESSION_DATA
-                ) || '{}'
-            );
+            let storedSessionData = getPreviousSessionData()
             let reloaded = false;
 
             const recordingStartTime = window.sessionStorage.getItem(
@@ -632,27 +616,11 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (
-                storedSessionData &&
-                storedSessionData.sessionID &&
-                storedSessionData.lastPushTime &&
-                Date.now() - storedSessionData.lastPushTime <
-                    SESSION_PUSH_THRESHOLD
-            ) {
+            if (storedSessionData) {
                 this.sessionData = storedSessionData;
+                // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID
                 reloaded = true;
-
-                // recreate the network listener with the exiting session secure id
-                if (this._firstLoadListeners.hasNetworkRecording) {
-                    // this adds a network listener on top of the existing one
-                    // this is ok because the new listener replaces the functionality of the
-                    // old one, and the second's stop function will be called last.
-                    FirstLoadListeners.setupNetworkListener(
-                        this._firstLoadListeners,
-                        this.options
-                    );
-                }
             } else {
                 // @ts-ignore
                 const client = new ClientJS();
