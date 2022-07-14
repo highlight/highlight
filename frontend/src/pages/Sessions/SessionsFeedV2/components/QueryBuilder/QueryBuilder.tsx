@@ -39,7 +39,7 @@ export interface RuleProps {
     val: MultiselectOption | undefined;
 }
 
-interface SelectOption {
+export interface SelectOption {
     kind: 'single';
     label: string;
     value: string;
@@ -1079,6 +1079,7 @@ export type FetchFieldVariables =
 
 interface QueryBuilderProps {
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    timeRangeField: SelectOption;
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
@@ -1090,6 +1091,7 @@ interface QueryBuilderProps {
 
 const QueryBuilder = ({
     setSearchQuery,
+    timeRangeField,
     customFields,
     fetchFields,
     fieldData,
@@ -1339,11 +1341,7 @@ const QueryBuilder = ({
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
     const defaultTimeRangeRule: RuleProps = {
-        field: {
-            kind: 'single',
-            label: 'created_at',
-            value: 'custom_created_at',
-        },
+        field: timeRangeField,
         op: 'between_date',
         val: {
             kind: 'multi',
@@ -1357,12 +1355,13 @@ const QueryBuilder = ({
     };
     const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
     const timeRangeRule = useMemo<RuleProps | undefined>(
-        () => rules.find((rule) => rule.field?.value === 'custom_created_at'),
-        [rules]
+        () => rules.find((rule) => rule.field?.value === timeRangeField.value),
+        [rules, timeRangeField.value]
     );
     const filterRules = useMemo<RuleProps[]>(
-        () => rules.filter((rule) => rule.field?.value !== 'custom_created_at'),
-        [rules]
+        () =>
+            rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+        [rules, timeRangeField.value]
     );
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);

@@ -11,10 +11,17 @@ import QueryBuilder, {
     FetchFieldVariables,
     QueryBuilderState,
     RuleProps,
+    SelectOption,
     serializeRules,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import moment from 'moment';
 import React from 'react';
+
+const TIME_RANGE_FIELD: SelectOption = {
+    kind: 'single',
+    label: 'timestamp',
+    value: 'error-field_timestamp',
+};
 
 const CUSTOM_FIELDS: CustomField[] = [
     {
@@ -118,6 +125,7 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
     return (
         <QueryBuilder
             setSearchQuery={setSearchQuery}
+            timeRangeField={TIME_RANGE_FIELD}
             customFields={CUSTOM_FIELDS}
             fetchFields={fetchFields}
             getQueryFromParams={getQueryFromParams}
