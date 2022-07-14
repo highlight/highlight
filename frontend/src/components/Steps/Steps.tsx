@@ -136,6 +136,6 @@ const Steps: StepsType = ({
     );
 };
 
-Steps.Step = AntDesignSteps.Step;
+Steps.Step = (AntDesignSteps.Step as unknown) as React.ClassicComponentClass<AntDesignStepProps>;
 
 export default Steps;

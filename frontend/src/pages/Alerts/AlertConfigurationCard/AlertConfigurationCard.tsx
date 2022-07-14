@@ -3,22 +3,6 @@ import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
-import { namedOperations } from '@graph/operations';
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
-import { useParams } from '@util/react-router/useParams';
-import { Divider, Form, message } from 'antd';
-import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
-import { useHistory } from 'react-router';
-import { Link } from 'react-router-dom';
-import TextTransition from 'react-text-transition';
-
-import Button from '../../../components/Button/Button/Button';
-import InputNumber from '../../../components/InputNumber/InputNumber';
-import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss';
-import Select from '../../../components/Select/Select';
 import {
     useCreateErrorAlertMutation,
     useCreateNewSessionAlertMutation,
@@ -37,7 +21,23 @@ import {
     useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
-} from '../../../graph/generated/hooks';
+} from '@graph/hooks';
+import { namedOperations } from '@graph/operations';
+import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useParams } from '@util/react-router/useParams';
+import { Divider, Form, message } from 'antd';
+import classNames from 'classnames';
+import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
+import { useHistory } from 'react-router';
+import { Link } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
+
+import Button from '../../../components/Button/Button/Button';
+import InputNumber from '../../../components/InputNumber/InputNumber';
+import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss';
+import Select from '../../../components/Select/Select';
 import { ALERT_TYPE } from '../Alerts';
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils';
 import styles from './AlertConfigurationCard.module.scss';
@@ -776,11 +776,14 @@ export const AlertConfigurationCard = ({
                                             setSearchQuery(value);
                                         }}
                                         filterOption={(searchValue, option) => {
-                                            return option?.children
-                                                .toLowerCase()
-                                                .includes(
-                                                    searchValue.toLowerCase()
-                                                );
+                                            return (
+                                                option?.children
+                                                    ?.toString()
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        searchValue.toLowerCase()
+                                                    ) || false
+                                            );
                                         }}
                                         placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
                                         onChange={onChannelsChange}
@@ -855,11 +858,14 @@ export const AlertConfigurationCard = ({
                                         options={emails}
                                         mode="multiple"
                                         filterOption={(searchValue, option) => {
-                                            return option?.children
-                                                .toLowerCase()
-                                                .includes(
-                                                    searchValue.toLowerCase()
-                                                );
+                                            return (
+                                                option?.children
+                                                    ?.toString()
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        searchValue.toLowerCase()
+                                                    ) || false
+                                            );
                                         }}
                                         placeholder={`Select a email address to send ${defaultName} to.`}
                                         onChange={onEmailsChange}

@@ -427,9 +427,13 @@ const MonitorConfiguration = ({
                         value={slackChannels}
                         onChange={onSlackChannelsChange}
                         filterOption={(searchValue, option) => {
-                            return option?.children
-                                .toLowerCase()
-                                .includes(searchValue.toLowerCase());
+                            return (
+                                option?.children
+                                    ?.toString()
+                                    .toLowerCase()
+                                    .includes(searchValue.toLowerCase()) ||
+                                false
+                            );
                         }}
                         placeholder={`Select a channel(s) or person(s) to send the alert to.`}
                         notFoundContent={
@@ -487,9 +491,13 @@ const MonitorConfiguration = ({
                         value={emails}
                         mode="multiple"
                         filterOption={(searchValue, option) => {
-                            return option?.children
-                                .toLowerCase()
-                                .includes(searchValue.toLowerCase());
+                            return (
+                                option?.children
+                                    ?.toString()
+                                    .toLowerCase()
+                                    .includes(searchValue.toLowerCase()) ||
+                                false
+                            );
                         }}
                         placeholder={`Select email addresses to send the alert to.`}
                         onChange={onEmailsChange}

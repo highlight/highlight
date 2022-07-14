@@ -38,7 +38,7 @@ export const Slider = ({
                 const v = Array.isArray(value) ? value : [value];
                 onChange(v, idx);
             }}
-            renderThumb={(props, state) => (
+            renderThumb={(props: any, state) => (
                 <div {...props}>
                     {state.valueNow.toFixed(
                         precision === undefined ? 1 : precision
