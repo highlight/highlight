@@ -80,10 +80,10 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
 
-            let previousSession = getPreviousSessionData()
-            let sessionSecureID = GenerateSecureID()
+            let previousSession = getPreviousSessionData();
+            let sessionSecureID = GenerateSecureID();
             if (previousSession?.sessionSecureID) {
-                sessionSecureID = previousSession.sessionSecureID
+                sessionSecureID = previousSession.sessionSecureID;
             }
             const client_options: HighlightClassOptions = {
                 organizationID: projectID,

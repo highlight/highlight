@@ -52,7 +52,10 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
-import {getPreviousSessionData, SessionData} from "./utils/sessionStorage/highlightSession";
+import {
+    getPreviousSessionData,
+    SessionData,
+} from './utils/sessionStorage/highlightSession';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -575,7 +578,7 @@ export class Highlight {
                 } = initializeFeedbackWidget(this.feedbackWidgetOptions);
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
-            let storedSessionData = getPreviousSessionData()
+            let storedSessionData = getPreviousSessionData();
             let reloaded = false;
 
             const recordingStartTime = window.sessionStorage.getItem(
@@ -619,7 +622,7 @@ export class Highlight {
             if (storedSessionData) {
                 this.sessionData = storedSessionData;
                 // set the session storage secure id in the options in case anything refers to that
-                this.options.sessionSecureID = this.sessionData.sessionSecureID
+                this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
                 // @ts-ignore

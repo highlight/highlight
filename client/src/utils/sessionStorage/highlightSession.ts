@@ -1,4 +1,4 @@
-import {SESSION_STORAGE_KEYS} from "./sessionStorageKeys";
+import { SESSION_STORAGE_KEYS } from './sessionStorageKeys';
 
 /**
  * The amount of time allowed after the last push before creating a new session.
@@ -18,17 +18,14 @@ export type SessionData = {
 
 export const getPreviousSessionData = (): SessionData | undefined => {
     let storedSessionData = JSON.parse(
-        window.sessionStorage.getItem(
-            SESSION_STORAGE_KEYS.SESSION_DATA
-        ) || '{}'
+        window.sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_DATA) || '{}'
     );
     if (
         storedSessionData &&
         storedSessionData.sessionID &&
         storedSessionData.lastPushTime &&
-        Date.now() - storedSessionData.lastPushTime <
-        SESSION_PUSH_THRESHOLD
+        Date.now() - storedSessionData.lastPushTime < SESSION_PUSH_THRESHOLD
     ) {
         return storedSessionData as SessionData;
     }
-}
+};
