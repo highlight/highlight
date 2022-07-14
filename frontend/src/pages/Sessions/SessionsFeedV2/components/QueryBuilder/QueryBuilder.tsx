@@ -245,7 +245,7 @@ const getDateLabel = (value: string): string => {
     const end = split[1];
     const startStr = moment(start).format('MMM D');
     const endStr = moment(end).format('MMM D');
-    return `${startStr} and ${endStr}`;
+    return `${startStr} to ${endStr}`;
 };
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
