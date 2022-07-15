@@ -301,7 +301,6 @@ func main() {
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
-			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
