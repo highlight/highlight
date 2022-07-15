@@ -1,5 +1,6 @@
 import { Highlight, HighlightClassOptions } from '../../client/src/index';
 import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners';
+import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import {
@@ -78,6 +79,12 @@ export const H: HighlightPublicInterface = {
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
+
+            let previousSession = getPreviousSessionData();
+            let sessionSecureID = GenerateSecureID();
+            if (previousSession?.sessionSecureID) {
+                sessionSecureID = previousSession.sessionSecureID;
+            }
             const client_options: HighlightClassOptions = {
                 organizationID: projectID,
                 debug: options?.debug,
@@ -95,7 +102,7 @@ export const H: HighlightPublicInterface = {
                 appVersion: options?.version,
                 sessionShortcut: options?.sessionShortcut,
                 feedbackWidget: options?.feedbackWidget,
-                sessionSecureID: GenerateSecureID(),
+                sessionSecureID: sessionSecureID,
             };
             first_load_listeners = new FirstLoadListeners(client_options);
             if (!options?.manualStart) {

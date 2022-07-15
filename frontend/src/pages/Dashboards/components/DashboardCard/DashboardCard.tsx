@@ -225,7 +225,7 @@ const DashboardCard = ({
                                 </Button>
                                 <div
                                     className={styles.draggable}
-                                    data-drag-handle
+                                    data-drag-handle=""
                                 >
                                     <SvgDragIcon />
                                 </div>
@@ -1075,15 +1075,15 @@ const ChartContainer = React.memo(
                             x1: referenceArea.start,
                             x2: referenceArea.end,
                         }}
-                        onMouseDown={(e: any) => {
-                            e.activeLabel &&
+                        onMouseDown={(e?: any) => {
+                            e?.activeLabel &&
                                 setReferenceArea({
                                     start: e.activeLabel,
                                     end: referenceArea.end,
                                 });
                         }}
-                        onMouseMove={(e: any) => {
-                            e.activeLabel &&
+                        onMouseMove={(e?: any) => {
+                            e?.activeLabel &&
                                 referenceArea.start &&
                                 setReferenceArea({
                                     start: referenceArea.start,
