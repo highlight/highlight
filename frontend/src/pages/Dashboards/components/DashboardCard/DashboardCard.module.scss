@@ -73,10 +73,10 @@
 
 .chartButtons {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
-    width: 275px;
+    width: 300px;
 
     button {
         height: var(--size-xLarge);

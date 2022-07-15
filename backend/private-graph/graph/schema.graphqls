@@ -1018,11 +1018,11 @@ type Query {
         project_id: ID!
         metric_name: String!
         params: HistogramParamsInput!
-    ): HistogramPayload!
+    ): HistogramPayload
     network_histogram(
         project_id: ID!
         params: NetworkHistogramParamsInput!
-    ): CategoryHistogramPayload!
+    ): CategoryHistogramPayload
     metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
     event_chunk_url(secure_id: String!, index: Int!): String!
     event_chunks(secure_id: String!): [EventChunk!]!

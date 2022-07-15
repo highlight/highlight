@@ -62,7 +62,7 @@ func New() *InfluxDB {
 	server := os.Getenv("INFLUXDB_SERVER")
 	token := os.Getenv("INFLUXDB_TOKEN")
 	// initialize client
-	client := influxdb2.NewClient(server, token)
+	client := influxdb2.NewClientWithOptions(server, token, influxdb2.DefaultOptions().SetHTTPRequestTimeout(60))
 	var orgID *string
 	orgs, err := client.OrganizationsAPI().GetOrganizations(context.Background())
 	if err != nil {

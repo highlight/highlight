@@ -55,7 +55,7 @@ const TopRoutesTable = () => {
                 loading={loading}
                 columns={Columns}
                 data={
-                    data?.network_histogram.buckets
+                    data?.network_histogram?.buckets
                         .slice()
                         .map((bucket, index) => ({
                             key: index,
@@ -65,7 +65,7 @@ const TopRoutesTable = () => {
                 }
                 onClickHandler={() => {}}
                 noDataMessage={
-                    !data?.network_histogram.buckets.length && (
+                    !data?.network_histogram?.buckets.length && (
                         <>
                             Have you{' '}
                             <Link

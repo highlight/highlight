@@ -269,6 +269,9 @@ const DashboardPage = () => {
 };
 
 export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    if (toMinutes <= 1) {
+        return moment(d.format('YYYY-MM-DDTHH:mm:00.000000000Z'));
+    }
     const remainder = toMinutes - (d.minute() % toMinutes);
     return d.add(remainder, 'minutes');
 };
