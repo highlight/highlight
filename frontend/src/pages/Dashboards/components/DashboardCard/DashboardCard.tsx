@@ -496,8 +496,10 @@ export const TagFilters = ({
                             onSelectTag={(t) => {
                                 // ensure changing an existing tag updates rather than adding
                                 const newTags = [];
+                                let newTag = true;
                                 for (const x of currentTags) {
                                     if (x.tag === t.tag) {
+                                        newTag = false;
                                         newTags.push({
                                             tag: x.tag,
                                             value: t.value,
@@ -505,6 +507,9 @@ export const TagFilters = ({
                                     } else {
                                         newTags.push(x);
                                     }
+                                }
+                                if (newTag) {
+                                    newTags.push(t);
                                 }
                                 onSelectTags(newTags);
                             }}
