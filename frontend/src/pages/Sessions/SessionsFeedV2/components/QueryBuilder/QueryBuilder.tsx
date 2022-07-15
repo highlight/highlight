@@ -1588,7 +1588,6 @@ const QueryBuilder = ({
                     {!readonly && (
                         <Button
                             className={styles.syncButton}
-                            type="text"
                             onClick={() => {
                                 const query = parseGroup(isAnd, rules);
                                 setSearchQuery(JSON.stringify(query));
