@@ -33,7 +33,7 @@
         "firebase": "^7.19.1",
         "framer-motion": "^4.1.17",
         "graphql": "^15.5.0",
-        "highlight.run": "^4.2.7",
+        "highlight.run": "4.2.9",
         "intro.js": "^4.1.0",
         "intro.js-react": "^0.4.0",
         "lottie-react": "^2.1.0",
