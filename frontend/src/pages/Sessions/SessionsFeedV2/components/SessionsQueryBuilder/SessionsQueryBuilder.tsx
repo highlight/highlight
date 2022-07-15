@@ -10,13 +10,13 @@ import QueryBuilder, {
     BOOLEAN_OPERATORS,
     CUSTOM_TYPE,
     CustomField,
-    DATE_OPERATORS,
     deserializeGroup,
     FetchFieldVariables,
     propertiesToRules,
     QueryBuilderState,
     RANGE_OPERATORS,
     RuleProps,
+    SelectOption,
     serializeRules,
     VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
@@ -24,20 +24,18 @@ import { useParams } from '@util/react-router/useParams';
 import moment from 'moment';
 import React from 'react';
 
+const TIME_RANGE_FIELD: SelectOption = {
+    kind: 'single',
+    label: 'created_at',
+    value: 'custom_created_at',
+};
+
 const CUSTOM_FIELDS: CustomField[] = [
     {
         type: CUSTOM_TYPE,
         name: 'app_version',
         options: {
             type: 'text',
-        },
-    },
-    {
-        type: CUSTOM_TYPE,
-        name: 'created_at',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
         },
     },
     {
@@ -237,6 +235,7 @@ const SessionsQueryBuilder = React.memo(
         return (
             <QueryBuilder
                 setSearchQuery={setSearchQuery}
+                timeRangeField={TIME_RANGE_FIELD}
                 customFields={CUSTOM_FIELDS}
                 fetchFields={fetchFields}
                 fieldData={fieldData}

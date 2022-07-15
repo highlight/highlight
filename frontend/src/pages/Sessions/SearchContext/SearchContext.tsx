@@ -57,6 +57,7 @@ interface SearchContext {
               }
             | undefined
     ) => void;
+    /** The query string sent to the backend */
     searchQuery: string;
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
     queryBuilderInput: QueryBuilderInput;
