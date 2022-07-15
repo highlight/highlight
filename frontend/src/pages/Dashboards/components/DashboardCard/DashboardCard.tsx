@@ -849,12 +849,6 @@ const ChartContainer = React.memo(
         setDateRange: Props['setDateRange'];
         setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
-        // TODO: See if we can do away with this entirely.
-        const lookbackMinutes = moment
-            .duration(
-                moment(dateRange.end_date).diff(moment(dateRange.start_date))
-            )
-            .asMinutes();
         const NUM_BUCKETS = 60;
         const TICK_EVERY_BUCKETS = 10;
         const { project_id } = useParams<{ project_id: string }>();
@@ -871,7 +865,16 @@ const ChartContainer = React.memo(
             start: string;
             end: string;
         }>({ start: '', end: '' });
+        const [timelineTicks, setTimelineTicks] = useState<{
+            ticks: string[];
+            format: string;
+        }>({ ticks: [], format: '' });
         const refetchInterval = useRef<number>();
+        const lookbackMinutes = moment
+            .duration(
+                moment(dateRange.end_date).diff(moment(dateRange.start_date))
+            )
+            .asMinutes();
         const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
         const [
             loadTimeline,
@@ -891,7 +894,6 @@ const ChartContainer = React.memo(
             },
             fetchPolicy: 'cache-first',
             onCompleted: (data) => {
-                console.log('timeline complete');
                 if (data.metrics_timeline) {
                     setTimelineData(data);
                 }
@@ -918,7 +920,6 @@ const ChartContainer = React.memo(
             },
             fetchPolicy: 'cache-first',
             onCompleted: (data) => {
-                console.log('histogram complete');
                 if (data.metrics_histogram) {
                     setHistogramData(data);
                 }
@@ -984,29 +985,43 @@ const ChartContainer = React.memo(
             setUpdatingData(timelineLoading || histogramLoading);
         }, [setUpdatingData, timelineLoading, histogramLoading]);
 
-        const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
-        const ticks: string[] = [];
-        const seenDays: Set<string> = new Set<string>();
-        let lastDate: moment.Moment | undefined = undefined;
-        for (const d of timelineData?.metrics_timeline || []) {
-            const pointDate = d?.date;
-            if (pointDate) {
-                const newDate = moment(pointDate);
-                if (
-                    lastDate &&
-                    newDate.diff(lastDate, 'minutes') <
-                        lookbackMinutes * TICK_EVERY_BUCKETS
-                ) {
-                    continue;
-                }
-                lastDate = moment(newDate);
-                const formattedDate = newDate.format(tickFormat);
-                if (!seenDays.has(formattedDate)) {
-                    ticks.push(d.date);
-                    seenDays.add(formattedDate);
+        useEffect(() => {
+            const dateRangeMins = moment
+                .duration(
+                    moment(dateRange.end_date).diff(
+                        moment(dateRange.start_date)
+                    )
+                )
+                .asMinutes();
+            // build out the ticks array based on data and lookbackMinutes
+            const tickFormat = dateRangeMins > 24 * 60 ? 'D MMM' : 'HH:mm';
+            const ticks: string[] = [];
+            const seenDays: Set<string> = new Set<string>();
+            let lastDate: moment.Moment | undefined = undefined;
+            for (const d of timelineData?.metrics_timeline || []) {
+                const pointDate = d?.date;
+                if (pointDate) {
+                    const newDate = moment(pointDate);
+                    if (
+                        lastDate &&
+                        newDate.diff(lastDate, 'minutes') <
+                            (dateRangeMins / NUM_BUCKETS) * TICK_EVERY_BUCKETS
+                    ) {
+                        continue;
+                    }
+                    lastDate = moment(newDate);
+                    const formattedDate = newDate.format(tickFormat);
+                    if (!seenDays.has(formattedDate)) {
+                        ticks.push(pointDate);
+                        seenDays.add(formattedDate);
+                    }
                 }
             }
-        }
+            setTimelineTicks({ ticks, format: tickFormat });
+            // Only invoke on new data.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [timelineData?.metrics_timeline]);
+
         let referenceLines: Reference[] = [];
         if (WEB_VITALS_CONFIGURATION[metricConfig.name]) {
             referenceLines = [
@@ -1097,13 +1112,13 @@ const ChartContainer = React.memo(
                         referenceLines={referenceLines}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) =>
-                            moment(tickItem).format(tickFormat)
+                            moment(tickItem).format(timelineTicks.format)
                         }
                         xAxisProps={{
-                            ticks: ticks,
+                            ticks: timelineTicks.ticks,
+                            tickCount: timelineTicks.ticks.length,
                             domain: ['dataMin', 'dataMax'],
                             scale: 'point',
-                            tickCount: ticks.length,
                             interval: 0, // show all ticks
                         }}
                         lineColorMapping={{
