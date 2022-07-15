@@ -33,6 +33,7 @@ import {
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
+import Checkmark from '@icons/Checkmark';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SvgPlusIcon from '@icons/PlusIcon';
@@ -135,13 +136,47 @@ const DashboardCard = ({
                         </h3>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
-                                {updatingData && (
-                                    <CircularSpinner
-                                        style={{
-                                            marginRight: 'var(--size-xSmall)',
-                                        }}
-                                    />
-                                )}
+                                <button
+                                    className={classNames(styles.pillButton, {
+                                        [styles.pillLoading]: updatingData,
+                                        [styles.pillLive]: !updatingData,
+                                    })}
+                                >
+                                    <span
+                                        className={classNames(
+                                            styles.pillButtonText,
+                                            {
+                                                [styles.pillButtonTextVisible]: updatingData,
+                                            }
+                                        )}
+                                    >
+                                        <CircularSpinner
+                                            style={{
+                                                width: 12,
+                                                height: 12,
+                                                fontSize: 12,
+                                                color:
+                                                    'var(--text-primary-inverted)',
+                                            }}
+                                        />{' '}
+                                        Loading
+                                    </span>
+                                    <span
+                                        className={classNames(
+                                            styles.pillButtonText,
+                                            {
+                                                [styles.pillButtonTextVisible]: !updatingData,
+                                            }
+                                        )}
+                                    >
+                                        <Checkmark
+                                            fill={
+                                                'var(--text-primary-inverted)'
+                                            }
+                                        />{' '}
+                                        Live
+                                    </span>
+                                </button>
                                 <div
                                     style={{
                                         marginRight: 'var(--size-xSmall)',

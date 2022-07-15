@@ -74,6 +74,7 @@
 .chartButtons {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
     width: 300px;
@@ -141,4 +142,44 @@
     align-items: center;
     display: flex;
     justify-content: center;
+}
+
+.pillButton {
+    align-items: center;
+    justify-content: center;
+    background: var(--color-gray-300);
+    border-radius: var(--size-large);
+    border: none;
+    color: var(--text-primary-inverted);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+    height: var(--size-medium) !important;
+    margin-right: var(--size-xSmall);
+    min-width: 80px;
+    padding: var(--size-xxSmall) var(--size-small);
+    transition: background 1.0s ease-in-out;
+}
+
+.pillLoading {
+    background: var(--color-brand-pastel-dark);
+}
+
+.pillLive {
+    background: var(--color-green-500);
+}
+
+.pillButtonText {
+    opacity: 0;
+    position: absolute;
+    transition: opacity 1.0s ease-in-out;
+
+    align-items: center;
+    justify-content: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}
+
+.pillButtonTextVisible {
+    opacity: 1;
 }
