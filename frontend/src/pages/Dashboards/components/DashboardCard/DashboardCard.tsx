@@ -33,7 +33,6 @@ import {
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
-import Checkmark from '@icons/Checkmark';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SvgPlusIcon from '@icons/PlusIcon';
@@ -89,7 +88,6 @@ const DashboardCard = ({
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [updatingData, setUpdatingData] = useState<boolean>(true);
-    const [updatedAt, setUpdatedAt] = React.useState<moment.Moment>();
     const { project_id } = useParams<{ project_id: string }>();
     const {
         data: metricMonitors,
@@ -130,29 +128,26 @@ const DashboardCard = ({
                                     />
                                 )}
                             </span>
-                            {/* TODO(vkorolik) use backend chart modified time */}
-                            {updatedAt && (
-                                <span className={styles.subheader}>
-                                    Updated {updatedAt.fromNow()}
-                                </span>
-                            )}
                         </div>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
                                 <button
-                                    className={classNames(styles.pillButton, {
-                                        [styles.pillLoading]: updatingData,
-                                        [styles.pillLive]:
-                                            !customDateRange && !updatingData,
-                                        [styles.pillStatic]:
-                                            customDateRange && !updatingData,
-                                    })}
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
+                                    className={classNames(
+                                        dashStyles.pillButton,
+                                        dashStyles.pillButtonSmall,
+                                        {
+                                            [dashStyles.pillLoading]: updatingData,
+                                        }
+                                    )}
                                 >
                                     <span
                                         className={classNames(
-                                            styles.pillButtonText,
+                                            dashStyles.pillButtonText,
                                             {
-                                                [styles.pillButtonTextVisible]: updatingData,
+                                                [dashStyles.pillButtonTextVisible]: updatingData,
                                             }
                                         )}
                                     >
@@ -166,33 +161,6 @@ const DashboardCard = ({
                                             }}
                                         />{' '}
                                         Loading
-                                    </span>
-                                    <span
-                                        className={classNames(
-                                            styles.pillButtonText,
-                                            {
-                                                [styles.pillButtonTextVisible]:
-                                                    !customDateRange &&
-                                                    !updatingData,
-                                            }
-                                        )}
-                                    >
-                                        <Checkmark
-                                            fill={'var(--color-green-900)'}
-                                        />{' '}
-                                        Live
-                                    </span>
-                                    <span
-                                        className={classNames(
-                                            styles.pillButtonText,
-                                            {
-                                                [styles.pillButtonTextVisible]:
-                                                    customDateRange &&
-                                                    !updatingData,
-                                            }
-                                        )}
-                                    >
-                                        Absolute
                                     </span>
                                 </button>
                                 <div
@@ -368,8 +336,8 @@ const DashboardCard = ({
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
                     setDateRange={setDateRange}
+                    updatingData={updatingData}
                     setUpdatingData={setUpdatingData}
-                    setUpdatedAt={setUpdatedAt}
                 />
             </Card>
         </>
@@ -889,8 +857,8 @@ const ChartContainer = React.memo(
         setShowEditModal,
         setShowDeleteModal,
         setDateRange,
+        updatingData,
         setUpdatingData,
-        setUpdatedAt,
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
@@ -909,10 +877,8 @@ const ChartContainer = React.memo(
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
         setDateRange: Props['setDateRange'];
+        updatingData: boolean;
         setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
-        setUpdatedAt: React.Dispatch<
-            React.SetStateAction<moment.Moment | undefined>
-        >;
     }) => {
         const NUM_BUCKETS = 60;
         const TICK_EVERY_BUCKETS = 10;
@@ -1051,10 +1017,6 @@ const ChartContainer = React.memo(
         }, [setUpdatingData, timelineLoading, histogramLoading]);
 
         useEffect(() => {
-            setUpdatedAt(moment());
-        }, [setUpdatedAt, timelineLoading, histogramLoading]);
-
-        useEffect(() => {
             const dateRangeMins = moment
                 .duration(
                     moment(dateRange.end_date).diff(
@@ -1128,7 +1090,7 @@ const ChartContainer = React.memo(
         }
 
         return (
-            <>
+            <div className={classNames({ [styles.blurChart]: updatingData })}>
                 <EditMetricModal
                     shown={showEditModal}
                     onCancel={() => {
@@ -1237,7 +1199,7 @@ const ChartContainer = React.memo(
                         }}
                     />
                 ) : null}
-            </>
+            </div>
         );
     },
     (prevProps, nextProps) =>

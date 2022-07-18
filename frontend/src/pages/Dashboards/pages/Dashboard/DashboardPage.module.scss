@@ -82,3 +82,54 @@
         margin-top: 0 !important;
     }
 }
+
+.pillButton {
+    align-items: center;
+    background: 0;
+    border: 0;
+    border-radius: var(--size-xSmall);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 14px;
+    height: 40px;
+    justify-content: center;
+    min-width: 86px;
+    padding: var(--size-xxSmall) var(--size-small);
+    transition: background 0.1s ease-in-out;
+
+    &.pillButtonSmall {
+        height: 30px;
+    }
+}
+
+.pillLoading {
+    background: var(--color-brand-pastel-dark);
+    border: 1px solid var(--color-text-primary);
+    color: var(--color-text-primary);
+}
+
+.pillLive {
+    background: var(--color-green-100);
+    border: 1px solid var(--color-green-600);
+    color: var(--color-green-900);
+}
+
+.pillStatic {
+    background: var(--color-blue-100);
+    border: 1px solid var(--color-blue-600);
+    color: var(--color-blue-900);
+}
+
+.pillButtonText {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+    position: absolute;
+    transition: opacity 0.1s ease-in-out;
+}
+
+.pillButtonTextVisible {
+    opacity: 1;
+}

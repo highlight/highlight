@@ -8,6 +8,7 @@ import {
     DashboardDefinition,
     DashboardMetricConfig,
 } from '@graph/schemas';
+import Checkmark from '@icons/Checkmark';
 import PlusIcon from '@icons/PlusIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
@@ -190,8 +191,31 @@ const DashboardPage = () => {
                     }}
                 >
                     Add
-                    <PlusIcon style={{ marginLeft: '1em' }} />
+                    <PlusIcon
+                        style={{ marginLeft: '1em', marginBottom: '0.1em' }}
+                    />
                 </Button>
+                <button
+                    className={classNames(styles.pillButton, {
+                        [styles.pillLive]: !customDateRange,
+                        [styles.pillStatic]: customDateRange,
+                    })}
+                >
+                    <span
+                        className={classNames(styles.pillButtonText, {
+                            [styles.pillButtonTextVisible]: !customDateRange,
+                        })}
+                    >
+                        <Checkmark fill={'var(--color-green-900)'} /> Live
+                    </span>
+                    <span
+                        className={classNames(styles.pillButtonText, {
+                            [styles.pillButtonTextVisible]: customDateRange,
+                        })}
+                    >
+                        Absolute
+                    </span>
+                </button>
                 <StandardDropdown
                     data={
                         customDateRange
