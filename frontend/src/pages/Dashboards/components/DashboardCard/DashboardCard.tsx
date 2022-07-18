@@ -1220,7 +1220,8 @@ const ChartContainer = React.memo(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
         ) &&
-        _.isEqual(prevProps.dateRange, nextProps.dateRange)
+        _.isEqual(prevProps.dateRange, nextProps.dateRange) &&
+        prevProps.updatingData != nextProps.updatingData
 );
 
 export default DashboardCard;
