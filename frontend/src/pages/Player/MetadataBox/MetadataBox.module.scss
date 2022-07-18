@@ -20,18 +20,18 @@ $backfill-height: 30px;
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     cursor: pointer;
     height: $backfill-height;
-    position: absolute;
-    top: 0;
     left: 0;
+    position: absolute;
     right: 0;
+    top: 0;
 }
 
 .backfillContent {
     align-items: center;
     color: var(--color-white);
     display: flex;
-    height: $backfill-height;
     font-size: 12px;
+    height: $backfill-height;
     justify-content: center;
 }
 
