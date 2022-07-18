@@ -16,7 +16,7 @@ module.exports = {
     webpack: {
         alias: resolvedAliases,
         configure: {
-            devtool: 'source-map-module',
+            devtool: 'source-map',
             output: {
                 sourceMapFilename: '[file].map',
             },

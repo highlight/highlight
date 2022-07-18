@@ -2,7 +2,7 @@ import React from 'react';
 
 import styles from './RadioGroup.module.scss';
 
-export const RadioGroup = <T extends any>({
+export const RadioGroup = <T,>({
     onSelect,
     labels,
     selectedLabel,

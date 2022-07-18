@@ -161,7 +161,7 @@ const ErrorCardV2 = ({
     );
 
     useEffect(() => {
-        if (errorGroup?.error_frequency)
+        if (errorGroup?.error_frequency.length)
             setErrorDates(errorGroup.error_frequency);
     }, [setErrorDates, errorGroup]);
 
