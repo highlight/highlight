@@ -62,5 +62,13 @@ export const getGraphQLResolverName = (
 };
 
 export const sessionIsBackfilled = (session?: Session) => {
+    // Temporary workaround until we backfill old identified sessions. The
+    // default value of `sessions.identified` is `false`, so the check below
+    // will return true for records that have not been updated. `client_id` was
+    // rolled out at the same time as `identified`.
+    if (!session?.client_id) {
+        return false;
+    }
+
     return Boolean(session?.identifier) && session?.identified === false;
 };

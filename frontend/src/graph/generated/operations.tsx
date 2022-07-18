@@ -1794,6 +1794,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'user_properties'
             | 'identifier'
             | 'identified'
+            | 'client_id'
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
