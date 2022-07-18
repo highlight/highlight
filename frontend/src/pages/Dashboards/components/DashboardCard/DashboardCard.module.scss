@@ -17,31 +17,12 @@
     text-align: center;
 }
 
-.headerActions {
-    align-items: center;
-    display: flex;
-    height: 21px;
-    justify-content: center;
-    margin-bottom: var(--size-medium);
-}
-
 .draggable {
     align-items: center;
     color: var(--color-gray-500);
     cursor: move;
     display: flex;
     justify-content: center;
-}
-
-.cardHeader {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    overflow-x: hidden;
-
-    > button {
-        margin-bottom: var(--size-medium);
-    }
 }
 
 .button {
@@ -113,6 +94,7 @@
 .submitRow {
     display: flex;
     justify-content: flex-end;
+    padding-top: var(--size-small);
     width: 100%;
 }
 
@@ -144,35 +126,88 @@
     justify-content: center;
 }
 
+.cardHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    > button {
+        margin-bottom: var(--size-medium);
+    }
+}
+
+.headerContainer {
+    padding-top: var(--size-medium);
+    padding-right: var(--size-small);
+    padding-bottom: var(--size-small);
+
+    overflow: hidden;
+}
+
+.header {
+    display: block;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.headerActions {
+    align-items: center;
+    display: flex;
+    height: 21px;
+    justify-content: center;
+    margin-bottom: var(--size-medium);
+    padding-left: 86px;
+}
+
+.subheader {
+    display: block;
+    color: var(--color-gray-700);
+    font-weight: 400;
+    font-size: 12px;
+}
+
 .pillButton {
     align-items: center;
     justify-content: center;
     background: var(--color-gray-300);
-    border-radius: var(--size-large);
+    border-radius: var(--size-xSmall);
     border: none;
-    color: var(--text-primary-inverted);
     column-gap: var(--size-xxSmall);
     display: flex;
     font-size: 12px;
-    height: var(--size-medium) !important;
+    height: 30px !important;
     margin-right: var(--size-xSmall);
-    min-width: 80px;
+    min-width: 86px;
     padding: var(--size-xxSmall) var(--size-small);
-    transition: background 1.0s ease-in-out;
+    transition: background 0.1s ease-in-out;
 }
 
 .pillLoading {
     background: var(--color-brand-pastel-dark);
+    border: 1px solid var(--color-text-primary);
+    color: var(--color-text-primary);
 }
 
 .pillLive {
-    background: var(--color-green-500);
+    background: var(--color-green-100);
+    border: 1px solid var(--color-green-600);
+    color: var(--color-green-900);
+}
+
+.pillStatic {
+    background: var(--color-blue-100);
+    border: 1px solid var(--color-blue-600);
+    color: var(--color-blue-900);
 }
 
 .pillButtonText {
     opacity: 0;
     position: absolute;
-    transition: opacity 1.0s ease-in-out;
+    transition: opacity 0.1s ease-in-out;
 
     align-items: center;
     justify-content: center;

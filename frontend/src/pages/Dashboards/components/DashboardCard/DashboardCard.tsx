@@ -89,6 +89,7 @@ const DashboardCard = ({
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [updatingData, setUpdatingData] = useState<boolean>(true);
+    const [updatedAt, setUpdatedAt] = React.useState<moment.Moment>();
     const { project_id } = useParams<{ project_id: string }>();
     const {
         data: metricMonitors,
@@ -109,37 +110,42 @@ const DashboardCard = ({
                 className={styles.card}
                 title={
                     <div className={styles.cardHeader}>
-                        <h3
-                            style={{
-                                paddingTop: 'var(--size-medium)',
-                                paddingLeft: 'var(--size-small)',
-                                paddingRight: 'var(--size-small)',
-                            }}
-                        >
-                            {metricConfig.description ||
-                                metricConfig.name ||
-                                'New Chart'}
-                            {metricConfig.help_article && (
-                                <InfoTooltip
-                                    className={styles.infoTooltip}
-                                    title={
-                                        'Click to learn more about this metric.'
-                                    }
-                                    onClick={() => {
-                                        window.open(
-                                            metricConfig.help_article,
-                                            '_blank'
-                                        );
-                                    }}
-                                />
+                        <div className={styles.headerContainer}>
+                            <span className={styles.header}>
+                                {metricConfig.description ||
+                                    metricConfig.name ||
+                                    'New Chart'}
+                                {metricConfig.help_article && (
+                                    <InfoTooltip
+                                        className={styles.infoTooltip}
+                                        title={
+                                            'Click to learn more about this metric.'
+                                        }
+                                        onClick={() => {
+                                            window.open(
+                                                metricConfig.help_article,
+                                                '_blank'
+                                            );
+                                        }}
+                                    />
+                                )}
+                            </span>
+                            {/* TODO(vkorolik) use backend chart modified time */}
+                            {updatedAt && (
+                                <span className={styles.subheader}>
+                                    Updated {updatedAt.fromNow()}
+                                </span>
                             )}
-                        </h3>
+                        </div>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
                                 <button
                                     className={classNames(styles.pillButton, {
                                         [styles.pillLoading]: updatingData,
-                                        [styles.pillLive]: !updatingData,
+                                        [styles.pillLive]:
+                                            !customDateRange && !updatingData,
+                                        [styles.pillStatic]:
+                                            customDateRange && !updatingData,
                                     })}
                                 >
                                     <span
@@ -165,16 +171,28 @@ const DashboardCard = ({
                                         className={classNames(
                                             styles.pillButtonText,
                                             {
-                                                [styles.pillButtonTextVisible]: !updatingData,
+                                                [styles.pillButtonTextVisible]:
+                                                    !customDateRange &&
+                                                    !updatingData,
                                             }
                                         )}
                                     >
                                         <Checkmark
-                                            fill={
-                                                'var(--text-primary-inverted)'
-                                            }
+                                            fill={'var(--color-green-900)'}
                                         />{' '}
                                         Live
+                                    </span>
+                                    <span
+                                        className={classNames(
+                                            styles.pillButtonText,
+                                            {
+                                                [styles.pillButtonTextVisible]:
+                                                    customDateRange &&
+                                                    !updatingData,
+                                            }
+                                        )}
+                                    >
+                                        Absolute
                                     </span>
                                 </button>
                                 <div
@@ -296,7 +314,7 @@ const DashboardCard = ({
                             onCancel={() => {
                                 setShowDeleteModal(false);
                             }}
-                            title={`Delete '${metricConfig.name}' Metric?`}
+                            title={`Delete '${metricConfig.name}' Metric View?`}
                             width={400}
                         >
                             <ModalBody>
@@ -312,7 +330,7 @@ const DashboardCard = ({
                                         type="default"
                                         className={styles.button}
                                     >
-                                        Don't Delete Metric
+                                        Don't Delete View
                                     </Button>
                                     <Button
                                         trackingId="ConfirmDeleteDashboardMetric"
@@ -325,7 +343,7 @@ const DashboardCard = ({
                                             deleteMetric(metricIdx);
                                         }}
                                     >
-                                        Delete Metric
+                                        Delete Metric View
                                     </Button>
                                 </div>
                             </ModalBody>
@@ -351,6 +369,7 @@ const DashboardCard = ({
                     setShowDeleteModal={setShowDeleteModal}
                     setDateRange={setDateRange}
                     setUpdatingData={setUpdatingData}
+                    setUpdatedAt={setUpdatedAt}
                 />
             </Card>
         </>
@@ -661,11 +680,13 @@ const EditMetricModal = ({
         >
             <ModalBody>
                 <section className={dashStyles.section}>
+                    <MetricSelector
+                        onSelectMetric={setMetricName}
+                        currentMetric={metricName}
+                    />
+                </section>
+                <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <MetricSelector
-                            onSelectMetric={setMetricName}
-                            currentMetric={metricName}
-                        />
                         {chartType === DashboardChartType.Timeline ? (
                             <StandardDropdown
                                 data={Object.values(MetricAggregator).map(
@@ -869,6 +890,7 @@ const ChartContainer = React.memo(
         setShowDeleteModal,
         setDateRange,
         setUpdatingData,
+        setUpdatedAt,
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
@@ -888,6 +910,9 @@ const ChartContainer = React.memo(
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
         setDateRange: Props['setDateRange'];
         setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+        setUpdatedAt: React.Dispatch<
+            React.SetStateAction<moment.Moment | undefined>
+        >;
     }) => {
         const NUM_BUCKETS = 60;
         const TICK_EVERY_BUCKETS = 10;
@@ -1024,6 +1049,10 @@ const ChartContainer = React.memo(
         useEffect(() => {
             setUpdatingData(timelineLoading || histogramLoading);
         }, [setUpdatingData, timelineLoading, histogramLoading]);
+
+        useEffect(() => {
+            setUpdatedAt(moment());
+        }, [setUpdatedAt, timelineLoading, histogramLoading]);
 
         useEffect(() => {
             const dateRangeMins = moment
