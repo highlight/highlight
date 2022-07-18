@@ -702,6 +702,7 @@ type ComplexityRoot struct {
 		HasErrors                      func(childComplexity int) int
 		HasRageClicks                  func(childComplexity int) int
 		ID                             func(childComplexity int) int
+		Identified                     func(childComplexity int) int
 		Identifier                     func(childComplexity int) int
 		IsPublic                       func(childComplexity int) int
 		Language                       func(childComplexity int) int
@@ -5212,6 +5213,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.ID(childComplexity), true
 
+	case "Session.identified":
+		if e.complexity.Session.Identified == nil {
+			break
+		}
+
+		return e.complexity.Session.Identified(childComplexity), true
+
 	case "Session.identifier":
 		if e.complexity.Session.Identifier == nil {
 			break
@@ -6114,6 +6122,7 @@ type Session {
     client_config: String
     language: String!
     identifier: String!
+    identified: Boolean
     created_at: Timestamp
     length: Int
     active_length: Int
@@ -29342,6 +29351,38 @@ func (ec *executionContext) _Session_identifier(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_identified(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -42101,6 +42142,13 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "identified":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Session_identified(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		case "created_at":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Session_created_at(ctx, field, obj)

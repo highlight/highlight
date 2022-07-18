@@ -1,3 +1,4 @@
+import { Session } from '@graph/schemas';
 import { NetworkResourceWithID } from '@pages/Player/ResourcesContext/ResourcesContext';
 
 export enum SessionPageSearchParams {
@@ -58,4 +59,8 @@ export const getGraphQLResolverName = (
     }
 
     return null;
+};
+
+export const sessionIsBackfilled = (session?: Session) => {
+    return Boolean(session?.identifier) && session?.identified === false;
 };

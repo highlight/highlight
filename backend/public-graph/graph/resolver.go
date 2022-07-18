@@ -1304,6 +1304,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,
+		"identified":      session.Identified,
 	}
 	if session.Identifier != "" {
 		openSearchProperties["identifier"] = session.Identifier

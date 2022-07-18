@@ -191,6 +191,7 @@ query GetSession($secure_id: String!) {
         user_object
         user_properties
         identifier
+        identified
         starred
         enable_strict_privacy
         enable_recording_network_contents
@@ -561,6 +562,7 @@ query GetSessionsOpenSearch(
             client_id
             fingerprint
             identifier
+            identified
             os_name
             os_version
             browser_name
