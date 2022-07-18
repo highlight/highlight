@@ -16,9 +16,8 @@ $backfill-height: 30px;
 }
 
 .backfillContainer {
-    background-color: var(--color-purple);
+    background-color: var(--color-gray-600);
     border-radius: var(--border-radius) var(--border-radius) 0 0;
-    cursor: pointer;
     height: $backfill-height;
     left: 0;
     position: absolute;
@@ -45,8 +44,12 @@ $backfill-height: 30px;
     }
 }
 
-.backfillInfoIcon svg {
-    font-size: 14px;
+.backfillInfoIcon {
+    cursor: pointer;
+
+    svg {
+        font-size: 14px;
+    }
 }
 
 .avatar {

@@ -88,20 +88,21 @@ export const MetadataBox = React.memo(() => {
                         );
                     }}
                 >
-                    <Tooltip
-                        title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
-                        mouseEnterDelay={0}
-                    >
-                        <div className={styles.backfillContent}>
-                            <div className={styles.backfillUserIcon}>
-                                <UserCross />
-                            </div>
-                            <div>This session was not identified.</div>
+                    <div className={styles.backfillContent}>
+                        <div className={styles.backfillUserIcon}>
+                            <UserCross />
+                        </div>
+                        <div>This session was not identified.</div>
+                        <Tooltip
+                            placement="leftTop"
+                            title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
+                            mouseEnterDelay={0}
+                        >
                             <div className={styles.backfillInfoIcon}>
                                 <SvgInformationIcon />
                             </div>
-                        </div>
-                    </Tooltip>
+                        </Tooltip>
+                    </div>
                 </div>
             )}
             <div className={styles.userMainSection}>
