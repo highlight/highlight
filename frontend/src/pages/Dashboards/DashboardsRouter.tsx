@@ -31,6 +31,7 @@ const DashboardsRouter = () => {
     const history = useHistory<{ errorName: string }>();
 
     useEffect(() => {
+        // if no dashboards exist, create a web vitals dashboard by default
         if (!loading && !data?.dashboard_definitions?.length) {
             upsertDashboardMutation({
                 variables: {

@@ -17,31 +17,12 @@
     text-align: center;
 }
 
-.headerActions {
-    align-items: center;
-    display: flex;
-    height: 21px;
-    justify-content: center;
-    margin-bottom: var(--size-medium);
-}
-
 .draggable {
     align-items: center;
     color: var(--color-gray-500);
     cursor: move;
     display: flex;
     justify-content: center;
-}
-
-.cardHeader {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    overflow-x: hidden;
-
-    > button {
-        margin-bottom: var(--size-medium);
-    }
 }
 
 .button {
@@ -72,11 +53,12 @@
 }
 
 .chartButtons {
+    align-items: center;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
-    width: 275px;
+    width: 300px;
 
     button {
         height: var(--size-xLarge);
@@ -112,6 +94,7 @@
 .submitRow {
     display: flex;
     justify-content: flex-end;
+    padding-top: var(--size-small);
     width: 100%;
 }
 
@@ -141,4 +124,51 @@
     align-items: center;
     display: flex;
     justify-content: center;
+}
+
+.cardHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    > button {
+        margin-bottom: var(--size-medium);
+    }
+}
+
+.headerContainer {
+    overflow: hidden;
+    padding-bottom: var(--size-small);
+    padding-right: var(--size-small);
+    padding-top: var(--size-medium);
+}
+
+.header {
+    color: var(--color-text-primary);
+    display: block;
+    font-size: 16px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.headerActions {
+    align-items: center;
+    display: flex;
+    height: 21px;
+    justify-content: center;
+    margin-bottom: var(--size-medium);
+    padding-left: 86px;
+}
+
+.subheader {
+    color: var(--color-gray-700);
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.blurChart {
+    filter: blur(2px);
 }

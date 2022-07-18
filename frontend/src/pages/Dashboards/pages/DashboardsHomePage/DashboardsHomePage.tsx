@@ -1,5 +1,4 @@
 import Card from '@components/Card/Card';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
@@ -28,9 +27,7 @@ const DashboardsHomePage = () => {
                     Dashboards allow you to visualize what's happening in your
                     app.
                 </p>
-                <HighlightGate>
-                    <CreateDashboardModal />
-                </HighlightGate>
+                <CreateDashboardModal />
             </div>
 
             <Card noPadding>
