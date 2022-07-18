@@ -336,7 +336,6 @@ const DashboardCard = ({
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
                     setDateRange={setDateRange}
-                    updatingData={updatingData}
                     setUpdatingData={setUpdatingData}
                 />
             </Card>
@@ -857,7 +856,6 @@ const ChartContainer = React.memo(
         setShowEditModal,
         setShowDeleteModal,
         setDateRange,
-        updatingData,
         setUpdatingData,
     }: {
         metricIdx: number;
@@ -877,7 +875,6 @@ const ChartContainer = React.memo(
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
         setDateRange: Props['setDateRange'];
-        updatingData: boolean;
         setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
         const NUM_BUCKETS = 60;
@@ -1083,7 +1080,11 @@ const ChartContainer = React.memo(
         }
 
         return (
-            <div className={classNames({ [styles.blurChart]: updatingData })}>
+            <div
+                className={classNames({
+                    [styles.blurChart]: timelineLoading || histogramLoading,
+                })}
+            >
                 <EditMetricModal
                     shown={showEditModal}
                     onCancel={() => {
@@ -1220,8 +1221,7 @@ const ChartContainer = React.memo(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
         ) &&
-        _.isEqual(prevProps.dateRange, nextProps.dateRange) &&
-        prevProps.updatingData != nextProps.updatingData
+        _.isEqual(prevProps.dateRange, nextProps.dateRange)
 );
 
 export default DashboardCard;
