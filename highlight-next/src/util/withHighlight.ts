@@ -57,13 +57,14 @@ export const Highlight =
                 // the error as already having been captured.)
                 throw e;
             } finally {
-                const delta = new Date().getTime() - start.getTime();
+                // convert ms to ns
+                const delta = (new Date().getTime() - start.getTime()) * 1000000.;
                 const { secureSessionId, requestId } =
                     processHighlightHeaders();
                 if (secureSessionId) {
                     H.recordMetric(
                         secureSessionId,
-                        'Latency',
+                        'latency',
                         delta,
                         requestId
                     );
