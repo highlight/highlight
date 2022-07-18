@@ -1017,15 +1017,8 @@ const ChartContainer = React.memo(
         }, [setUpdatingData, timelineLoading, histogramLoading]);
 
         useEffect(() => {
-            const dateRangeMins = moment
-                .duration(
-                    moment(dateRange.end_date).diff(
-                        moment(dateRange.start_date)
-                    )
-                )
-                .asMinutes();
             // build out the ticks array based on data and lookbackMinutes
-            const tickFormat = dateRangeMins > 24 * 60 ? 'D MMM' : 'HH:mm';
+            const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
             const ticks: string[] = [];
             const seenDays: Set<string> = new Set<string>();
             let lastDate: moment.Moment | undefined = undefined;
@@ -1036,7 +1029,7 @@ const ChartContainer = React.memo(
                     if (
                         lastDate &&
                         newDate.diff(lastDate, 'minutes') <
-                            (dateRangeMins / NUM_BUCKETS) * TICK_EVERY_BUCKETS
+                            (lookbackMinutes / NUM_BUCKETS) * TICK_EVERY_BUCKETS
                     ) {
                         continue;
                     }
