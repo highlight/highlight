@@ -53,9 +53,9 @@
 }
 
 .chartButtons {
+    align-items: center;
     display: flex;
     justify-content: flex-end;
-    align-items: center;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
     width: 300px;
@@ -137,18 +137,17 @@
 }
 
 .headerContainer {
-    padding-top: var(--size-medium);
-    padding-right: var(--size-small);
-    padding-bottom: var(--size-small);
-
     overflow: hidden;
+    padding-bottom: var(--size-small);
+    padding-right: var(--size-small);
+    padding-top: var(--size-medium);
 }
 
 .header {
-    display: block;
     color: var(--color-text-primary);
-    font-weight: 500;
+    display: block;
     font-size: 16px;
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -164,22 +163,22 @@
 }
 
 .subheader {
-    display: block;
     color: var(--color-gray-700);
-    font-weight: 400;
+    display: block;
     font-size: 12px;
+    font-weight: 400;
 }
 
 .pillButton {
     align-items: center;
-    justify-content: center;
     background: var(--color-gray-300);
+    border: 0;
     border-radius: var(--size-xSmall);
-    border: none;
     column-gap: var(--size-xxSmall);
     display: flex;
     font-size: 12px;
     height: 30px !important;
+    justify-content: center;
     margin-right: var(--size-xSmall);
     min-width: 86px;
     padding: var(--size-xxSmall) var(--size-small);
@@ -205,14 +204,13 @@
 }
 
 .pillButtonText {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    justify-content: center;
     opacity: 0;
     position: absolute;
     transition: opacity 0.1s ease-in-out;
-
-    align-items: center;
-    justify-content: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
 }
 
 .pillButtonTextVisible {
