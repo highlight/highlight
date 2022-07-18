@@ -3,6 +3,7 @@ package parse
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -284,6 +285,7 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 		return lo.Entry[string, model.SavedAsset]{Key: asset.OriginalUrl, Value: asset}
 	}))
 
+	var newResults []model.SavedAsset
 	replacements = map[string]string{}
 	for _, url := range deduped {
 		var hashVal string
@@ -291,30 +293,48 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 		if ok {
 			hashVal = result.HashVal
 		} else {
-			log.Info("get!")
 			response, err := http.Get(url)
-			log.Info("got!")
 			if err != nil {
 				hashVal = ErrFailedToFetch
 			} else if response.ContentLength > 30e6 {
 				hashVal = ErrAssetTooLarge
 			} else {
+				res, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to read response body")
+				}
+
+				r := bytes.NewReader(res)
 				hasher := sha256.New()
-				pr, pw := io.Pipe()
-				log.Info("hello!")
-				tr := io.TeeReader(response.Body, pw)
-				log.Info("hello2!")
-				if _, err := io.Copy(hasher, tr); err != nil {
-					log.Info("goodbye :(")
+				if _, err := io.Copy(hasher, r); err != nil {
 					return nil, errors.Wrap(err, "error hashing response body")
 				}
-				log.Info("hello3!")
-				hashVal = string(hasher.Sum(nil))
+
+				_, err = r.Seek(0, 0)
+				if err != nil {
+					return nil, errors.Wrap(err, "error seeking to beginning of reader")
+				}
+				hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+				hashVal = strings.ReplaceAll(hashVal, "/", "-")
+				hashVal = strings.ReplaceAll(hashVal, "+", "_")
+				hashVal = strings.ReplaceAll(hashVal, "=", "~")
 				contentType := response.Header.Get("Content-Type")
-				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, contentType, pr)
+				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
 				if err != nil {
 					return nil, errors.Wrap(err, "error uploading asset")
 				}
+				newResults = append(newResults, model.SavedAsset{
+					ProjectID:   projectId,
+					OriginalUrl: url,
+					Date:        dateTrunc,
+					HashVal:     hashVal,
+				})
+			}
+		}
+
+		if len(newResults) != 0 {
+			if err := db.Create(&newResults).Error; err != nil {
+				return nil, errors.Wrap(err, "error saving asset metadata")
 			}
 		}
 
